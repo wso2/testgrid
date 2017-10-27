@@ -26,10 +26,10 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>automation</artifactId>
+    <artifactId>org.wso2.carbon.testgrid.automation</artifactId>
     <name>WSO2 TestGrid Framework - Automation POM</name>
     <url>http://wso2.org</url>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <build>
         <plugins>

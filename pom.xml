@@ -34,6 +34,7 @@
 
     <modules>
         <module>automation</module>
+        <module>common</module>
         <module>deployment</module>
         <module>executor</module>
         <module>infrastructure</module>
@@ -176,7 +177,7 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Automation Framework version-->
+            <!-- Automation Framework dependencies-->
             <dependency>
                 <groupId>org.wso2.carbon.automation</groupId>
                 <artifactId>org.wso2.carbon.automation.engine</artifactId>
@@ -192,12 +193,38 @@
                 <artifactId>org.wso2.carbon.automation.test.utils</artifactId>
                 <version>${test.framework.version}</version>
             </dependency>
+
+            <!-- Jackson yaml dependencies-->
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
+                <version>${jackson.yaml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.data-bind.version}</version>
+            </dependency>
+
+            <!-- Apache commons dependencies-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${apache.commons.lang.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <properties>
         <!-- Automation Framework version-->
         <test.framework.version>4.4.2</test.framework.version>
+        <!-- Jackson versions-->
+        <jackson.yaml.version>2.3.0</jackson.yaml.version>
+        <jackson.data-bind.version>2.2.3</jackson.data-bind.version>
+        <!-- Automation Framework version-->
+        <test.framework.version>4.4.2</test.framework.version>
+        <!-- Apache commons dependencies-->
+        <apache.commons.lang.version>3.4</apache.commons.lang.version>
         <project.scm.id>scm-server</project.scm.id>
         <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
