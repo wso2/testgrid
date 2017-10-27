@@ -26,9 +26,8 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.wso2.carbon.testgrid</groupId>
-    <artifactId>testgrid-common</artifactId>
-    <name>WSO2 TestGrid Framework - Common POM</name>
+    <artifactId>deployment</artifactId>
+    <name>WSO2 TestGrid Framework - Deployment POM</name>
     <url>http://wso2.org</url>
     <packaging>pom</packaging>
 
