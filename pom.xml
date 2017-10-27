@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.testgrid</groupId>
     <artifactId>carbon-testgrid-framework</artifactId>
-    <version>${testgrid.framework.version}</version>
+    <version>0.9.0-SNAPSHOT</version>
     <name>WSO2 TestGrid Framework - Aggregator POM</name>
     <url>http://wso2.org</url>
     <packaging>pom</packaging>
@@ -56,25 +56,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.2</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <preparationGoals>clean install</preparationGoals>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -96,11 +85,11 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>2.3.1</version>
+                    <version>2.3.2</version>
                     <inherited>true</inherited>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>${wso2.maven.compiler.source}</source>
+                        <target>${wso2.maven.compiler.target}</target>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -210,7 +199,8 @@
     <properties>
         <!-- Automation Framework version-->
         <test.framework.version>4.4.2</test.framework.version>
-        <testgrid.framework.version>0.9.0-SNAPSHOT</testgrid.framework.version>
         <project.scm.id>scm-server</project.scm.id>
+        <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
+        <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
     </properties>
 </project>
