@@ -26,11 +26,10 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.wso2.carbon.testgrid</groupId>
-    <artifactId>utils</artifactId>
+    <artifactId>org.wso2.carbon.testgrid.utils</artifactId>
     <name>WSO2 TestGrid Framework - Utils POM</name>
     <url>http://wso2.org</url>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <build>
         <plugins>
