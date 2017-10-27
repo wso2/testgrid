@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.jacoco:org.jacoco.ant:0.7.6.201602180812">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/jacoco/org.jacoco.ant/0.7.6.201602180812/org.jacoco.ant-0.7.6.201602180812.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/jacoco/org.jacoco.ant/0.7.6.201602180812/org.jacoco.ant-0.7.6.201602180812-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/jacoco/org.jacoco.ant/0.7.6.201602180812/org.jacoco.ant-0.7.6.201602180812-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

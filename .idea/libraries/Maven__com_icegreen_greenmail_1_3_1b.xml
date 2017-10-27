@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.icegreen:greenmail:1.3.1b">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/icegreen/greenmail/1.3.1b/greenmail-1.3.1b.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/icegreen/greenmail/1.3.1b/greenmail-1.3.1b-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/icegreen/greenmail/1.3.1b/greenmail-1.3.1b-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

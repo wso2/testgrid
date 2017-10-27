@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: br.eti.kinoshita:testlink-java-api:1.9.14-0">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/br/eti/kinoshita/testlink-java-api/1.9.14-0/testlink-java-api-1.9.14-0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/br/eti/kinoshita/testlink-java-api/1.9.14-0/testlink-java-api-1.9.14-0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/br/eti/kinoshita/testlink-java-api/1.9.14-0/testlink-java-api-1.9.14-0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

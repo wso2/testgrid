@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: logkit:logkit:2.0">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/logkit/logkit/2.0/logkit-2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/logkit/logkit/2.0/logkit-2.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/logkit/logkit/2.0/logkit-2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
