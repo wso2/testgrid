@@ -111,5 +111,9 @@
             <groupId>br.eti.kinoshita</groupId>
             <artifactId>testlink-java-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.common</artifactId>
+        </dependency>
     </dependencies>
 </project>

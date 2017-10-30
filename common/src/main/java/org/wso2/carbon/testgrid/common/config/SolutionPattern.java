@@ -27,6 +27,7 @@ public class SolutionPattern {
 
     private String name;
     private boolean enabled;
+    private boolean isSetupRequired;
     private String infraProvider;//ex. AWS, OpenStack, GCC
     private String instanceType; //ex. EC2, ECS, K8S
     private String automationEngine; //ex. puppet, Ansible
@@ -61,6 +62,14 @@ public class SolutionPattern {
         return instanceType;
     }
 
+    public boolean isSetupRequired() {
+        return isSetupRequired;
+    }
+
+    public void setSetupRequired(boolean setupRequired) {
+        isSetupRequired = setupRequired;
+    }
+
     public void setInstanceType(String instanceType) {
         this.instanceType = instanceType;
     }
@@ -88,4 +97,5 @@ public class SolutionPattern {
     public void setAutomationEngine(String automationEngine) {
         this.automationEngine = automationEngine;
     }
+
 }

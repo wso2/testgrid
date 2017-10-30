@@ -36,7 +36,7 @@
         <module>automation</module>
         <module>common</module>
         <module>deployment</module>
-        <module>executor</module>
+        <module>core</module>
         <module>infrastructure</module>
         <module>reporting</module>
         <module>utils</module>
@@ -311,12 +311,22 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>${apache.commons.lang.version}</version>
             </dependency>
+
+            <!--TestGrid Dependencies-->
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.common</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <properties>
         <!-- Automation Framework version-->
         <test.framework.version>4.4.2</test.framework.version>
+
+        <!-- TestGrid version-->
+        <test.grid.version>0.9.0-SNAPSHOT</test.grid.version>
         <!-- Jackson versions-->
         <jackson.yaml.version>2.3.0</jackson.yaml.version>
         <jackson.data-bind.version>2.2.3</jackson.data-bind.version>
