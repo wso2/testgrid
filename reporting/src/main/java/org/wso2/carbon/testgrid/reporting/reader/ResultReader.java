@@ -15,26 +15,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.testgrid.reporting;
+package org.wso2.carbon.testgrid.reporting.reader;
 
-import org.wso2.carbon.testgrid.common.TestReport;
-import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.reporting.ReportingException;
+
+import java.nio.file.Path;
+import java.util.List;
 
 /**
- * This class is responsible for generating the test reports.
+ * Interface for reading a generated result set from a test suite.
  *
  * @since 1.0.0
  */
-public class TestReportEngine {
+public interface ResultReader {
 
     /**
-     * Generates a test report based on a given test scenario.
+     * Reads the given result file and produces a result set based on the given type.
      *
-     * @param scenario scenario for which the test report should be generated
-     * @return generated test report
-     * @throws ReportingException thrown when an error occurs in generating the test report
+     * @param path path of the result file
+     * @param type type of the result
+     * @param <T>  type of the result
+     * @return returns
+     * @throws ReportingException thrown when an error occurs in reading the results file
      */
-    public TestReport generateReport(TestScenario scenario) throws ReportingException {
-        return null;
-    }
+    <T> List<T> readFile(Path path, Class<T> type) throws ReportingException;
 }
