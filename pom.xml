@@ -316,7 +316,7 @@
 
     <properties>
         <!-- Automation Framework version-->
-        <test.framework.version>4.4.2</test.framework.version>
+        <test.framework.version>4.4.3-SNAPSHOT</test.framework.version>
         <!-- Jackson versions-->
         <jackson.yaml.version>2.3.0</jackson.yaml.version>
         <jackson.data-bind.version>2.2.3</jackson.data-bind.version>

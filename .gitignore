@@ -28,3 +28,12 @@ hs_err_pid*
 
 # target
 *target*
+
+target
+.classpath
+.settings
+.project
+*.iml
+*.iws
+*.ipr
+.idea

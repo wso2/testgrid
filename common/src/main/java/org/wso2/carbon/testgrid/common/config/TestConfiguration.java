@@ -28,6 +28,7 @@ public class TestConfiguration {
     private List<SolutionPattern> patterns;
     private String testGitRepo;
     private String infraGitRepo;
+    private String testType;
 
     public List<SolutionPattern> getPatterns() {
         return patterns;
@@ -51,5 +52,13 @@ public class TestConfiguration {
 
     public void setInfraGitRepo(String infraGitRepo) {
         this.infraGitRepo = infraGitRepo;
+    }
+
+    public String getTestType() {
+        return testType;
+    }
+
+    public void setTestType(String testType) {
+        this.testType = testType;
     }
 }
