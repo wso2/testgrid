@@ -16,29 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.common.config;
+package org.wso2.carbon.testgrid.core;
 
 /**
- * This class holds the credentials required to access the instances in the solution pattern.
+ * Represents the custom exception class to hold exceptions related to scenario execution.
  */
-public class Credentials {
+public class ScenarioExecutorException extends Exception {
 
-    private String username;
-    private String password;
+    private static final long serialVersionUID = -3151279511329070297L;
 
-    public String getUsername() {
-        return username;
+    public ScenarioExecutorException(String msg, Exception nestedEx) {
+        super(msg, nestedEx);
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public ScenarioExecutorException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public String getPassword() {
-        return password;
+    public ScenarioExecutorException(String msg) {
+        super(msg);
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public ScenarioExecutorException() {
+        super();
+    }
+
+    public ScenarioExecutorException(Throwable cause) {
+        super(cause);
     }
 }

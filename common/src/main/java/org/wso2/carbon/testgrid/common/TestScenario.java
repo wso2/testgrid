@@ -19,7 +19,124 @@
 package org.wso2.carbon.testgrid.common;
 
 /**
- * Created by harshan on 10/30/17.
+ * This is the test model for a single SolutionPattern.
  */
 public class TestScenario {
+
+    public enum TestScenarioStatus {
+        EXECUTION_PLANNED, INFRASTRUCTURE_PREPARATION, DEPLOYMENT_PREPARATION, TEST_EXECUTION, REPORT_GENERATION,
+        EXECUTION_COMPLETED
+    }
+
+    public enum InfrastructureType {
+        AWS, GCC, OPENSTACK
+    }
+
+    public enum ScriptType {
+        EC2, ECS, K8S, CLOUD_FORMATION
+    }
+
+    public enum DeployerType {
+        PUPPET, ANSIBLE, CHEF
+    }
+
+    private boolean isEnabled;
+    private int id;
+    private String solutionPattern;
+    private Deployment deployment;
+    private TestReport report;
+    private String tempLocation;
+    private String scenarioLocation;
+    private InfrastructureType infrastructureType;
+    private ScriptType scriptType;
+    private DeployerType deployerType;
+    private TestScenarioStatus status;
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        isEnabled = enabled;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getSolutionPattern() {
+        return solutionPattern;
+    }
+
+    public void setSolutionPattern(String solutionPattern) {
+        this.solutionPattern = solutionPattern;
+    }
+
+    public Deployment getDeployment() {
+        return deployment;
+    }
+
+    public void setDeployment(Deployment deployment) {
+        this.deployment = deployment;
+    }
+
+    public String getTempLocation() {
+        return tempLocation;
+    }
+
+    public void setTempLocation(String tempLocation) {
+        this.tempLocation = tempLocation;
+    }
+
+    public TestReport getReport() {
+        return report;
+    }
+
+    public void setReport(TestReport report) {
+        this.report = report;
+    }
+
+    public TestScenarioStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TestScenarioStatus status) {
+        this.status = status;
+    }
+
+    public InfrastructureType getInfrastructureType() {
+        return infrastructureType;
+    }
+
+    public void setInfrastructureType(InfrastructureType infrastructureType) {
+        this.infrastructureType = infrastructureType;
+    }
+
+    public ScriptType getScriptType() {
+        return scriptType;
+    }
+
+    public void setScriptType(ScriptType scriptType) {
+        this.scriptType = scriptType;
+    }
+
+    public DeployerType getDeployerType() {
+        return deployerType;
+    }
+
+    public void setDeployerType(DeployerType deployerType) {
+        this.deployerType = deployerType;
+    }
+
+    public String getScenarioLocation() {
+        return scenarioLocation;
+    }
+
+    public void setScenarioLocation(String scenarioLocation) {
+        this.scenarioLocation = scenarioLocation;
+    }
 }

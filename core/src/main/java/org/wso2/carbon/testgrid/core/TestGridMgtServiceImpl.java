@@ -18,59 +18,64 @@
 
 package org.wso2.carbon.testgrid.core;
 
-import org.wso2.carbon.testgrid.automation.TestEngine;
-import org.wso2.carbon.testgrid.automation.TestEngineException;
-import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.common.TestScenarioStatus;
 import org.wso2.carbon.testgrid.common.config.SolutionPattern;
 import org.wso2.carbon.testgrid.common.config.TestConfiguration;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
-import org.wso2.carbon.testgrid.deployment.DeployerService;
-import org.wso2.carbon.testgrid.deployment.TestGridDeployerException;
-import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderService;
-import org.wso2.carbon.testgrid.infrastructure.TestGridInfrastructureException;
-import org.wso2.carbon.testgrid.reporting.TestReportEngine;
-import org.wso2.carbon.testgrid.reporting.TestReportingException;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
- * Created by harshan on 10/30/17.
+ * This is the main entry point of the TestGrid Framework.
  */
 public class TestGridMgtServiceImpl implements TestGridMgtService {
 
     @Override
-    public TestScenario addTest(TestConfiguration testConfiguration) throws TestGridException {
+    public TestPlan addTestPlan(TestConfiguration testConfiguration) throws TestGridException {
+        if (testConfiguration != null) {
+            Long timeStamp = new Date().getTime();
+            String path = TestGridUtil.createTestDirectory(testConfiguration, timeStamp);
+            if (path != null) {
+                TestPlan testPlan = new TestPlan();
+                testPlan.setHome(path);
+                testPlan.setCreatedTimeStamp(timeStamp);
+                //Clone Test Repo
+                String repoLocation = TestGridUtil.cloneRepository(testConfiguration.getTestGitRepo(), path);
+                List<TestScenario> scenarioList = new ArrayList<>();
+                TestScenario testScenario;
+                for (SolutionPattern pattern : testConfiguration.getSolutionPatterns()) {
+                    if (pattern.isEnabled()) {
+                        testScenario = new TestScenario();
+                        testScenario.setEnabled(true);
+                        //testScenario.setDeployerType(pattern.getAutomationEngine());
+                        //testScenario.setInfrastructureType(pattern.getInfraProvider());
+                        //testScenario.setScriptType(pattern.getScriptType());
+                        testScenario.setSolutionPattern(pattern.getName());
+                        testScenario.setStatus(TestScenario.TestScenarioStatus.EXECUTION_PLANNED);
+                        testScenario.setTempLocation(path);
+                        testScenario.setScenarioLocation(repoLocation + File.separator + pattern.getName());
+                        scenarioList.add(testScenario);
+                    }
+                }
+                testPlan.setTestScenarios(scenarioList);
+                return testPlan;
+            }
+        }
         return null;
     }
 
     @Override
-    public boolean executeTest(TestConfiguration testConfiguration) throws TestGridException {
-        for (SolutionPattern solutionPattern : testConfiguration.getPatterns()) {
-            if (solutionPattern.isEnabled()) {
-                //Construct a TestScenario using the SolutionPattern
-                TestScenario testScenario = new TestScenario();
+    public boolean executeTestPlan(TestPlan testPlan) throws TestGridException {
+        for (TestScenario testScenario : testPlan.getTestScenarios()) {
+            if (testScenario.isEnabled()) {
                 try {
-                    //Setup infrastructure
-                    Deployment deployment = new InfrastructureProviderService().createTestEnvironment(testScenario);
-                    //Trigger deployment
-                    boolean status = new DeployerService().deploy(deployment);
-                    if (status) {
-                        //Run Tests
-                        try {
-                            new TestEngine().runScenario(testScenario);
-                        } catch (TestEngineException e) {
-                            e.printStackTrace();
-                        }
-                        //Generate Reports
-                        try {
-                            new TestReportEngine().generateReport(testScenario);
-                        } catch (TestReportingException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } catch (TestGridInfrastructureException e) {
-                    e.printStackTrace();
-                } catch (TestGridDeployerException e) {
+                    //Run the ScenarioExecutor
+                    new ScenarioExecutor().runScenario(testScenario);
+                } catch (ScenarioExecutorException e) {
                     e.printStackTrace();
                 }
             }
@@ -79,12 +84,12 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     }
 
     @Override
-    public boolean abortTest(TestScenario scenario) throws TestGridException {
+    public boolean abortTestPlan(TestPlan testPlan) throws TestGridException {
         return false;
     }
 
     @Override
-    public TestScenarioStatus getStatus(TestScenario scenario) throws TestGridException {
+    public TestScenario.TestScenarioStatus getStatus(TestPlan testPlan) throws TestGridException {
         return null;
     }
 }

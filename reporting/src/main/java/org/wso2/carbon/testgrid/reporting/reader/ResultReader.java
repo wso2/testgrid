@@ -15,41 +15,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.wso2.carbon.testgrid.reporting.reader;
 
-package org.wso2.carbon.testgrid.common;
+import org.wso2.carbon.testgrid.reporting.ReportingException;
 
+import java.nio.file.Path;
 import java.util.List;
 
 /**
- *  Defines a model object for a created HOST.
+ * Interface for reading a generated result set from a test suite.
+ *
+ * @since 1.0.0
  */
-public class Host {
+public interface ResultReader {
 
-    private String ip;
-    private String label;
-    private List<Port> ports;
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public List<Port> getPorts() {
-        return ports;
-    }
-
-    public void setPorts(List<Port> ports) {
-        this.ports = ports;
-    }
+    /**
+     * Reads the given result file and produces a result set based on the given type.
+     *
+     * @param path path of the result file
+     * @param type type of the result
+     * @param <T>  type of the result
+     * @return returns
+     * @throws ReportingException thrown when an error occurs in reading the results file
+     */
+    <T extends TestResult> List<T> readFile(Path path, Class<T> type) throws ReportingException;
 }

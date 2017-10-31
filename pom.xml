@@ -40,7 +40,7 @@
         <module>infrastructure</module>
         <module>reporting</module>
         <module>utils</module>
-        <module>web</module>
+        <!--<module>api</module>-->
     </modules>
 
     <scm>
@@ -96,6 +96,13 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
                     <version>2.2</version>
+                </plugin>
+
+                <!-- Maven Assembly Plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>2.4.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -295,11 +302,7 @@
             </dependency>
 
             <!-- Jackson yaml dependencies-->
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>${jackson.yaml.version}</version>
-            </dependency>
+
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
@@ -318,6 +321,36 @@
                 <artifactId>org.wso2.carbon.testgrid.common</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.core</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.automation</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.deployment</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.infrastruture</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.reporting</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.utils</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -329,7 +362,7 @@
         <test.grid.version>0.9.0-SNAPSHOT</test.grid.version>
         <!-- Jackson versions-->
         <jackson.yaml.version>2.3.0</jackson.yaml.version>
-        <jackson.data-bind.version>2.2.3</jackson.data-bind.version>
+        <jackson.data-bind.version>2.6.3</jackson.data-bind.version>
         <!-- Automation Framework version-->
         <test.framework.version>4.4.2</test.framework.version>
         <!-- Apache commons dependencies-->

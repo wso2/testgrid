@@ -19,7 +19,26 @@
 package org.wso2.carbon.testgrid.common;
 
 /**
- * Created by harshan on 10/30/17.
+ *  Defines a model object for the exposed Ports of the created host.
  */
-public class TestScenarioStatus {
+public class Port {
+
+    private String label;
+    private int portNumber;
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public int getPortNumber() {
+        return portNumber;
+    }
+
+    public void setPortNumber(int portNumber) {
+        this.portNumber = portNumber;
+    }
 }

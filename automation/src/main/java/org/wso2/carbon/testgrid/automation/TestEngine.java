@@ -19,7 +19,6 @@
 package org.wso2.carbon.testgrid.automation;
 
 import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.common.TestScenarioStatus;
 
 /**
  * Created by harshan on 10/30/17.
@@ -36,9 +35,5 @@ public class TestEngine {
 
     public boolean abortScenario(TestScenario scenario) throws TestEngineException {
         return false;
-    }
-
-    public TestScenarioStatus getStatus(TestScenario scenario) throws TestEngineException {
-        return null;
     }
 }

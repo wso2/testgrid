@@ -34,7 +34,6 @@ public class GitRepositoryUtil {
     public static boolean gitCloneRepository(String repositoryUrl, String localDirectory) throws GitAPIException {
 
         File dirLocation = new File(localDirectory);
-
         if (dirLocation.exists()) {
             try {
                 FileUtils.forceDelete(dirLocation);
