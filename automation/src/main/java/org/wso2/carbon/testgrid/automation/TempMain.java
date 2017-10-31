@@ -1,8 +1,11 @@
 package org.wso2.carbon.testgrid.automation;
 
 import org.wso2.carbon.testgrid.automation.core.TestManager;
+import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
+import org.wso2.carbon.testgrid.automation.exceptions.TestManagerException;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Host;
+import org.wso2.carbon.testgrid.common.Port;
 import org.wso2.carbon.testgrid.common.config.SolutionPattern;
 import org.wso2.carbon.testgrid.common.config.TestConfiguration;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
@@ -40,15 +43,13 @@ public class TempMain {
 
         Host host1 = new Host();
         host1.setIp("localhost");
-        host1.setLabel("mysql-userdb");
-        host1.setPorts(Arrays.asList(9443));
+        host1.setLabel("server_host");
 
-        Host host2 = new Host();
-        host2.setIp("localhost");
-        host2.setLabel("wso2is-default");
-        host2.setPorts(Arrays.asList(9443));
-
-        deployment.setHosts(Arrays.asList(host1,host2));
+        Port port = new Port();
+        port.setLabel("server_port");
+        port.setPortNumber(9443);
+        host1.setPorts(Arrays.asList(port));
+        deployment.setHosts(Arrays.asList(host1));
 
         //------------------end of dummy config--------------------//
 

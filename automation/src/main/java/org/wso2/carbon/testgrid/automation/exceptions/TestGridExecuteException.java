@@ -15,18 +15,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-package org.wso2.carbon.testgrid.automation.beans;
-
-import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
-import org.wso2.carbon.testgrid.common.Deployment;
+package org.wso2.carbon.testgrid.automation.exceptions;
 
 /**
- * This is the bean class for TestNG tests.
+ * Exceptions occuring form the TestGrid execution.
  */
-public class TestNGTest extends Test {
-    @Override
-    public void execute(String testLocation, Deployment deployment) throws TestGridExecuteException {
+public class TestGridExecuteException extends Exception {
+    private static final long serialVersionUID = -3155676311329070297L;
 
+    public TestGridExecuteException(String msg, Exception nestedEx) {
+        super(msg, nestedEx);
+    }
+
+    public TestGridExecuteException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public TestGridExecuteException(String msg) {
+        super(msg);
+    }
+
+    public TestGridExecuteException() {
+        super();
+    }
+
+    public TestGridExecuteException(Throwable cause) {
+        super(cause);
     }
 }

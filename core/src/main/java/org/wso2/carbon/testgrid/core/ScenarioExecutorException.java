@@ -19,7 +19,7 @@
 package org.wso2.carbon.testgrid.core;
 
 /**
- * Represents the custom exception class to hold exceptions related to scenario execution.
+ * Represents the custom exceptions class to hold exceptions related to scenario execution.
  */
 public class ScenarioExecutorException extends Exception {
 

@@ -16,17 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.automation.beans;
-
-import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
-import org.wso2.carbon.testgrid.common.Deployment;
+package org.wso2.carbon.testgrid.automation.exceptions;
 
 /**
- * This is the bean class for TestNG tests.
+ * Exceptions occuring from the Test Engine
  */
-public class TestNGTest extends Test {
-    @Override
-    public void execute(String testLocation, Deployment deployment) throws TestGridExecuteException {
+public class TestEngineException extends Exception {
 
+    private static final long serialVersionUID = -3151276311329070297L;
+
+    public TestEngineException(String msg, Exception nestedEx) {
+        super(msg, nestedEx);
+    }
+
+    public TestEngineException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public TestEngineException(String msg) {
+        super(msg);
+    }
+
+    public TestEngineException() {
+        super();
+    }
+
+    public TestEngineException(Throwable cause) {
+        super(cause);
     }
 }

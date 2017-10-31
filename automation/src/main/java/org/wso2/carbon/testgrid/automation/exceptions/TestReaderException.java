@@ -16,32 +16,28 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.automation;
+package org.wso2.carbon.testgrid.automation.exceptions;
 
-/**
- * Created by harshan on 10/30/17.
- */
-public class TestEngineException extends Exception {
+public class TestReaderException extends Exception{
+    private static final long serialVersionUID = -983759829389291739L;
 
-    private static final long serialVersionUID = -3151276311329070297L;
-
-    public TestEngineException(String msg, Exception nestedEx) {
+    public TestReaderException(String msg, Exception nestedEx) {
         super(msg, nestedEx);
     }
 
-    public TestEngineException(String message, Throwable cause) {
+    public TestReaderException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public TestEngineException(String msg) {
+    public TestReaderException(String msg) {
         super(msg);
     }
 
-    public TestEngineException() {
+    public TestReaderException() {
         super();
     }
 
-    public TestEngineException(Throwable cause) {
+    public TestReaderException(Throwable cause) {
         super(cause);
     }
 }

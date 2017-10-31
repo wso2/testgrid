@@ -19,7 +19,7 @@
 package org.wso2.carbon.testgrid.core;
 
 import org.wso2.carbon.testgrid.automation.TestEngine;
-import org.wso2.carbon.testgrid.automation.TestEngineException;
+import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestScenario;
 import org.wso2.carbon.testgrid.common.TestScenarioStatus;

@@ -42,22 +42,7 @@
 
     <dependencies>
         <!-- Automation Framework version-->
-        <dependency>
-            <groupId>org.wso2.carbon.automation</groupId>
-            <artifactId>org.wso2.carbon.automation.engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.automation</groupId>
-            <artifactId>org.wso2.carbon.automation.extensions</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.automation</groupId>
-            <artifactId>org.wso2.carbon.automation.test.utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.json-simple.wso2</groupId>
-            <artifactId>json-simple</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -73,10 +58,6 @@
         <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.orbit.org.yaml</groupId>
