@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.testgrid.common.config;
 
-import java.util.Map;
-
 /**
  * Defines the configuration of a single solution pattern.
  */
@@ -27,12 +25,11 @@ public class SolutionPattern {
 
     private String name;
     private boolean enabled;
-    private boolean isSetupRequired;
+    private boolean setupRequired;
     private String infraProvider;//ex. AWS, OpenStack, GCC
-    private String instanceType; //ex. EC2, ECS, K8S
+    private String scriptType; //ex. EC2, ECS, K8S
     private String automationEngine; //ex. puppet, Ansible
     private String testType; //ex. JMeter, TestNG
-    private Map<String, String> instanceMap;
 
     public String getName() {
         return name;
@@ -58,28 +55,20 @@ public class SolutionPattern {
         this.infraProvider = infraProvider;
     }
 
-    public String getInstanceType() {
-        return instanceType;
+    public String getScriptType() {
+        return scriptType;
     }
 
     public boolean isSetupRequired() {
-        return isSetupRequired;
+        return setupRequired;
     }
 
     public void setSetupRequired(boolean setupRequired) {
-        isSetupRequired = setupRequired;
+        this.setupRequired = setupRequired;
     }
 
-    public void setInstanceType(String instanceType) {
-        this.instanceType = instanceType;
-    }
-    
-    public Map<String, String> getInstanceMap() {
-        return instanceMap;
-    }
-
-    public void setInstanceMap(Map<String, String> instanceMap) {
-        this.instanceMap = instanceMap;
+    public void setScriptType(String scriptType) {
+        this.scriptType = scriptType;
     }
 
     public String getAutomationEngine() {

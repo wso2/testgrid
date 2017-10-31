@@ -25,16 +25,18 @@ import java.util.List;
  */
 public class TestConfiguration {
 
-    private List<SolutionPattern> patterns;
+    private List<SolutionPattern> solutionPatterns;
     private String testGitRepo;
     private String infraGitRepo;
+    private String productName;
+    private String productVersion;
 
-    public List<SolutionPattern> getPatterns() {
-        return patterns;
+    public List<SolutionPattern> getSolutionPatterns() {
+        return solutionPatterns;
     }
 
-    public void setPatterns(List<SolutionPattern> patterns) {
-        this.patterns = patterns;
+    public void setSolutionPatterns(List<SolutionPattern> solutionPatterns) {
+        this.solutionPatterns = solutionPatterns;
     }
 
     public String getTestGitRepo() {
@@ -51,5 +53,21 @@ public class TestConfiguration {
 
     public void setInfraGitRepo(String infraGitRepo) {
         this.infraGitRepo = infraGitRepo;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getProductVersion() {
+        return productVersion;
+    }
+
+    public void setProductVersion(String productVersion) {
+        this.productVersion = productVersion;
     }
 }

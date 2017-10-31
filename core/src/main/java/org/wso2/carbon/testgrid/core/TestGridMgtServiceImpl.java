@@ -20,8 +20,13 @@ package org.wso2.carbon.testgrid.core;
 
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.config.SolutionPattern;
 import org.wso2.carbon.testgrid.common.config.TestConfiguration;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * This is the main entry point of the TestGrid Framework.
@@ -30,6 +35,35 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
 
     @Override
     public TestPlan addTestPlan(TestConfiguration testConfiguration) throws TestGridException {
+        if (testConfiguration != null) {
+            Long timeStamp = new Date().getTime();
+            String path = TestGridUtil.createTestDirectory(testConfiguration, timeStamp);
+            if (path != null) {
+                TestPlan testPlan = new TestPlan();
+                testPlan.setHome(path);
+                testPlan.setCreatedTimeStamp(timeStamp);
+                //Clone Test Repo
+                String repoLocation = TestGridUtil.cloneRepository(testConfiguration.getTestGitRepo(), path);
+                List<TestScenario> scenarioList = new ArrayList<>();
+                TestScenario testScenario;
+                for (SolutionPattern pattern : testConfiguration.getSolutionPatterns()) {
+                    if (pattern.isEnabled()) {
+                        testScenario = new TestScenario();
+                        testScenario.setEnabled(true);
+                        //testScenario.setDeployerType(pattern.getAutomationEngine());
+                        //testScenario.setInfrastructureType(pattern.getInfraProvider());
+                        //testScenario.setScriptType(pattern.getScriptType());
+                        testScenario.setSolutionPattern(pattern.getName());
+                        testScenario.setStatus(TestScenario.TestScenarioStatus.EXECUTION_PLANNED);
+                        testScenario.setLocation(path);
+                        testScenario.setRepositoryLocation(repoLocation);
+                        scenarioList.add(testScenario);
+                    }
+                }
+                testPlan.setTestScenarios(scenarioList);
+                return testPlan;
+            }
+        }
         return null;
     }
 

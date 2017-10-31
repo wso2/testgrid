@@ -46,6 +46,7 @@ public class TestScenario {
     private Deployment deployment;
     private TestReport report;
     private String location;
+    private String repositoryLocation;
     private InfrastructureType infrastructureType;
     private ScriptType scriptType;
     private DeployerType deployerType;
@@ -129,5 +130,13 @@ public class TestScenario {
 
     public void setDeployerType(DeployerType deployerType) {
         this.deployerType = deployerType;
+    }
+
+    public String getRepositoryLocation() {
+        return repositoryLocation;
+    }
+
+    public void setRepositoryLocation(String repositoryLocation) {
+        this.repositoryLocation = repositoryLocation;
     }
 }

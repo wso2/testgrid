@@ -27,7 +27,9 @@ public class TestPlan {
 
     private int id;
     private long createdTimeStamp;
-    private String location;
+    private String home;
+    private String testLocation;
+    private String infraLocation;
     private List<TestScenario> testScenarios;
 
     public int getId() {
@@ -46,12 +48,12 @@ public class TestPlan {
         this.testScenarios = testScenarios;
     }
 
-    public String getLocation() {
-        return location;
+    public String getHome() {
+        return home;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setHome(String home) {
+        this.home = home;
     }
 
     public long getCreatedTimeStamp() {
@@ -60,5 +62,21 @@ public class TestPlan {
 
     public void setCreatedTimeStamp(long createdTimeStamp) {
         this.createdTimeStamp = createdTimeStamp;
+    }
+
+    public String getTestLocation() {
+        return testLocation;
+    }
+
+    public void setTestLocation(String testLocation) {
+        this.testLocation = testLocation;
+    }
+
+    public String getInfraLocation() {
+        return infraLocation;
+    }
+
+    public void setInfraLocation(String infraLocation) {
+        this.infraLocation = infraLocation;
     }
 }

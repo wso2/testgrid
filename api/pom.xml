@@ -26,10 +26,10 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.testgrid.web</artifactId>
-    <name>WSO2 TestGrid Framework - Web POM</name>
+    <artifactId>org.wso2.carbon.testgrid.api</artifactId>
+    <name>WSO2 TestGrid Framework - API POM</name>
     <url>http://wso2.org</url>
-    <packaging>pom</packaging>
+    <packaging>war</packaging>
 
     <build>
         <plugins>
@@ -41,5 +41,33 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.automation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.deployment</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.infrastruture</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.reporting</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.utils</artifactId>
+        </dependency>
     </dependencies>
 </project>
