@@ -45,11 +45,12 @@ import java.util.Map;
  */
 public class TestReportEngine {
 
+    private static final String TEST_ARTIFACT_DIR = "Tests";
     private static final String RESULTS_DIR = "Results";
     private static final String HTML_TEMPLATE = "html_template.mustache";
     private static final String TEMPLATE_DIR = "templates";
     private static final String TEST_OUTPUT_DIR_NAME = "test_output";
-    private static final String TEST_GRID_HOME_ENV_KEY = "TEST_GRID_HOME";
+    private static final String TEST_GRID_HOME_ENV_KEY = "TESTGRID_HOME";
 
     /**
      * Generates a test report based on the given test scenario.
@@ -60,17 +61,24 @@ public class TestReportEngine {
      */
     public <T extends TestResult> void generateReport(TestScenario testScenario) throws ReportingException {
 
-        Path resultPath = Paths.get(testScenario.getScenarioLocation(), RESULTS_DIR);
-        File[] fileList = FileUtil.getFileList(resultPath);
+        Path resultPath = Paths.get(testScenario.getScenarioLocation(), TEST_ARTIFACT_DIR, RESULTS_DIR);
+        File[] directoryList = FileUtil.getFileList(resultPath);
         List<T> testResults = new ArrayList<>();
 
-        for (File file : fileList) {
-            if (file.isFile()) {
-                Path filePath = Paths.get(file.getAbsolutePath());
-                Class<T> type = TestResultBeanFactory.getResultType(filePath);
+        for (File directory : directoryList) {
+            if (directory.isDirectory()) {
+                Path directoryPath = Paths.get(directory.getAbsolutePath());
+                Class<T> type = TestResultBeanFactory.getResultType(directoryPath);
 
-                ResultReader resultReader = ResultReaderFactory.getResultReader(filePath);
-                testResults.addAll(resultReader.readFile(filePath, type));
+                File[] fileList = FileUtil.getFileList(directoryPath);
+
+                for (File file : fileList) {
+                    if (file.isFile()) {
+                        Path filePath = Paths.get(file.getAbsolutePath());
+                        ResultReader resultReader = ResultReaderFactory.getResultReader(filePath);
+                        testResults.addAll(resultReader.readFile(filePath, type));
+                    }
+                }
             }
         }
 
