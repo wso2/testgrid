@@ -26,9 +26,6 @@ import org.wso2.carbon.testgrid.common.TestScenarioStatus;
  */
 public class TestEngine {
 
-    private boolean getScenarioTests(String repo) {
-        return false;
-    }
 
     public boolean runScenario(TestScenario scenario) throws TestEngineException {
        return false;

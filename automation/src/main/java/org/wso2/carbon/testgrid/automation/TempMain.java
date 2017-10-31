@@ -1,12 +1,11 @@
 package org.wso2.carbon.testgrid.automation;
 
-
-
 import org.wso2.carbon.testgrid.automation.core.TestManager;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Host;
 import org.wso2.carbon.testgrid.common.config.SolutionPattern;
 import org.wso2.carbon.testgrid.common.config.TestConfiguration;
+import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
 import java.util.*;
 
@@ -34,7 +33,7 @@ public class TempMain {
         istests.setPatterns(patterns);
         istests.setInfraGitRepo("infra-repo");
         istests.setTestGitRepo("https://github.com/wso2-incubator/identity-test-integration");
-        istests.setTestType("JMETER");
+        istests.setTestType(TestGridConstants.TEST_TYPE_JMETER);
 
         Deployment deployment = new Deployment();
         deployment.setName("Is_One_Node");
@@ -55,12 +54,15 @@ public class TempMain {
 
         TestManager testManager = new TestManager();
         try{
-            testManager.init(istests,deployment);
+            testManager.init("/home/sameera/TestGridFolder/identity-server-30101712313",deployment);
+            testManager.executeTests();
         }catch(TestManagerException ex){
             ex.printStackTrace();
+        } catch (TestGridExecuteException e) {
+            e.printStackTrace();
         }
 
-        testManager.executeTests();
+
 
     }
 }

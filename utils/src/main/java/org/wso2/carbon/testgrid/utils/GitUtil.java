@@ -1,4 +1,4 @@
-package org.wso2.carbon.testgrid.automation.util;
+package org.wso2.carbon.testgrid.utils;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;

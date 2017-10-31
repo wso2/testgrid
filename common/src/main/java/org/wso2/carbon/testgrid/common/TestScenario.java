@@ -22,4 +22,14 @@ package org.wso2.carbon.testgrid.common;
  * Created by harshan on 10/30/17.
  */
 public class TestScenario {
+
+    private String testLocation;
+
+    public String getTestLocation() {
+        return testLocation;
+    }
+
+    public void setTestLocation(String testLocation) {
+        this.testLocation = testLocation;
+    }
 }

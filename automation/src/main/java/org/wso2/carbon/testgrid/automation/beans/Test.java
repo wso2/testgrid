@@ -1,8 +1,11 @@
 package org.wso2.carbon.testgrid.automation.beans;
 
+import org.wso2.carbon.testgrid.automation.TestGridExecuteException;
+import org.wso2.carbon.testgrid.common.Deployment;
+
 import java.util.List;
 
-public class Test {
+public abstract class Test {
 
     private String testName;
     private List<String> jmterScripts;
@@ -23,4 +26,6 @@ public class Test {
     public void setJmterScripts(List<String> jmterScripts) {
         this.jmterScripts = jmterScripts;
     }
+
+    public abstract void execute(String testLocation, Deployment deployment) throws TestGridExecuteException;
 }
