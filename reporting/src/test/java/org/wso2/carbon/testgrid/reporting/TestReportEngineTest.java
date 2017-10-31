@@ -21,7 +21,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.testgrid.reporting.beans.Result;
 import org.wso2.carbon.testgrid.reporting.util.TestEnvironmentUtil;
 
 import java.io.File;
@@ -57,10 +56,10 @@ public class TestReportEngineTest {
         URL resource = classLoader.getResource("results/jmeteroutput.csv");
         Assert.assertNotNull(resource);
 
-        Path path = new File(resource.getFile()).toPath();
+//        Path path = new File(resource.getFile()).toPath();
 
-        TestReportEngine testReportEngine = new TestReportEngine();
-        testReportEngine.generateReport(path, Result.class);
+//        TestReportEngine testReportEngine = new TestReportEngine();
+//        testReportEngine.generateReport(path, JmeterTestResult.class);
     }
 
     @AfterClass

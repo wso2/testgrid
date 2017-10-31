@@ -20,7 +20,7 @@ package org.wso2.carbon.testgrid.reporting.reader;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
-import org.wso2.carbon.testgrid.reporting.beans.Result;
+import org.wso2.carbon.testgrid.reporting.beans.JmeterTestResult;
 
 import java.io.File;
 import java.net.URL;
@@ -55,7 +55,7 @@ public class CSVResultReaderTest {
 
         Path path = new File(resource.getFile()).toPath();
         CSVResultReader csvFileReader = new CSVResultReader();
-        List<Result> testResults = csvFileReader.readFile(path, Result.class);
+        List<JmeterTestResult> testResults = csvFileReader.readFile(path, JmeterTestResult.class);
 
         Assert.assertEquals(testResults.size(), 5);
 
