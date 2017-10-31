@@ -22,7 +22,7 @@ package org.wso2.carbon.testgrid.reporting.beans;
  *
  * @since 1.0.0
  */
-public class Result implements TestResult {
+public class JmeterTestResult implements TestResult {
 
     private String timeStamp;
     private String elapsed;
