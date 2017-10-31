@@ -33,14 +33,22 @@ import org.wso2.carbon.testgrid.utils.EnvVariableUtil;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * This class is responsible for performing the tasks related to execution of single jmeter solution.
+ */
 public class JmeterExecuter implements TestExecuter {
 
     private static final Log log = LogFactory.getLog(JmeterExecuter.class);
-
     private String jmterHome;
     private String testGridFolder;
     private String testName;
 
+    /**
+     * This method performs the execution using the headless execution method of jmeter
+     * @param script the locaion of the script to execute as a String.
+     * @param deployment The deployment details.
+     * @throws TestGridExecuteException when there is an error with execution process.
+     */
     @Override
     public void execute(String script, Deployment deployment) throws TestGridExecuteException {
         String scriptName = getScriptName(script);
@@ -73,6 +81,12 @@ public class JmeterExecuter implements TestExecuter {
         }
     }
 
+    /**
+     * This method is responsible for initializing the JmeterExecuter with details.
+     * @param testGridFolder The TestGrid home folder that tests reside in.
+     * @param testName The name for the test that is being executed.
+     * @throws TestGridExecuteException when the JMETER_HOME variable is not found in system.
+     */
     @Override
     public void init(String testGridFolder, String testName) throws TestGridExecuteException {
         this.testName = testName;
@@ -87,11 +101,22 @@ public class JmeterExecuter implements TestExecuter {
         }
     }
 
+    /**
+     * This method returns the script file name given the absolute path.
+     * @param script the path of the script file.
+     * @return name of the script file.
+     */
     private String getScriptName(String script) {
         String[] split = script.split("/");
         return split[split.length-1];
     }
 
+    /**
+     * This method is responsible for updating the jmeter properties file with current deployment.
+     * @param deployment The deployment details of the current pattern.
+     * @return the path of the modified user.properties file of jmeter test.
+     * @throws ConfigurationException when there is an error reading the user.properties file.
+     */
     private String changePropertyFile(Deployment deployment) throws ConfigurationException {
         File file = new File(testGridFolder + File.separator + "JMeter" + File.separator + testName +
                 "/src/test/resources/user.properties");
@@ -109,6 +134,5 @@ public class JmeterExecuter implements TestExecuter {
         } else {
             return null;
         }
-
     }
 }

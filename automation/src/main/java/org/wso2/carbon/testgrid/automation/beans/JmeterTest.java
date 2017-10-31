@@ -32,7 +32,6 @@ public class JmeterTest extends Test{
 
     private List<String> jmterScripts;
     private TestExecuter testExecuter = TestExecuterFactory.getTestExecutor(TestGridConstants.TEST_TYPE_JMETER);
-
     public List<String> getJmterScripts() {
         return jmterScripts;
     }

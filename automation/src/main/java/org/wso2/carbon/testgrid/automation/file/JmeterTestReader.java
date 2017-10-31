@@ -32,12 +32,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Reader for reading Jmeter test files of the standard maven structure.
+ */
 public class JmeterTestReader implements TestReader {
 
     private static final Log log = LogFactory.getLog(JmeterTestReader.class);
     private final String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
 
-
+    /**
+     * This method goes through the file structure and create an object model of the tests.
+     * @param file File object for the test folder.
+     * @return a List of Test objects.
+     */
     private List<Test> processTestStructure(File file) {
         List<Test> testsList = new ArrayList<>();
         String[] list = file.list();
@@ -63,6 +70,12 @@ public class JmeterTestReader implements TestReader {
     }
 
 
+    /**
+     * This method initiates the test reading process.
+     * @param testLocation location of the tests as a String.
+     * @return the list of tests.
+     * @throws TestReaderException when an error obscurs while reading the tests.
+     */
     @Override
     public List<Test> readTests(String testLocation) throws TestReaderException {
         return processTestStructure(new File(testLocation));

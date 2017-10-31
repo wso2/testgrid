@@ -21,8 +21,10 @@ package org.wso2.carbon.testgrid.automation.executers.common;
 import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
 import org.wso2.carbon.testgrid.common.Deployment;
 
+/**
+ * Common interface for Test executer.
+ */
 public interface TestExecuter {
     void execute(String script, Deployment deployment) throws TestGridExecuteException;
-
     void init(String testGridFolder,String testName) throws TestGridExecuteException;
 }
