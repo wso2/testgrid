@@ -15,28 +15,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.testgrid.reporting.reader;
-
-import org.wso2.carbon.testgrid.reporting.ReportingException;
-
-import java.nio.file.Path;
-import java.util.List;
+package org.wso2.carbon.testgrid.reporting.util;
 
 /**
- * Interface for reading a generated result set from a test suite.
+ * Utility class for obtaining environment variable values.
  *
  * @since 1.0.0
  */
-public interface ResultReader {
+public class EnvironmentUtil {
 
     /**
-     * Reads the given result file and produces a result set based on the given type.
+     * Returns the system property value or environment variable value (highest priority for environment variable)
+     * for the given key.
      *
-     * @param path path of the result file
-     * @param type type of the result
-     * @param <T>  type of the result
-     * @return returns
-     * @throws ReportingException thrown when an error occurs in reading the results file
+     * @param systemVariableKey key of the system property or environment variable
+     * @return system property value or environment variable value for the given key
      */
-    <T extends TestResult> List<T> readFile(Path path, Class<T> type) throws ReportingException;
+    public static String getSystemVariableValue(String systemVariableKey) {
+        String envVariableValue = System.getenv(systemVariableKey);
+
+        return envVariableValue != null ? envVariableValue : System.getProperty(systemVariableKey);
+    }
 }

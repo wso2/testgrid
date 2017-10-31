@@ -44,7 +44,8 @@ public class CSVResultReader implements ResultReader {
     private static final String SEPARATOR = ",";
     private static Log logger = LogFactory.getLog(CSVResultReader.class);
 
-    public <T> List<T> readFile(Path path, Class<T> type) throws ReportingException {
+    @Override
+    public <T extends TestResult> List<T> readFile(Path path, Class<T> type) throws ReportingException {
 
         if (path == null) {
             String errorMessage = "File path is null.";

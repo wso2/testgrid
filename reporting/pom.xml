@@ -57,6 +57,11 @@
             <artifactId>commons-csv</artifactId>
             <version>${version.commons.csv}</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>${version.mustache.java}</version>
+        </dependency>
 
         <!-- Test dependancies -->
         <dependency>
@@ -68,5 +73,6 @@
 
     <properties>
         <version.commons.csv>1.5</version.commons.csv>
+        <version.mustache.java>0.9.5</version.mustache.java>
     </properties>
 </project>

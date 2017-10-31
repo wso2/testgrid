@@ -20,23 +20,27 @@ package org.wso2.carbon.testgrid.reporting.reader;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 
 import java.nio.file.Path;
-import java.util.List;
 
 /**
- * Interface for reading a generated result set from a test suite.
+ * Factory class to return an instance of a result reader based on the file extension.
  *
  * @since 1.0.0
  */
-public interface ResultReader {
+public class ResultReaderFactory {
 
-    /**
-     * Reads the given result file and produces a result set based on the given type.
-     *
-     * @param path path of the result file
-     * @param type type of the result
-     * @param <T>  type of the result
-     * @return returns
-     * @throws ReportingException thrown when an error occurs in reading the results file
-     */
-    <T extends TestResult> List<T> readFile(Path path, Class<T> type) throws ReportingException;
+    private static final String CSV_EXTENSION = ".csv";
+
+    public static ResultReader getResultReader(Path path) throws ReportingException {
+        // Check whether configuration filepath is null. proceed if not null.
+        if (path == null || !path.toFile().exists()) {
+            throw new ReportingException("No result file path is provided");
+        }
+
+        // Initialize result reader based on the file's extension.
+        if (path.toString().endsWith(CSV_EXTENSION)) {
+            return new CSVResultReader();
+        } else {
+            throw new ReportingException("Error while initializing result reader, file extension is not supported");
+        }
+    }
 }

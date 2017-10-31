@@ -17,26 +17,38 @@
  */
 package org.wso2.carbon.testgrid.reporting.reader;
 
-import org.wso2.carbon.testgrid.reporting.ReportingException;
-
-import java.nio.file.Path;
-import java.util.List;
-
 /**
- * Interface for reading a generated result set from a test suite.
+ * Bean class to capture the result of a test scenario.
  *
  * @since 1.0.0
  */
-public interface ResultReader {
+public interface TestResult {
 
     /**
-     * Reads the given result file and produces a result set based on the given type.
+     * Returns whether the test is a success or a failure.
      *
-     * @param path path of the result file
-     * @param type type of the result
-     * @param <T>  type of the result
-     * @return returns
-     * @throws ReportingException thrown when an error occurs in reading the results file
+     * @return whether the test is a success or a failure
      */
-    <T extends TestResult> List<T> readFile(Path path, Class<T> type) throws ReportingException;
+    boolean isTestSuccess();
+
+    /**
+     * Returns the time stamp of the test case.
+     *
+     * @return time stamp of the test case
+     */
+    String getTimestamp();
+
+    /**
+     * Returns the test case name.
+     *
+     * @return test case name
+     */
+    String getTestCase();
+
+    /**
+     * Returns the failure message of the test case.
+     *
+     * @return failure message of the test case
+     */
+    String getFailureMessage();
 }

@@ -28,11 +28,11 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Test class to test the functionality of the CSV file reader.
+ * Test class to test the functionality of the {@link CSVResultReader}.
  *
  * @since 1.0.0
  */
-public class CSVFileReaderTest {
+public class CSVResultReaderTest {
 
     private String[][] expectedResults = new String[][]{
             {"1509341756940", "411", "Create Role", "200", "OK", "Create User, Role, SP and IDP 1-1", "text",
@@ -61,14 +61,14 @@ public class CSVFileReaderTest {
 
         // Test records
         for (int i = 0; i < testResults.size(); i++) {
-            Assert.assertEquals(testResults.get(i).getTimeStamp(), expectedResults[i][0]);
+            Assert.assertEquals(testResults.get(i).getTimestamp(), expectedResults[i][0]);
             Assert.assertEquals(testResults.get(i).getElapsed(), expectedResults[i][1]);
-            Assert.assertEquals(testResults.get(i).getLabel(), expectedResults[i][2]);
+            Assert.assertEquals(testResults.get(i).getTestCase(), expectedResults[i][2]);
             Assert.assertEquals(testResults.get(i).getResponseCode(), expectedResults[i][3]);
             Assert.assertEquals(testResults.get(i).getResponseMessage(), expectedResults[i][4]);
             Assert.assertEquals(testResults.get(i).getThreadName(), expectedResults[i][5]);
             Assert.assertEquals(testResults.get(i).getDataType(), expectedResults[i][6]);
-            Assert.assertEquals(testResults.get(i).getSuccess(), expectedResults[i][7]);
+            Assert.assertEquals(testResults.get(i).isTestSuccess(), (boolean) Boolean.valueOf(expectedResults[i][7]));
             Assert.assertEquals(testResults.get(i).getFailureMessage(), expectedResults[i][8]);
             Assert.assertEquals(testResults.get(i).getBytes(), expectedResults[i][9]);
             Assert.assertEquals(testResults.get(i).getSentBytes(), expectedResults[i][10]);
