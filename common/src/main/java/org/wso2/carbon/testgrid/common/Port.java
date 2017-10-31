@@ -18,24 +18,13 @@
 
 package org.wso2.carbon.testgrid.common;
 
-import java.util.List;
-
 /**
- *  Defines a model object for a created HOST.
+ *  Defines a model object for the exposed Ports of the created host.
  */
-public class Host {
+public class Port {
 
-    private String ip;
     private String label;
-    private List<Port> ports;
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
+    private int portNumber;
 
     public String getLabel() {
         return label;
@@ -45,11 +34,11 @@ public class Host {
         this.label = label;
     }
 
-    public List<Port> getPorts() {
-        return ports;
+    public int getPortNumber() {
+        return portNumber;
     }
 
-    public void setPorts(List<Port> ports) {
-        this.ports = ports;
+    public void setPortNumber(int portNumber) {
+        this.portNumber = portNumber;
     }
 }

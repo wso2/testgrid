@@ -31,7 +31,7 @@ public class SolutionPattern {
     private String infraProvider;//ex. AWS, OpenStack, GCC
     private String instanceType; //ex. EC2, ECS, K8S
     private String automationEngine; //ex. puppet, Ansible
-    private Credentials instanceCredentials;
+    private String testType; //ex. JMeter, TestNG
     private Map<String, String> instanceMap;
 
     public String getName() {
@@ -73,15 +73,7 @@ public class SolutionPattern {
     public void setInstanceType(String instanceType) {
         this.instanceType = instanceType;
     }
-
-    public Credentials getInstanceCredentials() {
-        return instanceCredentials;
-    }
-
-    public void setInstanceCredentials(Credentials instanceCredentials) {
-        this.instanceCredentials = instanceCredentials;
-    }
-
+    
     public Map<String, String> getInstanceMap() {
         return instanceMap;
     }
@@ -98,4 +90,11 @@ public class SolutionPattern {
         this.automationEngine = automationEngine;
     }
 
+    public String getTestType() {
+        return testType;
+    }
+
+    public void setTestType(String testType) {
+        this.testType = testType;
+    }
 }
