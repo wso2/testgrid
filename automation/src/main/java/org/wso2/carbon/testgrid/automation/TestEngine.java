@@ -59,12 +59,9 @@ public class TestEngine {
         TestManager testManager = new TestManager();
         try{
             scenario.setDeployment(deployment);
-            testManager.init(scenario.getRepositoryLocation() + File.separator+scenario.getSolutionPattern(),deployment);
+            testManager.init(scenario.getScenarioLocation(),deployment);
             testManager.executeTests();
-//            TestReportEngine report = new TestReportEngine();
-//            Path path = Paths.get("/home/sameera/TestGridFolder/identity-server-30101712313/Tests/JMeter-Responses/solution22/" +
-//                    "00-Create-Test-Users.jmx.csv");
-//            report.generateReport(path, Result.class);
+
         }catch(TestManagerException ex){
             ex.printStackTrace();
         } catch (TestGridExecuteException e) {
