@@ -21,35 +21,35 @@ package org.wso2.carbon.testgrid.common;
 import java.util.List;
 
 /**
- *  Defines a model object for a created HOST.
+ * This represents a model of the TestPlan which includes all the necessary data to run the required SolutionPatterns.
  */
-public class Host {
+public class TestPlan {
 
-    private String ip;
-    private String label;
-    private List<Port> ports;
+    private int id;
+    private String location;
+    private List<TestScenario> testScenarios;
 
-    public String getIp() {
-        return ip;
+    public int getId() {
+        return id;
     }
 
-    public void setIp(String ip) {
-        this.ip = ip;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public String getLabel() {
-        return label;
+    public List<TestScenario> getTestScenarios() {
+        return testScenarios;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public void setTestScenarios(List<TestScenario> testScenarios) {
+        this.testScenarios = testScenarios;
     }
 
-    public List<Port> getPorts() {
-        return ports;
+    public String getLocation() {
+        return location;
     }
 
-    public void setPorts(List<Port> ports) {
-        this.ports = ports;
+    public void setLocation(String location) {
+        this.location = location;
     }
 }

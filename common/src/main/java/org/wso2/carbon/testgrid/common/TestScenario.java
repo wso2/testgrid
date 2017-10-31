@@ -19,17 +19,65 @@
 package org.wso2.carbon.testgrid.common;
 
 /**
- * Created by harshan on 10/30/17.
+ * This is the test model for a single SolutionPattern.
  */
 public class TestScenario {
 
-    private String testLocation;
+    private boolean isEnabled;
+    private int id;
+    private String solutionPattern;
+    private Deployment deployment;
+    private TestReport report;
+    private String location;
+    private String infrastructureType;
+    private String deployerType;
 
-    public String getTestLocation() {
-        return testLocation;
+
+    public boolean isEnabled() {
+        return isEnabled;
     }
 
-    public void setTestLocation(String testLocation) {
-        this.testLocation = testLocation;
+    public void setEnabled(boolean enabled) {
+        isEnabled = enabled;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getSolutionPattern() {
+        return solutionPattern;
+    }
+
+    public void setSolutionPattern(String solutionPattern) {
+        this.solutionPattern = solutionPattern;
+    }
+
+    public Deployment getDeployment() {
+        return deployment;
+    }
+
+    public void setDeployment(Deployment deployment) {
+        this.deployment = deployment;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public TestReport getReport() {
+        return report;
+    }
+
+    public void setReport(TestReport report) {
+        this.report = report;
     }
 }
