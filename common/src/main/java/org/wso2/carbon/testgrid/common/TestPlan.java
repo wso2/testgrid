@@ -26,6 +26,7 @@ import java.util.List;
 public class TestPlan {
 
     private int id;
+    private long createdTimeStamp;
     private String location;
     private List<TestScenario> testScenarios;
 
@@ -51,5 +52,13 @@ public class TestPlan {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public long getCreatedTimeStamp() {
+        return createdTimeStamp;
+    }
+
+    public void setCreatedTimeStamp(long createdTimeStamp) {
+        this.createdTimeStamp = createdTimeStamp;
     }
 }
