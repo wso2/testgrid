@@ -32,7 +32,7 @@ import java.io.IOException;
 public class TestGridUtil {
 
     private static final String SEPARATOR = "_";
-    static final String TESTGRID_HOME_ENV = "TEST_GRID_HOME";
+    static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
     private static final String TEST_CLONE_DIR = "test-repo";
 
     static String createTestDirectory(TestConfiguration testConfiguration, Long timeStamp) {

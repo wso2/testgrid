@@ -58,10 +58,10 @@ public class JmeterExecuter implements TestExecuter {
             String command;
             if (prop != null) {
                 command = "sh " + this.jmterHome + "/bin/jmeter.sh -n -t " + script + " -l " +
-                        testGridFolder + "/Responses/Jmeter/" + scriptName + ".csv -p " + prop;
+                        testGridFolder + "/Results/Jmeter/" + scriptName + ".csv -p " + prop;
             } else {
                 command = "sh " + this.jmterHome + "/bin/jmeter.sh -n -t " + script + " -l " +
-                        testGridFolder + "/Responses/Jmeter/" + scriptName + ".csv";
+                        testGridFolder + "/Results/Jmeter/" + scriptName + ".csv";
             }
             Process exec = runtime.exec(command);
             exec.waitFor();
