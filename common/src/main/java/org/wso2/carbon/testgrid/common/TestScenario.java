@@ -23,15 +23,33 @@ package org.wso2.carbon.testgrid.common;
  */
 public class TestScenario {
 
+    public enum TestScenarioStatus {
+        EXECUTION_PLANNED, INFRASTRUCTURE_PREPARATION, DEPLOYMENT_PREPARATION, TEST_EXECUTION, REPORT_GENERATION,
+        EXECUTION_COMPLETED
+    }
+
+    public enum InfrastructureType {
+        AWS, GCC, OPENSTACK
+    }
+
+    public enum ScriptType {
+        EC2, ECS, K8S, CLOUD_FORMATION
+    }
+
+    public enum DeployerType {
+        PUPPET, ANSIBLE, CHEF
+    }
+
     private boolean isEnabled;
     private int id;
     private String solutionPattern;
     private Deployment deployment;
     private TestReport report;
     private String location;
-    private String infrastructureType;
-    private String deployerType;
-
+    private InfrastructureType infrastructureType;
+    private ScriptType scriptType;
+    private DeployerType deployerType;
+    private TestScenarioStatus status;
 
     public boolean isEnabled() {
         return isEnabled;
@@ -79,5 +97,37 @@ public class TestScenario {
 
     public void setReport(TestReport report) {
         this.report = report;
+    }
+
+    public TestScenarioStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TestScenarioStatus status) {
+        this.status = status;
+    }
+
+    public InfrastructureType getInfrastructureType() {
+        return infrastructureType;
+    }
+
+    public void setInfrastructureType(InfrastructureType infrastructureType) {
+        this.infrastructureType = infrastructureType;
+    }
+
+    public ScriptType getScriptType() {
+        return scriptType;
+    }
+
+    public void setScriptType(ScriptType scriptType) {
+        this.scriptType = scriptType;
+    }
+
+    public DeployerType getDeployerType() {
+        return deployerType;
+    }
+
+    public void setDeployerType(DeployerType deployerType) {
+        this.deployerType = deployerType;
     }
 }

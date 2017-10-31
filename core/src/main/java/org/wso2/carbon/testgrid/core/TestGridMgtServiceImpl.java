@@ -20,7 +20,6 @@ package org.wso2.carbon.testgrid.core;
 
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.common.TestScenarioStatus;
 import org.wso2.carbon.testgrid.common.config.TestConfiguration;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 
@@ -55,7 +54,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     }
 
     @Override
-    public TestScenarioStatus getStatus(TestPlan testPlan) throws TestGridException {
+    public TestScenario.TestScenarioStatus getStatus(TestPlan testPlan) throws TestGridException {
         return null;
     }
 }

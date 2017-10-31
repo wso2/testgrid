@@ -19,7 +19,7 @@
 package org.wso2.carbon.testgrid.core;
 
 import org.wso2.carbon.testgrid.common.TestPlan;
-import org.wso2.carbon.testgrid.common.TestScenarioStatus;
+import org.wso2.carbon.testgrid.common.TestScenario;
 import org.wso2.carbon.testgrid.common.config.TestConfiguration;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 
@@ -64,6 +64,6 @@ public interface TestGridMgtService {
      * @return Returns the status of the TestPlan
      * @throws TestGridException If something goes wrong while checking the status of the TestPlan.
      */
-    TestScenarioStatus getStatus(TestPlan testPlan) throws TestGridException;
+    TestScenario.TestScenarioStatus getStatus(TestPlan testPlan) throws TestGridException;
 
 }

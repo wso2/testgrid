@@ -22,7 +22,6 @@ import org.wso2.carbon.testgrid.automation.TestEngine;
 import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.common.TestScenarioStatus;
 import org.wso2.carbon.testgrid.deployment.DeployerService;
 import org.wso2.carbon.testgrid.deployment.TestGridDeployerException;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderService;
@@ -88,7 +87,7 @@ public class ScenarioExecutor {
      * @return Returns the status of the TestScenario
      * @throws ScenarioExecutorException If something goes wrong while checking the status of the TestScenario.
      */
-    public TestScenarioStatus getStatus(TestScenario testScenario) throws ScenarioExecutorException {
+    public TestScenario.TestScenarioStatus getStatus(TestScenario testScenario) throws ScenarioExecutorException {
         return null;
     }
 }
