@@ -18,6 +18,7 @@
 package org.wso2.carbon.testgrid.reporting.reader;
 
 import org.wso2.carbon.testgrid.reporting.ReportingException;
+import org.wso2.carbon.testgrid.reporting.beans.TestResult;
 
 import java.nio.file.Path;
 import java.util.List;
