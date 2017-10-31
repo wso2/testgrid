@@ -4,6 +4,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.config.TestConfiguration;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.util.Map;
@@ -15,14 +19,23 @@ public class ClusterDeployer {
     private static final String repositoryUrl = "https://github.com/yasassri/infrastructure-automation";
     private static final String localDirectory = System.getProperty("user.home") + "/Desktop/repo/infrastructure-automation";
     private static InputStream inputStream;
+    static Deployment deployment;
 
     public static void main(String[] args) throws GitAPIException, IOException {
-        if (cloneGitReposotory(repositoryUrl, localDirectory)) {
+
+        ObjectMapper mapper = new ObjectMapper();
+        File file = new File("/home/asma/TestGrid/kubernetes-artifacts/wso2is/deployment.json");
+        try {
+            deployment = mapper.readValue(file, Deployment.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        /*if (cloneGitReposotory(repositoryUrl, localDirectory)) {
             log.info("Cloning successful.");
 
         } else {
             log.error("Directory already exists");
-        }
+        }*//*
 
         executeCommand("cd "+ localDirectory);
         log.info("Initializing terraform...");
@@ -41,7 +54,7 @@ public class ClusterDeployer {
 //        executeCommand(DeployerConstants.COMMAND_DESTROY_ARTIFACTS);
 //        executeCommand(DeployerConstants.COMMAND_DEPLOY_ARTIFACTS);
         undeployArtifacts();
-        deployArtifacts();
+        deployArtifacts();*/
     }
 
     private static boolean cloneGitReposotory(String repositoryUrl, String localDirectory) throws GitAPIException {

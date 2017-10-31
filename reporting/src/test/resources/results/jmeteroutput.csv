@@ -1,4 +1,4 @@
-timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,Latency,IdleTime,Connect
+timeStamp,elapsed,protocol,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,Latency,IdleTime,Connect
 1509341756940,411,Create Role,200,OK,"Create User, Role, SP and IDP 1-1",text,true,,657,834,1,1,410,0,236
 1509341758254,52,Create user,200,OK,"Create User, Role, SP and IDP 1-1",text,true,,657,859,1,1,52,0,0
 1509341759608,31,AddGoogle IDP,200,OK,"Create User, Role, SP and IDP 1-1",text,true,,658,2409,1,1,31,0,8

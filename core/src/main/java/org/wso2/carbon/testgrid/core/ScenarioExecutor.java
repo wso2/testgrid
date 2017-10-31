@@ -41,11 +41,14 @@ public class ScenarioExecutor {
      */
     public boolean runScenario(TestScenario testScenario) throws ScenarioExecutorException {
         try {
+            boolean status = new InfrastructureProviderService().createTestEnvironment(testScenario);
             //Setup infrastructure
-            Deployment deployment = new InfrastructureProviderService().createTestEnvironment(testScenario);
+
             //Trigger deployment
-            boolean status = new DeployerService().deploy(deployment);
+
             if (status) {
+                Deployment deployment = new DeployerService().deploy(testScenario);
+
                 //Run Tests
                 try {
                     new TestEngine().runScenario(testScenario);
