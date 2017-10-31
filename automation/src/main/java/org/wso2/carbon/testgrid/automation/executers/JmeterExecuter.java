@@ -95,7 +95,7 @@ public class JmeterExecuter implements TestExecuter {
             this.jmterHome = jmeterHome;
             this.testGridFolder = testGridFolder;
         } else {
-            String msg = "Enviorenment Variable JMETER_HOME is not set";
+            String msg = "Environment Variable JMETER_HOME is not set";
             log.error(msg);
             throw new TestGridExecuteException(msg);
         }

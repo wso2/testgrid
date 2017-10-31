@@ -18,8 +18,21 @@
 
 package org.wso2.carbon.testgrid.automation;
 
+import org.wso2.carbon.testgrid.automation.core.TestManager;
 import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
+import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
+import org.wso2.carbon.testgrid.automation.exceptions.TestManagerException;
+import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.Host;
+import org.wso2.carbon.testgrid.common.Port;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.reporting.Result;
+import org.wso2.carbon.testgrid.reporting.TestReportEngine;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 
 /**
  * Created by harshan on 10/30/17.
@@ -28,7 +41,36 @@ public class TestEngine {
 
 
     public boolean runScenario(TestScenario scenario) throws TestEngineException {
-       return false;
+
+        Deployment deployment = new Deployment();
+        deployment.setName("Is_One_Node");
+
+        Host host1 = new Host();
+        host1.setIp("localhost");
+        host1.setLabel("server_host");
+
+        Port port = new Port();
+        port.setLabel("server_port");
+        port.setPortNumber(9443);
+        host1.setPorts(Arrays.asList(port));
+        deployment.setHosts(Arrays.asList(host1));
+
+
+        TestManager testManager = new TestManager();
+        try{
+            scenario.setDeployment(deployment);
+            testManager.init(scenario.getRepositoryLocation() + File.separator+scenario.getSolutionPattern(),deployment);
+            testManager.executeTests();
+//            TestReportEngine report = new TestReportEngine();
+//            Path path = Paths.get("/home/sameera/TestGridFolder/identity-server-30101712313/Tests/JMeter-Responses/solution22/" +
+//                    "00-Create-Test-Users.jmx.csv");
+//            report.generateReport(path, Result.class);
+        }catch(TestManagerException ex){
+            ex.printStackTrace();
+        } catch (TestGridExecuteException e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 
     public boolean abortScenario(TestScenario scenario) throws TestEngineException {

@@ -30,7 +30,7 @@ public class DeployerService {
     }
 
     public boolean deploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
+        return true;
     }
 
     public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {

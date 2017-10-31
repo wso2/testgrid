@@ -1,0 +1,17 @@
+{
+  "testGitRepo": "https://github.com/sameerawickramasekara/test-grid-is-resources.git",
+  "infraGitRepo": "https://github.com/yasassri/apim-distributed-tests",
+  "productName":"wso2-is",
+  "productVersion":"5.4.0",
+  "solutionPatterns": [
+    {
+      "name": "SolutionPattern22",
+      "enabled": true,
+      "setupRequired": true,
+      "infraProvider": "OpenStack",
+      "scriptType": "K8S",
+      "automationEngine": "ANSIBLE",
+      "testType": "JMETER"
+    }
+  ]
+}

@@ -26,8 +26,6 @@ import org.wso2.carbon.testgrid.deployment.DeployerService;
 import org.wso2.carbon.testgrid.deployment.TestGridDeployerException;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderService;
 import org.wso2.carbon.testgrid.infrastructure.TestGridInfrastructureException;
-import org.wso2.carbon.testgrid.reporting.TestReportEngine;
-import org.wso2.carbon.testgrid.reporting.TestReportingException;
 
 /**
  * This class is mainly responsible for executing the provided TestScenarios.
@@ -54,12 +52,7 @@ public class ScenarioExecutor {
                 } catch (TestEngineException e) {
                     e.printStackTrace();
                 }
-                //Generate Reports
-                try {
-                    new TestReportEngine().generateReport(testScenario);
-                } catch (TestReportingException e) {
-                    e.printStackTrace();
-                }
+                
             }
         } catch (TestGridInfrastructureException e) {
             e.printStackTrace();
