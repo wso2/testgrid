@@ -45,8 +45,8 @@ public class TestScenario {
     private String solutionPattern;
     private Deployment deployment;
     private TestReport report;
-    private String location;
-    private String repositoryLocation;
+    private String tempLocation;
+    private String scenarioLocation;
     private InfrastructureType infrastructureType;
     private ScriptType scriptType;
     private DeployerType deployerType;
@@ -84,12 +84,12 @@ public class TestScenario {
         this.deployment = deployment;
     }
 
-    public String getLocation() {
-        return location;
+    public String getTempLocation() {
+        return tempLocation;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setTempLocation(String tempLocation) {
+        this.tempLocation = tempLocation;
     }
 
     public TestReport getReport() {
@@ -132,11 +132,11 @@ public class TestScenario {
         this.deployerType = deployerType;
     }
 
-    public String getRepositoryLocation() {
-        return repositoryLocation;
+    public String getScenarioLocation() {
+        return scenarioLocation;
     }
 
-    public void setRepositoryLocation(String repositoryLocation) {
-        this.repositoryLocation = repositoryLocation;
+    public void setScenarioLocation(String scenarioLocation) {
+        this.scenarioLocation = scenarioLocation;
     }
 }

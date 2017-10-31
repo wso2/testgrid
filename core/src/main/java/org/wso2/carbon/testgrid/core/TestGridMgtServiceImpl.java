@@ -24,6 +24,7 @@ import org.wso2.carbon.testgrid.common.config.SolutionPattern;
 import org.wso2.carbon.testgrid.common.config.TestConfiguration;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -55,8 +56,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                         //testScenario.setScriptType(pattern.getScriptType());
                         testScenario.setSolutionPattern(pattern.getName());
                         testScenario.setStatus(TestScenario.TestScenarioStatus.EXECUTION_PLANNED);
-                        testScenario.setLocation(path);
-                        testScenario.setRepositoryLocation(repoLocation);
+                        testScenario.setTempLocation(path);
+                        testScenario.setScenarioLocation(repoLocation + File.separator + pattern.getName());
                         scenarioList.add(testScenario);
                     }
                 }
