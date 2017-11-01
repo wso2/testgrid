@@ -25,11 +25,7 @@ import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
 import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
 import org.wso2.carbon.testgrid.automation.exceptions.TestManagerException;
 import org.wso2.carbon.testgrid.common.Deployment;
-import org.wso2.carbon.testgrid.common.Host;
-import org.wso2.carbon.testgrid.common.Port;
 import org.wso2.carbon.testgrid.common.TestScenario;
-
-import java.util.Arrays;
 
 /**This class is Responsible for initiating the core processes of TestGrid.
  */
@@ -44,28 +40,12 @@ public class TestEngine {
      * @throws TestEngineException when there is an error in the process.
      */
     public boolean runScenario(TestScenario scenario, Deployment deployment) throws TestEngineException {
-
-        //-----------------dummy deployement object----------------------------------//
-        Deployment deployment1 = new Deployment();
-        deployment.setName("Is_One_Node");
-
-        Host host1 = new Host();
-        host1.setIp("localhost");
-        host1.setLabel("server_host");
-
-        Port port = new Port();
-        port.setProtocol("server_port");
-        port.setPortNumber(9443);
-        host1.setPorts(Arrays.asList(port));
-        deployment.setHosts(Arrays.asList(host1));
-
-        //-----------------end of dummy deployement object----------------------------------//
-        log.info("Executing Solution Pattern : " + scenario.getSolutionPattern());
+        log.info("Executing Tests for Solution Pattern : " + scenario.getSolutionPattern());
         TestManager testManager = new TestManager();
         try {
             testManager.init(scenario.getScenarioLocation(), deployment);
             testManager.executeTests();
-
+            scenario.setStatus(TestScenario.Status.COMPLETED);
         } catch (TestManagerException ex) {
             throw new TestEngineException("Error while initiating the TestManager", ex);
         } catch (TestGridExecuteException ex) {
