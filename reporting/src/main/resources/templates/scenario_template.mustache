@@ -1,23 +1,33 @@
 {{#parsedTestScenarioView}}
+    <table style="width: 100%">
+        <tr>
+            <td>
+                <center>
     <span style="font-family: arial;font-weight: 600; font-size: 24px; line-height: 20px; width: 100%; color: #e46226;">
         {{testScenarioName}}
     </span>
-    <br/>
-    <br/>
-    <table style="font-family: arial; width: 85%;">
-        <tr>
-            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 40%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                <span style="color: #000000;">Test Name</span>
-            </th>
-            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                <span style="color: #000000;">Timestamp</span>
-            </th>
-            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                <span style="color: #000000;">Status</span>
-            </th>
-            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 35%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                <span style="color: #000000;">Failure Message</span>
-            </th>
+                    <br/>
+                    <br/>
+                    <table style="font-family: arial; width: 85%;">
+                        <tr>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 40%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Test Name</span>
+                            </th>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Timestamp</span>
+                            </th>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Status</span>
+                            </th>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 35%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Failure Message</span>
+                            </th>
+                        </tr>
+                        {{{parsedTestResultsView}}}
+                </center>
+            </td>
         </tr>
-    {{{parsedTestResultsView}}}
+    </table>
 {{/parsedTestScenarioView}}
+<br/>
+<br/>
