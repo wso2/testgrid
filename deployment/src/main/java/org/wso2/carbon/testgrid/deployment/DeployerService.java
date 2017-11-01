@@ -19,6 +19,7 @@
 package org.wso2.carbon.testgrid.deployment;
 
 import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.TestPlan;
 
 /**
  * Created by harshan on 10/30/17.
@@ -29,7 +30,7 @@ public class DeployerService {
 
     }
 
-    public boolean deploy(Deployment deployment) throws TestGridDeployerException {
+    public boolean deploy(TestPlan deployment) throws TestGridDeployerException {
         return true;
     }
 

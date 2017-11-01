@@ -66,7 +66,6 @@ case $product in
 	resource_repo="https://github.com/sameerawickramasekara/test-grid-is-resources.git" 
 	;;
 esac
-echo $test_repo
 echo "Starting execution......"
 
 java -jar test-grid.jar "$resource_repo" "$product" "$version"
