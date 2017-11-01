@@ -19,6 +19,7 @@
 package org.wso2.carbon.testgrid.infrastructure;
 
 import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
 
 /**
@@ -30,7 +31,7 @@ public class InfrastructureProviderService {
         return false;
     }
 
-    public Deployment createTestEnvironment(TestScenario scenario) throws TestGridInfrastructureException {
+    public Deployment createTestEnvironment(TestPlan scenario) throws TestGridInfrastructureException {
         return null;
     }
 
