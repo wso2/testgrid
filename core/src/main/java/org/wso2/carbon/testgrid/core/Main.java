@@ -18,37 +18,34 @@
 
 package org.wso2.carbon.testgrid.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.wso2.carbon.testgrid.common.TestPlan;
-import org.wso2.carbon.testgrid.common.config.TestConfiguration;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.testgrid.common.ProductTestPlan;
+import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 
-import java.io.File;
-import java.io.IOException;
-
 /**
- * Created by harshan on 10/31/17.
+ * This is the Main class of TestGrid which initiates the Test execution process for a particular project.
  */
 public class Main {
 
-    private TestConfiguration getTestConfig() {
-        ObjectMapper mapper = new ObjectMapper();
-        File file = new File(System.getenv(TestGridUtil.TESTGRID_HOME_ENV) + File.separator + "testConfig.json");
-        try {
-            return mapper.readValue(file, TestConfiguration.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+    private static final Log log = LogFactory.getLog(Main.class);
 
     public static void main(String[] args) {
+        String repo = "https://github.com/sameerawickramasekara/test-grid-is-resources.git";
+        String product = "WSO2 Identity Server";
+        String productVersion = "5.3.0";
         TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
         try {
-            TestPlan plan = testGridMgtService.addTestPlan(new Main().getTestConfig());
-            testGridMgtService.executeTestPlan(plan);
+            if (testGridMgtService.isEnvironmentConfigured()) {
+                log.info("Initializing TestGrid for product : '" + product + ", version  '" + productVersion + "'");
+                ProductTestPlan plan = testGridMgtService.addProductTestPlan(product, productVersion, repo);
+                testGridMgtService.executeProductTestPlan(plan);
+            }
         } catch (TestGridException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
+        } catch (TestGridConfigurationException e) {
+            log.error(e.getMessage(), e);
         }
     }
 }

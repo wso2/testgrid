@@ -16,33 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.common.exception;
+package org.wso2.carbon.testgrid.automation.exceptions;
 
 /**
- * This is a custom exception class to throw all issues related to TestGrid. This will also be visible to external
- * callers.
+ * Exceptions occurring from TestReader.
  */
-public class TestGridException extends Exception {
+public class TestReaderException extends Exception {
 
-    private static final long serialVersionUID = -3151279311929070297L;
+    private static final long serialVersionUID = -983759829389291739L;
 
-    public TestGridException(String msg, Exception nestedEx) {
+    public TestReaderException(String msg, Exception nestedEx) {
         super(msg, nestedEx);
     }
 
-    public TestGridException(String message, Throwable cause) {
+    public TestReaderException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public TestGridException(String msg) {
+    public TestReaderException(String msg) {
         super(msg);
     }
 
-    public TestGridException() {
+    public TestReaderException() {
         super();
     }
 
-    public TestGridException(Throwable cause) {
+    public TestReaderException(Throwable cause) {
         super(cause);
     }
 }

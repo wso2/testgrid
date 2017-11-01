@@ -16,33 +16,26 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.common.exception;
+package org.wso2.carbon.testgrid.automation.beans;
+
+import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
+import org.wso2.carbon.testgrid.common.Deployment;
 
 /**
- * This is a custom exception class to throw all issues related to TestGrid. This will also be visible to external
- * callers.
+ * This is the abstraction of Test class.
  */
-public class TestGridException extends Exception {
+public abstract class Test {
 
-    private static final long serialVersionUID = -3151279311929070297L;
+    private String testName;
 
-    public TestGridException(String msg, Exception nestedEx) {
-        super(msg, nestedEx);
+    public String getTestName() {
+        return testName;
     }
 
-    public TestGridException(String message, Throwable cause) {
-        super(message, cause);
+    public void setTestName(String testName) {
+        this.testName = testName;
     }
 
-    public TestGridException(String msg) {
-        super(msg);
-    }
+    public abstract void execute(String testLocation, Deployment deployment) throws TestGridExecuteException;
 
-    public TestGridException() {
-        super();
-    }
-
-    public TestGridException(Throwable cause) {
-        super(cause);
-    }
 }

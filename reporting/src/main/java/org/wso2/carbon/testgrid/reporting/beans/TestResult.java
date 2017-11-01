@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.testgrid.reporting.reader;
+package org.wso2.carbon.testgrid.reporting.beans;
 
 /**
  * Bean class to capture the result of a test scenario.

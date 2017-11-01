@@ -23,6 +23,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
+import org.wso2.carbon.testgrid.reporting.beans.TestResult;
 import org.wso2.carbon.testgrid.reporting.util.ReflectionUtil;
 
 import java.io.BufferedReader;
@@ -54,7 +55,7 @@ public class CSVResultReader implements ResultReader {
         }
 
         if (type == null) {
-            String errorMessage = "Result type cannot be null.";
+            String errorMessage = "JmeterTestResult type cannot be null.";
             logger.error(errorMessage);
             throw new ReportingException(errorMessage);
         }

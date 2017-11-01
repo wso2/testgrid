@@ -23,34 +23,20 @@ package org.wso2.carbon.testgrid.common;
  */
 public class TestScenario {
 
-    public enum TestScenarioStatus {
-        EXECUTION_PLANNED, INFRASTRUCTURE_PREPARATION, DEPLOYMENT_PREPARATION, TEST_EXECUTION, REPORT_GENERATION,
-        EXECUTION_COMPLETED
+    public enum Status {
+        PLANNED, RUNNING, COMPLETED, ERROR
     }
 
-    public enum InfrastructureType {
-        AWS, GCC, OPENSTACK
-    }
-
-    public enum ScriptType {
-        EC2, ECS, K8S, CLOUD_FORMATION
-    }
-
-    public enum DeployerType {
-        PUPPET, ANSIBLE, CHEF
+    public enum TestEngine {
+        JMETER, TESTNG, SELENIUM
     }
 
     private boolean isEnabled;
     private int id;
     private String solutionPattern;
-    private Deployment deployment;
-    private TestReport report;
-    private String tempLocation;
     private String scenarioLocation;
-    private InfrastructureType infrastructureType;
-    private ScriptType scriptType;
-    private DeployerType deployerType;
-    private TestScenarioStatus status;
+    private Status status;
+    private TestEngine testEngine;
 
     public boolean isEnabled() {
         return isEnabled;
@@ -76,60 +62,12 @@ public class TestScenario {
         this.solutionPattern = solutionPattern;
     }
 
-    public Deployment getDeployment() {
-        return deployment;
-    }
-
-    public void setDeployment(Deployment deployment) {
-        this.deployment = deployment;
-    }
-
-    public String getTempLocation() {
-        return tempLocation;
-    }
-
-    public void setTempLocation(String tempLocation) {
-        this.tempLocation = tempLocation;
-    }
-
-    public TestReport getReport() {
-        return report;
-    }
-
-    public void setReport(TestReport report) {
-        this.report = report;
-    }
-
-    public TestScenarioStatus getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(TestScenarioStatus status) {
+    public void setStatus(Status status) {
         this.status = status;
-    }
-
-    public InfrastructureType getInfrastructureType() {
-        return infrastructureType;
-    }
-
-    public void setInfrastructureType(InfrastructureType infrastructureType) {
-        this.infrastructureType = infrastructureType;
-    }
-
-    public ScriptType getScriptType() {
-        return scriptType;
-    }
-
-    public void setScriptType(ScriptType scriptType) {
-        this.scriptType = scriptType;
-    }
-
-    public DeployerType getDeployerType() {
-        return deployerType;
-    }
-
-    public void setDeployerType(DeployerType deployerType) {
-        this.deployerType = deployerType;
     }
 
     public String getScenarioLocation() {
@@ -138,5 +76,17 @@ public class TestScenario {
 
     public void setScenarioLocation(String scenarioLocation) {
         this.scenarioLocation = scenarioLocation;
+    }
+
+    public TestEngine getTestEngine() {
+        return testEngine;
+    }
+
+    public void setTestEngine(TestEngine testEngine) {
+        this.testEngine = testEngine;
+    }
+
+    public void setTestEngine(String testEngine) {
+        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase());
     }
 }

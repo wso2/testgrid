@@ -308,6 +308,11 @@
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.data-bind.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.annotation.version}</version>
+            </dependency>
             <!-- Apache commons dependencies-->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -355,14 +360,13 @@
     </dependencyManagement>
 
     <properties>
-        <!-- Automation Framework version-->
-        <test.framework.version>4.4.2</test.framework.version>
 
         <!-- TestGrid version-->
         <test.grid.version>0.9.0-SNAPSHOT</test.grid.version>
         <!-- Jackson versions-->
         <jackson.yaml.version>2.3.0</jackson.yaml.version>
         <jackson.data-bind.version>2.6.3</jackson.data-bind.version>
+        <jackson.annotation.version>2.6.0</jackson.annotation.version>
         <!-- Automation Framework version-->
         <test.framework.version>4.4.2</test.framework.version>
         <!-- Apache commons dependencies-->

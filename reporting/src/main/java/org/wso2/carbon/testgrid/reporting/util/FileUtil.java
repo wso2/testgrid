@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
 
@@ -58,6 +59,23 @@ public class FileUtil {
             throw new ReportingException(
                     String.format(Locale.ENGLISH, "Unsupported encoding %s", StandardCharsets.UTF_8.name()), e);
         }
+    }
+
+    /**
+     * Returns the file list of a given path.
+     * <p>
+     * If the given path denotes a directory, then the file list in the directory is returned, else the file it self
+     * as an array will ne returned
+     *
+     * @param path path to obtain the file list
+     * @return list of files or the file of the given path
+     */
+    public static File[] getFileList(Path path) {
+        File file = new File(path.toAbsolutePath().toString());
+        if (!file.isDirectory()) {
+            return new File[]{file};
+        }
+        return file.listFiles();
     }
 
     /**

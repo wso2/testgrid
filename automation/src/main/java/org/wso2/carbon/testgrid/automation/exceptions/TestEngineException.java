@@ -1,5 +1,4 @@
 /*
- *
  * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
@@ -15,40 +14,34 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * /
  */
 
-package org.wso2.carbon.testgrid.automation.beans;
+package org.wso2.carbon.testgrid.automation.exceptions;
 
-import java.util.List;
+/**
+ * Exceptions occuring from the Test Engine.
+ */
+public class TestEngineException extends Exception {
 
-public class InstanceUrls {
+    private static final long serialVersionUID = -3151276311329070297L;
 
-    private String hostIP;
-    private String lable;
-    private List<Port> ports;
-
-    public String getHostIP() {
-        return hostIP;
+    public TestEngineException(String msg, Exception nestedEx) {
+        super(msg, nestedEx);
     }
 
-    public void setHostIP(String hostIP) {
-        this.hostIP = hostIP;
+    public TestEngineException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public List<Port> getPorts() {
-        return ports;
+    public TestEngineException(String msg) {
+        super(msg);
     }
 
-    public void setPorts(List<Port> ports) {
-        this.ports = ports;
+    public TestEngineException() {
+        super();
     }
 
-    public String getLable() {
-        return lable;
-    }
-
-    public void setLable(String lable) {
-        this.lable = lable;
+    public TestEngineException(Throwable cause) {
+        super(cause);
     }
 }
