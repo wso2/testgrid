@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.testgrid.automation.file.common;
 
-import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
 import org.wso2.carbon.testgrid.automation.beans.Test;
+import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,27 +32,28 @@ import java.util.List;
 public class TestGridTestReader {
 
     /**
-     * This mthod goes thorugh every type of test in the folder structure and returns a list of tests
+     * This method goes thorugh every type of test in the folder structure and returns a list of tests
      * with common Test interface.
+     *
      * @param testLocation The file path of the test location as a String.
      * @return a List of Tests.
      * @throws TestReaderException when there is an error with test reading process.
      */
-     public List<Test> getTests(String testLocation) throws TestReaderException{
-         File tests = new File(testLocation);
-         List<Test> testList = new ArrayList<>();
-         for(String testType: Arrays.asList(tests.list())){
-             //get the correct test reader for the test type.
-             TestReader testReader = TestReaderFactory.getTestReader(testType.toUpperCase());
-             List<Test> tests1;
-             if (testReader != null) {
-                 tests1 = testReader.readTests(testLocation + File.separator + testType);
-                 testList.addAll(tests1);
-             }
+    public List<Test> getTests(String testLocation) throws TestReaderException {
+        File tests = new File(testLocation);
+        List<Test> testList = new ArrayList<>();
+        for (String testType : Arrays.asList(tests.list())) {
+            //get the correct test reader for the test type.
+            TestReader testReader = TestReaderFactory.getTestReader(testType.toUpperCase());
+            List<Test> tests1;
+            if (testReader != null) {
+                tests1 = testReader.readTests(testLocation + File.separator + testType);
+                testList.addAll(tests1);
+            }
 
-         }
+        }
 
-         return testList;
-     }
+        return testList;
+    }
 
 }

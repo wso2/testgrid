@@ -20,7 +20,6 @@ package org.wso2.carbon.testgrid.automation.file.common;
 
 import org.wso2.carbon.testgrid.automation.file.JmeterTestReader;
 import org.wso2.carbon.testgrid.automation.file.TestNGTestReader;
-import org.wso2.carbon.testgrid.common.config.TestConfiguration;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
 /**
@@ -29,6 +28,7 @@ import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 public class TestReaderFactory {
     /**
      * This method returns the TestReader implementation of the given type.
+     *
      * @param testType Type of the tests as a String.
      * @return object of TestReader.
      */

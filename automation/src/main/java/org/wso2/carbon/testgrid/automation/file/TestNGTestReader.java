@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.testgrid.automation.file;
 
-import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
 import org.wso2.carbon.testgrid.automation.beans.Test;
+import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
 import org.wso2.carbon.testgrid.automation.file.common.TestReader;
 
 import java.util.List;
 
+/**
+ * This class is responsible for reading testNG tests for TestGrid framework.
+ */
 public class TestNGTestReader implements TestReader {
     @Override
     public List<Test> readTests(String testLocation) throws TestReaderException {

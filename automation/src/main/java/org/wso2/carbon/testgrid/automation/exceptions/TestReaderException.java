@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.testgrid.automation.exceptions;
 
-public class TestReaderException extends Exception{
+/**
+ * Exceptions occurring from TestReader.
+ */
+public class TestReaderException extends Exception {
     private static final long serialVersionUID = -983759829389291739L;
 
     public TestReaderException(String msg, Exception nestedEx) {

@@ -19,7 +19,7 @@
 package org.wso2.carbon.testgrid.automation.exceptions;
 
 /**
- * Exceptions occuring from the Test Engine
+ * Exceptions occuring from the Test Engine.
  */
 public class TestEngineException extends Exception {
 

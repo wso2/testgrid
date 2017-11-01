@@ -41,11 +41,10 @@ public class TestManager {
     private String testLocation;
 
     /**
-     *
      * @param testLocation The location of tests in the file system as a String.
-     * @param deployment The deployment details of current pattern.
+     * @param deployment   The deployment details of current pattern.
      * @throws TestManagerException When there is an error creating the file structure.
-     * */
+     */
     public void init(String testLocation, Deployment deployment) throws TestManagerException {
         this.deployment = deployment;
         TestGridTestReader testGridTestReader = new TestGridTestReader();
@@ -62,7 +61,7 @@ public class TestManager {
     }
 
     /**
-     *This method executes the Tests
+     * This method executes the Tests.
      *
      * @throws TestGridExecuteException When there is an error when executing the test
      */

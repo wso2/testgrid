@@ -44,8 +44,9 @@ public class JmeterExecuter implements TestExecuter {
     private String testName;
 
     /**
-     * This method performs the execution using the headless execution method of jmeter
-     * @param script the locaion of the script to execute as a String.
+     * This method performs the execution using the headless execution method of jmeter.
+     *
+     * @param script     the location of the script to execute as a String.
      * @param deployment The deployment details.
      * @throws TestGridExecuteException when there is an error with execution process.
      */
@@ -68,23 +69,24 @@ public class JmeterExecuter implements TestExecuter {
 
         } catch (IOException e) {
             String msg = "Error occured while executing the jmeter script";
-            log.error(msg,e);
-            throw  new TestGridExecuteException(msg,e);
+            log.error(msg, e);
+            throw new TestGridExecuteException(msg, e);
         } catch (InterruptedException e) {
             String msg = "Jmeter Script execution inturrupted";
-            log.error(msg,e);
-            throw  new TestGridExecuteException(msg,e);
+            log.error(msg, e);
+            throw new TestGridExecuteException(msg, e);
         } catch (ConfigurationException e) {
             String msg = "Error occured while reading user.properties";
-            log.error(msg,e);
-            throw  new TestGridExecuteException(msg,e);
+            log.error(msg, e);
+            throw new TestGridExecuteException(msg, e);
         }
     }
 
     /**
      * This method is responsible for initializing the JmeterExecuter with details.
+     *
      * @param testGridFolder The TestGrid home folder that tests reside in.
-     * @param testName The name for the test that is being executed.
+     * @param testName       The name for the test that is being executed.
      * @throws TestGridExecuteException when the JMETER_HOME variable is not found in system.
      */
     @Override
@@ -103,16 +105,18 @@ public class JmeterExecuter implements TestExecuter {
 
     /**
      * This method returns the script file name given the absolute path.
+     *
      * @param script the path of the script file.
      * @return name of the script file.
      */
     private String getScriptName(String script) {
         String[] split = script.split("/");
-        return split[split.length-1];
+        return split[split.length - 1];
     }
 
     /**
      * This method is responsible for updating the jmeter properties file with current deployment.
+     *
      * @param deployment The deployment details of the current pattern.
      * @return the path of the modified user.properties file of jmeter test.
      * @throws ConfigurationException when there is an error reading the user.properties file.

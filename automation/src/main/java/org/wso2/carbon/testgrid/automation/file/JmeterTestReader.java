@@ -38,10 +38,11 @@ import java.util.List;
 public class JmeterTestReader implements TestReader {
 
     private static final Log log = LogFactory.getLog(JmeterTestReader.class);
-    private final String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
+    private static final  String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
 
     /**
      * This method goes through the file structure and create an object model of the tests.
+     *
      * @param file File object for the test folder.
      * @return a List of Test objects.
      */
@@ -49,7 +50,8 @@ public class JmeterTestReader implements TestReader {
         List<Test> testsList = new ArrayList<>();
         String[] list = file.list();
         for (String solution : Arrays.asList(list)) {
-            File tests = new File(file.getAbsolutePath() + File.separator + solution + File.separator + JMETER_TEST_PATH);
+            File tests = new File(file.getAbsolutePath() + File.separator + solution +
+                    File.separator + JMETER_TEST_PATH);
             JmeterTest test = new JmeterTest();
 
             test.setTestName(solution);
@@ -72,6 +74,7 @@ public class JmeterTestReader implements TestReader {
 
     /**
      * This method initiates the test reading process.
+     *
      * @param testLocation location of the tests as a String.
      * @return the list of tests.
      * @throws TestReaderException when an error obscurs while reading the tests.

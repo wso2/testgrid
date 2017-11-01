@@ -17,7 +17,8 @@
  */
 package org.wso2.carbon.testgrid.reporting;
 
-import org.wso2.carbon.testgrid.reporting.reader.TestResult;
+
+import org.wso2.carbon.testgrid.reporting.beans.TestResult;
 
 /**
  * Sample result model to capture jmeter test result.

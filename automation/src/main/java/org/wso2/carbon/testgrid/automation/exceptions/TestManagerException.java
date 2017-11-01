@@ -18,9 +18,9 @@
 package org.wso2.carbon.testgrid.automation.exceptions;
 
 /**
- * Exceptions occurring from Test Manager
+ * Exceptions occurring from Test Manager.
  */
-public class TestManagerException extends Exception{
+public class TestManagerException extends Exception {
     private static final long serialVersionUID = -983759829329070297L;
 
     public TestManagerException(String msg, Exception nestedEx) {

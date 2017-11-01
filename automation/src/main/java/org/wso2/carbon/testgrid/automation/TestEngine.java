@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.testgrid.automation;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.automation.core.TestManager;
 import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
 import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
@@ -26,22 +28,26 @@ import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Host;
 import org.wso2.carbon.testgrid.common.Port;
 import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.reporting.Result;
+import org.wso2.carbon.testgrid.reporting.ReportingException;
 import org.wso2.carbon.testgrid.reporting.TestReportEngine;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
-/**
- * Created by harshan on 10/30/17.
+/**This class is Responsible for initiating the core processes of TestGrid.
  */
 public class TestEngine {
 
+    private static final Log log = LogFactory.getLog(TestEngine.class);
 
+    /**
+     *
+     * @param scenario The Test scenario that is being executed.
+     * @return true if all the processes finished.
+     * @throws TestEngineException when there is an error in the process.
+     */
     public boolean runScenario(TestScenario scenario) throws TestEngineException {
 
+        //-----------------dummy deployement object----------------------------------//
         Deployment deployment = new Deployment();
         deployment.setName("Is_One_Node");
 
@@ -55,17 +61,29 @@ public class TestEngine {
         host1.setPorts(Arrays.asList(port));
         deployment.setHosts(Arrays.asList(host1));
 
+        //-----------------end of dummy deployement object----------------------------------//
 
         TestManager testManager = new TestManager();
-        try{
+        try {
             scenario.setDeployment(deployment);
-            testManager.init(scenario.getScenarioLocation(),deployment);
+            testManager.init(scenario.getScenarioLocation(), deployment);
             testManager.executeTests();
 
-        }catch(TestManagerException ex){
-            ex.printStackTrace();
-        } catch (TestGridExecuteException e) {
-            e.printStackTrace();
+            TestReportEngine engine = new TestReportEngine();
+            engine.generateReport(scenario);
+
+        } catch (TestManagerException ex) {
+            String msg = "Error while initiating the TestManager";
+            log.error(msg, ex);
+            throw new TestEngineException(msg, ex);
+        } catch (TestGridExecuteException ex) {
+            String msg = "Error while Executing Tests";
+            log.error(msg, ex);
+            throw new TestEngineException(msg, ex);
+        } catch (ReportingException ex) {
+            String msg = "Error while Generating the report";
+            log.error(msg, ex);
+            throw new TestEngineException(msg, ex);
         }
         return true;
     }

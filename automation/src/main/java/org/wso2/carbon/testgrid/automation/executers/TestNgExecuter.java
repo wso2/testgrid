@@ -22,6 +22,9 @@ import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
 import org.wso2.carbon.testgrid.automation.executers.common.TestExecuter;
 import org.wso2.carbon.testgrid.common.Deployment;
 
+/**
+ * This class is responsible for Executing TestNG tests.
+ */
 public class TestNgExecuter implements TestExecuter {
 
     @Override
@@ -30,7 +33,7 @@ public class TestNgExecuter implements TestExecuter {
     }
 
     @Override
-    public void init(String testGridFolder,String testName) throws TestGridExecuteException {
+    public void init(String testGridFolder, String testName) throws TestGridExecuteException {
 
     }
 

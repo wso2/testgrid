@@ -23,17 +23,18 @@ import org.wso2.carbon.testgrid.automation.executers.TestNgExecuter;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
 /**
- *This class creates the Specefic executer for the test type.
+ * This class creates the specific executer for the test type.
  */
 public class TestExecuterFactory {
 
     /**
      * This method returns the specefic test executer.
-     * @param testTypeJmeter Test Type
+     *
+     * @param testType Test Type
      * @return the specific TestExecuter
      */
-    public static TestExecuter getTestExecutor(String testTypeJmeter) {
-        switch (testTypeJmeter) {
+    public static TestExecuter getTestExecutor(String testType) {
+        switch (testType) {
             case TestGridConstants.TEST_TYPE_JMETER:
                 return new JmeterExecuter();
             case TestGridConstants.TEST_TYPE_TESTNG:
