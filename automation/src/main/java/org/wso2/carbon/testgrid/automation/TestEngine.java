@@ -54,7 +54,7 @@ public class TestEngine {
         host1.setLabel("server_host");
 
         Port port = new Port();
-        port.setLabel("server_port");
+        port.setProtocol("server_port");
         port.setPortNumber(9443);
         host1.setPorts(Arrays.asList(port));
         deployment.setHosts(Arrays.asList(host1));

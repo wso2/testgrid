@@ -18,17 +18,8 @@
 
 package org.wso2.carbon.testgrid.infrastructure;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.common.TestPlan;
-import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.utils.Util;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * Interface for creation of infrastructure

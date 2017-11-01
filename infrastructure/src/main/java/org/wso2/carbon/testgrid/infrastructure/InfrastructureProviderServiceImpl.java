@@ -33,23 +33,24 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
 
     @Override
     public boolean createTestEnvironment(TestPlan testPlan) throws TestGridInfrastructureException {
-        String testPlanLocation = testPlan.getTestScenarios().get(0).getScenarioLocation();
+        String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
 
         System.out.println("Initializing terraform...");
         log.info("Initializing terraform...");
-        Util.executeCommand("terraform init " + testPlanLocation + "/Scripts/OpenStack", null);
+        Util.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
 
         System.out.println("Creating the Kubernetes cluster...");
         log.info("Creating the Kubernetes cluster...");
-        Util.executeCommand("bash " + testPlanLocation + "/Scripts/OpenStack/infra.sh", null);
+        Util.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
+        testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
         return true;
     }
 
     @Override
     public boolean removeTestEnvironment(TestPlan testPlan) throws TestGridInfrastructureException {
-        String testPlanLocation = testPlan.getTestScenarios().get(0).getScenarioLocation();
+        String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
         System.out.println("Destroying test environment...");
-        if(Util.executeCommand("sh " + testPlanLocation + "/Scripts/OpenStack/cluster-destroy.sh", null)) {
+        if(Util.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
             return true;
         }
         return false;

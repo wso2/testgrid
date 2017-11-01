@@ -33,7 +33,7 @@ public class Main {
 
     public static void main(String[] args) {
         String repo = "https://github.com/sameerawickramasekara/test-grid-is-resources.git";
-        String product = "WSO2 Identity Server";
+        String product = "WSO2_Identity_Server";
         String productVersion = "5.3.0";
         if(args.length == 3){
             repo = args[0];

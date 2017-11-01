@@ -26,8 +26,10 @@ import org.wso2.carbon.testgrid.common.TestScenario;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.deployment.DeployerService;
+import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
 import org.wso2.carbon.testgrid.deployment.TestGridDeployerException;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderService;
+import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderServiceImpl;
 import org.wso2.carbon.testgrid.infrastructure.TestGridInfrastructureException;
 
 /**
@@ -48,7 +50,7 @@ public class TestPlanExecutor {
         testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_PREPARATION);
         //Setup the infrastructure
         try {
-            new InfrastructureProviderService().createTestEnvironment(testPlan);
+            new InfrastructureProviderServiceImpl().createTestEnvironment(testPlan);
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
@@ -59,7 +61,7 @@ public class TestPlanExecutor {
             testPlan.setStatus(TestPlan.Status.DEPLOYMENT_PREPARATION);
             Deployment deployment = null;
             try {
-                 new DeployerService().deploy(testPlan);
+                deployment = new DeployerServiceImpl().deploy(testPlan);
             } catch (TestGridDeployerException e) {
                 throw new TestPlanExecutorException("Exception occurred while running the deployment " +
                         "for deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +

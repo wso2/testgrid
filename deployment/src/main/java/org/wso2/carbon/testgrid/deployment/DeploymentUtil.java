@@ -13,7 +13,7 @@ public class DeploymentUtil {
     public static Deployment getDeploymentInfo(String testPlanLocation) {
 
         ObjectMapper mapper = new ObjectMapper();
-        File file = new File(testPlanLocation + "/Scripts/OpenStack/wso2is/deployment.json");
+        File file = new File(testPlanLocation + "/OpenStack/wso2is/deployment.json");
         try {
             return mapper.readValue(file, Deployment.class);
         } catch (IOException e) {

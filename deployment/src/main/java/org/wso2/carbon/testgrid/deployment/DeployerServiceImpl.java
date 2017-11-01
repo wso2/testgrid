@@ -46,8 +46,8 @@ public class DeployerServiceImpl implements DeployerService{
 
     @Override
     public Deployment deploy(TestPlan testPlan) throws TestGridDeployerException {
-        String testPlanLocation = testPlan.getTestScenarios().get(0).getScenarioLocation();
-        String scriptLocation = testPlanLocation + "/Scripts/OpenStack/wso2is/deploy.sh";
+        String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
+        String scriptLocation = testPlanLocation + "/OpenStack/wso2is/deploy.sh";
         try {
             String username = System.getenv("OS_USERNAME");
             String password = System.getenv("OS_PASSWORD");
@@ -55,7 +55,7 @@ public class DeployerServiceImpl implements DeployerService{
             String dockerEmail = username + "@wso2.com";
 
             Util.executeCommand("chmod -R 777 " + testPlanLocation, null);
-            System.setProperty("user.dir", testPlanLocation + "/Scripts/OpenStack/wso2is" );
+            System.setProperty("user.dir", testPlanLocation + "/OpenStack/wso2is" );
             File file = new File(System.getProperty("user.dir"));
 
             System.out.println("Setting KUBERNETES_MASTER environment variable...");
@@ -67,8 +67,9 @@ public class DeployerServiceImpl implements DeployerService{
 
 //            Util.executeCommand("bash " + scriptLocation + " " + getKubernetesMaster(testPlanLocation + "/Scripts/OpenStack"));
             Util.executeCommand("./deploy.sh " +
-                    getKubernetesMaster(testPlanLocation + "/Scripts/OpenStack/k8s.properties") + " " +
+                    getKubernetesMaster(testPlanLocation + "/OpenStack/k8s.properties") + " " +
                     dockerUrl + " " + username + " " + password + " " + dockerEmail, file);
+            testPlan.setStatus(TestPlan.Status.DEPLOYMENT_READY);
             return DeploymentUtil.getDeploymentInfo(testPlanLocation);
         } catch (Exception e) {
             log.error(e);
@@ -78,12 +79,12 @@ public class DeployerServiceImpl implements DeployerService{
 
     @Override
     public boolean unDeploy(TestPlan testPlan) throws TestGridDeployerException {
-        String testPlanLocation = testPlan.getTestScenarios().get(0).getScenarioLocation();
-        String scriptLocation = testPlanLocation + "/Scripts/OpenStack/wso2is/undeploy.sh";
+        String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
+        String scriptLocation = testPlanLocation + "/OpenStack/wso2is/undeploy.sh";
 
         Util.executeCommand("chmod -R 777 " + testPlanLocation, null);
 
-        System.setProperty("user.dir", testPlanLocation + "/Scripts/OpenStack/wso2is" );
+        System.setProperty("user.dir", testPlanLocation + "/OpenStack/wso2is" );
         File file = new File(System.getProperty("user.dir"));
 
         if(Util.executeCommand(/*"bash " + scriptLocation*/"./undeploy.sh", file)) {
