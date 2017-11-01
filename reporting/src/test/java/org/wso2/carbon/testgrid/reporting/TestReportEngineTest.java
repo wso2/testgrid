@@ -17,15 +17,19 @@
  */
 package org.wso2.carbon.testgrid.reporting;
 
+import org.mockito.Mockito;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.testgrid.reporting.util.TestEnvironmentUtil;
+import org.wso2.carbon.testgrid.common.ProductTestPlan;
+import org.wso2.carbon.testgrid.common.TestPlan;
+import org.wso2.carbon.testgrid.common.TestScenario;
 
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Test class to test the functionality of the {@link TestReportEngine}.
@@ -34,37 +38,43 @@ import java.nio.file.Path;
  */
 public class TestReportEngineTest {
 
-    private static final String TEST_GRID_HOME_ENV_KEY = "TEST_GRID_HOME";
-
-    @BeforeClass
-    public void beforeTest() {
-        // Set required environment variables
+    @Test
+    public void generateReportTest() throws ReportingException {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("results");
         Assert.assertNotNull(resource);
 
-        Path path = new File(resource.getFile()).toPath();
+        String scenarioLocation = new File(resource.getFile()).toPath().toAbsolutePath().toString();
+        TestScenario testScenario = Mockito.mock(TestScenario.class);
+        Mockito.when(testScenario.getScenarioLocation()).thenReturn(scenarioLocation);
+        Mockito.when(testScenario.getSolutionPattern()).thenReturn("Sample Test Scenario");
 
-        TestEnvironmentUtil.setEnvironmentVariable(TEST_GRID_HOME_ENV_KEY, path.toAbsolutePath().toString());
+        List<TestScenario> testScenarios = new ArrayList<>();
+        testScenarios.add(testScenario);
 
-        // TODO: Assert
-    }
+        TestPlan testPlan = Mockito.mock(TestPlan.class);
+        Mockito.when(testPlan.getName()).thenReturn("Sample Test Plan");
+        Mockito.when(testPlan.getTestScenarios()).thenReturn(testScenarios);
 
-    @Test
-    public void generateReportTest() throws ReportingException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource("results/jmeteroutput.csv");
-        Assert.assertNotNull(resource);
+        List<TestPlan> testPlans = new ArrayList<>();
+        testPlans.add(testPlan);
 
-//        Path path = new File(resource.getFile()).toPath();
+        ProductTestPlan productTestPlan = Mockito.mock(ProductTestPlan.class);
+        Mockito.when(productTestPlan.getProductName()).thenReturn("WSO2 Identity Server");
+        Mockito.when(productTestPlan.getProductVersion()).thenReturn("5.4.0");
+        Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
+        Mockito.when(productTestPlan.getTestPlans()).thenReturn(testPlans);
 
-//        TestReportEngine testReportEngine = new TestReportEngine();
-//        testReportEngine.generateReport(path, JmeterTestResult.class);
-    }
+        TestReportEngine testReportEngine = new TestReportEngine();
+        testReportEngine.generateReport(productTestPlan);
 
-    @AfterClass
-    public void afterTest() {
-        // Unset required environment variables
-        TestEnvironmentUtil.unsetEnvironmentVariable(TEST_GRID_HOME_ENV_KEY);
+        String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
+                          productTestPlan.getCreatedTimeStamp() + ".html";
+        Path reportPathLocation = Paths.get(scenarioLocation)
+                .resolve(fileName);
+
+        File reportFile = new File(reportPathLocation.toAbsolutePath().toString());
+        Assert.assertTrue(reportFile.exists());
+        Assert.assertTrue(reportFile.isFile());
     }
 }
