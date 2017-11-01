@@ -19,56 +19,45 @@
 package org.wso2.carbon.testgrid.core;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.wso2.carbon.testgrid.common.config.TestConfiguration;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by harshan on 10/31/17.
+ * This Util class will be used for having utility methods required for TestGrid core component.
  */
 public class TestGridUtil {
 
     private static final String SEPARATOR = "_";
     static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
-    private static final String TEST_CLONE_DIR = "test-repo";
 
-    static String createTestDirectory(TestConfiguration testConfiguration, Long timeStamp) {
-        String directory = System.getenv(TESTGRID_HOME_ENV) + File.separator + testConfiguration.getProductName() +
-                SEPARATOR + testConfiguration.getProductVersion() + SEPARATOR + timeStamp;
+    private static final Log log = LogFactory.getLog(TestGridUtil.class);
+
+    static String createTestDirectory(String productName, String productVersion, Long timeStamp) throws IOException {
+        String directory = System.getenv(TESTGRID_HOME_ENV) + File.separator + productName + SEPARATOR + productVersion
+                + SEPARATOR + timeStamp;
         File testDir = new File( directory);
         // if the directory exists, remove it
         if (testDir.exists()) {
-            System.out.println("Removing directory: " + testDir.getName());
-            try {
-                FileUtils.forceDelete(testDir);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            log.info("Removing test directory : " + testDir.getName());
+            FileUtils.forceDelete(testDir);
         }
-        System.out.println("creating directory: " + testDir.getName());
-        try {
-            testDir.mkdir();
-            return directory;
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
-        return null;
+        log.info("Creating test directory : " + testDir.getName());
+        testDir.mkdir();
+        return directory;
     }
 
-    static String cloneRepository(String repositoryUrl, String directory) {
-        String clonePath = directory + File.separator + TEST_CLONE_DIR;
+    static String cloneRepository(String repositoryUrl, String directory) throws GitAPIException {
+        String clonePath = directory + File.separator;
         File cloneDir = new File(clonePath);
         cloneDir.mkdir();
-        try {
-            clonePath = clonePath + File.separator + getCloneDirectoryName(repositoryUrl);
-            Git.cloneRepository().setURI(repositoryUrl).setDirectory(new File(clonePath)).
-                    setCloneAllBranches(false).call();
-        } catch (GitAPIException e) {
-            e.printStackTrace();
-        }
+        clonePath = clonePath + getCloneDirectoryName(repositoryUrl);
+        Git.cloneRepository().setURI(repositoryUrl).setDirectory(new File(clonePath)).
+                setCloneAllBranches(false).call();
         return clonePath;
     }
 

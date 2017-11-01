@@ -19,7 +19,7 @@ package org.wso2.carbon.testgrid.reporting;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
-import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.reporting.beans.TestResult;
 import org.wso2.carbon.testgrid.reporting.beans.TestResultBeanFactory;
 import org.wso2.carbon.testgrid.reporting.reader.ResultReader;
@@ -55,13 +55,14 @@ public class TestReportEngine {
     /**
      * Generates a test report based on the given test scenario.
      *
-     * @param testScenario test scenario to generate the test report
+     * @param productTestPlan Product TestPlan to generate the test report
      * @param <T>          type of the test results
      * @throws ReportingException thrown when {@code TEST_GRID_HOME} is not set
      */
-    public <T extends TestResult> void generateReport(TestScenario testScenario) throws ReportingException {
-
-        Path resultPath = Paths.get(testScenario.getScenarioLocation(), TEST_ARTIFACT_DIR, RESULTS_DIR);
+    public <T extends TestResult> void generateReport(ProductTestPlan productTestPlan) throws ReportingException {
+        //Set path here
+        String scenarioLocation = "";
+        Path resultPath = Paths.get(scenarioLocation, TEST_ARTIFACT_DIR, RESULTS_DIR);
         File[] directoryList = FileUtil.getFileList(resultPath);
         List<T> testResults = new ArrayList<>();
 

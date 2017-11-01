@@ -18,46 +18,38 @@
 
 package org.wso2.carbon.testgrid.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.automation.TestEngine;
 import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.deployment.DeployerService;
-import org.wso2.carbon.testgrid.deployment.TestGridDeployerException;
-import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderService;
-import org.wso2.carbon.testgrid.infrastructure.TestGridInfrastructureException;
+import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 
 /**
- * This class is mainly responsible for executing the provided TestScenarios.
+ * This class is mainly responsible for executing a TestScenario. This will invoke the TestEngine for executing the
+ * Tests available for a particular solution pattern.
  */
 public class ScenarioExecutor {
+
+    private static final Log log = LogFactory.getLog(ScenarioExecutor.class);
 
     /**
      * This method executes a given TestScenario.
      *
      * @param  testScenario - An instance of TestScenario in which the tests should be executed.
+     * @param  deployment - An instance of Deployment in which the tests should be executed against.
      * @return Returns the status of the operation
      * @throws ScenarioExecutorException If something goes wrong while executing the TestScenario.
      */
-    public boolean runScenario(TestScenario testScenario) throws ScenarioExecutorException {
+    public boolean runScenario(TestScenario testScenario, Deployment deployment) throws ScenarioExecutorException {
         try {
-            //Setup infrastructure
-            Deployment deployment = new InfrastructureProviderService().createTestEnvironment(testScenario);
-            //Trigger deployment
-            boolean status = new DeployerService().deploy(deployment);
-            if (status) {
-                //Run Tests
-                try {
-                    new TestEngine().runScenario(testScenario);
-                } catch (TestEngineException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        } catch (TestGridInfrastructureException e) {
-            e.printStackTrace();
-        } catch (TestGridDeployerException e) {
-            e.printStackTrace();
+            testScenario.setStatus(TestScenario.Status.RUNNING);
+            new TestEngine().runScenario(testScenario, deployment);
+        } catch (TestEngineException e) {
+            testScenario.setStatus(TestScenario.Status.ERROR);
+            throw new ScenarioExecutorException("Exception occurred while running the Tests for Solution Pattern '" +
+                    testScenario.getSolutionPattern() + "'");
         }
         return true;
     }
@@ -80,7 +72,7 @@ public class ScenarioExecutor {
      * @return Returns the status of the TestScenario
      * @throws ScenarioExecutorException If something goes wrong while checking the status of the TestScenario.
      */
-    public TestScenario.TestScenarioStatus getStatus(TestScenario testScenario) throws ScenarioExecutorException {
+    public TestScenario.Status getStatus(TestScenario testScenario) throws ScenarioExecutorException {
         return null;
     }
 }

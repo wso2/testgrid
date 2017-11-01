@@ -16,32 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.core;
+package org.wso2.carbon.testgrid.core.exception;
 
 /**
- * Represents the custom exceptions class to hold exceptions related to scenario execution.
+ * Represents the custom exceptions class to hold exceptions related to TestPlan execution.
  */
-public class ScenarioExecutorException extends Exception {
+public class TestPlanExecutorException extends Exception {
 
     private static final long serialVersionUID = -3151279511329070297L;
 
-    public ScenarioExecutorException(String msg, Exception nestedEx) {
+    public TestPlanExecutorException(String msg, Exception nestedEx) {
         super(msg, nestedEx);
     }
 
-    public ScenarioExecutorException(String message, Throwable cause) {
+    public TestPlanExecutorException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ScenarioExecutorException(String msg) {
+    public TestPlanExecutorException(String msg) {
         super(msg);
     }
 
-    public ScenarioExecutorException() {
+    public TestPlanExecutorException() {
         super();
     }
 
-    public ScenarioExecutorException(Throwable cause) {
+    public TestPlanExecutorException(Throwable cause) {
         super(cause);
     }
 }

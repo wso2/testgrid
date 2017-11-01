@@ -18,26 +18,17 @@
 
 package org.wso2.carbon.testgrid.common.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Defines the configuration of a single solution pattern.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SolutionPattern {
 
     private String name;
     private boolean enabled;
-    private boolean setupRequired;
-    private String infraProvider;//ex. AWS, OpenStack, GCC
-    private String scriptType; //ex. EC2, ECS, K8S
-    private String automationEngine; //ex. puppet, Ansible
     private String testType; //ex. JMeter, TestNG
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public boolean isEnabled() {
         return enabled;
@@ -47,43 +38,19 @@ public class SolutionPattern {
         this.enabled = enabled;
     }
 
-    public String getInfraProvider() {
-        return infraProvider;
-    }
-
-    public void setInfraProvider(String infraProvider) {
-        this.infraProvider = infraProvider;
-    }
-
-    public String getScriptType() {
-        return scriptType;
-    }
-
-    public boolean isSetupRequired() {
-        return setupRequired;
-    }
-
-    public void setSetupRequired(boolean setupRequired) {
-        this.setupRequired = setupRequired;
-    }
-
-    public void setScriptType(String scriptType) {
-        this.scriptType = scriptType;
-    }
-
-    public String getAutomationEngine() {
-        return automationEngine;
-    }
-
-    public void setAutomationEngine(String automationEngine) {
-        this.automationEngine = automationEngine;
-    }
-
     public String getTestType() {
         return testType;
     }
 
     public void setTestType(String testType) {
         this.testType = testType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

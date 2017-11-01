@@ -28,8 +28,6 @@ import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Host;
 import org.wso2.carbon.testgrid.common.Port;
 import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.reporting.ReportingException;
-import org.wso2.carbon.testgrid.reporting.TestReportEngine;
 
 import java.util.Arrays;
 
@@ -45,10 +43,10 @@ public class TestEngine {
      * @return true if all the processes finished.
      * @throws TestEngineException when there is an error in the process.
      */
-    public boolean runScenario(TestScenario scenario) throws TestEngineException {
+    public boolean runScenario(TestScenario scenario, Deployment deployment) throws TestEngineException {
 
         //-----------------dummy deployement object----------------------------------//
-        Deployment deployment = new Deployment();
+        Deployment deployment1 = new Deployment();
         deployment.setName("Is_One_Node");
 
         Host host1 = new Host();
@@ -65,25 +63,13 @@ public class TestEngine {
         log.info("Executing Solution Pattern : " + scenario.getSolutionPattern());
         TestManager testManager = new TestManager();
         try {
-            scenario.setDeployment(deployment);
             testManager.init(scenario.getScenarioLocation(), deployment);
             testManager.executeTests();
 
-            TestReportEngine engine = new TestReportEngine();
-            engine.generateReport(scenario);
-
         } catch (TestManagerException ex) {
-            String msg = "Error while initiating the TestManager";
-            log.error(msg, ex);
-            throw new TestEngineException(msg, ex);
+            throw new TestEngineException("Error while initiating the TestManager", ex);
         } catch (TestGridExecuteException ex) {
-            String msg = "Error while Executing Tests";
-            log.error(msg, ex);
-            throw new TestEngineException(msg, ex);
-        } catch (ReportingException ex) {
-            String msg = "Error while Generating the report";
-            log.error(msg, ex);
-            throw new TestEngineException(msg, ex);
+            throw new TestEngineException("Error while Executing Tests", ex);
         }
         return true;
     }
