@@ -18,23 +18,61 @@
 
 package org.wso2.carbon.testgrid.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.testgrid.automation.TestEngine;
+import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
+import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.common.TestScenarioStatus;
+import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 
 /**
- * Created by harshan on 10/30/17.
+ * This class is mainly responsible for executing a TestScenario. This will invoke the TestEngine for executing the
+ * Tests available for a particular solution pattern.
  */
 public class ScenarioExecutor {
 
-    public boolean runScenario(TestScenario scenario) {
+    private static final Log log = LogFactory.getLog(ScenarioExecutor.class);
+
+    /**
+     * This method executes a given TestScenario.
+     *
+     * @param  testScenario - An instance of TestScenario in which the tests should be executed.
+     * @param  deployment - An instance of Deployment in which the tests should be executed against.
+     * @return Returns the status of the operation
+     * @throws ScenarioExecutorException If something goes wrong while executing the TestScenario.
+     */
+    public boolean runScenario(TestScenario testScenario, Deployment deployment) throws ScenarioExecutorException {
+        try {
+            testScenario.setStatus(TestScenario.Status.RUNNING);
+            new TestEngine().runScenario(testScenario, deployment);
+        } catch (TestEngineException e) {
+            testScenario.setStatus(TestScenario.Status.ERROR);
+            throw new ScenarioExecutorException("Exception occurred while running the Tests for Solution Pattern '" +
+                    testScenario.getSolutionPattern() + "'");
+        }
+        return true;
+    }
+
+    /**
+     * This method aborts a running TestScenario.
+     *
+     * @param  testScenario - An instance of TestScenario in which the tests should be aborted.
+     * @return Returns the status of the operation
+     * @throws ScenarioExecutorException If something goes wrong while aborting the TestScenario.
+     */
+    public boolean abortScenario(TestScenario testScenario) throws ScenarioExecutorException {
         return false;
     }
 
-    public boolean abortScenario(TestScenario scenario) {
-        return false;
-    }
-
-    public TestScenarioStatus getStatus(TestScenario scenario) {
+    /**
+     * This method returns the status of a running TestScenario.
+     *
+     * @param  testScenario - An instance of TestScenario in which the status should be monitored.
+     * @return Returns the status of the TestScenario
+     * @throws ScenarioExecutorException If something goes wrong while checking the status of the TestScenario.
+     */
+    public TestScenario.Status getStatus(TestScenario testScenario) throws ScenarioExecutorException {
         return null;
     }
 }

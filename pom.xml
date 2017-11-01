@@ -40,7 +40,7 @@
         <module>infrastructure</module>
         <module>reporting</module>
         <module>utils</module>
-        <module>web</module>
+        <!--<module>api</module>-->
     </modules>
 
     <scm>
@@ -96,6 +96,13 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
                     <version>2.2</version>
+                </plugin>
+
+                <!-- Maven Assembly Plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>2.4.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -296,15 +303,16 @@
 
             <!-- Jackson yaml dependencies-->
             <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>${jackson.yaml.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.data-bind.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.annotation.version}</version>
+            </dependency>
+
             <!-- Apache commons dependencies-->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -318,18 +326,55 @@
                 <artifactId>org.wso2.carbon.testgrid.common</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.core</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.automation</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.deployment</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.infrastruture</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.reporting</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.testgrid</groupId>
+                <artifactId>org.wso2.carbon.testgrid.utils</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+
+            <!-- Test dependencies -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>${mockito.all.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <properties>
-        <!-- Automation Framework version-->
-        <test.framework.version>4.4.2</test.framework.version>
 
         <!-- TestGrid version-->
         <test.grid.version>0.9.0-SNAPSHOT</test.grid.version>
         <!-- Jackson versions-->
         <jackson.yaml.version>2.3.0</jackson.yaml.version>
-        <jackson.data-bind.version>2.2.3</jackson.data-bind.version>
+        <jackson.data-bind.version>2.6.3</jackson.data-bind.version>
+        <jackson.annotation.version>2.6.0</jackson.annotation.version>
         <!-- Automation Framework version-->
         <test.framework.version>4.4.2</test.framework.version>
         <!-- Apache commons dependencies-->
@@ -337,6 +382,8 @@
         <project.scm.id>scm-server</project.scm.id>
         <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
+        <!-- Test dependencies -->
+        <mockito.all.version>1.10.19</mockito.all.version>
 
         <!-- Other dependencies -->
         <carbon.kernel.version>4.4.4</carbon.kernel.version>
