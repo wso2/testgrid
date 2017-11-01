@@ -37,7 +37,7 @@ public interface ResultReader {
      * @param type type of the result
      * @param <T>  type of the result
      * @return returns
-     * @throws ReportingException thrown when an error occurs in reading the results file
+     * @throws ReportingException thrown when an error occurs in reading the results.Results.Tests.results file
      */
     <T extends TestResult> List<T> readFile(Path path, Class<T> type) throws ReportingException;
 }

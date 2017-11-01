@@ -17,15 +17,15 @@
  */
 package org.wso2.carbon.testgrid.reporting;
 
+import org.mockito.Mockito;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.testgrid.reporting.util.TestEnvironmentUtil;
+import org.wso2.carbon.testgrid.common.TestScenario;
 
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Test class to test the functionality of the {@link TestReportEngine}.
@@ -34,37 +34,27 @@ import java.nio.file.Path;
  */
 public class TestReportEngineTest {
 
-    private static final String TEST_GRID_HOME_ENV_KEY = "TEST_GRID_HOME";
-
-    @BeforeClass
-    public void beforeTest() {
-        // Set required environment variables
+    @Test
+    public void generateReportTest() throws ReportingException {
+        String reportFileName = "WSO2IS-5.4.0.html";
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("results");
         Assert.assertNotNull(resource);
 
-        Path path = new File(resource.getFile()).toPath();
+        String scenarioLocation = new File(resource.getFile()).toPath().toAbsolutePath().toString();
+        TestScenario testScenario = Mockito.mock(TestScenario.class);
+        Mockito.when(testScenario.getScenarioLocation()).thenReturn(scenarioLocation);
 
-        TestEnvironmentUtil.setEnvironmentVariable(TEST_GRID_HOME_ENV_KEY, path.toAbsolutePath().toString());
+        TestReportEngine testReportEngine = new TestReportEngine();
+        testReportEngine.generateReport(testScenario);
 
-        // TODO: Assert
-    }
+        Path reportPathLocation = Paths.get(scenarioLocation)
+                .resolve("Tests")
+                .resolve("Results")
+                .resolve(reportFileName);
 
-    @Test
-    public void generateReportTest() throws ReportingException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource("results/jmeteroutput.csv");
-        Assert.assertNotNull(resource);
-
-//        Path path = new File(resource.getFile()).toPath();
-
-//        TestReportEngine testReportEngine = new TestReportEngine();
-//        testReportEngine.generateReport(path, JmeterTestResult.class);
-    }
-
-    @AfterClass
-    public void afterTest() {
-        // Unset required environment variables
-        TestEnvironmentUtil.unsetEnvironmentVariable(TEST_GRID_HOME_ENV_KEY);
+        File reportFile = new File(reportPathLocation.toAbsolutePath().toString());
+        Assert.assertTrue(reportFile.exists());
+        Assert.assertTrue(reportFile.isFile());
     }
 }

@@ -34,6 +34,9 @@ import java.util.List;
  */
 public class CSVResultReaderTest {
 
+    private static final String TEST_ARTIFACT_DIR = "Tests";
+    private static final String RESULTS_DIR = "Results";
+
     private String[][] expectedResults = new String[][]{
             {"1509341756940", "411", "Create Role", "200", "OK", "Create User, Role, SP and IDP 1-1", "text",
              "true", "", "657", "834", "1", "1", "410", "0", "236"},
@@ -50,10 +53,14 @@ public class CSVResultReaderTest {
     @Test
     public void testReadFile() throws ReportingException {
         ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource("results/jmeteroutput.csv");
+        URL resource = classLoader.getResource("results");
         Assert.assertNotNull(resource);
 
-        Path path = new File(resource.getFile()).toPath();
+        Path path = new File(resource.getFile()).toPath()
+                .resolve(TEST_ARTIFACT_DIR)
+                .resolve(RESULTS_DIR)
+                .resolve("Jmeter")
+                .resolve("jmeteroutput.csv");
         CSVResultReader csvFileReader = new CSVResultReader();
         List<JmeterTestResult> testResults = csvFileReader.readFile(path, JmeterTestResult.class);
 
