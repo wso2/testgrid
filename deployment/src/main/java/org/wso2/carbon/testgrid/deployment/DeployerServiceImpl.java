@@ -49,6 +49,11 @@ public class DeployerServiceImpl implements DeployerService{
         String testPlanLocation = testPlan.getTestScenarios().get(0).getScenarioLocation();
         String scriptLocation = testPlanLocation + "/Scripts/OpenStack/wso2is/deploy.sh";
         try {
+            String username = System.getenv("OS_USERNAME");
+            String password = System.getenv("OS_PASSWORD");
+            String dockerUrl = "dockerhub.private.wso2.com";
+            String dockerEmail = username + "@wso2.com";
+
             Util.executeCommand("chmod -R 777 " + testPlanLocation, null);
             System.setProperty("user.dir", testPlanLocation + "/Scripts/OpenStack/wso2is" );
             File file = new File(System.getProperty("user.dir"));
@@ -60,15 +65,10 @@ public class DeployerServiceImpl implements DeployerService{
             System.out.println("Deploying kubernetes artifacts...");
             log.info("Deploying kubernetes artifacts...");
 
-            String secret = "kubectl create secret docker-registry registrykey " +
-                    "--docker-server=dockerhub.private.wso2.com " +
-                    "--docker-username=asmaj --docker-password=Summerwind92" +
-                    " --docker-email=asmaj@wso2.com ";
-
-            Util.executeCommand(secret, file);
-
 //            Util.executeCommand("bash " + scriptLocation + " " + getKubernetesMaster(testPlanLocation + "/Scripts/OpenStack"));
-            Util.executeCommand("./deploy.sh" + getKubernetesMaster(testPlanLocation + "/Scripts/OpenStack"), file);
+            Util.executeCommand("./deploy.sh " +
+                    getKubernetesMaster(testPlanLocation + "/Scripts/OpenStack/k8s.properties") + " " +
+                    dockerUrl + " " + username + " " + password + " " + dockerEmail, file);
             return DeploymentUtil.getDeploymentInfo(testPlanLocation);
         } catch (Exception e) {
             log.error(e);
@@ -108,10 +108,16 @@ public class DeployerServiceImpl implements DeployerService{
         pb.start();*/
     }
 
+    /**
+     * Retrieves the value of KUBERNETES_MASTER property.
+     *
+     * @param location location of k8s.properties file
+     * @return String value of KUBERNETES_MASTER property
+     */
     private String getKubernetesMaster(String location){
         Properties prop = new Properties();
         try {
-            InputStream inputStream = new FileInputStream(location + "/k8s.properties");
+            InputStream inputStream = new FileInputStream(location);
             prop.load(inputStream);
 
             System.out.println(inputStream);

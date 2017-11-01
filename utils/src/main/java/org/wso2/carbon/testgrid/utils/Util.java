@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
  *
  */
 public final class Util {
-    private static ProcessBuilder processBuilder;
     /**
      * Executes a command.
      * Used for creating the infrastructure and deployment.
@@ -19,7 +18,7 @@ public final class Util {
      */
     public static boolean executeCommand(String command, File workingDirectory) {
 
-        processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
+        ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
         Process process;
         try {
             if (workingDirectory !=null && workingDirectory.exists()) {

@@ -42,7 +42,6 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
         System.out.println("Creating the Kubernetes cluster...");
         log.info("Creating the Kubernetes cluster...");
         Util.executeCommand("bash " + testPlanLocation + "/Scripts/OpenStack/infra.sh", null);
-
         return true;
     }
 

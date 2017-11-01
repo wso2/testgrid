@@ -92,6 +92,11 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         } catch (TestGridDeployerException e) {
             e.printStackTrace();
         }
+        try {
+            Thread.sleep(30000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         for (TestScenario testScenario : testPlan.getTestScenarios()) {
             if (testScenario.isEnabled()) {
                 testScenario.setDeployment(deployment);
