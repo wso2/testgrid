@@ -17,8 +17,6 @@
  */
 package org.wso2.carbon.testgrid.reporting.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 
 import java.io.File;
@@ -38,8 +36,6 @@ import java.util.Locale;
  * @since 1.0.0
  */
 public class FileUtil {
-
-    private static Log logger = LogFactory.getLog(FileUtil.class);
 
     /**
      * Writes a given string to a given file to persistent media.
@@ -88,10 +84,7 @@ public class FileUtil {
         File file = new File(filePath);
         if (!file.exists()) {
             // Create directories if not exists
-            boolean isDirCreated = new File(Paths.get(filePath).getParent().toAbsolutePath().toString()).mkdirs();
-            if (isDirCreated) {
-                logger.info("Directory structure created.");
-            }
+            new File(Paths.get(filePath).getParent().toAbsolutePath().toString()).mkdirs();
 
             // Touch file
             try {
