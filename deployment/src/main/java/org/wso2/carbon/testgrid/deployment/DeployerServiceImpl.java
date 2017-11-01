@@ -62,7 +62,7 @@ public class DeployerServiceImpl implements DeployerService{
 
             String secret = "kubectl create secret docker-registry registrykey " +
                     "--docker-server=dockerhub.private.wso2.com " +
-                    "--docker-username=asmaj --docker-password=Summerwind92" +
+                    "--docker-username=asmaj --docker-password=###" +
                     " --docker-email=asmaj@wso2.com ";
 
             Util.executeCommand(secret, file);
