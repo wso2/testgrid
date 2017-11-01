@@ -20,7 +20,7 @@ package org.wso2.carbon.testgrid.reporting.reader;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
-import org.wso2.carbon.testgrid.reporting.beans.JmeterTestResult;
+import org.wso2.carbon.testgrid.reporting.result.JmeterTestResult;
 
 import java.io.File;
 import java.net.URL;

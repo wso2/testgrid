@@ -23,7 +23,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
-import org.wso2.carbon.testgrid.reporting.beans.TestResult;
+import org.wso2.carbon.testgrid.reporting.result.TestResultable;
 import org.wso2.carbon.testgrid.reporting.util.ReflectionUtil;
 
 import java.io.BufferedReader;
@@ -40,13 +40,13 @@ import java.util.Locale;
  *
  * @since 1.0.0
  */
-public class CSVResultReader implements ResultReader {
+public class CSVResultReader implements ResultReadable {
 
     private static final String SEPARATOR = ",";
     private static Log logger = LogFactory.getLog(CSVResultReader.class);
 
     @Override
-    public <T extends TestResult> List<T> readFile(Path path, Class<T> type) throws ReportingException {
+    public <T extends TestResultable> List<T> readFile(Path path, Class<T> type) throws ReportingException {
 
         if (path == null) {
             String errorMessage = "File path is null.";

@@ -15,40 +15,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.testgrid.reporting.beans;
+package org.wso2.carbon.testgrid.reporting.renderer;
+
+import org.wso2.carbon.testgrid.reporting.ReportingException;
+
+import java.util.Map;
 
 /**
- * Bean class to capture the result of a test scenario.
+ * Interface to be implemented in order to implement a report renderer.
  *
  * @since 1.0.0
  */
-public interface TestResult {
+public interface Renderable {
 
     /**
-     * Returns whether the test is a success or a failure.
+     * Render a given model from a given template.
      *
-     * @return whether the test is a success or a failure
+     * @param view  name of the template file in resources/templates directory
+     * @param model model to be rendered from the template
+     * @return rendered template
      */
-    boolean isTestSuccess();
-
-    /**
-     * Returns the time stamp of the test case.
-     *
-     * @return time stamp of the test case
-     */
-    String getTimestamp();
-
-    /**
-     * Returns the test case name.
-     *
-     * @return test case name
-     */
-    String getTestCase();
-
-    /**
-     * Returns the failure message of the test case.
-     *
-     * @return failure message of the test case
-     */
-    String getFailureMessage();
+    String render(String view, Map<String, Object> model) throws ReportingException;
 }

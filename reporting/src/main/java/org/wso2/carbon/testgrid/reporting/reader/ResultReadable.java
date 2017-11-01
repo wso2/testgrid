@@ -18,7 +18,7 @@
 package org.wso2.carbon.testgrid.reporting.reader;
 
 import org.wso2.carbon.testgrid.reporting.ReportingException;
-import org.wso2.carbon.testgrid.reporting.beans.TestResult;
+import org.wso2.carbon.testgrid.reporting.result.TestResultable;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @since 1.0.0
  */
-public interface ResultReader {
+public interface ResultReadable {
 
     /**
      * Reads the given result file and produces a result set based on the given type.
@@ -39,5 +39,5 @@ public interface ResultReader {
      * @return returns
      * @throws ReportingException thrown when an error occurs in reading the results.Results.Tests.results file
      */
-    <T extends TestResult> List<T> readFile(Path path, Class<T> type) throws ReportingException;
+    <T extends TestResultable> List<T> readFile(Path path, Class<T> type) throws ReportingException;
 }

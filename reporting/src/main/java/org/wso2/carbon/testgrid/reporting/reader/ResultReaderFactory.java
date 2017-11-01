@@ -30,7 +30,15 @@ public class ResultReaderFactory {
 
     private static final String CSV_EXTENSION = ".csv";
 
-    public static ResultReader getResultReader(Path path) throws ReportingException {
+    /**
+     * Returns the result reader based on the file extension.
+     *
+     * @param path path of the file to be read
+     * @return result reader matching the file extension
+     * @throws ReportingException thrown when the path is null or if the path do not exists or if the file extension
+     *                            is not supported
+     */
+    public static ResultReadable getResultReader(Path path) throws ReportingException {
         // Check whether configuration filepath is null. proceed if not null.
         if (path == null || !path.toFile().exists()) {
             throw new ReportingException("No result file path is provided");
