@@ -59,7 +59,7 @@ public class TestPlanExecutor {
             testPlan.setStatus(TestPlan.Status.DEPLOYMENT_PREPARATION);
             Deployment deployment = null;
             try {
-                deployment = new DeployerService().deploy(testPlan);
+                 new DeployerService().deploy(testPlan);
             } catch (TestGridDeployerException e) {
                 throw new TestPlanExecutorException("Exception occurred while running the deployment " +
                         "for deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +

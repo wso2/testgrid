@@ -19,8 +19,6 @@ package org.wso2.carbon.testgrid.reporting.renderer;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 
 import java.io.IOException;
@@ -35,7 +33,6 @@ import java.util.Map;
 public class MustacheTemplateRenderer implements Renderable {
 
     private static final String TEMPLATE_DIR = "templates";
-    private static Log logger = LogFactory.getLog(MustacheTemplateRenderer.class);
 
     @Override
     public String render(String view, Map<String, Object> model) throws ReportingException {
@@ -43,7 +40,6 @@ public class MustacheTemplateRenderer implements Renderable {
         StringWriter stringWriter = new StringWriter();
         try {
             mustache.execute(stringWriter, model).close();
-            logger.debug("Mustache rendering completed");
         } catch (IOException e) {
             throw new ReportingException(e);
         }

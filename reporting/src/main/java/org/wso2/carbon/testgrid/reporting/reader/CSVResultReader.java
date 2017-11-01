@@ -20,8 +20,6 @@ package org.wso2.carbon.testgrid.reporting.reader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 import org.wso2.carbon.testgrid.reporting.result.TestResultable;
 import org.wso2.carbon.testgrid.reporting.util.ReflectionUtil;
@@ -43,21 +41,16 @@ import java.util.Locale;
 public class CSVResultReader implements ResultReadable {
 
     private static final String SEPARATOR = ",";
-    private static Log logger = LogFactory.getLog(CSVResultReader.class);
 
     @Override
     public <T extends TestResultable> List<T> readFile(Path path, Class<T> type) throws ReportingException {
 
         if (path == null) {
-            String errorMessage = "File path is null.";
-            logger.error(errorMessage);
-            throw new ReportingException(errorMessage);
+            throw new ReportingException("File path is null.");
         }
 
         if (type == null) {
-            String errorMessage = "JmeterTestResult type cannot be null.";
-            logger.error(errorMessage);
-            throw new ReportingException(errorMessage);
+            throw new ReportingException("JmeterTestResult type cannot be null.");
         }
 
         String filePath = path.toString();
@@ -80,14 +73,10 @@ public class CSVResultReader implements ResultReadable {
                 results.add(result);
             }
         } catch (FileNotFoundException e) {
-            String errorMessage = String.format(Locale.ENGLISH, "File %s cannot be found", filePath);
-            logger.error(errorMessage, e);
-            throw new ReportingException(errorMessage, e);
+            throw new ReportingException(String.format(Locale.ENGLISH, "File %s cannot be found", filePath), e);
         } catch (IOException e) {
-            String errorMessage = String
-                    .format(Locale.ENGLISH, "IO error occurred when reading file %s", filePath);
-            logger.error(errorMessage, e);
-            throw new ReportingException(errorMessage, e);
+            throw new ReportingException(String
+                    .format(Locale.ENGLISH, "IO error occurred when reading file %s", filePath), e);
         }
         return results;
     }
