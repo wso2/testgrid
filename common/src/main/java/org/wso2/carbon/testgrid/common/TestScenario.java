@@ -19,7 +19,74 @@
 package org.wso2.carbon.testgrid.common;
 
 /**
- * Created by harshan on 10/30/17.
+ * This is the test model for a single SolutionPattern.
  */
 public class TestScenario {
+
+    public enum Status {
+        PLANNED, RUNNING, COMPLETED, ERROR
+    }
+
+    public enum TestEngine {
+        JMETER, TESTNG, SELENIUM
+    }
+
+    private boolean isEnabled;
+    private int id;
+    private String solutionPattern;
+    private String scenarioLocation;
+    private Status status;
+    private TestEngine testEngine;
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        isEnabled = enabled;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getSolutionPattern() {
+        return solutionPattern;
+    }
+
+    public void setSolutionPattern(String solutionPattern) {
+        this.solutionPattern = solutionPattern;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public String getScenarioLocation() {
+        return scenarioLocation;
+    }
+
+    public void setScenarioLocation(String scenarioLocation) {
+        this.scenarioLocation = scenarioLocation;
+    }
+
+    public TestEngine getTestEngine() {
+        return testEngine;
+    }
+
+    public void setTestEngine(TestEngine testEngine) {
+        this.testEngine = testEngine;
+    }
+
+    public void setTestEngine(String testEngine) {
+        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase());
+    }
 }

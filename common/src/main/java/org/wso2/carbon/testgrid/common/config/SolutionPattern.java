@@ -18,29 +18,17 @@
 
 package org.wso2.carbon.testgrid.common.config;
 
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Defines the configuration of a single solution pattern.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SolutionPattern {
 
     private String name;
     private boolean enabled;
-    private boolean isSetupRequired;
-    private String infraProvider;//ex. AWS, OpenStack, GCC
-    private String instanceType; //ex. EC2, ECS, K8S
-    private String automationEngine; //ex. puppet, Ansible
-    private Credentials instanceCredentials;
-    private Map<String, String> instanceMap;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    private String testType; //ex. JMeter, TestNG
 
     public boolean isEnabled() {
         return enabled;
@@ -50,52 +38,19 @@ public class SolutionPattern {
         this.enabled = enabled;
     }
 
-    public String getInfraProvider() {
-        return infraProvider;
+    public String getTestType() {
+        return testType;
     }
 
-    public void setInfraProvider(String infraProvider) {
-        this.infraProvider = infraProvider;
+    public void setTestType(String testType) {
+        this.testType = testType;
     }
 
-    public String getInstanceType() {
-        return instanceType;
+    public String getName() {
+        return name;
     }
 
-    public boolean isSetupRequired() {
-        return isSetupRequired;
+    public void setName(String name) {
+        this.name = name;
     }
-
-    public void setSetupRequired(boolean setupRequired) {
-        isSetupRequired = setupRequired;
-    }
-
-    public void setInstanceType(String instanceType) {
-        this.instanceType = instanceType;
-    }
-
-    public Credentials getInstanceCredentials() {
-        return instanceCredentials;
-    }
-
-    public void setInstanceCredentials(Credentials instanceCredentials) {
-        this.instanceCredentials = instanceCredentials;
-    }
-
-    public Map<String, String> getInstanceMap() {
-        return instanceMap;
-    }
-
-    public void setInstanceMap(Map<String, String> instanceMap) {
-        this.instanceMap = instanceMap;
-    }
-
-    public String getAutomationEngine() {
-        return automationEngine;
-    }
-
-    public void setAutomationEngine(String automationEngine) {
-        this.automationEngine = automationEngine;
-    }
-
 }

@@ -15,18 +15,118 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.carbon.testgrid.reporting;
 
-import org.wso2.carbon.testgrid.common.TestReport;
+import org.wso2.carbon.testgrid.common.ProductTestPlan;
+import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.reporting.model.ProductPlanReport;
+import org.wso2.carbon.testgrid.reporting.model.TestPlanReport;
+import org.wso2.carbon.testgrid.reporting.model.TestScenarioReport;
+import org.wso2.carbon.testgrid.reporting.reader.ResultReadable;
+import org.wso2.carbon.testgrid.reporting.reader.ResultReaderFactory;
+import org.wso2.carbon.testgrid.reporting.renderer.Renderable;
+import org.wso2.carbon.testgrid.reporting.renderer.RenderableFactory;
+import org.wso2.carbon.testgrid.reporting.result.TestResultBeanFactory;
+import org.wso2.carbon.testgrid.reporting.result.TestResultable;
+import org.wso2.carbon.testgrid.reporting.util.FileUtil;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Created by harshan on 10/30/17.
+ * This class is responsible for generating the test reports.
+ *
+ * @since 1.0.0
  */
 public class TestReportEngine {
 
-    public TestReport generateReport(TestScenario scenario) throws TestReportingException {
-        return null;
+    private static final String TEST_ARTIFACT_DIR = "Tests";
+    private static final String RESULTS_DIR = "Results";
+    private static final String HTML_TEMPLATE = "html_template.mustache";
+    private static final String RESULT_TEMPLATE = "result_template.mustache";
+    private static final String SCENARIO_TEMPLATE = "scenario_template.mustache";
+    private static final String PRODUCT_TEMPLATE = "product_template.mustache";
+    private static final String HTML_TEMPLATE_KEY_NAME = "productTestPlanReport";
+    private static final String HTML_EXTENSION = ".html";
+
+    /**
+     * Generates a test report based on the given test plan.
+     *
+     * @param productTestPlan test plan to generate the test report
+     * @throws ReportingException thrown when reading the results from files or when writing the test report to file
+     */
+    public void generateReport(ProductTestPlan productTestPlan) throws ReportingException {
+
+        Map<String, Object> parsedTestResultMap = parseTestResult(productTestPlan);
+        String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
+                          productTestPlan.getCreatedTimeStamp() + HTML_EXTENSION;
+
+        // Populate the html from the template
+        Renderable renderable = RenderableFactory.getRenderable(HTML_TEMPLATE);
+        String htmlString = renderable.render(HTML_TEMPLATE, parsedTestResultMap);
+        Path reportPath = Paths.get(productTestPlan.getHomeDir()).resolve(fileName);
+        FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), htmlString);
+    }
+
+    /**
+     * Parse test plan result to a map.
+     *
+     * @param productTestPlan test plan to generate results
+     * @param <T>             {@link TestResultable type}
+     * @return parsed result map
+     * @throws ReportingException thrown when reading the results from files
+     */
+    private <T extends TestResultable> Map<String, Object> parseTestResult(ProductTestPlan productTestPlan)
+            throws ReportingException {
+
+        List<TestPlan> testPlans = productTestPlan.getTestPlans();
+        List<TestPlanReport> testPlanReports = new ArrayList<>();
+
+        for (TestPlan testPlan : testPlans) {
+            List<TestScenario> testScenarios = testPlan.getTestScenarios();
+            List<TestScenarioReport> testScenarioReports = new ArrayList<>();
+
+            for (TestScenario testScenario : testScenarios) {
+                Path resultPath = Paths.get(testScenario.getScenarioLocation(), TEST_ARTIFACT_DIR, RESULTS_DIR);
+                File[] directoryList = FileUtil.getFileList(resultPath);
+                List<T> testResults = new ArrayList<>();
+
+                for (File directory : directoryList) {
+                    if (directory.isDirectory()) {
+                        Path directoryPath = Paths.get(directory.getAbsolutePath());
+                        Class<T> type = TestResultBeanFactory.getResultType(directoryPath);
+                        File[] fileList = FileUtil.getFileList(directoryPath);
+
+                        for (File file : fileList) {
+                            if (file.isFile()) {
+                                Path filePath = Paths.get(file.getAbsolutePath());
+                                ResultReadable resultReader = ResultReaderFactory.getResultReader(filePath);
+                                testResults.addAll(resultReader.readFile(filePath, type));
+                            }
+                        }
+                    }
+                }
+                TestScenarioReport<T> testScenarioReport =
+                        new TestScenarioReport<>(testScenario.getSolutionPattern(), testResults, RESULT_TEMPLATE);
+                testScenarioReports.add(testScenarioReport);
+            }
+
+            TestPlanReport testPlanReport = new TestPlanReport(testPlan.getName(), testScenarioReports,
+                    SCENARIO_TEMPLATE);
+            testPlanReports.add(testPlanReport);
+        }
+
+        ProductPlanReport productPlanReport = new ProductPlanReport(productTestPlan.getProductName(),
+                productTestPlan.getProductVersion(), testPlanReports, PRODUCT_TEMPLATE);
+
+        Map<String, Object> parsedResultMap = new HashMap<>();
+        parsedResultMap.put(HTML_TEMPLATE_KEY_NAME, productPlanReport);
+        return parsedResultMap;
     }
 }

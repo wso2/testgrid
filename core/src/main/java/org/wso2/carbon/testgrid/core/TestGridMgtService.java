@@ -18,22 +18,60 @@
 
 package org.wso2.carbon.testgrid.core;
 
-import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.common.TestScenarioStatus;
-import org.wso2.carbon.testgrid.common.config.TestConfiguration;
+import org.wso2.carbon.testgrid.common.ProductTestPlan;
+import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 
 /**
- * Created by harshan on 10/30/17.
+ * This defines the contract of TestGridMgtService in which will serve as the main entry point to the TestGrid
+ * Framework.
  */
 public interface TestGridMgtService {
 
-    TestScenario addTest(TestConfiguration testConfiguration) throws TestGridException;
+    /**
+     * This method checks whether the system is configured properly to run TestGrid framework.
+     *
+     * @return Returns true if the environment is configured properly.
+     * @throws TestGridException If something goes wrong while adding the ProductTestPlan.
+     */
+    boolean isEnvironmentConfigured() throws TestGridConfigurationException;
 
-    boolean executeTest(TestConfiguration testConfiguration) throws TestGridException;
+    /**
+     * This method adds a TestPlan to the TestGrid framework.
+     *
+     * @param  product - The product which TestGrid is executing.
+     * @param  productVersion - The product version which TestGrid is executing.
+     * @param  repository - GIT repository url of the Product tests.
+     * @return Returns the status of the operation (success/failure)
+     * @throws TestGridException If something goes wrong while adding the ProductTestPlan.
+     */
+    ProductTestPlan addProductTestPlan(String product, String productVersion, String repository) throws TestGridException;
 
-    boolean abortTest(TestScenario scenario) throws TestGridException;
+    /**
+     * This method triggers the execution of a ProductTestPlan.
+     *
+     * @param  productTestPlan - An instance of ProductTestPlan which should be executed.
+     * @return Returns the status of the operation (success/failure)
+     * @throws TestGridException If something goes wrong while executing the ProductTestPlan.
+     */
+    boolean executeProductTestPlan(ProductTestPlan productTestPlan) throws TestGridException;
 
-    TestScenarioStatus getStatus(TestScenario scenario) throws TestGridException;
+    /**
+     * This method aborts the execution of a ProductTestPlan.
+     *
+     * @param  productTestPlan - An instance of ProductTestPlan which should be aborted.
+     * @return Returns the status of the operation (success/failure)
+     * @throws TestGridException If something goes wrong while aborting the execution of the TestPlan.
+     */
+    boolean abortTestPlan(ProductTestPlan productTestPlan) throws TestGridException;
+
+    /**
+     * This method fetches the status of a ProductTestPlan.
+     *
+     * @param  productTestPlan - An instance of TestPlan which should be monitored.
+     * @return Returns the status of the TestPlan (success/failure)
+     * @throws TestGridException If something goes wrong while checking the status of the ProductTestPlan.
+     */
+    ProductTestPlan.Status getStatus(ProductTestPlan productTestPlan) throws TestGridException;
 
 }

@@ -27,7 +27,7 @@ public class Host {
 
     private String ip;
     private String label;
-    private List<Integer> ports;
+    private List<Port> ports;
 
     public String getIp() {
         return ip;
@@ -45,11 +45,11 @@ public class Host {
         this.label = label;
     }
 
-    public List<Integer> getPorts() {
+    public List<Port> getPorts() {
         return ports;
     }
 
-    public void setPorts(List<Integer> ports) {
+    public void setPorts(List<Port> ports) {
         this.ports = ports;
     }
 }

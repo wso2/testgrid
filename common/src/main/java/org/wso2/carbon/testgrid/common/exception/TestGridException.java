@@ -19,7 +19,8 @@
 package org.wso2.carbon.testgrid.common.exception;
 
 /**
- * Created by harshan on 10/30/17.
+ * This is a custom exception class to throw all issues related to TestGrid. This will also be visible to external
+ * callers.
  */
 public class TestGridException extends Exception {
 

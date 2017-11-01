@@ -1,0 +1,27 @@
+{
+  "testRepository": "https://github.com/sameerawickramasekara/test-grid-is-resources.git",
+  "deploymentRepository": "https://github.com/yasassri/apim-distributed-tests",
+  "productName":"wso2-is",
+  "productVersion":"5.4.0",
+  "name":"TestPlan1",
+  "enabled":true,
+  "deploymentPattern":"single-node",
+  "infrastructureType":"OPENSTACK",
+  "instanceType":"Docker Containers",
+  "clusterType":"K8S",
+  "deployerType":"PUPPET",
+  "os":"Ubuntu 17.04",
+  "database":"MySQL 5.7",
+  "solutionPatterns":[
+    {
+      "name": "SolutionPattern22",
+      "enabled": true,
+      "testType": "JMETER"
+    },
+    {
+      "name": "SolutionPattern23",
+      "enabled": false,
+      "testType": "TESTNG"
+    }
+  ]
+}
