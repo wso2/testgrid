@@ -302,7 +302,6 @@
             </dependency>
 
             <!-- Jackson yaml dependencies-->
-
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
@@ -313,6 +312,7 @@
                 <artifactId>jackson-annotations</artifactId>
                 <version>${jackson.annotation.version}</version>
             </dependency>
+
             <!-- Apache commons dependencies-->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -356,6 +356,14 @@
                 <artifactId>org.wso2.carbon.testgrid.utils</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
+
+            <!-- Test dependencies -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>${mockito.all.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -374,6 +382,8 @@
         <project.scm.id>scm-server</project.scm.id>
         <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
+        <!-- Test dependencies -->
+        <mockito.all.version>1.10.19</mockito.all.version>
 
         <!-- Other dependencies -->
         <carbon.kernel.version>4.4.4</carbon.kernel.version>

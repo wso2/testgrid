@@ -15,17 +15,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.testgrid.reporting;
+package org.wso2.carbon.testgrid.reporting.result;
 
-
-import org.wso2.carbon.testgrid.reporting.beans.TestResult;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Sample result model to capture jmeter test result.
  *
  * @since 1.0.0
  */
-public class Result implements TestResult {
+public class JmeterTestResult implements TestResultable {
+
+    private static final String DATE_FORMAT = "dd-MM-yyyy hh:mm:ss";
 
     private String timeStamp;
     private String elapsed;
@@ -52,6 +54,14 @@ public class Result implements TestResult {
     @Override
     public String getTimestamp() {
         return timeStamp;
+    }
+
+    @Override
+    public String getFormattedTimestamp() {
+        Long timestamp = Long.parseLong(timeStamp);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
+        Date date = new Date(timestamp);
+        return simpleDateFormat.format(date);
     }
 
     @Override

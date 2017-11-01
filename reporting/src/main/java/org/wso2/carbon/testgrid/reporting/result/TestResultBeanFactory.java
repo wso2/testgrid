@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.testgrid.reporting.beans;
+package org.wso2.carbon.testgrid.reporting.result;
 
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 
@@ -39,7 +39,7 @@ public class TestResultBeanFactory {
      * @throws ReportingException thrown when result type cannot be identified
      */
     @SuppressWarnings("unchecked")
-    public static <T extends TestResult> Class<T> getResultType(Path directoryPath)
+    public static <T extends TestResultable> Class<T> getResultType(Path directoryPath)
             throws ReportingException {
 
         // Check whether configuration directoryPath is null. proceed if not null.
