@@ -36,10 +36,10 @@ import java.io.IOException;
 /**
  * This class is responsible for performing the tasks related to execution of single jmeter solution.
  */
-public class JmeterExecuter implements TestExecuter {
+public class JMeterExecuter implements TestExecuter {
 
-    private static final Log log = LogFactory.getLog(JmeterExecuter.class);
-    private String jmterHome;
+    private static final Log log = LogFactory.getLog(JMeterExecuter.class);
+    private String jMeterHome;
     private String testGridFolder;
     private String testName;
 
@@ -58,10 +58,10 @@ public class JmeterExecuter implements TestExecuter {
             String prop = changePropertyFile(deployment);
             String command;
             if (prop != null) {
-                command = "sh " + this.jmterHome + "/bin/jmeter.sh -n -t " + script + " -l " +
+                command = "sh " + this.jMeterHome + "/bin/jmeter.sh -n -t " + script + " -l " +
                         testGridFolder + "/Results/Jmeter/" + scriptName + ".csv -p " + prop;
             } else {
-                command = "sh " + this.jmterHome + "/bin/jmeter.sh -n -t " + script + " -l " +
+                command = "sh " + this.jMeterHome + "/bin/jmeter.sh -n -t " + script + " -l " +
                         testGridFolder + "/Results/Jmeter/" + scriptName + ".csv";
             }
             Process exec = runtime.exec(command);
@@ -83,7 +83,7 @@ public class JmeterExecuter implements TestExecuter {
     }
 
     /**
-     * This method is responsible for initializing the JmeterExecuter with details.
+     * This method is responsible for initializing the JMeterExecuter with details.
      *
      * @param testGridFolder The TestGrid home folder that tests reside in.
      * @param testName       The name for the test that is being executed.
@@ -94,7 +94,7 @@ public class JmeterExecuter implements TestExecuter {
         this.testName = testName;
         String jmeterHome = EnvVariableUtil.readEnvironmentVariable(TestGridConstants.JMETER_HOME);
         if (jmeterHome != null) {
-            this.jmterHome = jmeterHome;
+            this.jMeterHome = jmeterHome;
             this.testGridFolder = testGridFolder;
         } else {
             String msg = "Environment Variable JMETER_HOME is not set";

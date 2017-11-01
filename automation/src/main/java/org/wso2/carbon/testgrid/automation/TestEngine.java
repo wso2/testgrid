@@ -62,7 +62,7 @@ public class TestEngine {
         deployment.setHosts(Arrays.asList(host1));
 
         //-----------------end of dummy deployement object----------------------------------//
-
+        log.info("Executing Solution Pattern : " + scenario.getSolutionPattern());
         TestManager testManager = new TestManager();
         try {
             scenario.setDeployment(deployment);

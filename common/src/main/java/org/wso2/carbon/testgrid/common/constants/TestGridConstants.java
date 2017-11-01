@@ -1,17 +1,17 @@
 package org.wso2.carbon.testgrid.common.constants;
 
 /**
- * Created by sameera on 30/10/17.
+ * This class stores constants used by the TestGrid.
  */
 public class TestGridConstants {
 
     //environment variables
-    public final static String TEST_GRID_SCENARIO = "TESTGRID_SCENARIO";
-    public final static String JMETER_HOME = "JMETER_HOME";
+    public static final String TEST_GRID_SCENARIO = "TESTGRID_SCENARIO";
+    public static final String JMETER_HOME = "JMETER_HOME";
     //test types
-    public final static String TEST_TYPE_JMETER = "JMETER";
-    public final static String TEST_TYPE_TESTNG = "TESTNG";
+    public static final String TEST_TYPE_JMETER = "JMETER";
+    public static final String TEST_TYPE_TESTNG = "TESTNG";
 
-    public final static String JMTER_SUFFIX = ".jmx";
+    public static final String JMTER_SUFFIX = ".jmx";
 
 }

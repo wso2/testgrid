@@ -27,19 +27,19 @@ import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 import java.util.List;
 
 /**
- * This is the bean class for Jmeter tests.
+ * This class is responsible for Executing the JMeter scripts for a single test.
  */
-public class JmeterTest extends Test {
+public class JMeterTest extends Test {
 
-    private List<String> jmterScripts;
+    private List<String> jMeterScripts;
     private TestExecuter testExecuter = TestExecuterFactory.getTestExecutor(TestGridConstants.TEST_TYPE_JMETER);
 
-    private List<String> getJmterScripts() {
-        return jmterScripts;
+    private List<String> getjMeterScripts() {
+        return jMeterScripts;
     }
 
-    public void setJmterScripts(List<String> jmterScripts) {
-        this.jmterScripts = jmterScripts;
+    public void setjMeterScripts(List<String> jMeterScripts) {
+        this.jMeterScripts = jMeterScripts;
     }
 
     /**
@@ -50,7 +50,7 @@ public class JmeterTest extends Test {
     @Override
     public void execute(String testLocation, Deployment deployment) throws TestGridExecuteException {
         testExecuter.init(testLocation, getTestName());
-        for (String script : this.getJmterScripts()) {
+        for (String script : this.getjMeterScripts()) {
             testExecuter.execute(script, deployment);
         }
     }

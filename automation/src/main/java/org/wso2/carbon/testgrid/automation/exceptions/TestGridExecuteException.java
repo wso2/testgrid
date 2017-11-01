@@ -18,9 +18,10 @@
 package org.wso2.carbon.testgrid.automation.exceptions;
 
 /**
- * Exceptions occuring form the TestGrid execution.
+ * Exceptions occurring form the TestGrid execution.
  */
 public class TestGridExecuteException extends Exception {
+
     private static final long serialVersionUID = -3155676311329070297L;
 
     public TestGridExecuteException(String msg, Exception nestedEx) {

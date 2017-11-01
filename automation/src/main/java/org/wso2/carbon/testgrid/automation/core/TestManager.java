@@ -52,7 +52,6 @@ public class TestManager {
         try {
             this.testLocation = testLocation + File.separator + "Tests";
             this.tests = testGridTestReader.getTests(this.testLocation);
-
         } catch (TestReaderException e) {
             String msg = "Error while reading tests";
             log.error(msg, e);

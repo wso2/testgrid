@@ -22,9 +22,10 @@ import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
 import org.wso2.carbon.testgrid.common.Deployment;
 
 /**
- * This is the bean class for TestNG tests.
+ * This class is responsible for Executing the TestNG tests.
  */
 public class TestNGTest extends Test {
+
     @Override
     public void execute(String testLocation, Deployment deployment) throws TestGridExecuteException {
 

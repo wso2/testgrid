@@ -18,28 +18,27 @@
 
 package org.wso2.carbon.testgrid.automation.file.common;
 
-import org.wso2.carbon.testgrid.automation.file.JmeterTestReader;
+import org.wso2.carbon.testgrid.automation.file.JMeterTestReader;
 import org.wso2.carbon.testgrid.automation.file.TestNGTestReader;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
 /**
  * The factory class to get a Test reader implementation.
  */
-public class TestReaderFactory {
+class TestReaderFactory {
+
     /**
      * This method returns the TestReader implementation of the given type.
      *
      * @param testType Type of the tests as a String.
      * @return object of TestReader.
      */
-    public static TestReader getTestReader(String testType) {
+    static TestReader getTestReader(String testType) {
         switch (testType) {
             case TestGridConstants.TEST_TYPE_JMETER:
-                return new JmeterTestReader();
-
+                return new JMeterTestReader();
             case TestGridConstants.TEST_TYPE_TESTNG:
                 return new TestNGTestReader();
-
             default:
                 return null;
         }

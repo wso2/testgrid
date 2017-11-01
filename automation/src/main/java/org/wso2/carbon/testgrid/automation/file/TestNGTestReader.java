@@ -28,6 +28,7 @@ import java.util.List;
  * This class is responsible for reading testNG tests for TestGrid framework.
  */
 public class TestNGTestReader implements TestReader {
+
     @Override
     public List<Test> readTests(String testLocation) throws TestReaderException {
         return null;

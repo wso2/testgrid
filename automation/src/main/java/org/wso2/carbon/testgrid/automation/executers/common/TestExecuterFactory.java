@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.testgrid.automation.executers.common;
 
-import org.wso2.carbon.testgrid.automation.executers.JmeterExecuter;
+import org.wso2.carbon.testgrid.automation.executers.JMeterExecuter;
 import org.wso2.carbon.testgrid.automation.executers.TestNgExecuter;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
@@ -28,7 +28,7 @@ import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 public class TestExecuterFactory {
 
     /**
-     * This method returns the specefic test executer.
+     * This method returns the specific test executer.
      *
      * @param testType Test Type
      * @return the specific TestExecuter
@@ -36,7 +36,7 @@ public class TestExecuterFactory {
     public static TestExecuter getTestExecutor(String testType) {
         switch (testType) {
             case TestGridConstants.TEST_TYPE_JMETER:
-                return new JmeterExecuter();
+                return new JMeterExecuter();
             case TestGridConstants.TEST_TYPE_TESTNG:
                 return new TestNgExecuter();
             default:

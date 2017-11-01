@@ -50,9 +50,7 @@ public class TestGridTestReader {
                 tests1 = testReader.readTests(testLocation + File.separator + testType);
                 testList.addAll(tests1);
             }
-
         }
-
         return testList;
     }
 

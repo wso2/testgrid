@@ -20,7 +20,7 @@ package org.wso2.carbon.testgrid.automation.file;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.testgrid.automation.beans.JmeterTest;
+import org.wso2.carbon.testgrid.automation.beans.JMeterTest;
 import org.wso2.carbon.testgrid.automation.beans.Test;
 import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
 import org.wso2.carbon.testgrid.automation.file.common.TestReader;
@@ -35,9 +35,9 @@ import java.util.List;
 /**
  * Reader for reading Jmeter test files of the standard maven structure.
  */
-public class JmeterTestReader implements TestReader {
+public class JMeterTestReader implements TestReader {
 
-    private static final Log log = LogFactory.getLog(JmeterTestReader.class);
+    private static final Log log = LogFactory.getLog(JMeterTestReader.class);
     private static final  String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
 
     /**
@@ -52,7 +52,7 @@ public class JmeterTestReader implements TestReader {
         for (String solution : Arrays.asList(list)) {
             File tests = new File(file.getAbsolutePath() + File.separator + solution +
                     File.separator + JMETER_TEST_PATH);
-            JmeterTest test = new JmeterTest();
+            JMeterTest test = new JMeterTest();
 
             test.setTestName(solution);
             List<String> jmxList = new ArrayList<>();
@@ -64,7 +64,7 @@ public class JmeterTestReader implements TestReader {
                 }
             }
             Collections.sort(jmxList);
-            test.setJmterScripts(jmxList);
+            test.setjMeterScripts(jmxList);
             testsList.add(test);
 
         }

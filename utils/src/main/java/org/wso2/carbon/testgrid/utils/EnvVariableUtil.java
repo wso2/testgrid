@@ -1,10 +1,11 @@
 package org.wso2.carbon.testgrid.utils;
 
 /**
- * Created by sameera on 30/10/17.
+ * This Utility class is used to access Environment variables.
  */
 public class EnvVariableUtil {
-    public static String readEnvironmentVariable(String variable){
+
+    public static String readEnvironmentVariable(String variable) {
         return System.getenv(variable);
     }
 }
