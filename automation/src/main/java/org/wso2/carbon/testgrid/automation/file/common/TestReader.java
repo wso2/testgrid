@@ -16,24 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.deployment;
+package org.wso2.carbon.testgrid.automation.file.common;
 
-import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.automation.beans.Test;
+import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
+
+import java.util.List;
 
 /**
- * Created by harshan on 10/30/17.
+ * Interface for the common test reader.
  */
-public class DeployerService {
+public interface TestReader {
 
-    public void init() {
-
-    }
-
-    public boolean deploy(Deployment deployment) throws TestGridDeployerException {
-        return true;
-    }
-
-    public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
-    }
+    List<Test> readTests(String testLocation) throws TestReaderException;
 }

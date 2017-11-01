@@ -16,24 +16,26 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.deployment;
+package org.wso2.carbon.testgrid.automation.beans;
 
+import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
 import org.wso2.carbon.testgrid.common.Deployment;
 
 /**
- * Created by harshan on 10/30/17.
+ * This is the abstraction of Test class.
  */
-public class DeployerService {
+public abstract class Test {
 
-    public void init() {
+    private String testName;
 
+    public String getTestName() {
+        return testName;
     }
 
-    public boolean deploy(Deployment deployment) throws TestGridDeployerException {
-        return true;
+    public void setTestName(String testName) {
+        this.testName = testName;
     }
 
-    public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
-    }
+    public abstract void execute(String testLocation, Deployment deployment) throws TestGridExecuteException;
+
 }

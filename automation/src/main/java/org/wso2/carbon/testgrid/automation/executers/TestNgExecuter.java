@@ -16,24 +16,25 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.deployment;
+package org.wso2.carbon.testgrid.automation.executers;
 
+import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
+import org.wso2.carbon.testgrid.automation.executers.common.TestExecuter;
 import org.wso2.carbon.testgrid.common.Deployment;
 
 /**
- * Created by harshan on 10/30/17.
+ * This class is responsible for Executing TestNG tests.
  */
-public class DeployerService {
+public class TestNgExecuter implements TestExecuter {
 
-    public void init() {
+    @Override
+    public void execute(String script, Deployment deployment) {
 
     }
 
-    public boolean deploy(Deployment deployment) throws TestGridDeployerException {
-        return true;
+    @Override
+    public void init(String testGridFolder, String testName) throws TestGridExecuteException {
+
     }
 
-    public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
-    }
 }

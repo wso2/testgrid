@@ -16,24 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.deployment;
+package org.wso2.carbon.testgrid.automation.file;
 
-import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.automation.beans.Test;
+import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
+import org.wso2.carbon.testgrid.automation.file.common.TestReader;
+
+import java.util.List;
 
 /**
- * Created by harshan on 10/30/17.
+ * This class is responsible for reading testNG tests for TestGrid framework.
  */
-public class DeployerService {
+public class TestNGTestReader implements TestReader {
 
-    public void init() {
-
-    }
-
-    public boolean deploy(Deployment deployment) throws TestGridDeployerException {
-        return true;
-    }
-
-    public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
+    @Override
+    public List<Test> readTests(String testLocation) throws TestReaderException {
+        return null;
     }
 }

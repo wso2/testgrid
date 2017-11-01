@@ -16,24 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.deployment;
+package org.wso2.carbon.testgrid.automation.executers.common;
 
+import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
 import org.wso2.carbon.testgrid.common.Deployment;
 
 /**
- * Created by harshan on 10/30/17.
+ * Common interface for Test executer.
  */
-public class DeployerService {
+public interface TestExecuter {
 
-    public void init() {
+    void execute(String script, Deployment deployment) throws TestGridExecuteException;
 
-    }
-
-    public boolean deploy(Deployment deployment) throws TestGridDeployerException {
-        return true;
-    }
-
-    public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
-    }
+    void init(String testGridFolder, String testName) throws TestGridExecuteException;
 }

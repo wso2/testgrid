@@ -15,25 +15,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-package org.wso2.carbon.testgrid.deployment;
-
-import org.wso2.carbon.testgrid.common.Deployment;
+package org.wso2.carbon.testgrid.automation.exceptions;
 
 /**
- * Created by harshan on 10/30/17.
+ * Exceptions occurring from Test Manager.
  */
-public class DeployerService {
+public class TestManagerException extends Exception {
 
-    public void init() {
+    private static final long serialVersionUID = -983759829329070297L;
 
+    public TestManagerException(String msg, Exception nestedEx) {
+        super(msg, nestedEx);
     }
 
-    public boolean deploy(Deployment deployment) throws TestGridDeployerException {
-        return true;
+    public TestManagerException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
+    public TestManagerException(String msg) {
+        super(msg);
+    }
+
+    public TestManagerException() {
+        super();
+    }
+
+    public TestManagerException(Throwable cause) {
+        super(cause);
     }
 }

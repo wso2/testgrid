@@ -15,25 +15,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-package org.wso2.carbon.testgrid.deployment;
-
-import org.wso2.carbon.testgrid.common.Deployment;
+package org.wso2.carbon.testgrid.automation.exceptions;
 
 /**
- * Created by harshan on 10/30/17.
+ * Exceptions occurring form the TestGrid execution.
  */
-public class DeployerService {
+public class TestGridExecuteException extends Exception {
 
-    public void init() {
+    private static final long serialVersionUID = -3155676311329070297L;
 
+    public TestGridExecuteException(String msg, Exception nestedEx) {
+        super(msg, nestedEx);
     }
 
-    public boolean deploy(Deployment deployment) throws TestGridDeployerException {
-        return true;
+    public TestGridExecuteException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
+    public TestGridExecuteException(String msg) {
+        super(msg);
+    }
+
+    public TestGridExecuteException() {
+        super();
+    }
+
+    public TestGridExecuteException(Throwable cause) {
+        super(cause);
     }
 }

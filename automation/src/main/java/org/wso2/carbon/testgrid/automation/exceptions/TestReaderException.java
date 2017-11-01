@@ -16,24 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.deployment;
-
-import org.wso2.carbon.testgrid.common.Deployment;
+package org.wso2.carbon.testgrid.automation.exceptions;
 
 /**
- * Created by harshan on 10/30/17.
+ * Exceptions occurring from TestReader.
  */
-public class DeployerService {
+public class TestReaderException extends Exception {
 
-    public void init() {
+    private static final long serialVersionUID = -983759829389291739L;
 
+    public TestReaderException(String msg, Exception nestedEx) {
+        super(msg, nestedEx);
     }
 
-    public boolean deploy(Deployment deployment) throws TestGridDeployerException {
-        return true;
+    public TestReaderException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
+    public TestReaderException(String msg) {
+        super(msg);
+    }
+
+    public TestReaderException() {
+        super();
+    }
+
+    public TestReaderException(Throwable cause) {
+        super(cause);
     }
 }
