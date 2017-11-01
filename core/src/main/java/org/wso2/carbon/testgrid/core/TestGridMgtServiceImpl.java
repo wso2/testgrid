@@ -18,11 +18,18 @@
 
 package org.wso2.carbon.testgrid.core;
 
+import org.wso2.carbon.testgrid.automation.TestEngine;
+import org.wso2.carbon.testgrid.automation.TestEngineException;
+import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
 import org.wso2.carbon.testgrid.common.config.SolutionPattern;
 import org.wso2.carbon.testgrid.common.config.TestConfiguration;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
+import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
+import org.wso2.carbon.testgrid.deployment.TestGridDeployerException;
+import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderServiceImpl;
+import org.wso2.carbon.testgrid.infrastructure.TestGridInfrastructureException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,6 +40,7 @@ import java.util.List;
  * This is the main entry point of the TestGrid Framework.
  */
 public class TestGridMgtServiceImpl implements TestGridMgtService {
+    Deployment deployment;
 
     @Override
     public TestPlan addTestPlan(TestConfiguration testConfiguration) throws TestGridException {
@@ -70,8 +78,23 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
 
     @Override
     public boolean executeTestPlan(TestPlan testPlan) throws TestGridException {
+        try {
+            boolean status = new InfrastructureProviderServiceImpl().createTestEnvironment(testPlan);
+            //Setup infrastructure
+
+            //Trigger deployment
+
+            if (status) {
+                deployment = new DeployerServiceImpl().deploy(testPlan);
+            }
+        } catch (TestGridInfrastructureException e) {
+            e.printStackTrace();
+        } catch (TestGridDeployerException e) {
+            e.printStackTrace();
+        }
         for (TestScenario testScenario : testPlan.getTestScenarios()) {
             if (testScenario.isEnabled()) {
+                testScenario.setDeployment(deployment);
                 try {
                     //Run the ScenarioExecutor
                     new ScenarioExecutor().runScenario(testScenario);

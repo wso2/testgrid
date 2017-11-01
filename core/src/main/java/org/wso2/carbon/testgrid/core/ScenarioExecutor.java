@@ -21,10 +21,11 @@ package org.wso2.carbon.testgrid.core;
 import org.wso2.carbon.testgrid.automation.TestEngine;
 import org.wso2.carbon.testgrid.automation.TestEngineException;
 import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.deployment.DeployerService;
+import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
 import org.wso2.carbon.testgrid.deployment.TestGridDeployerException;
-import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderService;
+import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderServiceImpl;
 import org.wso2.carbon.testgrid.infrastructure.TestGridInfrastructureException;
 
 /**
@@ -40,14 +41,14 @@ public class ScenarioExecutor {
      * @throws ScenarioExecutorException If something goes wrong while executing the TestScenario.
      */
     public boolean runScenario(TestScenario testScenario) throws ScenarioExecutorException {
-        try {
-            boolean status = new InfrastructureProviderService().createTestEnvironment(testScenario);
+//        try {
+//            boolean status = new InfrastructureProviderServiceImpl().createTestEnvironment(testScenario);
             //Setup infrastructure
 
             //Trigger deployment
 
-            if (status) {
-                Deployment deployment = new DeployerService().deploy(testScenario);
+//            if (status) {
+//                Deployment deployment = new DeployerServiceImpl().deploy(testScenario);
 
                 //Run Tests
                 try {
@@ -56,12 +57,12 @@ public class ScenarioExecutor {
                     e.printStackTrace();
                 }
 
-            }
+          /*  }
         } catch (TestGridInfrastructureException e) {
             e.printStackTrace();
         } catch (TestGridDeployerException e) {
             e.printStackTrace();
-        }
+        }*/
         return true;
     }
 

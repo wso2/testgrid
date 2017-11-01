@@ -18,128 +18,28 @@
 
 package org.wso2.carbon.testgrid.deployment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.testgrid.common.Deployment;
-import org.wso2.carbon.testgrid.common.TestScenario;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import org.wso2.carbon.testgrid.common.TestPlan;
 
 /**
- * Created by harshan on 10/30/17.
+ * Interface for the deployment of the artifacts.
  */
-public class DeployerService {
+public interface DeployerService {
 
-    public void init() {
+    /**
+     * Runs deploy.sh script and deploys artifacts in the test cluster
+     *
+     * @param testPlan Current test plan
+     * @return Deployment
+     * @throws TestGridDeployerException
+     */
+    Deployment deploy(TestPlan testPlan) throws TestGridDeployerException;
 
-    }
-
-    public Deployment deploy(TestScenario testScenario) throws TestGridDeployerException {
-       /* try {
-            String target = new String(testScenario.getScenarioLocation() + "/Scripts/OpenStack/deploy.sh");
-            Runtime rt = Runtime.getRuntime();
-            Process proc = rt.exec(target);
-            proc.waitFor();
-            StringBuffer output = new StringBuffer();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            String line = "";
-            while ((line = reader.readLine())!= null) {
-                output.append(line + "\n");
-            }
-            System.out.println("### " + output);
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }*/
-
-        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", "bash " +
-                testScenario.getScenarioLocation() + "/Scripts/OpenStack/wso2is/deploy.sh");
-        Process process = null;
-        try {
-            process = pb.start();
-
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder builder = new StringBuilder();
-            String line = null;
-            while ( (line = reader.readLine()) != null) {
-                builder.append(line);
-                builder.append(System.getProperty("line.separator"));
-            }
-            String result = builder.toString();
-            System.out.println(result);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        File file = new File(testScenario.getScenarioLocation() + "/Scripts/OpenStack/wso2is/deployment.json");
-        try {
-            return mapper.readValue(file, Deployment.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public boolean unDeploy(TestScenario testScenario) throws TestGridDeployerException {
-        /*try {
-            String target = new String(testScenario.getScenarioLocation() + "/Scripts/OpenStack/undeploy.sh");
-            Runtime rt = Runtime.getRuntime();
-            Process proc = rt.exec(target);
-            proc.waitFor();
-            StringBuffer output = new StringBuffer();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            String line = "";
-            while ((line = reader.readLine())!= null) {
-                output.append(line + "\n");
-            }
-            System.out.println("### " + output);
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }*/
-
-        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", "bash " +
-                testScenario.getScenarioLocation() + "/Scripts/OpenStack/wso2is/undeploy.sh");
-        Process process = null;
-        try {
-            process = pb.start();
-
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder builder = new StringBuilder();
-            String line = null;
-            while ( (line = reader.readLine()) != null) {
-                builder.append(line);
-                builder.append(System.getProperty("line.separator"));
-            }
-            String result = builder.toString();
-            System.out.println(result);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return true;
-    }
-
-    private boolean executeCommand(String command) throws IOException {
-
-        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", command);
-        Process process = pb.start();
-        BufferedReader reader =
-                new BufferedReader(new InputStreamReader(process.getInputStream()));
-        StringBuilder builder = new StringBuilder();
-        String line = null;
-        while ( (line = reader.readLine()) != null) {
-            builder.append(line);
-            builder.append(System.getProperty("line.separator"));
-        }
-        String result = builder.toString();
-        System.out.println(result);
-
-        return true;
-    }
-
-
+    /**
+     *
+     * @param testPlan Current test plan
+     * @return Deployment
+     * @throws TestGridDeployerException
+     */
+    boolean unDeploy(TestPlan testPlan) throws TestGridDeployerException;
 }
