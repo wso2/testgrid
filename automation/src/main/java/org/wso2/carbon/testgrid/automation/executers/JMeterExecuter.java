@@ -129,7 +129,7 @@ public class JMeterExecuter implements TestExecuter {
             for (Host host : deployment.getHosts()) {
                 conf.setProperty(host.getLabel(), host.getIp());
                 for (Port port : host.getPorts()) {
-                    conf.setProperty(port.getLabel(), port.getPortNumber());
+                    conf.setProperty(port.getProtocol(), port.getPortNumber());
                 }
             }
             conf.save();

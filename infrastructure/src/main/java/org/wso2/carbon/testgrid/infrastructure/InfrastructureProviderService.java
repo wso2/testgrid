@@ -18,24 +18,30 @@
 
 package org.wso2.carbon.testgrid.infrastructure;
 
-import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestPlan;
-import org.wso2.carbon.testgrid.common.TestScenario;
+
 
 /**
- * Created by harshan on 10/30/17.
+ * Interface for creation of infrastructure
  */
-public class InfrastructureProviderService {
+public interface InfrastructureProviderService {
 
-    boolean getScript(String repo) throws TestGridInfrastructureException {
-        return false;
-    }
+    /**
+     * Runs the commands needed to create the infrastructure.
+     *
+     * This will create a cluster for the tests on OpenStack
+     * @param testPlan Current test plan
+     * @return boolean
+     * @throws TestGridInfrastructureException
+     */
+    boolean createTestEnvironment(TestPlan testPlan) throws TestGridInfrastructureException;
 
-    public Deployment createTestEnvironment(TestPlan scenario) throws TestGridInfrastructureException {
-        return null;
-    }
+    /**
+     * Runs the commands needed to destroy the infrastructure.
+     * @param testPlan Current test Scenario
+     * @return boolean
+     * @throws TestGridInfrastructureException
+     */
+    boolean removeTestEnvironment(TestPlan testPlan) throws TestGridInfrastructureException;
 
-    public boolean removeTestEnvironment(TestScenario scenario) throws TestGridInfrastructureException {
-        return false;
-    }
 }

@@ -22,19 +22,24 @@ import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestPlan;
 
 /**
- * Created by harshan on 10/30/17.
+ * Interface for the deployment of the artifacts.
  */
-public class DeployerService {
+public interface DeployerService {
 
-    public void init() {
+    /**
+     * Runs deploy.sh script and deploys artifacts in the test cluster
+     *
+     * @param testPlan Current test plan
+     * @return Deployment
+     * @throws TestGridDeployerException
+     */
+    Deployment deploy(TestPlan testPlan) throws TestGridDeployerException;
 
-    }
-
-    public boolean deploy(TestPlan deployment) throws TestGridDeployerException {
-        return true;
-    }
-
-    public boolean unDeploy(Deployment deployment) throws TestGridDeployerException {
-        return false;
-    }
+    /**
+     *
+     * @param testPlan Current test plan
+     * @return Deployment
+     * @throws TestGridDeployerException
+     */
+    boolean unDeploy(TestPlan testPlan) throws TestGridDeployerException;
 }

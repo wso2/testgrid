@@ -23,15 +23,15 @@ package org.wso2.carbon.testgrid.common;
  */
 public class Port {
 
-    private String label;
+    private String protocol;
     private int portNumber;
 
-    public String getLabel() {
-        return label;
+    public String getProtocol() {
+        return protocol;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     public int getPortNumber() {
