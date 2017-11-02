@@ -54,6 +54,15 @@ public class TestReportEngineTest {
 
         TestPlan testPlan = Mockito.mock(TestPlan.class);
         Mockito.when(testPlan.getName()).thenReturn("Sample Test Plan");
+        Mockito.when(testPlan.getDescription()).thenReturn("Test plan description");
+        Mockito.when(testPlan.getOs()).thenReturn("Ubuntu 12.04");
+        Mockito.when(testPlan.getDatabaseEngine()).thenReturn("MySQL 5.5");
+        Mockito.when(testPlan.getDeploymentPattern()).thenReturn("Single Node Deployment");
+        Mockito.when(testPlan.getClusterType()).thenReturn(TestPlan.ClusterType.K8S);
+        Mockito.when(testPlan.getInstanceType()).thenReturn(TestPlan.InstanceType.DOCKER_CONTAINERS);
+        Mockito.when(testPlan.getDeployerType()).thenReturn(TestPlan.DeployerType.PUPPET);
+        Mockito.when(testPlan.getInfrastructureType()).thenReturn(TestPlan.InfrastructureType.OPENSTACK);
+        Mockito.when(testPlan.getStatus()).thenReturn(TestPlan.Status.SCENARIO_EXECUTION_COMPLETED);
         Mockito.when(testPlan.getTestScenarios()).thenReturn(testScenarios);
 
         List<TestPlan> testPlans = new ArrayList<>();

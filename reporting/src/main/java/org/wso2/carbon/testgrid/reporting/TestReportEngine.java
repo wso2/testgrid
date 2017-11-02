@@ -117,8 +117,7 @@ public class TestReportEngine {
                 testScenarioReports.add(testScenarioReport);
             }
 
-            TestPlanReport testPlanReport = new TestPlanReport(testPlan.getName(), testScenarioReports,
-                    SCENARIO_TEMPLATE);
+            TestPlanReport testPlanReport = new TestPlanReport(testPlan, testScenarioReports, SCENARIO_TEMPLATE);
             testPlanReports.add(testPlanReport);
         }
 
