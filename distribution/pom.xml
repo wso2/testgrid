@@ -33,7 +33,7 @@
                     </goals>
                     <configuration>
                         <tasks>
-                            <copy file="../core/target/org.wso2.carbon.testgrid.core-${test.grid.version}}-jar-with-dependencies.jar"
+                            <copy file="../core/target/org.wso2.carbon.testgrid.core-${test.grid.version}-jar-with-dependencies.jar"
                                   tofile="../distribution/bin/test-grid-${test.grid.version}.jar">
                             </copy>
                         </tasks>
