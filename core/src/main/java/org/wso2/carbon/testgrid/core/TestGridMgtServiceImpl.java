@@ -99,6 +99,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                     plan.setInstanceType(testPlan.getInstanceType());
                     plan.setTestScenarios(this.getTestScenarios(testPlan.getSolutionPatterns(), repoDir));
                     plan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
+                    plan.setDescription(testPlan.getDescription());
                     testPlanList.add(plan);
                 }
             }

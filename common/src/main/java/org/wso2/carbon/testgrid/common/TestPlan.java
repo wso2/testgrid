@@ -44,6 +44,7 @@ public class TestPlan {
     private boolean enabled;
     private String os;
     private String databaseEngine;
+    private String description;
 
     public enum Status {
         EXECUTION_PLANNED, INFRASTRUCTURE_PREPARATION, INFRASTRUCTURE_READY, INFRASTRUCTURE_ERROR, DEPLOYMENT_PREPARATION,
@@ -218,5 +219,13 @@ public class TestPlan {
 
     public void setInstanceType(String instanceType) {
         this.instanceType = InstanceType.valueOf(instanceType.toUpperCase());
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

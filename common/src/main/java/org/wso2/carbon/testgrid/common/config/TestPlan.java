@@ -41,6 +41,7 @@ public class TestPlan {
     private String deploymentRepository;
     private String productName;
     private String productVersion;
+    private String description;
 
     private List<SolutionPattern> solutionPatterns;
 
@@ -154,5 +155,13 @@ public class TestPlan {
 
     public void setProductVersion(String productVersion) {
         this.productVersion = productVersion;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
