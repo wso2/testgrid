@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>carbon-testgrid-framework</artifactId>
+        <groupId>org.wso2.carbon.testgrid</groupId>
+        <version>0.9.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>org.wso2.carbon.testgrid.distribution</artifactId>
+    <name>WSO2 TestGrid Framework - Distribution POM</name>
+    <url>http://wso2.org</url>
+    <packaging>jar</packaging>
+
+    <build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+        </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>prepare-deploy-package</id>
+                    <phase>prepare-package</phase>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                    <configuration>
+                        <tasks>
+                            <copy file="../core/target/org.wso2.carbon.testgrid.core-0.9.0-SNAPSHOT-jar-with-dependencies.jar" tofile="../distribution/bin/test-grid-${test.grid.version}.jar">
+                            </copy>
+                        </tasks>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+
+        <!-- Maven Assembly Plugin -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>dist</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>single</goal>
+                    </goals>
+                    <configuration>
+                        <appendAssemblyId>false</appendAssemblyId>
+                        <finalName>WSO2-TestGrid-${test.grid.version}</finalName>
+                        <descriptors>
+                            <descriptor>assembly.xml</descriptor>
+                        </descriptors>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.infrastruture</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.deployment</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.automation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.testgrid</groupId>
+            <artifactId>org.wso2.carbon.testgrid.reporting</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+        </dependency>
+    </dependencies>
+</project>
