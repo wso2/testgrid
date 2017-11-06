@@ -20,19 +20,21 @@ package org.wso2.carbon.testgrid.infrastructure;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.testgrid.common.InfrastructureProvider;
 import org.wso2.carbon.testgrid.common.TestPlan;
 
+import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.carbon.testgrid.utils.Util;
 
 /**
  * This class creates the infrastructure for running tests
  */
-public class InfrastructureProviderServiceImpl implements InfrastructureProviderService {
+public class InfrastructureProviderServiceImpl implements InfrastructureProvider {
 
     private static final Log log = LogFactory.getLog(InfrastructureProviderServiceImpl.class);
 
     @Override
-    public boolean createTestEnvironment(TestPlan testPlan) throws TestGridInfrastructureException {
+    public boolean createInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException {
         String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
 
         System.out.println("Initializing terraform...");
@@ -47,7 +49,7 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
     }
 
     @Override
-    public boolean removeTestEnvironment(TestPlan testPlan) throws TestGridInfrastructureException {
+    public boolean removeInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException {
         String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
         System.out.println("Destroying test environment...");
         if(Util.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {

@@ -28,9 +28,9 @@ import org.wso2.carbon.testgrid.common.TestScenario;
 import org.wso2.carbon.testgrid.common.config.SolutionPattern;
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
+import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
-import org.wso2.carbon.testgrid.reporting.ReportingException;
-import org.wso2.carbon.testgrid.reporting.TestReportEngine;
+import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -169,8 +169,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         }
         productTestPlan.setStatus(ProductTestPlan.Status.REPORT_GENERATION);
         try {
-            new TestReportEngine().generateReport(productTestPlan);
-        } catch (ReportingException e) {
+            new TestReportEngineImpl().generateReport(productTestPlan);
+        } catch (TestReportEngineException e) {
             String msg = "Unable to generate test report for the ProductTests ran for product '" +
                     productTestPlan.getProductName() + "', version '" + productTestPlan.getProductVersion() + "'";
             log.error(msg, e);

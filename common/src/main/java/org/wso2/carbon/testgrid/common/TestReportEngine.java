@@ -16,32 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.deployment;
+package org.wso2.carbon.testgrid.common;
+
+import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
 
 /**
- * Created by harshan on 10/30/17.
+ * This interface defines the contract of the TestReportEngine where the result generation should happen based on
+ * executed automation results.
  */
-public class TestGridDeployerException extends Exception {
+public interface TestReportEngine {
 
-    private static final long serialVersionUID = -3151279311329070297L;
-
-    public TestGridDeployerException(String msg, Exception nestedEx) {
-        super(msg, nestedEx);
-    }
-
-    public TestGridDeployerException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public TestGridDeployerException(String msg) {
-        super(msg);
-    }
-
-    public TestGridDeployerException() {
-        super();
-    }
-
-    public TestGridDeployerException(Throwable cause) {
-        super(cause);
-    }
+    /**
+     * Generates a test report based on the given test plan.
+     *
+     * @param productTestPlan test plan to generate the test report
+     * @throws TestReportEngineException thrown when reading the results from files or when writing the test report to file
+     */
+    void generateReport(ProductTestPlan productTestPlan) throws TestReportEngineException;
 }

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.infrastructure;
+package org.wso2.carbon.testgrid.common.exception;
 
 /**
  * Created by harshan on 10/30/17.

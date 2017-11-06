@@ -25,13 +25,16 @@ import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
 import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
 import org.wso2.carbon.testgrid.automation.exceptions.TestManagerException;
 import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.TestAutomationEngine;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.exception.TestAutomationEngineException;
 
-/**This class is Responsible for initiating the core processes of TestGrid.
+/**
+ * This class is Responsible for initiating the core processes of TestGrid.
  */
-public class TestEngine {
+public class TestEngineImpl implements TestAutomationEngine {
 
-    private static final Log log = LogFactory.getLog(TestEngine.class);
+    private static final Log log = LogFactory.getLog(TestEngineImpl.class);
 
     /**
      *
@@ -39,7 +42,7 @@ public class TestEngine {
      * @return true if all the processes finished.
      * @throws TestEngineException when there is an error in the process.
      */
-    public boolean runScenario(TestScenario scenario, Deployment deployment) throws TestEngineException {
+    public boolean runScenario(TestScenario scenario, Deployment deployment) throws TestAutomationEngineException {
         log.info("Executing Tests for Solution Pattern : " + scenario.getSolutionPattern());
         TestManager testManager = new TestManager();
         try {
@@ -47,14 +50,14 @@ public class TestEngine {
             testManager.executeTests();
             scenario.setStatus(TestScenario.Status.COMPLETED);
         } catch (TestManagerException ex) {
-            throw new TestEngineException("Error while initiating the TestManager", ex);
+            throw new TestAutomationEngineException("Error while initiating the TestManager", ex);
         } catch (TestGridExecuteException ex) {
-            throw new TestEngineException("Error while Executing Tests", ex);
+            throw new TestAutomationEngineException("Error while Executing Tests", ex);
         }
         return true;
     }
 
-    public boolean abortScenario(TestScenario scenario) throws TestEngineException {
+    public boolean abortScenario(TestScenario scenario) throws TestAutomationEngineException {
         return false;
     }
 }

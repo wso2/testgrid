@@ -20,8 +20,10 @@ package org.wso2.carbon.testgrid.deployment;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.testgrid.common.DeployerService;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestPlan;
+import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderServiceImpl;
 import org.wso2.carbon.testgrid.utils.Util;
 
@@ -29,14 +31,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.Properties;
 
 
 /**
  * This class handles the deployment of the artifacts in the cluster.
  */
-public class DeployerServiceImpl implements DeployerService{
+public class DeployerServiceImpl implements DeployerService {
 
     private static final Log log = LogFactory.getLog(InfrastructureProviderServiceImpl.class);
 

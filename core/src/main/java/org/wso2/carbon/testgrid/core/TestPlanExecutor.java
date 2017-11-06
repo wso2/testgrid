@@ -25,12 +25,10 @@ import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
-import org.wso2.carbon.testgrid.deployment.DeployerService;
 import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
-import org.wso2.carbon.testgrid.deployment.TestGridDeployerException;
-import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderService;
+import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderServiceImpl;
-import org.wso2.carbon.testgrid.infrastructure.TestGridInfrastructureException;
+import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 
 /**
  * This class is mainly responsible for executing the provided TestPlan.
@@ -50,7 +48,7 @@ public class TestPlanExecutor {
         testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_PREPARATION);
         //Setup the infrastructure
         try {
-            new InfrastructureProviderServiceImpl().createTestEnvironment(testPlan);
+            new InfrastructureProviderServiceImpl().createInfrastructure(testPlan);
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()

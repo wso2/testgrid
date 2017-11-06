@@ -23,6 +23,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
 
 import java.io.File;
 import java.net.URL;
@@ -32,14 +33,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Test class to test the functionality of the {@link TestReportEngine}.
+ * Test class to test the functionality of the {@link TestReportEngineImpl}.
  *
  * @since 1.0.0
  */
 public class TestReportEngineTest {
 
     @Test
-    public void generateReportTest() throws ReportingException {
+    public void generateReportTest() throws TestReportEngineException {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("results");
         Assert.assertNotNull(resource);
@@ -74,8 +75,8 @@ public class TestReportEngineTest {
         Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
         Mockito.when(productTestPlan.getTestPlans()).thenReturn(testPlans);
 
-        TestReportEngine testReportEngine = new TestReportEngine();
-        testReportEngine.generateReport(productTestPlan);
+        TestReportEngineImpl testReportEngineImpl = new TestReportEngineImpl();
+        testReportEngineImpl.generateReport(productTestPlan);
 
         String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
                           productTestPlan.getCreatedTimeStamp() + ".html";

@@ -16,10 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.deployment;
+package org.wso2.carbon.testgrid.common;
 
-import org.wso2.carbon.testgrid.common.Deployment;
-import org.wso2.carbon.testgrid.common.TestPlan;
+import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 
 /**
  * Interface for the deployment of the artifacts.

@@ -35,6 +35,7 @@ public class TestPlan {
     private String deploymentPattern;
     private List<TestScenario> testScenarios;
     private Status status;
+
     private InfrastructureType infrastructureType;
     private ClusterType clusterType;
     private InstanceType instanceType;
@@ -45,6 +46,8 @@ public class TestPlan {
     private String os;
     private String databaseEngine;
     private String description;
+
+    private Infrastructure infrastructure;
 
     public enum Status {
         EXECUTION_PLANNED, INFRASTRUCTURE_PREPARATION, INFRASTRUCTURE_READY, INFRASTRUCTURE_ERROR, DEPLOYMENT_PREPARATION,
@@ -227,5 +230,13 @@ public class TestPlan {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Infrastructure getInfrastructure() {
+        return infrastructure;
+    }
+
+    public void setInfrastructure(Infrastructure infrastructure) {
+        this.infrastructure = infrastructure;
     }
 }

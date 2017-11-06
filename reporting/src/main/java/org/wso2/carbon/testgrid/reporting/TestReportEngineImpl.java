@@ -19,7 +19,9 @@ package org.wso2.carbon.testgrid.reporting;
 
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
+import org.wso2.carbon.testgrid.common.TestReportEngine;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
 import org.wso2.carbon.testgrid.reporting.model.ProductPlanReport;
 import org.wso2.carbon.testgrid.reporting.model.TestPlanReport;
 import org.wso2.carbon.testgrid.reporting.model.TestScenarioReport;
@@ -44,7 +46,7 @@ import java.util.Map;
  *
  * @since 1.0.0
  */
-public class TestReportEngine {
+public class TestReportEngineImpl implements TestReportEngine {
 
     private static final String TEST_ARTIFACT_DIR = "Tests";
     private static final String RESULTS_DIR = "Results";
@@ -59,19 +61,34 @@ public class TestReportEngine {
      * Generates a test report based on the given test plan.
      *
      * @param productTestPlan test plan to generate the test report
-     * @throws ReportingException thrown when reading the results from files or when writing the test report to file
+     * @throws TestReportEngineException thrown when reading the results from files or when writing the test report to file
      */
-    public void generateReport(ProductTestPlan productTestPlan) throws ReportingException {
+    public void generateReport(ProductTestPlan productTestPlan) throws TestReportEngineException {
 
-        Map<String, Object> parsedTestResultMap = parseTestResult(productTestPlan);
+        Map<String, Object> parsedTestResultMap = null;
+        try {
+            parsedTestResultMap = parseTestResult(productTestPlan);
+        } catch (ReportingException e) {
+            throw new TestReportEngineException("Exception occurred while parsing the test results.", e);
+        }
         String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
                           productTestPlan.getCreatedTimeStamp() + HTML_EXTENSION;
 
         // Populate the html from the template
-        Renderable renderable = RenderableFactory.getRenderable(HTML_TEMPLATE);
-        String htmlString = renderable.render(HTML_TEMPLATE, parsedTestResultMap);
+        String htmlString = null;
+        try {
+            Renderable renderable = RenderableFactory.getRenderable(HTML_TEMPLATE);
+            htmlString = renderable.render(HTML_TEMPLATE, parsedTestResultMap);
+        } catch (ReportingException e) {
+            throw new TestReportEngineException("Exception occurred while rendering the html template.", e);
+        }
+
         Path reportPath = Paths.get(productTestPlan.getHomeDir()).resolve(fileName);
-        FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), htmlString);
+        try {
+            FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), htmlString);
+        } catch (ReportingException e) {
+            throw new TestReportEngineException("Exception occurred while saving the test report.", e);
+        }
     }
 
     /**

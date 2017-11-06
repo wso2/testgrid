@@ -16,32 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.infrastructure;
+package org.wso2.carbon.testgrid.common;
 
-import org.wso2.carbon.testgrid.common.TestPlan;
 
+import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 
 /**
- * Interface for creation of infrastructure
+ * This Interface has to be implemented by the InfrastructureProviders like AWS, GCC, OpenStack.
  */
-public interface InfrastructureProviderService {
+public interface InfrastructureProvider {
 
     /**
-     * Runs the commands needed to create the infrastructure.
+     * This method creates the necessary infrastructure using the provided configuration.
      *
-     * This will create a cluster for the tests on OpenStack
-     * @param testPlan Current test plan
+     * @param testPlan An instance of a TestPlan which Infrastructure should be created.
      * @return boolean
      * @throws TestGridInfrastructureException
      */
-    boolean createTestEnvironment(TestPlan testPlan) throws TestGridInfrastructureException;
+    boolean createInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException;
 
     /**
-     * Runs the commands needed to destroy the infrastructure.
-     * @param testPlan Current test Scenario
+     * This method executes commands needed to remove the infrastructure.
+     *
+     * @param testPlan An instance of a TestPlan which Infrastructure should be removed.
      * @return boolean
      * @throws TestGridInfrastructureException
      */
-    boolean removeTestEnvironment(TestPlan testPlan) throws TestGridInfrastructureException;
+    boolean removeInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException;
 
 }

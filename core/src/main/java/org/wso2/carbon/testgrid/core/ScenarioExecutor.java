@@ -20,14 +20,14 @@ package org.wso2.carbon.testgrid.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.testgrid.automation.TestEngine;
-import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
+import org.wso2.carbon.testgrid.automation.TestEngineImpl;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.exception.TestAutomationEngineException;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 
 /**
- * This class is mainly responsible for executing a TestScenario. This will invoke the TestEngine for executing the
+ * This class is mainly responsible for executing a TestScenario. This will invoke the TestAutomationEngine for executing the
  * Tests available for a particular solution pattern.
  */
 public class ScenarioExecutor {
@@ -45,8 +45,8 @@ public class ScenarioExecutor {
     public boolean runScenario(TestScenario testScenario, Deployment deployment) throws ScenarioExecutorException {
         try {
             testScenario.setStatus(TestScenario.Status.RUNNING);
-            new TestEngine().runScenario(testScenario, deployment);
-        } catch (TestEngineException e) {
+            new TestEngineImpl().runScenario(testScenario, deployment);
+        } catch (TestAutomationEngineException e) {
             testScenario.setStatus(TestScenario.Status.ERROR);
             throw new ScenarioExecutorException("Exception occurred while running the Tests for Solution Pattern '" +
                     testScenario.getSolutionPattern() + "'");
