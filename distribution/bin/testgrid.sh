@@ -39,6 +39,7 @@ if [ "$valid" -eq "0" ]
 	then echo "Invalid index !!"
 fi
 done
+#Only IS is implemented in current build
 
 case $product in
 	1) 
@@ -50,24 +51,27 @@ case $product in
 	2)
 	product="WSO2 Identity Server"
 	echo -n "Please Enter the WSO2 EI version :"
-	read version	
+	read version
+#	Resource repo is the same for first milestone
 	resource_repo="https://github.com/sameerawickramasekara/test-grid-is-resources.git" 	
 	;;
 	3)
 	product="WSO2 Identity Server"
 	echo -n "Please Enter the WSO2 APIM version :"
-	read version 
+	read version
+	 #	Resource repo is the same for first milestone
 	resource_repo="https://github.com/sameerawickramasekara/test-grid-is-resources.git" 
 	;;
 	4)
 	product="WSO2 Identity Server"
 	echo -n "Please Enter the WSO2 AS version :"
 	read version
+	#	Resource repo is the same for first milestone
 	resource_repo="https://github.com/sameerawickramasekara/test-grid-is-resources.git" 
 	;;
 esac
 echo "Starting execution......"
 
-java -jar test-grid.jar "$resource_repo" "$product" "$version"
+java -jar test-grid-0.9.0-SNAPSHOT.jar "$resource_repo" "$product" "$version"
 
 
