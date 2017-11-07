@@ -50,7 +50,6 @@ public class TestReportEngineTest {
 
         String scenarioLocation = new File(resource.getFile()).toPath().toAbsolutePath().toString();
         TestScenario testScenario = Mockito.mock(TestScenario.class);
-        Mockito.when(testScenario.getScenarioLocation()).thenReturn(scenarioLocation);
         Mockito.when(testScenario.getSolutionPattern()).thenReturn("Sample Test Scenario");
 
         List<TestScenario> testScenarios = new ArrayList<>();
@@ -78,6 +77,7 @@ public class TestReportEngineTest {
         Mockito.when(testPlan.getDeployerType()).thenReturn(TestPlan.DeployerType.PUPPET);
         Mockito.when(testPlan.getStatus()).thenReturn(TestPlan.Status.SCENARIO_EXECUTION_COMPLETED);
         Mockito.when(testPlan.getTestScenarios()).thenReturn(testScenarios);
+        Mockito.when(testPlan.getHome()).thenReturn(scenarioLocation);
 
         List<TestPlan> testPlans = new ArrayList<>();
         testPlans.add(testPlan);

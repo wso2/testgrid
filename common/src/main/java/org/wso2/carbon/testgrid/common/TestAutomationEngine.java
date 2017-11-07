@@ -28,10 +28,12 @@ public interface TestAutomationEngine {
     /**
      *
      * @param scenario The Test scenario that should be executed.
+     * @param location The cloned location of the test-plan.
+     * @param deployment The Deployment info tests should be executed against.
      * @return true if all the processes finished or false in an erroneous situation.
      * @throws TestAutomationEngineException when there is an error in the process.
      */
-     boolean runScenario(TestScenario scenario, Deployment deployment) throws TestAutomationEngineException;
+     boolean runScenario(TestScenario scenario, String location, Deployment deployment) throws TestAutomationEngineException;
 
     /**
      *

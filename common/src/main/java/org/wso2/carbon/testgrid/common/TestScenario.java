@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Element;
+
 /**
  * This is the test model for a single SolutionPattern.
  */
@@ -31,19 +33,24 @@ public class TestScenario {
         JMETER, TESTNG, SELENIUM
     }
 
-    private boolean isEnabled;
     private int id;
-    private String solutionPattern;
-    private String scenarioLocation;
     private Status status;
+
+    @Element(description = "flag to enable or disable the test scenario")
+    private boolean enabled;
+
+    @Element(description = "name of the solution pattern which is covered by this test scenario")
+    private String solutionPattern;
+
+    @Element(description = "holds the test engine type (i.e. JMETER, TESTNG)")
     private TestEngine testEngine;
 
     public boolean isEnabled() {
-        return isEnabled;
+        return enabled;
     }
 
     public void setEnabled(boolean enabled) {
-        isEnabled = enabled;
+        this.enabled = enabled;
     }
 
     public int getId() {
@@ -68,14 +75,6 @@ public class TestScenario {
 
     public void setStatus(Status status) {
         this.status = status;
-    }
-
-    public String getScenarioLocation() {
-        return scenarioLocation;
-    }
-
-    public void setScenarioLocation(String scenarioLocation) {
-        this.scenarioLocation = scenarioLocation;
     }
 
     public TestEngine getTestEngine() {

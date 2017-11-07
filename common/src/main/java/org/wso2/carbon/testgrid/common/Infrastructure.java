@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Element;
+
 import java.util.List;
 import java.util.Map;
 
@@ -26,12 +28,19 @@ import java.util.Map;
  */
 public class Infrastructure {
 
+    @Element(description = "defines the infrastructure provider type (i.e. AWS, OpenStack)")
     private ProviderType providerType; //AWS, GCC, OPENSTACK
+    @Element(description = "defines the required instance type (i.e. EC2, Docker)")
     private InstanceType instanceType; // EC2, DOCKER
+    @Element(description = "defines the required cluster type (i.e. ECS, Kubernetes)")
     private ClusterType clusterType; // ECS, K8S
+    @Element(description = "defines the database configuration")
     private Database database;
+    @Element(description = "holds the configuration of the list of nodes")
     private List<Node> nodes;
+    @Element(description = "holds the required properties for security related stuff")
     private Map<String, String> securityProperties;
+    @Element(description = "defines the os configuration")
     private OperatingSystem operatingSystem;
 
     public enum ProviderType {

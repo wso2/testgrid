@@ -23,9 +23,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.common.DeployerService;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestPlan;
+import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderServiceImpl;
-import org.wso2.carbon.testgrid.common.util.ExecUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -61,19 +61,19 @@ public class DeployerServiceImpl implements DeployerService {
             String dockerUrl = "dockerhub.private.wso2.com";
             String dockerEmail = username + "@wso2.com";
 
-            ExecUtil.executeCommand("chmod -R 777 " + testPlanLocation, null);
+            Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
             System.setProperty("user.dir", testPlanLocation + "/OpenStack/wso2is" );
             File file = new File(System.getProperty("user.dir"));
 
             System.out.println("Setting KUBERNETES_MASTER environment variable...");
             log.info("Setting KUBERNETES_MASTER environment variable...");
 //            setKubernetesMasterEnvVariable(testPlanLocation + "/Scripts/OpenStack");
-//            ExecUtil.executeCommand("export KUBERNETES_MASTER=http://192.168.58.71:8080", file);
+//            Utils.executeCommand("export KUBERNETES_MASTER=http://192.168.58.71:8080", file);
             System.out.println("Deploying kubernetes artifacts...");
             log.info("Deploying kubernetes artifacts...");
 
-//            ExecUtil.executeCommand("bash " + scriptLocation + " " + getKubernetesMaster(testPlanLocation + "/Scripts/OpenStack"));
-            ExecUtil.executeCommand("./deploy.sh " +
+//            Utils.executeCommand("bash " + scriptLocation + " " + getKubernetesMaster(testPlanLocation + "/Scripts/OpenStack"));
+            Utils.executeCommand("./deploy.sh " +
                     getKubernetesMaster(testPlanLocation + "/OpenStack/k8s.properties") + " " +
                     dockerUrl + " " + username + " " + password + " " + dockerEmail, file);
             testPlan.setStatus(TestPlan.Status.DEPLOYMENT_READY);
@@ -89,12 +89,12 @@ public class DeployerServiceImpl implements DeployerService {
         String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
         String scriptLocation = testPlanLocation + "/OpenStack/wso2is/undeploy.sh";
 
-        ExecUtil.executeCommand("chmod -R 777 " + testPlanLocation, null);
+        Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
 
         System.setProperty("user.dir", testPlanLocation + "/OpenStack/wso2is" );
         File file = new File(System.getProperty("user.dir"));
 
-        if(ExecUtil.executeCommand(/*"bash " + scriptLocation*/"./undeploy.sh", file)) {
+        if(Utils.executeCommand(/*"bash " + scriptLocation*/"./undeploy.sh", file)) {
             return true;
         }
         return false;
@@ -107,7 +107,7 @@ public class DeployerServiceImpl implements DeployerService {
         System.out.println(inputStream);
         log.info(inputStream);*/
 
-        ExecUtil.executeCommand("export KUBERNETES_MASTER=http://192.168.58.7:8080" /*+ prop.getProperty("KUBERNETES_MASTER")*/, null);
+        Utils.executeCommand("export KUBERNETES_MASTER=http://192.168.58.7:8080" /*+ prop.getProperty("KUBERNETES_MASTER")*/, null);
 
       /*  ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", "export");
         Map<String, String> env = pb.environment();

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Element;
+
 import java.util.List;
 
 /**
@@ -25,11 +27,17 @@ import java.util.List;
  */
 public class Node {
 
+    @Element(description = "defines the label of this node")
     private String label;
+    @Element(description = "defines the list of open ports of this node")
     private List<Port> openPorts;
+    @Element(description = "defines the hostname of this node")
     private String host;
+    @Element(description = "defines the image to be used when creating this node (i.e. docker image name or AMI name)")
     private String image;
+    @Element(description = "defines the type of this node (i.e. Server/LB)")
     private NodeType nodeType;
+    @Element(description = "defines the type of this node (i.e. t2.medium)")
     private String size;
 
     private enum NodeType {

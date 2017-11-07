@@ -16,17 +16,18 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.common.util;
+package org.wso2.carbon.testgrid.common;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Paths;
 
 /**
- *
+ * This Util class holds the common utility methods.
  */
-public final class ExecUtil {
+public final class Utils {
 
 
     /**
@@ -64,9 +65,16 @@ public final class ExecUtil {
     }
 
     /**
-     * This Utility class is used to access Environment variables.
+     * This Utility method is used to access Environment variables.
      */
     public static String readEnvironmentVariable(String variable) {
         return System.getenv(variable);
+    }
+
+    /**
+     * This Utility method is used to return the folder location of the TestScenario.
+     */
+    public static String getTestScenarioLocation(TestScenario scenario, String testPlanHome) {
+        return Paths.get(testPlanHome, scenario.getSolutionPattern()).toAbsolutePath().toString();
     }
 }

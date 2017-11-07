@@ -70,7 +70,7 @@ public class TestPlanExecutor {
                 testPlan.setStatus(TestPlan.Status.SCENARIO_EXECUTION);
                 for (TestScenario testScenario : testPlan.getTestScenarios()) {
                     try {
-                        new ScenarioExecutor().runScenario(testScenario, deployment);
+                        new ScenarioExecutor().runScenario(testScenario, deployment, testPlan.getRepoDir());
                     } catch (ScenarioExecutorException e) {
                         log.error("Error occurred while executing the SolutionPattern '" +
                                 testScenario.getSolutionPattern() + "' , in TestPlan '" +

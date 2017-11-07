@@ -24,11 +24,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.wso2.carbon.config.ConfigProviderFactory;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
-import org.wso2.carbon.testgrid.common.Node;
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
-import org.wso2.carbon.testgrid.common.TestScenario;
-import org.wso2.carbon.testgrid.common.config.SolutionPattern;
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
@@ -49,52 +46,48 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
 
     private static final Log log = LogFactory.getLog(TestGridMgtServiceImpl.class);
     private static final String PRODUCT_TEST_DIR = "ProductTests";
+    private static final String TESTPLAN_EXTENSION = ".yaml";
 
-    private List<TestScenario> getTestScenarios(List<SolutionPattern> solutionPatterns, String repoDir) {
-        List<TestScenario> scenarioList = new ArrayList<>();
-        TestScenario testScenario;
-        for (SolutionPattern pattern : solutionPatterns) {
-            if (pattern.isEnabled()) {
-                testScenario = new TestScenario();
-                testScenario.setEnabled(true);
-                testScenario.setSolutionPattern(pattern.getName());
-                testScenario.setStatus(TestScenario.Status.PLANNED);
-                testScenario.setScenarioLocation(repoDir + File.separator + pattern.getName());
-                scenarioList.add(testScenario);
-            }
-        }
-        return scenarioList;
-    }
-
-    private List<Node> getNodes() {
-        return null;
-    }
+//    private List<TestScenario> getTestScenarios(List<SolutionPattern> solutionPatterns, String repoDir) {
+//        List<TestScenario> scenarioList = new ArrayList<>();
+//        TestScenario testScenario;
+//        for (SolutionPattern pattern : solutionPatterns) {
+//            if (pattern.isEnabled()) {
+//                testScenario = new TestScenario();
+//                testScenario.setEnabled(true);
+//                testScenario.setSolutionPattern(pattern.getName());
+//                testScenario.setStatus(TestScenario.Status.PLANNED);
+//                testScenario.setScenarioLocation(repoDir + File.separator + pattern.getName());
+//                scenarioList.add(testScenario);
+//            }
+//        }
+//        return scenarioList;
+//    }
 
     private List<TestPlan> generateTestPlan(String repoDir, String homeDir) throws TestGridException {
         String productTestPlanDir = repoDir + File.separator + PRODUCT_TEST_DIR;
         File dir = new File(productTestPlanDir);
         File[] directoryListing = dir.listFiles();
-        List<org.wso2.carbon.testgrid.common.config.TestPlan> testPlans = new ArrayList<>();
+        //List<org.wso2.carbon.testgrid.common.config.TestPlan> testPlans = new ArrayList<>();
         List<TestPlan> testPlanList = new ArrayList<>();
         if (directoryListing != null) {
             TestPlan testPlan;
             for (File testConfig : directoryListing) {
                 try {
-                    ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths.get(testConfig.getAbsolutePath()));
-                    testPlan = configProvider.getConfigurationObject(TestPlan.class);
-                    testPlan.setHome(homeDir);
-                    if (testPlan.isEnabled()) {
-                        testPlanList.add(testPlan);
+                    if ((testConfig.getName() != null) && testConfig.getName().endsWith(TESTPLAN_EXTENSION)) {
+                        ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths.
+                                get(testConfig.getAbsolutePath()), null);
+                        testPlan = configProvider.getConfigurationObject(TestPlan.class);
+                        if (testPlan.isEnabled()) {
+                            testPlan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
+                            testPlan.setHome(homeDir);
+                            testPlan.setRepoDir(repoDir);
+                            testPlanList.add(testPlan);
+                        }
                     }
                 } catch (ConfigurationException e) {
                     log.error("Unable to parse TestPlan file '" + testConfig.getName() + "'");
                 }
-//                ObjectMapper mapper = new ObjectMapper();
-//                try {
-//                    testPlans.add(mapper.readValue(testConfig, org.wso2.carbon.testgrid.common.config.TestPlan.class));
-//                } catch (IOException e) {
-//                    log.error("Unable to parse TestPlan file '" + testConfig.getName() + "'");
-//                }
             }
         } else {
             String msg = "Unable to find the ProductTests directory in location '" + productTestPlanDir + "'";
@@ -182,7 +175,6 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             productTestPlan.setCreatedTimeStamp(timeStamp);
             productTestPlan.setProductName(product);
             productTestPlan.setProductVersion(productVersion);
-            productTestPlan.setTestRepository(repository);
             productTestPlan.setTestPlans(this.generateTestPlan(repoLocation, path));
             productTestPlan.setStatus(ProductTestPlan.Status.PLANNED);
             return productTestPlan;

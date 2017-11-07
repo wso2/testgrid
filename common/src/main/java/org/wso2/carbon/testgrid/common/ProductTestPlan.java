@@ -31,7 +31,6 @@ public class ProductTestPlan {
     private String productName;
     private String productVersion;
     private String homeDir;
-    private String testRepository;
     private String deploymentRepository;
     private List<TestPlan> testPlans;
     private TestReport testReport;
@@ -73,14 +72,6 @@ public class ProductTestPlan {
 
     public void setHomeDir(String homeDir) {
         this.homeDir = homeDir;
-    }
-
-    public String getTestRepository() {
-        return testRepository;
-    }
-
-    public void setTestRepository(String testRepository) {
-        this.testRepository = testRepository;
     }
 
     public String getDeploymentRepository() {

@@ -18,12 +18,16 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Element;
+
 /**
  *  Defines a model object for the exposed Ports of the created host.
  */
 public class Port {
 
+    @Element(description = "defines the port protocol (i.e. https)")
     private String protocol;
+    @Element(description = "defines the number of this port")
     private int portNumber;
 
     public String getProtocol() {

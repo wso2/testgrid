@@ -18,12 +18,16 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Element;
+
 /**
  *  Defines a model object of Operating system with required attributes.
  */
 public class OperatingSystem {
 
+    @Element(description = "defines the name of the required OS")
     private String name;
+    @Element(description = "defines the version of the required OS")
     private String version;
 
     public String getName() {

@@ -21,6 +21,7 @@ import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestReportEngine;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
 import org.wso2.carbon.testgrid.reporting.model.ProductPlanReport;
 import org.wso2.carbon.testgrid.reporting.model.TestPlanReport;
@@ -110,7 +111,7 @@ public class TestReportEngineImpl implements TestReportEngine {
             List<TestScenarioReport> testScenarioReports = new ArrayList<>();
 
             for (TestScenario testScenario : testScenarios) {
-                Path resultPath = Paths.get(testScenario.getScenarioLocation(), TEST_ARTIFACT_DIR, RESULTS_DIR);
+                Path resultPath = Paths.get(Utils.getTestScenarioLocation(testScenario, testPlan.getRepoDir()), TEST_ARTIFACT_DIR, RESULTS_DIR);
                 File[] directoryList = FileUtil.getFileList(resultPath);
                 List<T> testResults = new ArrayList<>();
 

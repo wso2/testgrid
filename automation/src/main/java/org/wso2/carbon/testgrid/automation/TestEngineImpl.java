@@ -21,12 +21,12 @@ package org.wso2.carbon.testgrid.automation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.automation.core.TestManager;
-import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
 import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
 import org.wso2.carbon.testgrid.automation.exceptions.TestManagerException;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestAutomationEngine;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestAutomationEngineException;
 
 /**
@@ -36,17 +36,12 @@ public class TestEngineImpl implements TestAutomationEngine {
 
     private static final Log log = LogFactory.getLog(TestEngineImpl.class);
 
-    /**
-     *
-     * @param scenario The Test scenario that is being executed.
-     * @return true if all the processes finished.
-     * @throws TestEngineException when there is an error in the process.
-     */
-    public boolean runScenario(TestScenario scenario, Deployment deployment) throws TestAutomationEngineException {
+    public boolean runScenario(TestScenario scenario, String location, Deployment deployment) throws
+            TestAutomationEngineException {
         log.info("Executing Tests for Solution Pattern : " + scenario.getSolutionPattern());
         TestManager testManager = new TestManager();
         try {
-            testManager.init(scenario.getScenarioLocation(), deployment);
+            testManager.init(Utils.getTestScenarioLocation(scenario, location), deployment);
             testManager.executeTests();
             scenario.setStatus(TestScenario.Status.COMPLETED);
         } catch (TestManagerException ex) {

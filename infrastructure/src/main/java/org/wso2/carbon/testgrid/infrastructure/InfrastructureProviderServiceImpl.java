@@ -23,8 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.common.InfrastructureProvider;
 import org.wso2.carbon.testgrid.common.TestPlan;
 
+import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.carbon.testgrid.common.util.ExecUtil;
 
 /**
  * This class creates the infrastructure for running tests
@@ -45,11 +45,11 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
 
         System.out.println("Initializing terraform...");
         log.info("Initializing terraform...");
-        ExecUtil.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
+        Utils.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
 
         System.out.println("Creating the Kubernetes cluster...");
         log.info("Creating the Kubernetes cluster...");
-        ExecUtil.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
+        Utils.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
         testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
         return true;
     }
@@ -58,7 +58,7 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
     public boolean removeInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException {
         String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
         System.out.println("Destroying test environment...");
-        if(ExecUtil.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
+        if(Utils.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
             return true;
         }
         return false;

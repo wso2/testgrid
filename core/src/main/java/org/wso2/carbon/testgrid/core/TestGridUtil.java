@@ -28,7 +28,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * This ExecUtil class will be used for having utility methods required for TestGrid core component.
+ * This Util class will be used for having utility methods required for TestGrid core component.
  */
 public class TestGridUtil {
 

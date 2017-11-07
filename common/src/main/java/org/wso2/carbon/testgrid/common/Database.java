@@ -18,12 +18,16 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Element;
+
 /**
  *  Defines a model object of Database with required attributes.
  */
 public class Database {
 
+    @Element(description = "defines the database engine type")
     private DatabaseEngine engine;
+    @Element(description = "defines the database version")
     private String version;
 
     public DatabaseEngine getEngine() {

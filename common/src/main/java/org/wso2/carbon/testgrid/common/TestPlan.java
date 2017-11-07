@@ -18,29 +18,47 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Configuration;
+import org.wso2.carbon.config.annotation.Element;
+
 import java.util.List;
 
 /**
  * This represents a model of the TestPlan which includes all the necessary data to run the required SolutionPatterns.
  * A single deployment will have a single TestPlan.
  */
+@Configuration(namespace = "wso2.testgrid.testplan", description = "TestGrid Testplan Configuration Parameters")
 public class TestPlan {
 
     private int id;
     private long createdTimeStamp;
     private long completedTimeStamp;
-    private String name;
     //Dir of TestPlan home directory
     private String home;
-    private String deploymentPattern;
-    private List<TestScenario> testScenarios;
+    private String repoDir;
     private Status status;
-
-    private DeployerType deployerType;
     private TestReport testReport;
     private Deployment deployment;
+
+    @Element(description = "value to uniquely identify the TestPlan")
+    private String name;
+
+    @Element(description = "value to uniquely identify the deployment pattern")
+    private String deploymentPattern;
+
+    @Element(description = "list of test scenarios to be executed")
+    private List<TestScenario> testScenarios;
+
+    @Element(description = "type of the deployer (puppet/chef etc)")
+    private DeployerType deployerType;
+
+    @Element(description = "flag to enable or disable the testplan")
     private boolean enabled;
+
+    @Element(description = "description about the test plan")
     private String description;
+
+    @Element(description = "holds the configuration related to the infrastructure")
     private Infrastructure infrastructure;
 
 
@@ -178,5 +196,13 @@ public class TestPlan {
 
     public void setInfrastructure(Infrastructure infrastructure) {
         this.infrastructure = infrastructure;
+    }
+
+    public String getRepoDir() {
+        return repoDir;
+    }
+
+    public void setRepoDir(String repoDir) {
+        this.repoDir = repoDir;
     }
 }
