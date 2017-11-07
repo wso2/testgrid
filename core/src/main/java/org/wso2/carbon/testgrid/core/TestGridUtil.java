@@ -28,7 +28,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * This Util class will be used for having utility methods required for TestGrid core component.
+ * This ExecUtil class will be used for having utility methods required for TestGrid core component.
  */
 public class TestGridUtil {
 
@@ -66,5 +66,12 @@ public class TestGridUtil {
             repositoryUrl = repositoryUrl.substring(0, repositoryUrl.length() - 4);
         }
         return repositoryUrl.substring(repositoryUrl.lastIndexOf("/") + 1);
+    }
+
+    public static <T extends Enum<T>> T getEnumFromString(Class<T> c, String string) throws IllegalArgumentException {
+        if( c != null && string != null ) {
+            return Enum.valueOf(c, string.trim().toUpperCase());
+        }
+        return null;
     }
 }

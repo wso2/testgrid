@@ -24,7 +24,7 @@ import org.wso2.carbon.testgrid.common.InfrastructureProvider;
 import org.wso2.carbon.testgrid.common.TestPlan;
 
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.carbon.testgrid.utils.Util;
+import org.wso2.carbon.testgrid.common.util.ExecUtil;
 
 /**
  * This class creates the infrastructure for running tests
@@ -32,6 +32,12 @@ import org.wso2.carbon.testgrid.utils.Util;
 public class InfrastructureProviderServiceImpl implements InfrastructureProvider {
 
     private static final Log log = LogFactory.getLog(InfrastructureProviderServiceImpl.class);
+    private final static String SHELL_SCRIPT_PROVIDER = "Shell";
+
+    @Override
+    public String getProviderName() {
+        return SHELL_SCRIPT_PROVIDER;
+    }
 
     @Override
     public boolean createInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException {
@@ -39,11 +45,11 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
 
         System.out.println("Initializing terraform...");
         log.info("Initializing terraform...");
-        Util.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
+        ExecUtil.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
 
         System.out.println("Creating the Kubernetes cluster...");
         log.info("Creating the Kubernetes cluster...");
-        Util.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
+        ExecUtil.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
         testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
         return true;
     }
@@ -52,7 +58,7 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
     public boolean removeInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException {
         String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
         System.out.println("Destroying test environment...");
-        if(Util.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
+        if(ExecUtil.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
             return true;
         }
         return false;

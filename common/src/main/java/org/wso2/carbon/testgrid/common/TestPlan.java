@@ -36,18 +36,13 @@ public class TestPlan {
     private List<TestScenario> testScenarios;
     private Status status;
 
-    private InfrastructureType infrastructureType;
-    private ClusterType clusterType;
-    private InstanceType instanceType;
     private DeployerType deployerType;
     private TestReport testReport;
     private Deployment deployment;
     private boolean enabled;
-    private String os;
-    private String databaseEngine;
     private String description;
-
     private Infrastructure infrastructure;
+
 
     public enum Status {
         EXECUTION_PLANNED, INFRASTRUCTURE_PREPARATION, INFRASTRUCTURE_READY, INFRASTRUCTURE_ERROR, DEPLOYMENT_PREPARATION,
@@ -55,20 +50,18 @@ public class TestPlan {
         REPORT_GENERATION, REPORT_GENERATION_ERROR, EXECUTION_COMPLETED
     }
 
-    public enum InfrastructureType {
-        AWS, GCC, OPENSTACK
-    }
-
-    public enum ClusterType {
-        ECS, K8S, CLOUD_FORMATION
-    }
-
-    public enum InstanceType {
-        EC2, DOCKER_CONTAINERS
-    }
-
     public enum DeployerType {
-        PUPPET, ANSIBLE, CHEF
+        PUPPET ("puppet"), ANSIBLE ("ansible"), CHEF ("chef");
+
+        private final String name;
+
+        DeployerType(String s) {
+            name = s;
+        }
+
+        public String toString() {
+            return this.name;
+        }
     }
 
     public int getId() {
@@ -135,22 +128,6 @@ public class TestPlan {
         this.status = status;
     }
 
-    public InfrastructureType getInfrastructureType() {
-        return infrastructureType;
-    }
-
-    public void setInfrastructureType(InfrastructureType infrastructureType) {
-        this.infrastructureType = infrastructureType;
-    }
-
-    public ClusterType getClusterType() {
-        return clusterType;
-    }
-
-    public void setClusterType(ClusterType clusterType) {
-        this.clusterType = clusterType;
-    }
-
     public DeployerType getDeployerType() {
         return deployerType;
     }
@@ -183,45 +160,8 @@ public class TestPlan {
         this.enabled = enabled;
     }
 
-    public InstanceType getInstanceType() {
-        return instanceType;
-    }
-
-    public void setInstanceType(InstanceType instanceType) {
-        this.instanceType = instanceType;
-    }
-
-    public String getOs() {
-        return os;
-    }
-
-    public void setOs(String os) {
-        this.os = os;
-    }
-
-    public String getDatabaseEngine() {
-        return databaseEngine;
-    }
-
-    public void setDatabaseEngine(String databaseEngine) {
-        this.databaseEngine = databaseEngine;
-    }
-
-    public void setClusterType(String clusterType) {
-        this.clusterType = ClusterType.valueOf(clusterType.toUpperCase());
-    }
-
     public void setDeployerType(String deployerType) {
         this.deployerType = DeployerType.valueOf(deployerType.toUpperCase());
-    }
-
-
-    public void setInfrastructureType(String infrastructureType) {
-        this.infrastructureType = InfrastructureType.valueOf(infrastructureType.toUpperCase());
-    }
-
-    public void setInstanceType(String instanceType) {
-        this.instanceType = InstanceType.valueOf(instanceType.toUpperCase());
     }
 
     public String getDescription() {

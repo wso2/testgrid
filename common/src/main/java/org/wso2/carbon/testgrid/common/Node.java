@@ -30,10 +30,11 @@ public class Node {
     private String host;
     private String image;
     private NodeType nodeType;
+    private String size;
 
     private enum NodeType {
         LB ("Load Balancer"),
-        Machine ("Machine");
+        Server ("Server");
 
         private final String name;
 
@@ -84,5 +85,13 @@ public class Node {
 
     public void setNodeType(NodeType nodeType) {
         this.nodeType = nodeType;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
     }
 }

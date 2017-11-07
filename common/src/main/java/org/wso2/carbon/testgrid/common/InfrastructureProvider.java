@@ -27,10 +27,17 @@ import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException
 public interface InfrastructureProvider {
 
     /**
+     * This method returns the provider name (AWS/GCP/Open Stack etc).
+     *
+     * @return A String indicating the name of the provider.
+     */
+     String getProviderName();
+
+    /**
      * This method creates the necessary infrastructure using the provided configuration.
      *
      * @param testPlan An instance of a TestPlan which Infrastructure should be created.
-     * @return boolean
+     * @return boolean status of the operation
      * @throws TestGridInfrastructureException
      */
     boolean createInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException;
@@ -39,7 +46,7 @@ public interface InfrastructureProvider {
      * This method executes commands needed to remove the infrastructure.
      *
      * @param testPlan An instance of a TestPlan which Infrastructure should be removed.
-     * @return boolean
+     * @return boolean status of the operation
      * @throws TestGridInfrastructureException
      */
     boolean removeInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException;

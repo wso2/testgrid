@@ -59,13 +59,13 @@ public class TestPlanReport {
     public TestPlanReport(TestPlan testPlan, List<TestScenarioReport> testScenarioReports, String view)
             throws ReportingException {
         this.testPlanName = testPlan.getName();
-        this.osName = testPlan.getOs();
-        this.dbName = testPlan.getDatabaseEngine();
+        this.osName = testPlan.getInfrastructure().getOperatingSystem().toString();
+        this.dbName = testPlan.getInfrastructure().getDatabase().toString();
         this.deploymentPattern = testPlan.getDeploymentPattern();
-        this.clusterType = testPlan.getClusterType().toString();
-        this.instanceType = testPlan.getInstanceType().toString();
+        this.clusterType = testPlan.getInfrastructure().getClusterType().toString();
+        this.instanceType = testPlan.getInfrastructure().getInstanceType().toString();
         this.deployerType = testPlan.getDeployerType().toString();
-        this.infrastructureType = testPlan.getInfrastructureType().toString();
+        this.infrastructureType = testPlan.getInfrastructure().getProviderType().toString();
         this.status = testPlan.getStatus().toString();
         this.description = testPlan.getDescription();
         this.testScenarioReports = Collections.unmodifiableList(testScenarioReports);

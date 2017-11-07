@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.testgrid.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.wso2.carbon.config.ConfigProviderFactory;
+import org.wso2.carbon.config.ConfigurationException;
+import org.wso2.carbon.config.provider.ConfigProvider;
+import org.wso2.carbon.testgrid.common.Node;
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
@@ -34,6 +37,7 @@ import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -62,6 +66,10 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         return scenarioList;
     }
 
+    private List<Node> getNodes() {
+        return null;
+    }
+
     private List<TestPlan> generateTestPlan(String repoDir, String homeDir) throws TestGridException {
         String productTestPlanDir = repoDir + File.separator + PRODUCT_TEST_DIR;
         File dir = new File(productTestPlanDir);
@@ -69,41 +77,67 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         List<org.wso2.carbon.testgrid.common.config.TestPlan> testPlans = new ArrayList<>();
         List<TestPlan> testPlanList = new ArrayList<>();
         if (directoryListing != null) {
-            for (File testPlan : directoryListing) {
-                ObjectMapper mapper = new ObjectMapper();
+            TestPlan testPlan;
+            for (File testConfig : directoryListing) {
                 try {
-                    testPlans.add(mapper.readValue(testPlan, org.wso2.carbon.testgrid.common.config.TestPlan.class));
-                } catch (IOException e) {
-                    log.error("Unable to parse TestPlan file '" + testPlan.getName() + "'");
+                    ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths.get(testConfig.getAbsolutePath()));
+                    testPlan = configProvider.getConfigurationObject(TestPlan.class);
+                    testPlan.setHome(homeDir);
+                    if (testPlan.isEnabled()) {
+                        testPlanList.add(testPlan);
+                    }
+                } catch (ConfigurationException e) {
+                    log.error("Unable to parse TestPlan file '" + testConfig.getName() + "'");
                 }
+//                ObjectMapper mapper = new ObjectMapper();
+//                try {
+//                    testPlans.add(mapper.readValue(testConfig, org.wso2.carbon.testgrid.common.config.TestPlan.class));
+//                } catch (IOException e) {
+//                    log.error("Unable to parse TestPlan file '" + testConfig.getName() + "'");
+//                }
             }
         } else {
             String msg = "Unable to find the ProductTests directory in location '" + productTestPlanDir + "'";
             log.error(msg);
             throw new TestGridException(msg);
         }
-        if (testPlans.size() > 0) {
-            TestPlan plan;
-            for (org.wso2.carbon.testgrid.common.config.TestPlan testPlan : testPlans) {
-                if (testPlan.isEnabled()) {
-                    plan = new TestPlan();
-                    plan.setDatabaseEngine(testPlan.getDatabaseEngine());
-                    plan.setOs(testPlan.getOs());
-                    plan.setDeploymentPattern(testPlan.getDeploymentPattern());
-                    plan.setEnabled(true);
-                    plan.setHome(homeDir);
-                    plan.setName(testPlan.getName());
-                    plan.setDeployerType(testPlan.getDeployerType());
-                    plan.setClusterType(testPlan.getClusterType());
-                    plan.setInfrastructureType(testPlan.getInfrastructureType());
-                    plan.setInstanceType(testPlan.getInstanceType());
-                    plan.setTestScenarios(this.getTestScenarios(testPlan.getSolutionPatterns(), repoDir));
-                    plan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
-                    plan.setDescription(testPlan.getDescription());
-                    testPlanList.add(plan);
-                }
-            }
-        }
+
+//        if (testPlans.size() > 0) {
+//            TestPlan plan;
+//            Infrastructure infrastructure;
+//            OperatingSystem os;
+//
+//            for (org.wso2.carbon.testgrid.common.config.TestPlan testPlan : testPlans) {
+//                if (testPlan.isEnabled()) {
+//                    plan = new TestPlan();
+//                    infrastructure = new Infrastructure();
+//                    infrastructure.setProviderType(TestGridUtil.getEnumFromString(Infrastructure.ProviderType.class,
+//                            testPlan.getInfrastructureType()));
+//                    os = new OperatingSystem();
+//                    os.setName(testPlan.getOs());
+//                    os.setVersion(testPlan.getOs());
+//                    infrastructure.setOperatingSystem(os);
+//
+//                   // infrastructure.setDatabase(TestGridUtil.getEnumFromString(Infrastructure.DatabaseEngine.class,
+//                   //         testPlan.getDatabaseEngine()));
+//                    infrastructure.setClusterType(TestGridUtil.getEnumFromString(Infrastructure.ClusterType.class,
+//                            testPlan.getClusterType()));
+//                    infrastructure.setInstanceType(TestGridUtil.getEnumFromString(Infrastructure.InstanceType.class,
+//                            testPlan.getClusterType()));
+//                    infrastructure.setNodes(null);
+//
+//                    plan.setDeploymentPattern(testPlan.getDeploymentPattern());
+//                    plan.setEnabled(true);
+//                    plan.setHome(homeDir);
+//                    plan.setName(testPlan.getName());
+//                    plan.setDeployerType(testPlan.getDeployerType());
+//                    plan.setTestScenarios(this.getTestScenarios(testPlan.getSolutionPatterns(), repoDir));
+//                    plan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
+//                    plan.setDescription(testPlan.getDescription());
+//                    testPlanList.add(plan);
+//                }
+//            }
+//        }
         return testPlanList;
     }
 
@@ -129,6 +163,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             log.error(msg, e);
             throw new TestGridException(msg, e);
         }
+
         if (path != null) {
             String repoLocation;
             //Clone Test Repo
@@ -158,6 +193,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     @Override
     public boolean executeProductTestPlan(ProductTestPlan productTestPlan) throws TestGridException {
         productTestPlan.setStatus(ProductTestPlan.Status.RUNNING);
+
         for (TestPlan testPlan : productTestPlan.getTestPlans()) {
             try {
                 new TestPlanExecutor().runTestPlan(testPlan);
@@ -168,6 +204,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             }
         }
         productTestPlan.setStatus(ProductTestPlan.Status.REPORT_GENERATION);
+
         try {
             new TestReportEngineImpl().generateReport(productTestPlan);
         } catch (TestReportEngineException e) {

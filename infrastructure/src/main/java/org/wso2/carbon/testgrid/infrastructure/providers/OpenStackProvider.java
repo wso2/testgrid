@@ -30,6 +30,12 @@ import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException
 public class OpenStackProvider implements InfrastructureProvider {
 
     private static final Log log = LogFactory.getLog(OpenStackProvider.class);
+    private final static String OPENSTACK_PROVIDER = "OpenStack";
+
+    @Override
+    public String getProviderName() {
+        return OPENSTACK_PROVIDER;
+    }
 
     @Override
     public boolean createInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException {

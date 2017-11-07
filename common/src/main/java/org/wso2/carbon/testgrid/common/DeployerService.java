@@ -26,6 +26,13 @@ import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 public interface DeployerService {
 
     /**
+     * This method returns the provider name (AWS/GCP/Open Stack etc).
+     *
+     * @return A String indicating the name of the provider.
+     */
+    String getDeployerName();
+
+    /**
      * Runs deploy.sh script and deploys artifacts in the test cluster
      *
      * @param testPlan Current test plan

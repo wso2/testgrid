@@ -19,29 +19,29 @@
 package org.wso2.carbon.testgrid.common;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *  Defines a model object for a Infrastructure.
  */
 public class Infrastructure {
 
-    private String operatingSystem;
-    private String osVersion;
-    private String databaseEngine;
-    private String databaseVersion;
-    private InfrastructureProviderType providerType; //AWS, GCC, OPENSTACK
-    private String instanceType; // EC2, DOCKER
-    private String clusterType; // ECS, K8S
+    private ProviderType providerType; //AWS, GCC, OPENSTACK
+    private InstanceType instanceType; // EC2, DOCKER
+    private ClusterType clusterType; // ECS, K8S
+    private Database database;
     private List<Node> nodes;
+    private Map<String, String> securityProperties;
+    private OperatingSystem operatingSystem;
 
-    public enum InfrastructureProviderType {
+    public enum ProviderType {
         AWS ("AWS"),
         OPENSTACK ("OpenStack"),
-        GCC ("GCC");
+        GCP ("GCP");
 
         private final String name;
 
-        InfrastructureProviderType(String s) {
+        ProviderType(String s) {
             name = s;
         }
 
@@ -50,52 +50,32 @@ public class Infrastructure {
         }
     }
 
-    public String getOperatingSystem() {
-        return operatingSystem;
+    public enum ClusterType {
+        ECS ("ECS"), K8S ("Kubernetes"), CLOUD_FORMATION ("Cloud Formation");
+
+        private final String name;
+
+        ClusterType(String s) {
+            name = s;
+        }
+
+        public String toString() {
+            return this.name;
+        }
     }
 
-    public void setOperatingSystem(String operatingSystem) {
-        this.operatingSystem = operatingSystem;
-    }
+    public enum InstanceType {
+        EC2 ("EC2"), DOCKER_CONTAINERS ("Docker");
 
-    public String getOsVersion() {
-        return osVersion;
-    }
+        private final String name;
 
-    public void setOsVersion(String osVersion) {
-        this.osVersion = osVersion;
-    }
+        InstanceType(String s) {
+            name = s;
+        }
 
-    public String getDatabaseEngine() {
-        return databaseEngine;
-    }
-
-    public void setDatabaseEngine(String databaseEngine) {
-        this.databaseEngine = databaseEngine;
-    }
-
-    public String getDatabaseVersion() {
-        return databaseVersion;
-    }
-
-    public void setDatabaseVersion(String databaseVersion) {
-        this.databaseVersion = databaseVersion;
-    }
-
-    public String getInstanceType() {
-        return instanceType;
-    }
-
-    public void setInstanceType(String instanceType) {
-        this.instanceType = instanceType;
-    }
-
-    public String getClusterType() {
-        return clusterType;
-    }
-
-    public void setClusterType(String clusterType) {
-        this.clusterType = clusterType;
+        public String toString() {
+            return this.name;
+        }
     }
 
     public List<Node> getNodes() {
@@ -106,11 +86,51 @@ public class Infrastructure {
         this.nodes = nodes;
     }
 
-    public InfrastructureProviderType getProviderType() {
+    public ProviderType getProviderType() {
         return providerType;
     }
 
-    public void setProviderType(InfrastructureProviderType providerType) {
+    public void setProviderType(ProviderType providerType) {
         this.providerType = providerType;
+    }
+
+    public InstanceType getInstanceType() {
+        return instanceType;
+    }
+
+    public void setInstanceType(InstanceType instanceType) {
+        this.instanceType = instanceType;
+    }
+
+    public ClusterType getClusterType() {
+        return clusterType;
+    }
+
+    public void setClusterType(ClusterType clusterType) {
+        this.clusterType = clusterType;
+    }
+
+    public Map<String, String> getSecurityProperties() {
+        return securityProperties;
+    }
+
+    public void setSecurityProperties(Map<String, String> securityProperties) {
+        this.securityProperties = securityProperties;
+    }
+
+    public OperatingSystem getOperatingSystem() {
+        return operatingSystem;
+    }
+
+    public void setOperatingSystem(OperatingSystem operatingSystem) {
+        this.operatingSystem = operatingSystem;
+    }
+
+    public Database getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(Database database) {
+        this.database = database;
     }
 }

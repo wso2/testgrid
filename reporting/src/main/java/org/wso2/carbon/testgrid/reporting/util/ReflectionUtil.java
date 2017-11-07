@@ -19,13 +19,13 @@ package org.wso2.carbon.testgrid.reporting.util;
 
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 
+import javax.lang.model.SourceVersion;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
-import javax.lang.model.SourceVersion;
 
 /**
  * Class to handle java reflection activities.

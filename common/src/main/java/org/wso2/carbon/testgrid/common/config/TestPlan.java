@@ -36,7 +36,9 @@ public class TestPlan {
     private String deployerType;
     private String instanceType;
     private String os;
+    private String osVersion;
     private String databaseEngine;
+    private String databaseVersion;
     private String testRepository;
     private String deploymentRepository;
     private String productName;
@@ -164,4 +166,6 @@ public class TestPlan {
     public void setDescription(String description) {
         this.description = description;
     }
+
+
 }

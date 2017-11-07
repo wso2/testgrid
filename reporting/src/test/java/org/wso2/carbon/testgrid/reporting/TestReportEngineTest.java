@@ -20,6 +20,9 @@ package org.wso2.carbon.testgrid.reporting;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.wso2.carbon.testgrid.common.Database;
+import org.wso2.carbon.testgrid.common.Infrastructure;
+import org.wso2.carbon.testgrid.common.OperatingSystem;
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
@@ -54,15 +57,25 @@ public class TestReportEngineTest {
         testScenarios.add(testScenario);
 
         TestPlan testPlan = Mockito.mock(TestPlan.class);
+        Infrastructure infrastructure = Mockito.mock(Infrastructure.class);
+        OperatingSystem operatingSystem = Mockito.mock(OperatingSystem.class);
+        Mockito.when(operatingSystem.getName()).thenReturn("Ubuntu");
+        Mockito.when(operatingSystem.getVersion()).thenReturn("17.04");
+        Database database = Mockito.mock(Database.class);
+        Mockito.when(database.getEngine()).thenReturn(Database.DatabaseEngine.MYSQL);
+        Mockito.when(database.getVersion()).thenReturn("5.7");
+        Mockito.when(infrastructure.getDatabase()).thenReturn(database);
+        Mockito.when(infrastructure.getClusterType()).thenReturn(Infrastructure.ClusterType.K8S);
+        Mockito.when(infrastructure.getInstanceType()).thenReturn(Infrastructure.InstanceType.DOCKER_CONTAINERS);
+        Mockito.when(infrastructure.getProviderType()).thenReturn(Infrastructure.ProviderType.OPENSTACK);
+        Mockito.when(infrastructure.getOperatingSystem()).thenReturn(operatingSystem);
+        testPlan.setInfrastructure(infrastructure);
+
         Mockito.when(testPlan.getName()).thenReturn("Sample Test Plan");
         Mockito.when(testPlan.getDescription()).thenReturn("Test plan description");
-        Mockito.when(testPlan.getOs()).thenReturn("Ubuntu 12.04");
-        Mockito.when(testPlan.getDatabaseEngine()).thenReturn("MySQL 5.5");
+        Mockito.when(testPlan.getInfrastructure()).thenReturn(infrastructure);
         Mockito.when(testPlan.getDeploymentPattern()).thenReturn("Single Node Deployment");
-        Mockito.when(testPlan.getClusterType()).thenReturn(TestPlan.ClusterType.K8S);
-        Mockito.when(testPlan.getInstanceType()).thenReturn(TestPlan.InstanceType.DOCKER_CONTAINERS);
         Mockito.when(testPlan.getDeployerType()).thenReturn(TestPlan.DeployerType.PUPPET);
-        Mockito.when(testPlan.getInfrastructureType()).thenReturn(TestPlan.InfrastructureType.OPENSTACK);
         Mockito.when(testPlan.getStatus()).thenReturn(TestPlan.Status.SCENARIO_EXECUTION_COMPLETED);
         Mockito.when(testPlan.getTestScenarios()).thenReturn(testScenarios);
 
