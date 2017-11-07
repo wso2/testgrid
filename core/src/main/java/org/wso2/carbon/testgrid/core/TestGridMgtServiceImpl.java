@@ -48,36 +48,23 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     private static final String PRODUCT_TEST_DIR = "ProductTests";
     private static final String TESTPLAN_EXTENSION = ".yaml";
 
-//    private List<TestScenario> getTestScenarios(List<SolutionPattern> solutionPatterns, String repoDir) {
-//        List<TestScenario> scenarioList = new ArrayList<>();
-//        TestScenario testScenario;
-//        for (SolutionPattern pattern : solutionPatterns) {
-//            if (pattern.isEnabled()) {
-//                testScenario = new TestScenario();
-//                testScenario.setEnabled(true);
-//                testScenario.setSolutionPattern(pattern.getName());
-//                testScenario.setStatus(TestScenario.Status.PLANNED);
-//                testScenario.setScenarioLocation(repoDir + File.separator + pattern.getName());
-//                scenarioList.add(testScenario);
-//            }
-//        }
-//        return scenarioList;
-//    }
-
     private List<TestPlan> generateTestPlan(String repoDir, String homeDir) throws TestGridException {
         String productTestPlanDir = repoDir + File.separator + PRODUCT_TEST_DIR;
         File dir = new File(productTestPlanDir);
         File[] directoryListing = dir.listFiles();
-        //List<org.wso2.carbon.testgrid.common.config.TestPlan> testPlans = new ArrayList<>();
         List<TestPlan> testPlanList = new ArrayList<>();
+
         if (directoryListing != null) {
             TestPlan testPlan;
+
             for (File testConfig : directoryListing) {
                 try {
+
                     if ((testConfig.getName() != null) && testConfig.getName().endsWith(TESTPLAN_EXTENSION)) {
                         ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths.
                                 get(testConfig.getAbsolutePath()), null);
                         testPlan = configProvider.getConfigurationObject(TestPlan.class);
+
                         if (testPlan.isEnabled()) {
                             testPlan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
                             testPlan.setHome(homeDir);
@@ -94,43 +81,6 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             log.error(msg);
             throw new TestGridException(msg);
         }
-
-//        if (testPlans.size() > 0) {
-//            TestPlan plan;
-//            Infrastructure infrastructure;
-//            OperatingSystem os;
-//
-//            for (org.wso2.carbon.testgrid.common.config.TestPlan testPlan : testPlans) {
-//                if (testPlan.isEnabled()) {
-//                    plan = new TestPlan();
-//                    infrastructure = new Infrastructure();
-//                    infrastructure.setProviderType(TestGridUtil.getEnumFromString(Infrastructure.ProviderType.class,
-//                            testPlan.getInfrastructureType()));
-//                    os = new OperatingSystem();
-//                    os.setName(testPlan.getOs());
-//                    os.setVersion(testPlan.getOs());
-//                    infrastructure.setOperatingSystem(os);
-//
-//                   // infrastructure.setDatabase(TestGridUtil.getEnumFromString(Infrastructure.DatabaseEngine.class,
-//                   //         testPlan.getDatabaseEngine()));
-//                    infrastructure.setClusterType(TestGridUtil.getEnumFromString(Infrastructure.ClusterType.class,
-//                            testPlan.getClusterType()));
-//                    infrastructure.setInstanceType(TestGridUtil.getEnumFromString(Infrastructure.InstanceType.class,
-//                            testPlan.getClusterType()));
-//                    infrastructure.setNodes(null);
-//
-//                    plan.setDeploymentPattern(testPlan.getDeploymentPattern());
-//                    plan.setEnabled(true);
-//                    plan.setHome(homeDir);
-//                    plan.setName(testPlan.getName());
-//                    plan.setDeployerType(testPlan.getDeployerType());
-//                    plan.setTestScenarios(this.getTestScenarios(testPlan.getSolutionPatterns(), repoDir));
-//                    plan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
-//                    plan.setDescription(testPlan.getDescription());
-//                    testPlanList.add(plan);
-//                }
-//            }
-//        }
         return testPlanList;
     }
 
