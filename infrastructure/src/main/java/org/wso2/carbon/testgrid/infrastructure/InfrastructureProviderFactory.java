@@ -18,19 +18,37 @@
 
 package org.wso2.carbon.testgrid.infrastructure;
 
+import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.InfrastructureProvider;
-import org.wso2.carbon.testgrid.infrastructure.providers.OpenStackProvider;
+import org.wso2.carbon.testgrid.common.exception.InfrastructureProviderInitializationException;
+import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
+
+import java.util.ServiceLoader;
 
 /**
  * This will return a InfrastructureProvider based on the required Infrastructure type.
  */
 public class InfrastructureProviderFactory {
 
-    public static InfrastructureProvider getInfrastructureProvider(String provider) {
-        switch (provider) {
-            case "":
-                return new OpenStackProvider();
+    static ServiceLoader<InfrastructureProvider> providers = ServiceLoader.load(InfrastructureProvider.class);
+
+    public static InfrastructureProvider getInfrastructureProvider(Infrastructure.ProviderType providerType) throws
+            UnsupportedProviderException, InfrastructureProviderInitializationException {
+
+        for (InfrastructureProvider provider : providers) {
+            if (providerType.name().equalsIgnoreCase(provider.getProviderName())) {
+                try {
+                    return provider.getClass().newInstance();
+                } catch (InstantiationException e) {
+                    throw new InfrastructureProviderInitializationException("Exception occurred while instantiating the" +
+                            " InfrastructureProvider for requested type '" + providerType.name() + "'", e);
+                } catch (IllegalAccessException e) {
+                    throw new InfrastructureProviderInitializationException("Exception occurred while instantiating the" +
+                            " InfrastructureProvider for requested type '" + providerType.name() + "'", e);
+                }
+            }
         }
-        return null;
+        throw new UnsupportedProviderException("Unable to find a InfrastructureProvider for requested type '" +
+                providerType.name() + "'");
     }
 }

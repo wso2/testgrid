@@ -21,14 +21,17 @@ package org.wso2.carbon.testgrid.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.exception.InfrastructureProviderInitializationException;
+import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
-import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
-import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderServiceImpl;
-import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
 
 /**
  * This class is mainly responsible for executing the provided TestPlan.
@@ -44,12 +47,28 @@ public class TestPlanExecutor {
      * @return Returns the status of the execution (success / fail)
      * @throws TestPlanExecutorException If something goes wrong while executing the TestPlan.
      */
-    public TestPlan runTestPlan(TestPlan testPlan) throws TestPlanExecutorException {
+    public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
         testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_PREPARATION);
         //Setup the infrastructure
         try {
-            new InfrastructureProviderServiceImpl().createInfrastructure(testPlan);
+
+            if (infrastructure != null) {
+                InfrastructureProviderFactory.getInfrastructureProvider(infrastructure.getProviderType()).
+                        createInfrastructure(infrastructure);
+            } else {
+                throw new TestPlanExecutorException("Unable to locate infrastructure descriptor for " +
+                        "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
+                        + "'");
+            }
         } catch (TestGridInfrastructureException e) {
+            throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
+                    "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
+                    + "'", e);
+        } catch (InfrastructureProviderInitializationException e) {
+            throw new TestPlanExecutorException("Unable to locate an Infrastructure Provider implementation for  " +
+                    "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
+                    + "'", e);
+        } catch (UnsupportedProviderException e) {
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
@@ -99,7 +118,7 @@ public class TestPlanExecutor {
      * @return Returns the status (success / fail)
      * @throws TestPlanExecutorException If something goes wrong while aborting the TestPlan.
      */
-    public boolean abortTestPlan(TestPlan testPlan) throws TestPlanExecutorException {
+    public boolean abortTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
         return false;
     }
 

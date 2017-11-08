@@ -33,7 +33,9 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Test class to test the functionality of the {@link TestReportEngineImpl}.
@@ -44,6 +46,7 @@ public class TestReportEngineTest {
 
     @Test
     public void generateReportTest() throws TestReportEngineException {
+        String deploymentPattern = "Single Node Deployment";
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("results");
         Assert.assertNotNull(resource);
@@ -57,6 +60,7 @@ public class TestReportEngineTest {
 
         TestPlan testPlan = Mockito.mock(TestPlan.class);
         Infrastructure infrastructure = Mockito.mock(Infrastructure.class);
+        infrastructure.setName(deploymentPattern);
         OperatingSystem operatingSystem = Mockito.mock(OperatingSystem.class);
         Mockito.when(operatingSystem.getName()).thenReturn("Ubuntu");
         Mockito.when(operatingSystem.getVersion()).thenReturn("17.04");
@@ -68,11 +72,11 @@ public class TestReportEngineTest {
         Mockito.when(infrastructure.getInstanceType()).thenReturn(Infrastructure.InstanceType.DOCKER_CONTAINERS);
         Mockito.when(infrastructure.getProviderType()).thenReturn(Infrastructure.ProviderType.OPENSTACK);
         Mockito.when(infrastructure.getOperatingSystem()).thenReturn(operatingSystem);
-        testPlan.setInfrastructure(infrastructure);
+        Mockito.when(infrastructure.getName()).thenReturn(deploymentPattern);
+
 
         Mockito.when(testPlan.getName()).thenReturn("Sample Test Plan");
         Mockito.when(testPlan.getDescription()).thenReturn("Test plan description");
-        Mockito.when(testPlan.getInfrastructure()).thenReturn(infrastructure);
         Mockito.when(testPlan.getDeploymentPattern()).thenReturn("Single Node Deployment");
         Mockito.when(testPlan.getDeployerType()).thenReturn(TestPlan.DeployerType.PUPPET);
         Mockito.when(testPlan.getStatus()).thenReturn(TestPlan.Status.SCENARIO_EXECUTION_COMPLETED);
@@ -82,11 +86,18 @@ public class TestReportEngineTest {
         List<TestPlan> testPlans = new ArrayList<>();
         testPlans.add(testPlan);
 
+        Map<String, Infrastructure> infrastructureMap = new HashMap<>();
+        infrastructureMap.put(infrastructure.getName(), infrastructure);
+
         ProductTestPlan productTestPlan = Mockito.mock(ProductTestPlan.class);
+        productTestPlan.setInfrastructureMap(infrastructureMap);
         Mockito.when(productTestPlan.getProductName()).thenReturn("WSO2 Identity Server");
         Mockito.when(productTestPlan.getProductVersion()).thenReturn("5.4.0");
         Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
         Mockito.when(productTestPlan.getTestPlans()).thenReturn(testPlans);
+        Mockito.when(productTestPlan.getInfrastructure(deploymentPattern)).thenReturn(infrastructure);
+
+
 
         TestReportEngineImpl testReportEngineImpl = new TestReportEngineImpl();
         testReportEngineImpl.generateReport(productTestPlan);

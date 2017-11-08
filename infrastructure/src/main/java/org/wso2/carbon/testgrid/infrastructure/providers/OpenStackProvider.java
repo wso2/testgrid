@@ -20,7 +20,8 @@ package org.wso2.carbon.testgrid.infrastructure.providers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.testgrid.common.TestPlan;
+import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.InfrastructureProvider;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 
@@ -30,7 +31,7 @@ import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException
 public class OpenStackProvider implements InfrastructureProvider {
 
     private static final Log log = LogFactory.getLog(OpenStackProvider.class);
-    private final static String OPENSTACK_PROVIDER = "OpenStack";
+    private final static String OPENSTACK_PROVIDER = "OPENSTACK";
 
     @Override
     public String getProviderName() {
@@ -38,12 +39,12 @@ public class OpenStackProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean createInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException {
-        return true;
+    public Deployment createInfrastructure(Infrastructure infrastructure) throws TestGridInfrastructureException {
+        return null;
     }
 
     @Override
-    public boolean removeInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException {
+    public boolean removeInfrastructure(Deployment deployment) throws TestGridInfrastructureException {
         return false;
     }
 }

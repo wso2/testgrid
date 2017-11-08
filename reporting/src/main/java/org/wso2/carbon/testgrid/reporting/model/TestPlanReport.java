@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.testgrid.reporting.model;
 
+import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 import org.wso2.carbon.testgrid.reporting.renderer.Renderable;
@@ -56,16 +57,17 @@ public class TestPlanReport {
      * @param view                view to be rendered
      * @throws ReportingException thrown when error on rendering view
      */
-    public TestPlanReport(TestPlan testPlan, List<TestScenarioReport> testScenarioReports, String view)
+    public TestPlanReport(TestPlan testPlan, Infrastructure infrastructure,
+                          List<TestScenarioReport> testScenarioReports, String view)
             throws ReportingException {
         this.testPlanName = testPlan.getName();
-        this.osName = testPlan.getInfrastructure().getOperatingSystem().toString();
-        this.dbName = testPlan.getInfrastructure().getDatabase().toString();
+        this.osName = infrastructure.getOperatingSystem().toString();
+        this.dbName = infrastructure.getDatabase().toString();
         this.deploymentPattern = testPlan.getDeploymentPattern();
-        this.clusterType = testPlan.getInfrastructure().getClusterType().toString();
-        this.instanceType = testPlan.getInfrastructure().getInstanceType().toString();
+        this.clusterType = infrastructure.getClusterType().toString();
+        this.instanceType = infrastructure.getInstanceType().toString();
         this.deployerType = testPlan.getDeployerType().toString();
-        this.infrastructureType = testPlan.getInfrastructure().getProviderType().toString();
+        this.infrastructureType = infrastructure.getProviderType().toString();
         this.status = testPlan.getStatus().toString();
         this.description = testPlan.getDescription();
         this.testScenarioReports = Collections.unmodifiableList(testScenarioReports);

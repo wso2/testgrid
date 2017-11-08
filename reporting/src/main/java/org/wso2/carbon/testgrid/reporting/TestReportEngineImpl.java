@@ -135,7 +135,8 @@ public class TestReportEngineImpl implements TestReportEngine {
                 testScenarioReports.add(testScenarioReport);
             }
 
-            TestPlanReport testPlanReport = new TestPlanReport(testPlan, testScenarioReports, SCENARIO_TEMPLATE);
+            TestPlanReport testPlanReport = new TestPlanReport(testPlan, productTestPlan.
+                    getInfrastructure(testPlan.getDeploymentPattern()), testScenarioReports, SCENARIO_TEMPLATE);
             testPlanReports.add(testPlanReport);
         }
 

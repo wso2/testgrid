@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Configuration;
 import org.wso2.carbon.config.annotation.Element;
 
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.Map;
 /**
  *  Defines a model object for a Infrastructure.
  */
+@Configuration(namespace = "wso2.testgrid.infrastructure", description = "TestGrid Infrastructure Configuration Parameters")
 public class Infrastructure {
 
     @Element(description = "defines the infrastructure provider type (i.e. AWS, OpenStack)")
@@ -40,8 +42,16 @@ public class Infrastructure {
     private List<Node> nodes;
     @Element(description = "holds the required properties for security related stuff")
     private Map<String, String> securityProperties;
+    @Element(description = "holds the list of customized scripts if provided")
+    private List<Script> scripts;
     @Element(description = "defines the os configuration")
     private OperatingSystem operatingSystem;
+    @Element(description = "defines the name of this infrastructure")
+    private String name;
+    @Element(description = "defines the region in which the infrastructure should be created")
+    private String region;
+    @Element(description = "holds the additional properties for the infrastructure")
+    private Map<String, String> infraArguments;
 
     public enum ProviderType {
         AWS ("AWS"),
@@ -60,7 +70,7 @@ public class Infrastructure {
     }
 
     public enum ClusterType {
-        ECS ("ECS"), K8S ("Kubernetes"), CLOUD_FORMATION ("Cloud Formation");
+        ECS ("ECS"), K8S ("Kubernetes");
 
         private final String name;
 
@@ -141,5 +151,37 @@ public class Infrastructure {
 
     public void setDatabase(Database database) {
         this.database = database;
+    }
+
+    public List<Script> getScripts() {
+        return scripts;
+    }
+
+    public void setScripts(List<Script> scripts) {
+        this.scripts = scripts;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public Map<String, String> getInfraArguments() {
+        return infraArguments;
+    }
+
+    public void setInfraArguments(Map<String, String> infraArguments) {
+        this.infraArguments = infraArguments;
     }
 }

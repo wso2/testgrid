@@ -29,6 +29,7 @@ import java.nio.file.Paths;
  */
 public final class Utils {
 
+    private static final String YAML_EXTENSION = ".yaml";
 
     /**
      * Executes a command.
@@ -76,5 +77,15 @@ public final class Utils {
      */
     public static String getTestScenarioLocation(TestScenario scenario, String testPlanHome) {
         return Paths.get(testPlanHome, scenario.getSolutionPattern()).toAbsolutePath().toString();
+    }
+
+    /**
+     * This Utility method is used to check if the given file is a yaml file.
+     */
+    public static boolean isYamlFile(String fileName) {
+        if (fileName != null && !fileName.isEmpty()) {
+            return fileName.endsWith(YAML_EXTENSION);
+        }
+        return false;
     }
 }

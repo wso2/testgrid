@@ -40,27 +40,22 @@ public class TestPlan {
     private TestReport testReport;
     private Deployment deployment;
 
-    @Element(description = "value to uniquely identify the TestPlan")
+    @Element(description = "value to uniquely iden4tify the TestPlan")
     private String name;
-
     @Element(description = "value to uniquely identify the deployment pattern")
     private String deploymentPattern;
-
     @Element(description = "list of test scenarios to be executed")
     private List<TestScenario> testScenarios;
-
     @Element(description = "type of the deployer (puppet/chef etc)")
     private DeployerType deployerType;
-
     @Element(description = "flag to enable or disable the testplan")
     private boolean enabled;
-
     @Element(description = "description about the test plan")
     private String description;
-
-    @Element(description = "holds the configuration related to the infrastructure")
-    private Infrastructure infrastructure;
-
+    @Element(description = "additional script to be run after infrastructure creation step")
+    private Script infrastructureScript;
+    @Element(description = "additional script to be run after deployment step")
+    private Script deploymentScript;
 
     public enum Status {
         EXECUTION_PLANNED, INFRASTRUCTURE_PREPARATION, INFRASTRUCTURE_READY, INFRASTRUCTURE_ERROR, DEPLOYMENT_PREPARATION,
@@ -190,19 +185,27 @@ public class TestPlan {
         this.description = description;
     }
 
-    public Infrastructure getInfrastructure() {
-        return infrastructure;
-    }
-
-    public void setInfrastructure(Infrastructure infrastructure) {
-        this.infrastructure = infrastructure;
-    }
-
     public String getRepoDir() {
         return repoDir;
     }
 
     public void setRepoDir(String repoDir) {
         this.repoDir = repoDir;
+    }
+
+    public Script getInfrastructureScript() {
+        return infrastructureScript;
+    }
+
+    public void setInfrastructureScript(Script infrastructureScript) {
+        this.infrastructureScript = infrastructureScript;
+    }
+
+    public Script getDeploymentScript() {
+        return deploymentScript;
+    }
+
+    public void setDeploymentScript(Script deploymentScript) {
+        this.deploymentScript = deploymentScript;
     }
 }

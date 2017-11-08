@@ -24,8 +24,10 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.wso2.carbon.config.ConfigProviderFactory;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
+import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
+import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
@@ -37,7 +39,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is the main entry point of the TestGrid Framework.
@@ -46,7 +50,38 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
 
     private static final Log log = LogFactory.getLog(TestGridMgtServiceImpl.class);
     private static final String PRODUCT_TEST_DIR = "ProductTests";
-    private static final String TESTPLAN_EXTENSION = ".yaml";
+    private static final String PRODUCT_INFRA_DIR = "Infrastructure";
+
+
+    private Map<String, Infrastructure> generateInfrastructureData(String repoDir) throws TestGridException {
+        Map<String, Infrastructure> infras = new HashMap<>();
+        String productInfraDir = Paths.get(repoDir, PRODUCT_INFRA_DIR).toString();
+        File dir = new File(productInfraDir);
+        File[] directoryListing = dir.listFiles();
+
+        if (directoryListing != null) {
+            Infrastructure infrastructure;
+            for (File infraConfig : directoryListing) {
+                try {
+
+                    if ((infraConfig.getName() != null) && Utils.isYamlFile(infraConfig.getName())) {
+                        ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths.
+                                get(infraConfig.getAbsolutePath()), null);
+                        infrastructure = configProvider.getConfigurationObject(Infrastructure.class);
+                        infras.put(infrastructure.getName(), infrastructure);
+                    }
+                } catch (ConfigurationException e) {
+                    log.error("Unable to parse Infrastructure configuration file '" + infraConfig.getName() + "'." +
+                            " Please check the syntax of the file.");
+                }
+            }
+        } else {
+            String msg = "Unable to find the Infrastructure configuration directory in location '" + productInfraDir + "'";
+            log.error(msg);
+            throw new TestGridException(msg);
+        }
+        return infras;
+    }
 
     private List<TestPlan> generateTestPlan(String repoDir, String homeDir) throws TestGridException {
         String productTestPlanDir = repoDir + File.separator + PRODUCT_TEST_DIR;
@@ -60,7 +95,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             for (File testConfig : directoryListing) {
                 try {
 
-                    if ((testConfig.getName() != null) && testConfig.getName().endsWith(TESTPLAN_EXTENSION)) {
+                    if ((testConfig.getName() != null) && Utils.isYamlFile(testConfig.getName())) {
                         ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths.
                                 get(testConfig.getAbsolutePath()), null);
                         testPlan = configProvider.getConfigurationObject(TestPlan.class);
@@ -69,11 +104,13 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                             testPlan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
                             testPlan.setHome(homeDir);
                             testPlan.setRepoDir(repoDir);
+                            testPlan.setCreatedTimeStamp(new Date().getTime());
                             testPlanList.add(testPlan);
                         }
                     }
                 } catch (ConfigurationException e) {
-                    log.error("Unable to parse TestPlan file '" + testConfig.getName() + "'");
+                    log.error("Unable to parse TestPlan file '" + testConfig.getName() + "'. " +
+                            "Please check the syntax of the file.");
                 }
             }
         } else {
@@ -113,8 +150,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             try {
                 repoLocation = TestGridUtil.cloneRepository(repository, path);
             } catch (GitAPIException e) {
-                String msg = "Unable to clone test repository for for product '" + product + "' , version '" + productVersion +
-                        "'";
+                String msg = "Unable to clone test repository for for product '" + product + "' , version '" +
+                        productVersion + "'";
                 log.error(msg, e);
                 throw new TestGridException(msg, e);
             }
@@ -126,6 +163,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             productTestPlan.setProductName(product);
             productTestPlan.setProductVersion(productVersion);
             productTestPlan.setTestPlans(this.generateTestPlan(repoLocation, path));
+            productTestPlan.setInfrastructureMap(this.generateInfrastructureData(repoLocation));
             productTestPlan.setStatus(ProductTestPlan.Status.PLANNED);
             return productTestPlan;
         }
@@ -138,7 +176,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
 
         for (TestPlan testPlan : productTestPlan.getTestPlans()) {
             try {
-                new TestPlanExecutor().runTestPlan(testPlan);
+                new TestPlanExecutor().runTestPlan(testPlan, productTestPlan.getInfrastructure(testPlan.
+                        getDeploymentPattern()));
             } catch (TestPlanExecutorException e) {
                 String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +
                         productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";

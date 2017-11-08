@@ -36,19 +36,20 @@ public interface InfrastructureProvider {
     /**
      * This method creates the necessary infrastructure using the provided configuration.
      *
-     * @param testPlan An instance of a TestPlan which Infrastructure should be created.
-     * @return boolean status of the operation
+     * @param infrastructure An instance of a Infrastructure which includes the details of the infrastructure
+     *                       that should be created.
+     * @return Deployment -  Deployment object including the created host, ip details
      * @throws TestGridInfrastructureException
      */
-    boolean createInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException;
+    Deployment createInfrastructure(Infrastructure infrastructure) throws TestGridInfrastructureException;
 
     /**
      * This method executes commands needed to remove the infrastructure.
      *
-     * @param testPlan An instance of a TestPlan which Infrastructure should be removed.
+     * @param deployment An instance of a Deployment which Infrastructure should be removed.
      * @return boolean status of the operation
      * @throws TestGridInfrastructureException
      */
-    boolean removeInfrastructure(TestPlan testPlan) throws TestGridInfrastructureException;
+    boolean removeInfrastructure(Deployment deployment) throws TestGridInfrastructureException;
 
 }

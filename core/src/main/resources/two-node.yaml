@@ -1,0 +1,58 @@
+################################################################################
+#   Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved
+#
+#   Licensed under the Apache License, Version 2.0 (the \"License\");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an \"AS IS\" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+################################################################################
+
+# TestGrid Infrastructure Configuration Parameters
+wso2.testgrid.infrastructure:
+  providerType: "OPENSTACK"
+  clusterType: "K8S"
+  instanceType: "DOCKER_CONTAINERS"
+  name: "two-node"
+  operatingSystem:
+    name: "Ubuntu"
+    version: "17.04"
+  database:
+    engine: "MYSQL"
+    version: "5.7"
+  securityProperties:
+    apiKey: "242424"
+    sshKey: "abc.key"
+  nodes:
+    -
+     label: "wso2-gateway"
+     size: "m1.xlarge"
+     host: "wso2.gateway.com"
+     image: "K8S-COREOS-Optimized"
+     nodeType: "Server"
+     openPorts:
+      -
+        protocol: "https"
+        portNumber: 9443
+      -
+        protocol: "nio"
+        portNumber: 8243
+    -
+     label: "wso2-km"
+     size: "m1.xmedium"
+     host: "wso2.keymanager.com"
+     image: "K8S-COREOS-Optimized"
+     nodeType: "Server"
+     openPorts:
+      -
+        protocol: "https"
+        portNumber: 9443
+      -
+        protocol: "thrift"
+        portNumber: 10389
