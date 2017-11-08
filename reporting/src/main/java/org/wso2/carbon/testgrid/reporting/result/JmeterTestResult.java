@@ -31,7 +31,7 @@ public class JmeterTestResult implements TestResultable {
 
     private String timeStamp;
     private String elapsed;
-    private String protocol;
+    private String label;
     private String responseCode;
     private String responseMessage;
     private String threadName;
@@ -66,7 +66,7 @@ public class JmeterTestResult implements TestResultable {
 
     @Override
     public String getTestCase() {
-        return protocol;
+        return label;
     }
 
     @Override

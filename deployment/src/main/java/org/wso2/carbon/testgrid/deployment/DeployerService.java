@@ -27,7 +27,7 @@ import org.wso2.carbon.testgrid.common.TestPlan;
 public interface DeployerService {
 
     /**
-     * Runs deploy.sh script and deploys artifacts in the test cluster
+     * Runs deploy.sh script and deploys artifacts in the test cluster.
      *
      * @param testPlan Current test plan
      * @return Deployment
@@ -36,6 +36,7 @@ public interface DeployerService {
     Deployment deploy(TestPlan testPlan) throws TestGridDeployerException;
 
     /**
+     * Runs undeploy.sh script to destroy the deployment.
      *
      * @param testPlan Current test plan
      * @return Deployment

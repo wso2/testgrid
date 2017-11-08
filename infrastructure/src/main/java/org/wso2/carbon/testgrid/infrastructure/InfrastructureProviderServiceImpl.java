@@ -35,11 +35,9 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
     public boolean createTestEnvironment(TestPlan testPlan) throws TestGridInfrastructureException {
         String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
 
-        System.out.println("Initializing terraform...");
         log.info("Initializing terraform...");
         Util.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
 
-        System.out.println("Creating the Kubernetes cluster...");
         log.info("Creating the Kubernetes cluster...");
         Util.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
         testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
