@@ -19,15 +19,44 @@
 package org.wso2.carbon.testgrid.automation.beans;
 
 import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
+import org.wso2.carbon.testgrid.automation.executers.common.TestExecuter;
+import org.wso2.carbon.testgrid.automation.executers.common.TestExecuterFactory;
 import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
+
+import java.util.List;
 
 /**
  * This class is responsible for Executing the TestNG tests.
  */
 public class TestNGTest extends Test {
 
+    private List<String> testNGJars;
+    private TestExecuter testExecuter = TestExecuterFactory.getTestExecutor(TestGridConstants.TEST_TYPE_TESTNG);
+
+    private List<String> getTestNGJars() {
+        return testNGJars;
+    }
+
+    /**
+     * Sets the test jars for test execution
+     *
+     * @param testNGJars .jar files containing tests to set
+     */
+    public void setTestNGJars(List<String> testNGJars) {
+        this.testNGJars = testNGJars;
+    }
+
+    /**
+     * @param testLocation the testNG tests location as a String.
+     * @param deployment   Deployment mapping information.
+     * @throws TestGridExecuteException When there is an execution error.
+     */
     @Override
     public void execute(String testLocation, Deployment deployment) throws TestGridExecuteException {
-
+        testExecuter.init(testLocation, getTestName());
+        for (String script : this.getTestNGJars()) {
+            testExecuter.execute(script, deployment);
+        }
     }
 }

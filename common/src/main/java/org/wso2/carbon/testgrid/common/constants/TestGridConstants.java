@@ -13,6 +13,4 @@ public class TestGridConstants {
     public static final String TEST_TYPE_TESTNG = "TESTNG";
 
     public static final String JMTER_SUFFIX = ".jmx";
-
-
 }

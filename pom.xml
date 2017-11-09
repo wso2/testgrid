@@ -405,7 +405,7 @@
         <carbon.config.version>2.1.4</carbon.config.version>
         <axis2.wso2.version>1.6.1.wso2v16</axis2.wso2.version>
         <axiom.version>1.2.11.wso2v10</axiom.version>
-        <testng.version>6.9.10</testng.version>
+        <testng.version>6.11</testng.version>
         <commons.logging.version>1.1.1</commons.logging.version>
         <commons.io.version>2.2</commons.io.version>
         <commons.cli.version>1.2</commons.cli.version>
