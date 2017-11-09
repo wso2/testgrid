@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class is responsible for generating the test reports.
@@ -119,16 +120,11 @@ public class TestReportEngineImpl implements TestReportEngine {
                 for (File directory : directoryList) {
                     if (directory.isDirectory()) {
                         Path directoryPath = Paths.get(directory.getAbsolutePath());
-                        Class<T> type = TestResultBeanFactory.getResultType(directoryPath);
-                        File[] fileList = FileUtil.getFileList(directoryPath);
-
-                        for (File file : fileList) {
-                            if (file.isFile()) {
-                                Path filePath = Paths.get(file.getAbsolutePath());
-                                ResultReadable resultReader = ResultReaderFactory.getResultReader(filePath);
-                                testResults.addAll(resultReader.readFile(filePath, type));
-                            }
+                        Optional<Class<T>> classOptional = TestResultBeanFactory.getResultType(directoryPath);
+                        if (!classOptional.isPresent()) {
+                            continue; // Ignore directory location
                         }
+                        testResults = readResultFiles(directoryPath, classOptional.get());
                     }
                 }
                 TestScenarioReport<T> testScenarioReport =
@@ -147,5 +143,33 @@ public class TestReportEngineImpl implements TestReportEngine {
         Map<String, Object> parsedResultMap = new HashMap<>();
         parsedResultMap.put(HTML_TEMPLATE_KEY_NAME, productPlanReport);
         return parsedResultMap;
+    }
+
+    /**
+     * Returns the result list after reading result files.
+     *
+     * @param path base path to read result files from
+     * @param type type of the result bean
+     * @param <T>  type of the result bean
+     * @return final test result list
+     * @throws ReportingException thrown when error on reading result files
+     */
+    private <T extends TestResultable> List<T> readResultFiles(Path path, Class<T> type) throws ReportingException {
+        File[] fileList = FileUtil.getFileList(path);
+        List<T> testResults = new ArrayList<>();
+        for (File file : fileList) {
+            if (file.isDirectory()) {
+                testResults.addAll(readResultFiles(Paths.get(file.getAbsolutePath()), type));
+            }
+            if (file.isFile()) {
+                Path filePath = Paths.get(file.getAbsolutePath());
+                Optional<ResultReadable> resultReadableOptional = ResultReaderFactory.getResultReader(filePath);
+                if (!resultReadableOptional.isPresent()) {
+                    continue;
+                }
+                testResults.addAll(resultReadableOptional.get().readFile(filePath, type));
+            }
+        }
+        return testResults;
     }
 }
