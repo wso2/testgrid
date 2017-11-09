@@ -19,7 +19,7 @@ wso2.testgrid.infrastructure:
   providerType: "OPENSTACK"
   clusterType: "K8S"
   instanceType: "DOCKER_CONTAINERS"
-  name: "two-node"
+  name: "single-node"
   operatingSystem:
     name: "Ubuntu"
     version: "17.04"
@@ -29,6 +29,13 @@ wso2.testgrid.infrastructure:
   securityProperties:
     apiKey: "242424"
     sshKey: "abc.key"
+  scripts:
+    -
+     scriptType: "INFRA_CREATE"
+     fileName: "OpenStack/infra.sh"
+    -
+     scriptType: "INFRA_DESTROY"
+     fileName: "OpenStack/cluster-destroy.sh"
   nodes:
     -
      label: "wso2-gateway"

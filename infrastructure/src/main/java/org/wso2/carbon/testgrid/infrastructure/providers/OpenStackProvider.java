@@ -39,12 +39,17 @@ public class OpenStackProvider implements InfrastructureProvider {
     }
 
     @Override
-    public Deployment createInfrastructure(Infrastructure infrastructure) throws TestGridInfrastructureException {
+    public boolean canHandle(Infrastructure infrastructure) {
+        return true;
+    }
+
+    @Override
+    public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException {
         return null;
     }
 
     @Override
-    public boolean removeInfrastructure(Deployment deployment) throws TestGridInfrastructureException {
+    public boolean removeInfrastructure(Deployment deployment, String infraRepoDir) throws TestGridInfrastructureException {
         return false;
     }
 }
