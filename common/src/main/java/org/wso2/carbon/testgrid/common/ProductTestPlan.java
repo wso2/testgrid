@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This represents a model of the ProductTestPlan which includes all the necessary data to run the Test plans created for a
@@ -31,9 +33,9 @@ public class ProductTestPlan {
     private String productName;
     private String productVersion;
     private String homeDir;
-    private String testRepository;
     private String deploymentRepository;
     private List<TestPlan> testPlans;
+    private Map<String, Infrastructure> infrastructureMap;
     private TestReport testReport;
     private long createdTimeStamp;
     private long completedTimeStamp;
@@ -73,14 +75,6 @@ public class ProductTestPlan {
 
     public void setHomeDir(String homeDir) {
         this.homeDir = homeDir;
-    }
-
-    public String getTestRepository() {
-        return testRepository;
-    }
-
-    public void setTestRepository(String testRepository) {
-        this.testRepository = testRepository;
     }
 
     public String getDeploymentRepository() {
@@ -129,5 +123,25 @@ public class ProductTestPlan {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Map<String, Infrastructure> getInfrastructureMap() {
+        return infrastructureMap;
+    }
+
+    public void setInfrastructureMap(Map<String, Infrastructure> infrastructureMap) {
+        this.infrastructureMap = infrastructureMap;
+    }
+
+    public Infrastructure getInfrastructure(String name) {
+        return this.infrastructureMap.get(name);
+    }
+
+    public boolean addInfrastructure(Infrastructure infrastructure) {
+        if (this.infrastructureMap == null) {
+            this.infrastructureMap = new HashMap<>();
+        }
+        this.infrastructureMap.put(infrastructure.getName(), infrastructure);
+        return true;
     }
 }

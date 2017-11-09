@@ -20,14 +20,14 @@ package org.wso2.carbon.testgrid.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.testgrid.automation.TestEngine;
-import org.wso2.carbon.testgrid.automation.exceptions.TestEngineException;
+import org.wso2.carbon.testgrid.automation.TestEngineImpl;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.exception.TestAutomationEngineException;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 
 /**
- * This class is mainly responsible for executing a TestScenario. This will invoke the TestEngine for executing the
+ * This class is mainly responsible for executing a TestScenario. This will invoke the TestAutomationEngine for executing the
  * Tests available for a particular solution pattern.
  */
 public class ScenarioExecutor {
@@ -39,14 +39,16 @@ public class ScenarioExecutor {
      *
      * @param  testScenario - An instance of TestScenario in which the tests should be executed.
      * @param  deployment - An instance of Deployment in which the tests should be executed against.
+     * @param  homeDir - The location of cloned TestPlan.
      * @return Returns the status of the operation
      * @throws ScenarioExecutorException If something goes wrong while executing the TestScenario.
      */
-    public boolean runScenario(TestScenario testScenario, Deployment deployment) throws ScenarioExecutorException {
+    public boolean runScenario(TestScenario testScenario, Deployment deployment, String homeDir)
+            throws ScenarioExecutorException {
         try {
             testScenario.setStatus(TestScenario.Status.RUNNING);
-            new TestEngine().runScenario(testScenario, deployment);
-        } catch (TestEngineException e) {
+            new TestEngineImpl().runScenario(testScenario, homeDir, deployment);
+        } catch (TestAutomationEngineException e) {
             testScenario.setStatus(TestScenario.Status.ERROR);
             throw new ScenarioExecutorException("Exception occurred while running the Tests for Solution Pattern '" +
                     testScenario.getSolutionPattern() + "'");

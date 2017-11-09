@@ -18,31 +18,19 @@
 
 package org.wso2.carbon.testgrid.common;
 
-import org.wso2.carbon.config.annotation.Element;
+import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
 
 /**
- *  Defines a model object for the exposed Ports of the created host.
+ * This interface defines the contract of the TestReportEngine where the result generation should happen based on
+ * executed automation results.
  */
-public class Port {
+public interface TestReportEngine {
 
-    @Element(description = "defines the port protocol (i.e. https)")
-    private String protocol;
-    @Element(description = "defines the number of this port")
-    private int portNumber;
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public int getPortNumber() {
-        return portNumber;
-    }
-
-    public void setPortNumber(int portNumber) {
-        this.portNumber = portNumber;
-    }
+    /**
+     * Generates a test report based on the given test plan.
+     *
+     * @param productTestPlan test plan to generate the test report
+     * @throws TestReportEngineException thrown when reading the results from files or when writing the test report to file
+     */
+    void generateReport(ProductTestPlan productTestPlan) throws TestReportEngineException;
 }

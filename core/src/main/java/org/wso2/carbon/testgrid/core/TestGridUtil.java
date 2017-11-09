@@ -26,6 +26,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 /**
  * This Util class will be used for having utility methods required for TestGrid core component.
@@ -38,8 +39,8 @@ public class TestGridUtil {
     private static final Log log = LogFactory.getLog(TestGridUtil.class);
 
     static String createTestDirectory(String productName, String productVersion, Long timeStamp) throws IOException {
-        String directory = System.getenv(TESTGRID_HOME_ENV) + File.separator + productName + SEPARATOR + productVersion
-                + SEPARATOR + timeStamp;
+        String directory = Paths.get(System.getenv(TESTGRID_HOME_ENV),productName + SEPARATOR + productVersion
+                + SEPARATOR + timeStamp).toString();
         File testDir = new File( directory);
         // if the directory exists, remove it
         if (testDir.exists()) {
@@ -52,10 +53,7 @@ public class TestGridUtil {
     }
 
     static String cloneRepository(String repositoryUrl, String directory) throws GitAPIException {
-        String clonePath = directory + File.separator;
-        File cloneDir = new File(clonePath);
-        cloneDir.mkdir();
-        clonePath = clonePath + getCloneDirectoryName(repositoryUrl);
+        String clonePath = Paths.get(directory, getCloneDirectoryName(repositoryUrl)).toString();
         Git.cloneRepository().setURI(repositoryUrl).setDirectory(new File(clonePath)).
                 setCloneAllBranches(false).call();
         return clonePath;
@@ -66,5 +64,12 @@ public class TestGridUtil {
             repositoryUrl = repositoryUrl.substring(0, repositoryUrl.length() - 4);
         }
         return repositoryUrl.substring(repositoryUrl.lastIndexOf("/") + 1);
+    }
+
+    public static <T extends Enum<T>> T getEnumFromString(Class<T> c, String string) throws IllegalArgumentException {
+        if( c != null && string != null ) {
+            return Enum.valueOf(c, string.trim().toUpperCase());
+        }
+        return null;
     }
 }

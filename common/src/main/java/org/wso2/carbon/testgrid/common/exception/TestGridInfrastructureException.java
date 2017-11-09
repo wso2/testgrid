@@ -16,33 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.common;
-
-import org.wso2.carbon.config.annotation.Element;
+package org.wso2.carbon.testgrid.common.exception;
 
 /**
- *  Defines a model object for the exposed Ports of the created host.
+ * Created by harshan on 10/30/17.
  */
-public class Port {
+public class TestGridInfrastructureException extends Exception {
 
-    @Element(description = "defines the port protocol (i.e. https)")
-    private String protocol;
-    @Element(description = "defines the number of this port")
-    private int portNumber;
+    private static final long serialVersionUID = -3151279311329070297L;
 
-    public String getProtocol() {
-        return protocol;
+    public TestGridInfrastructureException(String msg, Exception nestedEx) {
+        super(msg, nestedEx);
     }
 
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
+    public TestGridInfrastructureException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public int getPortNumber() {
-        return portNumber;
+    public TestGridInfrastructureException(String msg) {
+        super(msg);
     }
 
-    public void setPortNumber(int portNumber) {
-        this.portNumber = portNumber;
+    public TestGridInfrastructureException() {
+        super();
+    }
+
+    public TestGridInfrastructureException(Throwable cause) {
+        super(cause);
     }
 }

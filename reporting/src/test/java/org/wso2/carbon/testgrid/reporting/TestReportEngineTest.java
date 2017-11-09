@@ -20,53 +20,87 @@ package org.wso2.carbon.testgrid.reporting;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.wso2.carbon.testgrid.common.Database;
+import org.wso2.carbon.testgrid.common.Infrastructure;
+import org.wso2.carbon.testgrid.common.OperatingSystem;
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
 
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Test class to test the functionality of the {@link TestReportEngine}.
+ * Test class to test the functionality of the {@link TestReportEngineImpl}.
  *
  * @since 1.0.0
  */
 public class TestReportEngineTest {
 
     @Test
-    public void generateReportTest() throws ReportingException {
+    public void generateReportTest() throws TestReportEngineException {
+        String deploymentPattern = "Single Node Deployment";
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("results");
         Assert.assertNotNull(resource);
 
         String scenarioLocation = new File(resource.getFile()).toPath().toAbsolutePath().toString();
         TestScenario testScenario = Mockito.mock(TestScenario.class);
-        Mockito.when(testScenario.getScenarioLocation()).thenReturn(scenarioLocation);
         Mockito.when(testScenario.getSolutionPattern()).thenReturn("Sample Test Scenario");
 
         List<TestScenario> testScenarios = new ArrayList<>();
         testScenarios.add(testScenario);
 
         TestPlan testPlan = Mockito.mock(TestPlan.class);
+        Infrastructure infrastructure = Mockito.mock(Infrastructure.class);
+        infrastructure.setName(deploymentPattern);
+        OperatingSystem operatingSystem = Mockito.mock(OperatingSystem.class);
+        Mockito.when(operatingSystem.getName()).thenReturn("Ubuntu");
+        Mockito.when(operatingSystem.getVersion()).thenReturn("17.04");
+        Database database = Mockito.mock(Database.class);
+        Mockito.when(database.getEngine()).thenReturn(Database.DatabaseEngine.MYSQL);
+        Mockito.when(database.getVersion()).thenReturn("5.7");
+        Mockito.when(infrastructure.getDatabase()).thenReturn(database);
+        Mockito.when(infrastructure.getClusterType()).thenReturn(Infrastructure.ClusterType.K8S);
+        Mockito.when(infrastructure.getInstanceType()).thenReturn(Infrastructure.InstanceType.DOCKER_CONTAINERS);
+        Mockito.when(infrastructure.getProviderType()).thenReturn(Infrastructure.ProviderType.OPENSTACK);
+        Mockito.when(infrastructure.getOperatingSystem()).thenReturn(operatingSystem);
+        Mockito.when(infrastructure.getName()).thenReturn(deploymentPattern);
+
+
         Mockito.when(testPlan.getName()).thenReturn("Sample Test Plan");
+        Mockito.when(testPlan.getDescription()).thenReturn("Test plan description");
+        Mockito.when(testPlan.getDeploymentPattern()).thenReturn("Single Node Deployment");
+        Mockito.when(testPlan.getDeployerType()).thenReturn(TestPlan.DeployerType.PUPPET);
+        Mockito.when(testPlan.getStatus()).thenReturn(TestPlan.Status.SCENARIO_EXECUTION_COMPLETED);
         Mockito.when(testPlan.getTestScenarios()).thenReturn(testScenarios);
+        Mockito.when(testPlan.getHome()).thenReturn(scenarioLocation);
 
         List<TestPlan> testPlans = new ArrayList<>();
         testPlans.add(testPlan);
 
+        Map<String, Infrastructure> infrastructureMap = new HashMap<>();
+        infrastructureMap.put(infrastructure.getName(), infrastructure);
+
         ProductTestPlan productTestPlan = Mockito.mock(ProductTestPlan.class);
+        productTestPlan.setInfrastructureMap(infrastructureMap);
         Mockito.when(productTestPlan.getProductName()).thenReturn("WSO2 Identity Server");
         Mockito.when(productTestPlan.getProductVersion()).thenReturn("5.4.0");
         Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
         Mockito.when(productTestPlan.getTestPlans()).thenReturn(testPlans);
+        Mockito.when(productTestPlan.getInfrastructure(deploymentPattern)).thenReturn(infrastructure);
 
-        TestReportEngine testReportEngine = new TestReportEngine();
-        testReportEngine.generateReport(productTestPlan);
+
+
+        TestReportEngineImpl testReportEngineImpl = new TestReportEngineImpl();
+        testReportEngineImpl.generateReport(productTestPlan);
 
         String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
                           productTestPlan.getCreatedTimeStamp() + ".html";

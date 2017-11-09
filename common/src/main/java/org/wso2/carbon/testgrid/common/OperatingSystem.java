@@ -21,28 +21,33 @@ package org.wso2.carbon.testgrid.common;
 import org.wso2.carbon.config.annotation.Element;
 
 /**
- *  Defines a model object for the exposed Ports of the created host.
+ *  Defines a model object of Operating system with required attributes.
  */
-public class Port {
+public class OperatingSystem {
 
-    @Element(description = "defines the port protocol (i.e. https)")
-    private String protocol;
-    @Element(description = "defines the number of this port")
-    private int portNumber;
+    @Element(description = "defines the name of the required OS")
+    private String name;
+    @Element(description = "defines the version of the required OS")
+    private String version;
 
-    public String getProtocol() {
-        return protocol;
+    public String getName() {
+        return name;
     }
 
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public int getPortNumber() {
-        return portNumber;
+    public String getVersion() {
+        return version;
     }
 
-    public void setPortNumber(int portNumber) {
-        this.portNumber = portNumber;
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    @Override
+    public String toString() {
+        return this.name + ", version:" + version;
     }
 }
