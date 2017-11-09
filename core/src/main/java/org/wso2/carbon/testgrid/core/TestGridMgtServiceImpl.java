@@ -103,7 +103,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                         if (testPlan.isEnabled()) {
                             testPlan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
                             testPlan.setHome(homeDir);
-                            testPlan.setRepoDir(repoDir);
+                            testPlan.setTestRepoDir(repoDir);
+                            testPlan.setInfraRepoDir(repoDir);
                             testPlan.setCreatedTimeStamp(new Date().getTime());
                             testPlanList.add(testPlan);
                         }

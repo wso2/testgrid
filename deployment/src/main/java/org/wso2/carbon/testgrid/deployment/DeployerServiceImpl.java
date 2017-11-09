@@ -54,11 +54,7 @@ public class DeployerServiceImpl implements DeployerService {
 
     @Override
     public Deployment deploy(TestPlan testPlan) throws TestGridDeployerException {
-//        String testPlanLocation = Paths.get(testPlan.getHome(),
-//                "/test-grid-is-resources/DeploymentPatterns/", testPlan.getDeploymentPattern()).toString();
-        String testPlanLocation = Paths.get("/home/asma/TestGridHome/WSO2_Identity_Server_5.3.0_1510227879569",
-                "/test-grid-is-resources/DeploymentPatterns/", testPlan.getDeploymentPattern()).toString();
-
+        String testPlanLocation = Paths.get(testPlan.getTestRepoDir(),"DeploymentPatterns", testPlan.getDeploymentPattern()).toString();
 
         try {
             String username = System.getenv("OS_USERNAME");
@@ -70,11 +66,7 @@ public class DeployerServiceImpl implements DeployerService {
             System.setProperty("user.dir", testPlanLocation + "/OpenStack/wso2is" );
             File file = new File(System.getProperty("user.dir"));
 
-            System.out.println("Setting KUBERNETES_MASTER environment variable...");
-            log.info("Setting KUBERNETES_MASTER environment variable...");
-            System.out.println("Deploying kubernetes artifacts...");
             log.info("Deploying kubernetes artifacts...");
-
             Utils.executeCommand("./deploy.sh " +
                     getKubernetesMaster(testPlanLocation + "/OpenStack/k8s.properties") + " " +
                     dockerUrl + " " + username + " " + password + " " + dockerEmail, file);
@@ -88,11 +80,7 @@ public class DeployerServiceImpl implements DeployerService {
 
     @Override
     public boolean unDeploy(TestPlan testPlan) throws TestGridDeployerException {
-//        String testPlanLocation = Paths.get(testPlan.getHome(),
-//                "/test-grid-is-resources/DeploymentPatterns/", testPlan.getDeploymentPattern()).toString();
-
-        String testPlanLocation = Paths.get("/home/asma/TestGridHome/WSO2_Identity_Server_5.3.0_1510227879569",
-                "/test-grid-is-resources/DeploymentPatterns/", testPlan.getDeploymentPattern()).toString();
+        String testPlanLocation = Paths.get(testPlan.getTestRepoDir(), "/DeploymentPatterns/", testPlan.getDeploymentPattern()).toString();
 
         Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
 
