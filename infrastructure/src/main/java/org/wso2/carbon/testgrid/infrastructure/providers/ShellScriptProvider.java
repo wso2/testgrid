@@ -20,9 +20,7 @@ package org.wso2.carbon.testgrid.infrastructure;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.testgrid.common.Deployment;
-import org.wso2.carbon.testgrid.common.Infrastructure;
-import org.wso2.carbon.testgrid.common.InfrastructureProvider;
+import org.wso2.carbon.testgrid.common.*;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 
 /**
@@ -40,15 +38,16 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
 
     @Override
     public Deployment createInfrastructure(Infrastructure infrastructure) throws TestGridInfrastructureException {
-//        String testPlanLocation = infrastructure.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + infrastructure.getDeploymentPattern();
-//
-//        System.out.println("Initializing terraform...");
-//        log.info("Initializing terraform...");
-//        Utils.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
-//
-//        System.out.println("Creating the Kubernetes cluster...");
-//        log.info("Creating the Kubernetes cluster...");
-//        Utils.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
+        String testPlanLocation = "/home/asma/TestGridHome/WSO2_Identity_Server_5.3.0_1510212707492"
+                +"/test-grid-is-resources/DeploymentPatterns/" + infrastructure.getScripts().get(0).getFileName();
+
+        System.out.println("Initializing terraform...");
+        log.info("Initializing terraform...");
+        Utils.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
+
+        System.out.println("Creating the Kubernetes cluster...");
+        log.info("Creating the Kubernetes cluster...");
+        Utils.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
 //        infrastructure.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
         return null;
     }
@@ -58,8 +57,8 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
 //        String testPlanLocation = deployment.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + deployment.getDeploymentPattern();
 //        System.out.println("Destroying test environment...");
 //        if(Utils.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
-//            return true;
+            return true;
 //        }
-        return false;
+//        return false;
     }
 }
