@@ -32,6 +32,7 @@ import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
+import org.wso2.carbon.testgrid.infrastructure.providers.ShellScriptProvider;
 
 /**
  * This class is mainly responsible for executing the provided TestPlan.
@@ -53,8 +54,11 @@ public class TestPlanExecutor {
         try {
 
             if (infrastructure != null) {
-                InfrastructureProviderFactory.getInfrastructureProvider(infrastructure.getProviderType()).
-                        createInfrastructure(infrastructure);
+                /*InfrastructureProviderFactory.getInfrastructureProvider(infrastructure.getProviderType()).
+                        createInfrastructure(infrastructure);*/
+                ShellScriptProvider shellScriptProvider = new ShellScriptProvider();
+                shellScriptProvider.createInfrastructure(infrastructure);
+                testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
             } else {
                 throw new TestPlanExecutorException("Unable to locate infrastructure descriptor for " +
                         "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
@@ -64,7 +68,7 @@ public class TestPlanExecutor {
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
-        } catch (InfrastructureProviderInitializationException e) {
+        } /*catch (InfrastructureProviderInitializationException e) {
             throw new TestPlanExecutorException("Unable to locate an Infrastructure Provider implementation for  " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
@@ -72,7 +76,7 @@ public class TestPlanExecutor {
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
-        }
+        }*/
         if (TestPlan.Status.INFRASTRUCTURE_READY.equals(testPlan.getStatus())) {
             //Trigger the deployment
             testPlan.setStatus(TestPlan.Status.DEPLOYMENT_PREPARATION);

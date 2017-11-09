@@ -16,20 +16,23 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.infrastructure;
+package org.wso2.carbon.testgrid.infrastructure.providers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.common.*;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 
+import java.nio.file.Paths;
+
 /**
  * This class creates the infrastructure for running tests
  */
-public class InfrastructureProviderServiceImpl implements InfrastructureProvider {
+public class ShellScriptProvider implements InfrastructureProvider {
 
-    private static final Log log = LogFactory.getLog(InfrastructureProviderServiceImpl.class);
-    private final static String SHELL_SCRIPT_PROVIDER = "Shell";
+    private static final Log log = LogFactory.getLog(ShellScriptProvider.class);
+    private final static String SHELL_SCRIPT_PROVIDER = "Infra Create";
+    private String testPlanLocation;
 
     @Override
     public String getProviderName() {
@@ -38,16 +41,17 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
 
     @Override
     public Deployment createInfrastructure(Infrastructure infrastructure) throws TestGridInfrastructureException {
-        String testPlanLocation = "/home/asma/TestGridHome/WSO2_Identity_Server_5.3.0_1510212707492"
-                +"/test-grid-is-resources/DeploymentPatterns/" + infrastructure.getScripts().get(0).getFileName();
-
-        System.out.println("Initializing terraform...");
-        log.info("Initializing terraform...");
-        Utils.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
-
-        System.out.println("Creating the Kubernetes cluster...");
-        log.info("Creating the Kubernetes cluster...");
-        Utils.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
+//        testPlanLocation = Paths.get("/home/asma/TestGridHome/WSO2_Identity_Server_5.3.0_1510227879569",
+//                "/test-grid-is-resources/DeploymentPatterns/" ,
+//                infrastructure.getName()).toString();
+//
+//        System.out.println("Initializing terraform...");
+//        log.info("Initializing terraform...");
+//        Utils.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
+//
+//        System.out.println("Creating the Kubernetes cluster...");
+//        log.info("Creating the Kubernetes cluster...");
+//        Utils.executeCommand("bash " + Paths.get(testPlanLocation, infrastructure.getScripts().get(0).getFileName()).toString(), null);
 //        infrastructure.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
         return null;
     }
@@ -55,10 +59,13 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
     @Override
     public boolean removeInfrastructure(Deployment deployment) throws TestGridInfrastructureException {
 //        String testPlanLocation = deployment.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + deployment.getDeploymentPattern();
-//        System.out.println("Destroying test environment...");
-//        if(Utils.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
+//        String testPlanLocation = "/home/asma/TestGridHome/WSO2_Identity_Server_5.3.0_1510218251365/" +
+//                "test-grid-is-resources/DeploymentPatterns/" +
+//                "single-node";
+        System.out.println("Destroying test environment...");
+        if(Utils.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
             return true;
-//        }
-//        return false;
+        }
+        return false;
     }
 }

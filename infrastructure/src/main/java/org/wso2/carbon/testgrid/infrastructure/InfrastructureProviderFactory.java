@@ -20,6 +20,7 @@ package org.wso2.carbon.testgrid.infrastructure;
 
 import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.InfrastructureProvider;
+import org.wso2.carbon.testgrid.common.Script;
 import org.wso2.carbon.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
 
