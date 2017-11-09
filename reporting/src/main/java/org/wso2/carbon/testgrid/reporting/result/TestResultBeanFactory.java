@@ -20,6 +20,7 @@ package org.wso2.carbon.testgrid.reporting.result;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 /**
  * Factory class for returning the result type based on the test type.
@@ -29,6 +30,7 @@ import java.nio.file.Path;
 public class TestResultBeanFactory {
 
     private static final String JMETER_TEST_DIR = "Jmeter";
+    private static final String TESTNG_TEST_DIR = "TestNG";
 
     /**
      * Returns the result type based on the test type.
@@ -36,10 +38,10 @@ public class TestResultBeanFactory {
      * @param directoryPath directory of the test outputs
      * @param <T>           result type
      * @return type of the test result
-     * @throws ReportingException thrown when result type cannot be identified
+     * @throws ReportingException thrown when directory path is null or do not exists
      */
     @SuppressWarnings("unchecked")
-    public static <T extends TestResultable> Class<T> getResultType(Path directoryPath)
+    public static <T extends TestResultable> Optional<Class<T>> getResultType(Path directoryPath)
             throws ReportingException {
 
         // Check whether configuration directoryPath is null. proceed if not null.
@@ -48,9 +50,11 @@ public class TestResultBeanFactory {
         }
 
         if (directoryPath.toString().endsWith(JMETER_TEST_DIR)) {
-            return (Class<T>) JmeterTestResult.class;
+            return Optional.of((Class<T>) JmeterTestResult.class);
+        } else if (directoryPath.toString().endsWith(TESTNG_TEST_DIR)) {
+            return Optional.of((Class<T>) TestNGTestResult.class);
         } else {
-            throw new ReportingException("Cannot identify test type based on the directory name.");
+            return Optional.empty();
         }
     }
 }
