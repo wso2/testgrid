@@ -61,7 +61,7 @@ public class CSVResultReaderTest {
                 .resolve(RESULTS_DIR)
                 .resolve("Jmeter")
                 .resolve("jmeteroutput.csv");
-        CSVResultReader csvFileReader = new CSVResultReader();
+        ResultReadable csvFileReader = new CSVResultReader();
         List<JmeterTestResult> testResults = csvFileReader.readFile(path, JmeterTestResult.class);
 
         Assert.assertEquals(testResults.size(), 5);

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" ignored="0" total="3" passed="3">
+  <reporter-output>
+  </reporter-output>
+  <suite name="TestAll" duration-ms="10" started-at="2017-11-08T11:56:31Z" finished-at="2017-11-08T11:56:31Z">
+    <groups>
+      <group name="wso2.esb">
+        <method signature="SampleTestCase.testESB1()[pri:0, instance:org.wso2.carbon.automation.platform.esb.tests.SampleTestCase@738dc9b]" name="testESB1" class="org.wso2.carbon.automation.platform.esb.tests.SampleTestCase"/>
+        <method signature="SampleTestCase.testESB2()[pri:0, instance:org.wso2.carbon.automation.platform.esb.tests.SampleTestCase@738dc9b]" name="testESB2" class="org.wso2.carbon.automation.platform.esb.tests.SampleTestCase"/>
+        <method signature="SampleTestCase.testESB3()[pri:0, instance:org.wso2.carbon.automation.platform.esb.tests.SampleTestCase@738dc9b]" name="testESB3" class="org.wso2.carbon.automation.platform.esb.tests.SampleTestCase"/>
+      </group> <!-- wso2.esb -->
+    </groups>
+    <test name="esb-sample" duration-ms="10" started-at="2017-11-08T11:56:31Z" finished-at="2017-11-08T11:56:31Z">
+      <class name="org.wso2.carbon.automation.platform.esb.tests.SampleTestCase">
+        <test-method status="PASS" signature="initTest()[pri:0, instance:org.wso2.carbon.automation.platform.esb.tests.SampleTestCase@738dc9b]" name="initTest" is-config="true" duration-ms="3" started-at="2017-11-08T17:26:31Z" finished-at="2017-11-08T17:26:31Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- initTest -->
+        <test-method status="PASS" signature="testESB1()[pri:0, instance:org.wso2.carbon.automation.platform.esb.tests.SampleTestCase@738dc9b]" name="testESB1" duration-ms="0" started-at="2017-11-08T17:26:31Z" finished-at="2017-11-08T17:26:31Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testESB1 -->
+        <test-method status="PASS" signature="testESB3()[pri:0, instance:org.wso2.carbon.automation.platform.esb.tests.SampleTestCase@738dc9b]" name="testESB3" duration-ms="0" started-at="2017-11-08T17:26:31Z" finished-at="2017-11-08T17:26:31Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testESB3 -->
+        <test-method status="PASS" signature="testESB2()[pri:0, instance:org.wso2.carbon.automation.platform.esb.tests.SampleTestCase@738dc9b]" name="testESB2" duration-ms="0" started-at="2017-11-08T17:26:31Z" finished-at="2017-11-08T17:26:31Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testESB2 -->
+        <test-method status="PASS" signature="tearDown()[pri:0, instance:org.wso2.carbon.automation.platform.esb.tests.SampleTestCase@738dc9b]" name="tearDown" is-config="true" duration-ms="0" started-at="2017-11-08T17:26:31Z" finished-at="2017-11-08T17:26:31Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+      </class> <!-- org.wso2.carbon.automation.platform.esb.tests.SampleTestCase -->
+    </test> <!-- esb-sample -->
+  </suite> <!-- TestAll -->
+</testng-results>

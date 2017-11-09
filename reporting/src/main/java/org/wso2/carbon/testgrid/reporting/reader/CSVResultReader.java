@@ -50,7 +50,7 @@ public class CSVResultReader implements ResultReadable {
         }
 
         if (type == null) {
-            throw new ReportingException("JmeterTestResult type cannot be null.");
+            throw new ReportingException("Type cannot be null.");
         }
 
         String filePath = path.toString();

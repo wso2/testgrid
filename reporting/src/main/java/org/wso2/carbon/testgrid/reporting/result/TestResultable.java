@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.testgrid.reporting.result;
 
+import org.wso2.carbon.testgrid.reporting.ReportingException;
+
 /**
  * Interface to capture the result of a test scenario.
  *
@@ -42,8 +44,9 @@ public interface TestResultable {
      * Returns the formatted time stamp of the actual time stamp.
      *
      * @return formatted time stamp
+     * @throws ReportingException thrown when error on formatting date
      */
-    String getFormattedTimestamp();
+    String getFormattedTimestamp() throws ReportingException;
 
     /**
      * Returns the test case name.
