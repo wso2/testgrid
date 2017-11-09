@@ -19,13 +19,13 @@ package org.wso2.carbon.testgrid.reporting.util;
 
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 
-import javax.lang.model.SourceVersion;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
+import javax.lang.model.SourceVersion;
 
 /**
  * Class to handle java reflection activities.
@@ -96,7 +96,7 @@ public class ReflectionUtil {
      * @return the field with the given field name of the given class
      * @throws ReportingException thrown when the field is not found in the class
      */
-    private static <T> Field getClassField(T classObject, String fieldName) throws ReportingException {
+    public static <T> Field getClassField(T classObject, String fieldName) throws ReportingException {
         if (!SourceVersion.isName(fieldName)) {
             throw new ReportingException(String.format(Locale.ENGLISH, "Field name %s is not valid", fieldName));
         }

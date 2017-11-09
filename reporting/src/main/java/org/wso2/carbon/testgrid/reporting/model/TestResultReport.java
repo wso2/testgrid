@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.testgrid.reporting.model;
 
+import org.wso2.carbon.testgrid.reporting.ReportingException;
 import org.wso2.carbon.testgrid.reporting.result.TestResultable;
 
 /**
@@ -38,8 +39,9 @@ public class TestResultReport<T extends TestResultable> {
      * Constructs an instance of a test result report.
      *
      * @param testResult test result of the test scenario
+     * @throws ReportingException thrown when error occurs in getting the formatted time-stamp
      */
-    public TestResultReport(T testResult) {
+    public TestResultReport(T testResult) throws ReportingException {
         this.isTestSuccess = testResult.isTestSuccess();
         this.isTestSuccessString = testResult.isTestSuccess()
                                    ? TestResultMessages.SUCCESS.toString()
