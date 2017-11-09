@@ -39,6 +39,7 @@ public class TestResultReport<T extends TestResultable> {
      * Constructs an instance of a test result report.
      *
      * @param testResult test result of the test scenario
+     * @throws ReportingException thrown when error occurs in getting the formatted time-stamp
      */
     public TestResultReport(T testResult) throws ReportingException {
         this.isTestSuccess = testResult.isTestSuccess();

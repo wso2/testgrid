@@ -78,7 +78,6 @@ public class XMLResultReader implements ResultReadable {
             throw new ReportingException("XML element to start reading results is null or empty.");
         }
 
-
         String filePath = path.toAbsolutePath().toString();
         List<T> results = new ArrayList<>();
         XMLStreamReader xmlStreamReader = createXMLStreamReader(filePath);
@@ -94,9 +93,7 @@ public class XMLResultReader implements ResultReadable {
                 xmlStreamReader.next();
             }
         } catch (XMLStreamException e) {
-            String message = "Error occurred when reading XML stream";
-            log.error(message, e);
-            throw new ReportingException(message, e);
+            throw new ReportingException("Error occurred when reading XML stream", e);
         }
 
         closeXMLStreamReader(xmlStreamReader);
@@ -113,9 +110,7 @@ public class XMLResultReader implements ResultReadable {
         try {
             xmlStreamReader.close();
         } catch (XMLStreamException e) {
-            String message = "Error occurred when closing XML stream";
-            log.error(message, e);
-            throw new ReportingException(message, e);
+            throw new ReportingException("Error occurred when closing XML stream", e);
         }
     }
 
@@ -135,9 +130,7 @@ public class XMLResultReader implements ResultReadable {
             JAXBElement<T> jaxbElement = unmarshaller.unmarshal(xmlStreamReader, type);
             return jaxbElement.getValue();
         } catch (JAXBException e) {
-            String message = "Error in unmarshalling XML file";
-            log.error(message, e);
-            throw new ReportingException(message, e);
+            throw new ReportingException("Error in unmarshalling XML file", e);
         }
     }
 
@@ -154,9 +147,7 @@ public class XMLResultReader implements ResultReadable {
         try {
             return xmlInputFactory.createXMLStreamReader(streamSource);
         } catch (XMLStreamException e) {
-            String message = "Error occurred when reading XML stream";
-            log.error(message, e);
-            throw new ReportingException(message, e);
+            throw new ReportingException("Error occurred when reading XML stream", e);
         }
     }
 
@@ -172,10 +163,8 @@ public class XMLResultReader implements ResultReadable {
         try {
             return JAXBContext.newInstance(type);
         } catch (JAXBException e) {
-            String message = String
-                    .format(Locale.ENGLISH, "Error occurred when creating a JAXB context for type %s", type);
-            log.error(message, e);
-            throw new ReportingException(message, e);
+            throw new ReportingException(String
+                    .format(Locale.ENGLISH, "Error occurred when creating a JAXB context for type %s", type), e);
         }
     }
 
@@ -190,9 +179,7 @@ public class XMLResultReader implements ResultReadable {
         try {
             return jaxbContext.createUnmarshaller();
         } catch (JAXBException e) {
-            String message = "Error occurred when creating a JAXB unmarshaller";
-            log.error(message, e);
-            throw new ReportingException(message, e);
+            throw new ReportingException("Error occurred when creating a JAXB unmarshaller", e);
         }
     }
 }
