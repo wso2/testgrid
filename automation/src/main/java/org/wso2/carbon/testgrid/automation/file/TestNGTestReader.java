@@ -28,6 +28,7 @@ import org.wso2.carbon.testgrid.automation.file.common.TestReader;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,6 +40,7 @@ import java.util.List;
 public class TestNGTestReader implements TestReader {
 
     private static final Log log = LogFactory.getLog(JMeterTestReader.class);
+    private static final String JAR_EXTENSION = ".jar";
 
     /**
      * This method goes through the file structure and create an object model of the tests.
@@ -55,8 +57,8 @@ public class TestNGTestReader implements TestReader {
         List<String> testNGList = new ArrayList<>();
         if (tests.exists()) {
             for (String testFile : Arrays.asList(tests.list())) {
-                if (testFile.endsWith(TestGridConstants.TESTNG_SUFFIX)) {
-                        testNGList.add(tests.getAbsolutePath() + File.separator + testFile);
+                if (testFile.endsWith(JAR_EXTENSION)) {
+                        testNGList.add(Paths.get(tests.getAbsolutePath(), testFile).toString());
                 }
             }
         }
