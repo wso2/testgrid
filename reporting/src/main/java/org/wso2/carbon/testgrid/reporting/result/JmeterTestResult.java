@@ -17,11 +17,13 @@
  */
 package org.wso2.carbon.testgrid.reporting.result;
 
+import org.wso2.carbon.testgrid.reporting.ReportingException;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Sample result model to capture jmeter test result.
+ * Result model to capture jmeter test result.
  *
  * @since 1.0.0
  */
@@ -57,7 +59,7 @@ public class JmeterTestResult implements TestResultable {
     }
 
     @Override
-    public String getFormattedTimestamp() {
+    public String getFormattedTimestamp() throws ReportingException {
         Long timestamp = Long.parseLong(timeStamp);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
         Date date = new Date(timestamp);

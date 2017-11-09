@@ -20,6 +20,8 @@ package org.wso2.carbon.testgrid.reporting.reader;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Factory class to return an instance of a result reader based on the file extension.
@@ -29,6 +31,7 @@ import java.nio.file.Path;
 public class ResultReaderFactory {
 
     private static final String CSV_EXTENSION = ".csv";
+    private static final String XML_EXTENSION = ".xml";
 
     /**
      * Returns the result reader based on the file extension.
@@ -47,6 +50,11 @@ public class ResultReaderFactory {
         // Initialize result reader based on the file's extension.
         if (path.toString().endsWith(CSV_EXTENSION)) {
             return new CSVResultReader();
+        } else if (path.toString().endsWith(XML_EXTENSION)) {
+            // TODO: Implement a way to handle reader arguments
+            Map<String, Object> args = new HashMap<>();
+            args.put(XMLResultReader.XML_START_ELEMENT_NAME, "test-method");
+            return new XMLResultReader(args);
         } else {
             throw new ReportingException("Error while initializing result reader, file extension is not supported");
         }
