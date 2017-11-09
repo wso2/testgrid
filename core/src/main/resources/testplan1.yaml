@@ -19,7 +19,7 @@ wso2.testgrid.testplan:
   enabled: true
   name: "TestPlan1"
   description: "Two node pattern test suite"
-  deploymentPattern: "two-node"
+  deploymentPattern: "single-node"
   deployerType: "PUPPET"
   testScenarios:
     -

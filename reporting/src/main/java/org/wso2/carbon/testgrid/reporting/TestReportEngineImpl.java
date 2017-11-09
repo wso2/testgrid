@@ -111,7 +111,8 @@ public class TestReportEngineImpl implements TestReportEngine {
             List<TestScenarioReport> testScenarioReports = new ArrayList<>();
 
             for (TestScenario testScenario : testScenarios) {
-                Path resultPath = Paths.get(Utils.getTestScenarioLocation(testScenario, testPlan.getRepoDir()), TEST_ARTIFACT_DIR, RESULTS_DIR);
+                Path resultPath = Paths.get(Utils.getTestScenarioLocation(testScenario, testPlan.getTestRepoDir()),
+                        TEST_ARTIFACT_DIR, RESULTS_DIR);
                 File[] directoryList = FileUtil.getFileList(resultPath);
                 List<T> testResults = new ArrayList<>();
 
