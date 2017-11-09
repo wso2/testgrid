@@ -44,8 +44,8 @@ import javax.xml.transform.stream.StreamSource;
  */
 public class XMLResultReader implements ResultReadable {
 
+    public static final String XML_START_ELEMENT_NAME = "XML_START_ELEMENT_NAME";
     private static final Log log = LogFactory.getLog(XMLResultReader.class);
-    private final String XML_START_ELEMENT_NAME = "XML_START_ELEMENT_NAME";
     private final Map<String, Object> args;
 
     /**
