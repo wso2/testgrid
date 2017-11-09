@@ -32,6 +32,12 @@ public class InfrastructureProviderFactory {
 
     static ServiceLoader<InfrastructureProvider> providers = ServiceLoader.load(InfrastructureProvider.class);
 
+    /**
+     * Returns a matching infrastructure provider to create the environment.
+     *
+     * @param infrastructure - an instance of the Infrastructure object
+     * @return the status of the test plan
+     */
     public static InfrastructureProvider getInfrastructureProvider(Infrastructure infrastructure) throws
             UnsupportedProviderException, InfrastructureProviderInitializationException {
         String providerName = infrastructure.getProviderType().name();
