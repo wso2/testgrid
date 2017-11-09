@@ -35,7 +35,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This class is responsible for reading testNG tests for TestGrid framework.
+ * This class is responsible for reading testNG tests from test jars.
+ *
+ * Test jars are jars with dependencies that contain the test classes + testng.xml
  */
 public class TestNGTestReader implements TestReader {
 
@@ -55,13 +57,12 @@ public class TestNGTestReader implements TestReader {
 
         test.setTestName(file.getName());
         List<String> testNGList = new ArrayList<>();
-        if (tests.exists()) {
-            for (String testFile : Arrays.asList(tests.list())) {
-                if (testFile.endsWith(JAR_EXTENSION)) {
+        for (String testFile : Arrays.asList(tests.list())) {
+            if (testFile.endsWith(JAR_EXTENSION)) {
                         testNGList.add(Paths.get(tests.getAbsolutePath(), testFile).toString());
-                }
             }
         }
+
         Collections.sort(testNGList);
         test.setTestNGJars(testNGList);
         testsList.add(test);
