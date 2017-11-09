@@ -69,8 +69,8 @@ public class TestPlan {
 
         private final String name;
 
-        Status(String s) {
-            name = s;
+        Status(String status) {
+            name = status;
         }
 
         public String toString() {
@@ -83,8 +83,8 @@ public class TestPlan {
 
         private final String name;
 
-        DeployerType(String s) {
-            name = s;
+        DeployerType(String deployer) {
+            name = deployer;
         }
 
         public String toString() {
