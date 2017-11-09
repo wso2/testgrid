@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.testgrid.automation.executers;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.testng.TestNG;
 import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
 import org.wso2.carbon.testgrid.automation.executers.common.TestExecuter;
@@ -32,6 +34,8 @@ import java.net.URLClassLoader;
  * This class is responsible for Executing TestNG tests.
  */
 public class TestNgExecuter implements TestExecuter {
+
+    private static final Log log = LogFactory.getLog(TestNgExecuter.class);
     private String testGridFolder;
     private String testName;
 
@@ -54,16 +58,22 @@ public class TestNgExecuter implements TestExecuter {
         this.testName = testName;
     }
 
-    public static void loadJarToClasspath(File jarFile) {
+    /**
+     * Loads the test jar to the classpath for test execution
+     *
+     * @param jarFile .jar file provided to testNG for running tests
+     */
+    private void loadJarToClasspath(File jarFile) {
         if (jarFile.isFile()) {
             URL url = null;
             try {
-                url = jarFile.toURL();
+                url = jarFile.toURI().toURL();
                 URL[] urls = new URL[] { url };
-                ClassLoader cl = new URLClassLoader(urls);
-                Thread.currentThread().setContextClassLoader(cl);
+                URLClassLoader classLoader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
+                Thread.currentThread().setContextClassLoader(classLoader);
             } catch (MalformedURLException e) {
-                e.printStackTrace();
+                String msg = "Error occurred while loading " + jarFile.getName() + " into classpath";
+                log.error(msg, e);
             }
         }
     }

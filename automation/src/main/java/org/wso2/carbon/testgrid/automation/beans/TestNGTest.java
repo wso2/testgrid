@@ -38,6 +38,11 @@ public class TestNGTest extends Test {
         return testNGJars;
     }
 
+    /**
+     * Sets the test jars for test execution
+     *
+     * @param testNGJars .jar files containing tests to set
+     */
     public void setTestNGJars(List<String> testNGJars) {
         this.testNGJars = testNGJars;
     }
