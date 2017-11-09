@@ -34,22 +34,31 @@ public interface InfrastructureProvider {
      String getProviderName();
 
     /**
+     * This method returns whether the provider can handle the requested infrastructure.
+     *
+     * @return A boolean indicating whether can handle or not.
+     */
+     boolean canHandle(Infrastructure infrastructure);
+
+    /**
      * This method creates the necessary infrastructure using the provided configuration.
      *
      * @param infrastructure An instance of a Infrastructure which includes the details of the infrastructure
      *                       that should be created.
+     * @param infraRepoDir - Location of the cloned repository related to infrastructure.
      * @return Deployment -  Deployment object including the created host, ip details
      * @throws TestGridInfrastructureException
      */
-    Deployment createInfrastructure(Infrastructure infrastructure) throws TestGridInfrastructureException;
+    Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException;
 
     /**
      * This method executes commands needed to remove the infrastructure.
      *
      * @param deployment An instance of a Deployment which Infrastructure should be removed.
+     * @param infraRepoDir - Location of the cloned repository related to infrastructure.
      * @return boolean status of the operation
      * @throws TestGridInfrastructureException
      */
-    boolean removeInfrastructure(Deployment deployment) throws TestGridInfrastructureException;
+    boolean removeInfrastructure(Deployment deployment, String infraRepoDir) throws TestGridInfrastructureException;
 
 }

@@ -32,23 +32,25 @@ public class InfrastructureProviderFactory {
 
     static ServiceLoader<InfrastructureProvider> providers = ServiceLoader.load(InfrastructureProvider.class);
 
-    public static InfrastructureProvider getInfrastructureProvider(Infrastructure.ProviderType providerType) throws
+    public static InfrastructureProvider getInfrastructureProvider(Infrastructure infrastructure) throws
             UnsupportedProviderException, InfrastructureProviderInitializationException {
+        String providerName = infrastructure.getProviderType().name();
 
         for (InfrastructureProvider provider : providers) {
-            if (providerType.name().equalsIgnoreCase(provider.getProviderName())) {
+
+            if (provider.canHandle(infrastructure)) {
                 try {
                     return provider.getClass().newInstance();
                 } catch (InstantiationException e) {
                     throw new InfrastructureProviderInitializationException("Exception occurred while instantiating the" +
-                            " InfrastructureProvider for requested type '" + providerType.name() + "'", e);
+                            " InfrastructureProvider for requested type '" + providerName + "'", e);
                 } catch (IllegalAccessException e) {
                     throw new InfrastructureProviderInitializationException("Exception occurred while instantiating the" +
-                            " InfrastructureProvider for requested type '" + providerType.name() + "'", e);
+                            " InfrastructureProvider for requested type '" + providerName + "'", e);
                 }
             }
         }
         throw new UnsupportedProviderException("Unable to find a InfrastructureProvider for requested type '" +
-                providerType.name() + "'");
+                providerName + "'");
     }
 }

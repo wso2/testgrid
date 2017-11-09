@@ -33,9 +33,9 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Test class to test the functionality of the {@link TestReportEngineImpl}.
@@ -83,10 +83,10 @@ public class TestReportEngineTest {
         Mockito.when(testPlan.getTestScenarios()).thenReturn(testScenarios);
         Mockito.when(testPlan.getHome()).thenReturn(scenarioLocation);
 
-        List<TestPlan> testPlans = new ArrayList<>();
+        CopyOnWriteArrayList<TestPlan> testPlans = new CopyOnWriteArrayList<>();
         testPlans.add(testPlan);
 
-        Map<String, Infrastructure> infrastructureMap = new HashMap<>();
+        ConcurrentHashMap<String, Infrastructure> infrastructureMap = new ConcurrentHashMap<>();
         infrastructureMap.put(infrastructure.getName(), infrastructure);
 
         ProductTestPlan productTestPlan = Mockito.mock(ProductTestPlan.class);

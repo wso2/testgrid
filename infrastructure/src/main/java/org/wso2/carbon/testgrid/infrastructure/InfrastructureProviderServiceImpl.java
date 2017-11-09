@@ -39,7 +39,12 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
     }
 
     @Override
-    public Deployment createInfrastructure(Infrastructure infrastructure) throws TestGridInfrastructureException {
+    public boolean canHandle(Infrastructure infrastructure) {
+        return true;
+    }
+
+    @Override
+    public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException {
 //        String testPlanLocation = infrastructure.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + infrastructure.getDeploymentPattern();
 //
 //        System.out.println("Initializing terraform...");
@@ -54,7 +59,7 @@ public class InfrastructureProviderServiceImpl implements InfrastructureProvider
     }
 
     @Override
-    public boolean removeInfrastructure(Deployment deployment) throws TestGridInfrastructureException {
+    public boolean removeInfrastructure(Deployment deployment, String infraRepoDir) throws TestGridInfrastructureException {
 //        String testPlanLocation = deployment.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + deployment.getDeploymentPattern();
 //        System.out.println("Destroying test environment...");
 //        if(Utils.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {

@@ -33,7 +33,7 @@ public class Script {
     private int order;
 
     public enum ScriptType {
-        CLOUD_FORMATION ("Cloud Formation"), SHELL ("Shell");
+        CLOUD_FORMATION ("Cloud Formation"), INFRA_CREATE ("Shell"), INFRA_DESTROY ("Shell Destroy");
 
         private final String name;
 

@@ -40,20 +40,21 @@ public class ScenarioExecutor {
      * @param  testScenario - An instance of TestScenario in which the tests should be executed.
      * @param  deployment - An instance of Deployment in which the tests should be executed against.
      * @param  homeDir - The location of cloned TestPlan.
-     * @return Returns the status of the operation
+     * @return Returns the modified TestScenario with status
      * @throws ScenarioExecutorException If something goes wrong while executing the TestScenario.
      */
-    public boolean runScenario(TestScenario testScenario, Deployment deployment, String homeDir)
+    public TestScenario runScenario(TestScenario testScenario, Deployment deployment, String homeDir)
             throws ScenarioExecutorException {
         try {
             testScenario.setStatus(TestScenario.Status.RUNNING);
             new TestEngineImpl().runScenario(testScenario, homeDir, deployment);
+            testScenario.setStatus(TestScenario.Status.COMPLETED);
         } catch (TestAutomationEngineException e) {
             testScenario.setStatus(TestScenario.Status.ERROR);
             throw new ScenarioExecutorException("Exception occurred while running the Tests for Solution Pattern '" +
                     testScenario.getSolutionPattern() + "'");
         }
-        return true;
+        return testScenario;
     }
 
     /**

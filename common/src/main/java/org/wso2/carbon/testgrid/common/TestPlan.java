@@ -35,7 +35,8 @@ public class TestPlan {
     private long completedTimeStamp;
     //Dir of TestPlan home directory
     private String home;
-    private String repoDir;
+    private String testRepoDir;
+    private String infraRepoDir;
     private Status status;
     private TestReport testReport;
     private Deployment deployment;
@@ -58,9 +59,23 @@ public class TestPlan {
     private Script deploymentScript;
 
     public enum Status {
-        EXECUTION_PLANNED, INFRASTRUCTURE_PREPARATION, INFRASTRUCTURE_READY, INFRASTRUCTURE_ERROR, DEPLOYMENT_PREPARATION,
-        DEPLOYMENT_READY, DEPLOYMENT_ERROR, SCENARIO_EXECUTION, SCENARIO_EXECUTION_ERROR, SCENARIO_EXECUTION_COMPLETED,
-        REPORT_GENERATION, REPORT_GENERATION_ERROR, EXECUTION_COMPLETED
+        EXECUTION_PLANNED ("Execution Planned"), INFRASTRUCTURE_PREPARATION ("Infrastructure Preparation"),
+        INFRASTRUCTURE_READY ("Infrastructure Ready"), INFRASTRUCTURE_ERROR ("Infrastructure Error"),
+        INFRASTRUCTURE_DESTROY_ERROR ("Infrastructure Destroy Error"), DEPLOYMENT_PREPARATION ("Deployment Preparation"),
+        DEPLOYMENT_READY ("Deployment Ready"), DEPLOYMENT_ERROR ("Deployment Error"),
+        SCENARIO_EXECUTION ("Scenario Execution"), SCENARIO_EXECUTION_ERROR ("Scenario Execution Error"),
+        SCENARIO_EXECUTION_COMPLETED ("Scenario Execution Completed"), REPORT_GENERATION ("Report Generation"),
+        REPORT_GENERATION_ERROR ("Report Generation Error"), EXECUTION_COMPLETED ("Execution Completed");
+
+        private final String name;
+
+        Status(String s) {
+            name = s;
+        }
+
+        public String toString() {
+            return this.name;
+        }
     }
 
     public enum DeployerType {
@@ -185,12 +200,12 @@ public class TestPlan {
         this.description = description;
     }
 
-    public String getRepoDir() {
-        return repoDir;
+    public String getTestRepoDir() {
+        return testRepoDir;
     }
 
-    public void setRepoDir(String repoDir) {
-        this.repoDir = repoDir;
+    public void setTestRepoDir(String testRepoDir) {
+        this.testRepoDir = testRepoDir;
     }
 
     public Script getInfrastructureScript() {
@@ -207,5 +222,13 @@ public class TestPlan {
 
     public void setDeploymentScript(Script deploymentScript) {
         this.deploymentScript = deploymentScript;
+    }
+
+    public String getInfraRepoDir() {
+        return infraRepoDir;
+    }
+
+    public void setInfraRepoDir(String infraRepoDir) {
+        this.infraRepoDir = infraRepoDir;
     }
 }
