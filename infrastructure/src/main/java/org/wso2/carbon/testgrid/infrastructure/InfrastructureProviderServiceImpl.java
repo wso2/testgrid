@@ -16,22 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.infrastructure.providers;
+package org.wso2.carbon.testgrid.infrastructure;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.testgrid.common.*;
+import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.Infrastructure;
+import org.wso2.carbon.testgrid.common.InfrastructureProvider;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
-
-import java.nio.file.Paths;
 
 /**
  * This class creates the infrastructure for running tests
  */
-public class ShellScriptProvider implements InfrastructureProvider {
-    private static final Log log = LogFactory.getLog(ShellScriptProvider.class);
-    private final static String SHELL_SCRIPT_PROVIDER = "Infra Create";
-    private String testPlanLocation;
+public class InfrastructureProviderServiceImpl implements InfrastructureProvider {
+
+    private static final Log log = LogFactory.getLog(InfrastructureProviderServiceImpl.class);
+    private final static String SHELL_SCRIPT_PROVIDER = "Shell";
 
     @Override
     public String getProviderName() {
@@ -40,37 +40,31 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     @Override
     public boolean canHandle(Infrastructure infrastructure) {
-        boolean isScriptsAvailable = true;
-        for (Script script : infrastructure.getScripts()){
-            if (script.getScriptType() != Script.ScriptType.INFRA_CREATE &&
-                    script.getScriptType() != Script.ScriptType.INFRA_DESTROY){
-                isScriptsAvailable = false;
-            }
-
-        }
-        return isScriptsAvailable;
+        return true;
     }
 
     @Override
     public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException {
-        testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" , infrastructure.getName()).toString();
-
+//        String testPlanLocation = infrastructure.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + infrastructure.getDeploymentPattern();
+//
+//        System.out.println("Initializing terraform...");
 //        log.info("Initializing terraform...");
 //        Utils.executeCommand("terraform init " + testPlanLocation + "/OpenStack", null);
-
-        log.info("Creating the Kubernetes cluster...");
-        Utils.executeCommand("bash " + Paths.get(testPlanLocation, infrastructure.getScripts().get(0).getFileName()).toString(), null);
+//
+//        System.out.println("Creating the Kubernetes cluster...");
+//        log.info("Creating the Kubernetes cluster...");
+//        Utils.executeCommand("bash " + testPlanLocation + "/OpenStack/infra.sh", null);
 //        infrastructure.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
-
         return null;
     }
 
     @Override
     public boolean removeInfrastructure(Deployment deployment, String infraRepoDir) throws TestGridInfrastructureException {
-        log.info("Destroying test environment...");
-        if(Utils.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
-            return true;
-        }
+//        String testPlanLocation = deployment.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + deployment.getDeploymentPattern();
+//        System.out.println("Destroying test environment...");
+//        if(Utils.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
+//            return true;
+//        }
         return false;
     }
 }

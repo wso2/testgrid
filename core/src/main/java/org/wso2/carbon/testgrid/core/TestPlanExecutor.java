@@ -32,7 +32,6 @@ import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
-import org.wso2.carbon.testgrid.infrastructure.providers.ShellScriptProvider;
 
 /**
  * This class is mainly responsible for executing the provided TestPlan.
@@ -54,11 +53,8 @@ public class TestPlanExecutor {
         try {
 
             if (infrastructure != null) {
-                InfrastructureProviderFactory.getInfrastructureProvider(infrastructure).
-                        createInfrastructure(infrastructure, testPlan.getInfraRepoDir());
-                /*ShellScriptProvider shellScriptProvider = new ShellScriptProvider();
-                shellScriptProvider.createInfrastructure(infrastructure);*/
-                testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
+                InfrastructureProviderFactory.getInfrastructureProvider(infrastructure.getProviderType()).
+                        createInfrastructure(infrastructure);
             } else {
                 throw new TestPlanExecutorException("Unable to locate infrastructure descriptor for " +
                         "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
@@ -93,7 +89,7 @@ public class TestPlanExecutor {
                 testPlan.setStatus(TestPlan.Status.SCENARIO_EXECUTION);
                 for (TestScenario testScenario : testPlan.getTestScenarios()) {
                     try {
-                        new ScenarioExecutor().runScenario(testScenario, deployment, testPlan.getTestRepoDir());
+                        new ScenarioExecutor().runScenario(testScenario, deployment, testPlan.getRepoDir());
                     } catch (ScenarioExecutorException e) {
                         log.error("Error occurred while executing the SolutionPattern '" +
                                 testScenario.getSolutionPattern() + "' , in TestPlan '" +
