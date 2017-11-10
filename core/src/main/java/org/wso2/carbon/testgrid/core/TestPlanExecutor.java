@@ -83,7 +83,7 @@ public class TestPlanExecutor {
 
             if (infrastructure != null && testPlan.getDeployment() != null) {
                 InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
-                        .removeInfrastructure(testPlan.getDeployment(), testPlan.getInfraRepoDir());
+                        .removeInfrastructure(infrastructure, testPlan.getInfraRepoDir());
             } else {
                 testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_DESTROY_ERROR);
                 throw new TestPlanExecutorException("Unable to locate infrastructure descriptor for " +

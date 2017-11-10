@@ -54,11 +54,11 @@ public interface InfrastructureProvider {
     /**
      * This method executes commands needed to remove the infrastructure.
      *
-     * @param deployment An instance of a Deployment which Infrastructure should be removed.
+     * @param infrastructure An instance of a Infrastructure in which Infrastructure should be removed.
      * @param infraRepoDir - Location of the cloned repository related to infrastructure.
      * @return boolean status of the operation
      * @throws TestGridInfrastructureException  - thrown when error occurs in the infrastructure destroy process.
      */
-    boolean removeInfrastructure(Deployment deployment, String infraRepoDir) throws TestGridInfrastructureException;
+    boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException;
 
 }
