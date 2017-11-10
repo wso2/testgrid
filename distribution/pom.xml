@@ -12,7 +12,7 @@
     <artifactId>org.wso2.carbon.testgrid.distribution</artifactId>
     <name>WSO2 TestGrid Framework - Distribution POM</name>
     <url>http://wso2.org</url>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <build>
     <plugins>

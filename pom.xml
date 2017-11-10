@@ -380,6 +380,18 @@
                 <version>${mockito.all.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-testng</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -400,6 +412,7 @@
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
         <!-- Test dependencies -->
         <mockito.all.version>1.10.19</mockito.all.version>
+        <powermock.version>1.7.3</powermock.version>
 
         <!-- Other dependencies -->
         <carbon.config.version>2.1.4</carbon.config.version>

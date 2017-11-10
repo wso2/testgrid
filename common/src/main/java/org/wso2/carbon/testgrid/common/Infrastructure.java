@@ -38,8 +38,6 @@ public class Infrastructure {
     private ClusterType clusterType; // ECS, K8S
     @Element(description = "defines the database configuration")
     private Database database;
-    @Element(description = "holds the configuration of the list of nodes")
-    private List<Node> nodes;
     @Element(description = "holds the required properties for security related stuff")
     private Map<String, String> securityProperties;
     @Element(description = "holds the list of customized scripts if provided")
@@ -95,14 +93,6 @@ public class Infrastructure {
         public String toString() {
             return this.name;
         }
-    }
-
-    public List<Node> getNodes() {
-        return nodes;
-    }
-
-    public void setNodes(List<Node> nodes) {
-        this.nodes = nodes;
     }
 
     public ProviderType getProviderType() {

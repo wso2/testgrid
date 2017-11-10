@@ -19,7 +19,7 @@
 package org.wso2.carbon.testgrid.common.exception;
 
 /**
- * Created by harshan on 10/30/17.
+ * This is the custom exception class to wrap exceptions occurred during infrastructure creation process.
  */
 public class TestGridInfrastructureException extends Exception {
 

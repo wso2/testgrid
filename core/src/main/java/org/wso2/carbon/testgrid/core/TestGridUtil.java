@@ -54,8 +54,8 @@ public class TestGridUtil {
 
     static String cloneRepository(String repositoryUrl, String directory) throws GitAPIException {
         String clonePath = Paths.get(directory, getCloneDirectoryName(repositoryUrl)).toString();
-        Git.cloneRepository().setURI(repositoryUrl).setDirectory(new File(clonePath)).
-                setCloneAllBranches(false).call();
+        Git.cloneRepository().setURI(repositoryUrl).setDirectory(new File(clonePath))
+                .setCloneAllBranches(false).call();
         return clonePath;
     }
 
@@ -64,12 +64,5 @@ public class TestGridUtil {
             repositoryUrl = repositoryUrl.substring(0, repositoryUrl.length() - 4);
         }
         return repositoryUrl.substring(repositoryUrl.lastIndexOf("/") + 1);
-    }
-
-    public static <T extends Enum<T>> T getEnumFromString(Class<T> c, String string) throws IllegalArgumentException {
-        if( c != null && string != null ) {
-            return Enum.valueOf(c, string.trim().toUpperCase());
-        }
-        return null;
     }
 }

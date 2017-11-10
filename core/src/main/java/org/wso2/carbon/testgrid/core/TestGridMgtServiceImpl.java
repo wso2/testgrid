@@ -37,11 +37,11 @@ import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.ListIterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * This is the main entry point of the TestGrid Framework.
@@ -53,8 +53,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     private static final String PRODUCT_INFRA_DIR = "Infrastructure";
 
 
-    private Map<String, Infrastructure> generateInfrastructureData(String repoDir) throws TestGridException {
-        Map<String, Infrastructure> infras = new HashMap<>();
+    private ConcurrentHashMap<String, Infrastructure> generateInfrastructureData(String repoDir) throws TestGridException {
+        ConcurrentHashMap<String, Infrastructure> infras = new ConcurrentHashMap<>();
         String productInfraDir = Paths.get(repoDir, PRODUCT_INFRA_DIR).toString();
         File dir = new File(productInfraDir);
         File[] directoryListing = dir.listFiles();
@@ -64,9 +64,9 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             for (File infraConfig : directoryListing) {
                 try {
 
-                    if ((infraConfig.getName() != null) && Utils.isYamlFile(infraConfig.getName())) {
-                        ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths.
-                                get(infraConfig.getAbsolutePath()), null);
+                    if (Utils.isYamlFile(infraConfig.getName())) {
+                        ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths
+                                .get(infraConfig.getAbsolutePath()), null);
                         infrastructure = configProvider.getConfigurationObject(Infrastructure.class);
                         infras.put(infrastructure.getName(), infrastructure);
                     }
@@ -83,11 +83,12 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         return infras;
     }
 
-    private List<TestPlan> generateTestPlan(String repoDir, String homeDir) throws TestGridException {
-        String productTestPlanDir = repoDir + File.separator + PRODUCT_TEST_DIR;
+    private List<TestPlan> generateTestPlan(String testRepoDir, String infraRepoDir, String homeDir) throws
+            TestGridException {
+        String productTestPlanDir = testRepoDir + File.separator + PRODUCT_TEST_DIR;
         File dir = new File(productTestPlanDir);
         File[] directoryListing = dir.listFiles();
-        List<TestPlan> testPlanList = new ArrayList<>();
+        List<TestPlan> testPlanList = new CopyOnWriteArrayList<>();
 
         if (directoryListing != null) {
             TestPlan testPlan;
@@ -95,15 +96,16 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             for (File testConfig : directoryListing) {
                 try {
 
-                    if ((testConfig.getName() != null) && Utils.isYamlFile(testConfig.getName())) {
-                        ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths.
-                                get(testConfig.getAbsolutePath()), null);
+                    if (Utils.isYamlFile(testConfig.getName())) {
+                        ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths
+                                .get(testConfig.getAbsolutePath()), null);
                         testPlan = configProvider.getConfigurationObject(TestPlan.class);
 
                         if (testPlan.isEnabled()) {
                             testPlan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
                             testPlan.setHome(homeDir);
-                            testPlan.setRepoDir(repoDir);
+                            testPlan.setTestRepoDir(testRepoDir);
+                            testPlan.setInfraRepoDir(infraRepoDir);
                             testPlan.setCreatedTimeStamp(new Date().getTime());
                             testPlanList.add(testPlan);
                         }
@@ -134,7 +136,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     public ProductTestPlan addProductTestPlan(String product, String productVersion, String repository)
             throws TestGridException {
         Long timeStamp = new Date().getTime();
-        String path = null;
+        String path;
         try {
             path = TestGridUtil.createTestDirectory(product, productVersion, timeStamp);
         } catch (IOException e) {
@@ -162,7 +164,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             productTestPlan.setCreatedTimeStamp(timeStamp);
             productTestPlan.setProductName(product);
             productTestPlan.setProductVersion(productVersion);
-            productTestPlan.setTestPlans(this.generateTestPlan(repoLocation, path));
+            productTestPlan.setTestPlans(this.generateTestPlan(repoLocation, repoLocation, path));
             productTestPlan.setInfrastructureMap(this.generateInfrastructureData(repoLocation));
             productTestPlan.setStatus(ProductTestPlan.Status.PLANNED);
             return productTestPlan;
@@ -173,17 +175,23 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     @Override
     public boolean executeProductTestPlan(ProductTestPlan productTestPlan) throws TestGridException {
         productTestPlan.setStatus(ProductTestPlan.Status.RUNNING);
+        TestPlan testPlan = null;
+        ListIterator<TestPlan> iterator = productTestPlan.getTestPlans().listIterator();
 
-        for (TestPlan testPlan : productTestPlan.getTestPlans()) {
+        while (iterator.hasNext()) {
             try {
-                new TestPlanExecutor().runTestPlan(testPlan, productTestPlan.getInfrastructure(testPlan.
-                        getDeploymentPattern()));
+                testPlan = iterator.next();
+                testPlan = new TestPlanExecutor().runTestPlan(testPlan, productTestPlan.getInfrastructure(testPlan
+                        .getDeploymentPattern()));
+                //Update the current TestPlan
+                productTestPlan.getTestPlans().add(iterator.nextIndex() - 1, testPlan);
             } catch (TestPlanExecutorException e) {
                 String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +
                         productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";
-                log.error(msg, e);;
+                log.error(msg, e);
             }
         }
+
         productTestPlan.setStatus(ProductTestPlan.Status.REPORT_GENERATION);
 
         try {
