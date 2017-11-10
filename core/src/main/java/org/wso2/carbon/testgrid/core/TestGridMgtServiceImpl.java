@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -82,12 +83,12 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         return infras;
     }
 
-    private CopyOnWriteArrayList<TestPlan> generateTestPlan(String testRepoDir, String infraRepoDir, String homeDir) throws
+    private List<TestPlan> generateTestPlan(String testRepoDir, String infraRepoDir, String homeDir) throws
             TestGridException {
         String productTestPlanDir = testRepoDir + File.separator + PRODUCT_TEST_DIR;
         File dir = new File(productTestPlanDir);
         File[] directoryListing = dir.listFiles();
-        CopyOnWriteArrayList<TestPlan> testPlanList = new CopyOnWriteArrayList<>();
+        List<TestPlan> testPlanList = new CopyOnWriteArrayList<>();
 
         if (directoryListing != null) {
             TestPlan testPlan;

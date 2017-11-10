@@ -47,7 +47,7 @@ public interface InfrastructureProvider {
      *                       that should be created.
      * @param infraRepoDir - Location of the cloned repository related to infrastructure.
      * @return Deployment -  Deployment object including the created host, ip details
-     * @throws TestGridInfrastructureException - If something goes wrong during the infrastructure creation process.
+     * @throws TestGridInfrastructureException - thrown when error occurs in the infrastructure creation process.
      */
     Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException;
 
@@ -57,7 +57,7 @@ public interface InfrastructureProvider {
      * @param deployment An instance of a Deployment which Infrastructure should be removed.
      * @param infraRepoDir - Location of the cloned repository related to infrastructure.
      * @return boolean status of the operation
-     * @throws TestGridInfrastructureException  - If something goes wrong during the infrastructure destroy process.
+     * @throws TestGridInfrastructureException  - thrown when error occurs in the infrastructure destroy process.
      */
     boolean removeInfrastructure(Deployment deployment, String infraRepoDir) throws TestGridInfrastructureException;
 

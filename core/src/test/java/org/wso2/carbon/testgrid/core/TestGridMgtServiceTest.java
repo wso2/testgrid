@@ -58,6 +58,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 /**
  * Test class to test the functionality of the {@link TestGridMgtServiceImpl}.
  *
+ * @since 0.9.0
  */
 @PrepareForTest({InfrastructureProviderFactory.class, DeployerServiceImpl.class, TestEngineImpl.class,
         TestReportEngineImpl.class})
@@ -73,7 +74,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
 
     @BeforeTest
     public void setHome() {
-        Util.setEnvironmentVariable(TestGridUtil.TESTGRID_HOME_ENV, "/tmp");
+        EnvironmentUtil.setEnvironmentVariable(TestGridUtil.TESTGRID_HOME_ENV, "/tmp");
     }
 
     @Test

@@ -29,10 +29,12 @@ import java.util.Map;
 
 /**
  * This holds the utility methods required for testgrid core tests.
+ *
+ * @since 0.9.0
  */
-public class Util {
+public class EnvironmentUtil {
 
-    private static final Log log = LogFactory.getLog(Util.class);
+    private static final Log log = LogFactory.getLog(EnvironmentUtil.class);
     private static final String PROCESS_ENVIRONMENT = "java.lang.ProcessEnvironment";
     private static final String THE_ENVIRONMENT_FILED = "theEnvironment";
     private static final String THE_CASE_INSENSITIVE_ENVIRONMENT = "theCaseInsensitiveEnvironment";

@@ -41,6 +41,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 /**
  * Test class to test the functionality of the {@link ScenarioExecutor}.
  *
+ * @since 0.9.0
  */
 @PrepareForTest(InfrastructureProviderFactory.class)
 public class ScenarioExecutorTest extends PowerMockTestCase {
@@ -55,7 +56,7 @@ public class ScenarioExecutorTest extends PowerMockTestCase {
 
     @BeforeTest
     public void setHome() {
-        Util.setEnvironmentVariable(TestGridUtil.TESTGRID_HOME_ENV, "/tmp");
+        EnvironmentUtil.setEnvironmentVariable(TestGridUtil.TESTGRID_HOME_ENV, "/tmp");
     }
 
     @Test
