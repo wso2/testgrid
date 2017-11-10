@@ -166,7 +166,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Mockito.when(InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)).thenReturn(provider);
         Mockito.when(provider.createInfrastructure(infrastructure, scenarioLocation)).thenReturn(deployment);
         Mockito.when(provider.canHandle(infrastructure)).thenReturn(true);
-        Mockito.when(provider.removeInfrastructure(deployment, scenarioLocation)).thenReturn(true);
+        Mockito.when(provider.removeInfrastructure(infrastructure, scenarioLocation)).thenReturn(true);
 
 
         try {
