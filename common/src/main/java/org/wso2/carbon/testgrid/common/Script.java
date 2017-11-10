@@ -25,12 +25,14 @@ import org.wso2.carbon.config.annotation.Element;
  */
 public class Script {
 
-    @Element(description = "defines the provided scripts type (not necessary)")
-    private ScriptType scriptType;
-    @Element(description = "defines the file name of provided script")
-    private String fileName;
+    @Element(description = "defines the location of provided script")
+    private String filePath;
+    @Element(description = "defines the name of provided script")
+    private String name;
     @Element(description = "defines the order in which the script should be executed")
     private int order;
+    @Element(description = "defines the provided scripts type (not necessary)")
+    private ScriptType scriptType;
 
     public enum ScriptType {
         CLOUD_FORMATION ("Cloud Formation"), INFRA_CREATE ("Infra Create"), INFRA_DESTROY ("Infra Destroy");
@@ -46,20 +48,12 @@ public class Script {
         }
     }
 
-    public ScriptType getScriptType() {
-        return scriptType;
+    public String getFilePath() {
+        return filePath;
     }
 
-    public void setScriptType(ScriptType scriptType) {
-        this.scriptType = scriptType;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     public int getOrder() {
@@ -68,5 +62,21 @@ public class Script {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public ScriptType getScriptType() {
+        return scriptType;
+    }
+
+    public void setScriptType(ScriptType scriptType) {
+        this.scriptType = scriptType;
     }
 }
