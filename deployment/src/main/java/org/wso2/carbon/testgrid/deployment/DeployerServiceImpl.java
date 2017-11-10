@@ -25,12 +25,12 @@ import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
-import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderServiceImpl;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 
@@ -39,7 +39,7 @@ import java.util.Properties;
  */
 public class DeployerServiceImpl implements DeployerService {
 
-    private static final Log log = LogFactory.getLog(InfrastructureProviderServiceImpl.class);
+    private static final Log log = LogFactory.getLog(DeployerServiceImpl.class);
     private final static String DEPLOYER_NAME = "puppet";
 
     public void init() {
@@ -53,8 +53,8 @@ public class DeployerServiceImpl implements DeployerService {
 
     @Override
     public Deployment deploy(TestPlan testPlan) throws TestGridDeployerException {
-        String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
-        String scriptLocation = testPlanLocation + "/OpenStack/wso2is/deploy.sh";
+        String testPlanLocation = Paths.get(testPlan.getTestRepoDir(), "/DeploymentPatterns/", testPlan.getDeploymentPattern()).toString();
+
         try {
             String username = System.getenv("OS_USERNAME");
             String password = System.getenv("OS_PASSWORD");
@@ -65,14 +65,8 @@ public class DeployerServiceImpl implements DeployerService {
             System.setProperty("user.dir", testPlanLocation + "/OpenStack/wso2is" );
             File file = new File(System.getProperty("user.dir"));
 
-            System.out.println("Setting KUBERNETES_MASTER environment variable...");
-            log.info("Setting KUBERNETES_MASTER environment variable...");
-//            setKubernetesMasterEnvVariable(testPlanLocation + "/Scripts/OpenStack");
-//            Utils.executeCommand("export KUBERNETES_MASTER=http://192.168.58.71:8080", file);
-            System.out.println("Deploying kubernetes artifacts...");
             log.info("Deploying kubernetes artifacts...");
 
-//            Utils.executeCommand("bash " + scriptLocation + " " + getKubernetesMaster(testPlanLocation + "/Scripts/OpenStack"));
             Utils.executeCommand("./deploy.sh " +
                     getKubernetesMaster(testPlanLocation + "/OpenStack/k8s.properties") + " " +
                     dockerUrl + " " + username + " " + password + " " + dockerEmail, file);
@@ -86,34 +80,15 @@ public class DeployerServiceImpl implements DeployerService {
 
     @Override
     public boolean unDeploy(TestPlan testPlan) throws TestGridDeployerException {
-        String testPlanLocation = testPlan.getHome() +"/test-grid-is-resources/DeploymentPatterns/" + testPlan.getDeploymentPattern();
-        String scriptLocation = testPlanLocation + "/OpenStack/wso2is/undeploy.sh";
-
+        String testPlanLocation = Paths.get(testPlan.getTestRepoDir(),"DeploymentPatterns", testPlan.getDeploymentPattern()).toString();
         Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
-
         System.setProperty("user.dir", testPlanLocation + "/OpenStack/wso2is" );
         File file = new File(System.getProperty("user.dir"));
 
-        if(Utils.executeCommand(/*"bash " + scriptLocation*/"./undeploy.sh", file)) {
+        if(Utils.executeCommand("./undeploy.sh", file)) {
             return true;
         }
         return false;
-    }
-
-    private void setKubernetesMasterEnvVariable (String path) throws IOException {
-      /*  Properties prop = new Properties();
-        InputStream inputStream = new FileInputStream(path + "/k8s.properties");
-        prop.load(inputStream);
-        System.out.println(inputStream);
-        log.info(inputStream);*/
-
-        Utils.executeCommand("export KUBERNETES_MASTER=http://192.168.58.7:8080" /*+ prop.getProperty("KUBERNETES_MASTER")*/, null);
-
-      /*  ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", "export");
-        Map<String, String> env = pb.environment();
-        env.put("KUBERNETES_MASTER", prop.getProperty("KUBERNETES_MASTER"));
-        System.out.println("==============================="+pb.environment().get("KUBERNETES_MASTER"));
-        pb.start();*/
     }
 
     /**
@@ -128,10 +103,11 @@ public class DeployerServiceImpl implements DeployerService {
             InputStream inputStream = new FileInputStream(location);
             prop.load(inputStream);
 
-            System.out.println(inputStream);
+//            System.out.println(inputStream);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            String msg = "Error getting KUBERNETES_MASTER environment variable";
+            log.error(msg, e);
         }
         return prop.getProperty("KUBERNETES_MASTER");
     }
