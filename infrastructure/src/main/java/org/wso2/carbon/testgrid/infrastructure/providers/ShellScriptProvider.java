@@ -20,7 +20,11 @@ package org.wso2.carbon.testgrid.infrastructure.providers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.testgrid.common.*;
+import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.Infrastructure;
+import org.wso2.carbon.testgrid.common.InfrastructureProvider;
+import org.wso2.carbon.testgrid.common.Script;
+import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 
 import java.nio.file.Paths;
@@ -30,7 +34,7 @@ import java.nio.file.Paths;
  */
 public class ShellScriptProvider implements InfrastructureProvider {
     private static final Log log = LogFactory.getLog(ShellScriptProvider.class);
-    private final static String SHELL_SCRIPT_PROVIDER = "Infra Create";
+    private final static String SHELL_SCRIPT_PROVIDER = "Shell Executor";
 
     @Override
     public String getProviderName() {
@@ -41,8 +45,8 @@ public class ShellScriptProvider implements InfrastructureProvider {
     public boolean canHandle(Infrastructure infrastructure) {
         boolean isScriptsAvailable = true;
         for (Script script : infrastructure.getScripts()){
-            if (script.getScriptType() != Script.ScriptType.INFRA_CREATE &&
-                    script.getScriptType() != Script.ScriptType.INFRA_DESTROY){
+            if (!Script.ScriptType.INFRA_CREATE.equals(script.getScriptType()) &&
+                    !Script.ScriptType.INFRA_DESTROY.equals( script.getScriptType())){
                 isScriptsAvailable = false;
             }
         }
@@ -57,7 +61,6 @@ public class ShellScriptProvider implements InfrastructureProvider {
         Utils.executeCommand("bash " +
                 Paths.get(testPlanLocation, getScriptToExecute(infrastructure, Script.ScriptType.INFRA_CREATE)),
                 null);
-//        infrastructure.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
         return null;
     }
 

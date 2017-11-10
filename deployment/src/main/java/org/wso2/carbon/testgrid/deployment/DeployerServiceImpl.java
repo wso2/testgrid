@@ -53,29 +53,26 @@ public class DeployerServiceImpl implements DeployerService {
 
     @Override
     public Deployment deploy(TestPlan testPlan) throws TestGridDeployerException {
-        String testPlanLocation = Paths.get(testPlan.getTestRepoDir(), "/DeploymentPatterns/", testPlan.getDeploymentPattern()).toString();
+        String testPlanLocation = Paths.get(testPlan.getTestRepoDir(), "DeploymentPatterns", testPlan.getDeploymentPattern()).toString();
 
-        try {
-            String username = System.getenv("OS_USERNAME");
-            String password = System.getenv("OS_PASSWORD");
-            String dockerUrl = "dockerhub.private.wso2.com";
-            String dockerEmail = username + "@wso2.com";
+        String username = System.getenv("OS_USERNAME");
+        String password = System.getenv("OS_PASSWORD");
+        String dockerUrl = "dockerhub.private.wso2.com";
+        String dockerEmail = username + "@wso2.com";
 
-            Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
-            System.setProperty("user.dir", testPlanLocation + "/OpenStack/wso2is" );
-            File file = new File(System.getProperty("user.dir"));
+        Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
+        System.setProperty("user.dir", testPlanLocation + "/OpenStack/wso2is" );
+        File file = new File(System.getProperty("user.dir"));
 
-            log.info("Deploying kubernetes artifacts...");
-
-            Utils.executeCommand("./deploy.sh " +
-                    getKubernetesMaster(testPlanLocation + "/OpenStack/k8s.properties") + " " +
-                    dockerUrl + " " + username + " " + password + " " + dockerEmail, file);
+        log.info("Deploying kubernetes artifacts...");
+        if (Utils.executeCommand("./deploy.sh " +
+                getKubernetesMaster(testPlanLocation + "/OpenStack/k8s.properties") + " " +
+                dockerUrl + " " + username + " " + password + " " + dockerEmail, file)){
             testPlan.setStatus(TestPlan.Status.DEPLOYMENT_READY);
             return DeploymentUtil.getDeploymentInfo(testPlanLocation);
-        } catch (Exception e) {
-            log.error(e);
+        } else {
+            throw new TestGridDeployerException("Error occurred while deploying artifacts");
         }
-        return null;
     }
 
     @Override
