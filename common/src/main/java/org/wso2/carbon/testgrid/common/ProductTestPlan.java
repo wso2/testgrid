@@ -18,9 +18,8 @@
 
 package org.wso2.carbon.testgrid.common;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * This represents a model of the ProductTestPlan which includes all the necessary data to run the Test plans created for a
@@ -34,8 +33,8 @@ public class ProductTestPlan {
     private String productVersion;
     private String homeDir;
     private String deploymentRepository;
-    private List<TestPlan> testPlans;
-    private Map<String, Infrastructure> infrastructureMap;
+    private CopyOnWriteArrayList<TestPlan> testPlans;
+    private ConcurrentHashMap<String, Infrastructure> infrastructureMap;
     private TestReport testReport;
     private long createdTimeStamp;
     private long completedTimeStamp;
@@ -85,11 +84,11 @@ public class ProductTestPlan {
         this.deploymentRepository = deploymentRepository;
     }
 
-    public List<TestPlan> getTestPlans() {
+    public CopyOnWriteArrayList<TestPlan> getTestPlans() {
         return testPlans;
     }
 
-    public void setTestPlans(List<TestPlan> testPlans) {
+    public void setTestPlans(CopyOnWriteArrayList<TestPlan> testPlans) {
         this.testPlans = testPlans;
     }
 
@@ -125,11 +124,11 @@ public class ProductTestPlan {
         this.status = status;
     }
 
-    public Map<String, Infrastructure> getInfrastructureMap() {
+    public ConcurrentHashMap<String, Infrastructure> getInfrastructureMap() {
         return infrastructureMap;
     }
 
-    public void setInfrastructureMap(Map<String, Infrastructure> infrastructureMap) {
+    public void setInfrastructureMap(ConcurrentHashMap<String, Infrastructure> infrastructureMap) {
         this.infrastructureMap = infrastructureMap;
     }
 
@@ -139,7 +138,7 @@ public class ProductTestPlan {
 
     public boolean addInfrastructure(Infrastructure infrastructure) {
         if (this.infrastructureMap == null) {
-            this.infrastructureMap = new HashMap<>();
+            this.infrastructureMap = new ConcurrentHashMap<>();
         }
         this.infrastructureMap.put(infrastructure.getName(), infrastructure);
         return true;
