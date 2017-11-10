@@ -32,7 +32,6 @@ import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
-import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
 import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -43,7 +42,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  *
  * @since 0.9.0
  */
-@PrepareForTest(InfrastructureProviderFactory.class)
+@PrepareForTest({DeployerServiceImpl.class, TestEngineImpl.class, TestReportEngineImpl.class})
 public class ScenarioExecutorTest extends PowerMockTestCase {
 
     TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
@@ -88,7 +87,7 @@ public class ScenarioExecutorTest extends PowerMockTestCase {
         }
 
 
-       // testGridMgtService.executeProductTestPlan(productTestPlan);
+        //testGridMgtService.executeProductTestPlan(productTestPlan);
         Assert.assertTrue(true);
     }
 }
