@@ -34,6 +34,7 @@ import org.wso2.carbon.testgrid.common.Host;
 import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.Script;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.carbon.testgrid.common.util.StringUtil;
 import org.wso2.carbon.testgrid.utils.EnvVariableUtil;
 
 import java.io.IOException;
@@ -44,11 +45,13 @@ import java.util.List;
 
 /**
  * This class is responsible for creating the AWS infrastructure.
+ *
+ * @since 1.0.0
  */
-public class AWSDeployer {
+public class AWSManager {
 
     private Infrastructure infra;
-    private static final Log log = LogFactory.getLog(AWSDeployer.class);
+    private static final Log log = LogFactory.getLog(AWSManager.class);
 
     /**
      * This constructor creates AWS deployer object and validate AWS related environment variables are present.
@@ -57,12 +60,11 @@ public class AWSDeployer {
      * @param awsSecretVariableName Environment variable name for AWS SECRET KEY.
      * @throws TestGridInfrastructureException Throws exception when environment variables are not set.
      */
-    public AWSDeployer(String awsKeyVariableName, String awsSecretVariableName) throws TestGridInfrastructureException {
+    public AWSManager(String awsKeyVariableName, String awsSecretVariableName) throws TestGridInfrastructureException {
         String awsIdentity = EnvVariableUtil.readEnvironmentVariable(awsKeyVariableName);
         String awsSecret = EnvVariableUtil.readEnvironmentVariable(awsSecretVariableName);
-        if ((awsIdentity == null) || (awsSecret == null)) {
-            String errorMessage = "AWS Credentials must be set as environment variables";
-            throw new TestGridInfrastructureException(errorMessage);
+        if (StringUtil.isStringNullOrEmpty(awsIdentity) || StringUtil.isStringNullOrEmpty(awsSecret)) {
+            throw new TestGridInfrastructureException("AWS Credentials must be set as environment variables");
         }
     }
 
@@ -78,22 +80,22 @@ public class AWSDeployer {
      */
     public Deployment createInfrastructure(Script script, String infraRepoDir) throws InterruptedException,
             IOException, TestGridInfrastructureException {
-        String cfName = script.getName();
+        String cloudFormationName = script.getName();
         AmazonCloudFormation stackbuilder = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
                 .withRegion(infra.getRegion())
                 .build();
 
         CreateStackRequest stackRequest = new CreateStackRequest();
-        stackRequest.setStackName(cfName);
+        stackRequest.setStackName(cloudFormationName);
         String file = new String(Files.readAllBytes(Paths.get(infraRepoDir, this.infra.getName(),
                 "AWS", "Scripts", script.getName())));
         stackRequest.setTemplateBody(file);
         log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
         stackbuilder.createStack(stackRequest);
-        waitForAWSProcess(stackbuilder, cfName);
+        waitForAWSProcess(stackbuilder, cloudFormationName);
         DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
-        describeStacksRequest.setStackName(cfName);
+        describeStacksRequest.setStackName(cloudFormationName);
         DescribeStacksResult describeStacksResult = stackbuilder.describeStacks(describeStacksRequest);
         //Initially only PublicDNS which is exported from a dummy script is saved in the Deployment object.
         List<Host> hosts = new ArrayList<>();
@@ -139,14 +141,12 @@ public class AWSDeployer {
                 for (Stack stack : stacks) {
                     if (stack.getStackStatus().equals(StackStatus.CREATE_COMPLETE.toString()) ||
                             stack.getStackStatus().equals(StackStatus.DELETE_COMPLETE.toString())) {
-                        completed = true;
                         return true;
                     } else if (stack.getStackStatus().equals(StackStatus.CREATE_FAILED.toString()) ||
                             stack.getStackStatus().equals(StackStatus.ROLLBACK_FAILED.toString()) ||
                             stack.getStackStatus().equals(StackStatus.ROLLBACK_COMPLETE.toString())) {
-                        String errorMessage = "Error while executing infrastructure command due to :" +
-                                stack.getStackStatusReason();
-                        throw new TestGridInfrastructureException(errorMessage);
+                        throw new TestGridInfrastructureException("Error while executing infrastructure " +
+                                "command due to :" + stack.getStackStatusReason());
                     }
                 }
             }
@@ -177,14 +177,14 @@ public class AWSDeployer {
      * @throws InterruptedException            when there is an interruption while waiting for the result.
      */
     public boolean destroyInfrastructure(Script script) throws TestGridInfrastructureException, InterruptedException {
-        String cfName = script.getName();
+        String cloudFormationName = script.getName();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
                 .withRegion(infra.getRegion())
                 .build();
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
-        deleteStackRequest.setStackName(cfName);
+        deleteStackRequest.setStackName(cloudFormationName);
         stackdestroy.deleteStack(deleteStackRequest);
-        return waitForAWSProcess(stackdestroy, cfName);
+        return waitForAWSProcess(stackdestroy, cloudFormationName);
     }
 }

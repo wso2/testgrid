@@ -23,11 +23,13 @@ import org.wso2.carbon.testgrid.common.InfrastructureProvider;
 import org.wso2.carbon.testgrid.common.Script;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.carbon.testgrid.infrastructure.aws.AWSDeployer;
+import org.wso2.carbon.testgrid.infrastructure.aws.AWSManager;
 import java.io.IOException;
 
 /**
  * This class provides the infrastructure from amazon web services (AWS).
+ *
+ * @since 1.0.0
  */
 public class AWSProvider implements InfrastructureProvider {
 
@@ -39,56 +41,51 @@ public class AWSProvider implements InfrastructureProvider {
     @Override
     public boolean canHandle(Infrastructure infrastructure) {
         //Check if scripts has a cloud formation script.
-        boolean isCloudFormation = false;
         for (Script script : infrastructure.getScripts()) {
-            if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
-                isCloudFormation = true;
+            if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION) &&
+                    (infrastructure.getProviderType().equals(Infrastructure.ProviderType.AWS))) {
+                return true;
             }
         }
-        //return true only if it has aws node specs or has cloud formation script.
-        return ((infrastructure.getProviderType().equals(Infrastructure.ProviderType.AWS)) && isCloudFormation);
+        return false;
     }
 
     @Override
     public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir)
             throws TestGridInfrastructureException {
-        AWSDeployer awsDeployer = new AWSDeployer(TestGridConstants.AWS_ACCESS_KEY, TestGridConstants.AWS_SECRET_KEY);
-        awsDeployer.init(infrastructure);
+        AWSManager awsManager = new AWSManager(TestGridConstants.AWS_ACCESS_KEY, TestGridConstants.AWS_SECRET_KEY);
+        awsManager.init(infrastructure);
         try {
             for (Script script : infrastructure.getScripts()) {
                 if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
                     //assumption : Only one CF script will be there
-                    return awsDeployer.createInfrastructure(script, infraRepoDir);
+                    return awsManager.createInfrastructure(script, infraRepoDir);
                 }
             }
-            String errorMessage = "No CloudFormation Script found in script list";
-            throw new TestGridInfrastructureException(errorMessage);
+            throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
         } catch (InterruptedException e) {
-            String errorMessage = "Error occured while waiting for CloudFormation Stack creation";
-            throw new TestGridInfrastructureException(errorMessage, e);
+            throw new TestGridInfrastructureException("Error occured while waiting for " +
+                    "CloudFormation Stack creation", e);
         } catch (IOException e) {
-            String errorMessage = "Error occured while Reading CloudFormation script";
-            throw new TestGridInfrastructureException(errorMessage, e);
+            throw new TestGridInfrastructureException("Error occured while Reading CloudFormation script", e);
         }
     }
 
     @Override
     public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir)
             throws TestGridInfrastructureException {
-        AWSDeployer awsDeployer = new AWSDeployer(TestGridConstants.AWS_ACCESS_KEY, TestGridConstants.AWS_SECRET_KEY);
-        awsDeployer.init(infrastructure);
+        AWSManager awsManager = new AWSManager(TestGridConstants.AWS_ACCESS_KEY, TestGridConstants.AWS_SECRET_KEY);
+        awsManager.init(infrastructure);
         try {
             for (Script script : infrastructure.getScripts()) {
                 if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
                     //assumption : Only one CF script will be there
-                    return awsDeployer.destroyInfrastructure(script);
+                    return awsManager.destroyInfrastructure(script);
                 }
             }
-            String errorMessage = "No CloudFormation Script found in script list";
-            throw new TestGridInfrastructureException(errorMessage);
+            throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
         } catch (InterruptedException e) {
-            String errorMessage = "Error while waiting for CloudFormation stack to destroy";
-            throw new TestGridInfrastructureException(errorMessage);
+            throw new TestGridInfrastructureException("Error while waiting for CloudFormation stack to destroy", e);
         }
     }
 }

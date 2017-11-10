@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.Script;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.carbon.testgrid.infrastructure.aws.AWSDeployer;
+import org.wso2.carbon.testgrid.infrastructure.aws.AWSManager;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -40,8 +40,8 @@ import java.util.Map;
 /**
  * This class will test AWS deployer related tasks.
  */
-@PrepareForTest({AWSDeployer.class,AmazonCloudFormationClientBuilder.class,AmazonCloudFormation.class, AwsClientBuilder.class})
-public class AWSDeployerTest extends PowerMockTestCase{
+@PrepareForTest({AWSManager.class,AmazonCloudFormationClientBuilder.class,AmazonCloudFormation.class, AwsClientBuilder.class})
+public class AWSManagerTest extends PowerMockTestCase{
 
     @Test
     public void testDeployerCreation() throws Exception {
@@ -55,8 +55,8 @@ public class AWSDeployerTest extends PowerMockTestCase{
         map.put(key,keyValue);
         map.put(secret,secret_value);
         set(map);
-        AWSDeployer awsDeployer = new AWSDeployer(key,secret);
-        Assert.assertNotNull(awsDeployer);
+        AWSManager awsManager = new AWSManager(key,secret);
+        Assert.assertNotNull(awsManager);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class AWSDeployerTest extends PowerMockTestCase{
         map.put(key,keyValue);
         set(map);
         //invoke without no secret key environment varible set.
-        new AWSDeployer(key,secret);
+        new AWSManager(key,secret);
     }
 
     @Test
@@ -117,3 +117,4 @@ public class AWSDeployerTest extends PowerMockTestCase{
         }
     }
 }
+
