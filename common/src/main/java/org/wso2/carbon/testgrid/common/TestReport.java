@@ -19,7 +19,7 @@
 package org.wso2.carbon.testgrid.common;
 
 /**
- * Created by harshan on 10/30/17.
+ * This is the model object of Test report to represent a test result.
  */
 public class TestReport {
 }
