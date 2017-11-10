@@ -63,7 +63,6 @@ public class AWSProvider implements InfrastructureProvider {
             }
             String errorMessage = "No CloudFormation Script found in script list";
             throw new TestGridInfrastructureException(errorMessage);
-
         } catch (InterruptedException e) {
             String errorMessage = "Error occured while waiting for CloudFormation Stack creation";
             throw new TestGridInfrastructureException(errorMessage, e);
@@ -78,7 +77,6 @@ public class AWSProvider implements InfrastructureProvider {
             throws TestGridInfrastructureException {
         AWSDeployer awsDeployer = new AWSDeployer(TestGridConstants.AWS_ACCESS_KEY, TestGridConstants.AWS_SECRET_KEY);
         awsDeployer.init(infrastructure);
-
         try {
             for (Script script : infrastructure.getScripts()) {
                 if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
@@ -88,7 +86,6 @@ public class AWSProvider implements InfrastructureProvider {
             }
             String errorMessage = "No CloudFormation Script found in script list";
             throw new TestGridInfrastructureException(errorMessage);
-
         } catch (InterruptedException e) {
             String errorMessage = "Error while waiting for CloudFormation stack to destroy";
             throw new TestGridInfrastructureException(errorMessage);

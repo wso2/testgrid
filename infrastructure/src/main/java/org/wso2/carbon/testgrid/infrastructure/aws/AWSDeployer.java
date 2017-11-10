@@ -123,7 +123,6 @@ public class AWSDeployer {
      */
     private boolean waitForAWSProcess(AmazonCloudFormation stackBuilder, String stackName) throws InterruptedException,
             TestGridInfrastructureException {
-
         DescribeStacksRequest wait = new DescribeStacksRequest();
         wait.setStackName(stackName);
         boolean completed = false;
@@ -178,7 +177,6 @@ public class AWSDeployer {
      * @throws InterruptedException            when there is an interruption while waiting for the result.
      */
     public boolean destroyInfrastructure(Script script) throws TestGridInfrastructureException, InterruptedException {
-
         String cfName = script.getName();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
@@ -188,6 +186,5 @@ public class AWSDeployer {
         deleteStackRequest.setStackName(cfName);
         stackdestroy.deleteStack(deleteStackRequest);
         return waitForAWSProcess(stackdestroy, cfName);
-
     }
 }

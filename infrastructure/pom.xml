@@ -61,18 +61,15 @@
             <groupId>org.wso2.carbon.testgrid</groupId>
             <artifactId>org.wso2.carbon.testgrid.utils</artifactId>
         </dependency>
-
         <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk -->
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
         </dependency>
-
         <!--Test dependencies-->
         <dependency>
             <groupId>org.testng</groupId>
@@ -84,7 +81,6 @@
             <artifactId>mockito-all</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-testng</artifactId>
@@ -95,6 +91,5 @@
             <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 </project>
