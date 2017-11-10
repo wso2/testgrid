@@ -102,9 +102,6 @@ public class DeployerServiceImpl implements DeployerService {
         try {
             InputStream inputStream = new FileInputStream(location);
             prop.load(inputStream);
-
-//            System.out.println(inputStream);
-
         } catch (IOException e) {
             String msg = "Error getting KUBERNETES_MASTER environment variable";
             log.error(msg, e);

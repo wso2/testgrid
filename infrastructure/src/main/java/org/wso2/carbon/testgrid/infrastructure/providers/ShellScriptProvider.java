@@ -31,7 +31,6 @@ import java.nio.file.Paths;
 public class ShellScriptProvider implements InfrastructureProvider {
     private static final Log log = LogFactory.getLog(ShellScriptProvider.class);
     private final static String SHELL_SCRIPT_PROVIDER = "Infra Create";
-    private String testPlanLocation;
 
     @Override
     public String getProviderName() {
@@ -52,7 +51,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     @Override
     public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException {
-        testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" , infrastructure.getName()).toString();
+        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" , infrastructure.getName()).toString();
 
         log.info("Creating the Kubernetes cluster...");
         Utils.executeCommand("bash " +
@@ -63,9 +62,13 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean removeInfrastructure(Deployment deployment, String infraRepoDir) throws TestGridInfrastructureException {
+    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException {
+        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" , infrastructure.getName()).toString();
+
         log.info("Destroying test environment...");
-        if(Utils.executeCommand("sh " + testPlanLocation + "/OpenStack/cluster-destroy.sh", null)) {
+        if(Utils.executeCommand("bash " +
+                        Paths.get(testPlanLocation, getScriptToExecute(infrastructure, Script.ScriptType.INFRA_DESTROY)),
+                null)) {
             return true;
         }
         return false;

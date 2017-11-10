@@ -49,7 +49,7 @@ public class OpenStackProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean removeInfrastructure(Deployment deployment, String infraRepoDir) throws TestGridInfrastructureException {
+    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException {
         return false;
     }
 }
