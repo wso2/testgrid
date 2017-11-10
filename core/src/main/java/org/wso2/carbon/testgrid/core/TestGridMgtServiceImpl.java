@@ -184,7 +184,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                 testPlan = new TestPlanExecutor().runTestPlan(testPlan, productTestPlan.getInfrastructure(testPlan
                         .getDeploymentPattern()));
                 //Update the current TestPlan
-                productTestPlan.getTestPlans().add(iterator.nextIndex() - 1, testPlan);
+                productTestPlan.getTestPlans().set(iterator.nextIndex() - 1, testPlan);
             } catch (TestPlanExecutorException e) {
                 String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +
                         productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";
