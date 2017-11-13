@@ -24,7 +24,7 @@ import org.wso2.carbon.testgrid.common.Script;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.carbon.testgrid.infrastructure.aws.AWSManager;
-import java.io.IOException;
+
 
 /**
  * This class provides the infrastructure from amazon web services (AWS).
@@ -42,8 +42,8 @@ public class AWSProvider implements InfrastructureProvider {
     public boolean canHandle(Infrastructure infrastructure) {
         //Check if scripts has a cloud formation script.
         for (Script script : infrastructure.getScripts()) {
-            if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION) &&
-                    (infrastructure.getProviderType().equals(Infrastructure.ProviderType.AWS))) {
+            if (Script.ScriptType.CLOUD_FORMATION.equals(script.getScriptType()) &&
+                    (Infrastructure.ProviderType.AWS.equals(infrastructure.getProviderType()))) {
                 return true;
             }
         }
@@ -55,20 +55,12 @@ public class AWSProvider implements InfrastructureProvider {
             throws TestGridInfrastructureException {
         AWSManager awsManager = new AWSManager(TestGridConstants.AWS_ACCESS_KEY, TestGridConstants.AWS_SECRET_KEY);
         awsManager.init(infrastructure);
-        try {
             for (Script script : infrastructure.getScripts()) {
                 if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
-                    //assumption : Only one CF script will be there
                     return awsManager.createInfrastructure(script, infraRepoDir);
                 }
             }
             throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
-        } catch (InterruptedException e) {
-            throw new TestGridInfrastructureException("Error occured while waiting for " +
-                    "CloudFormation Stack creation", e);
-        } catch (IOException e) {
-            throw new TestGridInfrastructureException("Error occured while Reading CloudFormation script", e);
-        }
     }
 
     @Override
@@ -79,7 +71,6 @@ public class AWSProvider implements InfrastructureProvider {
         try {
             for (Script script : infrastructure.getScripts()) {
                 if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
-                    //assumption : Only one CF script will be there
                     return awsManager.destroyInfrastructure(script);
                 }
             }

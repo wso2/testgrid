@@ -61,6 +61,7 @@
             <groupId>org.wso2.carbon.testgrid</groupId>
             <artifactId>org.wso2.carbon.testgrid.utils</artifactId>
         </dependency>
+        <!--AWS dependencies-->
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk</artifactId>
