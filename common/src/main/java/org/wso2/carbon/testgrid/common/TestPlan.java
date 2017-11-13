@@ -104,7 +104,7 @@ public class TestPlan {
     /**
      * Sets the id of the test plan.
      *
-     * @param id - Generated id of the test plan
+     * @param id Generated id of the test plan
      */
     public void setId(int id) {
         this.id = id;
@@ -122,7 +122,7 @@ public class TestPlan {
     /**
      * Sets the test scenarios to this test plan.
      *
-     * @param testScenarios - Generated id of the test plan
+     * @param testScenarios Generated id of the test plan
      */
     public void setTestScenarios(List<TestScenario> testScenarios) {
         this.testScenarios = testScenarios;
@@ -140,7 +140,7 @@ public class TestPlan {
     /**
      * Sets the home directory location of test plan.
      *
-     * @param home - home directory location of the test plan
+     * @param home home directory location of the test plan
      */
     public void setHome(String home) {
         this.home = home;
@@ -158,7 +158,7 @@ public class TestPlan {
     /**
      * Sets the created time of test plan.
      *
-     * @param createdTimeStamp - created time of the test plan
+     * @param createdTimeStamp created time of the test plan
      */
     public void setCreatedTimeStamp(long createdTimeStamp) {
         this.createdTimeStamp = createdTimeStamp;
@@ -176,7 +176,7 @@ public class TestPlan {
     /**
      * Sets the name of test plan.
      *
-     * @param name - name of the test plan
+     * @param name name of the test plan
      */
     public void setName(String name) {
         this.name = name;
@@ -194,7 +194,7 @@ public class TestPlan {
     /**
      * Sets the deployment pattern name of the test plan in which it was created.
      *
-     * @param deploymentPattern - deployment pattern name of the test plan
+     * @param deploymentPattern deployment pattern name of the test plan
      */
     public void setDeploymentPattern(String deploymentPattern) {
         this.deploymentPattern = deploymentPattern;
@@ -212,7 +212,7 @@ public class TestPlan {
     /**
      * Sets the completed time of the test plan.
      *
-     * @param completedTimeStamp - completed time of the test plan
+     * @param completedTimeStamp completed time of the test plan
      */
     public void setCompletedTimeStamp(long completedTimeStamp) {
         this.completedTimeStamp = completedTimeStamp;
@@ -230,7 +230,7 @@ public class TestPlan {
     /**
      * Sets the status of the test plan.
      *
-     * @param status - current status of the test plan
+     * @param status current status of the test plan
      */
     public void setStatus(Status status) {
         this.status = status;
@@ -248,7 +248,7 @@ public class TestPlan {
     /**
      * Sets the deployer-type (puppet/ansible) of the test plan using the string value.
      *
-     * @param deployerType - string deployer-type (puppet/ansible) of the test plan
+     * @param deployerType string deployer-type (puppet/ansible) of the test plan
      */
     public void setDeployerType(String deployerType) {
         this.deployerType = DeployerType.valueOf(deployerType.toUpperCase());
@@ -257,7 +257,7 @@ public class TestPlan {
     /**
      * Sets the deployer-type (puppet/ansible) of the test plan.
      *
-     * @param deployerType - deployer-type (puppet/ansible) of the test plan
+     * @param deployerType deployer-type (puppet/ansible) of the test plan
      */
     public void setDeployerType(DeployerType deployerType) {
         this.deployerType = deployerType;
@@ -275,7 +275,7 @@ public class TestPlan {
     /**
      * Sets the test execution results of this test plan.
      *
-     * @param testReport - the test execution results of this test plan
+     * @param testReport the test execution results of this test plan
      */
     public void setTestReport(TestReport testReport) {
         this.testReport = testReport;
@@ -293,7 +293,7 @@ public class TestPlan {
     /**
      * Sets the deployment information of the test plan.
      *
-     * @param deployment - the deployment information of the test plan
+     * @param deployment the deployment information of the test plan
      */
     public void setDeployment(Deployment deployment) {
         this.deployment = deployment;
@@ -311,7 +311,7 @@ public class TestPlan {
     /**
      * Sets if the test plan is enabled or not.
      *
-     * @param enabled - test plan is enabled or not
+     * @param enabled test plan is enabled or not
      */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
@@ -329,7 +329,7 @@ public class TestPlan {
     /**
      * Sets the description of the test plan.
      *
-     * @param description - description of the test plan
+     * @param description description of the test plan
      */
     public void setDescription(String description) {
         this.description = description;
@@ -347,7 +347,7 @@ public class TestPlan {
     /**
      * Sets the path of the test plans' test artifacts.
      *
-     * @param testRepoDir - the path of the test plans' test artifacts.
+     * @param testRepoDir the path of the test plans' test artifacts.
      */
     public void setTestRepoDir(String testRepoDir) {
         this.testRepoDir = testRepoDir;
@@ -366,7 +366,7 @@ public class TestPlan {
      * Sets an additional infrastructure script path to this test plan to be executed after the general infrastructure
      * has completed.
      *
-     * @param infrastructureScript - additional infrastructureScript script path
+     * @param infrastructureScript additional infrastructureScript script path
      */
     public void setInfrastructureScript(Script infrastructureScript) {
         this.infrastructureScript = infrastructureScript;
@@ -385,7 +385,7 @@ public class TestPlan {
      * Sets an additional deployment script path to this test plan to be executed after the general deployment has
      * completed.
      *
-     * @param deploymentScript - additional deployment script path
+     * @param deploymentScript additional deployment script path
      */
     public void setDeploymentScript(Script deploymentScript) {
         this.deploymentScript = deploymentScript;
@@ -403,7 +403,7 @@ public class TestPlan {
     /**
      * Sets the path of the test plans' infrastructure artifacts.
      *
-     * @param infraRepoDir - the path of the test plans' infrastructure artifacts
+     * @param infraRepoDir the path of the test plans' infrastructure artifacts
      */
     public void setInfraRepoDir(String infraRepoDir) {
         this.infraRepoDir = infraRepoDir;
