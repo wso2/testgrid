@@ -37,10 +37,10 @@ public class ScenarioExecutor {
     /**
      * This method executes a given TestScenario.
      *
-     * @param  testScenario - An instance of TestScenario in which the tests should be executed.
-     * @param  deployment - An instance of Deployment in which the tests should be executed against.
-     * @param  homeDir - The location of cloned TestPlan.
-     * @return Returns the modified TestScenario with status
+     * @param  testScenario an instance of TestScenario in which the tests should be executed.
+     * @param  deployment an instance of Deployment in which the tests should be executed against.
+     * @param  homeDir the location of cloned TestPlan.
+     * @return the modified TestScenario with status
      * @throws ScenarioExecutorException If something goes wrong while executing the TestScenario.
      */
     public TestScenario runScenario(TestScenario testScenario, Deployment deployment, String homeDir)
@@ -60,8 +60,8 @@ public class ScenarioExecutor {
     /**
      * This method aborts a running TestScenario.
      *
-     * @param  testScenario - An instance of TestScenario in which the tests should be aborted.
-     * @return Returns the status of the operation
+     * @param  testScenario an instance of TestScenario in which the tests should be aborted.
+     * @return the status of the operation
      * @throws ScenarioExecutorException If something goes wrong while aborting the TestScenario.
      */
     public boolean abortScenario(TestScenario testScenario) throws ScenarioExecutorException {
@@ -71,8 +71,8 @@ public class ScenarioExecutor {
     /**
      * This method returns the status of a running TestScenario.
      *
-     * @param  testScenario - An instance of TestScenario in which the status should be monitored.
-     * @return Returns the status of the TestScenario
+     * @param  testScenario an instance of TestScenario in which the status should be monitored.
+     * @return the status of the TestScenario
      * @throws ScenarioExecutorException If something goes wrong while checking the status of the TestScenario.
      */
     public TestScenario.Status getStatus(TestScenario testScenario) throws ScenarioExecutorException {
