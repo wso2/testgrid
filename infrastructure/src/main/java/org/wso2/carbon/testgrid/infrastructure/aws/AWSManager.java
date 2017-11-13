@@ -89,7 +89,7 @@ public class AWSManager {
         CreateStackRequest stackRequest = new CreateStackRequest();
         stackRequest.setStackName(cloudFormationName);
         String file = new String(Files.readAllBytes(Paths.get(infraRepoDir, this.infra.getName(),
-                "AWS", "Scripts", script.getName())));
+                "AWS", "Scripts", script.getFilePath())));
         stackRequest.setTemplateBody(file);
         log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
         stackbuilder.createStack(stackRequest);
@@ -128,9 +128,6 @@ public class AWSManager {
         DescribeStacksRequest wait = new DescribeStacksRequest();
         wait.setStackName(stackName);
         boolean completed = false;
-        String status = "UNKNOWN";
-        String reason = "";
-
         log.info("Waiting ..");
         while (!completed) {
             List<Stack> stacks = stackBuilder.describeStacks(wait).getStacks();
@@ -141,6 +138,7 @@ public class AWSManager {
                 for (Stack stack : stacks) {
                     if (stack.getStackStatus().equals(StackStatus.CREATE_COMPLETE.toString()) ||
                             stack.getStackStatus().equals(StackStatus.DELETE_COMPLETE.toString())) {
+                        log.info("Finished stack task ");
                         return true;
                     } else if (stack.getStackStatus().equals(StackStatus.CREATE_FAILED.toString()) ||
                             stack.getStackStatus().equals(StackStatus.ROLLBACK_FAILED.toString()) ||
@@ -154,8 +152,6 @@ public class AWSManager {
                 Thread.sleep(5000);
             }
         }
-        log.info("Finished creating stack");
-        log.info(status + "(" + reason + ")");
         return false;
     }
 
@@ -180,7 +176,7 @@ public class AWSManager {
         String cloudFormationName = script.getName();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
-                .withRegion(infra.getRegion())
+                .withRegion(this.infra.getRegion())
                 .build();
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(cloudFormationName);
