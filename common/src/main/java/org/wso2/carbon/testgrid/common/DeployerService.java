@@ -26,18 +26,18 @@ import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 public interface DeployerService {
 
     /**
-     * This method returns the provider name (AWS/GCP/Open Stack etc).
+     * This method returns the deployer name (Puppet/Ansible/Chef etc).
      *
-     * @return A String indicating the name of the provider.
+     * @return A String indicating the name of the deployer.
      */
     String getDeployerName();
 
     /**
-     * Runs deploy.sh script and deploys artifacts in the test cluster
+     * Runs deploy.sh script and deploys artifacts in the provided infrastructure
      *
-     * @param deployment Current test plan
-     * @return Deployment
-     * @throws TestGridDeployerException
+     * @param deployment - Deployment information of the infrastructure
+     * @return Deployment - Deployment object along with it's matched hosts and ports
+     * @throws TestGridDeployerException - thrown when error occurs in the product deployment process.
      */
     Deployment deploy(Deployment deployment) throws TestGridDeployerException;
 }
