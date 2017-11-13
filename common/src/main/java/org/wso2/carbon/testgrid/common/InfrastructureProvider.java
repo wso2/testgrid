@@ -29,35 +29,35 @@ public interface InfrastructureProvider {
     /**
      * This method returns the provider name (AWS/GCP/Open Stack etc).
      *
-     * @return A String indicating the name of the provider.
+     * @return a String indicating the name of the provider.
      */
      String getProviderName();
 
     /**
      * This method returns whether the provider can handle the requested infrastructure.
      *
-     * @return A boolean indicating whether can handle or not.
+     * @return a boolean indicating whether can handle or not.
      */
      boolean canHandle(Infrastructure infrastructure);
 
     /**
      * This method creates the necessary infrastructure using the provided configuration.
      *
-     * @param infrastructure An instance of a Infrastructure which includes the details of the infrastructure
+     * @param infrastructure an instance of a Infrastructure which includes the details of the infrastructure
      *                       that should be created.
-     * @param infraRepoDir - Location of the cloned repository related to infrastructure.
-     * @return Deployment -  Deployment object including the created host, ip details
-     * @throws TestGridInfrastructureException - thrown when error occurs in the infrastructure creation process.
+     * @param infraRepoDir location of the cloned repository related to infrastructure.
+     * @return Deployment Deployment object including the created host, ip details
+     * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure creation process.
      */
     Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException;
 
     /**
      * This method executes commands needed to remove the infrastructure.
      *
-     * @param infrastructure An instance of a Infrastructure in which Infrastructure should be removed.
-     * @param infraRepoDir - Location of the cloned repository related to infrastructure.
+     * @param infrastructure an instance of a Infrastructure in which Infrastructure should be removed.
+     * @param infraRepoDir location of the cloned repository related to infrastructure.
      * @return boolean status of the operation
-     * @throws TestGridInfrastructureException  - thrown when error occurs in the infrastructure destroy process.
+     * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure destroy process.
      */
     boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException;
 

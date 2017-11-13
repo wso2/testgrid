@@ -41,7 +41,7 @@ public class Deployment {
     /**
      * Sets the name of the deployment.
      *
-     * @param name - Name of the deployment
+     * @param name name of the deployment
      */
     public void setName(String name) {
         this.name = name;
@@ -50,7 +50,7 @@ public class Deployment {
     /**
      * Returns the list of hosts in the deployment.
      *
-     * @return List of hosts in the deployment
+     * @return list of hosts in the deployment
      */
     public List<Host> getHosts() {
         return hosts;
@@ -59,7 +59,7 @@ public class Deployment {
     /**
      * Sets the list of hosts in the deployment.
      *
-     * @param hosts - list of hosts in the deployment
+     * @param hosts list of hosts in the deployment
      */
     public void setHosts(List<Host> hosts) {
         this.hosts = hosts;
@@ -77,7 +77,7 @@ public class Deployment {
     /**
      * Sets the location of the deployment scripts.
      *
-     * @param deploymentScriptsDir - location of the deployment scripts
+     * @param deploymentScriptsDir location of the deployment scripts
      */
     public void setDeploymentScriptsDir(String deploymentScriptsDir) {
         this.deploymentScriptsDir = deploymentScriptsDir;

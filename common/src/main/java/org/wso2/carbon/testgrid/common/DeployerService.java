@@ -35,9 +35,9 @@ public interface DeployerService {
     /**
      * Runs deploy.sh script and deploys artifacts in the provided infrastructure
      *
-     * @param deployment - Deployment information of the infrastructure
-     * @return Deployment - Deployment object along with it's matched hosts and ports
-     * @throws TestGridDeployerException - thrown when error occurs in the product deployment process.
+     * @param deployment deployment information of the infrastructure
+     * @return Deployment deployment object along with it's matched hosts and ports
+     * @throws TestGridDeployerException If an error occurs in the product deployment process.
      */
     Deployment deploy(Deployment deployment) throws TestGridDeployerException;
 }
