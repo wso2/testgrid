@@ -24,6 +24,7 @@ import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 import org.wso2.carbon.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
@@ -33,6 +34,7 @@ import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
 
+import java.nio.file.Paths;
 import java.util.Date;
 
 /**
@@ -48,8 +50,13 @@ public class TestPlanExecutor {
         try {
 
             if (infrastructure != null) {
-                testPlan.setDeployment(InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
-                        .createInfrastructure(infrastructure, testPlan.getInfraRepoDir()));
+                Deployment deployment = InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
+                        .createInfrastructure(infrastructure, testPlan.getInfraRepoDir());
+                deployment.setName(infrastructure.getName());
+                deployment.setDeploymentScriptsDir(Paths.get(testPlan.getInfraRepoDir(),
+                        TestGridConstants.DEPLOYMENT_DIR, infrastructure.getName(),
+                        infrastructure.getProviderType().name()).toString());
+                testPlan.setDeployment(deployment);
                 testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
             } else {
                 testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_ERROR);
@@ -125,7 +132,7 @@ public class TestPlanExecutor {
             testPlan.setStatus(TestPlan.Status.DEPLOYMENT_PREPARATION);
             Deployment deployment;
             try {
-                deployment = new DeployerServiceImpl().deploy(testPlan);
+                deployment = new DeployerServiceImpl().deploy(testPlan.getDeployment());
                 testPlan.setStatus(TestPlan.Status.DEPLOYMENT_READY);
             } catch (TestGridDeployerException e) {
                 testPlan.setStatus(TestPlan.Status.DEPLOYMENT_ERROR);

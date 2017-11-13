@@ -35,17 +35,9 @@ public interface DeployerService {
     /**
      * Runs deploy.sh script and deploys artifacts in the test cluster
      *
-     * @param testPlan Current test plan
+     * @param deployment Current test plan
      * @return Deployment
      * @throws TestGridDeployerException
      */
-    Deployment deploy(TestPlan testPlan) throws TestGridDeployerException;
-
-    /**
-     *
-     * @param testPlan Current test plan
-     * @return Deployment
-     * @throws TestGridDeployerException
-     */
-    boolean unDeploy(TestPlan testPlan) throws TestGridDeployerException;
+    Deployment deploy(Deployment deployment) throws TestGridDeployerException;
 }
