@@ -76,8 +76,7 @@ public class AWSManager {
      * @return Returns a  Deployment object with created infrastructure details.
      * @throws TestGridInfrastructureException When there is an error with CloudFormation script.
      */
-    public Deployment createInfrastructure(Script script, String infraRepoDir) throws InterruptedException,
-            IOException, TestGridInfrastructureException {
+    public Deployment createInfrastructure(Script script, String infraRepoDir)throws TestGridInfrastructureException {
         String cloudFormationName = script.getName();
         AmazonCloudFormation stackbuilder = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
