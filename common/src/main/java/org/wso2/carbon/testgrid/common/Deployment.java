@@ -27,20 +27,59 @@ public class Deployment {
 
     private String name;
     private List<Host> hosts;
+    private String deploymentScriptsDir;
 
+    /**
+     * Returns the name of the deployment.
+     *
+     * @return name of the deployment
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the deployment.
+     *
+     * @param name - Name of the deployment
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the list of hosts in the deployment.
+     *
+     * @return List of hosts in the deployment
+     */
     public List<Host> getHosts() {
         return hosts;
     }
 
+    /**
+     * Sets the list of hosts in the deployment.
+     *
+     * @param hosts - list of hosts in the deployment
+     */
     public void setHosts(List<Host> hosts) {
         this.hosts = hosts;
+    }
+
+    /**
+     * Returns the location of the deployment scripts.
+     *
+     * @return the location of the deployment scripts
+     */
+    public String getDeploymentScriptsDir() {
+        return deploymentScriptsDir;
+    }
+
+    /**
+     * Sets the location of the deployment scripts.
+     *
+     * @param deploymentScriptsDir - location of the deployment scripts
+     */
+    public void setDeploymentScriptsDir(String deploymentScriptsDir) {
+        this.deploymentScriptsDir = deploymentScriptsDir;
     }
 }
