@@ -55,7 +55,6 @@ public class AWSProvider implements InfrastructureProvider {
             throws TestGridInfrastructureException {
         AWSManager awsManager = new AWSManager(TestGridConstants.AWS_ACCESS_KEY, TestGridConstants.AWS_SECRET_KEY);
         awsManager.init(infrastructure);
-        try {
             for (Script script : infrastructure.getScripts()) {
                 if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
                     //assumption : Only one CF script will be there
@@ -63,12 +62,6 @@ public class AWSProvider implements InfrastructureProvider {
                 }
             }
             throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
-        } catch (InterruptedException e) {
-            throw new TestGridInfrastructureException("Error occured while waiting for " +
-                    "CloudFormation Stack creation", e);
-        } catch (IOException e) {
-            throw new TestGridInfrastructureException("Error occured while Reading CloudFormation script", e);
-        }
     }
 
     @Override

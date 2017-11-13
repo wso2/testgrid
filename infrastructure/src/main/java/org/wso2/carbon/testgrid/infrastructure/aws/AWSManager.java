@@ -74,12 +74,11 @@ public class AWSManager {
      * @param script       Script object containing the CF details.
      * @param infraRepoDir Path of TestGrid home location in file system as a String.
      * @return a Deployment object with created infrastructure details.
-     * @throws InterruptedException            when an Interrupt occurs while waiting for CF result.
-     * @throws IOException                     when an error occurs while reading the cf template file.
+     * when an error occurs while reading the cf template file.
      * @throws TestGridInfrastructureException AWS related error caused by malformed CF template.
      */
-    public Deployment createInfrastructure(Script script, String infraRepoDir) throws InterruptedException,
-            IOException, TestGridInfrastructureException {
+    public Deployment createInfrastructure(Script script, String infraRepoDir)
+            throws TestGridInfrastructureException {
         String cloudFormationName = script.getName();
         AmazonCloudFormation stackbuilder = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
@@ -88,29 +87,37 @@ public class AWSManager {
 
         CreateStackRequest stackRequest = new CreateStackRequest();
         stackRequest.setStackName(cloudFormationName);
-        String file = new String(Files.readAllBytes(Paths.get(infraRepoDir, this.infra.getName(),
-                "AWS", "Scripts", script.getFilePath())));
-        stackRequest.setTemplateBody(file);
-        log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
-        stackbuilder.createStack(stackRequest);
-        waitForAWSProcess(stackbuilder, cloudFormationName);
-        DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
-        describeStacksRequest.setStackName(cloudFormationName);
-        DescribeStacksResult describeStacksResult = stackbuilder.describeStacks(describeStacksRequest);
-        //Initially only PublicDNS which is exported from a dummy script is saved in the Deployment object.
-        List<Host> hosts = new ArrayList<>();
-        for (Stack st : describeStacksResult.getStacks()) {
-            for (Output output : st.getOutputs()) {
-                if (output.getOutputKey().equals("PublicDNS")) {
-                    Host host = new Host();
-                    host.setIp(output.getOutputValue());
-                    hosts.add(host);
+        try {
+            String file = new String(Files.readAllBytes(Paths.get(infraRepoDir, this.infra.getName(),
+                    "AWS", "Scripts", script.getFilePath())));
+            stackRequest.setTemplateBody(file);
+            log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
+            stackbuilder.createStack(stackRequest);
+            waitForAWSProcess(stackbuilder, cloudFormationName);
+            DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
+            describeStacksRequest.setStackName(cloudFormationName);
+            DescribeStacksResult describeStacksResult = stackbuilder.describeStacks(describeStacksRequest);
+            //Initially only PublicDNS which is exported from a dummy script is saved in the Deployment object.
+            List<Host> hosts = new ArrayList<>();
+            for (Stack st : describeStacksResult.getStacks()) {
+                for (Output output : st.getOutputs()) {
+                    if (output.getOutputKey().equals("PublicDNS")) {
+                        Host host = new Host();
+                        host.setIp(output.getOutputValue());
+                        hosts.add(host);
+                    }
                 }
             }
+            Deployment deployment = new Deployment();
+            deployment.setHosts(hosts);
+            return deployment;
+        } catch (InterruptedException e) {
+            throw new TestGridInfrastructureException("Error occured while waiting for " +
+                    "CloudFormation Stack creation", e);
+        } catch (IOException e) {
+            throw new TestGridInfrastructureException("Error occured while Reading CloudFormation script", e);
         }
-        Deployment deployment = new Deployment();
-        deployment.setHosts(hosts);
-        return deployment;
+
     }
 
     /**
@@ -128,23 +135,28 @@ public class AWSManager {
         DescribeStacksRequest wait = new DescribeStacksRequest();
         wait.setStackName(stackName);
         boolean completed = false;
+        boolean successful = false;
         log.info("Waiting ..");
         while (!completed) {
             List<Stack> stacks = stackBuilder.describeStacks(wait).getStacks();
             if (stacks.isEmpty()) {
-                log.info("There is no stack by the name " + stackName);
-                return false;
+                throw new TestGridInfrastructureException("There is no stack for the name :" + stackName);
             } else {
                 for (Stack stack : stacks) {
                     if (stack.getStackStatus().equals(StackStatus.CREATE_COMPLETE.toString()) ||
                             stack.getStackStatus().equals(StackStatus.DELETE_COMPLETE.toString())) {
-                        log.info("Finished stack task ");
-                        return true;
+                        completed = true;
+                        successful = true;
                     } else if (stack.getStackStatus().equals(StackStatus.CREATE_FAILED.toString()) ||
                             stack.getStackStatus().equals(StackStatus.ROLLBACK_FAILED.toString()) ||
                             stack.getStackStatus().equals(StackStatus.ROLLBACK_COMPLETE.toString())) {
-                        throw new TestGridInfrastructureException("Error while executing infrastructure " +
-                                "command due to :" + stack.getStackStatusReason());
+                        completed = true;
+                        successful = false;
+                    } else if (stack.getStackStatus().equals(StackStatus.CREATE_IN_PROGRESS.toString()) ||
+                            stack.getStackStatus().equals(StackStatus.DELETE_IN_PROGRESS.toString()) ||
+                            stack.getStackStatus().equals(StackStatus.ROLLBACK_IN_PROGRESS.toString()) ||
+                            stack.getStackStatus().equals(StackStatus.REVIEW_IN_PROGRESS.toString())) {
+                        completed = false;
                     }
                 }
             }
@@ -152,11 +164,11 @@ public class AWSManager {
                 Thread.sleep(5000);
             }
         }
-        return false;
+        return successful;
     }
 
     /**
-     * Initialize the deployer with an infrastructure object.
+     * Initialize the deploye with an infrastructure object.
      *
      * @param infrastructure infrastructure details.
      */
@@ -167,8 +179,8 @@ public class AWSManager {
     /**
      * This method destroys the CF infrastructure given the stack name.
      *
-     * @param script Script object with the CloudFormaiton details.
-     * @return true if destroy finishes succesfully.
+     * @param script Script object with the CloudFormation details.
+     * @return true if destroy finishes successfully.
      * @throws TestGridInfrastructureException when AWS error occurs in deletion process.
      * @throws InterruptedException            when there is an interruption while waiting for the result.
      */
