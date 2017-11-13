@@ -54,7 +54,7 @@ public class AWSManager {
     private static final Log log = LogFactory.getLog(AWSManager.class);
 
     /**
-     * This constructor creates AWS Manager object and validate AWS related environment variables are present.
+     * This constructor creates AWS deployer object and validate AWS related environment variables are present.
      *
      * @param awsKeyVariableName    Environment variable name for AWS ACCESS KEY.
      * @param awsSecretVariableName Environment variable name for AWS SECRET KEY.
@@ -76,13 +76,14 @@ public class AWSManager {
      * @return Returns a  Deployment object with created infrastructure details.
      * @throws TestGridInfrastructureException When there is an error with CloudFormation script.
      */
-    public Deployment createInfrastructure(Script script, String infraRepoDir)
-            throws TestGridInfrastructureException {
+    public Deployment createInfrastructure(Script script, String infraRepoDir) throws InterruptedException,
+            IOException, TestGridInfrastructureException {
         String cloudFormationName = script.getName();
         AmazonCloudFormation stackbuilder = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
                 .withRegion(infra.getRegion())
                 .build();
+
         CreateStackRequest stackRequest = new CreateStackRequest();
         stackRequest.setStackName(cloudFormationName);
         try {
@@ -190,7 +191,7 @@ public class AWSManager {
         String cloudFormationName = script.getName();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
-                .withRegion(this.infra.getRegion())
+                .withRegion(infra.getRegion())
                 .build();
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(cloudFormationName);
