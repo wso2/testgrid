@@ -119,8 +119,8 @@ public class TestPlanExecutor {
     /**
      * This method executes a given TestPlan.
      *
-     * @param  testPlan - An instance of TestPlan in which the tests should be executed.
-     * @return Returns the status of the execution (success / fail)
+     * @param  testPlan an instance of TestPlan in which the tests should be executed.
+     * @return the status of the execution (success / fail)
      * @throws TestPlanExecutorException If something goes wrong while executing the TestPlan.
      */
     public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
@@ -176,8 +176,8 @@ public class TestPlanExecutor {
     /**
      * This method aborts a running TestPlan.
      *
-     * @param  testPlan - An instance of TestPlan in which the tests should be aborted.
-     * @return Returns the status (success / fail)
+     * @param  testPlan an instance of TestPlan in which the tests should be aborted.
+     * @return the status (success / fail)
      * @throws TestPlanExecutorException If something goes wrong while aborting the TestPlan.
      */
     public boolean abortTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
@@ -188,8 +188,8 @@ public class TestPlanExecutor {
     /**
      * This method returns the status of a running TestPlan.
      *
-     * @param  testPlan - An instance of TestPlan in which the status should be monitored.
-     * @return TestPlan.Status - Returns the status of the TestPlan
+     * @param  testPlan an instance of TestPlan in which the status should be monitored.
+     * @return TestPlan.Status the status of the TestPlan
      * @throws TestPlanExecutorException If something goes wrong while checking the status of the TestPlan.
      */
     public TestPlan.Status getStatus(TestPlan testPlan) throws TestPlanExecutorException {
