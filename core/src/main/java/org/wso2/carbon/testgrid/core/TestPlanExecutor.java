@@ -31,7 +31,7 @@ import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException
 import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
-import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
+import org.wso2.carbon.testgrid.deployment.DeployerFactory;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.nio.file.Paths;
@@ -123,7 +123,7 @@ public class TestPlanExecutor {
      * @return Returns the status of the execution (success / fail)
      * @throws TestPlanExecutorException If something goes wrong while executing the TestPlan.
      */
-    public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
+    public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException, UnsupportedProviderException {
         testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_PREPARATION);
         //Setup the infrastructure
         testPlan = setupInfrastructure(infrastructure, testPlan);
@@ -132,7 +132,7 @@ public class TestPlanExecutor {
             testPlan.setStatus(TestPlan.Status.DEPLOYMENT_PREPARATION);
             Deployment deployment;
             try {
-                deployment = new DeployerServiceImpl().deploy(testPlan.getDeployment());
+                deployment = DeployerFactory.getDeployerService(testPlan).deploy(testPlan.getDeployment());
                 testPlan.setStatus(TestPlan.Status.DEPLOYMENT_READY);
             } catch (TestGridDeployerException e) {
                 testPlan.setStatus(TestPlan.Status.DEPLOYMENT_ERROR);

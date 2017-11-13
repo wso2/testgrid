@@ -61,7 +61,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         Utils.executeCommand("bash " +
                 Paths.get(testPlanLocation, getScriptToExecute(infrastructure, Script.ScriptType.INFRA_CREATE)),
                 null);
-        return null;
+        return new Deployment();
     }
 
     @Override

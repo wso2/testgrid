@@ -31,6 +31,7 @@ import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
+import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
@@ -188,6 +189,9 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             } catch (TestPlanExecutorException e) {
                 String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +
                         productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";
+                log.error(msg, e);
+            } catch (UnsupportedProviderException e) {
+                String msg = "Unable to find a InfrastructureProvider for requested type";
                 log.error(msg, e);
             }
         }
