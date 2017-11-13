@@ -39,6 +39,7 @@ import org.wso2.carbon.testgrid.common.TestScenario;
 import org.wso2.carbon.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.carbon.testgrid.common.exception.TestAutomationEngineException;
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
+import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
@@ -53,7 +54,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 /**
  * Test class to test the functionality of the {@link TestGridMgtServiceImpl}.
@@ -61,7 +61,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  * @since 0.9.0
  */
 @PrepareForTest({InfrastructureProviderFactory.class, DeployerServiceImpl.class, TestEngineImpl.class,
-        TestReportEngineImpl.class})
+        TestReportEngineImpl.class, TestPlanExecutor.class})
 public class TestGridMgtServiceTest extends PowerMockTestCase {
 
     TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
@@ -102,7 +102,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
 
     @Test
     public void executeProductTestPlanTest() throws TestGridException, UnsupportedProviderException,
-            InfrastructureProviderInitializationException, TestGridInfrastructureException, TestAutomationEngineException {
+            InfrastructureProviderInitializationException, TestGridInfrastructureException, TestAutomationEngineException, TestGridDeployerException {
         String deploymentPattern = "single-node";
 
         String scenarioLocation = "/tmp/abc";
@@ -113,6 +113,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         testScenarios.add(testScenario);
 
         TestPlan testPlan = Mockito.mock(TestPlan.class);
+
         Infrastructure infrastructure = Mockito.mock(Infrastructure.class);
         infrastructure.setName(deploymentPattern);
         OperatingSystem operatingSystem = Mockito.mock(OperatingSystem.class);
@@ -128,6 +129,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Mockito.when(infrastructure.getOperatingSystem()).thenReturn(operatingSystem);
         Mockito.when(infrastructure.getName()).thenReturn(deploymentPattern);
 
+        Deployment deployment = Mockito.mock(Deployment.class);
 
         Mockito.when(testPlan.getName()).thenReturn("Sample Test Plan");
         Mockito.when(testPlan.getDescription()).thenReturn("Test plan description");
@@ -138,6 +140,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Mockito.when(testPlan.getHome()).thenReturn(scenarioLocation);
         Mockito.when(testPlan.getInfraRepoDir()).thenReturn(scenarioLocation);
         Mockito.when(testPlan.getTestRepoDir()).thenReturn(scenarioLocation);
+        Mockito.when(testPlan.getDeployment()).thenReturn(deployment);
 
         CopyOnWriteArrayList<TestPlan> testPlans = new CopyOnWriteArrayList<>();
         testPlans.add(testPlan);
@@ -155,34 +158,32 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Mockito.when(productTestPlan.getStatus()).thenReturn(ProductTestPlan.Status.COMPLETED);
 
         InfrastructureProvider provider = Mockito.mock(OpenStackProvider.class);
-        Deployment deployment = Mockito.mock(Deployment.class);
+
         DeployerServiceImpl deployer = mock(DeployerServiceImpl.class);
         TestEngineImpl testEngine = mock(TestEngineImpl.class);
         TestReportEngineImpl testReportEngine = mock(TestReportEngineImpl.class);
-
 
         PowerMockito.mockStatic(InfrastructureProviderFactory.class);
 
         Mockito.when(InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)).thenReturn(provider);
         Mockito.when(provider.createInfrastructure(infrastructure, scenarioLocation)).thenReturn(deployment);
+        Mockito.when(provider.removeInfrastructure(infrastructure, scenarioLocation)).thenReturn(true);
         Mockito.when(provider.canHandle(infrastructure)).thenReturn(true);
         Mockito.when(provider.removeInfrastructure(infrastructure, scenarioLocation)).thenReturn(true);
 
+        Mockito.when(deployer.deploy(testPlan.getDeployment())).thenReturn(deployment);
+        Mockito.when(testEngine.runScenario(testScenario, scenarioLocation, deployment)).thenReturn(true);
 
         try {
-            whenNew(DeployerServiceImpl.class).withNoArguments().thenReturn(deployer);
-            Mockito.when(deployer.deploy(testPlan)).thenReturn(deployment);
-
-            whenNew(TestEngineImpl.class).withNoArguments().thenReturn(testEngine);
-            Mockito.when(testEngine.runScenario(testScenario, scenarioLocation, deployment)).thenReturn(true);
-
-            whenNew(TestReportEngineImpl.class).withNoArguments().thenReturn(testReportEngine);
+            PowerMockito.whenNew(DeployerServiceImpl.class).withNoArguments().thenReturn(deployer);
+            PowerMockito.whenNew(TestEngineImpl.class).withNoArguments().thenReturn(testEngine);
+            PowerMockito.whenNew(TestReportEngineImpl.class).withNoArguments().thenReturn(testReportEngine);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
 
-        testGridMgtService.executeProductTestPlan(productTestPlan);
+        new TestGridMgtServiceImpl().executeProductTestPlan(productTestPlan);
         Assert.assertTrue(true);
     }
 }
