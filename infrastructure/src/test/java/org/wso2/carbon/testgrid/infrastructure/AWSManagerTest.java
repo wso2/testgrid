@@ -17,14 +17,27 @@
 */
 package org.wso2.carbon.testgrid.infrastructure;
 
+import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.cloudformation.model.CreateStackRequest;
+import com.amazonaws.services.cloudformation.model.CreateStackResult;
+import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
+import com.amazonaws.services.cloudformation.model.DeleteStackResult;
+import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
+import com.amazonaws.services.cloudformation.model.Output;
+import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackStatus;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
-import org.testng.annotations.ExpectedExceptions;
 import org.testng.annotations.Test;
+import org.wso2.carbon.testgrid.common.Deployment;
+import org.wso2.carbon.testgrid.common.Host;
 import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.Script;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
@@ -38,76 +51,161 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class will test AWS deployer related tasks.
+ * This class will test AWSManager related tasks.
  */
-@PrepareForTest({AWSManager.class,AmazonCloudFormationClientBuilder.class,AmazonCloudFormation.class, AwsClientBuilder.class})
-public class AWSManagerTest extends PowerMockTestCase{
+@PrepareForTest({AWSManager.class, AmazonCloudFormationClientBuilder.class
+        , AmazonCloudFormation.class, AwsClientBuilder.class})
+public class AWSManagerTest extends PowerMockTestCase {
 
-    @Test
-    public void testDeployerCreation() throws Exception {
-        //test dummy varibles
-        String key = "AWS_KEY";
-        String keyValue = "aws_key_value";
-        String secret = "AWS_SCERET";
-        String secret_value = "aws_secret_value";
+    private String key = "AWS_KEY";
+    private String keyValue = "aws_key_value";
+    private String secret = "AWS_SCERET";
+    private String secretValue = "aws_secret_value";
+    private String scriptFile = "template.json";
+    private String mockStackName = "MockStack";
+    private String patternName = "single-node";
+
+    @Test(description = "This test case tests creation of AWSManager object when AWS credentials are " +
+            "set correctly")
+    public void testManagerCreation() throws Exception {
         //set environment variables for
-        Map<String,String> map = new HashMap<>();
-        map.put(key,keyValue);
-        map.put(secret,secret_value);
+        Map<String, String> map = new HashMap<>();
+        map.put(key, keyValue);
+        map.put(secret, secretValue);
         set(map);
-        AWSManager awsManager = new AWSManager(key,secret);
+        AWSManager awsManager = new AWSManager(key, secret);
         Assert.assertNotNull(awsManager);
     }
 
-    @Test
-    @ExpectedExceptions({TestGridInfrastructureException.class})
-    public void testDeployerCreationNegativeTests() throws TestGridInfrastructureException, IOException,
+    @Test(description = "This test case tests creation of AWS Manager object when AWS credentials are " +
+            "not set correctly."
+            , expectedExceptions = TestGridInfrastructureException.class)
+    public void testManagerCreationNegativeTests() throws TestGridInfrastructureException, IOException,
             InterruptedException, NoSuchFieldException, IllegalAccessException {
-        //test dummy varibles
-        String key = "AWS_KEY";
-        String keyValue = "aws_key_value";
-        String secret = "AWS_SCERET2";
-        //set environment variables for
-        Map<String,String> map = new HashMap<>();
-        map.put(key,keyValue);
+        String secret2 = "AWS_SCERET2";
+        Map<String, String> map = new HashMap<>();
+        map.put(key, keyValue);
         set(map);
-        //invoke without no secret key environment varible set.
-        new AWSManager(key,secret);
+        //invoke without no secret key environment variable set.
+        new AWSManager(key, secret2);
     }
 
-    @Test
+    @Test(description = "This test case tests infrastructure creation of AWSManager object given the " +
+            "AWS CF template path.")
     public void createInfrastructureTest() throws Exception {
-        String key = "AWS_KEY";
-        String keyValue = "aws_key_value";
-        String secret = "AWS_SCERET";
-        String secret_value = "aws_secret_value";
-        //set environment variables for
-        Map<String,String> map = new HashMap<>();
-        map.put(key,keyValue);
-        map.put(secret,secret_value);
+
+        String outputKey = "PublicDNS";
+        String outputValue = "TestDNS";
+
+        Map<String, String> map = new HashMap<>();
+        map.put(key, keyValue);
+        map.put(secret, secretValue);
         set(map);
+        //create dummy script object
         Script script = new Script();
         script.setScriptType(Script.ScriptType.CLOUD_FORMATION);
+        script.setFilePath(scriptFile);
+        script.setName(mockStackName);
+        //create dummy infrastructure object
         Infrastructure infrastructure = new Infrastructure();
-        infrastructure.setName("single-node");
-        infrastructure.setScripts(Arrays.asList(script));
+        infrastructure.setName(patternName);
+        infrastructure.setScripts(Collections.singletonList(script));
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("DeploymentPatterns").getFile());
-        //TODO mock aws service and test creation process.
+        File resourcePath = new File(classLoader.getResource("DeploymentPatterns").getFile());
+        //Stack object with output object
+        Stack stack = new Stack();
+        stack.setStackName(mockStackName);
+
+        Output output = new Output();
+        output.setOutputKey(outputKey);
+        output.setOutputValue(outputValue);
+
+        stack.setOutputs(Collections.singletonList(output));
+        stack.setStackStatus(StackStatus.CREATE_COMPLETE);
+
+        //Mocking AWS SDK objects.
+        DescribeStacksResult describeStacksResultMock = Mockito.mock(DescribeStacksResult.class);
+        Mockito.when(describeStacksResultMock.getStacks()).thenReturn(Arrays.asList(stack));
+
+        AmazonCloudFormationClientBuilder cloudFormationClientBuilderMock = PowerMockito
+                .mock(AmazonCloudFormationClientBuilder.class);
+        AmazonCloudFormation cloudFormation = Mockito.mock(AmazonCloudFormation.class);
+        Mockito.when(cloudFormation.createStack(Mockito.any(CreateStackRequest.class)))
+                .thenReturn(Mockito.mock(CreateStackResult.class));
+        Mockito.when(cloudFormation.describeStacks(Mockito.any(DescribeStacksRequest.class)))
+                .thenReturn(describeStacksResultMock);
+        PowerMockito.when(cloudFormationClientBuilderMock.withRegion(Mockito.anyString()))
+                .thenReturn(cloudFormationClientBuilderMock);
+        PowerMockito.when(cloudFormationClientBuilderMock.withCredentials(Mockito.any(EnvironmentVariableCredentialsProvider.class)))
+                .thenReturn(cloudFormationClientBuilderMock);
+        PowerMockito.when(cloudFormationClientBuilderMock.build()).thenReturn(cloudFormation);
+        PowerMockito.mockStatic(AmazonCloudFormationClientBuilder.class);
+        PowerMockito.when(AmazonCloudFormationClientBuilder.standard()).thenReturn(cloudFormationClientBuilderMock);
+
+        AWSManager awsManager = new AWSManager(key, secret);
+        awsManager.init(infrastructure);
+        Deployment dep = awsManager.createInfrastructure(script, resourcePath.getAbsolutePath());
+
+        Assert.assertNotNull(dep);
+
+        for (Host host : dep.getHosts()) {
+            Assert.assertEquals(outputValue, host.getIp());
+        }
+    }
+
+    @Test(description = "This test case tests destroying infrastructure given a already built stack name.")
+    public void destroyInfrastructureTest() throws NoSuchFieldException, IllegalAccessException
+            , TestGridInfrastructureException, InterruptedException {
+        //set environment variables for
+        Map<String, String> map = new HashMap<>();
+        map.put(key, keyValue);
+        map.put(secret, secretValue);
+        set(map);
+        //create dummy script object
+        Script script = new Script();
+        script.setScriptType(Script.ScriptType.CLOUD_FORMATION);
+        script.setFilePath(scriptFile);
+        script.setName(mockStackName);
+
+        AmazonCloudFormationClientBuilder cloudFormationClientBuilderMock = PowerMockito
+                .mock(AmazonCloudFormationClientBuilder.class);
+        PowerMockito.when(cloudFormationClientBuilderMock.withRegion(Mockito.anyString()))
+                .thenReturn(cloudFormationClientBuilderMock);
+        PowerMockito.when(cloudFormationClientBuilderMock
+                .withCredentials(Mockito.any(EnvironmentVariableCredentialsProvider.class)))
+                .thenReturn(cloudFormationClientBuilderMock);
+        AmazonCloudFormation cloudFormation = Mockito.mock(AmazonCloudFormation.class);
+        PowerMockito.when(cloudFormationClientBuilderMock.build()).thenReturn(cloudFormation);
+        PowerMockito.mockStatic(AmazonCloudFormationClientBuilder.class);
+        PowerMockito.when(AmazonCloudFormationClientBuilder.standard())
+                .thenReturn(cloudFormationClientBuilderMock);
+        Mockito.when(cloudFormation.deleteStack(Mockito.any(DeleteStackRequest.class)))
+                .thenReturn(Mockito.mock(DeleteStackResult.class));
+        Stack stack = new Stack();
+        stack.setStackName(mockStackName);
+        stack.setStackStatus(StackStatus.DELETE_COMPLETE);
+
+        DescribeStacksResult describeStacksResultMock = Mockito.mock(DescribeStacksResult.class);
+        Mockito.when(describeStacksResultMock.getStacks()).thenReturn(Arrays.asList(stack));
+        Mockito.when(cloudFormation.describeStacks(Mockito.any(DescribeStacksRequest.class))).thenReturn(describeStacksResultMock);
+
+        AWSManager awsManager = new AWSManager(key, secret);
+        awsManager.init(new Infrastructure());
+        awsManager.destroyInfrastructure(script);
     }
 
     /**
      * Sets a temperary environmental variable for current runtime.
      *
      * @param newenv Map with environment variables to set.
-     * @throws NoSuchFieldException Error occurs while locating the field.
+     * @throws NoSuchFieldException   Error occurs while locating the field.
      * @throws IllegalAccessException Error occur while accessing the argument.
      */
     private void set(Map<String, String> newenv) throws NoSuchFieldException, IllegalAccessException {
         Class[] classes = Collections.class.getDeclaredClasses();
         Map<String, String> env = System.getenv();
-        for(Class cl : classes) {
-            if("java.util.Collections$UnmodifiableMap".equals(cl.getName())) {
+        for (Class cl : classes) {
+            if ("java.util.Collections$UnmodifiableMap".equals(cl.getName())) {
                 Field field = cl.getDeclaredField("m");
                 field.setAccessible(true);
                 Object obj = field.get(env);
