@@ -29,6 +29,7 @@ import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.testgrid.automation.TestEngineImpl;
 import org.wso2.carbon.testgrid.common.Database;
+import org.wso2.carbon.testgrid.common.DeployerService;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.InfrastructureProvider;
@@ -36,14 +37,17 @@ import org.wso2.carbon.testgrid.common.OperatingSystem;
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.exception.DeployerInitializationException;
 import org.wso2.carbon.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.carbon.testgrid.common.exception.TestAutomationEngineException;
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.carbon.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
-import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
+import org.wso2.carbon.testgrid.deployment.DeployerFactory;
+import org.wso2.carbon.testgrid.deployment.deployers.PuppetDeployer;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
 import org.wso2.carbon.testgrid.infrastructure.providers.OpenStackProvider;
 import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
@@ -60,7 +64,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
  *
  * @since 0.9.0
  */
-@PrepareForTest({InfrastructureProviderFactory.class, DeployerServiceImpl.class, TestEngineImpl.class,
+@PrepareForTest({InfrastructureProviderFactory.class, DeployerFactory.class, TestEngineImpl.class,
         TestReportEngineImpl.class, TestPlanExecutor.class})
 public class TestGridMgtServiceTest extends PowerMockTestCase {
 
@@ -101,8 +105,10 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
     }
 
     @Test
-    public void executeProductTestPlanTest() throws TestGridException, UnsupportedProviderException,
-            InfrastructureProviderInitializationException, TestGridInfrastructureException, TestAutomationEngineException, TestGridDeployerException {
+    public void executeProductTestPlanTest()
+            throws TestGridException, UnsupportedProviderException, InfrastructureProviderInitializationException,
+            TestGridInfrastructureException, TestAutomationEngineException, TestGridDeployerException,
+            DeployerInitializationException, UnsupportedDeployerException {
         String deploymentPattern = "single-node";
 
         String scenarioLocation = "/tmp/abc";
@@ -159,7 +165,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
 
         InfrastructureProvider provider = Mockito.mock(OpenStackProvider.class);
 
-        DeployerServiceImpl deployer = mock(DeployerServiceImpl.class);
+        DeployerService deployer = mock(PuppetDeployer.class);
         TestEngineImpl testEngine = mock(TestEngineImpl.class);
         TestReportEngineImpl testReportEngine = mock(TestReportEngineImpl.class);
 
@@ -175,7 +181,6 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Mockito.when(testEngine.runScenario(testScenario, scenarioLocation, deployment)).thenReturn(true);
 
         try {
-            PowerMockito.whenNew(DeployerServiceImpl.class).withNoArguments().thenReturn(deployer);
             PowerMockito.whenNew(TestEngineImpl.class).withNoArguments().thenReturn(testEngine);
             PowerMockito.whenNew(TestReportEngineImpl.class).withNoArguments().thenReturn(testReportEngine);
         } catch (Exception e) {

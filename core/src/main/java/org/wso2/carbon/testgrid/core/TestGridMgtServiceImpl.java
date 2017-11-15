@@ -31,6 +31,7 @@ import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
+import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
