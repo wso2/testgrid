@@ -20,12 +20,10 @@ package org.wso2.carbon.testgrid.automation.file;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.testgrid.automation.beans.JMeterTest;
 import org.wso2.carbon.testgrid.automation.beans.Test;
 import org.wso2.carbon.testgrid.automation.beans.TestNGTest;
-import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.automation.file.common.TestReader;
-import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -50,7 +48,7 @@ public class TestNGTestReader implements TestReader {
      * @param file File object for the test folder.
      * @return a List of Test objects.
      */
-    private List<Test> processTestStructure(File file) {
+    private List<Test> processTestStructure(File file) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
         File tests = new File(file.getAbsolutePath());
         TestNGTest test = new TestNGTest();
@@ -71,7 +69,7 @@ public class TestNGTestReader implements TestReader {
     }
 
     @Override
-    public List<Test> readTests(String testLocation) throws TestReaderException {
+    public List<Test> readTests(String testLocation) throws TestAutomationException {
         return processTestStructure(new File(testLocation));
     }
 }

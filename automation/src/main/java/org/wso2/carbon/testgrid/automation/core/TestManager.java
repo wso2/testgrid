@@ -20,10 +20,8 @@ package org.wso2.carbon.testgrid.automation.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.automation.beans.Test;
-import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
-import org.wso2.carbon.testgrid.automation.exceptions.TestManagerException;
-import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
 import org.wso2.carbon.testgrid.automation.file.common.TestGridTestReader;
 import org.wso2.carbon.testgrid.common.Deployment;
 
@@ -43,28 +41,26 @@ public class TestManager {
     /**
      * @param testLocation The location of tests in the file system as a String.
      * @param deployment   The deployment details of current pattern.
-     * @throws TestManagerException When there is an error creating the file structure.
+     * @throws TestAutomationException When there is an error creating the file structure.
      */
-    public void init(String testLocation, Deployment deployment) throws TestManagerException {
+    public void init(String testLocation, Deployment deployment) throws TestAutomationException {
         this.deployment = deployment;
         TestGridTestReader testGridTestReader = new TestGridTestReader();
 
         try {
             this.testLocation = testLocation + File.separator + "Tests";
             this.tests = testGridTestReader.getTests(this.testLocation);
-        } catch (TestReaderException e) {
-            String msg = "Error while reading tests";
-            log.error(msg, e);
-            throw new TestManagerException(msg, e);
+        } catch (TestAutomationException e) {
+            throw new TestAutomationException("Error while reading tests", e);
         }
     }
 
     /**
      * This method executes the Tests.
      *
-     * @throws TestGridExecuteException When there is an error when executing the test
+     * @throws TestAutomationException When there is an error when executing the test
      */
-    public void executeTests() throws TestGridExecuteException {
+    public void executeTests() throws TestAutomationException {
 
         if (this.tests != null) {
             for (Test test : this.tests) {

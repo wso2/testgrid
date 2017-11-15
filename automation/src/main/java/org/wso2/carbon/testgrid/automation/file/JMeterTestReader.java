@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.automation.beans.JMeterTest;
 import org.wso2.carbon.testgrid.automation.beans.Test;
-import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.automation.file.common.TestReader;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
@@ -46,7 +46,7 @@ public class JMeterTestReader implements TestReader {
      * @param file File object for the test folder.
      * @return a List of Test objects.
      */
-    private List<Test> processTestStructure(File file) {
+    private List<Test> processTestStructure(File file) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
         String[] list = file.list();
         for (String solution : Arrays.asList(list)) {
@@ -77,10 +77,10 @@ public class JMeterTestReader implements TestReader {
      *
      * @param testLocation location of the tests as a String.
      * @return the list of tests.
-     * @throws TestReaderException when an error obscurs while reading the tests.
+     * @throws TestAutomationException when an error occurs while reading the tests.
      */
     @Override
-    public List<Test> readTests(String testLocation) throws TestReaderException {
+    public List<Test> readTests(String testLocation) throws TestAutomationException {
         return processTestStructure(new File(testLocation));
     }
 }

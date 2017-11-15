@@ -19,7 +19,7 @@
 package org.wso2.carbon.testgrid.automation.file.common;
 
 import org.wso2.carbon.testgrid.automation.beans.Test;
-import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,9 +37,9 @@ public class TestGridTestReader {
      *
      * @param testLocation The file path of the test location as a String.
      * @return a List of Tests.
-     * @throws TestReaderException when there is an error with test reading process.
+     * @throws TestAutomationException when there is an error with test reading process.
      */
-    public List<Test> getTests(String testLocation) throws TestReaderException {
+    public List<Test> getTests(String testLocation) throws TestAutomationException {
         File tests = new File(testLocation);
         List<Test> testList = new ArrayList<>();
         for (String testType : Arrays.asList(tests.list())) {

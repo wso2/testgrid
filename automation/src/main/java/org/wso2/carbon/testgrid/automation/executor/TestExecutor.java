@@ -16,45 +16,35 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.automation.beans;
+package org.wso2.carbon.testgrid.automation.executor;
 
 import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.common.Deployment;
 
 /**
- * This is the abstraction of Test class.
+ * Interface for Test executors.
  *
  * @since 1.0.0
  */
-public abstract class Test {
-
-    private String testName;
+public interface TestExecutor {
 
     /**
-     * Returns the test name.
+     * Executes a test based on the given script and the deployment.
      *
-     * @return test name
+     * @param script     test script
+     * @param deployment deployment to run the test script on
+     * @throws TestAutomationException thrown when error on executing the given test script
      */
-    public String getTestName() {
-        return testName;
-    }
+    void execute(String script, Deployment deployment) throws TestAutomationException;
 
     /**
-     * Sets the test name.
+     * Initialises the test executor.
+     * <p>
+     * Performs pre-operations required for test execution
      *
-     * @param testName test name
+     * @param testsLocation location of the test scripts
+     * @param testName      test name
+     * @throws TestAutomationException thrown when error on initialising the test executor
      */
-    public void setTestName(String testName) {
-        this.testName = testName;
-    }
-
-    /**
-     * Executes the test for the given test location and deployment.
-     *
-     * @param testLocation location of the tests
-     * @param deployment   deployment to execute the tests on
-     * @throws TestAutomationException thrown when error on executing tests
-     */
-    public abstract void execute(String testLocation, Deployment deployment) throws TestAutomationException;
-
+    void init(String testsLocation, String testName) throws TestAutomationException;
 }

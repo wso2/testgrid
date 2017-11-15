@@ -66,13 +66,6 @@ public final class Utils {
     }
 
     /**
-     * This Utility method is used to access Environment variables.
-     */
-    public static String readEnvironmentVariable(String variable) {
-        return System.getenv(variable);
-    }
-
-    /**
      * This Utility method is used to return the folder location of the TestScenario.
      */
     public static String getTestScenarioLocation(TestScenario scenario, String testPlanHome) {

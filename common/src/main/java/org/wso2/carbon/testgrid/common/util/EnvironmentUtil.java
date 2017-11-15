@@ -15,8 +15,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.wso2.carbon.testgrid.common.util;
 
-package org.wso2.carbon.testgrid.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,9 +28,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This holds the utility methods required for testgrid core tests.
+ * Utility class for obtaining environment variable values.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 public class EnvironmentUtil {
 
@@ -40,6 +40,18 @@ public class EnvironmentUtil {
     private static final String THE_CASE_INSENSITIVE_ENVIRONMENT = "theCaseInsensitiveEnvironment";
     private static final String COLLECTIONS_UNMODIFIABLE_MAP = "java.util.Collections$UnmodifiableMap";
     private static final String FIELD_M = "m";
+
+    /**
+     * Returns the system property value or environment variable value (highest priority for environment variable)
+     * for the given key.
+     *
+     * @param systemVariableKey key of the system property or environment variable
+     * @return system property value or environment variable value for the given key
+     */
+    public static String getSystemVariableValue(String systemVariableKey) {
+        String envVariableValue = System.getenv(systemVariableKey);
+        return envVariableValue != null ? envVariableValue : System.getProperty(systemVariableKey);
+    }
 
     /**
      * Set environment variable for a given key and value.

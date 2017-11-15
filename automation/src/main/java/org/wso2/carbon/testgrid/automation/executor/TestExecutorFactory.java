@@ -16,32 +16,35 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.automation.executers.common;
+package org.wso2.carbon.testgrid.automation.executor;
 
-import org.wso2.carbon.testgrid.automation.executers.JMeterExecuter;
-import org.wso2.carbon.testgrid.automation.executers.TestNgExecuter;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
+import org.wso2.carbon.testgrid.automation.executers.JMeterExecutor;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
+import org.wso2.carbon.testgrid.common.util.StringUtil;
 
 /**
- * This class creates the specific executer for the test type.
+ * Factory class to return the specific test executor for the test type.
+ *
+ * @since 1.0.0
  */
-public class TestExecuterFactory {
+public class TestExecutorFactory {
 
     /**
-     * This method returns the specific test executer.
+     * Returns the specific test executor.
      *
-     * @param testType Test Type
-     * @return the specific TestExecuter
+     * @param testType Test type
+     * @return test executor for the given test type
      */
-    public static TestExecuter getTestExecutor(String testType) {
+    public static TestExecutor getTestExecutor(String testType) throws TestAutomationException {
         switch (testType) {
             case TestGridConstants.TEST_TYPE_JMETER:
-                return new JMeterExecuter();
+                return new JMeterExecutor();
             case TestGridConstants.TEST_TYPE_TESTNG:
-                return new TestNgExecuter();
+                return new TestNgExecutor();
             default:
-                return null;
-
+                throw new TestAutomationException(StringUtil.concatStrings("Test executor for test type ", testType,
+                        " not implemented."));
         }
     }
 }
