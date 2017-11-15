@@ -28,34 +28,36 @@ import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.Script;
 import org.wso2.carbon.testgrid.infrastructure.aws.AWSManager;
 import org.wso2.carbon.testgrid.infrastructure.providers.AWSProvider;
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * This class tests the functionality of {@link AWSProvider}
  *
+ * @since 1.0.0
  */
-@PrepareForTest({AWSProvider.class,AWSManager.class})
-public class AWSProviderTests extends PowerMockTestCase{
+@PrepareForTest({AWSProvider.class, AWSManager.class})
+public class AWSProviderTests extends PowerMockTestCase {
 
     @Test(description = "This test case tests the provider name of AWSProvider.")
-    public void testGetProviderName(){
+    public void testGetProviderName() {
         AWSProvider provider = new AWSProvider();
         String providerName = provider.getProviderName();
         Assert.assertNotNull(providerName);
-        Assert.assertEquals(providerName,"AWS Provider");
+        Assert.assertEquals(providerName, "AWS Provider");
     }
 
-    @Test(description = "This test case tests if this provider can handle specific infrastructure script.")
-    public void testCanHandle(){
+    @Test(description = "This test case tests if this provider can handle specific " +
+            "infrastructure script.")
+    public void testCanHandle() {
         Infrastructure infrastructure = new Infrastructure();
         infrastructure.setProviderType(Infrastructure.ProviderType.AWS);
         Script script = new Script();
         script.setScriptType(Script.ScriptType.CLOUD_FORMATION);
-        infrastructure.setScripts(Arrays.asList(script));
+        infrastructure.setScripts(Collections.singletonList(script));
         AWSProvider provider = new AWSProvider();
         boolean b = provider.canHandle(infrastructure);
         Assert.assertNotNull(b);
-        Assert.assertEquals(b,true);
+        Assert.assertEquals(b, true);
     }
 
     @Test(description = "This test case tests the initiation of infrastructure creation request.")
@@ -64,15 +66,35 @@ public class AWSProviderTests extends PowerMockTestCase{
         infrastructure.setProviderType(Infrastructure.ProviderType.AWS);
         Script script = new Script();
         script.setScriptType(Script.ScriptType.CLOUD_FORMATION);
-        infrastructure.setScripts(Arrays.asList(script));
+        infrastructure.setScripts(Collections.singletonList(script));
         AWSProvider provider = new AWSProvider();
         AWSManager manager = Mockito.mock(AWSManager.class);
         Deployment deployment = new Deployment();
         deployment.setName("TestDeployment");
-        Mockito.when(manager.createInfrastructure(Mockito.any(Script.class),Mockito.anyString())).thenReturn(deployment);
+        Mockito.when(manager.createInfrastructure(Mockito.any(Script.class), Mockito.anyString()))
+                .thenReturn(deployment);
         PowerMockito.whenNew(AWSManager.class).withAnyArguments().thenReturn(manager);
-        Deployment abc = provider.createInfrastructure(infrastructure, "abc");
-        Assert.assertNotNull(abc);
-        Assert.assertEquals("TestDeployment",abc.getName());
+        Deployment response = provider.createInfrastructure(infrastructure, "dummyRepoDir");
+        Assert.assertNotNull(response);
+        Assert.assertEquals("TestDeployment", response.getName());
+    }
+
+    @Test(description = "This test case tests the functionality of removing existing CloudFormation " +
+            "stack given the script with stack name.")
+    public void testRemoveInfrastructure() throws Exception {
+        Infrastructure infrastructure = new Infrastructure();
+        infrastructure.setProviderType(Infrastructure.ProviderType.AWS);
+        Script script = new Script();
+        script.setScriptType(Script.ScriptType.CLOUD_FORMATION);
+        infrastructure.setScripts(Collections.singletonList(script));
+        AWSProvider provider = new AWSProvider();
+        AWSManager manager = Mockito.mock(AWSManager.class);
+        Deployment deployment = new Deployment();
+        deployment.setName("TestDeployment");
+        Mockito.when(manager.destroyInfrastructure(Mockito.any(Script.class))).thenReturn(true);
+        PowerMockito.whenNew(AWSManager.class).withAnyArguments().thenReturn(manager);
+        boolean removeInfrastructure = provider.removeInfrastructure(infrastructure, "dummyRepoDir");
+        Assert.assertNotNull(removeInfrastructure);
+        Assert.assertEquals(removeInfrastructure, true);
     }
 }
