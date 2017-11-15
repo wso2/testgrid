@@ -1,3 +1,20 @@
+/*
+*  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+*
+*  WSO2 Inc. licenses this file to you under the Apache License,
+*  Version 2.0 (the "License"); you may not use this file except
+*  in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*    http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing,
+* software distributed under the License is distributed on an
+* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+* KIND, either express or implied.  See the License for the
+* specific language governing permissions and limitations
+* under the License.
+*/
 package org.wso2.carbon.testgrid.deployment.deployers;
 
 import org.apache.commons.logging.Log;
@@ -16,6 +33,9 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+/**
+ * Performs deployment of artifacts using Puppet for running tests.
+ */
 public class PuppetDeployer implements DeployerService {
     private static final Log log = LogFactory.getLog(PuppetDeployer.class);
     private final static String DEPLOYER_NAME = "puppet";
@@ -28,14 +48,17 @@ public class PuppetDeployer implements DeployerService {
     @Override
     public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
         String testPlanLocation = deployment.getDeploymentScriptsDir();
+
+        //Set read,write and execute permissions to files related to deployment
         Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
         System.setProperty("user.dir", Paths.get(testPlanLocation, DeployerConstants.PRODUCT_IS_DIR).toString());
         File file = new File(System.getProperty("user.dir"));
 
         log.info("Deploying kubernetes artifacts...");
+        //Execute deploy.sh scripts with required arguments to deploy artifacts
         if (Utils.executeCommand("./deploy.sh "
                 + getKubernetesMaster(Paths.get(testPlanLocation, DeployerConstants.K8S_PROPERTIES_FILE).toString()) + " "
-                + DeployerConstants.DOCKER_URL + " "
+                + DeployerConstants.WSO2_PRIVATE_DOCKER_URL + " "
                 + DeployerConstants.USERNAME + " "
                 + DeployerConstants.PASSWORD + " "
                 + DeployerConstants.DOCKER_EMAIL, file)) {
@@ -57,7 +80,7 @@ public class PuppetDeployer implements DeployerService {
             InputStream inputStream = new FileInputStream(location);
             prop.load(inputStream);
         } catch (IOException e) {
-            String msg = "Error getting KUBERNETES_MASTER environment variable";
+            String msg = "Error occurred while getting KUBERNETES_MASTER environment variable";
             log.error(msg, e);
         }
         return prop.getProperty("KUBERNETES_MASTER");

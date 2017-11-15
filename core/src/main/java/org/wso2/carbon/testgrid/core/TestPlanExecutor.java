@@ -25,9 +25,11 @@ import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
+import org.wso2.carbon.testgrid.common.exception.DeployerInitializationException;
 import org.wso2.carbon.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.carbon.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
@@ -123,7 +125,7 @@ public class TestPlanExecutor {
      * @return the status of the execution (success / fail)
      * @throws TestPlanExecutorException If something goes wrong while executing the TestPlan.
      */
-    public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException, UnsupportedProviderException {
+    public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
         testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_PREPARATION);
         //Setup the infrastructure
         testPlan = setupInfrastructure(infrastructure, testPlan);
@@ -140,6 +142,14 @@ public class TestPlanExecutor {
                 throw new TestPlanExecutorException("Exception occurred while running the deployment " +
                         "for deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
                         testPlan.getName() + "'", e);
+            } catch (DeployerInitializationException e) {
+                throw new TestPlanExecutorException("Unable to locate a Deployer Service implementation for  " +
+                        "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
+                        + "'", e);
+            } catch (UnsupportedDeployerException e) {
+                throw new TestPlanExecutorException("Error occurred while running deployment for "
+                        + "deployment pattern '" + testPlan.getDeploymentPattern() + "' in TestPlan '"
+                        + testPlan.getName() + "'", e);
             }
             if (TestPlan.Status.DEPLOYMENT_READY.equals(testPlan.getStatus())) {
                 testPlan.setDeployment(deployment);

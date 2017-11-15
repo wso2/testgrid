@@ -190,9 +190,6 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                 String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +
                         productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";
                 log.error(msg, e);
-            } catch (UnsupportedProviderException e) {
-                String msg = "Unable to find a InfrastructureProvider for requested type";
-                log.error(msg, e);
             }
         }
 
