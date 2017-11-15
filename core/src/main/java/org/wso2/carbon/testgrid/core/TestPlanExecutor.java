@@ -24,6 +24,7 @@ import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 import org.wso2.carbon.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
@@ -33,6 +34,7 @@ import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
 
+import java.nio.file.Paths;
 import java.util.Date;
 
 /**
@@ -48,8 +50,13 @@ public class TestPlanExecutor {
         try {
 
             if (infrastructure != null) {
-                testPlan.setDeployment(InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
-                        .createInfrastructure(infrastructure, testPlan.getInfraRepoDir()));
+                Deployment deployment = InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
+                        .createInfrastructure(infrastructure, testPlan.getInfraRepoDir());
+                deployment.setName(infrastructure.getName());
+                deployment.setDeploymentScriptsDir(Paths.get(testPlan.getInfraRepoDir(),
+                        TestGridConstants.DEPLOYMENT_DIR, infrastructure.getName(),
+                        infrastructure.getProviderType().name()).toString());
+                testPlan.setDeployment(deployment);
                 testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
             } else {
                 testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_ERROR);
@@ -112,8 +119,8 @@ public class TestPlanExecutor {
     /**
      * This method executes a given TestPlan.
      *
-     * @param  testPlan - An instance of TestPlan in which the tests should be executed.
-     * @return Returns the status of the execution (success / fail)
+     * @param  testPlan an instance of TestPlan in which the tests should be executed.
+     * @return the status of the execution (success / fail)
      * @throws TestPlanExecutorException If something goes wrong while executing the TestPlan.
      */
     public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
@@ -125,7 +132,7 @@ public class TestPlanExecutor {
             testPlan.setStatus(TestPlan.Status.DEPLOYMENT_PREPARATION);
             Deployment deployment;
             try {
-                deployment = new DeployerServiceImpl().deploy(testPlan);
+                deployment = new DeployerServiceImpl().deploy(testPlan.getDeployment());
                 testPlan.setStatus(TestPlan.Status.DEPLOYMENT_READY);
             } catch (TestGridDeployerException e) {
                 testPlan.setStatus(TestPlan.Status.DEPLOYMENT_ERROR);
@@ -169,8 +176,8 @@ public class TestPlanExecutor {
     /**
      * This method aborts a running TestPlan.
      *
-     * @param  testPlan - An instance of TestPlan in which the tests should be aborted.
-     * @return Returns the status (success / fail)
+     * @param  testPlan an instance of TestPlan in which the tests should be aborted.
+     * @return the status (success / fail)
      * @throws TestPlanExecutorException If something goes wrong while aborting the TestPlan.
      */
     public boolean abortTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
@@ -181,8 +188,8 @@ public class TestPlanExecutor {
     /**
      * This method returns the status of a running TestPlan.
      *
-     * @param  testPlan - An instance of TestPlan in which the status should be monitored.
-     * @return TestPlan.Status - Returns the status of the TestPlan
+     * @param  testPlan an instance of TestPlan in which the status should be monitored.
+     * @return TestPlan.Status the status of the TestPlan
      * @throws TestPlanExecutorException If something goes wrong while checking the status of the TestPlan.
      */
     public TestPlan.Status getStatus(TestPlan testPlan) throws TestPlanExecutorException {

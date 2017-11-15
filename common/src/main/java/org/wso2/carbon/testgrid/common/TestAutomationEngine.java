@@ -27,9 +27,9 @@ public interface TestAutomationEngine {
 
     /**
      *
-     * @param scenario The Test scenario that should be executed.
-     * @param location The cloned location of the test-plan.
-     * @param deployment The Deployment info tests should be executed against.
+     * @param scenario the Test scenario that should be executed.
+     * @param location the cloned location of the test-plan.
+     * @param deployment the Deployment info tests should be executed against.
      * @return true if all the processes finished or false in an erroneous situation.
      * @throws TestAutomationEngineException when there is an error in the process.
      */
@@ -37,7 +37,7 @@ public interface TestAutomationEngine {
 
     /**
      *
-     * @param scenario The Test scenario that should be aborted.
+     * @param scenario the Test scenario that should be aborted.
      * @return the status of the operation.
      * @throws TestAutomationEngineException when there is an error in the process.
      */
