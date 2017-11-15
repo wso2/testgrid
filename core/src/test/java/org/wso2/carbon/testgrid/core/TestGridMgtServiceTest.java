@@ -20,6 +20,7 @@ package org.wso2.carbon.testgrid.core;
 
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -46,6 +47,7 @@ import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.carbon.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
+import org.wso2.carbon.testgrid.common.util.EnvironmentUtil;
 import org.wso2.carbon.testgrid.deployment.DeployerFactory;
 import org.wso2.carbon.testgrid.deployment.deployers.PuppetDeployer;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
@@ -66,6 +68,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
  */
 @PrepareForTest({InfrastructureProviderFactory.class, DeployerFactory.class, TestEngineImpl.class,
         TestReportEngineImpl.class, TestPlanExecutor.class})
+@PowerMockIgnore({"javax.management.*"})
 public class TestGridMgtServiceTest extends PowerMockTestCase {
 
     TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
@@ -186,7 +189,6 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
 
         new TestGridMgtServiceImpl().executeProductTestPlan(productTestPlan);
         Assert.assertTrue(true);

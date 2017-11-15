@@ -16,13 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.testgrid.automation.executers;
+package org.wso2.carbon.testgrid.automation.executor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.TestNG;
-import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
-import org.wso2.carbon.testgrid.automation.executers.common.TestExecuter;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.common.Deployment;
 
 import java.io.File;
@@ -33,9 +32,9 @@ import java.net.URLClassLoader;
 /**
  * This class is responsible for Executing TestNG tests.
  */
-public class TestNgExecuter implements TestExecuter {
+public class TestNgExecutor implements TestExecutor {
 
-    private static final Log log = LogFactory.getLog(TestNgExecuter.class);
+    private static final Log log = LogFactory.getLog(TestNgExecutor.class);
     private String testsLocation;
     private String testName;
 
@@ -53,7 +52,7 @@ public class TestNgExecuter implements TestExecuter {
     }
 
     @Override
-    public void init(String testsLocation, String testName) throws TestGridExecuteException {
+    public void init(String testsLocation, String testName) throws TestAutomationException {
         this.testsLocation = testsLocation;
         this.testName = testName;
     }

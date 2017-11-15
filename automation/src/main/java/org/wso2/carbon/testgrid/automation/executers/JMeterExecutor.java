@@ -22,8 +22,8 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
-import org.wso2.carbon.testgrid.automation.executers.common.TestExecuter;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
+import org.wso2.carbon.testgrid.automation.executor.TestExecutor;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Host;
 import org.wso2.carbon.testgrid.common.Port;
@@ -35,9 +35,9 @@ import java.io.IOException;
 /**
  * This class is responsible for performing the tasks related to execution of single jmeter solution.
  */
-public class JMeterExecuter implements TestExecuter {
+public class JMeterExecutor implements TestExecutor {
 
-    private static final Log log = LogFactory.getLog(JMeterExecuter.class);
+    private static final Log log = LogFactory.getLog(JMeterExecutor.class);
     private String jMeterHome;
     private String testGridFolder;
     private String testName;
@@ -47,10 +47,10 @@ public class JMeterExecuter implements TestExecuter {
      *
      * @param script     the location of the script to execute as a String.
      * @param deployment The deployment details.
-     * @throws TestGridExecuteException when there is an error with execution process.
+     * @throws TestAutomationException when there is an error with execution process.
      */
     @Override
-    public void execute(String script, Deployment deployment) throws TestGridExecuteException {
+    public void execute(String script, Deployment deployment) throws TestAutomationException {
         String scriptName = getScriptName(script);
         Runtime runtime = Runtime.getRuntime();
         try {
@@ -69,27 +69,27 @@ public class JMeterExecuter implements TestExecuter {
         } catch (IOException e) {
             String msg = "Error occured while executing the jmeter script";
             log.error(msg, e);
-            throw new TestGridExecuteException(msg, e);
+            throw new TestAutomationException(msg, e);
         } catch (InterruptedException e) {
             String msg = "Jmeter Script execution inturrupted";
             log.error(msg, e);
-            throw new TestGridExecuteException(msg, e);
+            throw new TestAutomationException(msg, e);
         } catch (ConfigurationException e) {
             String msg = "Error occured while reading user.properties";
             log.error(msg, e);
-            throw new TestGridExecuteException(msg, e);
+            throw new TestAutomationException(msg, e);
         }
     }
 
     /**
-     * This method is responsible for initializing the JMeterExecuter with details.
+     * This method is responsible for initializing the JMeterExecutor with details.
      *
      * @param testGridFolder The TestGrid home folder that tests reside in.
      * @param testName       The name for the test that is being executed.
-     * @throws TestGridExecuteException when the JMETER_HOME variable is not found in system.
+     * @throws TestAutomationException when the JMETER_HOME variable is not found in system.
      */
     @Override
-    public void init(String testGridFolder, String testName) throws TestGridExecuteException {
+    public void init(String testGridFolder, String testName) throws TestAutomationException {
         this.testName = testName;
         String jmeterHome = System.getenv(TestGridConstants.JMETER_HOME);
         if (jmeterHome != null) {
@@ -98,7 +98,7 @@ public class JMeterExecuter implements TestExecuter {
         } else {
             String msg = "Environment Variable JMETER_HOME is not set";
             log.error(msg);
-            throw new TestGridExecuteException(msg);
+            throw new TestAutomationException(msg);
         }
     }
 

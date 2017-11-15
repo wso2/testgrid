@@ -32,6 +32,7 @@ import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
 import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.util.EnvironmentUtil;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.carbon.testgrid.deployment.DeployerFactory;
 import org.wso2.carbon.testgrid.deployment.deployers.PuppetDeployer;

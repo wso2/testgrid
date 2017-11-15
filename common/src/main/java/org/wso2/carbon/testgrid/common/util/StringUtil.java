@@ -33,4 +33,18 @@ public class StringUtil {
     public static boolean isStringNullOrEmpty(String string) {
         return string == null || string.trim().isEmpty();
     }
+
+    /**
+     * Returns a string concatenating the given strings.
+     *
+     * @param strings list of strings to concatenate
+     * @return concatenated string
+     */
+    public static String concatStrings(String... strings) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String string : strings) {
+            stringBuilder.append(string);
+        }
+        return stringBuilder.toString();
+    }
 }

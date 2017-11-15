@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.testgrid.automation.beans;
 
-import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
-import org.wso2.carbon.testgrid.automation.executers.common.TestExecuter;
-import org.wso2.carbon.testgrid.automation.executers.common.TestExecuterFactory;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
+import org.wso2.carbon.testgrid.automation.executor.TestExecutor;
+import org.wso2.carbon.testgrid.automation.executor.TestExecutorFactory;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
@@ -32,7 +32,11 @@ import java.util.List;
 public class TestNGTest extends Test {
 
     private List<String> testNGJars;
-    private TestExecuter testExecuter = TestExecuterFactory.getTestExecutor(TestGridConstants.TEST_TYPE_TESTNG);
+    private TestExecutor testExecutor;
+
+    public TestNGTest() throws TestAutomationException {
+        testExecutor = TestExecutorFactory.getTestExecutor(TestGridConstants.TEST_TYPE_TESTNG);
+    }
 
     private List<String> getTestNGJars() {
         return testNGJars;
@@ -50,13 +54,13 @@ public class TestNGTest extends Test {
     /**
      * @param testLocation the testNG tests location as a String.
      * @param deployment   Deployment mapping information.
-     * @throws TestGridExecuteException When there is an execution error.
+     * @throws TestAutomationException When there is an execution error.
      */
     @Override
-    public void execute(String testLocation, Deployment deployment) throws TestGridExecuteException {
-        testExecuter.init(testLocation, getTestName());
+    public void execute(String testLocation, Deployment deployment) throws TestAutomationException {
+        testExecutor.init(testLocation, getTestName());
         for (String script : this.getTestNGJars()) {
-            testExecuter.execute(script, deployment);
+            testExecutor.execute(script, deployment);
         }
     }
 }
