@@ -196,11 +196,6 @@
                 <version>${test.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.automation</groupId>
-                <artifactId>org.wso2.carbon.automation.test.utils</artifactId>
-                <version>${test.framework.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.wso2.carbon.config</groupId>
                 <artifactId>org.wso2.carbon.config</artifactId>
                 <version>${carbon.config.version}</version>
@@ -354,11 +349,6 @@
             <dependency>
                 <groupId>org.wso2.carbon.testgrid</groupId>
                 <artifactId>org.wso2.carbon.testgrid.reporting</artifactId>
-                <version>${test.grid.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.testgrid</groupId>
-                <artifactId>org.wso2.carbon.testgrid.utils</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
 
