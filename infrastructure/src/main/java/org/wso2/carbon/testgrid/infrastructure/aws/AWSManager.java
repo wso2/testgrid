@@ -35,7 +35,6 @@ import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.Script;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.carbon.testgrid.common.util.StringUtil;
-import org.wso2.carbon.testgrid.utils.EnvVariableUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -61,8 +60,8 @@ public class AWSManager {
      * @throws TestGridInfrastructureException Throws exception when environment variables are not set.
      */
     public AWSManager(String awsKeyVariableName, String awsSecretVariableName) throws TestGridInfrastructureException {
-        String awsIdentity = EnvVariableUtil.readEnvironmentVariable(awsKeyVariableName);
-        String awsSecret = EnvVariableUtil.readEnvironmentVariable(awsSecretVariableName);
+        String awsIdentity = System.getenv(awsKeyVariableName);
+        String awsSecret = System.getenv(awsSecretVariableName);
         if (StringUtil.isStringNullOrEmpty(awsIdentity) || StringUtil.isStringNullOrEmpty(awsSecret)) {
             throw new TestGridInfrastructureException("AWS Credentials must be set as environment variables");
         }

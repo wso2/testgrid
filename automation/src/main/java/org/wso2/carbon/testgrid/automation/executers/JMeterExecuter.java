@@ -28,7 +28,6 @@ import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Host;
 import org.wso2.carbon.testgrid.common.Port;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
-import org.wso2.carbon.testgrid.utils.EnvVariableUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,7 +91,7 @@ public class JMeterExecuter implements TestExecuter {
     @Override
     public void init(String testGridFolder, String testName) throws TestGridExecuteException {
         this.testName = testName;
-        String jmeterHome = EnvVariableUtil.readEnvironmentVariable(TestGridConstants.JMETER_HOME);
+        String jmeterHome = System.getenv(TestGridConstants.JMETER_HOME);
         if (jmeterHome != null) {
             this.jMeterHome = jmeterHome;
             this.testGridFolder = testGridFolder;
