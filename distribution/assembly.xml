@@ -16,7 +16,7 @@
     <files>
         <file>
             <source>bin/testgrid.sh</source>
-            <fileMode>0644</fileMode>
+            <fileMode>0755</fileMode>
         </file>
     </files>
 </assembly>
