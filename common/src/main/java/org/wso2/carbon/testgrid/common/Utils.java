@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 public final class Utils {
 
     private static final Log log = LogFactory.getLog(Utils.class);
-
     private static final String YAML_EXTENSION = ".yaml";
 
     /**
@@ -53,34 +52,31 @@ public final class Utils {
 
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
         Process process;
-        BufferedReader reader = null;
+
         try {
             if (workingDirectory != null && workingDirectory.exists()) {
                 processBuilder.directory(workingDirectory);
             }
             process = processBuilder.start();
-            reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-            StringBuilder builder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-                builder.append(System.getProperty("line.separator"));
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(),
+                    StandardCharsets.UTF_8))) {
+                StringBuilder builder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                    builder.append(System.getProperty("line.separator"));
+                }
+                String result = builder.toString();
+                log.info("Execution result : " + result);
+                return true;
+            } catch (IOException e) {
+                throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
+                        + command + "'", e);
             }
-            String result = builder.toString();
-            log.info("Execution result : " + result);
-            return true;
         } catch (IOException e) {
             throw new CommandExecutionException("Error occurred while executing the command '" + command + "', " +
                     "from directory '" + workingDirectory.getName() + "", e);
-        } finally {
-            try {
-                if (reader != null) {
-                    reader.close();
-                }
-            } catch (IOException e) {
-                throw new CommandExecutionException("Error occurred while closing the input stream '" + command +
-                        "', from directory '" + workingDirectory.getName() + "", e);
-            }
         }
     }
 

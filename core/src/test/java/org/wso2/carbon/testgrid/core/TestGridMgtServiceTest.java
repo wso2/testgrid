@@ -80,7 +80,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
 
     @Test
     public void createTestDirectoryTest() throws TestGridException, IOException {
-        String path = TestGridUtil.createTestDirectory(WSO2_PRODUCT, PRODUCT_VERSION, TIME_STAMP);
+        String path = TestGridUtil.createTestDirectory(WSO2_PRODUCT, PRODUCT_VERSION, TIME_STAMP).get();
         Assert.assertNotNull(path);
         Assert.assertTrue(path.endsWith(TIME_STAMP + ""));
     }
@@ -93,7 +93,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
 
         PowerMockito.mockStatic(TestGridUtil.class);
         Mockito.when(TestGridUtil.createTestDirectory(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong()))
-                .thenReturn(resource.getPath());
+                .thenReturn(java.util.Optional.ofNullable(resource.getPath()));
         Mockito.when(TestGridUtil.cloneRepository(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(resource.getPath());
         productTestPlan = new TestGridMgtServiceImpl()

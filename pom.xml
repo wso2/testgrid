@@ -183,9 +183,6 @@
             </releases>
         </repository>
     </repositories>
-    <reporting>
-
-    </reporting>
 
     <dependencyManagement>
         <dependencies>

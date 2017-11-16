@@ -35,7 +35,6 @@ import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
@@ -138,15 +137,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     public ProductTestPlan addProductTestPlan(String product, String productVersion, String repository)
             throws TestGridException {
         Long timeStamp = new Date().getTime();
-        String path;
-        try {
-            path = TestGridUtil.createTestDirectory(product, productVersion, timeStamp);
-        } catch (IOException e) {
-            String msg = "Unable to create test directory for product '" + product + "' , version '" + productVersion +
-                    "'";
-            log.error(msg, e);
-            throw new TestGridException(msg, e);
-        }
+        String path = TestGridUtil.createTestDirectory(product, productVersion, timeStamp).get();
 
         if (path != null) {
             String repoLocation;
