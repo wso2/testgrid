@@ -31,6 +31,7 @@ import java.util.Map;
 /**
  * Bean class to capture the information required in test scenarios to generate the report for the test plan.
  *
+ * @param <T> the type of the value being TestScenarioReport
  * @since 1.0.0
  */
 public class TestScenarioReport<T extends TestResultable> {

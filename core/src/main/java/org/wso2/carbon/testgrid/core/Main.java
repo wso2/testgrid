@@ -35,7 +35,7 @@ public class Main {
         String repo = "https://github.com/sameerawickramasekara/test-grid-is-resources.git";
         String product = "WSO2_Identity_Server";
         String productVersion = "5.3.0";
-        if(args.length == 3){
+        if (args.length == 3) {
             repo = args[0];
             product = args[1];
             productVersion = args[2];

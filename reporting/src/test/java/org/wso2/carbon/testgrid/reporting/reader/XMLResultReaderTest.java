@@ -40,7 +40,7 @@ public class XMLResultReaderTest {
 
     private static final String TEST_ARTIFACT_DIR = "Tests";
     private static final String RESULTS_DIR = "Results";
-    private final String XML_START_ELEMENT_NAME = "XML_START_ELEMENT_NAME";
+    private static final String XML_START_ELEMENT_NAME = "XML_START_ELEMENT_NAME";
 
     /**
      * Data set from the XML result file for assertion.

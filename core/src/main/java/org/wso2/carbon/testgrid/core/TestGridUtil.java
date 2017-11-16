@@ -39,17 +39,19 @@ public class TestGridUtil {
     private static final Log log = LogFactory.getLog(TestGridUtil.class);
 
     static String createTestDirectory(String productName, String productVersion, Long timeStamp) throws IOException {
-        String directory = Paths.get(System.getenv(TESTGRID_HOME_ENV),productName + SEPARATOR + productVersion
+        String directory = Paths.get(System.getenv(TESTGRID_HOME_ENV), productName + SEPARATOR + productVersion
                 + SEPARATOR + timeStamp).toString();
-        File testDir = new File( directory);
+        File testDir = new File(directory);
         // if the directory exists, remove it
         if (testDir.exists()) {
             log.info("Removing test directory : " + testDir.getName());
             FileUtils.forceDelete(testDir);
         }
         log.info("Creating test directory : " + testDir.getName());
-        testDir.mkdir();
-        return directory;
+        if (testDir.mkdir()) {
+            return directory;
+        }
+        return null;
     }
 
     static String cloneRepository(String repositoryUrl, String directory) throws GitAPIException {

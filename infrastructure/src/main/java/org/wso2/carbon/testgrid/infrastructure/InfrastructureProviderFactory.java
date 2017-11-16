@@ -35,8 +35,8 @@ public class InfrastructureProviderFactory {
     /**
      * Returns a matching infrastructure provider to create the environment.
      *
-     * @param infrastructure - an instance of the Infrastructure object
-     * @return the status of the test plan
+     * @param infrastructure an instance of the Infrastructure object
+     * @return an instance of matching InfrastructureProvider
      */
     public static InfrastructureProvider getInfrastructureProvider(Infrastructure infrastructure) throws
             UnsupportedProviderException, InfrastructureProviderInitializationException {
@@ -48,11 +48,11 @@ public class InfrastructureProviderFactory {
                 try {
                     return provider.getClass().newInstance();
                 } catch (InstantiationException e) {
-                    throw new InfrastructureProviderInitializationException("Exception occurred while instantiating the" +
-                            " InfrastructureProvider for requested type '" + providerName + "'", e);
+                    throw new InfrastructureProviderInitializationException("Exception occurred while instantiating " +
+                            "the InfrastructureProvider for requested type '" + providerName + "'", e);
                 } catch (IllegalAccessException e) {
-                    throw new InfrastructureProviderInitializationException("Exception occurred while instantiating the" +
-                            " InfrastructureProvider for requested type '" + providerName + "'", e);
+                    throw new InfrastructureProviderInitializationException("Exception occurred while instantiating " +
+                            "the InfrastructureProvider for requested type '" + providerName + "'", e);
                 }
             }
         }

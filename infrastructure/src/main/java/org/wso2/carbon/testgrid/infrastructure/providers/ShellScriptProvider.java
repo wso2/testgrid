@@ -25,6 +25,7 @@ import org.wso2.carbon.testgrid.common.Infrastructure;
 import org.wso2.carbon.testgrid.common.InfrastructureProvider;
 import org.wso2.carbon.testgrid.common.Script;
 import org.wso2.carbon.testgrid.common.Utils;
+import org.wso2.carbon.testgrid.common.exception.CommandExecutionException;
 import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException;
 
 import java.nio.file.Paths;
@@ -34,7 +35,7 @@ import java.nio.file.Paths;
  */
 public class ShellScriptProvider implements InfrastructureProvider {
     private static final Log log = LogFactory.getLog(ShellScriptProvider.class);
-    private final static String SHELL_SCRIPT_PROVIDER = "Shell Executor";
+    private static final String SHELL_SCRIPT_PROVIDER = "Shell Executor";
 
     @Override
     public String getProviderName() {
@@ -44,9 +45,9 @@ public class ShellScriptProvider implements InfrastructureProvider {
     @Override
     public boolean canHandle(Infrastructure infrastructure) {
         boolean isScriptsAvailable = true;
-        for (Script script : infrastructure.getScripts()){
+        for (Script script : infrastructure.getScripts()) {
             if (!Script.ScriptType.INFRA_CREATE.equals(script.getScriptType()) &&
-                    !Script.ScriptType.INFRA_DESTROY.equals( script.getScriptType())){
+                    !Script.ScriptType.INFRA_DESTROY.equals(script.getScriptType())) {
                 isScriptsAvailable = false;
             }
         }
@@ -54,32 +55,47 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException {
-        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" , infrastructure.getName()).toString();
+    public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
+            TestGridInfrastructureException {
+        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" ,
+                infrastructure.getName()).toString();
 
         log.info("Creating the Kubernetes cluster...");
-        Utils.executeCommand("bash " +
-                Paths.get(testPlanLocation, getScriptToExecute(infrastructure, Script.ScriptType.INFRA_CREATE)),
-                null);
-        return new Deployment();
+        try {
+            Utils.executeCommand("bash " +
+                    Paths.get(testPlanLocation, getScriptToExecute(infrastructure, Script.ScriptType.INFRA_CREATE)),
+                    null);
+        } catch (CommandExecutionException e) {
+            throw new TestGridInfrastructureException("Exception occurred while executing the infra-create script " +
+                    "for deployment-pattern '" + infrastructure.getName() + "'" , e);
+        }
+        return null;
     }
 
     @Override
-    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException {
-        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" , infrastructure.getName()).toString();
+    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
+            TestGridInfrastructureException {
+        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" ,
+                infrastructure.getName()).toString();
 
         log.info("Destroying test environment...");
-        if(Utils.executeCommand("bash " +
-                        Paths.get(testPlanLocation, getScriptToExecute(infrastructure, Script.ScriptType.INFRA_DESTROY)),
-                null)) {
-            return true;
+        try {
+            if (Utils.executeCommand("bash " +
+                            Paths.get(testPlanLocation, getScriptToExecute(infrastructure,
+                                    Script.ScriptType.INFRA_DESTROY)),
+                    null)) {
+                return true;
+            }
+        } catch (CommandExecutionException e) {
+            throw new TestGridInfrastructureException("Exception occurred while executing the infra-destroy script " +
+                    "for deployment-pattern '" + infrastructure.getName() + "'"  , e);
         }
         return false;
     }
 
-    private String getScriptToExecute(Infrastructure infrastructure, Script.ScriptType ScriptType) {
-        for (Script script : infrastructure.getScripts()){
-            if (ScriptType.equals(script.getScriptType())){
+    private String getScriptToExecute(Infrastructure infrastructure, Script.ScriptType scriptType) {
+        for (Script script : infrastructure.getScripts()) {
+            if (scriptType.equals(script.getScriptType())) {
                 return script.getFilePath();
             }
         }

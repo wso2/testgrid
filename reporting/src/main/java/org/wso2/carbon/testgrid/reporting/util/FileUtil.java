@@ -84,14 +84,20 @@ public class FileUtil {
         File file = new File(filePath);
         if (!file.exists()) {
             // Create directories if not exists
-            new File(Paths.get(filePath).getParent().toAbsolutePath().toString()).mkdirs();
+            Path parent = Paths.get(filePath).getParent();
 
-            // Touch file
-            try {
-                new FileOutputStream(file).close();
-            } catch (IOException e) {
-                throw new ReportingException(String
-                        .format(Locale.ENGLISH, "IO Exception occurred when creating file %s", file), e);
+            if (parent != null) {
+                boolean status = new File(parent.toAbsolutePath().toString()).mkdirs();
+
+                if (status) {
+                    // Touch file
+                    try {
+                        new FileOutputStream(file).close();
+                    } catch (IOException e) {
+                        throw new ReportingException(String.format(Locale.ENGLISH,
+                                "IO Exception occurred when creating file %s", file), e);
+                    }
+                }
             }
         }
     }

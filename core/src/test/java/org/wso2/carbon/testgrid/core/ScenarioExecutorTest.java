@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.testgrid.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -48,6 +50,8 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  */
 @PrepareForTest({DeployerFactory.class, TestEngineImpl.class, TestReportEngineImpl.class})
 public class ScenarioExecutorTest extends PowerMockTestCase {
+
+    private static final Log log = LogFactory.getLog(ScenarioExecutorTest.class);
 
     TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
     ProductTestPlan plan;
@@ -89,7 +93,7 @@ public class ScenarioExecutorTest extends PowerMockTestCase {
 
             whenNew(TestReportEngineImpl.class).withNoArguments().thenReturn(testReportEngine);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         }
 
 

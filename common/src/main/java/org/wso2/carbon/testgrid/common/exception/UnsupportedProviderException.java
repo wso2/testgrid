@@ -19,7 +19,7 @@
 package org.wso2.carbon.testgrid.common.exception;
 
 /**
- * This is a custom exception class to throw exceptions when an invalid class field is requested through reflection.
+ * This is a custom exception class to throw exceptions when an unsupported provider has requested.
  */
 public class UnsupportedProviderException extends Exception {
 

@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.testgrid.automation.file.common;
 
-import org.wso2.carbon.testgrid.automation.beans.Test;
 import org.wso2.carbon.testgrid.automation.TestAutomationException;
+import org.wso2.carbon.testgrid.automation.beans.Test;
 
 import java.util.List;
 

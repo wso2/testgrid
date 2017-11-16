@@ -17,6 +17,9 @@
 */
 package org.wso2.carbon.testgrid.deployment;
 
+/**
+ * This holds the constants used by the deployer module.
+ */
 public class DeployerConstants {
     //Constants needed to run deploy.sh
     public static final String USERNAME = System.getenv("OS_USERNAME");

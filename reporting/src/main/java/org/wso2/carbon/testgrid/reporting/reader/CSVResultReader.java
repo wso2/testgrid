@@ -20,14 +20,17 @@ package org.wso2.carbon.testgrid.reporting.reader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.wso2.carbon.testgrid.common.util.StringUtil;
 import org.wso2.carbon.testgrid.reporting.ReportingException;
 import org.wso2.carbon.testgrid.reporting.result.TestResultable;
 import org.wso2.carbon.testgrid.reporting.util.ReflectionUtil;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,21 +59,26 @@ public class CSVResultReader implements ResultReadable {
         String filePath = path.toString();
         List<T> results = new ArrayList<>();
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))) {
-            String titles[] = bufferedReader.readLine().split(SEPARATOR);
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath),
+                StandardCharsets.UTF_8))) {
+            String titles[];
+            String rdLine = bufferedReader.readLine();
+            if (!StringUtil.isStringNullOrEmpty(rdLine)) {
+                titles = rdLine.split(SEPARATOR);
 
-            CSVFormat csvFileFormat = CSVFormat.DEFAULT.withHeader(titles);
-            CSVParser csvFileParser = new CSVParser(bufferedReader, csvFileFormat);
+                CSVFormat csvFileFormat = CSVFormat.DEFAULT.withHeader(titles);
+                CSVParser csvFileParser = new CSVParser(bufferedReader, csvFileFormat);
 
-            List<CSVRecord> csvRecords = csvFileParser.getRecords();
-            // Read the CSV file records starting from the second record to skip the header
-            for (CSVRecord record : csvRecords) {
-                T result = ReflectionUtil.createInstanceFromClass(type);
-                // Set field values
-                for (String title : titles) {
-                    ReflectionUtil.setFieldValue(result, title, record.get(title));
+                List<CSVRecord> csvRecords = csvFileParser.getRecords();
+                // Read the CSV file records starting from the second record to skip the header
+                for (CSVRecord record : csvRecords) {
+                    T result = ReflectionUtil.createInstanceFromClass(type);
+                    // Set field values
+                    for (String title : titles) {
+                        ReflectionUtil.setFieldValue(result, title, record.get(title));
+                    }
+                    results.add(result);
                 }
-                results.add(result);
             }
         } catch (FileNotFoundException e) {
             throw new ReportingException(String.format(Locale.ENGLISH, "File %s cannot be found", filePath), e);

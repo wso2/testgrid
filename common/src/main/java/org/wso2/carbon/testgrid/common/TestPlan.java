@@ -22,6 +22,7 @@ import org.wso2.carbon.config.annotation.Configuration;
 import org.wso2.carbon.config.annotation.Element;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * This represents a model of the TestPlan which includes all the necessary data to run the required SolutionPatterns.
@@ -58,14 +59,52 @@ public class TestPlan {
     @Element(description = "additional script to be run after deployment step")
     private Script deploymentScript;
 
+
+    /**
+     * This defines the possible statuses of the TestPlan.
+     */
     public enum Status {
-        EXECUTION_PLANNED ("Execution Planned"), INFRASTRUCTURE_PREPARATION ("Infrastructure Preparation"),
-        INFRASTRUCTURE_READY ("Infrastructure Ready"), INFRASTRUCTURE_ERROR ("Infrastructure Error"),
-        INFRASTRUCTURE_DESTROY_ERROR ("Infrastructure Destroy Error"), DEPLOYMENT_PREPARATION ("Deployment Preparation"),
-        DEPLOYMENT_READY ("Deployment Ready"), DEPLOYMENT_ERROR ("Deployment Error"),
-        SCENARIO_EXECUTION ("Scenario Execution"), SCENARIO_EXECUTION_ERROR ("Scenario Execution Error"),
-        SCENARIO_EXECUTION_COMPLETED ("Scenario Execution Completed"), REPORT_GENERATION ("Report Generation"),
-        REPORT_GENERATION_ERROR ("Report Generation Error"), EXECUTION_COMPLETED ("Execution Completed");
+
+        EXECUTION_PLANNED ("Execution Planned"),
+
+
+        INFRASTRUCTURE_PREPARATION ("Infrastructure Preparation"),
+
+
+        INFRASTRUCTURE_READY ("Infrastructure Ready"),
+
+
+        INFRASTRUCTURE_ERROR ("Infrastructure Error"),
+
+
+        INFRASTRUCTURE_DESTROY_ERROR ("Infrastructure Destroy Error"),
+
+
+        DEPLOYMENT_PREPARATION ("Deployment Preparation"),
+
+
+        DEPLOYMENT_READY ("Deployment Ready"),
+
+
+        DEPLOYMENT_ERROR ("Deployment Error"),
+
+
+        SCENARIO_EXECUTION ("Scenario Execution"),
+
+
+        SCENARIO_EXECUTION_ERROR ("Scenario Execution Error"),
+
+
+        SCENARIO_EXECUTION_COMPLETED ("Scenario Execution Completed"),
+
+
+        REPORT_GENERATION ("Report Generation"),
+
+
+        REPORT_GENERATION_ERROR ("Report Generation Error"),
+
+
+        EXECUTION_COMPLETED ("Execution Completed");
 
         private final String name;
 
@@ -78,8 +117,25 @@ public class TestPlan {
         }
     }
 
+    /**
+     * This defines the supported deployment automation tools.
+     */
     public enum DeployerType {
-        PUPPET ("puppet"), ANSIBLE ("ansible"), CHEF ("chef");
+
+        /**
+         * Defines the puppet automation.
+         */
+        PUPPET ("puppet"),
+
+        /**
+         * Defines the ansible automation.
+         */
+        ANSIBLE ("ansible"),
+
+        /**
+         * Defines the chef automation.
+         */
+        CHEF ("chef");
 
         private final String name;
 
@@ -251,7 +307,7 @@ public class TestPlan {
      * @param deployerType string deployer-type (puppet/ansible) of the test plan
      */
     public void setDeployerType(String deployerType) {
-        this.deployerType = DeployerType.valueOf(deployerType.toUpperCase());
+        this.deployerType = DeployerType.valueOf(deployerType.toUpperCase(Locale.ENGLISH));
     }
 
     /**

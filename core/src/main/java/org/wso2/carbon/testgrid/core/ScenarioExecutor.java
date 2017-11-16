@@ -27,8 +27,8 @@ import org.wso2.carbon.testgrid.common.exception.TestAutomationEngineException;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
 
 /**
- * This class is mainly responsible for executing a TestScenario. This will invoke the TestAutomationEngine for executing the
- * Tests available for a particular solution pattern.
+ * This class is mainly responsible for executing a TestScenario. This will invoke the TestAutomationEngine for
+ * executing the tests available for a particular solution pattern.
  */
 public class ScenarioExecutor {
 

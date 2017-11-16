@@ -31,7 +31,6 @@ import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
-import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
@@ -54,7 +53,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     private static final String PRODUCT_INFRA_DIR = "Infrastructure";
 
 
-    private ConcurrentHashMap<String, Infrastructure> generateInfrastructureData(String repoDir) throws TestGridException {
+    private ConcurrentHashMap<String, Infrastructure> generateInfrastructureData(String repoDir) throws
+            TestGridException {
         ConcurrentHashMap<String, Infrastructure> infras = new ConcurrentHashMap<>();
         String productInfraDir = Paths.get(repoDir, PRODUCT_INFRA_DIR).toString();
         File dir = new File(productInfraDir);
@@ -77,7 +77,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                 }
             }
         } else {
-            String msg = "Unable to find the Infrastructure configuration directory in location '" + productInfraDir + "'";
+            String msg = "Unable to find the Infrastructure configuration directory in location '" +
+                    productInfraDir + "'";
             log.error(msg);
             throw new TestGridException(msg);
         }

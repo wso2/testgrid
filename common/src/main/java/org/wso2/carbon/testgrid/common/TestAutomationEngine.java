@@ -33,7 +33,8 @@ public interface TestAutomationEngine {
      * @return true if all the processes finished or false in an erroneous situation.
      * @throws TestAutomationEngineException when there is an error in the process.
      */
-     boolean runScenario(TestScenario scenario, String location, Deployment deployment) throws TestAutomationEngineException;
+     boolean runScenario(TestScenario scenario, String location, Deployment deployment) throws
+             TestAutomationEngineException;
 
     /**
      *
