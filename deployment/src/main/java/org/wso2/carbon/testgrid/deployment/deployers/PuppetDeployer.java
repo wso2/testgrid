@@ -85,21 +85,12 @@ public class PuppetDeployer implements DeployerService {
      */
     private String getKubernetesMaster(String location) {
         Properties prop = new Properties();
-        InputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(location);
+
+        try (InputStream inputStream = new FileInputStream(location)) {
             prop.load(inputStream);
         } catch (IOException e) {
             String msg = "Error occurred while getting KUBERNETES_MASTER environment variable";
             log.error(msg, e);
-        } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (IOException e) {
-
-            }
         }
         return prop.getProperty("KUBERNETES_MASTER");
     }
