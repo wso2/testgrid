@@ -37,6 +37,7 @@ import org.wso2.carbon.testgrid.common.exception.TestGridInfrastructureException
 import org.wso2.carbon.testgrid.common.util.StringUtil;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class AWSManager {
         stackRequest.setStackName(cloudFormationName);
         try {
             String file = new String(Files.readAllBytes(Paths.get(infraRepoDir, this.infra.getName(),
-                    "AWS", "Scripts", script.getFilePath())));
+                    "AWS", "Scripts", script.getFilePath())), StandardCharsets.UTF_8);
             stackRequest.setTemplateBody(file);
             stackbuilder.createStack(stackRequest);
             if (log.isDebugEnabled()) {

@@ -46,6 +46,9 @@ public class Database {
         this.version = version;
     }
 
+    /**
+     * This enum defines the database engines.
+     */
     public enum DatabaseEngine {
         MYSQL ("MySQL"), DB2 ("DB2"), ORACLE ("Oracle"), SQL_SERVER ("SQL Server"), POSTGRESQL ("PostgreSQL"), H2("H2"),
         MariaDB("Maria DB");
@@ -63,6 +66,12 @@ public class Database {
 
     @Override
     public String toString() {
-        return this.engine.toString() + ", version:" + version;
+        String databaseStr;
+        if (this.engine != null) {
+            databaseStr = this.engine.toString() + ", version:" + version;
+        } else {
+            databaseStr = "Database has not initialized.";
+        }
+        return databaseStr;
     }
 }

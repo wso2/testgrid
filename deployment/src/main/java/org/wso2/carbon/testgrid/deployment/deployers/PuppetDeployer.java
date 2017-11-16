@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.common.DeployerService;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Utils;
+import org.wso2.carbon.testgrid.common.exception.CommandExecutionException;
 import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.carbon.testgrid.deployment.DeployerConstants;
 import org.wso2.carbon.testgrid.deployment.DeploymentUtil;
@@ -38,7 +39,7 @@ import java.util.Properties;
  */
 public class PuppetDeployer implements DeployerService {
     private static final Log log = LogFactory.getLog(PuppetDeployer.class);
-    private final static String DEPLOYER_NAME = "puppet";
+    private static final String DEPLOYER_NAME = "puppet";
 
     @Override
     public String getDeployerName() {
@@ -50,21 +51,29 @@ public class PuppetDeployer implements DeployerService {
         String testPlanLocation = deployment.getDeploymentScriptsDir();
 
         //Set read,write and execute permissions to files related to deployment
-        Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
+        try {
+            Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
+        } catch (CommandExecutionException e) {
+            throw new TestGridDeployerException("Error occurred while executing the filesystem permission command.", e);
+        }
         System.setProperty("user.dir", Paths.get(testPlanLocation, DeployerConstants.PRODUCT_IS_DIR).toString());
         File file = new File(System.getProperty("user.dir"));
 
         log.info("Deploying kubernetes artifacts...");
         //Execute deploy.sh scripts with required arguments to deploy artifacts
-        if (Utils.executeCommand("./deploy.sh "
-                + getKubernetesMaster(Paths.get(testPlanLocation, DeployerConstants.K8S_PROPERTIES_FILE).toString()) + " "
-                + DeployerConstants.WSO2_PRIVATE_DOCKER_URL + " "
-                + DeployerConstants.USERNAME + " "
-                + DeployerConstants.PASSWORD + " "
-                + DeployerConstants.DOCKER_EMAIL, file)) {
-            return DeploymentUtil.getDeploymentInfo(testPlanLocation);
-        } else {
-            throw new TestGridDeployerException("Error occurred while deploying artifacts");
+        try {
+            if (Utils.executeCommand("./deploy.sh "
+                    + getKubernetesMaster(Paths.get(testPlanLocation, DeployerConstants.K8S_PROPERTIES_FILE).toString())
+                    + " " + DeployerConstants.WSO2_PRIVATE_DOCKER_URL + " "
+                    + DeployerConstants.USERNAME + " "
+                    + DeployerConstants.PASSWORD + " "
+                    + DeployerConstants.DOCKER_EMAIL, file)) {
+                return DeploymentUtil.getDeploymentInfo(testPlanLocation);
+            } else {
+                throw new TestGridDeployerException("Error occurred while deploying artifacts");
+            }
+        } catch (CommandExecutionException e) {
+            throw new TestGridDeployerException("Error occurred while executing the deploy script.", e);
         }
     }
 
@@ -74,10 +83,10 @@ public class PuppetDeployer implements DeployerService {
      * @param location location of k8s.properties file
      * @return String value of KUBERNETES_MASTER property
      */
-    private String getKubernetesMaster(String location){
+    private String getKubernetesMaster(String location) {
         Properties prop = new Properties();
-        try {
-            InputStream inputStream = new FileInputStream(location);
+
+        try (InputStream inputStream = new FileInputStream(location)) {
             prop.load(inputStream);
         } catch (IOException e) {
             String msg = "Error occurred while getting KUBERNETES_MASTER environment variable";

@@ -45,7 +45,8 @@ public interface TestGridMgtService {
      * @return the status of the operation (success/failure)
      * @throws TestGridException If something goes wrong while adding the ProductTestPlan.
      */
-    ProductTestPlan addProductTestPlan(String product, String productVersion, String repository) throws TestGridException;
+    ProductTestPlan addProductTestPlan(String product, String productVersion, String repository) throws
+            TestGridException;
 
     /**
      * This method triggers the execution of a ProductTestPlan.

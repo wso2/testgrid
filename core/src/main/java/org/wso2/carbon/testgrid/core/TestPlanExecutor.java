@@ -63,8 +63,8 @@ public class TestPlanExecutor {
             } else {
                 testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_ERROR);
                 throw new TestPlanExecutorException("Unable to locate infrastructure descriptor for " +
-                        "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
-                        + "'");
+                        "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
+                        testPlan.getName() + "'");
             }
         } catch (TestGridInfrastructureException e) {
             testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_ERROR);
@@ -96,8 +96,8 @@ public class TestPlanExecutor {
             } else {
                 testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_DESTROY_ERROR);
                 throw new TestPlanExecutorException("Unable to locate infrastructure descriptor for " +
-                        "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
-                        + "'");
+                        "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
+                        testPlan.getName() + "'");
             }
         } catch (TestGridInfrastructureException e) {
             testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_DESTROY_ERROR);
@@ -144,8 +144,8 @@ public class TestPlanExecutor {
                         testPlan.getName() + "'", e);
             } catch (DeployerInitializationException e) {
                 throw new TestPlanExecutorException("Unable to locate a Deployer Service implementation for  " +
-                        "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
-                        + "'", e);
+                        "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
+                        testPlan.getName() + "'", e);
             } catch (UnsupportedDeployerException e) {
                 throw new TestPlanExecutorException("Error occurred while running deployment for "
                         + "deployment pattern '" + testPlan.getDeploymentPattern() + "' in TestPlan '"

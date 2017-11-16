@@ -43,7 +43,7 @@ public class DeployerFactory {
         String deployerType = testPlan.getDeployerType().toString();
 
         for (DeployerService deployerService : providers) {
-            if (deployerService.getDeployerName().equals(deployerType)){
+            if (deployerService.getDeployerName().equals(deployerType)) {
                 try {
                     return deployerService.getClass().newInstance();
                 } catch (InstantiationException e) {

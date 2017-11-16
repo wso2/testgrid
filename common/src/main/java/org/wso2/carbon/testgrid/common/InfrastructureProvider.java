@@ -49,7 +49,8 @@ public interface InfrastructureProvider {
      * @return Deployment Deployment object including the created host, ip details
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure creation process.
      */
-    Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException;
+    Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
+            TestGridInfrastructureException;
 
     /**
      * This method executes commands needed to remove the infrastructure.
@@ -59,6 +60,7 @@ public interface InfrastructureProvider {
      * @return boolean status of the operation
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure destroy process.
      */
-    boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws TestGridInfrastructureException;
+    boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
+            TestGridInfrastructureException;
 
 }

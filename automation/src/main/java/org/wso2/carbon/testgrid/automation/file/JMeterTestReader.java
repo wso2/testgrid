@@ -18,11 +18,12 @@
 
 package org.wso2.carbon.testgrid.automation.file;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.automation.beans.JMeterTest;
 import org.wso2.carbon.testgrid.automation.beans.Test;
-import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.automation.file.common.TestReader;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 
@@ -49,24 +50,27 @@ public class JMeterTestReader implements TestReader {
     private List<Test> processTestStructure(File file) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
         String[] list = file.list();
-        for (String solution : Arrays.asList(list)) {
-            File tests = new File(file.getAbsolutePath() + File.separator + solution +
-                    File.separator + JMETER_TEST_PATH);
-            JMeterTest test = new JMeterTest();
 
-            test.setTestName(solution);
-            List<String> jmxList = new ArrayList<>();
-            if (tests.exists()) {
-                for (String jmx : Arrays.asList(tests.list())) {
-                    if (jmx.endsWith(TestGridConstants.JMTER_SUFFIX)) {
-                        jmxList.add(tests.getAbsolutePath() + File.separator + jmx);
+        if (list != null) {
+            for (String solution : Arrays.asList(list)) {
+                File tests = new File(file.getAbsolutePath() + File.separator + solution +
+                        File.separator + JMETER_TEST_PATH);
+                JMeterTest test = new JMeterTest();
+
+                test.setTestName(solution);
+                List<String> jmxList = new ArrayList<>();
+                if (tests.exists()) {
+                    for (String jmx : ArrayUtils.nullToEmpty(tests.list())) {
+                        if (jmx.endsWith(TestGridConstants.JMTER_SUFFIX)) {
+                            jmxList.add(tests.getAbsolutePath() + File.separator + jmx);
+                        }
                     }
                 }
-            }
-            Collections.sort(jmxList);
-            test.setjMeterScripts(jmxList);
-            testsList.add(test);
+                Collections.sort(jmxList);
+                test.setjMeterScripts(jmxList);
+                testsList.add(test);
 
+            }
         }
         return testsList;
     }

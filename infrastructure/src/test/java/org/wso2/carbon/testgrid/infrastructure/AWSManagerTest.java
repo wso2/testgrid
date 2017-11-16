@@ -136,8 +136,8 @@ public class AWSManagerTest extends PowerMockTestCase {
                 .thenReturn(describeStacksResultMock);
         PowerMockito.when(cloudFormationClientBuilderMock.withRegion(Mockito.anyString()))
                 .thenReturn(cloudFormationClientBuilderMock);
-        PowerMockito.when(cloudFormationClientBuilderMock.withCredentials(Mockito.any(EnvironmentVariableCredentialsProvider.class)))
-                .thenReturn(cloudFormationClientBuilderMock);
+        PowerMockito.when(cloudFormationClientBuilderMock.withCredentials(Mockito.
+                any(EnvironmentVariableCredentialsProvider.class))).thenReturn(cloudFormationClientBuilderMock);
         PowerMockito.when(cloudFormationClientBuilderMock.build()).thenReturn(cloudFormation);
         PowerMockito.mockStatic(AmazonCloudFormationClientBuilder.class);
         PowerMockito.when(AmazonCloudFormationClientBuilder.standard()).thenReturn(cloudFormationClientBuilderMock);

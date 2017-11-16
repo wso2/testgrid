@@ -18,17 +18,17 @@
 
 package org.wso2.carbon.testgrid.automation.file;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.automation.beans.Test;
 import org.wso2.carbon.testgrid.automation.beans.TestNGTest;
-import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.automation.file.common.TestReader;
 
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -55,9 +55,12 @@ public class TestNGTestReader implements TestReader {
 
         test.setTestName(file.getName());
         List<String> testNGList = new ArrayList<>();
-        for (String testFile : Arrays.asList(tests.list())) {
-            if (testFile.endsWith(JAR_EXTENSION)) {
-                        testNGList.add(Paths.get(tests.getAbsolutePath(), testFile).toString());
+
+        if (tests.exists()) {
+            for (String testFile : ArrayUtils.nullToEmpty(tests.list())) {
+                if (testFile.endsWith(JAR_EXTENSION)) {
+                    testNGList.add(Paths.get(tests.getAbsolutePath(), testFile).toString());
+                }
             }
         }
 

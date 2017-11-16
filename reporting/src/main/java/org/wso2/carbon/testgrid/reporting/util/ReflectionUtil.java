@@ -22,9 +22,11 @@ import org.wso2.carbon.testgrid.reporting.ReportingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.security.AccessController;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
+
 import javax.lang.model.SourceVersion;
 
 /**
@@ -107,7 +109,13 @@ public class ReflectionUtil {
             throw new ReportingException(String.format(Locale.ENGLISH,
                     "Field %s not found in %s", fieldName, classObject.getClass()));
         }
-        field.get().setAccessible(true);
+        AccessController.doPrivileged(new java.security.PrivilegedAction<Boolean>() {
+            public Boolean run() {
+                field.get().setAccessible(true);
+                return true;
+            }
+        });
+
         return field.get();
     }
 }

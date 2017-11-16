@@ -67,7 +67,7 @@ public class TestNgExecutor implements TestExecutor {
             URL url = null;
             try {
                 url = jarFile.toURI().toURL();
-                URL[] urls = new URL[] { url };
+                URL[] urls = new URL[]{url};
                 URLClassLoader classLoader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
                 Thread.currentThread().setContextClassLoader(classLoader);
             } catch (MalformedURLException e) {
@@ -76,16 +76,4 @@ public class TestNgExecutor implements TestExecutor {
             }
         }
     }
-
-    /**
-     * This method returns the jar file name given the absolute path.
-     *
-     * @param file the path of the file file.
-     * @return name of the file file.
-     */
-    private String getJarName(String file) {
-        String[] split = file.split("/");
-        return split[split.length - 1];
-    }
-
 }

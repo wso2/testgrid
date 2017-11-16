@@ -34,8 +34,25 @@ public class Script {
     @Element(description = "defines the provided scripts type (not necessary)")
     private ScriptType scriptType;
 
+    /**
+     * This defines the supported executable script types.
+     */
     public enum ScriptType {
-        CLOUD_FORMATION ("Cloud Formation"), INFRA_CREATE ("Infra Create"), INFRA_DESTROY ("Infra Destroy");
+
+        /**
+         * Defines the AWS cloud-formation script type.
+         */
+        CLOUD_FORMATION ("Cloud Formation"),
+
+        /**
+         * Defines the create-infra shell script type.
+         */
+        INFRA_CREATE ("Infra Create"),
+
+        /**
+         * Defines the destroy-infra shell script type.
+         */
+        INFRA_DESTROY ("Infra Destroy");
 
         private final String name;
 

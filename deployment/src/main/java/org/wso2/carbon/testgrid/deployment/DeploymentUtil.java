@@ -18,6 +18,8 @@
 package org.wso2.carbon.testgrid.deployment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.exception.TestGridDeployerException;
 
@@ -25,7 +27,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+/**
+ * This holds the utility methods used by the deployment component.
+ */
 public class DeploymentUtil {
+
+    private static final Log log = LogFactory.getLog(DeploymentUtil.class);
+
 
     /**
      * Reads the deployment.json file and constructs the deployment object.
@@ -37,10 +45,12 @@ public class DeploymentUtil {
     public static Deployment getDeploymentInfo(String testPlanLocation) throws TestGridDeployerException {
 
         ObjectMapper mapper = new ObjectMapper();
-        File file = new File(Paths.get(testPlanLocation, DeployerConstants.PRODUCT_IS_DIR, DeployerConstants.DEPLOYMENT_FILE).toString());
+        File file = new File(Paths.get(testPlanLocation, DeployerConstants.PRODUCT_IS_DIR,
+                DeployerConstants.DEPLOYMENT_FILE).toString());
         try {
             return mapper.readValue(file, Deployment.class);
         } catch (IOException e) {
+            log.error(e);
             throw new TestGridDeployerException("Error occurred while reading the "
                     + DeployerConstants.DEPLOYMENT_FILE + " file", e);
         }
