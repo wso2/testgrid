@@ -18,24 +18,43 @@
 
 package org.wso2.carbon.testgrid.automation.beans;
 
-import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.common.Deployment;
 
 /**
  * This is the abstraction of Test class.
+ *
+ * @since 1.0.0
  */
 public abstract class Test {
 
     private String testName;
 
+    /**
+     * Returns the test name.
+     *
+     * @return test name
+     */
     public String getTestName() {
         return testName;
     }
 
+    /**
+     * Sets the test name.
+     *
+     * @param testName test name
+     */
     public void setTestName(String testName) {
         this.testName = testName;
     }
 
-    public abstract void execute(String testLocation, Deployment deployment) throws TestGridExecuteException;
+    /**
+     * Executes the test for the given test location and deployment.
+     *
+     * @param testLocation location of the tests
+     * @param deployment   deployment to execute the tests on
+     * @throws TestAutomationException thrown when error on executing tests
+     */
+    public abstract void execute(String testLocation, Deployment deployment) throws TestAutomationException;
 
 }

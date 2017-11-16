@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.testgrid.automation.file.common;
 
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.automation.beans.Test;
-import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
 
 import java.util.List;
 
@@ -28,5 +28,5 @@ import java.util.List;
  */
 public interface TestReader {
 
-    List<Test> readTests(String testLocation) throws TestReaderException;
+    List<Test> readTests(String testLocation) throws TestAutomationException;
 }

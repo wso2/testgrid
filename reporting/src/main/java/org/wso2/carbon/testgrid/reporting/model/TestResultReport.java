@@ -23,6 +23,7 @@ import org.wso2.carbon.testgrid.reporting.result.TestResultable;
 /**
  * Bean class to capture the information required in test results to generate the report for the test plan.
  *
+ * @param <T> the type of the value being TestResultReport
  * @since 1.0.0
  */
 public class TestResultReport<T extends TestResultable> {

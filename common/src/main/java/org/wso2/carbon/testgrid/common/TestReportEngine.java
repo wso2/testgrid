@@ -30,7 +30,8 @@ public interface TestReportEngine {
      * Generates a test report based on the given test plan.
      *
      * @param productTestPlan test plan to generate the test report
-     * @throws TestReportEngineException thrown when reading the results from files or when writing the test report to file
+     * @throws TestReportEngineException thrown when reading the results from files or when writing the test report
+     * to file
      */
     void generateReport(ProductTestPlan productTestPlan) throws TestReportEngineException;
 }

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.testgrid.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -27,11 +29,15 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.testgrid.automation.TestEngineImpl;
+import org.wso2.carbon.testgrid.common.DeployerService;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.ProductTestPlan;
+import org.wso2.carbon.testgrid.common.TestPlan;
 import org.wso2.carbon.testgrid.common.TestScenario;
+import org.wso2.carbon.testgrid.common.util.EnvironmentUtil;
 import org.wso2.carbon.testgrid.core.exception.ScenarioExecutorException;
-import org.wso2.carbon.testgrid.deployment.DeployerServiceImpl;
+import org.wso2.carbon.testgrid.deployment.DeployerFactory;
+import org.wso2.carbon.testgrid.deployment.deployers.PuppetDeployer;
 import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -42,8 +48,10 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  *
  * @since 0.9.0
  */
-@PrepareForTest({DeployerServiceImpl.class, TestEngineImpl.class, TestReportEngineImpl.class})
+@PrepareForTest({DeployerFactory.class, TestEngineImpl.class, TestReportEngineImpl.class})
 public class ScenarioExecutorTest extends PowerMockTestCase {
+
+    private static final Log log = LogFactory.getLog(ScenarioExecutorTest.class);
 
     TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
     ProductTestPlan plan;
@@ -68,14 +76,16 @@ public class ScenarioExecutorTest extends PowerMockTestCase {
         Mockito.when(testScenario.getSolutionPattern()).thenReturn("Sample Test Scenario");
 
         Deployment deployment = Mockito.mock(Deployment.class);
-        DeployerServiceImpl deployer = mock(DeployerServiceImpl.class);
+        DeployerService deployer = mock(PuppetDeployer.class);
         TestEngineImpl testEngine = mock(TestEngineImpl.class);
         TestReportEngineImpl testReportEngine = mock(TestReportEngineImpl.class);
 
 
 
         try {
-            whenNew(DeployerServiceImpl.class).withNoArguments().thenReturn(deployer);
+            TestPlan testPlan = Mockito.mock(TestPlan.class);
+            Mockito.when(testPlan.getDeployerType()).thenReturn(TestPlan.DeployerType.PUPPET);
+            Mockito.when(deployer.deploy(testPlan.getDeployment())).thenReturn(deployment);
             //Mockito.when(deployer.deploy(testPlan)).thenReturn(deployment);
 
             whenNew(TestEngineImpl.class).withNoArguments().thenReturn(testEngine);
@@ -83,7 +93,7 @@ public class ScenarioExecutorTest extends PowerMockTestCase {
 
             whenNew(TestReportEngineImpl.class).withNoArguments().thenReturn(testReportEngine);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         }
 
 

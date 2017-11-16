@@ -23,10 +23,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.wso2.carbon.testgrid.common.exception.TestGridException;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * This Util class will be used for having utility methods required for TestGrid core component.
@@ -38,18 +40,28 @@ public class TestGridUtil {
 
     private static final Log log = LogFactory.getLog(TestGridUtil.class);
 
-    static String createTestDirectory(String productName, String productVersion, Long timeStamp) throws IOException {
-        String directory = Paths.get(System.getenv(TESTGRID_HOME_ENV),productName + SEPARATOR + productVersion
+    static Optional<String> createTestDirectory(String productName, String productVersion, Long timeStamp)
+            throws TestGridException {
+        String directory = Paths.get(System.getenv(TESTGRID_HOME_ENV), productName + SEPARATOR + productVersion
                 + SEPARATOR + timeStamp).toString();
-        File testDir = new File( directory);
+        File testDir = new File(directory);
         // if the directory exists, remove it
         if (testDir.exists()) {
             log.info("Removing test directory : " + testDir.getName());
-            FileUtils.forceDelete(testDir);
+            try {
+                FileUtils.forceDelete(testDir);
+            } catch (IOException e) {
+                String msg = "Unable to create test directory for product '" + productName + "' , version '" +
+                        productVersion + "'";
+                log.error(msg, e);
+                throw new TestGridException(msg, e);
+            }
         }
         log.info("Creating test directory : " + testDir.getName());
-        testDir.mkdir();
-        return directory;
+        if (testDir.mkdir()) {
+            return Optional.ofNullable(directory);
+        }
+        return Optional.empty();
     }
 
     static String cloneRepository(String repositoryUrl, String directory) throws GitAPIException {

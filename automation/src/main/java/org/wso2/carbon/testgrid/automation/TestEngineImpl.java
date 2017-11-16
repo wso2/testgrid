@@ -21,8 +21,6 @@ package org.wso2.carbon.testgrid.automation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.testgrid.automation.core.TestManager;
-import org.wso2.carbon.testgrid.automation.exceptions.TestGridExecuteException;
-import org.wso2.carbon.testgrid.automation.exceptions.TestManagerException;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.TestAutomationEngine;
 import org.wso2.carbon.testgrid.common.TestScenario;
@@ -36,18 +34,16 @@ public class TestEngineImpl implements TestAutomationEngine {
 
     private static final Log log = LogFactory.getLog(TestEngineImpl.class);
 
-    public boolean runScenario(TestScenario scenario, String location, Deployment deployment) throws
-            TestAutomationEngineException {
+    public boolean runScenario(TestScenario scenario, String location, Deployment deployment)
+            throws TestAutomationEngineException {
         log.info("Executing Tests for Solution Pattern : " + scenario.getSolutionPattern());
         TestManager testManager = new TestManager();
         try {
             testManager.init(Utils.getTestScenarioLocation(scenario, location), deployment);
             testManager.executeTests();
             scenario.setStatus(TestScenario.Status.COMPLETED);
-        } catch (TestManagerException ex) {
+        } catch (TestAutomationException ex) {
             throw new TestAutomationEngineException("Error while initiating the TestManager", ex);
-        } catch (TestGridExecuteException ex) {
-            throw new TestAutomationEngineException("Error while Executing Tests", ex);
         }
         return true;
     }

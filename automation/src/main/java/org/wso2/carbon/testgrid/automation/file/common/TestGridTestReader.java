@@ -18,13 +18,16 @@
 
 package org.wso2.carbon.testgrid.automation.file.common;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.automation.beans.Test;
-import org.wso2.carbon.testgrid.automation.exceptions.TestReaderException;
+
+
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * This class is responsible for reading all the tests of the folder structure.
@@ -37,21 +40,25 @@ public class TestGridTestReader {
      *
      * @param testLocation The file path of the test location as a String.
      * @return a List of Tests.
-     * @throws TestReaderException when there is an error with test reading process.
+     * @throws TestAutomationException when there is an error with test reading process.
      */
-    public List<Test> getTests(String testLocation) throws TestReaderException {
+    public List<Test> getTests(String testLocation) throws TestAutomationException {
         File tests = new File(testLocation);
         List<Test> testList = new ArrayList<>();
-        for (String testType : Arrays.asList(tests.list())) {
-            //get the correct test reader for the test type.
-            TestReader testReader = TestReaderFactory.getTestReader(testType.toUpperCase());
-            List<Test> tests1;
-            if (testReader != null) {
-                tests1 = testReader.readTests(testLocation + File.separator + testType);
-                testList.addAll(tests1);
+
+        if (tests.exists()) {
+
+            for (String testType : ArrayUtils.nullToEmpty(tests.list())) {
+                //get the correct test reader for the test type.
+                TestReader testReader = TestReaderFactory.getTestReader(testType.toUpperCase(Locale.ENGLISH));
+                List<Test> tests1;
+                if (testReader != null) {
+                    tests1 = testReader.readTests(testLocation + File.separator + testType);
+                    testList.addAll(tests1);
+                }
             }
         }
+
         return testList;
     }
-
 }

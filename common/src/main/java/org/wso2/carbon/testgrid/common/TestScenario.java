@@ -20,17 +20,58 @@ package org.wso2.carbon.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
 
+import java.util.Locale;
+
 /**
  * This is the test model for a single SolutionPattern.
  */
 public class TestScenario {
 
+    /**
+     * This defines the possible statuses of TestScenario.
+     */
     public enum Status {
-        PLANNED, RUNNING, COMPLETED, ERROR
+
+        /**
+         * Planned to execute.
+         */
+        PLANNED,
+
+        /**
+         * Executing in TestEngine.
+         */
+        RUNNING,
+
+        /**
+         * Execution completed.
+         */
+        COMPLETED,
+
+        /**
+         * Execution error.
+         */
+        ERROR
     }
 
+    /**
+     * This defines the TestEngines in which the TestScenario can be executed.
+     */
     public enum TestEngine {
-        JMETER, TESTNG, SELENIUM
+
+        /**
+         * Defines the JMeter TestEngine.
+         */
+        JMETER,
+
+        /**
+         * Defines the TestNg TestEngine.
+         */
+        TESTNG,
+
+        /**
+         * Defines the Selenium TestEngine.
+         */
+        SELENIUM
     }
 
     private int id;
@@ -86,6 +127,6 @@ public class TestScenario {
     }
 
     public void setTestEngine(String testEngine) {
-        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase());
+        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
     }
 }

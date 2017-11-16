@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * This represents a model of the ProductTestPlan which includes all the necessary data to run the Test plans created for a
- * particular product. All the test-configs will be mapped to a TestPlan or list of TestPlans based on the configured
- * infrastructure, cluster types etc.
+ * This represents a model of the ProductTestPlan which includes all the necessary data to run the Test plans created
+ * for a particular product. All the test-configs will be mapped to a TestPlan or list of TestPlans based on the
+ * configured infrastructure, cluster types etc.
  */
 public class ProductTestPlan {
 
@@ -40,8 +40,34 @@ public class ProductTestPlan {
     private long completedTimeStamp;
     private Status status;
 
+    public ProductTestPlan () {
+        this.infrastructureMap = new ConcurrentHashMap<>();
+    }
+
+    /**
+     * This defines the possible statuses of the ProductTestPlan.
+     */
     public enum Status {
-        PLANNED, RUNNING, REPORT_GENERATION, COMPLETED
+
+        /**
+         * Planned to execute the ProductTestPlan.
+         */
+        PLANNED,
+
+        /**
+         * Executing the ProductTestPlan.
+         */
+        RUNNING,
+
+        /**
+         * Generating the test-report of the ProductTestPlan.
+         */
+        REPORT_GENERATION,
+
+        /**
+         * Execution completed.
+         */
+        COMPLETED
     }
 
     public int getId() {
@@ -137,9 +163,6 @@ public class ProductTestPlan {
     }
 
     public boolean addInfrastructure(Infrastructure infrastructure) {
-        if (this.infrastructureMap == null) {
-            this.infrastructureMap = new ConcurrentHashMap<>();
-        }
         this.infrastructureMap.put(infrastructure.getName(), infrastructure);
         return true;
     }

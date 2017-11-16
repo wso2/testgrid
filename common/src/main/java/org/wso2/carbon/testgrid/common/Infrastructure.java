@@ -27,7 +27,8 @@ import java.util.Map;
 /**
  *  Defines a model object for a Infrastructure.
  */
-@Configuration(namespace = "wso2.testgrid.infrastructure", description = "TestGrid Infrastructure Configuration Parameters")
+@Configuration(namespace = "wso2.testgrid.infrastructure",
+        description = "TestGrid Infrastructure Configuration Parameters")
 public class Infrastructure {
 
     @Element(description = "defines the infrastructure provider type (i.e. AWS, OpenStack)")
@@ -51,6 +52,9 @@ public class Infrastructure {
     @Element(description = "holds the additional properties for the infrastructure")
     private Map<String, String> infraArguments;
 
+    /**
+     * Defines the infrastructure provider types.
+     */
     public enum ProviderType {
         AWS ("AWS"),
         OPENSTACK ("OpenStack"),
@@ -67,6 +71,9 @@ public class Infrastructure {
         }
     }
 
+    /**
+     * Defines the cluster types.
+     */
     public enum ClusterType {
         ECS ("ECS"), K8S ("Kubernetes");
 
@@ -81,6 +88,9 @@ public class Infrastructure {
         }
     }
 
+    /**
+     * Defines the instance types.
+     */
     public enum InstanceType {
         EC2 ("EC2"), DOCKER_CONTAINERS ("Docker");
 

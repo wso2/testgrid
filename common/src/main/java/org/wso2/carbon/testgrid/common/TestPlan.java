@@ -22,6 +22,7 @@ import org.wso2.carbon.config.annotation.Configuration;
 import org.wso2.carbon.config.annotation.Element;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * This represents a model of the TestPlan which includes all the necessary data to run the required SolutionPatterns.
@@ -58,14 +59,71 @@ public class TestPlan {
     @Element(description = "additional script to be run after deployment step")
     private Script deploymentScript;
 
+
+    /**
+     * This defines the possible statuses of the TestPlan.
+     */
     public enum Status {
-        EXECUTION_PLANNED ("Execution Planned"), INFRASTRUCTURE_PREPARATION ("Infrastructure Preparation"),
-        INFRASTRUCTURE_READY ("Infrastructure Ready"), INFRASTRUCTURE_ERROR ("Infrastructure Error"),
-        INFRASTRUCTURE_DESTROY_ERROR ("Infrastructure Destroy Error"), DEPLOYMENT_PREPARATION ("Deployment Preparation"),
-        DEPLOYMENT_READY ("Deployment Ready"), DEPLOYMENT_ERROR ("Deployment Error"),
-        SCENARIO_EXECUTION ("Scenario Execution"), SCENARIO_EXECUTION_ERROR ("Scenario Execution Error"),
-        SCENARIO_EXECUTION_COMPLETED ("Scenario Execution Completed"), REPORT_GENERATION ("Report Generation"),
-        REPORT_GENERATION_ERROR ("Report Generation Error"), EXECUTION_COMPLETED ("Execution Completed");
+
+        /**
+         * TestPlan execution has planned.
+         */
+        EXECUTION_PLANNED ("Execution Planned"),
+
+        /**
+         * Infrastructure for the TestPlan execution is being prepared.
+         */
+        INFRASTRUCTURE_PREPARATION ("Infrastructure Preparation"),
+
+        /**
+         * Infrastructure for the TestPlan execution is ready to use.
+         */
+        INFRASTRUCTURE_READY ("Infrastructure Ready"),
+
+        /**
+         * There was an error when creating Infrastructure for the TestPlan.
+         */
+        INFRASTRUCTURE_ERROR ("Infrastructure Error"),
+
+        /**
+         * There was an error when destroying Infrastructure created for the TestPlan.
+         */
+        INFRASTRUCTURE_DESTROY_ERROR ("Infrastructure Destroy Error"),
+
+        /**
+         * Product deployment for the TestPlan execution is being prepared.
+         */
+        DEPLOYMENT_PREPARATION ("Deployment Preparation"),
+
+        /**
+         * Product deployment for the TestPlan execution is ready to use.
+         */
+        DEPLOYMENT_READY ("Deployment Ready"),
+
+        /**
+         * There was an error when deploying the products for the TestPlan.
+         */
+        DEPLOYMENT_ERROR ("Deployment Error"),
+
+        /**
+         * Test-scenarios of the TestPlan is being executed.
+         */
+        SCENARIO_EXECUTION ("Scenario Execution"),
+
+        /**
+         * There was an error when executing the test-scenarios of the TestPlan.
+         */
+        SCENARIO_EXECUTION_ERROR ("Scenario Execution Error"),
+
+        /**
+         * Test-scenario execution of the TestPlan has completed.
+         */
+        SCENARIO_EXECUTION_COMPLETED ("Scenario Execution Completed"),
+
+        /**
+         * TestPlan execution has completed.
+         */
+        EXECUTION_COMPLETED ("Execution Completed");
 
         private final String name;
 
@@ -78,8 +136,25 @@ public class TestPlan {
         }
     }
 
+    /**
+     * This defines the supported deployment automation tools.
+     */
     public enum DeployerType {
-        PUPPET ("puppet"), ANSIBLE ("ansible"), CHEF ("chef");
+
+        /**
+         * Defines the puppet automation.
+         */
+        PUPPET ("puppet"),
+
+        /**
+         * Defines the ansible automation.
+         */
+        ANSIBLE ("ansible"),
+
+        /**
+         * Defines the chef automation.
+         */
+        CHEF ("chef");
 
         private final String name;
 
@@ -251,7 +326,7 @@ public class TestPlan {
      * @param deployerType string deployer-type (puppet/ansible) of the test plan
      */
     public void setDeployerType(String deployerType) {
-        this.deployerType = DeployerType.valueOf(deployerType.toUpperCase());
+        this.deployerType = DeployerType.valueOf(deployerType.toUpperCase(Locale.ENGLISH));
     }
 
     /**
