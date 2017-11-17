@@ -6,7 +6,6 @@ package org.wso2.carbon.testgrid.common.constants;
 public class TestGridConstants {
 
     //environment variables
-    public static final String JMETER_HOME = "JMETER_HOME";
     public static final String AWS_ACCESS_KEY = "AWS_ACCESS_KEY_ID";
     public static final String AWS_SECRET_KEY = "AWS_SECRET_ACCESS_KEY";
 

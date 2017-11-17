@@ -38,7 +38,6 @@ import org.wso2.carbon.testgrid.common.exception.InfrastructureProviderInitializ
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.UnsupportedProviderException;
-import org.wso2.carbon.testgrid.common.util.EnvironmentUtil;
 import org.wso2.carbon.testgrid.infrastructure.InfrastructureProviderFactory;
 import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
@@ -70,7 +69,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
 
     @BeforeTest
     public void setHome() {
-        EnvironmentUtil.setEnvironmentVariable(TestGridUtil.TESTGRID_HOME_ENV, "/tmp");
+        System.setProperty(TestGridUtil.TESTGRID_HOME_ENV, "/tmp");
     }
 
     @Test

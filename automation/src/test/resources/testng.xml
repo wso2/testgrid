@@ -19,7 +19,6 @@ limitations under the License.
 
 <suite name="TestGrid - Test Automation Module">
     <test name="executor-test" parallel="false">
-        <parameter name="jmeterHome" value="/opt/apache-jmeter-3.2"/>
         <classes>
             <class name="org.wso2.carbon.testgrid.automation.executor.JMeterExecutorTest"/>
             <class name="org.wso2.carbon.testgrid.automation.executor.TestExecutorFactoryTest"/>

@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.testgrid.automation.executor;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.jmeter.engine.StandardJMeterEngine;
 import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
@@ -28,12 +31,11 @@ import org.wso2.carbon.testgrid.automation.TestAutomationException;
 import org.wso2.carbon.testgrid.common.Deployment;
 import org.wso2.carbon.testgrid.common.Host;
 import org.wso2.carbon.testgrid.common.Port;
-import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
-import org.wso2.carbon.testgrid.common.util.EnvironmentUtil;
 import org.wso2.carbon.testgrid.common.util.StringUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,32 +47,25 @@ import java.nio.file.Paths;
  */
 public class JMeterExecutor implements TestExecutor {
 
-    private String jMeterHome;
+    private static final Log log = LogFactory.getLog(JMeterExecutor.class);
     private String testLocation;
     private String testName;
 
     @Override
     public void execute(String script, Deployment deployment) throws TestAutomationException {
         StandardJMeterEngine jMeterEngine = new StandardJMeterEngine();
-        if (StringUtil.isStringNullOrEmpty(testName) || StringUtil.isStringNullOrEmpty(testLocation) ||
-            StringUtil.isStringNullOrEmpty(jMeterHome)) {
+        if (StringUtil.isStringNullOrEmpty(testName) || StringUtil.isStringNullOrEmpty(testLocation)) {
             throw new TestAutomationException(
                     StringUtil.concatStrings("JMeter Executor not initialised properly.", "{ Test Name: ", testName,
-                            ", Test Location: ", testLocation, ", JMeter Home: ", jMeterHome, "}"));
+                            ", Test Location: ", testLocation, "}"));
         }
         overrideJMeterConfig(testLocation, testName, deployment); // Override JMeter properties for current deployment.
-        JMeterUtils.setJMeterHome(jMeterHome);
         JMeterUtils.initLocale();
-        try {
-            SaveService.loadProperties();
-        } catch (IOException e) {
-            throw new TestAutomationException("Error occurred when initialising JMeter save service");
-        }
 
         HashTree testPlanTree;
         try {
             testPlanTree = SaveService.loadTree(new File(script));
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             throw new TestAutomationException("Error occurred when loading test script.", e);
         }
 
@@ -89,6 +84,10 @@ public class JMeterExecutor implements TestExecutor {
         ResultCollector resultCollector = new ResultCollector(summariser);
 
         resultCollector.setFilename(resultFile);
+
+        if (testPlanTree.getArray().length == 0) {
+            throw new TestAutomationException("JMeter test plan is empty.");
+        }
         testPlanTree.add(testPlanTree.getArray()[0], resultCollector);
 
         // Run JMeter Test
@@ -99,14 +98,60 @@ public class JMeterExecutor implements TestExecutor {
 
     @Override
     public void init(String testLocation, String testName) throws TestAutomationException {
-        jMeterHome = EnvironmentUtil.getSystemVariableValue(TestGridConstants.JMETER_HOME);
-        if (StringUtil.isStringNullOrEmpty(jMeterHome)) {
-            throw new TestAutomationException(
-                    StringUtil.concatStrings(TestGridConstants.JMETER_HOME, " environment variable not set."));
-        }
-
         this.testName = testName;
         this.testLocation = testLocation;
+
+        // Set JMeter home
+        String jMeterHome = createTempDirectory(testLocation);
+        JMeterUtils.setJMeterHome(jMeterHome);
+    }
+
+    /**
+     * Creates a temporary directory in the given test location and returns the path of the created temp directory.
+     *
+     * @param testLocation location of the test scripts
+     * @return path of the created temp directory
+     * @throws TestAutomationException thrown when error on creating temp directory
+     */
+    private String createTempDirectory(String testLocation) throws TestAutomationException {
+        try {
+            Path tempDirectoryPath = Paths.get(testLocation).resolve("temp");
+            Path binDirectoryPath = tempDirectoryPath.resolve("bin");
+            Files.createDirectories(binDirectoryPath);
+
+            // Copy properties files
+            copyResourceFile(binDirectoryPath, "saveservice.properties");
+            copyResourceFile(binDirectoryPath, "upgrade.properties");
+
+            tempDirectoryPath.toFile().deleteOnExit();
+
+            // Delete file on exit
+            FileUtils.forceDeleteOnExit(new File(tempDirectoryPath.toAbsolutePath().toString()));
+
+            return tempDirectoryPath.toAbsolutePath().toString();
+        } catch (IOException e) {
+            throw new TestAutomationException(StringUtil
+                    .concatStrings("Error occurred when creating temporary directory in ", testLocation), e);
+        }
+    }
+
+    /**
+     * Copies the given resource file to the given path.
+     *
+     * @param fileCopyPath path in which the file should be copied to
+     * @param fileName     name of the file to be copied
+     * @throws TestAutomationException thrown when error on copying the file
+     */
+    private void copyResourceFile(Path fileCopyPath, String fileName) throws TestAutomationException {
+        Path filePath = fileCopyPath.resolve(fileName);
+        try (InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(fileName)) {
+            if (!Files.exists(filePath)) {
+                Files.copy(inputStream, filePath);
+            }
+        } catch (IOException e) {
+            throw new TestAutomationException(StringUtil
+                    .concatStrings("Error occurred when copying file ", filePath.toAbsolutePath().toString()), e);
+        }
     }
 
     /**
@@ -116,15 +161,18 @@ public class JMeterExecutor implements TestExecutor {
      * @param testName     test name
      * @param deployment   deployment details of the current pattern
      */
+
     private void overrideJMeterConfig(String testLocation, String testName, Deployment deployment) {
         Path path = Paths.get(testLocation, "JMeter", testName, "src", "test", "resources", "user.properties");
-        if (Files.exists(path)) {
-            JMeterUtils.loadJMeterProperties(path.toAbsolutePath().toString());
-            for (Host host : deployment.getHosts()) {
-                JMeterUtils.setProperty(host.getLabel(), host.getIp());
-                for (Port port : host.getPorts()) {
-                    JMeterUtils.setProperty(port.getProtocol(), String.valueOf(port.getPortNumber()));
-                }
+        if (!Files.exists(path)) {
+            log.info("JMeter user.properties file not specified - proceeding with JMeter default properties.");
+            return;
+        }
+        JMeterUtils.loadJMeterProperties(path.toAbsolutePath().toString());
+        for (Host host : deployment.getHosts()) {
+            JMeterUtils.setProperty(host.getLabel(), host.getIp());
+            for (Port port : host.getPorts()) {
+                JMeterUtils.setProperty(port.getProtocol(), String.valueOf(port.getPortNumber()));
             }
         }
     }
