@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
+import org.wso2.carbon.testgrid.common.util.EnvironmentUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,8 +43,8 @@ public class TestGridUtil {
 
     static Optional<String> createTestDirectory(String productName, String productVersion, Long timeStamp)
             throws TestGridException {
-        String directory = Paths.get(System.getenv(TESTGRID_HOME_ENV), productName + SEPARATOR + productVersion
-                + SEPARATOR + timeStamp).toString();
+        String directory = Paths.get(EnvironmentUtil.getSystemVariableValue(TESTGRID_HOME_ENV),
+                productName + SEPARATOR + productVersion + SEPARATOR + timeStamp).toString();
         File testDir = new File(directory);
         // if the directory exists, remove it
         if (testDir.exists()) {

@@ -31,6 +31,7 @@ import org.wso2.carbon.testgrid.common.Utils;
 import org.wso2.carbon.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.carbon.testgrid.common.exception.TestGridException;
 import org.wso2.carbon.testgrid.common.exception.TestReportEngineException;
+import org.wso2.carbon.testgrid.common.util.EnvironmentUtil;
 import org.wso2.carbon.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.carbon.testgrid.reporting.TestReportEngineImpl;
 
@@ -126,7 +127,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
 
     @Override
     public boolean isEnvironmentConfigured() throws TestGridConfigurationException {
-        if (System.getenv(TestGridUtil.TESTGRID_HOME_ENV) != null) {
+        if (EnvironmentUtil.getSystemVariableValue(TestGridUtil.TESTGRID_HOME_ENV) != null) {
             return true;
         }
         throw new TestGridConfigurationException("TESTGRID_HOME environment variable has not configured. Please " +
