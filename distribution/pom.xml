@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>carbon-testgrid-framework</artifactId>
-        <groupId>org.wso2.carbon.testgrid</groupId>
+        <artifactId>testgrid-framework</artifactId>
+        <groupId>org.wso2.testgrid</groupId>
         <version>0.9.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.testgrid.distribution</artifactId>
+    <artifactId>org.wso2.testgrid.distribution</artifactId>
     <name>WSO2 TestGrid Framework - Distribution POM</name>
     <url>http://wso2.org</url>
     <packaging>pom</packaging>
@@ -33,7 +33,7 @@
                     </goals>
                     <configuration>
                         <tasks>
-                            <copy file="../core/target/org.wso2.carbon.testgrid.core-${test.grid.version}-jar-with-dependencies.jar"
+                            <copy file="../core/target/org.wso2.testgrid.core-${test.grid.version}-jar-with-dependencies.jar"
                                   tofile="../distribution/bin/test-grid-${test.grid.version}.jar">
                             </copy>
                         </tasks>
@@ -68,24 +68,24 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.common</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.common</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.infrastruture</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.infrastruture</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.deployment</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.deployment</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.automation</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.automation</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.reporting</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.reporting</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>

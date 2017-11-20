@@ -20,8 +20,8 @@ limitations under the License.
 <suite name="TestGrid - Test Automation Module">
     <test name="executor-test" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.testgrid.automation.executor.JMeterExecutorTest"/>
-            <class name="org.wso2.carbon.testgrid.automation.executor.TestExecutorFactoryTest"/>
+            <class name="org.wso2.testgrid.automation.executor.JMeterExecutorTest"/>
+            <class name="org.wso2.testgrid.automation.executor.TestExecutorFactoryTest"/>
         </classes>
     </test>
 </suite>
