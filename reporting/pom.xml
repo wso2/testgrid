@@ -19,14 +19,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
-        <groupId>org.wso2.carbon.testgrid</groupId>
-        <artifactId>carbon-testgrid-framework</artifactId>
+        <groupId>org.wso2.testgrid</groupId>
+        <artifactId>testgrid-framework</artifactId>
         <version>0.9.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.testgrid.reporting</artifactId>
+    <artifactId>org.wso2.testgrid.reporting</artifactId>
     <name>WSO2 TestGrid Framework - Reporting POM</name>
     <url>http://wso2.org</url>
     <packaging>jar</packaging>
@@ -43,8 +43,8 @@
     <dependencies>
         <!-- Test grid dependencies -->
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.common</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.common</artifactId>
         </dependency>
 
         <!-- Other dependencies -->
