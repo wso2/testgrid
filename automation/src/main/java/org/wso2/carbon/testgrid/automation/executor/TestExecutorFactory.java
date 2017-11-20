@@ -19,7 +19,6 @@
 package org.wso2.carbon.testgrid.automation.executor;
 
 import org.wso2.carbon.testgrid.automation.TestAutomationException;
-import org.wso2.carbon.testgrid.automation.executers.JMeterExecutor;
 import org.wso2.carbon.testgrid.common.constants.TestGridConstants;
 import org.wso2.carbon.testgrid.common.util.StringUtil;
 

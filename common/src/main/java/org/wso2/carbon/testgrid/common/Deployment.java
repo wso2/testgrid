@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.testgrid.common;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ import java.util.List;
 public class Deployment {
 
     private String name;
-    private List<Host> hosts;
+    private List<Host> hosts = Collections.emptyList();
     private String deploymentScriptsDir;
 
     /**
