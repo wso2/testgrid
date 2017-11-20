@@ -21,6 +21,7 @@ package org.wso2.testgrid.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -48,6 +49,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  * @since 0.9.0
  */
 @PrepareForTest({DeployerFactory.class, TestEngineImpl.class, TestReportEngineImpl.class})
+@PowerMockIgnore({"javax.management.*"})
 public class ScenarioExecutorTest extends PowerMockTestCase {
 
     private static final Log log = LogFactory.getLog(ScenarioExecutorTest.class);

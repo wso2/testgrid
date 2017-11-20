@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -51,6 +52,7 @@ import java.net.URL;
  */
 @PrepareForTest({InfrastructureProviderFactory.class, TestGridUtil.class, TestEngineImpl.class,
         TestReportEngineImpl.class, TestPlanExecutor.class})
+@PowerMockIgnore({"javax.management.*"})
 public class TestGridMgtServiceTest extends PowerMockTestCase {
 
     private static final Log log = LogFactory.getLog(TestGridMgtServiceTest.class);
