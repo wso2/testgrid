@@ -27,8 +27,8 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.wso2.carbon.testgrid</groupId>
-    <artifactId>carbon-testgrid-framework</artifactId>
+    <groupId>org.wso2.testgrid</groupId>
+    <artifactId>testgrid-framework</artifactId>
     <version>0.9.0-SNAPSHOT</version>
     <name>WSO2 TestGrid Framework - Aggregator POM</name>
     <url>http://wso2.org</url>
@@ -42,7 +42,6 @@
         <module>infrastructure</module>
         <module>reporting</module>
         <module>distribution</module>
-        <!--<module>api</module>-->
     </modules>
 
     <scm>
@@ -197,6 +196,11 @@
                 <artifactId>org.eclipse.jgit</artifactId>
                 <version>${jgit.version}</version>
             </dependency>
+            <dependency>
+                <groupId>args4j</groupId>
+                <artifactId>args4j</artifactId>
+                <version>2.33</version>
+            </dependency>
 
             <!-- Infrastructure dependencies -->
             <dependency>
@@ -242,33 +246,33 @@
 
             <!--TestGrid Dependencies-->
             <dependency>
-                <groupId>org.wso2.carbon.testgrid</groupId>
-                <artifactId>org.wso2.carbon.testgrid.common</artifactId>
+                <groupId>org.wso2.testgrid</groupId>
+                <artifactId>org.wso2.testgrid.common</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.testgrid</groupId>
-                <artifactId>org.wso2.carbon.testgrid.core</artifactId>
+                <groupId>org.wso2.testgrid</groupId>
+                <artifactId>org.wso2.testgrid.core</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.testgrid</groupId>
-                <artifactId>org.wso2.carbon.testgrid.automation</artifactId>
+                <groupId>org.wso2.testgrid</groupId>
+                <artifactId>org.wso2.testgrid.automation</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.testgrid</groupId>
-                <artifactId>org.wso2.carbon.testgrid.deployment</artifactId>
+                <groupId>org.wso2.testgrid</groupId>
+                <artifactId>org.wso2.testgrid.deployment</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.testgrid</groupId>
-                <artifactId>org.wso2.carbon.testgrid.infrastruture</artifactId>
+                <groupId>org.wso2.testgrid</groupId>
+                <artifactId>org.wso2.testgrid.infrastruture</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.testgrid</groupId>
-                <artifactId>org.wso2.carbon.testgrid.reporting</artifactId>
+                <groupId>org.wso2.testgrid</groupId>
+                <artifactId>org.wso2.testgrid.reporting</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
 

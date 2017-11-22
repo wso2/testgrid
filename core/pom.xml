@@ -19,14 +19,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
-        <groupId>org.wso2.carbon.testgrid</groupId>
-        <artifactId>carbon-testgrid-framework</artifactId>
+        <groupId>org.wso2.testgrid</groupId>
+        <artifactId>testgrid-framework</artifactId>
         <version>0.9.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.testgrid.core</artifactId>
+    <artifactId>org.wso2.testgrid.core</artifactId>
     <name>WSO2 TestGrid Framework - Core POM</name>
     <url>http://wso2.org</url>
     <packaging>jar</packaging>
@@ -49,7 +49,7 @@
                     <!-- MainClass in mainfest make a executable jar -->
                     <archive>
                         <manifest>
-                            <mainClass>org.wso2.carbon.testgrid.core.Main</mainClass>
+                            <mainClass>org.wso2.testgrid.core.Main</mainClass>
                         </manifest>
                     </archive>
 
@@ -70,24 +70,24 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.common</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.common</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.infrastruture</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.infrastruture</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.deployment</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.deployment</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.automation</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.automation</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.reporting</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.reporting</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>
@@ -100,6 +100,10 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>args4j</groupId>
+            <artifactId>args4j</artifactId>
         </dependency>
 
         <!-- Test dependencies -->
