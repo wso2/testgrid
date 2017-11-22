@@ -60,7 +60,7 @@ public class TestGridUtil {
         }
         log.info("Creating test directory : " + testDir.getName());
         if (testDir.mkdir()) {
-            return Optional.ofNullable(directory);
+            return Optional.of(directory);
         }
         return Optional.empty();
     }
