@@ -33,6 +33,8 @@ public class Script {
     private int order;
     @Element(description = "defines the provided scripts type (not necessary)")
     private ScriptType scriptType;
+    @Element(description = "defines the parameters file name (not necessary)")
+    private String scriptParameters;
 
     /**
      * This defines the supported executable script types.
@@ -63,6 +65,14 @@ public class Script {
         public String toString() {
             return this.name;
         }
+    }
+
+    public String getScriptParameters() {
+        return scriptParameters;
+    }
+
+    public void setScriptParameters(String scriptParameters) {
+        this.scriptParameters = scriptParameters;
     }
 
     public String getFilePath() {

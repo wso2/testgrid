@@ -49,7 +49,7 @@ public class XMLResultReader implements ResultReadable {
     private final Map<String, Object> args;
 
     /**
-     * Constructs an instance of {@link XMLResultReader}
+     * Constructs an instance of {@link XMLResultReader}.
      *
      * @param args arguments required for reading an XML result file
      */

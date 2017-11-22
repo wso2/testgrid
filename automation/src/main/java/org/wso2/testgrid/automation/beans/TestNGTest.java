@@ -43,7 +43,7 @@ public class TestNGTest extends Test {
     }
 
     /**
-     * Sets the test jars for test execution
+     * Sets the test jars for test execution.
      *
      * @param testNGJars .jar files containing tests to set
      */
