@@ -78,7 +78,7 @@ public class JMeterExecutorTest {
 
         // Assert test result file
         Assert.assertTrue(Files.exists(Paths.get(resource.getPath(), "SolutionPattern22", "Tests", "Results",
-                "Jmeter", "mock.jmx.xml")));
+                "Jmeter", "mock.jmx.csv")));
     }
 
     @Test(description = "Test for executing JMeter invalid test files.",

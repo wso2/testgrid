@@ -33,12 +33,16 @@ import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Port;
 import org.wso2.testgrid.common.util.StringUtil;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Enumeration;
+import java.util.Properties;
 
 /**
  * Responsible for performing the tasks related to execution of single JMeter solution.
@@ -60,6 +64,12 @@ public class JMeterExecutor implements TestExecutor {
                             ", Test Location: ", testLocation, "}"));
         }
         overrideJMeterConfig(testLocation, testName, deployment); // Override JMeter properties for current deployment.
+        //TODO change parameter replacing in jmx files to use JMeter properties file.
+        try {
+            replaceProperties(script);
+        } catch (IOException e) {
+            throw new TestAutomationException("Error occurred when applying parameters.", e);
+        }
         JMeterUtils.initLocale();
 
         HashTree testPlanTree;
@@ -80,7 +90,7 @@ public class JMeterExecutor implements TestExecutor {
             throw new TestAutomationException(StringUtil.concatStrings("Script file ", script, " cannot be located."));
         }
         String resultFile =
-                Paths.get(testLocation, "Results", "Jmeter", scriptFileName + ".xml").toAbsolutePath().toString();
+                Paths.get(testLocation, "Results", "Jmeter", scriptFileName + ".csv").toAbsolutePath().toString();
         ResultCollector resultCollector = new ResultCollector(summariser);
 
         resultCollector.setFilename(resultFile);
@@ -175,5 +185,29 @@ public class JMeterExecutor implements TestExecutor {
                 JMeterUtils.setProperty(port.getProtocol(), String.valueOf(port.getPortNumber()));
             }
         }
+    }
+
+    /**
+     * This method replaces the property values in the jmx files.
+     *
+     * @param script Path of the jmx file as a String.
+     * @throws IOException when there is an error reading the file.
+     */
+    private void replaceProperties(String script) throws IOException {
+        Path path = Paths.get(script);
+        if (Files.exists(path) && Files.isRegularFile(path)) {
+            String jmx = new String(Files.readAllBytes(path), Charset.defaultCharset());
+            Properties jMeterProperties = JMeterUtils.getJMeterProperties();
+            Enumeration<?> enumeration = jMeterProperties.propertyNames();
+            while (enumeration.hasMoreElements()) {
+                String name = (String) enumeration.nextElement();
+                jmx = jmx.replaceAll("\\$\\{__property\\(" + name + "\\)\\}", JMeterUtils.getProperty(name));
+            }
+            BufferedWriter writer = Files.newBufferedWriter(path, Charset.defaultCharset());
+            writer.write(jmx);
+            writer.flush();
+            writer.close();
+        }
+
     }
 }

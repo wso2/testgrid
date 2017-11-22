@@ -33,9 +33,11 @@ import org.wso2.testgrid.infrastructure.aws.AWSManager;
  */
 public class AWSProvider implements InfrastructureProvider {
 
+    private static final String AWS_PROVIDER = "AWS";
+
     @Override
     public String getProviderName() {
-        return "AWS Provider";
+        return AWS_PROVIDER;
     }
 
     @Override

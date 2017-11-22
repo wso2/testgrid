@@ -106,12 +106,13 @@ public class AWSManagerTest extends PowerMockTestCase {
         script.setScriptType(Script.ScriptType.CLOUD_FORMATION);
         script.setFilePath(scriptFile);
         script.setName(mockStackName);
+        script.setScriptParameters("parameters.json");
         //create dummy infrastructure object
         Infrastructure infrastructure = new Infrastructure();
         infrastructure.setName(patternName);
         infrastructure.setScripts(Collections.singletonList(script));
         ClassLoader classLoader = getClass().getClassLoader();
-        File resourcePath = new File(classLoader.getResource("DeploymentPatterns").getFile());
+        File resourcePath = new File("src/test/resources");
         //Stack object with output object
         Stack stack = new Stack();
         stack.setStackName(mockStackName);

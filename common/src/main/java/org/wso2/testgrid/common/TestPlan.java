@@ -154,7 +154,11 @@ public class TestPlan {
         /**
          * Defines the chef automation.
          */
-        CHEF ("chef");
+        CHEF ("chef"),
+        /**
+         * Defines the chef automation.
+         */
+        AWS_CF ("AWS_CF");
 
         private final String name;
 
