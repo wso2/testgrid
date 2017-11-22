@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.common;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,9 +32,8 @@ public class ProductTestPlan {
     private int id;
     private String productName;
     private String productVersion;
-    private String homeDir;
     private String deploymentRepository;
-    private List<TestPlan> testPlans;
+    private List<TestPlan> testPlans = Collections.emptyList();
     private ConcurrentHashMap<String, Infrastructure> infrastructureMap;
     private TestReport testReport;
     private long createdTimeStamp;
@@ -104,8 +104,9 @@ public class ProductTestPlan {
         return System.getenv("TESTGRID_HOME");
     }
 
+    @Deprecated
     public void setHomeDir(String homeDir) {
-        this.homeDir = homeDir;
+        //no-op
     }
 
     public String getDeploymentRepository() {

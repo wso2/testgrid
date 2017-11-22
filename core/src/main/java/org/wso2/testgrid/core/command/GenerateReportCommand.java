@@ -35,7 +35,7 @@ import org.wso2.testgrid.reporting.TestReportEngineImpl;
  */
 public class GenerateReportCommand extends Command {
 
-    private static final Log log = LogFactory.getLog(CreateProductTestPlanCommand.class);
+    private static final Log log = LogFactory.getLog(GenerateReportCommand.class);
 
     @Option(name = "--product",
             usage = "Product Name",

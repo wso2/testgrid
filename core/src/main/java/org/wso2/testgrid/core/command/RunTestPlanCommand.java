@@ -40,7 +40,7 @@ import java.nio.file.Paths;
  */
 public class RunTestPlanCommand extends Command {
 
-    private static final Log log = LogFactory.getLog(CreateProductTestPlanCommand.class);
+    private static final Log log = LogFactory.getLog(RunTestPlanCommand.class);
 
     @Option(name = "--testplan",
             usage = "Path to Testplan",

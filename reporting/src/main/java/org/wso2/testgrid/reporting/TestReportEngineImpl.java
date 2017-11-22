@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.reporting;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestReportEngine;
@@ -49,6 +51,8 @@ import java.util.Optional;
  * @since 1.0.0
  */
 public class TestReportEngineImpl implements TestReportEngine {
+
+    private static final Log log = LogFactory.getLog(TestReportEngineImpl.class);
 
     private static final String TEST_ARTIFACT_DIR = "Tests";
     private static final String RESULTS_DIR = "Results";
@@ -125,6 +129,14 @@ public class TestReportEngineImpl implements TestReportEngine {
 
         List<TestPlan> testPlans = productTestPlan.getTestPlans();  //todo this returns null. coz test plans r not
         // part of this now.
+
+        if (testPlans == null) {
+            String msg = "Test Plans information are not available. These info are no longer stored as part of the "
+                    + "ProductTestPlan class. Instead, it should be retrieved from the database.";
+            log.error(msg);
+            throw new ReportingException(msg);
+        }
+
         List<TestPlanReport> testPlanReports = new ArrayList<>();
 
         for (TestPlan testPlan : testPlans) {

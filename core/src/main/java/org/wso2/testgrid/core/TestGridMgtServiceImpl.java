@@ -33,7 +33,6 @@ import org.wso2.testgrid.common.exception.TestReportEngineException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.reporting.TestReportEngineImpl;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -85,9 +84,10 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     public TestPlan generateTestPlan(Path testPlanPath, String testRepoDir, String infraRepoDir, String
             testRunDir) throws TestGridException {
         TestPlan testPlan;
-        if (testPlanPath.toFile().exists() && Utils.isYamlFile(testPlanPath.getFileName().toString())) {
-            try {
 
+        if (testPlanPath.toAbsolutePath().toFile().exists()
+                && (testPlanPath.getFileName() != null && Utils.isYamlFile(testPlanPath.toString()))) {
+            try {
                 ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(testPlanPath, null);
                 testPlan = configProvider.getConfigurationObject(TestPlan.class);
 
@@ -98,6 +98,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                     testPlan.setInfraRepoDir(infraRepoDir);
                     testPlan.setCreatedTimeStamp(new Date().getTime());
                 }
+                return testPlan;
             } catch (ConfigurationException e) {
                 String msg = "Unable to parse TestPlan file '" + testPlanPath.toString() + "'. " +
                         "Please check the syntax of the file.";
@@ -110,7 +111,6 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             log.warn(msg);
             throw new TestGridException(msg);
         }
-        return testPlan;
     }
 
     @Override
