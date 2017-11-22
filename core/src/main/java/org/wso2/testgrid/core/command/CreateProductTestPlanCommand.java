@@ -22,11 +22,14 @@ package org.wso2.testgrid.core.command;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.Option;
+import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.core.TestGridMgtService;
+import org.wso2.testgrid.core.TestGridMgtServiceImpl;
 
 /**
  * This creates a product test plan from the input arguments
  * and persist the information in a database.
- *
  */
 public class CreateProductTestPlanCommand extends Command {
 
@@ -51,7 +54,7 @@ public class CreateProductTestPlanCommand extends Command {
     protected String channel = "public";
 
     @Override
-    public void execute() {
+    public void execute() throws TestGridException {
         log.info("Creating product test plan..");
         log.info(
                 "Input Arguments: \n" +
@@ -68,6 +71,10 @@ public class CreateProductTestPlanCommand extends Command {
 
          */
 
+        TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
+        ProductTestPlan plan = testGridMgtService.createProduct(productName, productVersion);//todo use channel as well
+
+        testGridMgtService.persistProduct(plan);
         //todo Persist product and version info in the db.
         //git repo info for infra/deploy/scenarios are not yet retrieved as input arguments.
     }

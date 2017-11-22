@@ -98,7 +98,7 @@ public class ScenarioExecutorTest extends PowerMockTestCase {
         }
 
 
-        //testGridMgtService.executeProductTestPlan(productTestPlan);
+        //testGridMgtService.executeTestPlan(productTestPlan);
         Assert.assertTrue(true);
     }
 }

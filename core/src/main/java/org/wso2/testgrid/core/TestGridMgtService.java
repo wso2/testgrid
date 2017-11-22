@@ -19,8 +19,11 @@
 package org.wso2.testgrid.core;
 
 import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.testgrid.common.exception.TestGridException;
+
+import java.nio.file.Path;
 
 /**
  * This defines the contract of TestGridMgtService in which will serve as the main entry point to the TestGrid
@@ -39,23 +42,65 @@ public interface TestGridMgtService {
     /**
      * This method adds a TestPlan to the TestGrid framework.
      *
+     *
      * @param  product the product which TestGrid is executing.
      * @param  productVersion the product version which TestGrid is executing.
-     * @param  repository GIT repository url of the Product tests.
      * @return the status of the operation (success/failure)
      * @throws TestGridException If something goes wrong while adding the ProductTestPlan.
      */
-    ProductTestPlan addProductTestPlan(String product, String productVersion, String repository) throws
+    ProductTestPlan createProduct(String product, String productVersion) throws
             TestGridException;
+
+    /**
+     * {@see #createProduct}
+     *
+     * @param  product the product which TestGrid is executing.
+     * @param  productVersion the product version which TestGrid is executing.
+     * @param  repository path of the Product tests.
+     * @return the status of the operation (success/failure)
+     * @throws TestGridException If something goes wrong while adding the ProductTestPlan.
+     */
+    ProductTestPlan createProduct(String product, String productVersion, String repository) throws
+            TestGridException;
+
+    /**
+     * This includes the persistence logic to store the overall information of
+     * product/version/channel combination in a database.
+     *
+     * Persistence only happens if the above combination does not exist in the db.
+     *
+     * This method does not generate nor run test plan.
+     *
+     * @param productTestPlan test plan
+     * @throws TestGridException if exception
+     */
+    void persistProduct(ProductTestPlan productTestPlan) throws
+            TestGridException;
+
+    /**
+     *
+     * This method generates TestPlan object model that from the given input parameters.
+     *
+     * @param testPlanPath  location of the yaml file.
+     * @param testRepoDir   deployment repo directory.
+     * @param infraRepoDir  infrastructure repo directory.
+     * @param testRunDir    extracted location of the deployment repo
+     * @return TestPlan object model
+     * @throws TestGridException if an error occurred during test plan generation.
+     */
+     TestPlan generateTestPlan(Path testPlanPath, String testRepoDir, String infraRepoDir, String
+            testRunDir) throws TestGridException;
 
     /**
      * This method triggers the execution of a ProductTestPlan.
      *
+     *
+     * @param testPlan
      * @param  productTestPlan an instance of ProductTestPlan which should be executed.
      * @return the status of the operation (success/failure)
      * @throws TestGridException If something goes wrong while executing the ProductTestPlan.
      */
-    boolean executeProductTestPlan(ProductTestPlan productTestPlan) throws TestGridException;
+    boolean executeTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestGridException;
 
     /**
      * This method aborts the execution of a ProductTestPlan.

@@ -94,8 +94,14 @@ public class ProductTestPlan {
         this.productVersion = productVersion;
     }
 
+    /**
+     * don't use this. Use TESTGRID_HOME instead
+     *
+     * @return home dir
+     */
+    @Deprecated
     public String getHomeDir() {
-        return homeDir;
+        return System.getenv("TESTGRID_HOME");
     }
 
     public void setHomeDir(String homeDir) {
