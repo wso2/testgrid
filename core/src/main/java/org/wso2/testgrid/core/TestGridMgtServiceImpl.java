@@ -85,7 +85,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     public TestPlan generateTestPlan(Path testPlanPath, String testRepoDir, String infraRepoDir, String
             testRunDir) throws TestGridException {
         TestPlan testPlan;
-        if (Utils.isYamlFile(testPlanPath.getFileName().toString())) {
+        if (testPlanPath.toFile().exists() && Utils.isYamlFile(testPlanPath.getFileName().toString())) {
             try {
 
                 ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(testPlanPath, null);
@@ -102,7 +102,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                 String msg = "Unable to parse TestPlan file '" + testPlanPath.toString() + "'. " +
                         "Please check the syntax of the file.";
                 log.error(msg);
-                throw new TestGridException(msg);
+                throw new TestGridException(msg, e);
             }
 
         } else {
@@ -139,7 +139,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         productTestPlan.setProductName(product);
         productTestPlan.setProductVersion(productVersion);
         //productTestPlan.setTestPlans(this.generateTestPlan(repoLocation, repoLocation, path));
-        //            productTestPlan.setInfrastructureMap(this.generateInfrastructureData(repositoryLocation));
+        productTestPlan.setInfrastructureMap(this.generateInfrastructureData(repositoryLocation));
         productTestPlan.setStatus(ProductTestPlan.Status.PLANNED);
         return productTestPlan;
         //        }
