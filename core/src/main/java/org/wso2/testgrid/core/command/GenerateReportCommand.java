@@ -60,6 +60,14 @@ public class GenerateReportCommand extends Command {
             required = false)
     protected String channel = "public";
 
+    @Option(name = "--infraRepo",
+            usage = "Location of Infra plans. "
+                    + "Under this location, there should be a Infrastructure/ folder."
+                    + "Assume this location is the test-grid-is-resources",
+            aliases = { "-ir" },
+            required = true)
+    protected String infraRepo = "";
+
     @Override
     public void execute() throws TestGridException {
         log.info("Create product test plan command");
@@ -70,7 +78,7 @@ public class GenerateReportCommand extends Command {
                         "\tChannel" + channel);
 
         TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
-        ProductTestPlan productTestPlan = testGridMgtService.createProduct(productName, productVersion);
+        ProductTestPlan productTestPlan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
 
         try {
             new TestReportEngineImpl().generateReport(productTestPlan);

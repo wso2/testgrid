@@ -48,18 +48,6 @@ public interface TestGridMgtService {
      * @return the status of the operation (success/failure)
      * @throws TestGridException If something goes wrong while adding the ProductTestPlan.
      */
-    ProductTestPlan createProduct(String product, String productVersion) throws
-            TestGridException;
-
-    /**
-     * {@see #createProduct}
-     *
-     * @param  product the product which TestGrid is executing.
-     * @param  productVersion the product version which TestGrid is executing.
-     * @param  repository path of the Product tests.
-     * @return the status of the operation (success/failure)
-     * @throws TestGridException If something goes wrong while adding the ProductTestPlan.
-     */
     ProductTestPlan createProduct(String product, String productVersion, String repository) throws
             TestGridException;
 

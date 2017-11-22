@@ -54,11 +54,11 @@ public class RunTestPlanCommand extends Command {
             required = true)
     protected String testRepoDir = "";
 
-    @Option(name = "--infraRepoDir",
-            usage = "infraRepoDir",
-            aliases = { "-ird" },
-            required = true)
-    protected String infraRepoDir = "";
+//    @Option(name = "--infraRepoDir",
+//            usage = "infraRepoDir",
+//            aliases = { "-ird" },
+//            required = true)
+//    protected String infraRepoDir = "";
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -77,6 +77,14 @@ public class RunTestPlanCommand extends Command {
             aliases = { "-c" },
             required = false)
     protected String channel = "public";
+
+    @Option(name = "--infraRepo",
+            usage = "Location of Infra plans. "
+                    + "Under this location, there should be a Infrastructure/ folder."
+                    + "Assume this location is the test-grid-is-resources",
+            aliases = { "-ir" },
+            required = true)
+    protected String infraRepo = "";
 
     @Override
     public void execute() throws TestGridException {
@@ -100,7 +108,7 @@ public class RunTestPlanCommand extends Command {
             }
 
             TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
-            ProductTestPlan productTestPlan = testGridMgtService.createProduct(productName, productVersion);
+            ProductTestPlan productTestPlan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
             //todo use channel as well
             Long time = System.currentTimeMillis();
             String testPlanHome = TestGridUtil.createTestDirectory(productName, productVersion, time).get();
@@ -119,7 +127,7 @@ public class RunTestPlanCommand extends Command {
             }
 */
             TestPlan testPlan = testGridMgtService
-                    .generateTestPlan(Paths.get(testPlanLocation), testRepoDir, infraRepoDir,
+                    .generateTestPlan(Paths.get(testPlanLocation), testRepoDir, infraRepo,
                             testPlanHome);
             testGridMgtService.executeTestPlan(testPlan, productTestPlan);
             //            }

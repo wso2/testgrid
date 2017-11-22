@@ -53,6 +53,15 @@ public class CreateProductTestPlanCommand extends Command {
             required = false)
     protected String channel = "public";
 
+    @Option(name = "--infraRepo",
+            usage = "Location of Infra plans. "
+                    + "Under this location, there should be a Infrastructure/ folder."
+                    + "Assume this location is the test-grid-is-resources",
+            aliases = { "-ir" },
+            required = true)
+    protected String infraRepo = "";
+
+
     @Override
     public void execute() throws TestGridException {
         log.info("Creating product test plan..");
@@ -72,7 +81,9 @@ public class CreateProductTestPlanCommand extends Command {
          */
 
         TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
-        ProductTestPlan plan = testGridMgtService.createProduct(productName, productVersion);//todo use channel as well
+        ProductTestPlan plan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
+        //todo use channel as
+        // well
 
         testGridMgtService.persistProduct(plan);
         //todo Persist product and version info in the db.

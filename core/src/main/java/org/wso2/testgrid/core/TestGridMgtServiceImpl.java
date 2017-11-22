@@ -122,11 +122,11 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                 "configure it and rerun the TestGrid framework.");
     }
 
-    @Override
-    public ProductTestPlan createProduct(String product, String productVersion)
-            throws TestGridException {
-        return createProduct(product, productVersion, null);
-    }
+//    @Override
+//    public ProductTestPlan createProduct(String product, String productVersion)
+//            throws TestGridException {
+//        return createProduct(product, productVersion, null);
+//    }
 
     public ProductTestPlan createProduct(String product, String productVersion, String repositoryLocation)
             throws TestGridException {
@@ -154,7 +154,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
      */
     @Override
     public void persistProduct(ProductTestPlan productTestPlan) throws TestGridException {
-        throw new NotImplementedException();
+        log.warn("Peristence of product Not Implemented Yet.");
     }
 
     @Override
