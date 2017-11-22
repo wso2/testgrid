@@ -1,0 +1,7 @@
+[
+  {
+    "parameterKey": "EC2KeyPair",
+    "parameterValue": "test-grid-key"
+  }
+
+]

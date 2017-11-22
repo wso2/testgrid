@@ -31,7 +31,7 @@ public class DeployerFactory {
     private static ServiceLoader<DeployerService> providers = ServiceLoader.load(DeployerService.class);
 
     /**
-     * Return a matching Deployer for deploying artifacts
+     * Return a matching Deployer for deploying artifacts.
      *
      * @param testPlan an instance of testPlan object
      * @return an instance of the requested Deployer

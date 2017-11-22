@@ -40,7 +40,7 @@ public class OpenStackProvider implements InfrastructureProvider {
 
     @Override
     public boolean canHandle(Infrastructure infrastructure) {
-        return true;
+        return Infrastructure.ProviderType.OPENSTACK.equals(infrastructure.getProviderType());
     }
 
     @Override

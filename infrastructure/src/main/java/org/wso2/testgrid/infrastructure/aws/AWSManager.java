@@ -25,8 +25,11 @@ import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
+import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.Deployment;
@@ -34,11 +37,13 @@ import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.StringUtil;
-
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +57,8 @@ public class AWSManager {
 
     private Infrastructure infra;
     private static final Log log = LogFactory.getLog(AWSManager.class);
+    private static final String WUM_USERNAME = "WUMUsername";
+    private static final String WUM_PASSWORD = "WUMPassword";
 
     /**
      * This constructor creates AWS deployer object and validate AWS related environment variables are present.
@@ -76,19 +83,21 @@ public class AWSManager {
      * @return Returns a  Deployment object with created infrastructure details.
      * @throws TestGridInfrastructureException When there is an error with CloudFormation script.
      */
-    public Deployment createInfrastructure(Script script, String infraRepoDir)throws TestGridInfrastructureException {
+    public Deployment createInfrastructure(Script script, String infraRepoDir) throws TestGridInfrastructureException {
         String cloudFormationName = script.getName();
         AmazonCloudFormation stackbuilder = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
-                .withRegion(infra.getRegion())
+                .withRegion(this.infra.getRegion())
                 .build();
 
         CreateStackRequest stackRequest = new CreateStackRequest();
         stackRequest.setStackName(cloudFormationName);
         try {
-            String file = new String(Files.readAllBytes(Paths.get(infraRepoDir, this.infra.getName(),
+            String file = new String(Files.readAllBytes(Paths.get(infraRepoDir,
+                    "DeploymentPatterns", this.infra.getName(),
                     "AWS", "Scripts", script.getFilePath())), StandardCharsets.UTF_8);
             stackRequest.setTemplateBody(file);
+            stackRequest.setParameters(getParameters(script, infraRepoDir));
             stackbuilder.createStack(stackRequest);
             if (log.isDebugEnabled()) {
                 log.info("Stack configuration created for name " + cloudFormationName);
@@ -96,20 +105,20 @@ public class AWSManager {
             waitForAWSProcess(stackbuilder, cloudFormationName);
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(cloudFormationName);
-            DescribeStacksResult describeStacksResult = stackbuilder.describeStacks(describeStacksRequest);
+            DescribeStacksResult describeStacksResult = stackbuilder
+                    .describeStacks(describeStacksRequest);
             List<Host> hosts = new ArrayList<>();
             for (Stack st : describeStacksResult.getStacks()) {
                 for (Output output : st.getOutputs()) {
-                    if ("PublicDNS".equals(output.getOutputKey())) {
-                        Host host = new Host();
-                        host.setIp(output.getOutputValue());
-                        hosts.add(host);
-                    }
+                    Host host = new Host();
+                    host.setIp(output.getOutputValue());
+                    host.setLabel(output.getOutputKey());
+                    hosts.add(host);
                 }
             }
+            log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
             Deployment deployment = new Deployment();
             deployment.setHosts(hosts);
-            log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
             return deployment;
         } catch (InterruptedException e) {
             throw new TestGridInfrastructureException("Error occured while waiting for " +
@@ -196,5 +205,48 @@ public class AWSManager {
         deleteStackRequest.setStackName(cloudFormationName);
         stackdestroy.deleteStack(deleteStackRequest);
         return waitForAWSProcess(stackdestroy, cloudFormationName);
+    }
+
+    /**
+     * Reads the parameters for the stack from file.
+     *
+     * @param script       Script object with script details.
+     * @param infraRepoDir Path of TestGrid home location in file system as a String.
+     * @return a List of {@link Parameter} objects
+     * @throws IOException When there is an error reading the parameters file.
+     */
+    private List<Parameter> getParameters(Script script, String infraRepoDir) throws IOException
+            , TestGridInfrastructureException {
+
+        Path path = Paths.get(infraRepoDir, "DeploymentPatterns", this.infra.getName(),
+                "AWS", "Scripts", script.getScriptParameters());
+        String jsonArray = new String(Files.readAllBytes(path), Charset.defaultCharset());
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Parameter> parameters = objectMapper.readValue(jsonArray, new AWSTypeReference());
+        for (Parameter parameter : parameters) {
+            if (parameter.getParameterKey().equals(WUM_USERNAME)) {
+                String wumUserName = EnvironmentUtil.getSystemVariableValue(parameter.getParameterValue());
+                if (wumUserName != null) {
+                    parameter.setParameterValue(wumUserName);
+                } else {
+                    throw new TestGridInfrastructureException("WUM Credentials must be set as environment variables");
+                }
+
+            } else if (parameter.getParameterKey().equals(WUM_PASSWORD)) {
+                String wumPassword = EnvironmentUtil.getSystemVariableValue(parameter.getParameterValue());
+                if (wumPassword != null) {
+                    parameter.setParameterValue(wumPassword);
+                } else {
+                    throw new TestGridInfrastructureException("WUM Credentials must be set as environment variables");
+                }
+            }
+        }
+        return parameters;
+    }
+
+    /**
+     * Wrapper TypeReference for json Object mapper function.
+     */
+    private static class AWSTypeReference extends TypeReference<List<Parameter>> {
     }
 }

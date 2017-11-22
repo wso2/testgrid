@@ -18,10 +18,11 @@
 
 package org.wso2.testgrid.common;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- *  Defines a model object for a created HOST.
+ * Defines a model object for a created HOST.
  */
 public class Host {
 
@@ -46,7 +47,7 @@ public class Host {
     }
 
     public List<Port> getPorts() {
-        return ports;
+        return (ports != null) ? ports : new ArrayList<Port>();
     }
 
     public void setPorts(List<Port> ports) {
