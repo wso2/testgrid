@@ -51,7 +51,7 @@ public class TestReportEngineTest {
         URL resource = classLoader.getResource("results");
         Assert.assertNotNull(resource);
 
-        String scenarioLocation = new File(resource.getFile()).toPath().toAbsolutePath().toString();
+        String scenarioLocation = Paths.get(System.getProperty("java.io.tmpdir"), "my-testgrid-home").toString();
         TestScenario testScenario = Mockito.mock(TestScenario.class);
         Mockito.when(testScenario.getSolutionPattern()).thenReturn("Sample Test Scenario");
 
@@ -93,7 +93,7 @@ public class TestReportEngineTest {
         productTestPlan.setInfrastructureMap(infrastructureMap);
         Mockito.when(productTestPlan.getProductName()).thenReturn("WSO2 Identity Server");
         Mockito.when(productTestPlan.getProductVersion()).thenReturn("5.4.0");
-        Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
+            Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
         Mockito.when(productTestPlan.getTestPlans()).thenReturn(testPlans);
         Mockito.when(productTestPlan.getInfrastructure(deploymentPattern)).thenReturn(infrastructure);
 

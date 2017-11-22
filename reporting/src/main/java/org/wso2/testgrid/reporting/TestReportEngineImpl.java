@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.reporting;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestReportEngine;
@@ -50,6 +52,8 @@ import java.util.Optional;
  */
 public class TestReportEngineImpl implements TestReportEngine {
 
+    private static final Log log = LogFactory.getLog(TestReportEngineImpl.class);
+
     private static final String TEST_ARTIFACT_DIR = "Tests";
     private static final String RESULTS_DIR = "Results";
     private static final String HTML_TEMPLATE = "html_template.mustache";
@@ -61,6 +65,19 @@ public class TestReportEngineImpl implements TestReportEngine {
 
     /**
      * Generates a test report based on the given test plan.
+     *
+     * @param testPlan test plan to generate the test report
+     * @param productTestPlan
+     * @throws TestReportEngineException thrown when reading the results from files or when writing the test report
+     * to file
+     */
+    public void generateReport(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestReportEngineException {
+        //todo store per testplan persistence logic here. productTestPlan's details are not supposed to be persisted
+        //as part of this. There's a separate method for that.
+    }
+
+    /**
+     * Generates a test report based on the given Overall test plans.
      *
      * @param productTestPlan test plan to generate the test report
      * @throws TestReportEngineException thrown when reading the results from files or when writing the test report
@@ -86,13 +103,15 @@ public class TestReportEngineImpl implements TestReportEngine {
             throw new TestReportEngineException("Exception occurred while rendering the html template.", e);
         }
 
-        Path reportPath = Paths.get(productTestPlan.getHomeDir()).resolve(fileName);
+        //todo use a constant for tetgrid_home
+        Path reportPath = Paths.get(getTestGridHome()).resolve(fileName);
         try {
             FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), htmlString);
         } catch (ReportingException e) {
             throw new TestReportEngineException("Exception occurred while saving the test report.", e);
         }
     }
+
 
     /**
      * Parse test plan result to a map.
@@ -105,7 +124,19 @@ public class TestReportEngineImpl implements TestReportEngine {
     private <T extends TestResultable> Map<String, Object> parseTestResult(ProductTestPlan productTestPlan)
             throws ReportingException {
 
-        List<TestPlan> testPlans = productTestPlan.getTestPlans();
+        //todo @Vidura/Asma - read the test plan content from DB. The ProductTestPlan does not have any info abt the
+        //test plans. It only has product level details like product name, version etc.
+
+        List<TestPlan> testPlans = productTestPlan.getTestPlans();  //todo this returns null. coz test plans r not
+        // part of this now.
+
+        if (testPlans == null) {
+            String msg = "Test Plans information are not available. These info are no longer stored as part of the "
+                    + "ProductTestPlan class. Instead, it should be retrieved from the database.";
+            log.error(msg);
+            throw new ReportingException(msg);
+        }
+
         List<TestPlanReport> testPlanReports = new ArrayList<>();
 
         for (TestPlan testPlan : testPlans) {
@@ -172,5 +203,14 @@ public class TestReportEngineImpl implements TestReportEngine {
             }
         }
         return testResults;
+    }
+
+    public String getTestGridHome() {
+        String testgridHome = System.getenv("TESTGRID_HOME");
+        if (testgridHome == null) {
+            String tmp = System.getProperty("java.io.tmpdir");
+            return Paths.get(tmp, "my-testgrid-home").toString();
+        }
+        return testgridHome;
     }
 }

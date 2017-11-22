@@ -91,9 +91,6 @@ public final class Utils {
      * This Utility method is used to check if the given file is a yaml file.
      */
     public static boolean isYamlFile(String fileName) {
-        if (fileName != null && !fileName.isEmpty()) {
-            return fileName.endsWith(YAML_EXTENSION);
-        }
-        return false;
+        return fileName != null && !fileName.isEmpty() && fileName.endsWith(YAML_EXTENSION);
     }
 }

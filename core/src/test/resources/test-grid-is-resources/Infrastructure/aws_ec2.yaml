@@ -16,25 +16,15 @@
 
 # TestGrid Infrastructure Configuration Parameters
 wso2.testgrid.infrastructure:
-  providerType: "OPENSTACK"
-  clusterType: "K8S"
-  instanceType: "DOCKER_CONTAINERS"
-  name: "two-node"
-  operatingSystem:
-    name: "Ubuntu"
-    version: "17.04"
-  database:
-    engine: "MYSQL"
-    version: "5.7"
+  providerType: "AWS"
+  clusterType: "ECS"  #todo
+  instanceType: "EC2"
+  name: "aws-single-node"
   securityProperties:
     apiKey: "242424"
     sshKey: "abc.key"
   scripts:
     -
-     scriptType: "INFRA_CREATE"
-     filePath: "OpenStack/infra.sh"
-     name: "Shell create"
-    -
-     scriptType: "INFRA_DESTROY"
-     filePath: "OpenStack/cluster-destroy.sh"
-     name: "Shell destroy"
+     scriptType: "CLOUD_FORMATION"
+     filePath: "template.json"
+     name: "Stack1"
