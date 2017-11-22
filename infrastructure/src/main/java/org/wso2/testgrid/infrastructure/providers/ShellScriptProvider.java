@@ -31,7 +31,7 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import java.nio.file.Paths;
 
 /**
- * This class creates the infrastructure for running tests
+ * This class creates the infrastructure for running tests.
  */
 public class ShellScriptProvider implements InfrastructureProvider {
     private static final Log log = LogFactory.getLog(ShellScriptProvider.class);

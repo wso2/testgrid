@@ -33,7 +33,7 @@ public class Script {
     private int order;
     @Element(description = "defines the provided scripts type (not necessary)")
     private ScriptType scriptType;
-    @Element(description = "defines the provided scripts type (not necessary)")
+    @Element(description = "defines the parameters file name (not necessary)")
     private String scriptParameters;
 
     /**

@@ -19,8 +19,6 @@ package org.wso2.testgrid.deployment;
 
 import org.awaitility.Awaitility;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
-
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -79,7 +77,7 @@ public class DeploymentValidator {
         private String urlString;
 
         /**
-         * Constructs the AWSCallable object with Url of server
+         * Constructs the AWSCallable object with Url of server.
          * @param urlString URL as a String.
          */
         AWSCallable(String urlString) {

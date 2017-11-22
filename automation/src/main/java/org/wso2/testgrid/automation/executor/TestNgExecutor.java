@@ -58,7 +58,7 @@ public class TestNgExecutor implements TestExecutor {
     }
 
     /**
-     * Loads the test jar to the classpath for test execution
+     * Loads the test jar to the classpath for test execution.
      *
      * @param jarFile .jar file provided to testNG for running tests
      */

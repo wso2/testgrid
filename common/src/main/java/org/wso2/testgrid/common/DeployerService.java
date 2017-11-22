@@ -33,7 +33,7 @@ public interface DeployerService {
     String getDeployerName();
 
     /**
-     * Runs deploy.sh script and deploys artifacts in the provided infrastructure
+     * Runs deploy.sh script and deploys artifacts in the provided infrastructure.
      *
      * @param deployment deployment information of the infrastructure
      * @return Deployment deployment object along with it's matched hosts and ports
