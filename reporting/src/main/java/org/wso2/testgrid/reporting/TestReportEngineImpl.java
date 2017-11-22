@@ -92,7 +92,7 @@ public class TestReportEngineImpl implements TestReportEngine {
             throw new TestReportEngineException("Exception occurred while parsing the test results.", e);
         }
         String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
-                          productTestPlan.getCreatedTimeStamp() + HTML_EXTENSION;
+                          productTestPlan.getStartTimestamp() + HTML_EXTENSION;
 
         // Populate the html from the template
         String htmlString = null;
@@ -160,7 +160,7 @@ public class TestReportEngineImpl implements TestReportEngine {
                     }
                 }
                 TestScenarioReport<T> testScenarioReport =
-                        new TestScenarioReport<>(testScenario.getSolutionPattern(), testResults, RESULT_TEMPLATE);
+                        new TestScenarioReport<>(testScenario.getName(), testResults, RESULT_TEMPLATE);
                 testScenarioReports.add(testScenarioReport);
             }
 

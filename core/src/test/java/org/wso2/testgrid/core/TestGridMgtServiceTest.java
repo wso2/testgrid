@@ -104,7 +104,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Assert.assertNotNull(productTestPlan);
         Assert.assertTrue(WSO2_PRODUCT.equals(productTestPlan.getProductName()));
         Assert.assertTrue(PRODUCT_VERSION.equals(productTestPlan.getProductVersion()));
-        Assert.assertTrue(ProductTestPlan.Status.PLANNED.equals(productTestPlan.getStatus()));
+        Assert.assertTrue(ProductTestPlan.Status.PRODUCT_TEST_PLAN_PENDING.equals(productTestPlan.getStatus()));
         //Assert.assertTrue(productTestPlan.getTestPlans().size() == 2);
 
         Assert.assertNotNull(productTestPlan.getInfrastructureMap().get("two-node"));
@@ -184,7 +184,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
 //
 //        String scenarioLocation = "/tmp/abc";
 //        TestScenario testScenario = Mockito.mock(TestScenario.class);
-//        Mockito.when(testScenario.getSolutionPattern()).thenReturn("Sample Test Scenario");
+//        Mockito.when(testScenario.getName()).thenReturn("Sample Test Scenario");
 //
 //        List<TestScenario> testScenarios = new ArrayList<>();
 //        testScenarios.add(testScenario);

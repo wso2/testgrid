@@ -74,7 +74,7 @@ public class ScenarioExecutorTest extends PowerMockTestCase {
         String scenarioLocation = "/tmp/abc";
         TestScenario testScenario = Mockito.mock(TestScenario.class);
 
-        Mockito.when(testScenario.getSolutionPattern()).thenReturn("Sample Test Scenario");
+        Mockito.when(testScenario.getName()).thenReturn("Sample Test Scenario");
 
         Deployment deployment = Mockito.mock(Deployment.class);
         DeployerService deployer = mock(PuppetDeployer.class);

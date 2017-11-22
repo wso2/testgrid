@@ -20,113 +20,230 @@ package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
 
+import java.io.Serializable;
 import java.util.Locale;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.ManyToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
- * This is the test model for a single SolutionPattern.
+ * Defines a model object of TestScenario with required attributes.
+ *
+ * @since 1.0.0
  */
-public class TestScenario {
+@Entity
+@Table(name = "test_scenario")
+public class TestScenario extends AbstractUUIDEntity implements Serializable {
+
+    private static final long serialVersionUID = -2666342786241472418L;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private Status status;
+
+    @Column(name = "name", nullable = false)
+    @Element(description = "name of the solution pattern which is covered by this test scenario")
+    private String name;
+
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class)
+    @PrimaryKeyJoinColumn(name = "test_plan_id", referencedColumnName = "id")
+    private TestPlan testPlan;
+
+    @Transient
+    @Element(description = "flag to enable or disable the test scenario")
+    private boolean enabled;
+
+    @Transient
+    @Element(description = "holds the test engine type (i.e. JMETER, TESTNG)")
+    private TestEngine testEngine;
 
     /**
-     * This defines the possible statuses of TestScenario.
+     * Returns the status of the test scenario.
+     *
+     * @return test scenario status
+     */
+    public Status getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets the test scenario status.
+     *
+     * @param status test scenario status
+     */
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    /**
+     * Returns the name of the test scenario.
+     *
+     * @return test scenario name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the test scenario name.
+     *
+     * @param name test scenario name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Returns the test plan associated with this test scenario.
+     *
+     * @return test plan associated with this test scenario
+     */
+    public TestPlan getTestPlan() {
+        return testPlan;
+    }
+
+    /**
+     * Sets the test plan associated with this test scenario
+     *
+     * @param testPlan test plan associated with this test scenario
+     */
+    public void setTestPlan(TestPlan testPlan) {
+        this.testPlan = testPlan;
+    }
+
+    /**
+     * Returns whether the test scenario is enabled or not.
+     * <p>
+     * Returns {@code true} if the test scenario is enabled, {@code false} otherwise
+     *
+     * @return is test scenario enabled or not
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Sets whether the test scenario is enabled or not.
+     *
+     * @param enabled is test scenario enabled or not
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Returns the test engine in which the test scenario should be executed.
+     *
+     * @return test scenario executing test engine
+     */
+    public TestEngine getTestEngine() {
+        return testEngine;
+    }
+
+    /**
+     * Sets the test engine in which the test scenario should be executed.
+     *
+     * @param testEngine test engine in which the test scenario should be executed
+     */
+    public void setTestEngine(TestEngine testEngine) {
+        this.testEngine = testEngine;
+    }
+
+    /**
+     * Sets the test engine in which the test scenario should be executed.
+     *
+     * @param testEngine test engine in which the test scenario should be executed
+     */
+    public void setTestEngine(String testEngine) {
+        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
+    }
+
+    /**
+     * This defines the possible statuses of the {@link TestScenario}.
+     *
+     * @since 1.0.0
      */
     public enum Status {
 
         /**
          * Planned to execute.
          */
-        PLANNED,
+        TEST_SCENARIO_PENDING("TEST_SCENARIO_PENDING"),
 
         /**
          * Executing in TestEngine.
          */
-        RUNNING,
+        TEST_SCENARIO_RUNNING("TEST_SCENARIO_RUNNING"),
 
         /**
          * Execution completed.
          */
-        COMPLETED,
+        TEST_SCENARIO_COMPLETED("TEST_SCENARIO_COMPLETED"),
 
         /**
          * Execution error.
          */
-        ERROR
+        TEST_SCENARIO_ERROR("TEST_SCENARIO_ERROR");
+
+        private final String status;
+
+        /**
+         * Sets the status of the test case.
+         *
+         * @param status test case status
+         */
+        Status(String status) {
+            this.status = status;
+        }
+
+        @Override
+        public String toString() {
+            return this.status;
+        }
     }
 
     /**
      * This defines the TestEngines in which the TestScenario can be executed.
+     *
+     * @since 1.0.0
      */
     public enum TestEngine {
 
         /**
          * Defines the JMeter TestEngine.
          */
-        JMETER,
+        JMETER("JMETER"),
 
         /**
          * Defines the TestNg TestEngine.
          */
-        TESTNG,
+        TESTNG("TESTNG"),
 
         /**
          * Defines the Selenium TestEngine.
          */
-        SELENIUM
-    }
+        SELENIUM("SELENIUM");
 
-    private int id;
-    private Status status;
+        private final String testEngine;
 
-    @Element(description = "flag to enable or disable the test scenario")
-    private boolean enabled;
+        /**
+         * Sets the test engine for the test scenario.
+         *
+         * @param testEngine test engine for the test scenario
+         */
+        TestEngine(String testEngine) {
+            this.testEngine = testEngine;
+        }
 
-    @Element(description = "name of the solution pattern which is covered by this test scenario")
-    private String solutionPattern;
-
-    @Element(description = "holds the test engine type (i.e. JMETER, TESTNG)")
-    private TestEngine testEngine;
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getSolutionPattern() {
-        return solutionPattern;
-    }
-
-    public void setSolutionPattern(String solutionPattern) {
-        this.solutionPattern = solutionPattern;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public TestEngine getTestEngine() {
-        return testEngine;
-    }
-
-    public void setTestEngine(TestEngine testEngine) {
-        this.testEngine = testEngine;
-    }
-
-    public void setTestEngine(String testEngine) {
-        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
+        @Override
+        public String toString() {
+            return this.testEngine;
+        }
     }
 }
