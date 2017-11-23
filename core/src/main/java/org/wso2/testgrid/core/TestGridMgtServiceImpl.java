@@ -49,16 +49,12 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     private static final String PRODUCT_TEST_DIR = "ProductTests";
     private static final String PRODUCT_INFRA_DIR = "Infrastructure";
 
-    private ConcurrentHashMap<String, Infrastructure> generateInfrastructureData(String repoDir) throws
+    private ConcurrentHashMap<String, Infrastructure> generateInfrastructureData(String infraYaml) throws
             TestGridException {
         ConcurrentHashMap<String, Infrastructure> infras = new ConcurrentHashMap<>();
-        String productInfraDir = Paths.get(repoDir, PRODUCT_INFRA_DIR).toString();
-        File dir = new File(productInfraDir);
-        File[] directoryListing = dir.listFiles();
-
-        if (directoryListing != null) {
+        File infraConfig = new File(infraYaml);
+        if (infraConfig.exists()) {
             Infrastructure infrastructure;
-            for (File infraConfig : directoryListing) {
                 try {
 
                     if (Utils.isYamlFile(infraConfig.getName())) {
@@ -71,10 +67,9 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                     log.error("Unable to parse Infrastructure configuration file '" + infraConfig.getName() + "'." +
                             " Please check the syntax of the file.");
                 }
-            }
         } else {
             String msg = "Unable to find the Infrastructure configuration directory in location '" +
-                    productInfraDir + "'";
+                    infraYaml + "'";
             log.error(msg);
             throw new TestGridException(msg);
         }
@@ -122,29 +117,17 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                 "configure it and rerun the TestGrid framework.");
     }
 
-//    @Override
-//    public ProductTestPlan createProduct(String product, String productVersion)
-//            throws TestGridException {
-//        return createProduct(product, productVersion, null);
-//    }
-
-    public ProductTestPlan createProduct(String product, String productVersion, String repositoryLocation)
+    public ProductTestPlan createProduct(String product, String productVersion, String infraYaml)
             throws TestGridException {
         Long timeStamp = new Date().getTime();
 
-        //Construct the product test plan
         ProductTestPlan productTestPlan = new ProductTestPlan();
-        //            productTestPlan.setHomeDir(path);
         productTestPlan.setCreatedTimeStamp(timeStamp);
         productTestPlan.setProductName(product);
         productTestPlan.setProductVersion(productVersion);
-        repositoryLocation = "/home/sameera/TestGridFolder/WSO2_Identity_Server_5.3.0_1511363894918/test-grid-is-resources";
-        //productTestPlan.setTestPlans(this.generateTestPlan(repoLocation, repoLocation, path));
-        productTestPlan.setInfrastructureMap(this.generateInfrastructureData(repositoryLocation));
+        productTestPlan.setInfrastructureMap(this.generateInfrastructureData(infraYaml));
         productTestPlan.setStatus(ProductTestPlan.Status.PLANNED);
         return productTestPlan;
-        //        }
-        //        return null;
     }
 
     /**
@@ -161,11 +144,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     @Override
     public boolean executeTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestGridException {
         productTestPlan.setStatus(ProductTestPlan.Status.RUNNING);
-        //        ListIterator<TestPlan> iterator = productTestPlan.getTestPlans().listIterator();
 
-        //        while (iterator.hasNext()) {
         try {
-            //                testPlan = iterator.next();
             testPlan = new TestPlanExecutor().runTestPlan(testPlan, productTestPlan.getInfrastructure(testPlan
                     .getDeploymentPattern()));
             //Update the current TestPlan
@@ -176,8 +156,6 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                     productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";
             log.error(msg, e);
         }
-        //        }
-
         productTestPlan.setStatus(ProductTestPlan.Status.REPORT_GENERATION);
 
         try {
