@@ -50,7 +50,7 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
     @Column(name = "product_version", nullable = false, length = 20)
     private String productVersion;
 
-    @Column(name = "start_timestamp", nullable = false, columnDefinition = "TIMESTAMP DEFAULT '0000-00-00 00:00:00'")
+    @Column(name = "start_timestamp", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp startTimestamp;
 
     @Column(name = "modified_timestamp", nullable = false,

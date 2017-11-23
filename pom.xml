@@ -43,6 +43,7 @@
         <module>dao</module>
         <module>reporting</module>
         <module>distribution</module>
+        <module>api</module>
     </modules>
 
     <scm>
