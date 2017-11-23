@@ -20,34 +20,73 @@ package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
 
-/**
- *  Defines a model object of Operating system with required attributes.
- */
-public class OperatingSystem {
+import java.io.Serializable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
+/**
+ * Defines a model object of Operating system with required attributes.
+ *
+ * @since 1.0.0
+ */
+@Entity
+@Table(
+        name = "operating_system",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"name", "version"})
+        })
+public class OperatingSystem extends AbstractUUIDEntity implements Serializable {
+
+    private static final long serialVersionUID = 1587798651636567846L;
+
+    @Column(name = "name", nullable = false)
     @Element(description = "defines the name of the required OS")
     private String name;
+
+    @Column(name = "version", length = 20, nullable = false)
     @Element(description = "defines the version of the required OS")
     private String version;
 
+    /**
+     * Returns the name of the operating system.
+     *
+     * @return name of the operating system
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the operating system.
+     *
+     * @param name name of the operating system
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the operating system version.
+     *
+     * @return operating system version
+     */
     public String getVersion() {
         return version;
     }
 
+    /**
+     * Sets the operating system version.
+     *
+     * @param version operating system version
+     */
     public void setVersion(String version) {
         this.version = version;
     }
 
     @Override
     public String toString() {
-        return this.name + ", version:" + version;
+        return "Operating System [name=" + name + ", version=" + version + "]";
     }
 }

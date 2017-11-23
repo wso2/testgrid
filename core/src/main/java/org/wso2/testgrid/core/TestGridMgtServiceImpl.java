@@ -37,6 +37,7 @@ import org.wso2.testgrid.reporting.TestReportEngineImpl;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -92,11 +93,11 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                 testPlan = configProvider.getConfigurationObject(TestPlan.class);
 
                 if (testPlan.isEnabled()) {
-                    testPlan.setStatus(TestPlan.Status.EXECUTION_PLANNED);
+                    testPlan.setStatus(TestPlan.Status.TESTPLAN_PENDING);
                     testPlan.setHome(testRunDir);
                     testPlan.setTestRepoDir(testRepoDir);
                     testPlan.setInfraRepoDir(infraRepoDir);
-                    testPlan.setCreatedTimeStamp(new Date().getTime());
+                    testPlan.setStartTimestamp(new Timestamp(new Date().getTime()));
                 }
                 return testPlan;
             } catch (ConfigurationException e) {
@@ -135,12 +136,12 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         //Construct the product test plan
         ProductTestPlan productTestPlan = new ProductTestPlan();
         //            productTestPlan.setHomeDir(path);
-        productTestPlan.setCreatedTimeStamp(timeStamp);
+        productTestPlan.setStartTimestamp(new Timestamp(timeStamp));
         productTestPlan.setProductName(product);
         productTestPlan.setProductVersion(productVersion);
         //productTestPlan.setTestPlans(this.generateTestPlan(repoLocation, repoLocation, path));
         productTestPlan.setInfrastructureMap(this.generateInfrastructureData(repositoryLocation));
-        productTestPlan.setStatus(ProductTestPlan.Status.PLANNED);
+        productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_PENDING);
         return productTestPlan;
         //        }
         //        return null;
@@ -159,7 +160,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
 
     @Override
     public boolean executeTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestGridException {
-        productTestPlan.setStatus(ProductTestPlan.Status.RUNNING);
+        productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
         //        ListIterator<TestPlan> iterator = productTestPlan.getTestPlans().listIterator();
 
         //        while (iterator.hasNext()) {
@@ -177,7 +178,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         }
         //        }
 
-        productTestPlan.setStatus(ProductTestPlan.Status.REPORT_GENERATION);
+        productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_REPORT_GENERATION);
 
         try {
             new TestReportEngineImpl().generateReport(testPlan, productTestPlan);
@@ -187,7 +188,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             log.error(msg, e);
             throw new TestGridException(msg, e);
         }
-        productTestPlan.setStatus(ProductTestPlan.Status.COMPLETED);
+        productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_COMPLETED);
         return true;
     }
 
