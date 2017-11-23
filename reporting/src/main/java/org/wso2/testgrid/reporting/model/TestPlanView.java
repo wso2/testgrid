@@ -17,7 +17,6 @@
  */
 package org.wso2.testgrid.reporting.model;
 
-import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.reporting.ReportingException;
 import org.wso2.testgrid.reporting.renderer.Renderable;
@@ -29,24 +28,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Bean class to capture the information required to generate the test plan report.
+ * Class to capture the information required to generate the test plan view.
  *
  * @since 1.0.0
  */
-public class TestPlanReport {
+public class TestPlanView {
 
     private static final String SCENARIO_TEMPLATE_KEY_NAME = "parsedTestScenarioView";
     private final String testPlanName;
-    private final String osName;
-    private final String dbName;
     private final String deploymentPattern;
-    private final String clusterType;
-    private final String instanceType;
     private final String deployerType;
-    private final String infrastructureType;
     private final String status;
     private final String description;
-    private final List<TestScenarioReport> testScenarioReports;
+    private final List<TestScenarioView> testScenarioReports;
     private final String parsedTestScenarioView;
 
     /**
@@ -57,17 +51,11 @@ public class TestPlanReport {
      * @param view                view to be rendered
      * @throws ReportingException thrown when error on rendering view
      */
-    public TestPlanReport(TestPlan testPlan, Infrastructure infrastructure,
-                          List<TestScenarioReport> testScenarioReports, String view)
+    public TestPlanView(TestPlan testPlan, List<TestScenarioView> testScenarioReports, String view)
             throws ReportingException {
         this.testPlanName = testPlan.getName();
-        this.osName = infrastructure.getOperatingSystem().toString();
-        this.dbName = infrastructure.getDatabase().toString();
         this.deploymentPattern = testPlan.getDeploymentPattern();
-        this.clusterType = infrastructure.getClusterType().toString();
-        this.instanceType = infrastructure.getInstanceType().toString();
         this.deployerType = testPlan.getDeployerType().toString();
-        this.infrastructureType = infrastructure.getProviderType().toString();
         this.status = testPlan.getStatus().toString();
         this.description = testPlan.getDescription();
         this.testScenarioReports = Collections.unmodifiableList(testScenarioReports);
@@ -89,24 +77,6 @@ public class TestPlanReport {
     }
 
     /**
-     * Returns the OS for the test plan.
-     *
-     * @return OS for the test plan
-     */
-    public String getOsName() {
-        return osName;
-    }
-
-    /**
-     * Returns the DB for the test plan.
-     *
-     * @return DB for the test plan
-     */
-    public String getDbName() {
-        return dbName;
-    }
-
-    /**
      * Returns the deployment pattern for the test plan.
      *
      * @return deployment pattern for the test plan
@@ -116,39 +86,12 @@ public class TestPlanReport {
     }
 
     /**
-     * Returns the cluster type for the test plan.
-     *
-     * @return cluster type for the test plan
-     */
-    public String getClusterType() {
-        return clusterType;
-    }
-
-    /**
-     * Returns the instance type for the test plan.
-     *
-     * @return instance type for the test plan
-     */
-    public String getInstanceType() {
-        return instanceType;
-    }
-
-    /**
      * Returns the deployer type for the test plan.
      *
      * @return deployer type for the test plan
      */
     public String getDeployerType() {
         return deployerType;
-    }
-
-    /**
-     * Returns the infrastructure type for the test plan.
-     *
-     * @return infrastructure type for the test plan
-     */
-    public String getInfrastructureType() {
-        return infrastructureType;
     }
 
     /**
@@ -174,7 +117,7 @@ public class TestPlanReport {
      *
      * @return test scenario reports
      */
-    public List<TestScenarioReport> getTestScenarioReports() {
+    public List<TestScenarioView> getTestScenarioReports() {
         return testScenarioReports;
     }
 

@@ -45,45 +45,64 @@ import javax.persistence.Transient;
  * @since 1.0.0
  */
 @Entity
-@Table(name = "test_plan")
+@Table(name = TestPlan.TEST_PLAN_TABLE)
 @Configuration(namespace = "wso2.testgrid.testplan", description = "TestGrid Testplan Configuration Parameters")
 public class TestPlan extends AbstractUUIDEntity implements Serializable {
+
+    /**
+     * Test plan table name.
+     */
+    public static final String TEST_PLAN_TABLE = "test_plan";
+
+    /**
+     * Column names of the table.
+     */
+    public static final String NAME_COLUMN = "name";
+    public static final String START_TIMESTAMP_COLUMN = "start_timestamp";
+    public static final String MODIFIED_TIMESTAMP_COLUMN = "modified_timestamp";
+    public static final String STATUS_COLUMN = "status";
+    public static final String DEPLOYMENT_PATTERN_COLUMN = "deployment_pattern";
+    public static final String DESCRIPTION_COLUMN = "deployment_pattern";
+    public static final String INFRA_RESULT_COLUMN = "INFRARESULT_id";
+    public static final String PRODUCT_TEST_PLAN_COLUMN = "PRODUCTTESTPLAN_id";
 
     private static final long serialVersionUID = -4345126378695708155L;
 
     @Element(description = "value to uniquely identify the TestPlan")
-    @Column(name = "name", nullable = false)
+    @Column(name = NAME_COLUMN, nullable = false)
     private String name;
 
-    @Column(name = "start_timestamp", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = START_TIMESTAMP_COLUMN, nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT '0000-00-00 00:00:00'")
     @Ignore
     private Timestamp startTimestamp;
 
-    @Column(name = "modified_timestamp", nullable = false,
+    @Column(name = MODIFIED_TIMESTAMP_COLUMN, nullable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     @Ignore
     private Timestamp modifiedTimestamp;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = STATUS_COLUMN, nullable = false)
     @Ignore
     private Status status;
 
     @Element(description = "value to uniquely identify the deployment pattern")
-    @Column(name = "deployment_pattern", nullable = false)
+    @Column(name = DEPLOYMENT_PATTERN_COLUMN, nullable = false)
     private String deploymentPattern;
 
     @Element(description = "description about the test plan")
-    @Column(name = "description")
+    @Column(name = DESCRIPTION_COLUMN)
     private String description;
 
     @Ignore
     @OneToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraResult.class)
+    @PrimaryKeyJoinColumn(name = INFRA_RESULT_COLUMN)
     private InfraResult infraResult;
 
     @Ignore
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = ProductTestPlan.class)
-    @PrimaryKeyJoinColumn(name = "product_test_plan_id", referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = PRODUCT_TEST_PLAN_COLUMN, referencedColumnName = "id")
     private ProductTestPlan productTestPlan;
 
     @Transient
@@ -309,21 +328,21 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Sets the deployer-type (puppet/ansible) of the test plan using the string value.
-     *
-     * @param deployerType string deployer-type (puppet/ansible) of the test plan
-     */
-    public void setDeployerType(String deployerType) {
-        this.deployerType = DeployerType.valueOf(deployerType.toUpperCase(Locale.ENGLISH));
-    }
-
-    /**
      * Sets the deployer-type (puppet/ansible) of the test plan.
      *
      * @param deployerType deployer-type (puppet/ansible) of the test plan
      */
     public void setDeployerType(DeployerType deployerType) {
         this.deployerType = deployerType;
+    }
+
+    /**
+     * Sets the deployer-type (puppet/ansible) of the test plan using the string value.
+     *
+     * @param deployerType string deployer-type (puppet/ansible) of the test plan
+     */
+    public void setDeployerType(String deployerType) {
+        this.deployerType = DeployerType.valueOf(deployerType.toUpperCase(Locale.ENGLISH));
     }
 
     /**
@@ -506,6 +525,11 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
          * Defines the ansible automation.
          */
         ANSIBLE("ANSIBLE"),
+
+        /**
+         * Defines the ansible automation.
+         */
+        AWS_CF("AWS_CF"),
 
         /**
          * Defines the chef automation.

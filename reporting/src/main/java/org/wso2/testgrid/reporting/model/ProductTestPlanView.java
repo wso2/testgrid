@@ -17,6 +17,7 @@
  */
 package org.wso2.testgrid.reporting.model;
 
+import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.reporting.ReportingException;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
@@ -27,31 +28,30 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Bean class to capture the information required to generate the test plan report.
+ * Class to capture the information required to generate the product test plan view.
  *
  * @since 1.0.0
  */
-public class ProductPlanReport {
+public class ProductTestPlanView {
 
     private static final String PLAN_TEMPLATE_KEY_NAME = "parsedTestPlanView";
     private final String productName;
     private final String productVersion;
-    private final List<TestPlanReport> testPlanReports;
+    private final List<TestPlanView> testPlanReports;
     private final String parsedTestPlanView;
 
     /**
-     * Constructs an instance of a test plan report.
+     * Constructs an instance of product test plan view.
      *
-     * @param productName     product name of the test plan executed
-     * @param productVersion  product version of the test plan executed
+     * @param productTestPlan product test plan to generate the view
      * @param testPlanReports list of test plan results
      * @param view            view to be rendered
      * @throws ReportingException thrown when error on rendering view
      */
-    public ProductPlanReport(String productName, String productVersion, List<TestPlanReport> testPlanReports,
-                             String view) throws ReportingException {
-        this.productName = productName;
-        this.productVersion = productVersion;
+    public ProductTestPlanView(ProductTestPlan productTestPlan, List<TestPlanView> testPlanReports,
+                               String view) throws ReportingException {
+        this.productName = productTestPlan.getProductName();
+        this.productVersion = productTestPlan.getProductVersion();
         this.testPlanReports = Collections.unmodifiableList(testPlanReports);
 
         // Render test plans
@@ -84,7 +84,7 @@ public class ProductPlanReport {
      *
      * @return test plan reports
      */
-    public List<TestPlanReport> getTestPlanReports() {
+    public List<TestPlanView> getTestPlanReports() {
         return testPlanReports;
     }
 

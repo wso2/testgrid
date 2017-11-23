@@ -47,7 +47,7 @@ public class JMeterExecutorTest {
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
 
-        String testPath = Paths.get(resource.getPath(), "SolutionPattern22", "Tests", "JMeter", "solution22",
+        String testPath = Paths.get(resource.getPath(), "SolutionPattern22", "Tests",
                 "src", "test", "jmeter").toAbsolutePath().toString();
         String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
@@ -67,7 +67,7 @@ public class JMeterExecutorTest {
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
 
-        String testScript = Paths.get(resource.getPath(), "SolutionPattern22", "Tests", "JMeter", "solution22",
+        String testScript = Paths.get(resource.getPath(), "SolutionPattern22", "Tests",
                 "src", "test", "jmeter", "mock.jmx").toAbsolutePath().toString();
 
         String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
