@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.core.command.CommandHandler;
@@ -41,22 +40,20 @@ public class Main {
             CmdLineParser parser = new CmdLineParser(commandHandler);
             parser.parseArgument(args);
 
-            String repo = "https://github.com/sameerawickramasekara/test-grid-is-resources.git";
+//            String repo = "https://github.com/sameerawickramasekara/test-grid-is-resources.git"; //todo
             String product = "WSO2_Identity_Server";
             String productVersion = "5.3.0";
             if (args.length == 3) {
-                repo = args[0];
+//                repo = args[0];
                 product = args[1];
                 productVersion = args[2];
             }
 
-            commandHandler.execute();
             TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
             if (testGridMgtService.isEnvironmentConfigured()) {
                 log.info("Initializing TestGrid for product : '"
                         + product + ", version  '" + productVersion + "'");
-                ProductTestPlan plan = testGridMgtService.addProductTestPlan(product, productVersion, repo);
-                testGridMgtService.executeProductTestPlan(plan);
+                commandHandler.execute();
             }
         } catch (TestGridException | TestGridConfigurationException | CmdLineException e) {
             log.error(e.getMessage(), e);

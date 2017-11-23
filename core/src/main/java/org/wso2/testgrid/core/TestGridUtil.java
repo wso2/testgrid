@@ -41,7 +41,7 @@ public class TestGridUtil {
 
     private static final Log log = LogFactory.getLog(TestGridUtil.class);
 
-    static Optional<String> createTestDirectory(String productName, String productVersion, Long timeStamp)
+    public static Optional<String> createTestDirectory(String productName, String productVersion, Long timeStamp)
             throws TestGridException {
         String directory = Paths.get(EnvironmentUtil.getSystemVariableValue(TESTGRID_HOME_ENV),
                 productName + SEPARATOR + productVersion + SEPARATOR + timeStamp).toString();

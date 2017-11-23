@@ -18,152 +18,326 @@
 
 package org.wso2.testgrid.common;
 
+import org.wso2.testgrid.common.util.EnvironmentUtil;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * This represents a model of the ProductTestPlan which includes all the necessary data to run the Test plans created
  * for a particular product. All the test-configs will be mapped to a TestPlan or list of TestPlans based on the
  * configured infrastructure, cluster types etc.
+ *
+ * @since 1.0.0
  */
-public class ProductTestPlan {
+@Entity
+@Table(name = "product_test_plan")
+public class ProductTestPlan extends AbstractUUIDEntity implements Serializable {
 
-    private int id;
+    private static final long serialVersionUID = 5812347338918334430L;
+
+    @Column(name = "product_name", nullable = false, length = 50)
     private String productName;
+
+    @Column(name = "product_version", nullable = false, length = 20)
     private String productVersion;
-    private String homeDir;
-    private String deploymentRepository;
-    private List<TestPlan> testPlans;
-    private ConcurrentHashMap<String, Infrastructure> infrastructureMap;
-    private TestReport testReport;
-    private long createdTimeStamp;
-    private long completedTimeStamp;
+
+    @Column(name = "start_timestamp", nullable = false, columnDefinition = "TIMESTAMP DEFAULT '0000-00-00 00:00:00'")
+    private Timestamp startTimestamp;
+
+    @Column(name = "modified_timestamp", nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    private Timestamp modifiedTimestamp;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     private Status status;
 
-    public ProductTestPlan () {
-        this.infrastructureMap = new ConcurrentHashMap<>();
+    @Column(name = "infra")
+    private String infraRepository;
+
+    @Column(name = "deployment_repository")
+    private String deploymentRepository;
+
+    @Column(name = "scenario_repository")
+    private String scenarioRepository;
+
+    @Transient
+    private String homeDir;
+
+    @Transient
+    private List<TestPlan> testPlans;
+
+    @Transient
+    private ConcurrentHashMap<String, Infrastructure> infrastructureMap = new ConcurrentHashMap<>();
+
+    /**
+     * Returns the product name.
+     *
+     * @return product name
+     */
+    public String getProductName() {
+        return productName;
+    }
+
+    /**
+     * Sets the product name.
+     *
+     * @param productName product name
+     */
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    /**
+     * Returns the product version.
+     *
+     * @return product version
+     */
+    public String getProductVersion() {
+        return productVersion;
+    }
+
+    /**
+     * Sets the product version.
+     *
+     * @param productVersion product version
+     */
+    public void setProductVersion(String productVersion) {
+        this.productVersion = productVersion;
+    }
+
+    /**
+     * Returns the start timestamp of the product test plan.
+     *
+     * @return start timestamp of the product test plan
+     */
+    public Timestamp getStartTimestamp() {
+        return new Timestamp(startTimestamp.getTime());
+    }
+
+    /**
+     * Sets the start timestamp of the product test plan.
+     *
+     * @param startTimestamp start timestamp of the product test plan
+     */
+    public void setStartTimestamp(Timestamp startTimestamp) {
+        this.startTimestamp = new Timestamp(startTimestamp.getTime());
+    }
+
+    /**
+     * Returns the modified timestamp of the product test plan.
+     *
+     * @return modified timestamp of the product test plan
+     */
+    public Timestamp getModifiedTimestamp() {
+        return new Timestamp(modifiedTimestamp.getTime());
+    }
+
+    /**
+     * Sets the modified timestamp of the product test plan.
+     *
+     * @param modifiedTimestamp modified timestamp of the product test plan
+     */
+    public void setModifiedTimestamp(Timestamp modifiedTimestamp) {
+        this.modifiedTimestamp = new Timestamp(modifiedTimestamp.getTime());
+    }
+
+    /**
+     * Returns the status of the product test plan.
+     *
+     * @return status of the product test plan
+     */
+    public Status getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets the status of the product test plan
+     *
+     * @param status status of the product test plan
+     */
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    /**
+     * Returns the infrastructure repository for the product test plan.
+     *
+     * @return infrastructure repository for the product test plan
+     */
+    public String getInfraRepository() {
+        return infraRepository;
+    }
+
+    /**
+     * Sets the infrastructure repository for the product test plan.
+     *
+     * @param infraRepository infrastructure repository for the product test plan
+     */
+    public void setInfraRepository(String infraRepository) {
+        this.infraRepository = infraRepository;
+    }
+
+    /**
+     * Returns the deployment repository of the product test plan.
+     *
+     * @return deployment repository of the product test plan
+     */
+    public String getDeploymentRepository() {
+        return deploymentRepository;
+    }
+
+    /**
+     * Sets the deployment repository of the product test plan.
+     *
+     * @param deploymentRepository deployment repository of the product test plan
+     */
+    public void setDeploymentRepository(String deploymentRepository) {
+        this.deploymentRepository = deploymentRepository;
+    }
+
+    /**
+     * Returns the scenario repository for the product test plan.
+     *
+     * @return scenario repository for the product test plan
+     */
+    public String getScenarioRepository() {
+        return scenarioRepository;
+    }
+
+    /**
+     * Sets the scenario repository for the product test plan.
+     *
+     * @param scenarioRepository scenario repository for the product test plan
+     */
+    public void setScenarioRepository(String scenarioRepository) {
+        this.scenarioRepository = scenarioRepository;
+    }
+
+    /**
+     * Returns the home directory of the product test plan.
+     *
+     * @return home directory of the product test plan
+     */
+    public String getHomeDir() {
+        return EnvironmentUtil.getSystemVariableValue("TESTGRID_HOME");
+    }
+
+    /**
+     * Sets the home directory of the product test plan.
+     *
+     * @param homeDir home directory of the product test plan
+     */
+    @Deprecated
+    public void setHomeDir(String homeDir) {
+        // No operation
+    }
+
+    /**
+     * Returns the list of test plans associated with the product test plan.
+     *
+     * @return list of test plans associated with the product test plan
+     */
+    public List<TestPlan> getTestPlans() {
+        return testPlans;
+    }
+
+    /**
+     * Sets the list of test plans associated with the product test plan
+     *
+     * @param testPlans list of test plans associated with the product test plan
+     */
+    public void setTestPlans(List<TestPlan> testPlans) {
+        this.testPlans = testPlans;
+    }
+
+    /**
+     * Returns the infrastructure map for the product test plan.
+     *
+     * @return infrastructure map for the product test plan
+     */
+    public ConcurrentHashMap<String, Infrastructure> getInfrastructureMap() {
+        return infrastructureMap;
+    }
+
+    /**
+     * Sets the infrastructure map for the product test plan.
+     *
+     * @param infrastructureMap infrastructure map for the product test plan
+     */
+    public void setInfrastructureMap(ConcurrentHashMap<String, Infrastructure> infrastructureMap) {
+        this.infrastructureMap = infrastructureMap;
+    }
+
+    /**
+     * Returns the infrastructure for the given infrastructure name.
+     *
+     * @param name infrastructure name
+     * @return infrastructure for the given infrastructure name
+     */
+    public Infrastructure getInfrastructure(String name) {
+        return this.infrastructureMap.get(name);
+    }
+
+    /**
+     * Adds an infrastructure for the product test plan.
+     *
+     * @param infrastructure infrastructure to be added to the product test plan
+     */
+    public void addInfrastructure(Infrastructure infrastructure) {
+        this.infrastructureMap.put(infrastructure.getName(), infrastructure);
     }
 
     /**
      * This defines the possible statuses of the ProductTestPlan.
+     *
+     * @since 1.0.0
      */
     public enum Status {
 
         /**
          * Planned to execute the ProductTestPlan.
          */
-        PLANNED,
+        PRODUCT_TEST_PLAN_PENDING("PRODUCT_TEST_PLAN_PENDING"),
 
         /**
          * Executing the ProductTestPlan.
          */
-        RUNNING,
+        PRODUCT_TEST_PLAN_RUNNING("PRODUCT_TEST_PLAN_RUNNING"),
 
         /**
          * Generating the test-report of the ProductTestPlan.
          */
-        REPORT_GENERATION,
+        PRODUCT_TEST_PLAN_REPORT_GENERATION("PRODUCT_TEST_PLAN_REPORT_GENERATION"),
 
         /**
          * Execution completed.
          */
-        COMPLETED
-    }
+        PRODUCT_TEST_PLAN_COMPLETED("PRODUCT_TEST_PLAN_COMPLETED");
 
-    public int getId() {
-        return id;
-    }
+        private final String status;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+        /**
+         * Sets the status of the product test plan.
+         *
+         * @param status product test plan status
+         */
+        Status(String status) {
+            this.status = status;
+        }
 
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public String getProductVersion() {
-        return productVersion;
-    }
-
-    public void setProductVersion(String productVersion) {
-        this.productVersion = productVersion;
-    }
-
-    public String getHomeDir() {
-        return homeDir;
-    }
-
-    public void setHomeDir(String homeDir) {
-        this.homeDir = homeDir;
-    }
-
-    public String getDeploymentRepository() {
-        return deploymentRepository;
-    }
-
-    public void setDeploymentRepository(String deploymentRepository) {
-        this.deploymentRepository = deploymentRepository;
-    }
-
-    public List<TestPlan> getTestPlans() {
-        return testPlans;
-    }
-
-    public void setTestPlans(List<TestPlan> testPlans) {
-        this.testPlans = testPlans;
-    }
-
-    public TestReport getTestReport() {
-        return testReport;
-    }
-
-    public void setTestReport(TestReport testReport) {
-        this.testReport = testReport;
-    }
-
-    public long getCreatedTimeStamp() {
-        return createdTimeStamp;
-    }
-
-    public void setCreatedTimeStamp(long createdTimeStamp) {
-        this.createdTimeStamp = createdTimeStamp;
-    }
-
-    public long getCompletedTimeStamp() {
-        return completedTimeStamp;
-    }
-
-    public void setCompletedTimeStamp(long completedTimeStamp) {
-        this.completedTimeStamp = completedTimeStamp;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public ConcurrentHashMap<String, Infrastructure> getInfrastructureMap() {
-        return infrastructureMap;
-    }
-
-    public void setInfrastructureMap(ConcurrentHashMap<String, Infrastructure> infrastructureMap) {
-        this.infrastructureMap = infrastructureMap;
-    }
-
-    public Infrastructure getInfrastructure(String name) {
-        return this.infrastructureMap.get(name);
-    }
-
-    public boolean addInfrastructure(Infrastructure infrastructure) {
-        this.infrastructureMap.put(infrastructure.getName(), infrastructure);
-        return true;
+        @Override
+        public String toString() {
+            return this.status;
+        }
     }
 }

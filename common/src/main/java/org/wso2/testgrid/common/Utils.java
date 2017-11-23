@@ -84,16 +84,13 @@ public final class Utils {
      * This Utility method is used to return the folder location of the TestScenario.
      */
     public static String getTestScenarioLocation(TestScenario scenario, String testPlanHome) {
-        return Paths.get(testPlanHome, scenario.getSolutionPattern()).toAbsolutePath().toString();
+        return Paths.get(testPlanHome, scenario.getName()).toAbsolutePath().toString();
     }
 
     /**
      * This Utility method is used to check if the given file is a yaml file.
      */
     public static boolean isYamlFile(String fileName) {
-        if (fileName != null && !fileName.isEmpty()) {
-            return fileName.endsWith(YAML_EXTENSION);
-        }
-        return false;
+        return fileName != null && !fileName.isEmpty() && fileName.endsWith(YAML_EXTENSION);
     }
 }

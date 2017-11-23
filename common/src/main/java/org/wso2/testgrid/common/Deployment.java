@@ -18,13 +18,16 @@
 
 package org.wso2.testgrid.common;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
 /**
  *  Defines a model object for a created deployment.
  */
-public class Deployment {
+public class Deployment implements Serializable {
+
+    private static final long serialVersionUID = -8709258234809521408L;
 
     private String name;
     private List<Host> hosts = Collections.emptyList();

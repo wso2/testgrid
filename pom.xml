@@ -40,6 +40,7 @@
         <module>deployment</module>
         <module>core</module>
         <module>infrastructure</module>
+        <module>dao</module>
         <module>reporting</module>
         <module>distribution</module>
     </modules>
@@ -232,6 +233,23 @@
                 <version>${apache.jmeter.version}</version>
             </dependency>
 
+            <!-- DAO dependencies -->
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>javax.persistence</artifactId>
+                <version>${javax.persistence.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>eclipselink</artifactId>
+                <version>${javax.persistence.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql.driver.version}</version>
+            </dependency>
+
             <!-- Reporting dependencies-->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -353,5 +371,9 @@
         <!-- Other dependencies -->
         <commons.logging.version>1.1.1</commons.logging.version>
         <awaitility.version>3.0.0</awaitility.version>
+
+        <!-- DAO dependencies -->
+        <mysql.driver.version>6.0.6</mysql.driver.version>
+        <javax.persistence.version>2.2.0</javax.persistence.version>
     </properties>
 </project>

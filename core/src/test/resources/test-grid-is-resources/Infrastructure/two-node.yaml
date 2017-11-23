@@ -32,9 +32,9 @@ wso2.testgrid.infrastructure:
   scripts:
     -
      scriptType: "INFRA_CREATE"
-     filePath: "OPENSTACK/infra.sh"
+     filePath: "OpenStack/infra.sh"
      name: "Shell create"
     -
      scriptType: "INFRA_DESTROY"
-     filePath: "OPENSTACK/cluster-destroy.sh"
+     filePath: "OpenStack/cluster-destroy.sh"
      name: "Shell destroy"

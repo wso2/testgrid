@@ -51,9 +51,9 @@ public class TestReportEngineTest {
         URL resource = classLoader.getResource("results");
         Assert.assertNotNull(resource);
 
-        String scenarioLocation = new File(resource.getFile()).toPath().toAbsolutePath().toString();
+        String scenarioLocation = Paths.get(System.getProperty("java.io.tmpdir"), "my-testgrid-home").toString();
         TestScenario testScenario = Mockito.mock(TestScenario.class);
-        Mockito.when(testScenario.getSolutionPattern()).thenReturn("Sample Test Scenario");
+        Mockito.when(testScenario.getName()).thenReturn("Sample Test Scenario");
 
         List<TestScenario> testScenarios = new ArrayList<>();
         testScenarios.add(testScenario);
@@ -79,7 +79,7 @@ public class TestReportEngineTest {
         Mockito.when(testPlan.getDescription()).thenReturn("Test plan description");
         Mockito.when(testPlan.getDeploymentPattern()).thenReturn("Single Node Deployment");
         Mockito.when(testPlan.getDeployerType()).thenReturn(TestPlan.DeployerType.PUPPET);
-        Mockito.when(testPlan.getStatus()).thenReturn(TestPlan.Status.SCENARIO_EXECUTION_COMPLETED);
+        Mockito.when(testPlan.getStatus()).thenReturn(TestPlan.Status.TESTPLAN_COMPLETED);
         Mockito.when(testPlan.getTestScenarios()).thenReturn(testScenarios);
         Mockito.when(testPlan.getHome()).thenReturn(scenarioLocation);
 
@@ -93,7 +93,7 @@ public class TestReportEngineTest {
         productTestPlan.setInfrastructureMap(infrastructureMap);
         Mockito.when(productTestPlan.getProductName()).thenReturn("WSO2 Identity Server");
         Mockito.when(productTestPlan.getProductVersion()).thenReturn("5.4.0");
-        Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
+            Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
         Mockito.when(productTestPlan.getTestPlans()).thenReturn(testPlans);
         Mockito.when(productTestPlan.getInfrastructure(deploymentPattern)).thenReturn(infrastructure);
 
@@ -103,7 +103,7 @@ public class TestReportEngineTest {
         testReportEngineImpl.generateReport(productTestPlan);
 
         String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
-                          productTestPlan.getCreatedTimeStamp() + ".html";
+                          productTestPlan.getStartTimestamp() + ".html";
         Path reportPathLocation = Paths.get(scenarioLocation)
                 .resolve(fileName);
 
