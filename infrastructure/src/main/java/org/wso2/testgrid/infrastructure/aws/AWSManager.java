@@ -112,22 +112,17 @@ public class AWSManager {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
-                    host.setLabel(output.getOutputKey().replace("0", "_"));
+                    if(output.getOutputKey().contains("WSO2ISHostName")){
+                        host.setLabel("server_host");
+                    }else{
+                        host.setLabel(output.getOutputKey());
+                    }
                     hosts.add(host);
                 }
             }
             log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
             Deployment deployment = new Deployment();
             deployment.setHosts(hosts);
-//        Deployment deployment = new Deployment();
-//        Host host = new Host();
-//        host.setLabel("server_host");
-//        host.setIp("localhost");
-//        Host host2 = new Host();
-//        host2.setLabel("server_port");
-//        host2.setIp("9443");
-//        deployment.setHosts(Arrays.asList(host,host2));
-
             return deployment;
         } catch (InterruptedException e) {
             throw new TestGridInfrastructureException("Error occured while waiting for " +
