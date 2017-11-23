@@ -21,6 +21,7 @@ package org.wso2.testgrid.common;
 import org.wso2.carbon.config.annotation.Configuration;
 import org.wso2.carbon.config.annotation.Element;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -28,8 +29,10 @@ import java.util.Map;
  * Defines a model object for a Infrastructure.
  */
 @Configuration(namespace = "wso2.testgrid.infrastructure",
-        description = "TestGrid Infrastructure Configuration Parameters")
-public class Infrastructure {
+               description = "TestGrid Infrastructure Configuration Parameters")
+public class Infrastructure implements Serializable {
+
+    private static final long serialVersionUID = -1660815137752094462L;
 
     @Element(description = "defines the infrastructure provider type (i.e. AWS, OpenStack)")
     private ProviderType providerType; //AWS, GCC, OPENSTACK

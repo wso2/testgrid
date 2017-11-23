@@ -84,7 +84,7 @@ public final class Utils {
      * This Utility method is used to return the folder location of the TestScenario.
      */
     public static String getTestScenarioLocation(TestScenario scenario, String testPlanHome) {
-        return Paths.get(testPlanHome, scenario.getSolutionPattern()).toAbsolutePath().toString();
+        return Paths.get(testPlanHome, scenario.getName()).toAbsolutePath().toString();
     }
 
     /**

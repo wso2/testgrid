@@ -18,13 +18,16 @@
 
 package org.wso2.testgrid.common;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Defines a model object for a created HOST.
  */
-public class Host {
+public class Host implements Serializable {
+
+    private static final long serialVersionUID = 6031295649089337154L;
 
     private String ip;
     private String label;

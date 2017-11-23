@@ -36,12 +36,12 @@ public class TestEngineImpl implements TestAutomationEngine {
 
     public boolean runScenario(TestScenario scenario, String location, Deployment deployment)
             throws TestAutomationEngineException {
-        log.info("Executing Tests for Solution Pattern : " + scenario.getSolutionPattern());
+        log.info("Executing Tests for Solution Pattern : " + scenario.getName());
         TestManager testManager = new TestManager();
         try {
             testManager.init(Utils.getTestScenarioLocation(scenario, location), deployment,scenario);
             testManager.executeTests();
-            scenario.setStatus(TestScenario.Status.COMPLETED);
+            scenario.setStatus(TestScenario.Status.TEST_SCENARIO_COMPLETED);
         } catch (TestAutomationException ex) {
             throw new TestAutomationEngineException("Error while initiating the TestManager", ex);
         }

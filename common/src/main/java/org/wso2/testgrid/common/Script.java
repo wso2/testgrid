@@ -20,10 +20,14 @@ package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
 
+import java.io.Serializable;
+
 /**
  *  Defines a model object for a provided custom script.
  */
-public class Script {
+public class Script implements Serializable {
+
+    private static final long serialVersionUID = -3977238740076938871L;
 
     @Element(description = "defines the location of provided script")
     private String filePath;

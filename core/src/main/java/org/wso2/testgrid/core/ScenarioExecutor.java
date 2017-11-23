@@ -46,13 +46,13 @@ public class ScenarioExecutor {
     public TestScenario runScenario(TestScenario testScenario, Deployment deployment, String homeDir)
             throws ScenarioExecutorException {
         try {
-            testScenario.setStatus(TestScenario.Status.RUNNING);
+            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_RUNNING);
             new TestEngineImpl().runScenario(testScenario, homeDir, deployment);
-            testScenario.setStatus(TestScenario.Status.COMPLETED);
+            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_COMPLETED);
         } catch (TestAutomationEngineException e) {
-            testScenario.setStatus(TestScenario.Status.ERROR);
+            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_ERROR);
             throw new ScenarioExecutorException("Exception occurred while running the Tests for Solution Pattern '" +
-                    testScenario.getSolutionPattern() + "'");
+                                                testScenario.getName() + "'");
         }
         return testScenario;
     }

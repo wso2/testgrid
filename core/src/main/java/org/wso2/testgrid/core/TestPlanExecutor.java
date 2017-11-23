@@ -37,6 +37,7 @@ import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -59,25 +60,25 @@ public class TestPlanExecutor {
                         TestGridConstants.DEPLOYMENT_DIR, infrastructure.getName(),
                         infrastructure.getProviderType().name()).toString());
                 testPlan.setDeployment(deployment);
-                testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_READY);
+                // TODO: Set status infrastructure ready
             } else {
-                testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_ERROR);
+                // TODO: Set status infrastructure error
                 throw new TestPlanExecutorException("Unable to locate infrastructure descriptor for " +
                         "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
                         testPlan.getName() + "'");
             }
         } catch (TestGridInfrastructureException e) {
-            testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_ERROR);
+            // TODO: Set status infrastructure error
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
         } catch (InfrastructureProviderInitializationException e) {
-            testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_ERROR);
+            // TODO: Set status infrastructure error
             throw new TestPlanExecutorException("Unable to locate an Infrastructure Provider implementation for  " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
         } catch (UnsupportedProviderException e) {
-            testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_ERROR);
+            // TODO: Set status infrastructure error
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
@@ -94,23 +95,23 @@ public class TestPlanExecutor {
                 InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
                         .removeInfrastructure(infrastructure, testPlan.getInfraRepoDir());
             } else {
-                testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_DESTROY_ERROR);
+                // TODO: Set status infrastructure destroy error
                 throw new TestPlanExecutorException("Unable to locate infrastructure descriptor for " +
                         "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
                         testPlan.getName() + "'");
             }
         } catch (TestGridInfrastructureException e) {
-            testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_DESTROY_ERROR);
+            // TODO: Set status infrastructure destroy error
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
         } catch (InfrastructureProviderInitializationException e) {
-            testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_DESTROY_ERROR);
+            // TODO: Set status infrastructure destroy error
             throw new TestPlanExecutorException("Unable to locate an Infrastructure Provider implementation for  " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
         } catch (UnsupportedProviderException e) {
-            testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_DESTROY_ERROR);
+            // TODO: Set status infrastructure destroy error
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
@@ -126,60 +127,62 @@ public class TestPlanExecutor {
      * @throws TestPlanExecutorException If something goes wrong while executing the TestPlan.
      */
     public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
-        testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_PREPARATION);
+        // TODO: Set status infrastructure preparation
         //Setup the infrastructure
         testPlan = setupInfrastructure(infrastructure, testPlan);
-        if (TestPlan.Status.INFRASTRUCTURE_READY.equals(testPlan.getStatus())) {
-            //Trigger the deployment
-            testPlan.setStatus(TestPlan.Status.DEPLOYMENT_PREPARATION);
-            Deployment deployment;
-            try {
-                deployment = DeployerFactory.getDeployerService(testPlan).deploy(testPlan.getDeployment());
-                testPlan.setStatus(TestPlan.Status.DEPLOYMENT_READY);
-            } catch (TestGridDeployerException e) {
-                testPlan.setStatus(TestPlan.Status.DEPLOYMENT_ERROR);
-                this.destroyInfrastructure(infrastructure, testPlan);
-                throw new TestPlanExecutorException("Exception occurred while running the deployment " +
-                        "for deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
-                        testPlan.getName() + "'", e);
-            } catch (DeployerInitializationException e) {
-                throw new TestPlanExecutorException("Unable to locate a Deployer Service implementation for  " +
-                        "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
-                        testPlan.getName() + "'", e);
-            } catch (UnsupportedDeployerException e) {
-                throw new TestPlanExecutorException("Error occurred while running deployment for "
-                        + "deployment pattern '" + testPlan.getDeploymentPattern() + "' in TestPlan '"
-                        + testPlan.getName() + "'", e);
-            }
-            if (TestPlan.Status.DEPLOYMENT_READY.equals(testPlan.getStatus())) {
-                testPlan.setDeployment(deployment);
-                testPlan.setStatus(TestPlan.Status.SCENARIO_EXECUTION);
-                for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                    try {
-                        new ScenarioExecutor().runScenario(testScenario, deployment, testPlan.getTestRepoDir());
-                    } catch (ScenarioExecutorException e) {
-                        log.error("Error occurred while executing the SolutionPattern '" +
-                                testScenario.getSolutionPattern() + "' , in TestPlan '" +
-                                testPlan.getName() + "'", e);
-                    }
-                }
-                testPlan.setStatus(TestPlan.Status.SCENARIO_EXECUTION_COMPLETED);
-            } else {
-                this.destroyInfrastructure(infrastructure, testPlan);
-                throw new TestPlanExecutorException("Exception occurred while running the deployment " +
-                        "for deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
-                        testPlan.getName() + "'");
-            }
-        } else {
-            testPlan.setStatus(TestPlan.Status.INFRASTRUCTURE_ERROR);
-            throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
-                    "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
-                    + "'");
+
+        // TODO: Check if the infrastructure is ready
+//        if (TestPlan.Status.INFRASTRUCTURE_READY.equals(testPlan.getStatus())) {
+            // Trigger the deployment
+        testPlan.setStatus(TestPlan.Status.TESTPLAN_DEPLOYMENT_PREPARATION);
+        Deployment deployment;
+        try {
+            deployment = DeployerFactory.getDeployerService(testPlan).deploy(testPlan.getDeployment());
+            testPlan.setStatus(TestPlan.Status.TESTPLAN_DEPLOYMENT_READY);
+        } catch (TestGridDeployerException e) {
+            testPlan.setStatus(TestPlan.Status.TESTPLAN_DEPLOYMENT_ERROR);
+            this.destroyInfrastructure(infrastructure, testPlan);
+            throw new TestPlanExecutorException("Exception occurred while running the deployment " +
+                    "for deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
+                    testPlan.getName() + "'", e);
+        } catch (DeployerInitializationException e) {
+            throw new TestPlanExecutorException("Unable to locate a Deployer Service implementation for  " +
+                    "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
+                    testPlan.getName() + "'", e);
+        } catch (UnsupportedDeployerException e) {
+            throw new TestPlanExecutorException("Error occurred while running deployment for "
+                    + "deployment pattern '" + testPlan.getDeploymentPattern() + "' in TestPlan '"
+                    + testPlan.getName() + "'", e);
         }
+        if (TestPlan.Status.TESTPLAN_DEPLOYMENT_READY.equals(testPlan.getStatus())) {
+            testPlan.setDeployment(deployment);
+            // TODO: Set status test scenario execution pending
+            for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                try {
+                    new ScenarioExecutor().runScenario(testScenario, deployment, testPlan.getTestRepoDir());
+                } catch (ScenarioExecutorException e) {
+                    log.error("Error occurred while executing the SolutionPattern '" +
+                              testScenario.getName() + "' , in TestPlan '" +
+                              testPlan.getName() + "'", e);
+                }
+            }
+            // TODO: Set status test scenario execution completed
+        } else {
+            this.destroyInfrastructure(infrastructure, testPlan);
+            throw new TestPlanExecutorException("Exception occurred while running the deployment " +
+                    "for deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
+                    testPlan.getName() + "'");
+        }
+//        } else {
+//            // TODO: Set status infrastructure error
+//            throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
+//                    "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
+//                    + "'");
+//        }
         //Destroy the infrastructure
         testPlan = destroyInfrastructure(infrastructure, testPlan);
-        testPlan.setCompletedTimeStamp(new Date().getTime());
-        testPlan.setStatus(TestPlan.Status.EXECUTION_COMPLETED);
+        testPlan.setModifiedTimestamp(new Timestamp(new Date().getTime()));
+        testPlan.setStatus(TestPlan.Status.TESTPLAN_COMPLETED);
         return testPlan;
     }
 
