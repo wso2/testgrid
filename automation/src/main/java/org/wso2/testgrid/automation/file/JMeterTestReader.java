@@ -25,6 +25,7 @@ import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.beans.JMeterTest;
 import org.wso2.testgrid.automation.beans.Test;
 import org.wso2.testgrid.automation.file.common.TestReader;
+import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.constants.TestGridConstants;
 
 import java.io.File;
@@ -45,19 +46,20 @@ public class JMeterTestReader implements TestReader {
      * This method goes through the file structure and create an object model of the tests.
      *
      * @param file File object for the test folder.
+     * @param scenario
      * @return a List of Test objects.
      */
-    private List<Test> processTestStructure(File file) throws TestAutomationException {
+    private List<Test> processTestStructure(File file, TestScenario scenario) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
-        String[] list = file.list();
+//        String[] list = file.list();
 
-        if (list != null) {
-            for (String solution : Arrays.asList(list)) {
-                File tests = new File(file.getAbsolutePath() + File.separator + solution +
+//        if (list != null) {
+//            for (String solution : Arrays.asList(list)) {
+                File tests = new File(file.getAbsolutePath()  +
                         File.separator + JMETER_TEST_PATH);
                 JMeterTest test = new JMeterTest();
 
-                test.setTestName(solution);
+                test.setTestName(scenario.getSolutionPattern());
                 List<String> jmxList = new ArrayList<>();
                 if (tests.exists()) {
                     for (String jmx : ArrayUtils.nullToEmpty(tests.list())) {
@@ -70,8 +72,8 @@ public class JMeterTestReader implements TestReader {
                 test.setjMeterScripts(jmxList);
                 testsList.add(test);
 
-            }
-        }
+//            }
+//        }
         return testsList;
     }
 
@@ -84,7 +86,7 @@ public class JMeterTestReader implements TestReader {
      * @throws TestAutomationException when an error occurs while reading the tests.
      */
     @Override
-    public List<Test> readTests(String testLocation) throws TestAutomationException {
-        return processTestStructure(new File(testLocation));
+    public List<Test> readTests(String testLocation, TestScenario scenario) throws TestAutomationException {
+        return processTestStructure(new File(testLocation),scenario);
     }
 }

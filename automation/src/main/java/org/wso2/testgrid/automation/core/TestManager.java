@@ -24,6 +24,7 @@ import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.beans.Test;
 import org.wso2.testgrid.automation.file.common.TestGridTestReader;
 import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
 import java.util.List;
@@ -43,13 +44,13 @@ public class TestManager {
      * @param deployment   The deployment details of current pattern.
      * @throws TestAutomationException When there is an error creating the file structure.
      */
-    public void init(String testLocation, Deployment deployment) throws TestAutomationException {
+    public void init(String testLocation, Deployment deployment, TestScenario scenario) throws TestAutomationException {
         this.deployment = deployment;
         TestGridTestReader testGridTestReader = new TestGridTestReader();
 
         try {
-            this.testLocation = testLocation + File.separator + "Tests";
-            this.tests = testGridTestReader.getTests(this.testLocation);
+            this.testLocation = testLocation;
+            this.tests = testGridTestReader.getTests(this.testLocation,scenario);
         } catch (TestAutomationException e) {
             throw new TestAutomationException("Error while reading tests", e);
         }

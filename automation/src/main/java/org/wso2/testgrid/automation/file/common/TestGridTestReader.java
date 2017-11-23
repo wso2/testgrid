@@ -21,6 +21,7 @@ package org.wso2.testgrid.automation.file.common;
 import org.apache.commons.lang3.ArrayUtils;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.beans.Test;
+import org.wso2.testgrid.common.TestScenario;
 
 
 import java.io.File;
@@ -38,23 +39,25 @@ public class TestGridTestReader {
      * with common Test interface.
      *
      * @param testLocation The file path of the test location as a String.
+     * @param scenario
      * @return a List of Tests.
      * @throws TestAutomationException when there is an error with test reading process.
      */
-    public List<Test> getTests(String testLocation) throws TestAutomationException {
+    public List<Test> getTests(String testLocation, TestScenario scenario) throws TestAutomationException {
         File tests = new File(testLocation);
         List<Test> testList = new ArrayList<>();
 
         if (tests.exists()) {
-
-            for (String testType : ArrayUtils.nullToEmpty(tests.list())) {
-                //get the correct test reader for the test type.
-                TestReader testReader = TestReaderFactory.getTestReader(testType.toUpperCase(Locale.ENGLISH));
+//
+//            for (String testType : ArrayUtils.nullToEmpty(tests.list())) {
+//                //get the correct test reader for the test type.
+                TestReader testReader = TestReaderFactory.getTestReader(scenario.getTestEngine().toString()
+                        .toUpperCase(Locale.ENGLISH));
                 List<Test> tests1;
                 if (testReader != null) {
-                    tests1 = testReader.readTests(testLocation + File.separator + testType);
+                    tests1 = testReader.readTests(testLocation,scenario);
                     testList.addAll(tests1);
-                }
+//                }
             }
         }
 

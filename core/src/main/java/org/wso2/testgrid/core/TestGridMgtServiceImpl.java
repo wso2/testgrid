@@ -142,15 +142,16 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
 
         if (path != null) {
             String repoLocation;
-            //Clone Test Repo
-            try {
-                repoLocation = TestGridUtil.cloneRepository(repository, path);
-            } catch (GitAPIException e) {
-                String msg = "Unable to clone test repository for for product '" + product + "' , version '" +
-                        productVersion + "'";
-                log.error(msg, e);
-                throw new TestGridException(msg, e);
-            }
+//            //Clone Test Repo
+//            try {
+//                repoLocation = TestGridUtil.cloneRepository(repository, path);
+            repoLocation = "/home/sameera/TestGridFolder/WSO2_Identity_Server_5.3.0_1511363894918/test-grid-is-resources";
+//            } catch (GitAPIException e) {
+//                String msg = "Unable to clone test repository for for product '" + product + "' , version '" +
+//                        productVersion + "'";
+//                log.error(msg, e);
+//                throw new TestGridException(msg, e);
+//            }
 
             //Construct the product test plan
             ProductTestPlan productTestPlan = new ProductTestPlan();
