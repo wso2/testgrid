@@ -67,15 +67,13 @@ public class RunTestPlanCommand extends Command {
     protected String channel = "public";
 
     @Option(name = "--infraRepo",
-            usage = "Location of Infra plans. "
-                    + "Under this location, there should be a Infrastructure/ folder."
-                    + "Assume this location is the test-grid-is-resources",
+            usage = "Location of Infrastructure as Code such as CF scripts/infra.sh",
             aliases = { "-ir" },
             required = true)
     protected String infraRepo = "";
 
     @Option(name = "--scenarioRepo",
-            usage = "scenario repo directory. Assume this location is the test-grid-is-resources",
+            usage = "Scenario repo directory. Assume this location is the test-grid-is-resources",
             aliases = { "-sr" },
             required = true)
     protected String scenarioRepoDir = "";
