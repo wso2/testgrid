@@ -216,10 +216,11 @@ public class TestReportEngineImpl implements TestReportEngine {
      * @return the testgrid home
      */
     private String getTestGridHome() {
-        String testgridHome = EnvironmentUtil.getSystemVariableValue("TESTGRID_HOME");
-        if (testgridHome == null) {
-            return Paths.get(System.getProperty("user.home"), ".testgrid").toString();
-        }
+        String testgridHome = System.getProperty("testgrid.home");
+        testgridHome = testgridHome == null ? EnvironmentUtil.getSystemVariableValue("TESTGRID_HOME")
+                : testgridHome;
+        testgridHome = testgridHome == null ? Paths.get(System.getProperty("user.home"), ".testgrid").toString()
+                : testgridHome;
         return testgridHome;
     }
 }

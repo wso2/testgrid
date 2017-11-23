@@ -19,6 +19,7 @@ package org.wso2.testgrid.reporting;
 
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.Infrastructure;
@@ -29,7 +30,9 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestReportEngineException;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -44,14 +47,27 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class TestReportEngineTest {
 
+    private String testGridHome;
+
+    @BeforeClass
+    public void setUp() throws IOException {
+        Path testGridHome = Paths.get(System.getProperty("java.io.tmpdir"), "my-testgrid-home",
+                String.valueOf(System.currentTimeMillis()));
+        Files.createDirectory(testGridHome);
+        System.setProperty("testgrid.home", testGridHome.toString());
+        System.setProperty("TESTGRID_HOME", testGridHome.toString());
+        this.testGridHome = testGridHome.toString();
+    }
+
     @Test
-    public void generateReportTest() throws TestReportEngineException {
+    public void generateReportTest() throws TestReportEngineException, IOException {
+
         String deploymentPattern = "Single Node Deployment";
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("results");
         Assert.assertNotNull(resource);
 
-        String scenarioLocation = Paths.get(System.getProperty("java.io.tmpdir"), "my-testgrid-home").toString();
+        String scenarioLocation = testGridHome;
         TestScenario testScenario = Mockito.mock(TestScenario.class);
         Mockito.when(testScenario.getName()).thenReturn("Sample Test Scenario");
 
