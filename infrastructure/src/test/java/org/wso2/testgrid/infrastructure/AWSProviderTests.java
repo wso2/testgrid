@@ -44,7 +44,7 @@ public class AWSProviderTests extends PowerMockTestCase {
         AWSProvider provider = new AWSProvider();
         String providerName = provider.getProviderName();
         Assert.assertNotNull(providerName);
-        Assert.assertEquals(providerName, "AWS Provider");
+        Assert.assertEquals(providerName, "AWS");
     }
 
     @Test(description = "This test case tests if this provider can handle specific " +

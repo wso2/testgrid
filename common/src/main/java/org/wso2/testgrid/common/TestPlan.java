@@ -508,6 +508,11 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
         ANSIBLE("ANSIBLE"),
 
         /**
+         * Defines the ansible automation.
+         */
+        AWS_CF("AWS_CF"),
+
+        /**
          * Defines the chef automation.
          */
         CHEF("CHEF");

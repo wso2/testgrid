@@ -44,39 +44,47 @@ public class RunTestPlanCommand extends Command {
 
     @Option(name = "--testplan",
             usage = "Path to Testplan",
-            aliases = { "-t" },
+            aliases = {"-t"},
             required = true)
     protected String testPlanLocation = "";
 
     @Option(name = "--product",
             usage = "Product Name",
-            aliases = { "-p" },
+            aliases = {"-p"},
             required = true)
     protected String productName = "";
 
     @Option(name = "--version",
             usage = "product version",
-            aliases = { "-v" },
+            aliases = {"-v"},
             required = true)
     protected String productVersion = "";
 
     @Option(name = "--channel",
             usage = "product channel",
-            aliases = { "-c" },
+            aliases = {"-c"},
             required = false)
     protected String channel = "public";
 
     @Option(name = "--infraRepo",
-            usage = "Location of Infrastructure as Code such as CF scripts/infra.sh",
-            aliases = { "-ir" },
+            usage = "Location of Infra plans. "
+                    + "Under this location, there should be a Infrastructure/ folder."
+                    + "Assume this location is the test-grid-is-resources",
+            aliases = {"-ir"},
             required = true)
     protected String infraRepo = "";
 
     @Option(name = "--scenarioRepo",
-            usage = "Scenario repo directory. Assume this location is the test-grid-is-resources",
-            aliases = { "-sr" },
+            usage = "scenario repo directory. Assume this location is the test-grid-is-resources",
+            aliases = {"-sr"},
             required = true)
     protected String scenarioRepoDir = "";
+
+    @Option(name = "--infraPlan",
+            usage = "Infrastructure config file",
+            aliases = {"-i"},
+            required = true)
+    protected String infraPlan = "";
 
     @Override
     public void execute() throws TestGridException {
@@ -100,7 +108,7 @@ public class RunTestPlanCommand extends Command {
             }
 
             TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
-            ProductTestPlan productTestPlan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
+            ProductTestPlan productTestPlan = testGridMgtService.createProduct(productName, productVersion, infraPlan);
             //todo use channel as well
             Long time = System.currentTimeMillis();
             String testPlanHome = TestGridUtil.createTestDirectory(productName, productVersion, time).get();
