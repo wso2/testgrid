@@ -38,21 +38,32 @@ import javax.persistence.Transient;
  * @since 1.0.0
  */
 @Entity
-@Table(name = "test_scenario")
+@Table(name = TestScenario.TEST_SCENARIO_TABLE)
 public class TestScenario extends AbstractUUIDEntity implements Serializable {
 
-    private static final long serialVersionUID = -2666342786241472418L;
+    /**
+     * Test plan table name.
+     */
+    public static final String TEST_SCENARIO_TABLE = "test_scenario";
 
+    /**
+     * Column names of the table.
+     */
+    public static final String STATUS_COLUMN = "status";
+    public static final String NAME_COLUMN = "name";
+    public static final String TEST_PLAN_COLUMN = "TESTPLAN_id";
+
+    private static final long serialVersionUID = -2666342786241472418L;
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = STATUS_COLUMN, nullable = false)
     private Status status;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = NAME_COLUMN, nullable = false)
     @Element(description = "name of the solution pattern which is covered by this test scenario")
     private String name;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class)
-    @PrimaryKeyJoinColumn(name = "test_plan_id", referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = TEST_PLAN_COLUMN, referencedColumnName = "id")
     private TestPlan testPlan;
 
     @Transient

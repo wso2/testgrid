@@ -21,6 +21,7 @@ import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -71,15 +72,14 @@ public class InfraCombinationRepository extends AbstractRepository<InfraCombinat
     }
 
     /**
-     * Find {@link InfraCombination} instances by a specific field and field value.
+     * Returns a list of {@link InfraCombination} instances matching the given criteria.
      *
-     * @param field      name of the database field to lookup
-     * @param fieldValue value of the field to be matched for
+     * @param params parameters (map of field name and values) for obtaining the result list
      * @return a list of values for the matched criteria
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public List<InfraCombination> findByField(String field, Object fieldValue) throws TestGridDAOException {
-        return super.findByField(InfraCombination.class, field, fieldValue);
+    public List<InfraCombination> findByFields(Map<String, Object> params) throws TestGridDAOException {
+        return super.findByFields(InfraCombination.class, params);
     }
 
     /**

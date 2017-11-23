@@ -29,10 +29,8 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.Utils;
 import org.wso2.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.common.exception.TestReportEngineException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
-import org.wso2.testgrid.reporting.TestReportEngineImpl;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -163,15 +161,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         //        }
 
         productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_REPORT_GENERATION);
-
-        try {
-            new TestReportEngineImpl().generateReport(testPlan, productTestPlan);
-        } catch (TestReportEngineException e) {
-            String msg = "Unable to generate test report for the ProductTests ran for product '" +
-                    productTestPlan.getProductName() + "', version '" + productTestPlan.getProductVersion() + "'";
-            log.error(msg, e);
-            throw new TestGridException(msg, e);
-        }
+        // TODO: maintain report generation in a different location
         productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_COMPLETED);
         return true;
     }

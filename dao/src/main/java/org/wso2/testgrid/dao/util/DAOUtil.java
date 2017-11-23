@@ -15,23 +15,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.wso2.testgrid.dao.util;
 
-package org.wso2.testgrid.common;
-
-import org.wso2.testgrid.common.exception.TestReportEngineException;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
 /**
- * This interface defines the contract of the TestReportEngine where the result generation should happen based on
- * executed automation results.
+ * Utility class to handle DAO related common operations.
+ *
+ * @since 1.0.0
  */
-public interface TestReportEngine {
+public class DAOUtil {
+
+    private static final String TESTGRID_PERSISTENT_UNIT = "eclipse_link_jpa";
 
     /**
-     * Generates a test report based on the given product name and product version.
+     * Returns the entity manager factory for the test grid persistent unit.
      *
-     * @param productName    product name to generate the test plan for
-     * @param productVersion product version to generate the test plan for
-     * @throws TestReportEngineException thrown when error on generating test report
+     * @return entity manager factory for the test grid persistent unit
      */
-    void generateReport(String productName, String productVersion) throws TestReportEngineException;
+    public static EntityManagerFactory getEntityManagerFactory() {
+        return Persistence.createEntityManagerFactory(TESTGRID_PERSISTENT_UNIT);
+    }
 }
