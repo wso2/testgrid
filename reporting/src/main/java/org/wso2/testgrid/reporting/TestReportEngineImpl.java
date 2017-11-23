@@ -25,6 +25,7 @@ import org.wso2.testgrid.common.TestReportEngine;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.Utils;
 import org.wso2.testgrid.common.exception.TestReportEngineException;
+import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.reporting.model.ProductPlanReport;
 import org.wso2.testgrid.reporting.model.TestPlanReport;
 import org.wso2.testgrid.reporting.model.TestScenarioReport;
@@ -103,7 +104,6 @@ public class TestReportEngineImpl implements TestReportEngine {
             throw new TestReportEngineException("Exception occurred while rendering the html template.", e);
         }
 
-        //todo use a constant for tetgrid_home
         Path reportPath = Paths.get(getTestGridHome()).resolve(fileName);
         try {
             FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), htmlString);
@@ -205,12 +205,22 @@ public class TestReportEngineImpl implements TestReportEngine {
         return testResults;
     }
 
-    public String getTestGridHome() {
-        String testgridHome = System.getenv("TESTGRID_HOME");
-        if (testgridHome == null) {
-            String tmp = System.getProperty("java.io.tmpdir");
-            return Paths.get(tmp, "my-testgrid-home").toString();
-        }
+    /**
+     * todo: move this to common util class.
+     *
+     * Order:
+     * 1. Check TESTGRID_HOME env
+     * 2. Check TESTGRID_HOME system property. //todo: it should be testgrid.home coz of convention
+     * 3. Default ${user.home}/.testgrid
+     *
+     * @return the testgrid home
+     */
+    private String getTestGridHome() {
+        String testgridHome = System.getProperty("testgrid.home");
+        testgridHome = testgridHome == null ? EnvironmentUtil.getSystemVariableValue("TESTGRID_HOME")
+                : testgridHome;
+        testgridHome = testgridHome == null ? Paths.get(System.getProperty("user.home"), ".testgrid").toString()
+                : testgridHome;
         return testgridHome;
     }
 }
