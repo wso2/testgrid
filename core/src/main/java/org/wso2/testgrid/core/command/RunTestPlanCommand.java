@@ -48,18 +48,6 @@ public class RunTestPlanCommand extends Command {
             required = true)
     protected String testPlanLocation = "";
 
-    @Option(name = "--testRepoDir",
-            usage = "testRepoDir",
-            aliases = { "-trd" },
-            required = true)
-    protected String testRepoDir = "";
-
-//    @Option(name = "--infraRepoDir",
-//            usage = "infraRepoDir",
-//            aliases = { "-ird" },
-//            required = true)
-//    protected String infraRepoDir = "";
-
     @Option(name = "--product",
             usage = "Product Name",
             aliases = { "-p" },
@@ -85,6 +73,12 @@ public class RunTestPlanCommand extends Command {
             aliases = { "-ir" },
             required = true)
     protected String infraRepo = "";
+
+    @Option(name = "--scenarioRepo",
+            usage = "scenario repo directory. Assume this location is the test-grid-is-resources",
+            aliases = { "-sr" },
+            required = true)
+    protected String scenarioRepoDir = "";
 
     @Override
     public void execute() throws TestGridException {
@@ -112,25 +106,11 @@ public class RunTestPlanCommand extends Command {
             //todo use channel as well
             Long time = System.currentTimeMillis();
             String testPlanHome = TestGridUtil.createTestDirectory(productName, productVersion, time).get();
-/*
 
-            if (testPlanHome != null) {
-                String repoLocation;
-            //Clone Test Repo
-            try {
-                repoLocation = TestGridUtil.cloneRepository(repository, path);
-            } catch (GitAPIException e) {
-                String msg = "Unable to clone test repository for for product '" + product + "' , version '" +
-                        productVersion + "'";
-                log.error(msg, e);
-                throw new TestGridException(msg, e);
-            }
-*/
             TestPlan testPlan = testGridMgtService
-                    .generateTestPlan(Paths.get(testPlanLocation), testRepoDir, infraRepo,
+                    .generateTestPlan(Paths.get(testPlanLocation), scenarioRepoDir, infraRepo,
                             testPlanHome);
             testGridMgtService.executeTestPlan(testPlan, productTestPlan);
-            //            }
 
         } catch (IOException e) {
             throw new TestGridException("Error while executing test plan " + testPlanLocation, e);

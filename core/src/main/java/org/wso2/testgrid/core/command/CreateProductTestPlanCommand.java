@@ -82,8 +82,7 @@ public class CreateProductTestPlanCommand extends Command {
 
         TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
         ProductTestPlan plan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
-        //todo use channel as
-        // well
+        //todo add channel as an argument.
 
         testGridMgtService.persistProduct(plan);
         //todo Persist product and version info in the db.
