@@ -22,7 +22,12 @@ package org.wso2.testgrid.core.command;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.Option;
+import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.core.TestGridMgtService;
+import org.wso2.testgrid.core.TestGridMgtServiceImpl;
+import org.wso2.testgrid.core.TestGridUtil;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -35,13 +40,13 @@ import java.nio.file.Paths;
  */
 public class RunTestPlanCommand extends Command {
 
-    private static final Log log = LogFactory.getLog(CreateProductTestPlanCommand.class);
+    private static final Log log = LogFactory.getLog(RunTestPlanCommand.class);
 
     @Option(name = "--testplan",
             usage = "Path to Testplan",
             aliases = { "-t" },
             required = true)
-    protected String testPlan = "";
+    protected String testPlanLocation = "";
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -61,13 +66,27 @@ public class RunTestPlanCommand extends Command {
             required = false)
     protected String channel = "public";
 
+    @Option(name = "--infraRepo",
+            usage = "Location of Infra plans. "
+                    + "Under this location, there should be a Infrastructure/ folder."
+                    + "Assume this location is the test-grid-is-resources",
+            aliases = { "-ir" },
+            required = true)
+    protected String infraRepo = "";
+
+    @Option(name = "--scenarioRepo",
+            usage = "scenario repo directory. Assume this location is the test-grid-is-resources",
+            aliases = { "-sr" },
+            required = true)
+    protected String scenarioRepoDir = "";
+
     @Override
     public void execute() throws TestGridException {
         try {
-            log.info("Running the test plan: " + testPlan);
-            Path path = Paths.get(testPlan);
-            if (!Files.exists(path)) {
-                String msg = "The test plan path does not exist: " + path;
+            log.info("Running the test plan: " + testPlanLocation);
+            Path testPlanPath = Paths.get(testPlanLocation);
+            if (!Files.exists(testPlanPath)) {
+                String msg = "The test plan path does not exist: " + testPlanPath;
                 log.info(msg);
                 throw new IllegalArgumentException(msg);
             }
@@ -78,11 +97,23 @@ public class RunTestPlanCommand extends Command {
                                 "\tProduct name: " + productName + "\n" +
                                 "\tProduct version: " + productVersion + "\n" +
                                 "\tChannel" + channel);
-                log.debug("TestPlan contents : \n" + new String(Files.readAllBytes(path), Charset.forName("UTF-8")));
+                log.debug("TestPlan contents : \n" + new String(Files.readAllBytes(testPlanPath),
+                        Charset.forName("UTF-8")));
             }
 
+            TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
+            ProductTestPlan productTestPlan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
+            //todo use channel as well
+            Long time = System.currentTimeMillis();
+            String testPlanHome = TestGridUtil.createTestDirectory(productName, productVersion, time).get();
+
+            TestPlan testPlan = testGridMgtService
+                    .generateTestPlan(Paths.get(testPlanLocation), scenarioRepoDir, infraRepo,
+                            testPlanHome);
+            testGridMgtService.executeTestPlan(testPlan, productTestPlan);
+
         } catch (IOException e) {
-            throw new TestGridException("Error while executing test plan " + testPlan, e);
+            throw new TestGridException("Error while executing test plan " + testPlanLocation, e);
         }
 
     }
