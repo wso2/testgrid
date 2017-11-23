@@ -19,14 +19,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
-        <groupId>org.wso2.carbon.testgrid</groupId>
-        <artifactId>carbon-testgrid-framework</artifactId>
+        <groupId>org.wso2.testgrid</groupId>
+        <artifactId>testgrid-framework</artifactId>
         <version>0.9.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.testgrid.deployment</artifactId>
+    <artifactId>org.wso2.testgrid.deployment</artifactId>
     <name>WSO2 TestGrid Framework - Deployment POM</name>
     <url>http://wso2.org</url>
     <packaging>jar</packaging>
@@ -42,12 +42,38 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.common</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.common</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.testgrid</groupId>
-            <artifactId>org.wso2.carbon.testgrid.infrastruture</artifactId>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.infrastruture</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <!--Test dependencies-->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
