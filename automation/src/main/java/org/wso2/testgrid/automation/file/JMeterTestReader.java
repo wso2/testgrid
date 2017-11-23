@@ -30,7 +30,6 @@ import org.wso2.testgrid.common.constants.TestGridConstants;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,40 +39,32 @@ import java.util.List;
 public class JMeterTestReader implements TestReader {
 
     private static final Log log = LogFactory.getLog(JMeterTestReader.class);
-    private static final  String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
+    private static final String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
 
     /**
      * This method goes through the file structure and create an object model of the tests.
      *
-     * @param file File object for the test folder.
+     * @param file     File object for the test folder.
      * @param scenario
      * @return a List of Test objects.
      */
     private List<Test> processTestStructure(File file, TestScenario scenario) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
-//        String[] list = file.list();
-
-//        if (list != null) {
-//            for (String solution : Arrays.asList(list)) {
-                File tests = new File(file.getAbsolutePath()  +
-                        File.separator + JMETER_TEST_PATH);
-                JMeterTest test = new JMeterTest();
-
-                test.setTestName(scenario.getSolutionPattern());
-                List<String> jmxList = new ArrayList<>();
-                if (tests.exists()) {
-                    for (String jmx : ArrayUtils.nullToEmpty(tests.list())) {
-                        if (jmx.endsWith(TestGridConstants.JMTER_SUFFIX)) {
-                            jmxList.add(tests.getAbsolutePath() + File.separator + jmx);
-                        }
-                    }
+        File tests = new File(file.getAbsolutePath() +
+                File.separator + JMETER_TEST_PATH);
+        JMeterTest test = new JMeterTest();
+        test.setTestName(scenario.getName());
+        List<String> jmxList = new ArrayList<>();
+        if (tests.exists()) {
+            for (String jmx : ArrayUtils.nullToEmpty(tests.list())) {
+                if (jmx.endsWith(TestGridConstants.JMTER_SUFFIX)) {
+                    jmxList.add(tests.getAbsolutePath() + File.separator + jmx);
                 }
-                Collections.sort(jmxList);
-                test.setjMeterScripts(jmxList);
-                testsList.add(test);
-
-//            }
-//        }
+            }
+        }
+        Collections.sort(jmxList);
+        test.setjMeterScripts(jmxList);
+        testsList.add(test);
         return testsList;
     }
 
@@ -87,6 +78,6 @@ public class JMeterTestReader implements TestReader {
      */
     @Override
     public List<Test> readTests(String testLocation, TestScenario scenario) throws TestAutomationException {
-        return processTestStructure(new File(testLocation),scenario);
+        return processTestStructure(new File(testLocation), scenario);
     }
 }

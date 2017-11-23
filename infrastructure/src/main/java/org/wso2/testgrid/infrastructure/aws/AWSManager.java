@@ -35,11 +35,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Infrastructure;
-import org.wso2.testgrid.common.Port;
 import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.StringUtil;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -47,7 +47,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -96,7 +95,7 @@ public class AWSManager {
         stackRequest.setStackName(cloudFormationName);
         try {
             String file = new String(Files.readAllBytes(Paths.get(infraRepoDir,
-                     script.getFilePath())), StandardCharsets.UTF_8);
+                    script.getFilePath())), StandardCharsets.UTF_8);
             stackRequest.setTemplateBody(file);
             stackRequest.setParameters(getParameters(script, infraRepoDir));
             stackbuilder.createStack(stackRequest);
@@ -113,13 +112,22 @@ public class AWSManager {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
-                    host.setLabel(output.getOutputKey());
+                    host.setLabel(output.getOutputKey().replace("0", "_"));
                     hosts.add(host);
                 }
             }
             log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
             Deployment deployment = new Deployment();
             deployment.setHosts(hosts);
+//        Deployment deployment = new Deployment();
+//        Host host = new Host();
+//        host.setLabel("server_host");
+//        host.setIp("localhost");
+//        Host host2 = new Host();
+//        host2.setLabel("server_port");
+//        host2.setIp("9443");
+//        deployment.setHosts(Arrays.asList(host,host2));
+
             return deployment;
         } catch (InterruptedException e) {
             throw new TestGridInfrastructureException("Error occured while waiting for " +
@@ -219,8 +227,7 @@ public class AWSManager {
     private List<Parameter> getParameters(Script script, String infraRepoDir) throws IOException
             , TestGridInfrastructureException {
 
-        Path path = Paths.get(infraRepoDir, "DeploymentPatterns", this.infra.getName(),
-                "AWS", "Scripts", script.getScriptParameters());
+        Path path = Paths.get(infraRepoDir, script.getScriptParameters());
         String jsonArray = new String(Files.readAllBytes(path), Charset.defaultCharset());
         ObjectMapper objectMapper = new ObjectMapper();
         List<Parameter> parameters = objectMapper.readValue(jsonArray, new AWSTypeReference());

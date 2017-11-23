@@ -26,7 +26,6 @@ import org.wso2.testgrid.automation.file.common.TestGridTestReader;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.TestScenario;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -50,7 +49,7 @@ public class TestManager {
 
         try {
             this.testLocation = testLocation;
-            this.tests = testGridTestReader.getTests(this.testLocation,scenario);
+            this.tests = testGridTestReader.getTests(this.testLocation, scenario);
         } catch (TestAutomationException e) {
             throw new TestAutomationException("Error while reading tests", e);
         }

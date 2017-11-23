@@ -18,11 +18,9 @@
 
 package org.wso2.testgrid.automation.file.common;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.beans.Test;
 import org.wso2.testgrid.common.TestScenario;
-
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,16 +46,12 @@ public class TestGridTestReader {
         List<Test> testList = new ArrayList<>();
 
         if (tests.exists()) {
-//
-//            for (String testType : ArrayUtils.nullToEmpty(tests.list())) {
-//                //get the correct test reader for the test type.
-                TestReader testReader = TestReaderFactory.getTestReader(scenario.getTestEngine().toString()
-                        .toUpperCase(Locale.ENGLISH));
-                List<Test> tests1;
-                if (testReader != null) {
-                    tests1 = testReader.readTests(testLocation,scenario);
-                    testList.addAll(tests1);
-//                }
+            TestReader testReader = TestReaderFactory.getTestReader(scenario.getTestEngine().toString()
+                    .toUpperCase(Locale.ENGLISH));
+            List<Test> tests1;
+            if (testReader != null) {
+                tests1 = testReader.readTests(testLocation, scenario);
+                testList.addAll(tests1);
             }
         }
 
