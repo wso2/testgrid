@@ -138,6 +138,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         productTestPlan.setCreatedTimeStamp(timeStamp);
         productTestPlan.setProductName(product);
         productTestPlan.setProductVersion(productVersion);
+        repositoryLocation = "/home/sameera/TestGridFolder/WSO2_Identity_Server_5.3.0_1511363894918/test-grid-is-resources";
         //productTestPlan.setTestPlans(this.generateTestPlan(repoLocation, repoLocation, path));
         productTestPlan.setInfrastructureMap(this.generateInfrastructureData(repositoryLocation));
         productTestPlan.setStatus(ProductTestPlan.Status.PLANNED);
