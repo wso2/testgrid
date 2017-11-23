@@ -25,6 +25,7 @@ import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.beans.Test;
 import org.wso2.testgrid.automation.beans.TestNGTest;
 import org.wso2.testgrid.automation.file.common.TestReader;
+import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -72,7 +73,7 @@ public class TestNGTestReader implements TestReader {
     }
 
     @Override
-    public List<Test> readTests(String testLocation) throws TestAutomationException {
+    public List<Test> readTests(String testLocation, TestScenario scenario) throws TestAutomationException {
         return processTestStructure(new File(testLocation));
     }
 }

@@ -173,7 +173,7 @@ public class JMeterExecutor implements TestExecutor {
      */
 
     private void overrideJMeterConfig(String testLocation, String testName, Deployment deployment) {
-        Path path = Paths.get(testLocation, "JMeter", testName, "src", "test", "resources", "user.properties");
+        Path path = Paths.get(testLocation,  "src", "test", "resources", "user.properties");
         if (!Files.exists(path)) {
             log.info("JMeter user.properties file not specified - proceeding with JMeter default properties.");
             return;
