@@ -19,7 +19,7 @@
 package org.wso2.testgrid.automation.executor;
 
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.common.constants.TestGridConstants;
+import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 
 /**
@@ -35,15 +35,15 @@ public class TestExecutorFactory {
      * @param testType Test type
      * @return test executor for the given test type
      */
-    public static TestExecutor getTestExecutor(String testType) throws TestAutomationException {
+    public static TestExecutor getTestExecutor(TestScenario.TestEngine testType) throws TestAutomationException {
         switch (testType) {
-            case TestGridConstants.TEST_TYPE_JMETER:
+            case JMETER:
                 return new JMeterExecutor();
-            case TestGridConstants.TEST_TYPE_TESTNG:
+            case TESTNG:
                 return new TestNgExecutor();
             default:
-                throw new TestAutomationException(StringUtil.concatStrings("Test executor for test type ", testType,
-                        " not implemented."));
+                throw new TestAutomationException(StringUtil.concatStrings("Test executor for test type ",
+                        testType.toString(), " not implemented."));
         }
     }
 }

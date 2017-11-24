@@ -16,15 +16,13 @@
  * under the License.
  */
 
-package org.wso2.testgrid.automation.file;
+package org.wso2.testgrid.automation.reader;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.automation.beans.Test;
-import org.wso2.testgrid.automation.beans.TestNGTest;
-import org.wso2.testgrid.automation.file.common.TestReader;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
@@ -35,7 +33,7 @@ import java.util.List;
 
 /**
  * This class is responsible for reading testNG tests from test jars.
- *
+ * <p>
  * Test jars are jars with dependencies that contain the test classes + testng.xml
  */
 public class TestNGTestReader implements TestReader {
@@ -46,15 +44,13 @@ public class TestNGTestReader implements TestReader {
     /**
      * This method goes through the file structure and create an object model of the tests.
      *
-     * @param file File object for the test folder.
+     * @param file         File object for the test folder.
+     * @param testScenario test scenario associated with the test
      * @return a List of Test objects.
      */
-    private List<Test> processTestStructure(File file) throws TestAutomationException {
+    private List<Test> processTestStructure(File file, TestScenario testScenario) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
         File tests = new File(file.getAbsolutePath());
-        TestNGTest test = new TestNGTest();
-
-        test.setTestName(file.getName());
         List<String> testNGList = new ArrayList<>();
 
         if (tests.exists()) {
@@ -66,7 +62,7 @@ public class TestNGTestReader implements TestReader {
         }
 
         Collections.sort(testNGList);
-        test.setTestNGJars(testNGList);
+        Test test = new Test(file.getName(), TestScenario.TestEngine.TESTNG, testNGList, testScenario);
         testsList.add(test);
 
         return testsList;
@@ -74,6 +70,6 @@ public class TestNGTestReader implements TestReader {
 
     @Override
     public List<Test> readTests(String testLocation, TestScenario scenario) throws TestAutomationException {
-        return processTestStructure(new File(testLocation));
+        return processTestStructure(new File(testLocation), scenario);
     }
 }

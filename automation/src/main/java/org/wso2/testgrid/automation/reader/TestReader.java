@@ -16,18 +16,28 @@
  * under the License.
  */
 
-package org.wso2.testgrid.automation.file.common;
+package org.wso2.testgrid.automation.reader;
 
+import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.automation.beans.Test;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.util.List;
 
 /**
- * Interface for the common test reader.
+ * Interface defining the behavior for test readers.
+ *
+ * @since 1.0.0
  */
 public interface TestReader {
 
+    /**
+     * Returns a list of {@link Test} instances for the given test scenario and test location.
+     *
+     * @param testLocation locations in which the tests resides
+     * @param scenario     test scenario associated with the tests
+     * @return a list of {@link Test} instances for the given test scenario and test location
+     * @throws TestAutomationException thrown when error on reading tests
+     */
     List<Test> readTests(String testLocation, TestScenario scenario) throws TestAutomationException;
 }

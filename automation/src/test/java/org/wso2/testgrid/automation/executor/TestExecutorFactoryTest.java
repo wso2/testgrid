@@ -20,6 +20,7 @@ package org.wso2.testgrid.automation.executor;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
+import org.wso2.testgrid.common.TestScenario;
 
 /**
  * Test class to test the functionality of {@link TestExecutorFactory}.
@@ -30,22 +31,22 @@ public class TestExecutorFactoryTest {
 
     @Test(description = "Tests whether the JMeterExecutor is returned for the given type JMETER")
     public void testTypeJMeterTest() throws TestAutomationException {
-        TestExecutor testExecutor = TestExecutorFactory.getTestExecutor("JMETER");
+        TestExecutor testExecutor = TestExecutorFactory.getTestExecutor(TestScenario.TestEngine.JMETER);
         Assert.assertNotNull(testExecutor);
         Assert.assertTrue(testExecutor instanceof JMeterExecutor);
     }
 
     @Test(description = "Tests whether the TestNgExecutor is returned for the given type TESTNG")
     public void testTypeTestNGTest() throws TestAutomationException {
-        TestExecutor testExecutor = TestExecutorFactory.getTestExecutor("TESTNG");
+        TestExecutor testExecutor = TestExecutorFactory.getTestExecutor(TestScenario.TestEngine.TESTNG);
         Assert.assertNotNull(testExecutor);
         Assert.assertTrue(testExecutor instanceof TestNgExecutor);
     }
 
     @Test(expectedExceptions = TestAutomationException.class,
-          expectedExceptionsMessageRegExp = "Test executor for test type OTHER not implemented.",
+          expectedExceptionsMessageRegExp = "Test executor for test type SELENIUM not implemented.",
           description = "Tests whether an exception is thrown for other types")
     public void testTypeUnknownTest() throws TestAutomationException {
-        TestExecutorFactory.getTestExecutor("OTHER");
+        TestExecutorFactory.getTestExecutor(TestScenario.TestEngine.SELENIUM);
     }
 }
