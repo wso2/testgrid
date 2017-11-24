@@ -141,31 +141,4 @@ public class JMeterExecutorTest {
         testExecutor.init(testLocation, "solution22", null);
         testExecutor.execute(testScript, new Deployment());
     }
-
-    @Test(description = "Test for failing to create temp directory.",
-          expectedExceptions = TestAutomationException.class,
-          expectedExceptionsMessageRegExp = "Error occurred when creating temporary directory in .{0,}")
-    public void createTempDirectoryFailTest() throws TestAutomationException, IOException {
-        // Set cloned test plan location.
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource("test-grid-is-resources");
-        Assert.assertNotNull(resource);
-
-        // Create test location without write permission
-        // Permissions
-        Set<PosixFilePermission> permissions = new HashSet<>();
-        permissions.add(PosixFilePermission.OWNER_READ);
-        permissions.add(PosixFilePermission.OTHERS_READ);
-        permissions.add(PosixFilePermission.GROUP_READ);
-
-        Path testLocation = Paths.get(resource.getPath(), "temp");
-        if (!Files.exists(testLocation)) {
-            Files.createDirectory(testLocation);
-        }
-        Files.setPosixFilePermissions(testLocation, permissions);
-
-        TestExecutor testExecutor = new JMeterExecutor();
-        // Trying to create temp directory in a location without permission
-        testExecutor.init(testLocation.toAbsolutePath().toString(), "solution22", null);
-    }
 }
