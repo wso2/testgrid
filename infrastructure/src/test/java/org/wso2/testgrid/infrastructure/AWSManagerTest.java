@@ -48,6 +48,7 @@ import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * This class will test functionality of {@link AWSManager}
@@ -106,7 +107,10 @@ public class AWSManagerTest extends PowerMockTestCase {
         script.setScriptType(Script.ScriptType.CLOUD_FORMATION);
         script.setFilePath(scriptFile);
         script.setName(mockStackName);
-        script.setScriptParameters("parameters.json");
+        Properties scriptParameters = new Properties();
+        scriptParameters.setProperty("CloudFormationParameterFile", "parameters.json");
+        scriptParameters.put("CloudFormationParameterFile", "parameters.json");
+        script.setScriptParameters(scriptParameters);
         //create dummy infrastructure object
         Infrastructure infrastructure = new Infrastructure();
         infrastructure.setName(patternName);

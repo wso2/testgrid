@@ -42,6 +42,8 @@ public class Infrastructure implements Serializable {
     private ClusterType clusterType; // ECS, K8S
     @Element(description = "defines the database configuration")
     private Database database;
+    @Element(description = "defines the database configuration")
+    private JDK jdk;
     @Element(description = "holds the required properties for security related stuff")
     private Map<String, String> securityProperties;
     @Element(description = "holds the list of customized scripts if provided")
@@ -100,6 +102,23 @@ public class Infrastructure implements Serializable {
         private final String name;
 
         InstanceType(String s) {
+            name = s;
+        }
+
+        public String toString() {
+            return this.name;
+        }
+    }
+
+    /**
+     * Defines the supported jdks.
+     */
+    public enum JDK {
+        JDK7("JDK7"), JDK8("JDK8");
+
+        private final String name;
+
+        JDK(String s) {
             name = s;
         }
 
