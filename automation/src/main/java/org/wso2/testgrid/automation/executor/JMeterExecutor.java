@@ -31,6 +31,7 @@ import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Port;
+import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.BufferedWriter;
@@ -54,6 +55,7 @@ public class JMeterExecutor implements TestExecutor {
     private static final Log log = LogFactory.getLog(JMeterExecutor.class);
     private String testLocation;
     private String testName;
+    private TestScenario testScenario;
 
     @Override
     public void execute(String script, Deployment deployment) throws TestAutomationException {
@@ -63,7 +65,7 @@ public class JMeterExecutor implements TestExecutor {
                     StringUtil.concatStrings("JMeter Executor not initialised properly.", "{ Test Name: ", testName,
                             ", Test Location: ", testLocation, "}"));
         }
-        overrideJMeterConfig(testLocation, testName, deployment); // Override JMeter properties for current deployment.
+        overrideJMeterConfig(testLocation, deployment); // Override JMeter properties for current deployment.
         //TODO change parameter replacing in jmx files to use JMeter properties file.
         try {
             replaceProperties(script);
@@ -89,11 +91,7 @@ public class JMeterExecutor implements TestExecutor {
         if (scriptFileName == null) {
             throw new TestAutomationException(StringUtil.concatStrings("Script file ", script, " cannot be located."));
         }
-        String resultFile =
-                Paths.get(testLocation, "Results", "Jmeter", scriptFileName + ".csv").toAbsolutePath().toString();
-        ResultCollector resultCollector = new ResultCollector(summariser);
-
-        resultCollector.setFilename(resultFile);
+        ResultCollector resultCollector = new JMeterResultCollector(summariser, testScenario);
 
         if (testPlanTree.getArray().length == 0) {
             throw new TestAutomationException("JMeter test plan is empty.");
@@ -107,9 +105,10 @@ public class JMeterExecutor implements TestExecutor {
     }
 
     @Override
-    public void init(String testLocation, String testName) throws TestAutomationException {
+    public void init(String testLocation, String testName, TestScenario testScenario) throws TestAutomationException {
         this.testName = testName;
         this.testLocation = testLocation;
+        this.testScenario = testScenario;
 
         // Set JMeter home
         String jMeterHome = createTempDirectory(testLocation);
@@ -168,12 +167,11 @@ public class JMeterExecutor implements TestExecutor {
      * Overrides the JMeter properties with the properties required for the current deployment.
      *
      * @param testLocation directory location of the tests
-     * @param testName     test name
      * @param deployment   deployment details of the current pattern
      */
 
-    private void overrideJMeterConfig(String testLocation, String testName, Deployment deployment) {
-        Path path = Paths.get(testLocation,  "src", "test", "resources", "user.properties");
+    private void overrideJMeterConfig(String testLocation, Deployment deployment) {
+        Path path = Paths.get(testLocation, "src", "test", "resources", "user.properties");
         if (!Files.exists(path)) {
             log.info("JMeter user.properties file not specified - proceeding with JMeter default properties.");
             return;
@@ -208,6 +206,5 @@ public class JMeterExecutor implements TestExecutor {
             writer.flush();
             writer.close();
         }
-
     }
 }

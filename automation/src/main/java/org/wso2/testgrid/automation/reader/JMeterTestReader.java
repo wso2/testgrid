@@ -16,15 +16,11 @@
  * under the License.
  */
 
-package org.wso2.testgrid.automation.file;
+package org.wso2.testgrid.automation.reader;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.automation.beans.JMeterTest;
-import org.wso2.testgrid.automation.beans.Test;
-import org.wso2.testgrid.automation.file.common.TestReader;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.constants.TestGridConstants;
 
@@ -38,22 +34,19 @@ import java.util.List;
  */
 public class JMeterTestReader implements TestReader {
 
-    private static final Log log = LogFactory.getLog(JMeterTestReader.class);
     private static final String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
 
     /**
      * This method goes through the file structure and create an object model of the tests.
      *
-     * @param file     File object for the test folder.
-     * @param scenario
-     * @return a List of Test objects.
+     * @param file     File object for the test folder
+     * @param scenario test scenario associated with the test
+     * @return a list of {@link Test} instances
      */
     private List<Test> processTestStructure(File file, TestScenario scenario) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
         File tests = new File(file.getAbsolutePath() +
-                File.separator + JMETER_TEST_PATH);
-        JMeterTest test = new JMeterTest();
-        test.setTestName(scenario.getName());
+                              File.separator + JMETER_TEST_PATH);
         List<String> jmxList = new ArrayList<>();
         if (tests.exists()) {
             for (String jmx : ArrayUtils.nullToEmpty(tests.list())) {
@@ -63,7 +56,7 @@ public class JMeterTestReader implements TestReader {
             }
         }
         Collections.sort(jmxList);
-        test.setjMeterScripts(jmxList);
+        Test test = new Test(scenario.getName(), TestScenario.TestEngine.JMETER, jmxList, scenario);
         testsList.add(test);
         return testsList;
     }
