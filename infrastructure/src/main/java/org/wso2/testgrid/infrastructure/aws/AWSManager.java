@@ -132,9 +132,9 @@ public class AWSManager {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
-                    if(output.getOutputKey().contains("WSO2ISHostName")){
+                    if (output.getOutputKey().contains("WSO2ISHostName")) {
                         host.setLabel("server_host");
-                    }else{
+                    } else {
                         host.setLabel(output.getOutputKey());
                     }
                     hosts.add(host);
