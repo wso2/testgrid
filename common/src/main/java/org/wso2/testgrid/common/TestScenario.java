@@ -19,6 +19,7 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -162,8 +163,8 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      *
      * @param testEngine test engine in which the test scenario should be executed
      */
-    public void setTestEngine(TestEngine testEngine) {
-        this.testEngine = testEngine;
+    public void setTestEngine(String testEngine) {
+        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
     }
 
     /**
@@ -171,8 +172,14 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      *
      * @param testEngine test engine in which the test scenario should be executed
      */
-    public void setTestEngine(String testEngine) {
-        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
+    public void setTestEngine(TestEngine testEngine) {
+        this.testEngine = testEngine;
+    }
+
+    @Override
+    public String toString() {
+        return StringUtil.concatStrings("TestScenario [id=", this.getId(), ", status=", status.toString(),
+                ", name=", name, ", " + "TestPlan=", testPlan.toString(), "]");
     }
 
     /**

@@ -44,10 +44,11 @@ public class OperatingSystemRepository extends AbstractRepository<OperatingSyste
      * Persists an {@link OperatingSystem} instance in the database.
      *
      * @param entity OperatingSystem to persist in the database
+     * @return added or updated {@link OperatingSystem} instance
      * @throws TestGridDAOException thrown when error on persisting the OperatingSystem instance
      */
-    public void persist(OperatingSystem entity) throws TestGridDAOException {
-        super.persist(entity);
+    public OperatingSystem persist(OperatingSystem entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**
