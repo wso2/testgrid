@@ -67,7 +67,7 @@ public class TestReportEngineImpl implements TestReportEngine {
 
         String hTMLString = renderParsedTestResultMap(parsedTestResultMap);
         String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
-                          productTestPlan.getStartTimestamp() + HTML_EXTENSION;
+                productTestPlan.getStartTimestamp() + HTML_EXTENSION;
 
         writeHTMLToFile(fileName, hTMLString);
     }
