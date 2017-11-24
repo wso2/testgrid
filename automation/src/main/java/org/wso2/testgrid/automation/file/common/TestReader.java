@@ -20,6 +20,7 @@ package org.wso2.testgrid.automation.file.common;
 
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.beans.Test;
+import org.wso2.testgrid.common.TestScenario;
 
 import java.util.List;
 
@@ -28,5 +29,5 @@ import java.util.List;
  */
 public interface TestReader {
 
-    List<Test> readTests(String testLocation) throws TestAutomationException;
+    List<Test> readTests(String testLocation, TestScenario scenario) throws TestAutomationException;
 }

@@ -1,0 +1,66 @@
+{{#parsedTestPlanView}}
+    <table style="width: 100%">
+        <tr>
+            <td>
+                <center>
+                    <span style="font-family: arial;font-weight: 900; font-size: 30px; line-height: 20px; width: 100%; color: #e46226;">
+                        {{testPlanName}}
+                    </span>
+                    <table style="width: 85%">
+                        <tr>
+                            <td style="width: 20%;background: #cccccc; padding-top: 15px; padding-left: 15px; padding-bottom: 5px;">
+                                <span style="font-family: arial;font-weight: 600; font-size: 20px; line-height: 20px; color: #000000;">
+                                    Description
+                                </span>
+                            </td>
+                            <td style="width: 80%;padding-top: 15px; padding-left: 15px; padding-bottom: 5px; border-bottom: 1px solid #cccccc;">
+                                <span style="font-family: arial;font-weight: 300; font-size: 20px; line-height: 20px; color: #000000;">
+                                    {{description}}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 20%;background: #cccccc; padding-top: 15px; padding-left: 15px; padding-bottom: 5px;">
+                                <span style="font-family: arial;font-weight: 600; font-size: 20px; line-height: 20px; color: #000000;">
+                                    Status
+                                </span>
+                            </td>
+                            <td style="width: 80%;padding-top: 15px; padding-left: 15px; padding-bottom: 5px; border-bottom: 1px solid #cccccc;">
+                                <span style="font-family: arial;font-weight: 300; font-size: 20px; line-height: 20px; color: #000000;">
+                                    {{status}}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 20%;background: #cccccc; padding-top: 15px; padding-left: 15px; padding-bottom: 5px;">
+                                <span style="font-family: arial;font-weight: 600; font-size: 20px; line-height: 20px; color: #000000;">
+                                    Deployment Pattern
+                                </span>
+                            </td>
+                            <td style="width: 80%;padding-top: 15px; padding-left: 15px; padding-bottom: 5px; border-bottom: 1px solid #cccccc;">
+                                <span style="font-family: arial;font-weight: 300; font-size: 20px; line-height: 20px; color: #000000;">
+                                    {{deploymentPattern}}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 20%;background: #cccccc; padding-top: 15px; padding-left: 15px; padding-bottom: 5px;">
+                                <span style="font-family: arial;font-weight: 600; font-size: 20px; line-height: 20px; color: #000000;">
+                                    Deployer Type
+                                </span>
+                            </td>
+                            <td style="width: 80%;padding-top: 15px; padding-left: 15px; padding-bottom: 5px; border-bottom: 1px solid #cccccc;">
+                                <span style="font-family: arial;font-weight: 300; font-size: 20px; line-height: 20px; color: #000000;">
+                                    {{deployerType}}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                    <br/>
+                    <br/>
+                    {{{parsedTestScenarioView}}}
+                </center>
+            </td>
+        </tr>
+    </table>
+{{/parsedTestPlanView}}

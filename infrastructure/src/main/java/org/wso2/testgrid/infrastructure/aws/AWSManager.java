@@ -40,6 +40,7 @@ import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.StringUtil;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -114,8 +115,7 @@ public class AWSManager {
         stackRequest.setStackName(cloudFormationName);
         try {
             String file = new String(Files.readAllBytes(Paths.get(infraRepoDir,
-                    "DeploymentPatterns", this.infra.getName(),
-                    "AWS", "Scripts", script.getFilePath())), StandardCharsets.UTF_8);
+                    script.getFilePath())), StandardCharsets.UTF_8);
             stackRequest.setTemplateBody(file);
             stackRequest.setParameters(getParameters(script, infraRepoDir));
             stackbuilder.createStack(stackRequest);
@@ -132,7 +132,11 @@ public class AWSManager {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
-                    host.setLabel(output.getOutputKey());
+                    if(output.getOutputKey().contains("WSO2ISHostName")){
+                        host.setLabel("server_host");
+                    }else{
+                        host.setLabel(output.getOutputKey());
+                    }
                     hosts.add(host);
                 }
             }
@@ -238,8 +242,7 @@ public class AWSManager {
     private List<Parameter> getParameters(Script script, String infraRepoDir) throws IOException
             , TestGridInfrastructureException {
 
-        Path path = Paths.get(infraRepoDir, "DeploymentPatterns", this.infra.getName(),
-                "AWS", "Scripts", script.getScriptParameters());
+        Path path = Paths.get(infraRepoDir, script.getScriptParameters());
         String jsonArray = new String(Files.readAllBytes(path), Charset.defaultCharset());
         ObjectMapper objectMapper = new ObjectMapper();
         List<Parameter> parameters = objectMapper.readValue(jsonArray, new AWSTypeReference());
