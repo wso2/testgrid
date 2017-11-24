@@ -73,7 +73,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private String name;
 
     @Column(name = START_TIMESTAMP_COLUMN, nullable = false,
-            columnDefinition = "TIMESTAMP DEFAULT '0000-00-00 00:00:00'")
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     @Ignore
     private Timestamp startTimestamp;
 
@@ -88,7 +88,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private Status status;
 
     @Element(description = "value to uniquely identify the deployment pattern")
-    @Column(name = DEPLOYMENT_PATTERN_COLUMN, nullable = false)
+    @Column(name = DEPLOYMENT_PATTERN_COLUMN, nullable = false , insertable = false , updatable = false)
     private String deploymentPattern;
 
     @Element(description = "description about the test plan")
@@ -97,7 +97,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
 
     @Ignore
     @OneToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraResult.class)
-    @PrimaryKeyJoinColumn(name = INFRA_RESULT_COLUMN)
     private InfraResult infraResult;
 
     @Ignore

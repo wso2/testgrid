@@ -62,7 +62,7 @@ abstract class AbstractRepository<T> implements Closeable {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             entityManager.getTransaction().begin();
 
-            entityManager.persist(entity);
+            entityManager.merge(entity);
 
             // Commit transaction
             entityManager.getTransaction().commit();
@@ -196,6 +196,24 @@ abstract class AbstractRepository<T> implements Closeable {
         }
     }
 
+    /**
+     * Executes the given native query and returns a result list.
+     *
+     * @param nativeQuery native SQL query to execute
+     * @return result list after executing the native query
+     */
+    @SuppressWarnings("unchecked")
+    public <R> R executeTypedQuary(String nativeQuery,Class bean,int limit) throws TestGridDAOException {
+        try {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            Query query = entityManager.createQuery(nativeQuery,bean);
+            query.setMaxResults(limit);
+            return (R) query.getSingleResult();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query [",
+                    nativeQuery, "]"), e);
+        }
+    }
     @Override
     public void close() {
         entityManagerFactory.close();

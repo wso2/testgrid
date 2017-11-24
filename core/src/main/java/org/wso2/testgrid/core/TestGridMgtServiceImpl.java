@@ -23,6 +23,9 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.config.ConfigProviderFactory;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
+import org.wso2.testgrid.common.Database;
+import org.wso2.testgrid.common.InfraCombination;
+import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
@@ -35,6 +38,7 @@ import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.ProductTestPlanRepository;
 import org.wso2.testgrid.dao.repository.TestPlanRepository;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.TestReportEngineImpl;
 
 import javax.persistence.EntityManagerFactory;
@@ -44,6 +48,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -138,75 +144,68 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         return productTestPlan;
     }
 
-    /**
-     *
-     * @param productTestPlan test plan
-     * @throws TestGridException exception
-     */
-    @Override
-    public void persistProduct(ProductTestPlan productTestPlan) throws TestGridException {
-        EntityManagerFactory entityManagerFactory =
-                Persistence.createEntityManagerFactory("eclipse_link_jpa");
-        ProductTestPlanRepository repo = new ProductTestPlanRepository(entityManagerFactory);
-        try {
-            repo.persist(productTestPlan);
-        } catch (TestGridDAOException e) {
-            throw new TestGridException(e.getMessage(),e);
-        }
-    }
+
 
     @Override
     public boolean executeTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestGridException {
         productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
         //        ListIterator<TestPlan> iterator = productTestPlan.getTestPlans().listIterator();
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
 
         try {
-            testPlan = new TestPlanExecutor().runTestPlan(testPlan, productTestPlan.getInfrastructure(testPlan
-                    .getDeploymentPattern()));
-            //Update the current TestPlan
-            //productTestPlan.getTestPlans().set(iterator.nextIndex() - 1, testPlan); //todo
-//            persistSingleTestPlan(testPlan, productTestPlan);
+
+            Infrastructure infrastructure = productTestPlan.getInfrastructure(testPlan
+                            .getDeploymentPattern());
+            InfraResult infraResult = new InfraResult();
+            infraResult.setStatus(InfraResult.Status.INFRASTRUCTURE_PREPARATION);
+
+            InfraCombination combination = new InfraCombination();
+            Database databse = testPlanUOW.getDatabse(infrastructure.getDatabase().getEngine().toString(),
+                    infrastructure.getDatabase().getEngine().toString());
+            if(databse!=null){
+                combination.setDatabase(databse);
+            }else{
+                combination.setDatabase(infrastructure.getDatabase());
+            }
+
+            combination.setJdk(getJDKversion(infrastructure.getJDK()));
+            combination.setOperatingSystem(infrastructure.getOperatingSystem());
+
+            infraResult.setInfraCombination(combination);
+            testPlan.setInfraResult(infraResult);
+
+            //persist before runing test plan
+            testPlan.setProductTestPlan(productTestPlan);
+            testPlanUOW.persistSingleTestPlan(testPlan);
+            testPlan = new TestPlanExecutor().runTestPlan(testPlan, infrastructure);
+
         } catch (TestPlanExecutorException e) {
             String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +
                     productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";
             log.error(msg, e);
+        } catch (TestGridDAOException e) {
+            throw new TestGridException("Error occured while persisting TestPlan ",e);
         }
         //        }
 
         productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_REPORT_GENERATION);
-
-        try {
-            new TestReportEngineImpl().generateReport(testPlan, productTestPlan);
-        } catch (TestReportEngineException e) {
-            String msg = "Unable to generate test report for the ProductTests ran for product '" +
-                    productTestPlan.getProductName() + "', version '" + productTestPlan.getProductVersion() + "'";
-            log.error(msg, e);
-            throw new TestGridException(msg, e);
-        }
+//
+//        try {
+//            new TestReportEngineImpl().generateReport(testPlan, productTestPlan);
+//        } catch (TestReportEngineException e) {
+//            String msg = "Unable to generate test report for the ProductTests ran for product '" +
+//                    productTestPlan.getProductName() + "', version '" + productTestPlan.getProductVersion() + "'";
+//            log.error(msg, e);
+//            throw new TestGridException(msg, e);
+//        }
         productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_COMPLETED);
         return true;
     }
 
     @Override
-    public void persistSingleTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestGridException {
-        EntityManagerFactory entityManagerFactory =
-                Persistence.createEntityManagerFactory("eclipse_link_jpa");
-        TestPlanRepository testPlanRepository = new TestPlanRepository(entityManagerFactory);
-        try {
-            testPlan.setProductTestPlan(productTestPlan);
-            testPlanRepository.persist(testPlan);
-        } catch (TestGridDAOException e) {
-            throw new TestGridException(e.getMessage(),e);
-        }
-    }
+    public void persistSingleTestPlan(TestPlan testPlan) throws TestGridException {
 
-    @Override
-    public void getProductTestPlan(String productName, String productVersion, String channel) throws TestGridException {
-        EntityManagerFactory entityManagerFactory =
-                Persistence.createEntityManagerFactory("eclipse_link_jpa");
-        ProductTestPlanRepository repository = new ProductTestPlanRepository(entityManagerFactory);
     }
-
 
     @Override
     public boolean abortTestPlan(ProductTestPlan productTestPlan) throws TestGridException {
@@ -216,5 +215,16 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     @Override
     public ProductTestPlan.Status getStatus(ProductTestPlan productTestPlan) throws TestGridException {
         return null;
+    }
+
+    private InfraCombination.JDK getJDKversion(Infrastructure.JDK jdk){
+        switch (jdk){
+            case JDK7:
+                return InfraCombination.JDK.ORACLE_JDK7;
+            case JDK8:
+                return InfraCombination.JDK.ORACLE_JDK8;
+            default:
+                return InfraCombination.JDK.ORACLE_JDK8;
+        }
     }
 }

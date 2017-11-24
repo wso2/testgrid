@@ -26,6 +26,8 @@ import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.core.TestGridMgtService;
 import org.wso2.testgrid.core.TestGridMgtServiceImpl;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
 /**
  * This creates a product test plan from the input arguments
@@ -97,8 +99,12 @@ public class CreateProductTestPlanCommand extends Command {
         ProductTestPlan plan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
         //todo add channel as an argument.
 
-        testGridMgtService.persistProduct(plan);
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        try {
+            testPlanUOW.persistProductTestPlan(plan);
+        } catch (TestGridDAOException e) {
+            log.error("Error occured while persisting ProductTestPlan",e);
+        }
         //todo Persist product and version info in the db.
-        //git repo info for infra/deploy/scenarios are not yet retrieved as input arguments.
     }
 }

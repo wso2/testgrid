@@ -28,12 +28,15 @@ import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.core.TestGridMgtService;
 import org.wso2.testgrid.core.TestGridMgtServiceImpl;
 import org.wso2.testgrid.core.TestGridUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 /**
  *
@@ -108,7 +111,8 @@ public class RunTestPlanCommand extends Command {
             }
 
             TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
-            ProductTestPlan productTestPlan = testGridMgtService.createProduct(productName, productVersion, infraPlan);
+            ProductTestPlan productTestPlan1 = testGridMgtService.createProduct(productName, productVersion, infraPlan);
+
             //todo use channel as well
             Long time = System.currentTimeMillis();
             String testPlanHome = TestGridUtil.createTestDirectory(productName, productVersion, time).get();
@@ -117,12 +121,22 @@ public class RunTestPlanCommand extends Command {
                     .generateTestPlan(Paths.get(testPlanLocation), scenarioRepoDir, infraRepo,
                             testPlanHome);
 
-            testGridMgtService.persistSingleTestPlan(testPlan,productTestPlan);
-            testGridMgtService.executeTestPlan(testPlan, productTestPlan);
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            ProductTestPlan productTestPlan2 = testPlanUOW.getProductTestPlan(productName, productVersion);
+            productTestPlan2.setInfraRepository(infraRepo);
+            productTestPlan2.setDeploymentRepository(productTestPlan1.getDeploymentRepository());
+            productTestPlan2.setInfrastructureMap(productTestPlan1.getInfrastructureMap());
+            productTestPlan2.setScenarioRepository(productTestPlan1.getScenarioRepository());
+            productTestPlan2.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
+
+            testPlanUOW.persistProductTestPlan(productTestPlan2);
+            testGridMgtService.executeTestPlan(testPlan, productTestPlan2);
 
 
         } catch (IOException e) {
             throw new TestGridException("Error while executing test plan " + testPlanLocation, e);
+        } catch (TestGridDAOException e) {
+            throw new TestGridException("Error while getting the ProductTestPlan from Databse",e);
         }
 
     }
