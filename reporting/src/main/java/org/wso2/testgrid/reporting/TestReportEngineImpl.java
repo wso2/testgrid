@@ -20,30 +20,28 @@ package org.wso2.testgrid.reporting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestReportEngine;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.Utils;
 import org.wso2.testgrid.common.exception.TestReportEngineException;
-import org.wso2.testgrid.reporting.model.ProductPlanReport;
-import org.wso2.testgrid.reporting.model.TestPlanReport;
-import org.wso2.testgrid.reporting.model.TestScenarioReport;
-import org.wso2.testgrid.reporting.reader.ResultReadable;
-import org.wso2.testgrid.reporting.reader.ResultReaderFactory;
+import org.wso2.testgrid.common.util.EnvironmentUtil;
+import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.ReportGenerationUOW;
+import org.wso2.testgrid.reporting.model.ProductTestPlanView;
+import org.wso2.testgrid.reporting.model.TestPlanView;
+import org.wso2.testgrid.reporting.model.TestScenarioView;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
-import org.wso2.testgrid.reporting.result.TestResultBeanFactory;
-import org.wso2.testgrid.reporting.result.TestResultable;
 import org.wso2.testgrid.reporting.util.FileUtil;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * This class is responsible for generating the test reports.
@@ -54,163 +52,166 @@ public class TestReportEngineImpl implements TestReportEngine {
 
     private static final Log log = LogFactory.getLog(TestReportEngineImpl.class);
 
-    private static final String TEST_ARTIFACT_DIR = "Tests";
-    private static final String RESULTS_DIR = "Results";
-    private static final String HTML_TEMPLATE = "html_template.mustache";
-    private static final String RESULT_TEMPLATE = "result_template.mustache";
-    private static final String SCENARIO_TEMPLATE = "scenario_template.mustache";
-    private static final String PRODUCT_TEMPLATE = "product_template.mustache";
-    private static final String HTML_TEMPLATE_KEY_NAME = "productTestPlanReport";
+    private static final String PRODUCT_TEST_PLAN_VIEW = "productTestPlanView";
+    private static final String PRODUCT_TEST_PLAN_MUSTACHE = "product_test_plan.mustache";
+    private static final String TEST_PLAN_MUSTACHE = "test_plan.mustache";
+    private static final String TEST_SCENARIO_MUSTACHE = "test_scenario.mustache";
+    private static final String TEST_CASE_MUSTACHE = "test_case.mustache";
     private static final String HTML_EXTENSION = ".html";
 
-    /**
-     * Generates a test report based on the given test plan.
-     *
-     * @param testPlan test plan to generate the test report
-     * @param productTestPlan
-     * @throws TestReportEngineException thrown when reading the results from files or when writing the test report
-     * to file
-     */
-    public void generateReport(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestReportEngineException {
-        //todo store per testplan persistence logic here. productTestPlan's details are not supposed to be persisted
-        //as part of this. There's a separate method for that.
-    }
+    @Override
+    public void generateReport(String productName, String productVersion) throws TestReportEngineException {
 
-    /**
-     * Generates a test report based on the given Overall test plans.
-     *
-     * @param productTestPlan test plan to generate the test report
-     * @throws TestReportEngineException thrown when reading the results from files or when writing the test report
-     * to file
-     */
-    public void generateReport(ProductTestPlan productTestPlan) throws TestReportEngineException {
+        ProductTestPlan productTestPlan = getProductTestPlan(productName, productVersion);
+        Map<String, Object> parsedTestResultMap = parseTestResult(productTestPlan);
 
-        Map<String, Object> parsedTestResultMap = null;
-        try {
-            parsedTestResultMap = parseTestResult(productTestPlan);
-        } catch (ReportingException e) {
-            throw new TestReportEngineException("Exception occurred while parsing the test results.", e);
-        }
+        String hTMLString = renderParsedTestResultMap(parsedTestResultMap);
         String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
                           productTestPlan.getStartTimestamp() + HTML_EXTENSION;
 
-        // Populate the html from the template
-        String htmlString = null;
-        try {
-            Renderable renderable = RenderableFactory.getRenderable(HTML_TEMPLATE);
-            htmlString = renderable.render(HTML_TEMPLATE, parsedTestResultMap);
-        } catch (ReportingException e) {
-            throw new TestReportEngineException("Exception occurred while rendering the html template.", e);
-        }
+        writeHTMLToFile(fileName, hTMLString);
+    }
 
-        //todo use a constant for tetgrid_home
-        Path reportPath = Paths.get(getTestGridHome()).resolve(fileName);
+    /**
+     * Write the given HTML string to the given file at test grid home.
+     *
+     * @param fileName   file name to write
+     * @param hTMLString HTML string to be written to the file
+     * @throws TestReportEngineException thrown when error on writing the HTML string to file
+     */
+    private void writeHTMLToFile(String fileName, String hTMLString) throws TestReportEngineException {
         try {
-            FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), htmlString);
+            // TODO: Implement a common way to get test grid home
+            String testGridHome = EnvironmentUtil.getSystemVariableValue("TESTGRID_HOME");
+            Path reportPath = Paths.get(testGridHome).resolve(fileName);
+
+            log.info("Started writing test results to file...");
+            FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), hTMLString);
+            log.info("Finished writing test results to file");
         } catch (ReportingException e) {
-            throw new TestReportEngineException("Exception occurred while saving the test report.", e);
+            throw new TestReportEngineException(StringUtil
+                    .concatStrings("Error occurred while writing the HTML string to file", fileName), e);
         }
     }
 
+    /**
+     * Renders the parsed test result map and returns the HTML string.
+     *
+     * @param parsedTestResultMap parsed test result map
+     * @return HTML string generated from the parsed test result map
+     * @throws TestReportEngineException thrown when error on rendering HTML template
+     */
+    private String renderParsedTestResultMap(Map<String, Object> parsedTestResultMap) throws TestReportEngineException {
+        try {
+            Renderable renderable = RenderableFactory.getRenderable(PRODUCT_TEST_PLAN_MUSTACHE);
+            return renderable.render(PRODUCT_TEST_PLAN_MUSTACHE, parsedTestResultMap);
+        } catch (ReportingException e) {
+            throw new TestReportEngineException("Exception occurred while rendering the html template.", e);
+        }
+    }
 
     /**
      * Parse test plan result to a map.
      *
      * @param productTestPlan test plan to generate results
-     * @param <T>             {@link TestResultable type}
      * @return parsed result map
-     * @throws ReportingException thrown when reading the results from files
+     * @throws TestReportEngineException thrown error on parsing test result
      */
-    private <T extends TestResultable> Map<String, Object> parseTestResult(ProductTestPlan productTestPlan)
-            throws ReportingException {
+    private Map<String, Object> parseTestResult(ProductTestPlan productTestPlan) throws TestReportEngineException {
+        try {
+            List<TestPlan> testPlans = getTestPlans(productTestPlan);
+            List<TestPlanView> testPlanViews = new ArrayList<>();
 
-        //todo @Vidura/Asma - read the test plan content from DB. The ProductTestPlan does not have any info abt the
-        //test plans. It only has product level details like product name, version etc.
+            for (TestPlan testPlan : testPlans) {
+                List<TestScenario> testScenarios = getTestScenariosForTestPlan(testPlan);
+                List<TestScenarioView> testScenarioViews = new ArrayList<>();
 
-        List<TestPlan> testPlans = productTestPlan.getTestPlans();  //todo this returns null. coz test plans r not
-        // part of this now.
-
-        if (testPlans == null) {
-            String msg = "Test Plans information are not available. These info are no longer stored as part of the "
-                    + "ProductTestPlan class. Instead, it should be retrieved from the database.";
-            log.error(msg);
-            throw new ReportingException(msg);
-        }
-
-        List<TestPlanReport> testPlanReports = new ArrayList<>();
-
-        for (TestPlan testPlan : testPlans) {
-            List<TestScenario> testScenarios = testPlan.getTestScenarios();
-            List<TestScenarioReport> testScenarioReports = new ArrayList<>();
-
-            for (TestScenario testScenario : testScenarios) {
-                Path resultPath = Paths.get(Utils.getTestScenarioLocation(testScenario, testPlan.getTestRepoDir()),
-                         RESULTS_DIR);
-                File[] directoryList = FileUtil.getFileList(resultPath);
-                List<T> testResults = new ArrayList<>();
-
-                for (File directory : directoryList) {
-                    if (directory.isDirectory()) {
-                        Path directoryPath = Paths.get(directory.getAbsolutePath());
-                        Optional<Class<T>> classOptional = TestResultBeanFactory.getResultType(directoryPath);
-                        if (!classOptional.isPresent()) {
-                            continue; // Ignore directory location
-                        }
-                        testResults = readResultFiles(directoryPath, classOptional.get());
-                    }
+                for (TestScenario testScenario : testScenarios) {
+                    List<TestCase> testCases = getTestCasesForTestScenario(testScenario);
+                    TestScenarioView testScenarioReport =
+                            new TestScenarioView(testScenario, testCases, TEST_CASE_MUSTACHE);
+                    testScenarioViews.add(testScenarioReport);
                 }
-                TestScenarioReport<T> testScenarioReport =
-                        new TestScenarioReport<>(testScenario.getName(), testResults, RESULT_TEMPLATE);
-                testScenarioReports.add(testScenarioReport);
+
+                TestPlanView testPlanView = new TestPlanView(testPlan, testScenarioViews, TEST_SCENARIO_MUSTACHE);
+                testPlanViews.add(testPlanView);
             }
 
-            TestPlanReport testPlanReport = new TestPlanReport(testPlan, productTestPlan.
-                    getInfrastructure(testPlan.getDeploymentPattern()), testScenarioReports, SCENARIO_TEMPLATE);
-            testPlanReports.add(testPlanReport);
+            ProductTestPlanView productTestPlanView =
+                    new ProductTestPlanView(productTestPlan, testPlanViews, TEST_PLAN_MUSTACHE);
+            Map<String, Object> parsedResultMap = new HashMap<>();
+            parsedResultMap.put(PRODUCT_TEST_PLAN_VIEW, productTestPlanView);
+
+            return parsedResultMap;
+        } catch (ReportingException e) {
+            throw new TestReportEngineException("Error on parsing test results.", e);
         }
-
-        ProductPlanReport productPlanReport = new ProductPlanReport(productTestPlan.getProductName(),
-                productTestPlan.getProductVersion(), testPlanReports, PRODUCT_TEMPLATE);
-
-        Map<String, Object> parsedResultMap = new HashMap<>();
-        parsedResultMap.put(HTML_TEMPLATE_KEY_NAME, productPlanReport);
-        return parsedResultMap;
     }
 
     /**
-     * Returns the result list after reading result files.
+     * Returns a list of test plans associated with the product test plan.
      *
-     * @param path base path to read result files from
-     * @param type type of the result bean
-     * @param <T>  type of the result bean
-     * @return final test result list
-     * @throws ReportingException thrown when error on reading result files
+     * @param productTestPlan product test plan to obtain the list of test plans
+     * @return a list of {@link TestPlan} instances associated with the product test plan
+     * @throws TestReportEngineException thrown when error on obtaining records for the given product test plan
      */
-    private <T extends TestResultable> List<T> readResultFiles(Path path, Class<T> type) throws ReportingException {
-        File[] fileList = FileUtil.getFileList(path);
-        List<T> testResults = new ArrayList<>();
-        for (File file : fileList) {
-            if (file.isDirectory()) {
-                testResults.addAll(readResultFiles(Paths.get(file.getAbsolutePath()), type));
-            }
-            if (file.isFile()) {
-                Path filePath = Paths.get(file.getAbsolutePath());
-                Optional<ResultReadable> resultReadableOptional = ResultReaderFactory.getResultReader(filePath);
-                if (!resultReadableOptional.isPresent()) {
-                    continue;
-                }
-                testResults.addAll(resultReadableOptional.get().readFile(filePath, type));
-            }
+    private List<TestPlan> getTestPlans(ProductTestPlan productTestPlan) throws TestReportEngineException {
+        try {
+            ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
+            return reportGenerationUOW.getTestPlanListForProductTest(productTestPlan);
+        } catch (TestGridDAOException e) {
+            throw new TestReportEngineException("Error on obtaining test plans from product test plan.", e);
         }
-        return testResults;
     }
 
-    public String getTestGridHome() {
-        String testgridHome = System.getenv("TESTGRID_HOME");
-        if (testgridHome == null) {
-            String tmp = System.getProperty("java.io.tmpdir");
-            return Paths.get(tmp, "my-testgrid-home").toString();
+    /**
+     * Returns an instance of {@link ProductTestPlan} for the given product name and product version.
+     *
+     * @param productName    product name
+     * @param productVersion product version
+     * @return an instance of {@link ProductTestPlan} for the given product name and product version
+     * @throws TestReportEngineException throw when error on obtaining product test plan for the given product name
+     *                                   and product version
+     */
+    private ProductTestPlan getProductTestPlan(String productName, String productVersion)
+            throws TestReportEngineException {
+        try {
+            ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
+            return reportGenerationUOW.getProductTestPlan(productName, productVersion);
+        } catch (TestGridDAOException e) {
+            throw new TestReportEngineException("Error on obtaining product test plan.", e);
         }
-        return testgridHome;
+    }
+
+    /**
+     * Returns a list of {@link TestScenario} instances associated with the given test plan.
+     *
+     * @param testPlan test plan to obtain the test scenarios
+     * @return list of {@link TestScenario} instances associated with the given test plan
+     * @throws TestReportEngineException thrown when error on retrieving test scenarios
+     */
+    private List<TestScenario> getTestScenariosForTestPlan(TestPlan testPlan) throws TestReportEngineException {
+        try {
+            ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
+            return reportGenerationUOW.getTestScenariosForTestPlan(testPlan);
+        } catch (TestGridDAOException e) {
+            throw new TestReportEngineException("Error on obtaining test scenarios for the test plan.", e);
+        }
+    }
+
+    /**
+     * Returns a list of {@link TestCase} instances associated with the given test scenario.
+     *
+     * @param testScenario test scenario to obtain the test cases
+     * @return list of {@link TestCase} instances associated with the given test scenario
+     * @throws TestReportEngineException thrown when error on retrieving test cases
+     */
+    private List<TestCase> getTestCasesForTestScenario(TestScenario testScenario) throws TestReportEngineException {
+        try {
+            ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
+            return reportGenerationUOW.getTestCasesForTestScenario(testScenario);
+        } catch (TestGridDAOException e) {
+            throw new TestReportEngineException("Error on obtaining test cases for the test scenario.", e);
+        }
     }
 }

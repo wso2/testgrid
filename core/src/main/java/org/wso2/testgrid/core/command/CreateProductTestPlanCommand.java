@@ -61,6 +61,13 @@ public class CreateProductTestPlanCommand extends Command {
             required = true)
     protected String infraRepo = "";
 
+    @Option(name = "--infra-configs-location",
+            usage = "Location of all the infra plans. "
+                      + "Under this location, there should be a Infrastructure/ folder."
+                    + "Assume this location is the test-grid-is-resources",
+          aliases = { "-ics" },
+            required = true)
+    protected String infraConfigsLocation = "";
     @Option(name = "--infraPlan",
             usage = "Infrastructure config file",
             aliases = {"-i"},
