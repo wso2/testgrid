@@ -44,10 +44,11 @@ public class TestCaseRepository extends AbstractRepository<TestCase> {
      * Persists an {@link TestCase} instance in the database.
      *
      * @param entity TestCase to persist in the database
+     * @return added or updated {@link TestCase} instance
      * @throws TestGridDAOException thrown when error on persisting the TestCase instance
      */
-    public void persist(TestCase entity) throws TestGridDAOException {
-        super.persist(entity);
+    public TestCase persist(TestCase entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**

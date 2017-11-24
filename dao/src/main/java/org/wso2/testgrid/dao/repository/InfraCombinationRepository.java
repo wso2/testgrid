@@ -44,10 +44,11 @@ public class InfraCombinationRepository extends AbstractRepository<InfraCombinat
      * Persists an {@link InfraCombination} instance in the database.
      *
      * @param entity InfraCombination to persist in the database
+     * @return added or updated {@link InfraCombination} instance
      * @throws TestGridDAOException thrown when error on persisting the InfraCombination instance
      */
-    public void persist(InfraCombination entity) throws TestGridDAOException {
-        super.persist(entity);
+    public InfraCombination persist(InfraCombination entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**
