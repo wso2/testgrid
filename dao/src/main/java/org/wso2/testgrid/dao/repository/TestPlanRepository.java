@@ -44,10 +44,11 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * Persists an {@link TestPlan} instance in the database.
      *
      * @param entity TestPlan to persist in the database
+     * @return added or updated {@link TestPlan} instance
      * @throws TestGridDAOException thrown when error on persisting the TestPlan instance
      */
-    public void persist(TestPlan entity) throws TestGridDAOException {
-        super.persist(entity);
+    public TestPlan persist(TestPlan entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**

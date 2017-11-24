@@ -59,7 +59,7 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     private String name;
 
     @Column(name = START_TIMESTAMP_COLUMN, nullable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp startTimestamp;
 
     @Column(name = MODIFIED_TIMESTAMP_COLUMN, nullable = false,

@@ -44,10 +44,11 @@ public class TestScenarioRepository extends AbstractRepository<TestScenario> {
      * Persists an {@link TestScenario} instance in the database.
      *
      * @param entity TestScenario to persist in the database
+     * @return added or updated {@link TestScenario} instance
      * @throws TestGridDAOException thrown when error on persisting the TestScenario instance
      */
-    public void persist(TestScenario entity) throws TestGridDAOException {
-        super.persist(entity);
+    public TestScenario persist(TestScenario entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**

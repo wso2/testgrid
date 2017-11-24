@@ -20,6 +20,7 @@ package org.wso2.testgrid.automation.executor;
 
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.TestScenario;
 
 /**
  * Interface for Test executors.
@@ -44,7 +45,8 @@ public interface TestExecutor {
      *
      * @param testsLocation location of the test scripts
      * @param testName      test name
+     * @param testScenario  {@link TestScenario} instance associated with the test
      * @throws TestAutomationException thrown when error on initialising the test executor
      */
-    void init(String testsLocation, String testName) throws TestAutomationException;
+    void init(String testsLocation, String testName, TestScenario testScenario) throws TestAutomationException;
 }
