@@ -116,7 +116,10 @@ public class RunTestPlanCommand extends Command {
             TestPlan testPlan = testGridMgtService
                     .generateTestPlan(Paths.get(testPlanLocation), scenarioRepoDir, infraRepo,
                             testPlanHome);
+
+            testGridMgtService.persistSingleTestPlan(testPlan,productTestPlan);
             testGridMgtService.executeTestPlan(testPlan, productTestPlan);
+
 
         } catch (IOException e) {
             throw new TestGridException("Error while executing test plan " + testPlanLocation, e);

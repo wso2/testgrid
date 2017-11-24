@@ -32,8 +32,13 @@ import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestReportEngineException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.repository.ProductTestPlanRepository;
+import org.wso2.testgrid.dao.repository.TestPlanRepository;
 import org.wso2.testgrid.reporting.TestReportEngineImpl;
 
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -134,14 +139,20 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     }
 
     /**
-     * TODO: @Vidura/Asma
      *
      * @param productTestPlan test plan
      * @throws TestGridException exception
      */
     @Override
     public void persistProduct(ProductTestPlan productTestPlan) throws TestGridException {
-        log.warn("Peristence of product Not Implemented Yet.");
+        EntityManagerFactory entityManagerFactory =
+                Persistence.createEntityManagerFactory("eclipse_link_jpa");
+        ProductTestPlanRepository repo = new ProductTestPlanRepository(entityManagerFactory);
+        try {
+            repo.persist(productTestPlan);
+        } catch (TestGridDAOException e) {
+            throw new TestGridException(e.getMessage(),e);
+        }
     }
 
     @Override
@@ -154,7 +165,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                     .getDeploymentPattern()));
             //Update the current TestPlan
             //productTestPlan.getTestPlans().set(iterator.nextIndex() - 1, testPlan); //todo
-            persistSingleTestPlan(testPlan, productTestPlan);
+//            persistSingleTestPlan(testPlan, productTestPlan);
         } catch (TestPlanExecutorException e) {
             String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +
                     productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";
@@ -176,13 +187,26 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         return true;
     }
 
-    /**
-     * @param testPlan        the test plan we need to persist
-     * @param productTestPlan the product test plan DTO that contain the information u need.
-     */
-    private void persistSingleTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) {
-        //todo dummy method for Vidura/Asma
+    @Override
+    public void persistSingleTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestGridException {
+        EntityManagerFactory entityManagerFactory =
+                Persistence.createEntityManagerFactory("eclipse_link_jpa");
+        TestPlanRepository testPlanRepository = new TestPlanRepository(entityManagerFactory);
+        try {
+            testPlan.setProductTestPlan(productTestPlan);
+            testPlanRepository.persist(testPlan);
+        } catch (TestGridDAOException e) {
+            throw new TestGridException(e.getMessage(),e);
+        }
     }
+
+    @Override
+    public void getProductTestPlan(String productName, String productVersion, String channel) throws TestGridException {
+        EntityManagerFactory entityManagerFactory =
+                Persistence.createEntityManagerFactory("eclipse_link_jpa");
+        ProductTestPlanRepository repository = new ProductTestPlanRepository(entityManagerFactory);
+    }
+
 
     @Override
     public boolean abortTestPlan(ProductTestPlan productTestPlan) throws TestGridException {

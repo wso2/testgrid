@@ -21,6 +21,8 @@ package org.wso2.testgrid.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.InfraCombination;
+import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;

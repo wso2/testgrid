@@ -80,6 +80,24 @@ public interface TestGridMgtService {
             testRunDir) throws TestGridException;
 
     /**
+     * This method persists the test plan across the stages of test execution process.
+     *
+     * @param testPlan        the test plan we need to persist
+     * @param productTestPlan the product test plan DTO that contain the information u need.
+     */
+    void persistSingleTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestGridException;
+
+
+    /**
+     * This method retruves the productTestPlan for the given combination.
+     *
+     * @param productName Name of the Product.
+     * @param productVersion Version of the Product.
+     * @param channel Channel information.
+     */
+    void getProductTestPlan(String productName,String productVersion, String channel) throws TestGridException;
+
+    /**
      * This method triggers the execution of a ProductTestPlan.
      *
      *

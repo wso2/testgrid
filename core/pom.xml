@@ -126,5 +126,10 @@
             <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.dao</artifactId>
+            <version>0.9.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

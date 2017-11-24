@@ -61,6 +61,12 @@ public class CreateProductTestPlanCommand extends Command {
             required = true)
     protected String infraRepo = "";
 
+    @Option(name = "--infraPlan",
+            usage = "Infrastructure config file",
+            aliases = {"-i"},
+            required = true)
+    protected String infraPlan = "";
+
 
     @Override
     public void execute() throws TestGridException {
