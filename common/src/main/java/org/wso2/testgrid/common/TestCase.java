@@ -34,33 +34,50 @@ import javax.persistence.Table;
  * @since 1.0.0
  */
 @Entity
-@Table(name = "test_case")
+@Table(name = TestCase.TEST_CASE_TABLE)
 public class TestCase extends AbstractUUIDEntity implements Serializable {
+
+    /**
+     * Test plan table name.
+     */
+    public static final String TEST_CASE_TABLE = "test_case";
+
+    /**
+     * Column names of the table.
+     */
+    public static final String NAME_COLUMN = "test_name";
+    public static final String START_TIMESTAMP_COLUMN = "start_timestamp";
+    public static final String MODIFIED_TIMESTAMP_COLUMN = "modified_timestamp";
+    public static final String STATUS_COLUMN = "status";
+    public static final String LOG_LOCATION_COLUMN = "log_location";
+    public static final String FAILURE_MESSAGE_COLUMN = "failure_message";
+    public static final String TEST_SCENARIO_COLUMN = "TESTSCENARIO_id";
 
     private static final long serialVersionUID = -1947567322771472903L;
 
-    @Column(name = "test_name", nullable = false)
+    @Column(name = NAME_COLUMN, nullable = false)
     private String name;
 
-    @Column(name = "start_timestamp", nullable = false, columnDefinition = "TIMESTAMP DEFAULT '0000-00-00 00:00:00'")
+    @Column(name = START_TIMESTAMP_COLUMN, nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp startTimestamp;
 
-    @Column(name = "modified_timestamp", nullable = false,
+    @Column(name = MODIFIED_TIMESTAMP_COLUMN, nullable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private Timestamp modifiedTimestamp;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = STATUS_COLUMN, nullable = false)
     private Status status;
 
-    @Column(name = "log_location")
+    @Column(name = LOG_LOCATION_COLUMN)
     private String logLocation;
 
-    @Column(name = "failure_message")
+    @Column(name = FAILURE_MESSAGE_COLUMN)
     private String failureMessage;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestScenario.class)
-    @PrimaryKeyJoinColumn(name = "test_scenario_id", referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = TEST_SCENARIO_COLUMN, referencedColumnName = "id")
     private TestScenario testScenario;
 
     /**

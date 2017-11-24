@@ -21,6 +21,7 @@ import org.wso2.testgrid.common.OperatingSystem;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -43,10 +44,11 @@ public class OperatingSystemRepository extends AbstractRepository<OperatingSyste
      * Persists an {@link OperatingSystem} instance in the database.
      *
      * @param entity OperatingSystem to persist in the database
+     * @return added or updated {@link OperatingSystem} instance
      * @throws TestGridDAOException thrown when error on persisting the OperatingSystem instance
      */
-    public void persist(OperatingSystem entity) throws TestGridDAOException {
-        super.persist(entity);
+    public OperatingSystem persist(OperatingSystem entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**
@@ -71,15 +73,14 @@ public class OperatingSystemRepository extends AbstractRepository<OperatingSyste
     }
 
     /**
-     * Find {@link OperatingSystem} instances by a specific field and field value.
+     * Returns a list of {@link OperatingSystem} instances matching the given criteria.
      *
-     * @param field      name of the database field to lookup
-     * @param fieldValue value of the field to be matched for
+     * @param params parameters (map of field name and values) for obtaining the result list
      * @return a list of values for the matched criteria
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public List<OperatingSystem> findByField(String field, Object fieldValue) throws TestGridDAOException {
-        return super.findByField(OperatingSystem.class, field, fieldValue);
+    public List<OperatingSystem> findByFields(Map<String, Object> params) throws TestGridDAOException {
+        return super.findByFields(OperatingSystem.class, params);
     }
 
     /**

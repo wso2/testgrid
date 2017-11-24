@@ -19,6 +19,7 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -38,21 +39,32 @@ import javax.persistence.Transient;
  * @since 1.0.0
  */
 @Entity
-@Table(name = "test_scenario")
+@Table(name = TestScenario.TEST_SCENARIO_TABLE)
 public class TestScenario extends AbstractUUIDEntity implements Serializable {
 
-    private static final long serialVersionUID = -2666342786241472418L;
+    /**
+     * Test plan table name.
+     */
+    public static final String TEST_SCENARIO_TABLE = "test_scenario";
 
+    /**
+     * Column names of the table.
+     */
+    public static final String STATUS_COLUMN = "status";
+    public static final String NAME_COLUMN = "name";
+    public static final String TEST_PLAN_COLUMN = "TESTPLAN_id";
+
+    private static final long serialVersionUID = -2666342786241472418L;
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = STATUS_COLUMN, nullable = false)
     private Status status;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = NAME_COLUMN, nullable = false)
     @Element(description = "name of the solution pattern which is covered by this test scenario")
     private String name;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class)
-    @PrimaryKeyJoinColumn(name = "test_plan_id", referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = TEST_PLAN_COLUMN, referencedColumnName = "id")
     private TestPlan testPlan;
 
     @Transient
@@ -151,8 +163,8 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      *
      * @param testEngine test engine in which the test scenario should be executed
      */
-    public void setTestEngine(TestEngine testEngine) {
-        this.testEngine = testEngine;
+    public void setTestEngine(String testEngine) {
+        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
     }
 
     /**
@@ -160,8 +172,14 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      *
      * @param testEngine test engine in which the test scenario should be executed
      */
-    public void setTestEngine(String testEngine) {
-        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
+    public void setTestEngine(TestEngine testEngine) {
+        this.testEngine = testEngine;
+    }
+
+    @Override
+    public String toString() {
+        return StringUtil.concatStrings("TestScenario [id=", this.getId(), ", status=", status.toString(),
+                ", name=", name, ", " + "TestPlan=", testPlan.toString(), "]");
     }
 
     /**

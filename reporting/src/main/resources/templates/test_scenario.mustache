@@ -1,0 +1,40 @@
+{{#parsedTestScenarioView}}
+    <br/>
+    <table style="width: 100%">
+        <tr>
+            <td>
+                <center>
+    <span style="font-family: arial;font-weight: 600; font-size: 24px; line-height: 20px; width: 100%; color: #e46226;">
+        {{testScenarioName}}
+    </span>
+                    <br/>
+                    <br/>
+                    <table style="font-family: arial; width: 85%;">
+                        <tr>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 25%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Test Name</span>
+                            </th>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Start Time</span>
+                            </th>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Modified Time</span>
+                            </th>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Status</span>
+                            </th>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 25%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Failure Message</span>
+                            </th>
+                            <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                                <span style="color: #000000;">Log</span>
+                            </th>
+                        </tr>
+                        {{{parsedTestResultsView}}}
+                </center>
+            </td>
+        </tr>
+    </table>
+{{/parsedTestScenarioView}}
+<br/>
+<br/>

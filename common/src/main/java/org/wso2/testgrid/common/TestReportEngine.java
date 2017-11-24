@@ -27,11 +27,11 @@ import org.wso2.testgrid.common.exception.TestReportEngineException;
 public interface TestReportEngine {
 
     /**
-     * Generates a test report based on the given test plan.
+     * Generates a test report based on the given product name and product version.
      *
-     * @param productTestPlan test plan to generate the test report
-     * @throws TestReportEngineException thrown when reading the results from files or when writing the test report
-     * to file
+     * @param productName    product name to generate the test plan for
+     * @param productVersion product version to generate the test plan for
+     * @throws TestReportEngineException thrown when error on generating test report
      */
-    void generateReport(ProductTestPlan productTestPlan) throws TestReportEngineException;
+    void generateReport(String productName, String productVersion) throws TestReportEngineException;
 }

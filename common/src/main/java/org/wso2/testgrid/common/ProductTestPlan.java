@@ -22,7 +22,6 @@ import org.wso2.testgrid.common.util.EnvironmentUtil;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -39,42 +38,57 @@ import javax.persistence.Transient;
  * @since 1.0.0
  */
 @Entity
-@Table(name = "product_test_plan")
+@Table(name = ProductTestPlan.PRODUCT_TEST_PLAN_TABLE)
 public class ProductTestPlan extends AbstractUUIDEntity implements Serializable {
+
+    /**
+     * Product test plan table name.
+     */
+    public static final String PRODUCT_TEST_PLAN_TABLE = "product_test_plan";
+
+    /**
+     * Column names of the table.
+     */
+    public static final String PRODUCT_NAME_COLUMN = "product_name";
+    public static final String PRODUCT_VERSION_COLUMN = "product_version";
+    public static final String START_TIMESTAMP_COLUMN = "start_timestamp";
+    public static final String MODIFIED_TIMESTAMP_COLUMN = "modified_timestamp";
+    public static final String STATUS_COLUMN = "status";
+    public static final String INFRA_REPOSITORY_COLUMN = "infra_repository";
+    public static final String DEPLOYMENT_REPOSITORY_COLUMN = "deployment_repository";
+    public static final String SCENARIO_REPOSITORY_COLUMN = "scenario_repository";
 
     private static final long serialVersionUID = 5812347338918334430L;
 
-    @Column(name = "product_name", nullable = false, length = 50)
+    @Column(name = PRODUCT_NAME_COLUMN, nullable = false, length = 50)
     private String productName;
 
-    @Column(name = "product_version", nullable = false, length = 20)
+    @Column(name = PRODUCT_VERSION_COLUMN, nullable = false, length = 20)
     private String productVersion;
 
-    @Column(name = "start_timestamp", nullable = false, columnDefinition = "TIMESTAMP DEFAULT '0000-00-00 00:00:00'")
+    @Column(name = START_TIMESTAMP_COLUMN, nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp startTimestamp;
 
-    @Column(name = "modified_timestamp", nullable = false,
+    @Column(name = MODIFIED_TIMESTAMP_COLUMN, nullable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private Timestamp modifiedTimestamp;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = STATUS_COLUMN, nullable = false)
     private Status status;
 
-    @Column(name = "infra")
+    @Column(name = INFRA_REPOSITORY_COLUMN)
     private String infraRepository;
 
-    @Column(name = "deployment_repository")
+    @Column(name = DEPLOYMENT_REPOSITORY_COLUMN)
     private String deploymentRepository;
 
-    @Column(name = "scenario_repository")
+    @Column(name = SCENARIO_REPOSITORY_COLUMN)
     private String scenarioRepository;
 
     @Transient
     private String homeDir;
-
-    @Transient
-    private List<TestPlan> testPlans;
 
     @Transient
     private ConcurrentHashMap<String, Infrastructure> infrastructureMap = new ConcurrentHashMap<>();
@@ -240,24 +254,6 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
     @Deprecated
     public void setHomeDir(String homeDir) {
         // No operation
-    }
-
-    /**
-     * Returns the list of test plans associated with the product test plan.
-     *
-     * @return list of test plans associated with the product test plan
-     */
-    public List<TestPlan> getTestPlans() {
-        return testPlans;
-    }
-
-    /**
-     * Sets the list of test plans associated with the product test plan
-     *
-     * @param testPlans list of test plans associated with the product test plan
-     */
-    public void setTestPlans(List<TestPlan> testPlans) {
-        this.testPlans = testPlans;
     }
 
     /**

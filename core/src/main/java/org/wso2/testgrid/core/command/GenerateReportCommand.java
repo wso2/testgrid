@@ -22,72 +22,61 @@ package org.wso2.testgrid.core.command;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.Option;
-import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.TestReportEngine;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestReportEngineException;
-import org.wso2.testgrid.core.TestGridMgtService;
-import org.wso2.testgrid.core.TestGridMgtServiceImpl;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.reporting.TestReportEngineImpl;
 
 /**
- * This generates a cumulative test report that consists of
- * all testplans for a given product, version and channel.
+ * This generates a cumulative test report that consists of all test plans for a given product, version and channel.
+ *
+ * @since 1.0.0
  */
 public class GenerateReportCommand extends Command {
 
     private static final Log log = LogFactory.getLog(GenerateReportCommand.class);
 
-    @Option(name = "--product",
-            usage = "Product Name",
-            aliases = { "-p" },
-            required = true)
-    protected String productName = "";
-
-    @Option(name = "--version",
-            usage = "product version",
-            aliases = { "-v" },
-            required = true)
-    protected String productVersion = "";
-
     /**
      * Channels are how we distribute our products to customers.
-     * Common channels include public branch, LTS (support) branch,
-     * premium/premium+ branches.
+     * <p>
+     * Common channels include public branch, LTS (support) branch, premium/premium+ branches.
      */
     @Option(name = "--channel",
             usage = "product channel",
-            aliases = { "-c" },
-            required = false)
-    protected String channel = "public";
+            aliases = {"-c"}
+    )
+    private String channel = "public";
 
-    @Option(name = "--infraRepo",
-            usage = "Location of Infra plans. "
-                    + "Under this location, there should be a Infrastructure/ folder."
-                    + "Assume this location is the test-grid-is-resources",
-            aliases = { "-ir" },
+    @Option(name = "--product",
+            usage = "Product Name",
+            aliases = {"-p"},
             required = true)
-    protected String infraRepo = "";
+    private String productName = "";
+
+    @Option(name = "--version",
+            usage = "product version",
+            aliases = {"-v"},
+            required = true)
+    private String productVersion = "";
+
 
     @Override
     public void execute() throws TestGridException {
-        log.info("Create product test plan command");
+        log.info("Generating test result report...");
         log.info(
                 "Input Arguments: \n" +
-                        "\tProduct name: " + productName + "\n" +
-                        "\tProduct version: " + productVersion + "\n" +
-                        "\tChannel" + channel);
-
-        TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
-        ProductTestPlan productTestPlan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
+                "\tProduct name: " + productName + "\n" +
+                "\tProduct version: " + productVersion + "\n" +
+                "\tChannel" + channel);
 
         try {
-            new TestReportEngineImpl().generateReport(productTestPlan);
+            TestReportEngine testReportEngine = new TestReportEngineImpl();
+            testReportEngine.generateReport(productName, productVersion);
         } catch (TestReportEngineException e) {
-            String msg = "Unable to generate test report for the ProductTests ran for product '" +
-                    productTestPlan.getProductName() + "', version '" + productTestPlan.getProductVersion() + "'";
-            log.error(msg, e);
-            throw new TestGridException(msg, e);
+            throw new TestGridException(StringUtil
+                    .concatStrings("Error occurred when generating test report for { product: ", productName,
+                            ", version: ", productVersion, ", channel: ", channel, " }"), e);
         }
-
     }
 }

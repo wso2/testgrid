@@ -21,6 +21,7 @@ import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -43,10 +44,11 @@ public class InfraResultRespository extends AbstractRepository<InfraResult> {
      * Persists an {@link InfraResult} instance in the database.
      *
      * @param entity InfraResult to persist in the database
+     * @return added or updated {@link InfraResult} instance
      * @throws TestGridDAOException thrown when error on persisting the InfraResult instance
      */
-    public void persist(InfraResult entity) throws TestGridDAOException {
-        super.persist(entity);
+    public InfraResult persist(InfraResult entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**
@@ -71,15 +73,14 @@ public class InfraResultRespository extends AbstractRepository<InfraResult> {
     }
 
     /**
-     * Find {@link InfraResult} instances by a specific field and field value.
+     * Returns a list of {@link InfraResult} instances matching the given criteria.
      *
-     * @param field      name of the database field to lookup
-     * @param fieldValue value of the field to be matched for
+     * @param params parameters (map of field name and values) for obtaining the result list
      * @return a list of values for the matched criteria
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public List<InfraResult> findByField(String field, Object fieldValue) throws TestGridDAOException {
-        return super.findByField(InfraResult.class, field, fieldValue);
+    public List<InfraResult> findByFields(Map<String, Object> params) throws TestGridDAOException {
+        return super.findByFields(InfraResult.class, params);
     }
 
     /**

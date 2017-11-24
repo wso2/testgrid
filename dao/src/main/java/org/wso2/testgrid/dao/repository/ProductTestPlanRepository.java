@@ -21,6 +21,7 @@ import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -43,10 +44,11 @@ public class ProductTestPlanRepository extends AbstractRepository<ProductTestPla
      * Persists an {@link ProductTestPlan} instance in the database.
      *
      * @param entity ProductTestPlan to persist in the database
+     * @return added or updated {@link ProductTestPlan} instance
      * @throws TestGridDAOException thrown when error on persisting the ProductTestPlan instance
      */
-    public void persist(ProductTestPlan entity) throws TestGridDAOException {
-        super.persist(entity);
+    public ProductTestPlan persist(ProductTestPlan entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**
@@ -71,15 +73,14 @@ public class ProductTestPlanRepository extends AbstractRepository<ProductTestPla
     }
 
     /**
-     * Find {@link ProductTestPlan} instances by a specific field and field value.
+     * Returns a list of {@link ProductTestPlan} instances matching the given criteria.
      *
-     * @param field      name of the database field to lookup
-     * @param fieldValue value of the field to be matched for
+     * @param params parameters (map of field name and values) for obtaining the result list
      * @return a list of values for the matched criteria
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public List<ProductTestPlan> findByField(String field, Object fieldValue) throws TestGridDAOException {
-        return super.findByField(ProductTestPlan.class, field, fieldValue);
+    public List<ProductTestPlan> findByFields(Map<String, Object> params) throws TestGridDAOException {
+        return super.findByFields(ProductTestPlan.class, params);
     }
 
     /**

@@ -43,6 +43,7 @@
         <module>dao</module>
         <module>reporting</module>
         <module>distribution</module>
+        <module>api</module>
     </modules>
 
     <scm>
@@ -291,6 +292,11 @@
             <dependency>
                 <groupId>org.wso2.testgrid</groupId>
                 <artifactId>org.wso2.testgrid.reporting</artifactId>
+                <version>${test.grid.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.testgrid</groupId>
+                <artifactId>org.wso2.testgrid.dao</artifactId>
                 <version>${test.grid.version}</version>
             </dependency>
 

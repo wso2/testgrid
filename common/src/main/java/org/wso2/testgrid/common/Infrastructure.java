@@ -42,8 +42,6 @@ public class Infrastructure implements Serializable {
     private ClusterType clusterType; // ECS, K8S
     @Element(description = "defines the database configuration")
     private Database database;
-    @Element(description = "defines the database configuration")
-    private JDK jdk;
     @Element(description = "holds the required properties for security related stuff")
     private Map<String, String> securityProperties;
     @Element(description = "holds the list of customized scripts if provided")
@@ -56,6 +54,10 @@ public class Infrastructure implements Serializable {
     private String region;
     @Element(description = "holds the additional properties for the infrastructure")
     private Map<String, String> infraArguments;
+    @Element(description = "defines the image to be used when setting up the instances")
+    private String imageId;
+    @Element(description = "defines the target jdk")
+    private JDK jdk;
 
     /**
      * Defines the infrastructure provider types.
@@ -111,10 +113,10 @@ public class Infrastructure implements Serializable {
     }
 
     /**
-     * Defines the supported jdks.
+     * Defines the JDK versions.
      */
     public enum JDK {
-        JDK7("JDK7"), JDK8("JDK8");
+        JDK7 ("JDK7"), JDK8 ("JDK8");
 
         private final String name;
 
@@ -205,5 +207,21 @@ public class Infrastructure implements Serializable {
 
     public void setInfraArguments(Map<String, String> infraArguments) {
         this.infraArguments = infraArguments;
+    }
+
+    public String getImageId() {
+        return imageId;
+    }
+
+    public void setImageId(String imageId) {
+        this.imageId = imageId;
+    }
+
+    public JDK getJDK() {
+        return jdk;
+    }
+
+    public void setJDK(JDK jre) {
+        this.jdk = jre;
     }
 }

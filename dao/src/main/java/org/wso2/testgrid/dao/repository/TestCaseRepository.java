@@ -21,6 +21,7 @@ import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -43,10 +44,11 @@ public class TestCaseRepository extends AbstractRepository<TestCase> {
      * Persists an {@link TestCase} instance in the database.
      *
      * @param entity TestCase to persist in the database
+     * @return added or updated {@link TestCase} instance
      * @throws TestGridDAOException thrown when error on persisting the TestCase instance
      */
-    public void persist(TestCase entity) throws TestGridDAOException {
-        super.persist(entity);
+    public TestCase persist(TestCase entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**
@@ -71,15 +73,14 @@ public class TestCaseRepository extends AbstractRepository<TestCase> {
     }
 
     /**
-     * Find {@link TestCase} instances by a specific field and field value.
+     * Returns a list of {@link TestCase} instances matching the given criteria.
      *
-     * @param field      name of the database field to lookup
-     * @param fieldValue value of the field to be matched for
+     * @param params parameters (map of field name and values) for obtaining the result list
      * @return a list of values for the matched criteria
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public List<TestCase> findByField(String field, Object fieldValue) throws TestGridDAOException {
-        return super.findByField(TestCase.class, field, fieldValue);
+    public List<TestCase> findByFields(Map<String, Object> params) throws TestGridDAOException {
+        return super.findByFields(TestCase.class, params);
     }
 
     /**

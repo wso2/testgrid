@@ -98,7 +98,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Mockito.when(TestGridUtil.cloneRepository(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(resource.getPath());
         productTestPlan = new TestGridMgtServiceImpl().createProduct(WSO2_PRODUCT, PRODUCT_VERSION,
-                        "src/test/resources/test-grid-is-resources/Infrastructure/single-node.yaml");
+                "src/test/resources/test-grid-is-resources/Infrastructure/single-node.yaml");
         Assert.assertNotNull(productTestPlan);
         Assert.assertTrue(WSO2_PRODUCT.equals(productTestPlan.getProductName()));
         Assert.assertTrue(PRODUCT_VERSION.equals(productTestPlan.getProductVersion()));
