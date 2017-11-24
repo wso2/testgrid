@@ -109,7 +109,6 @@ public class AWSManagerTest extends PowerMockTestCase {
         script.setName(mockStackName);
         Properties scriptParameters = new Properties();
         scriptParameters.setProperty("CloudFormationParameterFile", "parameters.json");
-        scriptParameters.put("CloudFormationParameterFile", "parameters.json");
         script.setScriptParameters(scriptParameters);
         //create dummy infrastructure object
         Infrastructure infrastructure = new Infrastructure();
