@@ -21,6 +21,7 @@ package org.wso2.testgrid.common;
 import org.wso2.carbon.config.annotation.Element;
 
 import java.io.Serializable;
+import java.util.Properties;
 
 /**
  *  Defines a model object for a provided custom script.
@@ -38,7 +39,7 @@ public class Script implements Serializable {
     @Element(description = "defines the provided scripts type (not necessary)")
     private ScriptType scriptType;
     @Element(description = "defines the parameters file name (not necessary)")
-    private String scriptParameters;
+    private Properties scriptParameters;
 
     /**
      * This defines the supported executable script types.
@@ -71,11 +72,11 @@ public class Script implements Serializable {
         }
     }
 
-    public String getScriptParameters() {
+    public Properties getScriptParameters() {
         return scriptParameters;
     }
 
-    public void setScriptParameters(String scriptParameters) {
+    public void setScriptParameters(Properties scriptParameters) {
         this.scriptParameters = scriptParameters;
     }
 

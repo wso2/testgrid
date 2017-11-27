@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.testng.TestNG;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -36,7 +37,6 @@ public class TestNgExecutor implements TestExecutor {
 
     private static final Log log = LogFactory.getLog(TestNgExecutor.class);
     private String testsLocation;
-    private String testName;
 
     @Override
     public void execute(String jarFilePath, Deployment deployment) {
@@ -52,9 +52,8 @@ public class TestNgExecutor implements TestExecutor {
     }
 
     @Override
-    public void init(String testsLocation, String testName) throws TestAutomationException {
+    public void init(String testsLocation, String testName, TestScenario testScenario) throws TestAutomationException {
         this.testsLocation = testsLocation;
-        this.testName = testName;
     }
 
     /**
@@ -64,7 +63,7 @@ public class TestNgExecutor implements TestExecutor {
      */
     private void loadJarToClasspath(File jarFile) {
         if (jarFile.isFile()) {
-            URL url = null;
+            URL url;
             try {
                 url = jarFile.toURI().toURL();
                 URL[] urls = new URL[]{url};

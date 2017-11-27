@@ -44,10 +44,11 @@ public class InfraResultRespository extends AbstractRepository<InfraResult> {
      * Persists an {@link InfraResult} instance in the database.
      *
      * @param entity InfraResult to persist in the database
+     * @return added or updated {@link InfraResult} instance
      * @throws TestGridDAOException thrown when error on persisting the InfraResult instance
      */
-    public void persist(InfraResult entity) throws TestGridDAOException {
-        super.persist(entity);
+    public InfraResult persist(InfraResult entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**

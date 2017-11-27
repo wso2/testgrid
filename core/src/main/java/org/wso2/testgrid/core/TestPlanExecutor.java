@@ -159,7 +159,9 @@ public class TestPlanExecutor {
             // TODO: Set status test scenario execution pending
             for (TestScenario testScenario : testPlan.getTestScenarios()) {
                 try {
-                    new ScenarioExecutor().runScenario(testScenario, deployment, testPlan.getTestRepoDir());
+                    testScenario.setTestPlan(testPlan);
+                    testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_PENDING);
+                    new ScenarioExecutor().runScenario(testScenario, deployment, testPlan);
                 } catch (ScenarioExecutorException e) {
                     log.error("Error occurred while executing the SolutionPattern '" +
                               testScenario.getName() + "' , in TestPlan '" +

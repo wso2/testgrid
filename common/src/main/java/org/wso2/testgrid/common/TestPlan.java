@@ -32,7 +32,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -63,7 +62,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     public static final String STATUS_COLUMN = "status";
     public static final String DEPLOYMENT_PATTERN_COLUMN = "deployment_pattern";
     public static final String DESCRIPTION_COLUMN = "deployment_pattern";
-    public static final String INFRA_RESULT_COLUMN = "INFRARESULT_id";
     public static final String PRODUCT_TEST_PLAN_COLUMN = "PRODUCTTESTPLAN_id";
 
     private static final long serialVersionUID = -4345126378695708155L;
@@ -73,7 +71,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private String name;
 
     @Column(name = START_TIMESTAMP_COLUMN, nullable = false,
-            columnDefinition = "TIMESTAMP DEFAULT '0000-00-00 00:00:00'")
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Ignore
     private Timestamp startTimestamp;
 
@@ -88,17 +86,12 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private Status status;
 
     @Element(description = "value to uniquely identify the deployment pattern")
-    @Column(name = DEPLOYMENT_PATTERN_COLUMN, nullable = false)
+    @Column(name = DEPLOYMENT_PATTERN_COLUMN, nullable = false, insertable = false, updatable = false)
     private String deploymentPattern;
 
     @Element(description = "description about the test plan")
     @Column(name = DESCRIPTION_COLUMN)
     private String description;
-
-    @Ignore
-    @OneToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraResult.class)
-    @PrimaryKeyJoinColumn(name = INFRA_RESULT_COLUMN)
-    private InfraResult infraResult;
 
     @Ignore
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = ProductTestPlan.class)
@@ -247,24 +240,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns the infra result for the test plan.
-     *
-     * @return infra result for the test plan
-     */
-    public InfraResult getInfraResult() {
-        return infraResult;
-    }
-
-    /**
-     * Sets the infra result for the test plan.
-     *
-     * @param infraResult infra result for the test plan
-     */
-    public void setInfraResult(InfraResult infraResult) {
-        this.infraResult = infraResult;
-    }
-
-    /**
      * Returns the product test plan associated with the test plan.
      *
      * @return product test plan associated with the test plan
@@ -328,21 +303,21 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Sets the deployer-type (puppet/ansible) of the test plan.
-     *
-     * @param deployerType deployer-type (puppet/ansible) of the test plan
-     */
-    public void setDeployerType(DeployerType deployerType) {
-        this.deployerType = deployerType;
-    }
-
-    /**
      * Sets the deployer-type (puppet/ansible) of the test plan using the string value.
      *
      * @param deployerType string deployer-type (puppet/ansible) of the test plan
      */
     public void setDeployerType(String deployerType) {
         this.deployerType = DeployerType.valueOf(deployerType.toUpperCase(Locale.ENGLISH));
+    }
+
+    /**
+     * Sets the deployer-type (puppet/ansible) of the test plan.
+     *
+     * @param deployerType deployer-type (puppet/ansible) of the test plan
+     */
+    public void setDeployerType(DeployerType deployerType) {
+        this.deployerType = deployerType;
     }
 
     /**

@@ -44,10 +44,11 @@ public class DatabaseRepository extends AbstractRepository<Database> {
      * Persists an {@link Database} instance in the database.
      *
      * @param entity database to persist in the database
+     * @return added or updated {@link Database} instance
      * @throws TestGridDAOException thrown when error on persisting the database instance
      */
-    public void persist(Database entity) throws TestGridDAOException {
-        super.persist(entity);
+    public Database persist(Database entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**

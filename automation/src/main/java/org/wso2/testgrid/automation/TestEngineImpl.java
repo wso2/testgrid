@@ -15,40 +15,81 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.testgrid.automation;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.testgrid.automation.core.TestManager;
+import org.wso2.testgrid.automation.util.AutomationUtil;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.TestAutomationEngine;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.Utils;
 import org.wso2.testgrid.common.exception.TestAutomationEngineException;
+import org.wso2.testgrid.common.util.StringUtil;
+
+import java.util.List;
 
 /**
- * This class is Responsible for initiating the core processes of TestGrid.
+ * This class is responsible for executing a test scenario.
+ *
+ * @since 1.0.0
  */
 public class TestEngineImpl implements TestAutomationEngine {
 
     private static final Log log = LogFactory.getLog(TestEngineImpl.class);
 
+    @Override
     public boolean runScenario(TestScenario scenario, String location, Deployment deployment)
             throws TestAutomationEngineException {
         log.info("Executing Tests for Solution Pattern : " + scenario.getName());
-        TestManager testManager = new TestManager();
-        try {
-            testManager.init(Utils.getTestScenarioLocation(scenario, location), deployment, scenario);
-            testManager.executeTests();
-            scenario.setStatus(TestScenario.Status.TEST_SCENARIO_COMPLETED);
-        } catch (TestAutomationException ex) {
-            throw new TestAutomationEngineException("Error while initiating the TestManager", ex);
-        }
+        String testLocation = Utils.getTestScenarioLocation(scenario, location);
+        List<Test> tests = getTests(scenario, testLocation);
+
+        // Execute tests
+        executeTests(tests, testLocation, deployment);
+        scenario.setStatus(TestScenario.Status.TEST_SCENARIO_COMPLETED);
         return true;
     }
 
+    @Override
     public boolean abortScenario(TestScenario scenario) throws TestAutomationEngineException {
         return false;
+    }
+
+    /**
+     * Executes the given list of {@link Test} instances.
+     *
+     * @param tests        list of {@link Test} instances to be executed
+     * @param testLocation location on which test files are
+     * @param deployment   {@link Deployment} on which the tests should be executed
+     * @throws TestAutomationEngineException thrown when error on executing tests
+     */
+    private void executeTests(List<Test> tests, String testLocation, Deployment deployment)
+            throws TestAutomationEngineException {
+        try {
+            for (Test test : tests) {
+                log.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test..."));
+                test.execute(testLocation, deployment);
+                log.info("---------------------------------------");
+            }
+        } catch (TestAutomationException e) {
+            throw new TestAutomationEngineException("Error occurred when executing tests.", e);
+        }
+    }
+
+    /**
+     * Read and returns a list of {@link Test} instances for the given test scenario.
+     *
+     * @param testScenario test scenario to obtain tests from
+     * @param testLocation location on which test files are
+     * @return a list of {@link Test} instances for the given test scenario
+     * @throws TestAutomationEngineException thrown when error on reading test files (such as .jmx for JMeter tests)
+     */
+    private List<Test> getTests(TestScenario testScenario, String testLocation) throws TestAutomationEngineException {
+        try {
+            return AutomationUtil.getTests(testLocation, testScenario);
+        } catch (TestAutomationException e) {
+            throw new TestAutomationEngineException("Error while reading tests for test scenario.", e);
+        }
     }
 }
