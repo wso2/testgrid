@@ -46,9 +46,10 @@ public class TestAutomationUOW {
      *
      * @param testName     name of the test case
      * @param testScenario {@link TestScenario} instance associated with test case
+     * @return persisted {@link TestCase} instance
      * @throws TestGridDAOException thrown when error on persisting
      */
-    public void persistPendingTestCase(String testName, TestScenario testScenario)
+    public TestCase persistPendingTestCase(String testName, TestScenario testScenario)
             throws TestGridDAOException {
         TestCaseRepository testCaseRepository = new TestCaseRepository(entityManagerFactory);
 
@@ -56,6 +57,23 @@ public class TestAutomationUOW {
         testCase.setName(testName);
         testCase.setStatus(TestCase.Status.TESTCASE_PENDING);
         testCase.setTestScenario(testScenario);
-        testCaseRepository.persist(testCase);
+        return testCaseRepository.persist(testCase);
+    }
+
+    /**
+     * Updates the {@link TestCase} instance associated with the given ID with the given status and the response
+     * message.
+     *
+     * @param testCaseId      test case ID to locate the test case
+     * @param status          status of the TestCase
+     * @param responseMessage response message of the test case
+     * @throws TestGridDAOException thrown when error on persisting
+     */
+    public TestCase updateTestCase(String testCaseId, TestCase.Status status, String responseMessage)
+            throws TestGridDAOException {
+        TestCaseRepository testCaseRepository = new TestCaseRepository(entityManagerFactory);
+        TestCase testCase = testCaseRepository.findByPrimaryKey(testCaseId);
+        testCase.setStatus(status);
+        return testCaseRepository.persist(testCase);
     }
 }
