@@ -23,7 +23,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 /**
- *  Creates an EntityManger using the persistence.xml file
+ *  Creates an EntityManger using the persistence.xml file.
  */
 public class TestPlanListener implements ServletContextListener {
 

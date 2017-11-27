@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Servlet to display the status of the TestPlan
+ * Servlet to display the status of the TestPlan.
  */
 public class TestPlanServlet extends HttpServlet {
     private static final Log log = LogFactory.getLog(TestPlanServlet.class);

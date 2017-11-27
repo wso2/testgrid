@@ -39,19 +39,19 @@ public class CreateProductTestPlanCommand extends Command {
 
     @Option(name = "--product",
             usage = "Product Name",
-            aliases = { "-p" },
+            aliases = {"-p"},
             required = true)
     protected String productName = "";
 
     @Option(name = "--version",
             usage = "product version",
-            aliases = { "-v" },
+            aliases = {"-v"},
             required = true)
     protected String productVersion = "";
 
     @Option(name = "--channel",
             usage = "product channel",
-            aliases = { "-c" },
+            aliases = {"-c"},
             required = false)
     protected String channel = "public";
 
@@ -59,15 +59,15 @@ public class CreateProductTestPlanCommand extends Command {
             usage = "Location of Infra plans. "
                     + "Under this location, there should be a Infrastructure/ folder."
                     + "Assume this location is the test-grid-is-resources",
-            aliases = { "-ir" },
+            aliases = {"-ir"},
             required = true)
     protected String infraRepo = "";
 
     @Option(name = "--infra-configs-location",
             usage = "Location of all the infra plans. "
-                      + "Under this location, there should be a Infrastructure/ folder."
+                    + "Under this location, there should be a Infrastructure/ folder."
                     + "Assume this location is the test-grid-is-resources",
-          aliases = { "-ics" },
+            aliases = {"-ics"},
             required = true)
     protected String infraConfigsLocation = "";
     @Option(name = "--infraPlan",
@@ -103,7 +103,7 @@ public class CreateProductTestPlanCommand extends Command {
         try {
             testPlanUOW.persistProductTestPlan(plan);
         } catch (TestGridDAOException e) {
-            log.error("Error occured while persisting ProductTestPlan",e);
+            log.error("Error occured while persisting ProductTestPlan", e);
         }
         //todo Persist product and version info in the db.
     }

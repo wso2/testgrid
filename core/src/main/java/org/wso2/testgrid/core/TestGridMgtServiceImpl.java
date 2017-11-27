@@ -27,29 +27,22 @@ import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.Infrastructure;
+import org.wso2.testgrid.common.OperatingSystem;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.Utils;
 import org.wso2.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.common.exception.TestReportEngineException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.repository.ProductTestPlanRepository;
-import org.wso2.testgrid.dao.repository.TestPlanRepository;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
-import org.wso2.testgrid.reporting.TestReportEngineImpl;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -67,7 +60,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         File infraConfig = new File(infraYaml);
         if (infraConfig.exists()) {
             Infrastructure infrastructure;
-                try {
+            try {
 
                     if (Utils.isYamlFile(infraConfig.getName())) {
                         ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths
@@ -147,46 +140,55 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     }
 
 
-
     @Override
     public boolean executeTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestGridException {
         productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
-        //        ListIterator<TestPlan> iterator = productTestPlan.getTestPlans().listIterator();
         TestPlanUOW testPlanUOW = new TestPlanUOW();
-
         try {
-
             Infrastructure infrastructure = productTestPlan.getInfrastructure(testPlan
-                            .getDeploymentPattern());
-            InfraResult infraResult = new InfraResult();
-            infraResult.setStatus(InfraResult.Status.INFRASTRUCTURE_PREPARATION);
-
+                    .getDeploymentPattern());
             InfraCombination combination = new InfraCombination();
+            //Check if database entry already in the database.
             Database databse = testPlanUOW.getDatabse(infrastructure.getDatabase().getEngine().toString(),
-                    infrastructure.getDatabase().getEngine().toString());
-            if(databse!=null){
+                    infrastructure.getDatabase().getVersion());
+            if (databse != null) {
                 combination.setDatabase(databse);
-            }else{
+            } else {
                 combination.setDatabase(infrastructure.getDatabase());
             }
+            //Check if Operating System entry already in the database.
+            OperatingSystem os = testPlanUOW.getOperatingSystem(infrastructure.getOperatingSystem().getName()
+                    , infrastructure.getOperatingSystem().getVersion());
+            if (os != null) {
+                combination.setOperatingSystem(os);
+            } else {
+                combination.setOperatingSystem(infrastructure.getOperatingSystem());
+            }
+            InfraResult infraResult = new InfraResult();
+            //Check if InfraCombination entry already in the database.
+            InfraCombination persistedCombination = testPlanUOW.getInfraCombination(infrastructure.getJDK().toString(),
+                    combination.getDatabase(), combination.getOperatingSystem());
+            if (persistedCombination != null) {
+                infraResult.setInfraCombination(persistedCombination);
+            } else {
+                combination.setJdk(getJDKversion(infrastructure.getJDK()));
+                infraResult.setInfraCombination(combination);
+            }
 
-            combination.setJdk(getJDKversion(infrastructure.getJDK()));
-            combination.setOperatingSystem(infrastructure.getOperatingSystem());
-
-            infraResult.setInfraCombination(combination);
+            infraResult.setStatus(InfraResult.Status.INFRASTRUCTURE_PREPARATION);
             testPlan.setInfraResult(infraResult);
 
             //persist before runing test plan
             testPlan.setProductTestPlan(productTestPlan);
-            testPlanUOW.persistSingleTestPlan(testPlan);
-            testPlan = new TestPlanExecutor().runTestPlan(testPlan, infrastructure);
+            testPlan = testPlanUOW.persistSingleTestPlan(testPlan);
+            new TestPlanExecutor().runTestPlan(testPlan, infrastructure);
 
         } catch (TestPlanExecutorException e) {
             String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +
                     productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";
             log.error(msg, e);
         } catch (TestGridDAOException e) {
-            throw new TestGridException("Error occured while persisting TestPlan ",e);
+            throw new TestGridException("Error occured while persisting TestPlan ", e);
         }
         //        }
 
@@ -219,8 +221,14 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         return null;
     }
 
-    private InfraCombination.JDK getJDKversion(Infrastructure.JDK jdk){
-        switch (jdk){
+    /**
+     * This method maintains the mapping between JDK definitions.
+     *
+     * @param jdk {@link Infrastructure.JDK} enum value
+     * @return {@link InfraCombination.JDK} enum value.
+     */
+    private InfraCombination.JDK getJDKversion(Infrastructure.JDK jdk) {
+        switch (jdk) {
             case JDK7:
                 return InfraCombination.JDK.ORACLE_JDK7;
             case JDK8:

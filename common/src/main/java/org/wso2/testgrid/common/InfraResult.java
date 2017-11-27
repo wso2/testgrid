@@ -33,34 +33,18 @@ import javax.persistence.Table;
  * @since 1.0.0
  */
 @Entity
-@Table(name = InfraResult.INFRA_RESULT_TABLE)
+@Table(name = "infra_result")
 public class InfraResult extends AbstractUUIDEntity implements Serializable {
-
-    /**
-     * Infra result table name.
-     */
-    public static final String INFRA_RESULT_TABLE = "infra_result";
-
-    /**
-     * Column names of the table.
-     */
-    public static final String STATUS_COLUMN = "status";
-    public static final String INFRA_COMBINATION_COLUMN = "infra_combination_id";
-    public static final String TEST_PLAN_COLUMN = "TESTPLAN_id";
 
     private static final long serialVersionUID = 9208083074380972876L;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = STATUS_COLUMN, nullable = false)
+    @Column(name = "engine", nullable = false)
     private Status status;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraCombination.class)
-    @PrimaryKeyJoinColumn(name = INFRA_COMBINATION_COLUMN, referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = "infra_combination_id", referencedColumnName = "id")
     private InfraCombination infraCombination;
-
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class)
-    @PrimaryKeyJoinColumn(name = TEST_PLAN_COLUMN, referencedColumnName = "id")
-    private TestPlan testPlan;
 
     /**
      * Returns the status of the infrastructure.
@@ -96,24 +80,6 @@ public class InfraResult extends AbstractUUIDEntity implements Serializable {
      */
     public void setInfraCombination(InfraCombination infraCombination) {
         this.infraCombination = infraCombination;
-    }
-
-    /**
-     * Returns the {@link TestPlan} associated with this infra result.
-     *
-     * @return {@link TestPlan} associated with this infra result
-     */
-    public TestPlan getTestPlan() {
-        return testPlan;
-    }
-
-    /**
-     * Sets the {@link TestPlan} associated with this infra result.
-     *
-     * @param testPlan {@link TestPlan} associated with this infra result
-     */
-    public void setTestPlan(TestPlan testPlan) {
-        this.testPlan = testPlan;
     }
 
     @Override

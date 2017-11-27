@@ -121,7 +121,7 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Sets the test plan associated with this test scenario
+     * Sets the test plan associated with this test scenario.
      *
      * @param testPlan test plan associated with this test scenario
      */
