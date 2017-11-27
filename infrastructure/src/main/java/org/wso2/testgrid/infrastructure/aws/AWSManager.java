@@ -119,7 +119,7 @@ public class AWSManager {
 //            String file = new String(Files.readAllBytes(Paths.get(infraRepoDir,
 //                    script.getFilePath())), StandardCharsets.UTF_8);
 //            stackRequest.setTemplateBody(file);
-//            stackRequest.setParameters(getParameters(script, infraRepoDir));
+//                stackRequest.setParameters(getParameters(script, infraRepoDir));
 //            stackbuilder.createStack(stackRequest);
 //            if (log.isDebugEnabled()) {
 //                log.info("Stack configuration created for name " + cloudFormationName);
@@ -134,7 +134,7 @@ public class AWSManager {
 //                for (Output output : st.getOutputs()) {
 //                    Host host = new Host();
 //                    host.setIp(output.getOutputValue());
-//                    host.setLabel(output.getOutputKey());
+//                    host.setLabel(output.getOutputKey().replace("0","_"));
 //                    hosts.add(host);
 //                }
 //            }
@@ -144,10 +144,10 @@ public class AWSManager {
         Deployment deployment = new Deployment();
         Host host = new Host();
         host.setLabel("server_host");
-        host.setIp("localhost");
+        host.setIp("identity-demo-1280671592.us-east-1.elb.amazonaws.com");
         Host host2 = new Host();
         host2.setLabel("server_port");
-        host2.setIp("9443");
+        host2.setIp("443");
         deployment.setHosts(Arrays.asList(host,host2));
 
         return deployment;
@@ -203,7 +203,7 @@ public class AWSManager {
             }
             //if the operation is not complete then wait 5 seconds and check again.
             if (!completed) {
-                Thread.sleep(5000);
+                Thread.sleep(15000);
             }
         }
         return successful;
@@ -251,7 +251,8 @@ public class AWSManager {
             , TestGridInfrastructureException {
 
         Properties scriptParameters = script.getScriptParameters();
-        String cfParamFile = (String) scriptParameters.get("CloudFormationParameterFile");   //todo hard-coded
+        String cfParamFile = (String) scriptParameters.get("CloudFormationParameterFile");//todo hard-coded
+        scriptParameters.remove("CloudFormationParameterFile");
         Path path = Paths.get(infraRepoDir, cfParamFile);
         String jsonArray = new String(Files.readAllBytes(path), Charset.defaultCharset());
         ObjectMapper objectMapper = new ObjectMapper();
@@ -303,15 +304,15 @@ public class AWSManager {
             TestGridInfrastructureException {
         switch (databaseEngine) {
             case MYSQL:
-                return AWSRDSEngine.MYSQL.name();
+                return AWSRDSEngine.MYSQL.name;
             case POSTGRESQL:
-                return AWSRDSEngine.POSTGRESQL.name();
+                return AWSRDSEngine.POSTGRESQL.name;
             case ORACLE:
-                return AWSRDSEngine.ORACLE.name();
+                return AWSRDSEngine.ORACLE.name;
             case SQL_SERVER:
-                return AWSRDSEngine.SQL_SERVER.name();
+                return AWSRDSEngine.SQL_SERVER.name;
             case MariaDB:
-                return AWSRDSEngine.MariaDB.name();
+                return AWSRDSEngine.MariaDB.name;
             default:
                 throw new TestGridInfrastructureException("Request DB engine '" + databaseEngine.name()
                         + "' is not supported by AWS.");
