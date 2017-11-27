@@ -251,7 +251,7 @@
                 <version>${mysql.driver.version}</version>
             </dependency>
 
-            <!-- Reporting dependencies-->
+            <!-- Jackson dependencies-->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
@@ -261,6 +261,23 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
                 <version>${jackson.annotation.version}</version>
+            </dependency>
+
+            <!-- GlassFish dependencies-->
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-server</artifactId>
+                <version>${jersey.server.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-servlet-core</artifactId>
+                <version>${jersey.server.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-json-jackson</artifactId>
+                <version>${jersey.server.version}</version>
             </dependency>
 
             <!--TestGrid Dependencies-->
@@ -347,6 +364,11 @@
                 <artifactId>awaitility</artifactId>
                 <version>${awaitility.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>2.2.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -381,5 +403,6 @@
         <!-- DAO dependencies -->
         <mysql.driver.version>6.0.6</mysql.driver.version>
         <javax.persistence.version>2.2.0</javax.persistence.version>
+        <jersey.server.version>2.17</jersey.server.version>
     </properties>
 </project>
