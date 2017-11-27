@@ -23,15 +23,9 @@ import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Test class to test the functionality of the {@link JMeterExecutor} class.
@@ -52,11 +46,15 @@ public class JMeterExecutorTest {
         String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
 
-        return new String[][]{
-                {testLocation, Paths.get(testPath, "empty.jmx").toAbsolutePath().toString(),
-                 "JMeter test plan is empty."},
-                {testLocation, Paths.get(testPath, "invalid.jmx").toAbsolutePath().toString(),
-                 "Error occurred when loading test script."}
+        return new String[][] {
+                {
+                        testLocation, Paths.get(testPath, "empty.jmx").toAbsolutePath().toString(),
+                        "JMeter test plan is empty."
+                },
+                {
+                        testLocation, Paths.get(testPath, "invalid.jmx").toAbsolutePath().toString(),
+                        "Error occurred when loading test script."
+                }
         };
     }
 
@@ -74,7 +72,7 @@ public class JMeterExecutorTest {
                 .toAbsolutePath().toString();
         TestExecutor testExecutor = new JMeterExecutor();
         testExecutor.init(testLocation, "solution22", null);
-//        testExecutor.execute(testScript, new Deployment());
+        //        testExecutor.execute(testScript, new Deployment());
 
         // Assert if record exists in database
         // TODO: Do above assertion
@@ -98,7 +96,7 @@ public class JMeterExecutorTest {
     @Test(description = "Test for testing JMeter execute without init",
           expectedExceptions = TestAutomationException.class,
           expectedExceptionsMessageRegExp = "JMeter Executor not initialised properly.\\{ Test Name: null, " +
-                                            "Test Location: null\\}")
+                  "Test Location: null\\}")
     public void testNoInit() throws TestAutomationException {
         TestExecutor testExecutor = new JMeterExecutor();
         testExecutor.execute("Script", new Deployment());
