@@ -18,22 +18,30 @@
 package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.Database;
+import org.wso2.testgrid.common.InfraCombination;
+import org.wso2.testgrid.common.InfraResult;
+import org.wso2.testgrid.common.OperatingSystem;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.DatabaseRepository;
+import org.wso2.testgrid.dao.repository.InfraCombinationRepository;
+import org.wso2.testgrid.dao.repository.InfraResultRespository;
+import org.wso2.testgrid.dao.repository.OperatingSystemRepository;
 import org.wso2.testgrid.dao.repository.ProductTestPlanRepository;
 import org.wso2.testgrid.dao.repository.TestPlanRepository;
 import org.wso2.testgrid.dao.util.DAOUtil;
-
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This class defines the Unit of work related to a Test Plan.
+ *
+ * @since 1.0.0
+ */
 public class TestPlanUOW {
 
     private final EntityManagerFactory entityManagerFactory;
@@ -53,26 +61,56 @@ public class TestPlanUOW {
     public ProductTestPlan getProductTestPlan(String productName, String productVersion) throws TestGridDAOException {
         ProductTestPlanRepository productTestPlanRepository = new ProductTestPlanRepository(entityManagerFactory);
 
-        // Native SQL query to get the latest modifies product test plan for product name and version
+        // JPQL  query to get the latest modifies product test plan for product name and version
         String sqlQuery = StringUtil.concatStrings("SELECT c FROM ", ProductTestPlan.class.getSimpleName(),
                 " c WHERE c.productName=\"", productName, "\" AND ",
                 "c.productVersion=\"", productVersion, "\" ORDER BY c.modifiedTimestamp");
-
         return productTestPlanRepository.executeTypedQuary(sqlQuery,ProductTestPlan.class,1);
     }
 
-
+    /**
+     * This method persists a {@link ProductTestPlan} to the database.
+     *
+     * @param productTestPlan Populated ProductTestPlan object.
+     * @throws TestGridDAOException When there is an error persisting the object.
+     */
     public void persistProductTestPlan(ProductTestPlan productTestPlan) throws TestGridDAOException {
         ProductTestPlanRepository repo = new ProductTestPlanRepository(entityManagerFactory);
         repo.persist(productTestPlan);
     }
 
-    public void persistSingleTestPlan(TestPlan testPlan) throws TestGridDAOException {
+    /**
+     * This method persists a single {@link TestPlan} object to the database.
+     *
+     * @param testPlan Populated TestPlan object.
+     * @return The persisted TestPlan object with additional details added.
+     * @throws TestGridDAOException When there is an error persisting the object.
+     */
+    public TestPlan persistSingleTestPlan(TestPlan testPlan) throws TestGridDAOException {
         TestPlanRepository testPlanRepository = new TestPlanRepository(entityManagerFactory);
-        testPlanRepository.persist(testPlan);
-
+        TestPlan persisted = testPlanRepository.persist(testPlan);
+        if(persisted!=null){
+            persisted.setDeploymentScript(testPlan.getDeploymentScript());
+            persisted.setDeployment(testPlan.getDeployment());
+            persisted.setInfraRepoDir(testPlan.getInfraRepoDir());
+            persisted.setDeployerType(testPlan.getDeployerType());
+            persisted.setHome(testPlan.getHome());
+            persisted.setInfrastructureScript(testPlan.getInfrastructureScript());
+            persisted.setTestRepoDir(testPlan.getTestRepoDir());
+            persisted.setTestScenarios(testPlan.getTestScenarios());
+        }
+        return persisted;
     }
 
+
+    /**
+     * This method retrieves a {@link Database} object if it exists in the database.
+     *
+     * @param dbEngine DBEngine of the database.
+     * @param dbVersion Version of the database.
+     * @return Database object if it exists.
+     * @throws TestGridDAOException When there is an error looking up the object.
+     */
     public Database getDatabse(String dbEngine,String dbVersion) throws TestGridDAOException{
         DatabaseRepository repository = new DatabaseRepository(entityManagerFactory);
         Map<String,Object> map = new HashMap<>();
@@ -84,7 +122,67 @@ public class TestPlanUOW {
         }else {
             return null;
         }
+    }
 
+    /**
+     * This method retrieves a {@link OperatingSystem} object if it exists in the database.
+     * @param name Name of the Operating System.
+     * @param version Version of the Operating System.
+     * @return OperatingSystem object if it exists.
+     * @throws TestGridDAOException when there is an error lokking up the object.
+     */
+    public OperatingSystem getOperatingSystem(String name, String version) throws TestGridDAOException {
+        OperatingSystemRepository repository = new OperatingSystemRepository(entityManagerFactory);
+        Map<String,Object> map = new HashMap<>();
+        map.put("name",name);
+        map.put("version",version);
+        List<OperatingSystem> byFields = repository.findByFields(map);
+        if(byFields.size()==1){
+            return byFields.get(0);
+        }else {
+            return null;
+        }
+    }
 
+    /**
+     *This method retrieves a {@link InfraCombination} object if it exists in the database.
+     *
+     * @param jdk The {@link org.wso2.testgrid.common.InfraCombination.JDK} value
+     * @param database Database object of the combination.
+     * @param operatingSystem Operating System of the combination.
+     * @return InfraCombination if it exists in the databsae.
+     * @throws TestGridDAOException When there is an error looking up the InfraCombination.
+     */
+    public InfraCombination getInfraCombination(String jdk, Database database, OperatingSystem operatingSystem) throws TestGridDAOException {
+        InfraCombinationRepository repository = new InfraCombinationRepository(entityManagerFactory);
+        Map<String,Object> map = new HashMap<>();
+        map.put("jdk",jdk);
+        map.put("operatingSystem",operatingSystem);
+        map.put("database",database);
+        List<InfraCombination> byFields = repository.findByFields(map);
+        if(byFields.size()==1){
+            return byFields.get(0);
+        }else {
+            return null;
+        }
+    }
+
+    /**
+     * This method retrieves {@link InfraResult} object from the database.
+     *
+     * @param infraResult Populated InfraResult object.
+     * @return Persisted InfraResult object if it exists.
+     * @throws TestGridDAOException When there is an error looking up the object.
+     */
+    public InfraResult getInfraResult(InfraResult infraResult) throws TestGridDAOException {
+        InfraResultRespository repository = new InfraResultRespository(entityManagerFactory);
+        Map<String,Object> map = new HashMap<>();
+        map.put("infraCombination",infraResult.getInfraCombination());
+        List<InfraResult> byFields = repository.findByFields(map);
+        if(byFields.size()==1){
+            return byFields.get(0);
+        }else {
+            return null;
+        }
     }
 }

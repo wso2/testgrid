@@ -46,8 +46,8 @@ public class ProductTestPlanRepository extends AbstractRepository<ProductTestPla
      * @param entity ProductTestPlan to persist in the database
      * @throws TestGridDAOException thrown when error on persisting the ProductTestPlan instance
      */
-    public void persist(ProductTestPlan entity) throws TestGridDAOException {
-        super.persist(entity);
+    public ProductTestPlan persist(ProductTestPlan entity) throws TestGridDAOException {
+        return super.persist(entity);
     }
 
     /**

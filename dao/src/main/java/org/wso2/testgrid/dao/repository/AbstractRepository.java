@@ -56,17 +56,18 @@ abstract class AbstractRepository<T> implements Closeable {
      * @param entity entity to persist in the database
      * @throws TestGridDAOException thrown when error on persisting entity
      */
-    void persist(T entity) throws TestGridDAOException {
+    T persist(T entity) throws TestGridDAOException {
         try {
             // Begin entity manager transaction
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             entityManager.getTransaction().begin();
 
-            entityManager.merge(entity);
+            T merge = entityManager.merge(entity);
 
             // Commit transaction
             entityManager.getTransaction().commit();
             entityManager.close();
+            return merge;
         } catch (Exception e) {
             throw new TestGridDAOException("Error occurred when persisting entity in database.", e);
         }

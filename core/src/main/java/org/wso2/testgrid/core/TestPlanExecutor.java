@@ -149,11 +149,10 @@ public class TestPlanExecutor {
      */
     public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
         TestPlanUOW testPlanUOW = new TestPlanUOW();
-
         testPlan = setupInfrastructure(infrastructure, testPlan);
         testPlan.setStatus(TestPlan.Status.TESTPLAN_DEPLOYMENT_PREPARATION);
         try {
-            testPlanUOW.persistSingleTestPlan(testPlan);
+            testPlan = testPlanUOW.persistSingleTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             destroyInfrastructure(infrastructure, testPlan);
             throw new TestPlanExecutorException("Error occured while Persisting TestPlan ", e);
@@ -163,26 +162,26 @@ public class TestPlanExecutor {
             try {
                 deployment = DeployerFactory.getDeployerService(testPlan).deploy(testPlan.getDeployment());
                 testPlan.setStatus(TestPlan.Status.TESTPLAN_DEPLOYMENT_READY);
-                handleFallbackPersistance(testPlan);
+                testPlan = handlePersistance(testPlan);
 
             } catch (TestGridDeployerException e) {
                 testPlan.setStatus(TestPlan.Status.TESTPLAN_DEPLOYMENT_ERROR);
                 this.destroyInfrastructure(infrastructure, testPlan);
-                handleFallbackPersistance(testPlan);
+                testPlan = handlePersistance(testPlan);
                 throw new TestPlanExecutorException("Exception occurred while running the deployment " +
                         "for deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
                         testPlan.getName() + "'", e);
             } catch (DeployerInitializationException e) {
                 testPlan.setStatus(TestPlan.Status.TESTPLAN_DEPLOYMENT_ERROR);
                 this.destroyInfrastructure(infrastructure, testPlan);
-                handleFallbackPersistance(testPlan);
+                testPlan = handlePersistance(testPlan);
                 throw new TestPlanExecutorException("Unable to locate a Deployer Service implementation for  " +
                         "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" +
                         testPlan.getName() + "'", e);
             } catch (UnsupportedDeployerException e) {
                 testPlan.setStatus(TestPlan.Status.TESTPLAN_DEPLOYMENT_ERROR);
                 this.destroyInfrastructure(infrastructure, testPlan);
-                handleFallbackPersistance(testPlan);
+                testPlan = handlePersistance(testPlan);
                 throw new TestPlanExecutorException("Error occurred while running deployment for "
                         + "deployment pattern '" + testPlan.getDeploymentPattern() + "' in TestPlan '"
                         + testPlan.getName() + "'", e);
@@ -190,7 +189,7 @@ public class TestPlanExecutor {
 
             if (TestPlan.Status.TESTPLAN_DEPLOYMENT_READY.equals(testPlan.getStatus())) {
                 testPlan.setDeployment(deployment);
-                // TODO: Set status test scenario execution pending
+                testPlan = handlePersistance(testPlan);
                 for (TestScenario testScenario : testPlan.getTestScenarios()) {
                     try {
                         new ScenarioExecutor().runScenario(testScenario, deployment, testPlan.getTestRepoDir());
@@ -221,16 +220,17 @@ public class TestPlanExecutor {
     }
 
     /**
+     *This method handles persistence outside the try-catch ladder to avoid nested try-catch blocks.
      *
-     * @param testPlan
-     * @throws TestPlanExecutorException
+     * @param testPlan TestPlan object to persist.
+     * @throws TestPlanExecutorException When there is an error persisting the object.
      */
-    private void handleFallbackPersistance(TestPlan testPlan) throws TestPlanExecutorException {
+    private TestPlan handlePersistance(TestPlan testPlan) throws TestPlanExecutorException {
         TestPlanUOW testPlanUOW = new TestPlanUOW();
         try {
-            testPlanUOW.persistSingleTestPlan(testPlan);
+            return testPlanUOW.persistSingleTestPlan(testPlan);
         } catch (TestGridDAOException e) {
-            throw new TestPlanExecutorException("Error occured while persisting the test plan");
+            throw new TestPlanExecutorException("Error occurred while persisting the test plan");
         }
     }
 
