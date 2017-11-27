@@ -26,7 +26,7 @@ import org.wso2.testgrid.dao.util.DAOUtil;
 import javax.persistence.EntityManagerFactory;
 
 /**
- * Unit of work class to handle to data base transactions when running tests.
+ * Unit of work class to handle to data base transactions related to test cases.
  *
  * @since 1.0.0
  */
@@ -44,8 +44,8 @@ public class TestAutomationUOW {
     /**
      * Persists a pending test case for the given params.
      *
-     * @param testName       name of the test case
-     * @param testScenario   {@link TestScenario} instance associated with test case
+     * @param testName     name of the test case
+     * @param testScenario {@link TestScenario} instance associated with test case
      * @throws TestGridDAOException thrown when error on persisting
      */
     public void persistPendingTestCase(String testName, TestScenario testScenario)
