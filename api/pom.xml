@@ -36,10 +36,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.persistence</groupId>
-            <artifactId>javax.persistence</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.common</artifactId>
         </dependency>

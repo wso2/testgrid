@@ -26,54 +26,133 @@ public class ProductTestPlan {
     private String startTimestamp;
     private String endTimestamp;
     private String status;
-    private String product_name;
-    private String product_version;
+    private String productName;
+    private String productVersion;
+    private String reportLocation;
 
+    /**
+     * Returns the id of the product test plan.
+     *
+     * @return product test plan id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Sets the id of the product test plan.
+     *
+     * @param id product test plan id
+     */
     public void setId(String id) {
         this.id = id;
     }
 
+    /**
+     * Returns the start timestamp of the product test plan.
+     *
+     * @return product test plan timestamp
+     */
     public String getStartTimestamp() {
         return startTimestamp;
     }
 
+    /**
+     * Sets the start timestamp of the product test plan.
+     *
+     * @param startTimestamp product test plan start timestamp
+     */
     public void setStartTimestamp(String startTimestamp) {
         this.startTimestamp = startTimestamp;
     }
 
+    /**
+     * Returns the end timestamp of the product test plan.
+     *
+     * @return product test plan end timestamp
+     */
     public String getEndTimestamp() {
         return endTimestamp;
     }
 
+    /**
+     * Sets the end timestamp of the product test plan.
+     *
+     * @param endTimestamp product test plan end timestamp
+     */
     public void setEndTimestamp(String endTimestamp) {
         this.endTimestamp = endTimestamp;
     }
 
+    /**
+     * Returns the status of the product test plan.
+     *
+     * @return product test plan status
+     */
     public String getStatus() {
         return status;
     }
 
+    /**
+     * Sets the status of the product test plan.
+     *
+     * @param status product test plan status
+     */
     public void setStatus(String status) {
         this.status = status;
     }
 
-    public String getProduct_name() {
-        return product_name;
+    /**
+     * Returns the product name of the product test plan.
+     *
+     * @return product name
+     */
+    public String getProductName() {
+        return productName;
     }
 
-    public void setProduct_name(String product_name) {
-        this.product_name = product_name;
+    /**
+     * Sets the product name of the product test plan.
+     *
+     * @param productName product test plan product name
+     */
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
-    public String getProduct_version() {
-        return product_version;
+    /**
+     * Returns the product version of the product test plan.
+     *
+     * @return product version
+     */
+    public String getProductVersion() {
+        return productVersion;
     }
 
-    public void setProduct_version(String product_version) {
-        this.product_version = product_version;
+    /**
+     * Sets the product version of the product test plan.
+     *
+     * @param productVersion product test plan product version
+     */
+    public void setProductVersion(String productVersion) {
+        this.productVersion = productVersion;
+    }
+
+    /**
+     * Returns the report location of the product test plan.
+     *
+     * @return product test plan report location
+     */
+    public String getReportLocation() {
+        return reportLocation;
+    }
+
+    /**
+     * Sets the report location of the product test plan.
+     *
+     * @param reportLocation product test plan report location
+     */
+    public void setReportLocation(String reportLocation) {
+        this.reportLocation = reportLocation;
     }
 }

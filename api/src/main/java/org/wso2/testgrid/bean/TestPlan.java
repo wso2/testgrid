@@ -27,80 +27,170 @@ public class TestPlan {
     private String deploymentPattern;
     private String description;
     private String startTimestamp;
-    private String endTimestamp;
+    private String modifiedTimestamp;
     private String status;
     private String productTestPlanId;
     private String infraResultId;
 
+    /**
+     * Returns the id of the test plan.
+     *
+     * @return test plan id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Sets the id of the test plan.
+     *
+     * @param id test plan id
+     */
     public void setId(String id) {
         this.id = id;
     }
 
+    /**
+     * Returns the name of the test plan.
+     *
+     * @return test plan name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name of the test plan.
+     *
+     * @param name test plan name
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the deployment pattern of the test plan.
+     *
+     * @return test plan deployment pattern
+     */
     public String getDeploymentPattern() {
         return deploymentPattern;
     }
 
+    /**
+     * Sets the deployment pattern of the test plan.
+     *
+     * @param deploymentPattern test plan deployment pattern
+     */
     public void setDeploymentPattern(String deploymentPattern) {
         this.deploymentPattern = deploymentPattern;
     }
 
+    /**
+     * Returns the description of the test plan.
+     *
+     * @return test plan description
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Sets the description pattern of the test plan.
+     *
+     * @param description test plan description
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /**
+     * Returns the start timestamp of the test plan.
+     *
+     * @return test plan timestamp
+     */
     public String getStartTimestamp() {
         return startTimestamp;
     }
 
+    /**
+     * Sets the start timestamp of the test plan.
+     *
+     * @param startTimestamp test plan start timestamp
+     */
     public void setStartTimestamp(String startTimestamp) {
         this.startTimestamp = startTimestamp;
     }
 
-    public String getEndTimestamp() {
-        return endTimestamp;
-    }
-
-    public void setEndTimestamp(String endTimestamp) {
-        this.endTimestamp = endTimestamp;
-    }
-
+    /**
+     * Returns the status of the test plan.
+     *
+     * @return test plan status
+     */
     public String getStatus() {
         return status;
     }
 
+    /**
+     * Sets the status of the test plan.
+     *
+     * @param status test plan status
+     */
     public void setStatus(String status) {
         this.status = status;
     }
 
+    /**
+     * Returns the id of the product test plan.
+     *
+     * @return product test plan id
+     */
     public String getProductTestPlanId() {
         return productTestPlanId;
     }
 
+    /**
+     * Sets the id of the product test plan.
+     *
+     * @param productTestPlanId product test plan id
+     */
     public void setProductTestPlanId(String productTestPlanId) {
         this.productTestPlanId = productTestPlanId;
     }
 
+    /**
+     * Returns the id of the infra result.
+     *
+     * @return infra result test plan id
+     */
     public String getInfraResultId() {
         return infraResultId;
     }
 
+    /**
+     * Sets the id of the infra result.
+     *
+     * @param infraResultId infra result id
+     */
     public void setInfraResultId(String infraResultId) {
         this.infraResultId = infraResultId;
+    }
+
+    /**
+     * Returns the modified timestamp of the test plan.
+     *
+     * @return product test plan end timestamp
+     */
+    public String getModifiedTimestamp() {
+        return modifiedTimestamp;
+    }
+
+    /**
+     * Returns the modified timestamp of the test plan.
+     *
+     * @return product test plan end timestamp
+     */
+    public void setModifiedTimestamp(String modifiedTimestamp) {
+        this.modifiedTimestamp = modifiedTimestamp;
     }
 }
