@@ -19,61 +19,65 @@
 package org.wso2.testgrid.bean;
 
 /**
- * Bean class of ProductTestPlan object used in APIs.
+ * Bean class of TestScenario object used in APIs.
  */
-public class ProductTestPlan {
-    private String id;
-    private String startTimestamp;
-    private String endTimestamp;
-    private String status;
-    private String product_name;
-    private String product_version;
+public class TestScenario {
 
+    private String id;
+    private String status;
+    private String name;
+
+    /**
+     * Returns the id of the test scenario.
+     *
+     * @return test scenario id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Sets the test scenario id.
+     *
+     * @param id test scenario id
+     */
     public void setId(String id) {
         this.id = id;
     }
 
-    public String getStartTimestamp() {
-        return startTimestamp;
-    }
-
-    public void setStartTimestamp(String startTimestamp) {
-        this.startTimestamp = startTimestamp;
-    }
-
-    public String getEndTimestamp() {
-        return endTimestamp;
-    }
-
-    public void setEndTimestamp(String endTimestamp) {
-        this.endTimestamp = endTimestamp;
-    }
-
+    /**
+     * Returns the status of the test scenario.
+     *
+     * @return test scenario status
+     */
     public String getStatus() {
         return status;
     }
 
+    /**
+     * Sets the test scenario status.
+     *
+     * @param status test scenario status
+     */
     public void setStatus(String status) {
         this.status = status;
     }
 
-    public String getProduct_name() {
-        return product_name;
+    /**
+     * Returns the name of the test scenario.
+     *
+     * @return test scenario name
+     */
+    public String getName() {
+        return name;
     }
 
-    public void setProduct_name(String product_name) {
-        this.product_name = product_name;
-    }
-
-    public String getProduct_version() {
-        return product_version;
-    }
-
-    public void setProduct_version(String product_version) {
-        this.product_version = product_version;
+    /**
+     * Sets the test scenario name.
+     *
+     * @param name test scenario name
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 }
