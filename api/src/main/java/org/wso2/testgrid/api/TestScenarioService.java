@@ -42,7 +42,7 @@ public class TestScenarioService {
     public Response getAllTestScenarios(@QueryParam("test-plan-id") String testPlanId) {
         List<TestScenario> testScenarios = new ArrayList<>();
         TestScenario testScenario;
-        for (int i =0; i<5; i++) {
+        for (int i = 0; i < 5; i++) {
             testScenario = new TestScenario();
             testScenario.setName("TestScenario-" + i);
             testScenario.setStatus("COMPLETED");
