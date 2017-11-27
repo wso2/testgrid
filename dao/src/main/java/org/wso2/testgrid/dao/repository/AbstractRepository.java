@@ -204,10 +204,10 @@ abstract class AbstractRepository<T> implements Closeable {
      * @return result list after executing the native query
      */
     @SuppressWarnings("unchecked")
-    public <R> R executeTypedQuary(String nativeQuery,Class bean,int limit) throws TestGridDAOException {
+    public <R> R executeTypedQuary(String nativeQuery, Class bean, int limit) throws TestGridDAOException {
         try {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
-            Query query = entityManager.createQuery(nativeQuery,bean);
+            Query query = entityManager.createQuery(nativeQuery, bean);
             query.setMaxResults(limit);
             return (R) query.getSingleResult();
         } catch (Exception e) {
@@ -215,6 +215,7 @@ abstract class AbstractRepository<T> implements Closeable {
                     nativeQuery, "]"), e);
         }
     }
+
     @Override
     public void close() {
         entityManagerFactory.close();

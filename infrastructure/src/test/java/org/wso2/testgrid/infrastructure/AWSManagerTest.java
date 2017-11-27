@@ -111,7 +111,6 @@ public class AWSManagerTest extends PowerMockTestCase {
         Infrastructure infrastructure = new Infrastructure();
         infrastructure.setName(patternName);
         infrastructure.setScripts(Collections.singletonList(script));
-        ClassLoader classLoader = getClass().getClassLoader();
         File resourcePath = new File("src/test/resources");
         //Stack object with output object
         Stack stack = new Stack();

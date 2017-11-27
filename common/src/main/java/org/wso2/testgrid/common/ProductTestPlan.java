@@ -175,7 +175,7 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
     }
 
     /**
-     * Sets the status of the product test plan
+     * Sets the status of the product test plan.
      *
      * @param status status of the product test plan
      */

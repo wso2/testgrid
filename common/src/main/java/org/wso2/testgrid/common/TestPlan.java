@@ -273,7 +273,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Sets the product test plan associated with the test plan
+     * Sets the product test plan associated with the test plan.
      *
      * @param productTestPlan product test plan associated with the test plan
      */

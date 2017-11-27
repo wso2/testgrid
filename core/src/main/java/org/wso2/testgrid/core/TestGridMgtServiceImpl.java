@@ -178,7 +178,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
             //persist before runing test plan
             testPlan.setProductTestPlan(productTestPlan);
             testPlan = testPlanUOW.persistSingleTestPlan(testPlan);
-            testPlan = new TestPlanExecutor().runTestPlan(testPlan, infrastructure);
+            new TestPlanExecutor().runTestPlan(testPlan, infrastructure);
 
         } catch (TestPlanExecutorException e) {
             String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +

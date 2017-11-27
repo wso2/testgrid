@@ -36,7 +36,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+
 
 /**
  *
@@ -136,7 +136,7 @@ public class RunTestPlanCommand extends Command {
         } catch (IOException e) {
             throw new TestGridException("Error while executing test plan " + testPlanLocation, e);
         } catch (TestGridDAOException e) {
-            throw new TestGridException("Error while getting the ProductTestPlan from Databse",e);
+            throw new TestGridException("Error while getting the ProductTestPlan from Databse", e);
         }
 
     }

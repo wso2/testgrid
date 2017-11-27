@@ -32,10 +32,11 @@ import org.wso2.testgrid.dao.repository.OperatingSystemRepository;
 import org.wso2.testgrid.dao.repository.ProductTestPlanRepository;
 import org.wso2.testgrid.dao.repository.TestPlanRepository;
 import org.wso2.testgrid.dao.util.DAOUtil;
-import javax.persistence.EntityManagerFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.EntityManagerFactory;
 
 /**
  * This class defines the Unit of work related to a Test Plan.
@@ -65,7 +66,7 @@ public class TestPlanUOW {
         String sqlQuery = StringUtil.concatStrings("SELECT c FROM ", ProductTestPlan.class.getSimpleName(),
                 " c WHERE c.productName=\"", productName, "\" AND ",
                 "c.productVersion=\"", productVersion, "\" ORDER BY c.modifiedTimestamp");
-        return productTestPlanRepository.executeTypedQuary(sqlQuery,ProductTestPlan.class,1);
+        return productTestPlanRepository.executeTypedQuary(sqlQuery, ProductTestPlan.class, 1);
     }
 
     /**
@@ -89,7 +90,7 @@ public class TestPlanUOW {
     public TestPlan persistSingleTestPlan(TestPlan testPlan) throws TestGridDAOException {
         TestPlanRepository testPlanRepository = new TestPlanRepository(entityManagerFactory);
         TestPlan persisted = testPlanRepository.persist(testPlan);
-        if(persisted!=null){
+        if (persisted != null) {
             persisted.setDeploymentScript(testPlan.getDeploymentScript());
             persisted.setDeployment(testPlan.getDeployment());
             persisted.setInfraRepoDir(testPlan.getInfraRepoDir());
@@ -106,63 +107,65 @@ public class TestPlanUOW {
     /**
      * This method retrieves a {@link Database} object if it exists in the database.
      *
-     * @param dbEngine DBEngine of the database.
+     * @param dbEngine  DBEngine of the database.
      * @param dbVersion Version of the database.
      * @return Database object if it exists.
      * @throws TestGridDAOException When there is an error looking up the object.
      */
-    public Database getDatabse(String dbEngine,String dbVersion) throws TestGridDAOException{
+    public Database getDatabse(String dbEngine, String dbVersion) throws TestGridDAOException {
         DatabaseRepository repository = new DatabaseRepository(entityManagerFactory);
-        Map<String,Object> map = new HashMap<>();
-        map.put("engine",dbEngine);
-        map.put("version",dbVersion);
+        Map<String, Object> map = new HashMap<>();
+        map.put("engine", dbEngine);
+        map.put("version", dbVersion);
         List<Database> byFields = repository.findByFields(map);
-        if(byFields.size()==1){
+        if (byFields.size() == 1) {
             return byFields.get(0);
-        }else {
+        } else {
             return null;
         }
     }
 
     /**
      * This method retrieves a {@link OperatingSystem} object if it exists in the database.
-     * @param name Name of the Operating System.
+     *
+     * @param name    Name of the Operating System.
      * @param version Version of the Operating System.
      * @return OperatingSystem object if it exists.
      * @throws TestGridDAOException when there is an error lokking up the object.
      */
     public OperatingSystem getOperatingSystem(String name, String version) throws TestGridDAOException {
         OperatingSystemRepository repository = new OperatingSystemRepository(entityManagerFactory);
-        Map<String,Object> map = new HashMap<>();
-        map.put("name",name);
-        map.put("version",version);
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", name);
+        map.put("version", version);
         List<OperatingSystem> byFields = repository.findByFields(map);
-        if(byFields.size()==1){
+        if (byFields.size() == 1) {
             return byFields.get(0);
-        }else {
+        } else {
             return null;
         }
     }
 
     /**
-     *This method retrieves a {@link InfraCombination} object if it exists in the database.
+     * This method retrieves a {@link InfraCombination} object if it exists in the database.
      *
-     * @param jdk The {@link org.wso2.testgrid.common.InfraCombination.JDK} value
-     * @param database Database object of the combination.
+     * @param jdk             The {@link org.wso2.testgrid.common.InfraCombination.JDK} value
+     * @param database        Database object of the combination.
      * @param operatingSystem Operating System of the combination.
      * @return InfraCombination if it exists in the databsae.
      * @throws TestGridDAOException When there is an error looking up the InfraCombination.
      */
-    public InfraCombination getInfraCombination(String jdk, Database database, OperatingSystem operatingSystem) throws TestGridDAOException {
+    public InfraCombination getInfraCombination(String jdk, Database database, OperatingSystem operatingSystem)
+            throws TestGridDAOException {
         InfraCombinationRepository repository = new InfraCombinationRepository(entityManagerFactory);
-        Map<String,Object> map = new HashMap<>();
-        map.put("jdk",jdk);
-        map.put("operatingSystem",operatingSystem);
-        map.put("database",database);
+        Map<String, Object> map = new HashMap<>();
+        map.put("jdk", jdk);
+        map.put("operatingSystem", operatingSystem);
+        map.put("database", database);
         List<InfraCombination> byFields = repository.findByFields(map);
-        if(byFields.size()==1){
+        if (byFields.size() == 1) {
             return byFields.get(0);
-        }else {
+        } else {
             return null;
         }
     }
@@ -176,12 +179,12 @@ public class TestPlanUOW {
      */
     public InfraResult getInfraResult(InfraResult infraResult) throws TestGridDAOException {
         InfraResultRespository repository = new InfraResultRespository(entityManagerFactory);
-        Map<String,Object> map = new HashMap<>();
-        map.put("infraCombination",infraResult.getInfraCombination());
+        Map<String, Object> map = new HashMap<>();
+        map.put("infraCombination", infraResult.getInfraCombination());
         List<InfraResult> byFields = repository.findByFields(map);
-        if(byFields.size()==1){
+        if (byFields.size() == 1) {
             return byFields.get(0);
-        }else {
+        } else {
             return null;
         }
     }
