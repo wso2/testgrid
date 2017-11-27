@@ -16,31 +16,33 @@
  * under the License.
  */
 
-package org.wso2.testgrid.automation.file.common;
+package org.wso2.testgrid.automation.reader;
 
-import org.wso2.testgrid.automation.file.JMeterTestReader;
-import org.wso2.testgrid.automation.file.TestNGTestReader;
-import org.wso2.testgrid.common.constants.TestGridConstants;
+import org.wso2.testgrid.common.TestScenario;
+
+import java.util.Optional;
 
 /**
- * The factory class to get a Test reader implementation.
+ * The factory class to get a {@link TestReader} implementation.
+ *
+ * @since 1.0.0
  */
-class TestReaderFactory {
+public class TestReaderFactory {
 
     /**
-     * This method returns the TestReader implementation of the given type.
+     * This method returns the {@link TestReader} implementation of the given type.
      *
-     * @param testType Type of the tests as a String.
-     * @return object of TestReader.
+     * @param testType type of tests
+     * @return instance of an {@link TestReader} for the given test type
      */
-    static TestReader getTestReader(String testType) {
+    public static Optional<TestReader> getTestReader(TestScenario.TestEngine testType) {
         switch (testType) {
-            case TestGridConstants.TEST_TYPE_JMETER:
-                return new JMeterTestReader();
-            case TestGridConstants.TEST_TYPE_TESTNG:
-                return new TestNGTestReader();
+            case JMETER:
+                return Optional.of(new JMeterTestReader());
+            case TESTNG:
+                return Optional.of(new TestNGTestReader());
             default:
-                return null;
+                return Optional.empty();
         }
     }
 }

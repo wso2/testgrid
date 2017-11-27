@@ -32,7 +32,6 @@ import javax.persistence.PrePersist;
 @MappedSuperclass
 public abstract class AbstractUUIDEntity {
 
-
     @Id
     @Column(name = "id", length = 36)
     private String id;

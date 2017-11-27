@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Infrastructure;
@@ -48,6 +49,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * This class is responsible for creating the AWS infrastructure.
@@ -60,6 +62,25 @@ public class AWSManager {
     private static final Log log = LogFactory.getLog(AWSManager.class);
     private static final String WUM_USERNAME = "WUMUsername";
     private static final String WUM_PASSWORD = "WUMPassword";
+    private static final String DB_ENGINE = "DBEngine";
+    private static final String DB_ENGINE_VERSION = "DBEngineVersion";
+    private static final String JDK = "JDK";
+    private static final String IMAGE = "Image";
+
+    private enum AWSRDSEngine {
+        MYSQL ("mysql"), ORACLE ("oracle-se"), SQL_SERVER ("sqlserver-ex"), POSTGRESQL ("postgre"),
+        MariaDB("mariadb");
+
+        private final String name;
+
+        AWSRDSEngine(String s) {
+            name = s;
+        }
+
+        public String toString() {
+            return this.name;
+        }
+    }
 
     /**
      * This constructor creates AWS deployer object and validate AWS related environment variables are present.
@@ -112,9 +133,9 @@ public class AWSManager {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
-                    if(output.getOutputKey().contains("WSO2ISHostName")){
+                    if (output.getOutputKey().contains("WSO2ISHostName")) {
                         host.setLabel("server_host");
-                    }else{
+                    } else {
                         host.setLabel(output.getOutputKey());
                     }
                     hosts.add(host);
@@ -222,30 +243,74 @@ public class AWSManager {
     private List<Parameter> getParameters(Script script, String infraRepoDir) throws IOException
             , TestGridInfrastructureException {
 
-        Path path = Paths.get(infraRepoDir, script.getScriptParameters());
+        Properties scriptParameters = script.getScriptParameters();
+        String cfParamFile = (String) scriptParameters.get("CloudFormationParameterFile");   //todo hard-coded
+        Path path = Paths.get(infraRepoDir, cfParamFile);
         String jsonArray = new String(Files.readAllBytes(path), Charset.defaultCharset());
         ObjectMapper objectMapper = new ObjectMapper();
-        List<Parameter> parameters = objectMapper.readValue(jsonArray, new AWSTypeReference());
-        for (Parameter parameter : parameters) {
+
+        List<Parameter> cfCompatibleParameters = objectMapper.readValue(jsonArray, new AWSTypeReference());
+        scriptParameters.forEach((key, value) -> {
+            Parameter awsParam = new Parameter().withParameterKey((String) key).withParameterValue((String) value);
+            cfCompatibleParameters.add(awsParam);
+        });
+
+        for (Parameter parameter : cfCompatibleParameters) {
             if (parameter.getParameterKey().equals(WUM_USERNAME)) {
                 String wumUserName = EnvironmentUtil.getSystemVariableValue(parameter.getParameterValue());
                 if (wumUserName != null) {
                     parameter.setParameterValue(wumUserName);
                 } else {
-                    throw new TestGridInfrastructureException("WUM Credentials must be set as environment variables");
+                    throw new TestGridInfrastructureException("WUM Credentials (WUM_USERNAME, WUM_PASSWORD) must be "
+                            + "set as environment variables");
                 }
 
-            } else if (parameter.getParameterKey().equals(WUM_PASSWORD)) {
+            } else if (WUM_PASSWORD.equals(parameter.getParameterKey())) {
                 String wumPassword = EnvironmentUtil.getSystemVariableValue(parameter.getParameterValue());
                 if (wumPassword != null) {
                     parameter.setParameterValue(wumPassword);
                 } else {
                     throw new TestGridInfrastructureException("WUM Credentials must be set as environment variables");
                 }
+            } else if (DB_ENGINE.equals(parameter.getParameterKey())) {
+                parameter.setParameterValue(this.getDatabaseEngineName(this.infra.getDatabase().getEngine()));
+            } else if (DB_ENGINE_VERSION.equals(parameter.getParameterKey())) {
+                parameter.setParameterValue(this.infra.getDatabase().getVersion());
+            } else if (JDK.equals(parameter.getParameterKey())) {
+                parameter.setParameterValue(this.infra.getJDK().name());
+            } else if (IMAGE.equals(parameter.getParameterKey())) {
+                parameter.setParameterValue(this.infra.getImageId());
             }
         }
-        return parameters;
+        return cfCompatibleParameters;
     }
+
+    /**
+     * Converts the given db engine type to the AWS RDS engine type.
+     *
+     * @param databaseEngine       Required DatabaseEngine type.
+     * @return a {@link String} object which indicates the name of AWS RDS
+     * @throws TestGridInfrastructureException When the given db engine is not supported by AWS RDS.
+     */
+    private String getDatabaseEngineName(Database.DatabaseEngine databaseEngine) throws
+            TestGridInfrastructureException {
+        switch (databaseEngine) {
+            case MYSQL:
+                return AWSRDSEngine.MYSQL.name();
+            case POSTGRESQL:
+                return AWSRDSEngine.POSTGRESQL.name();
+            case ORACLE:
+                return AWSRDSEngine.ORACLE.name();
+            case SQL_SERVER:
+                return AWSRDSEngine.SQL_SERVER.name();
+            case MariaDB:
+                return AWSRDSEngine.MariaDB.name();
+            default:
+                throw new TestGridInfrastructureException("Request DB engine '" + databaseEngine.name()
+                        + "' is not supported by AWS.");
+        }
+    }
+
 
     /**
      * Wrapper TypeReference for json Object mapper function.

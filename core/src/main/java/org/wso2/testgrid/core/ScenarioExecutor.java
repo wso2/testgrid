@@ -18,41 +18,46 @@
 
 package org.wso2.testgrid.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.automation.TestEngineImpl;
 import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestAutomationEngineException;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.core.exception.ScenarioExecutorException;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
 /**
  * This class is mainly responsible for executing a TestScenario. This will invoke the TestAutomationEngine for
  * executing the tests available for a particular solution pattern.
+ *
+ * @since 1.0.0
  */
 public class ScenarioExecutor {
-
-    private static final Log log = LogFactory.getLog(ScenarioExecutor.class);
 
     /**
      * This method executes a given TestScenario.
      *
-     * @param  testScenario an instance of TestScenario in which the tests should be executed.
-     * @param  deployment an instance of Deployment in which the tests should be executed against.
-     * @param  homeDir the location of cloned TestPlan.
+     * @param testScenario an instance of TestScenario in which the tests should be executed.
+     * @param deployment   an instance of Deployment in which the tests should be executed against.
+     * @param testPlan     test plan associated with the test scenario
      * @return the modified TestScenario with status
      * @throws ScenarioExecutorException If something goes wrong while executing the TestScenario.
      */
-    public TestScenario runScenario(TestScenario testScenario, Deployment deployment, String homeDir)
+    public TestScenario runScenario(TestScenario testScenario, Deployment deployment, TestPlan testPlan)
             throws ScenarioExecutorException {
         try {
-            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_RUNNING);
+            String homeDir = testPlan.getTestRepoDir();
+            testScenario = setStatusAndPersistTestScenario(testScenario, TestScenario.Status.TEST_SCENARIO_RUNNING);
             new TestEngineImpl().runScenario(testScenario, homeDir, deployment);
-            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_COMPLETED);
+            testScenario =
+                    setStatusAndPersistTestScenario(testScenario, TestScenario.Status.TEST_SCENARIO_COMPLETED);
         } catch (TestAutomationEngineException e) {
-            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_ERROR);
-            throw new ScenarioExecutorException("Exception occurred while running the Tests for Solution Pattern '" +
-                                                testScenario.getName() + "'");
+            testScenario = setStatusAndPersistTestScenario(testScenario, TestScenario.Status.TEST_SCENARIO_ERROR);
+            throw new ScenarioExecutorException(StringUtil
+                    .concatStrings("Exception occurred while running the Tests for Solution Pattern '",
+                            testScenario.getName(), "'"));
         }
         return testScenario;
     }
@@ -60,7 +65,7 @@ public class ScenarioExecutor {
     /**
      * This method aborts a running TestScenario.
      *
-     * @param  testScenario an instance of TestScenario in which the tests should be aborted.
+     * @param testScenario an instance of TestScenario in which the tests should be aborted.
      * @return the status of the operation
      * @throws ScenarioExecutorException If something goes wrong while aborting the TestScenario.
      */
@@ -69,13 +74,21 @@ public class ScenarioExecutor {
     }
 
     /**
-     * This method returns the status of a running TestScenario.
+     * Sets the given status and persists the {@link TestScenario} instance.
      *
-     * @param  testScenario an instance of TestScenario in which the status should be monitored.
-     * @return the status of the TestScenario
-     * @throws ScenarioExecutorException If something goes wrong while checking the status of the TestScenario.
+     * @param testScenario test scenario to be persisted
+     * @param status       status of the test scenario
+     * @return persisted {@link TestScenario} instance
+     * @throws ScenarioExecutorException thrown when error on persisting the {@link TestScenario} instance
      */
-    public TestScenario.Status getStatus(TestScenario testScenario) throws ScenarioExecutorException {
-        return null;
+    private TestScenario setStatusAndPersistTestScenario(TestScenario testScenario, TestScenario.Status status)
+            throws ScenarioExecutorException {
+        try {
+            TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
+            return testScenarioUOW.persistTestScenario(testScenario, status);
+        } catch (TestGridDAOException e) {
+            throw new ScenarioExecutorException(StringUtil
+                    .concatStrings("Error occurred when persisting test scenario - ", testScenario.toString()), e);
+        }
     }
 }
