@@ -326,21 +326,21 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Sets the deployer-type (puppet/ansible) of the test plan.
-     *
-     * @param deployerType deployer-type (puppet/ansible) of the test plan
-     */
-    public void setDeployerType(DeployerType deployerType) {
-        this.deployerType = deployerType;
-    }
-
-    /**
      * Sets the deployer-type (puppet/ansible) of the test plan using the string value.
      *
      * @param deployerType string deployer-type (puppet/ansible) of the test plan
      */
     public void setDeployerType(String deployerType) {
         this.deployerType = DeployerType.valueOf(deployerType.toUpperCase(Locale.ENGLISH));
+    }
+
+    /**
+     * Sets the deployer-type (puppet/ansible) of the test plan.
+     *
+     * @param deployerType deployer-type (puppet/ansible) of the test plan
+     */
+    public void setDeployerType(DeployerType deployerType) {
+        this.deployerType = deployerType;
     }
 
     /**

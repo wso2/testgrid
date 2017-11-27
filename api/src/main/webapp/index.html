@@ -1,0 +1,43 @@
+<!doctype html>
+<html ng-app="demo">
+<head>
+    <title>TestGrid API</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+    <script src="js/apiCall.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Product Test Plans</h2>
+
+        <div ng-controller="producttestplansctrl">
+
+            <table class="table table-striped" border=1 width="50%" align=center">
+                <tr>
+                    <th>ID</th>
+                    <th>Start Timestamp</th>
+                    <th>End Timestamp</th>
+                    <th>Status</th>
+                    <th>Product Name</th>
+                    <th>Product Version</th>
+
+                </tr>
+                <tr ng-repeat="obj in producttestplans">
+                    <td><a ng-href="api/producttestplan/{{obj.id}}">{{obj.id}}</a></td>
+                    <td>{{obj.startTimestamp}}</td>
+                    <td>{{obj.endTimestamp}}</td>
+                    <td>{{obj.status}}</td>
+                    <td>{{obj.product_name}}</td>
+                    <td>{{obj.product_version}}</td>
+                </tr>
+            </table>
+
+        </div>
+    </div>
+</body>
+</html>
