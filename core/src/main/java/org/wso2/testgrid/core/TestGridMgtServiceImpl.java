@@ -74,6 +74,8 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
                                 .get(infraConfig.getAbsolutePath()), null);
                         infrastructure = configProvider.getConfigurationObject(Infrastructure.class);
                         infras.put(infrastructure.getName(), infrastructure);
+                    } else {
+                        log.warn("Provided infra plan file is not a YAML file: " + infraYaml);
                     }
                 } catch (ConfigurationException e) {
                     log.error("Unable to parse Infrastructure configuration file '" + infraConfig.getName() + "'." +

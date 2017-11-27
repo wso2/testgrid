@@ -58,10 +58,14 @@ public class CommandHandler extends HelpCommand {
 
     @Argument(index = 0,
               metaVar = "<sub-command>",
-              usage = "",
+              usage = "Consists of several sub-commands",
               required = false,
               handler = SubCommandHandler.class)
     @SubCommands({
+                         @SubCommand(name = "generate-infrastructure-plan",
+                                     impl = GenerateInfrastructurePlanCommand.class),
+                         @SubCommand(name = "gen-infra-plan",
+                                     impl = GenerateInfrastructurePlanCommand.class),
                          @SubCommand(name = "create-product-testplan",
                                      impl = CreateProductTestPlanCommand.class),
                          @SubCommand(name = "run-testplan",

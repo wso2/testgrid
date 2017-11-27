@@ -50,6 +50,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * This class is responsible for creating the AWS infrastructure.
@@ -249,20 +250,29 @@ public class AWSManager {
     private List<Parameter> getParameters(Script script, String infraRepoDir) throws IOException
             , TestGridInfrastructureException {
 
-        Path path = Paths.get(infraRepoDir, script.getScriptParameters());
+        Properties scriptParameters = script.getScriptParameters();
+        String cfParamFile = (String) scriptParameters.get("CloudFormationParameterFile");   //todo hard-coded
+        Path path = Paths.get(infraRepoDir, cfParamFile);
         String jsonArray = new String(Files.readAllBytes(path), Charset.defaultCharset());
         ObjectMapper objectMapper = new ObjectMapper();
-        List<Parameter> parameters = objectMapper.readValue(jsonArray, new AWSTypeReference());
-        for (Parameter parameter : parameters) {
+
+        List<Parameter> cfCompatibleParameters = objectMapper.readValue(jsonArray, new AWSTypeReference());
+        scriptParameters.forEach((key, value) -> {
+            Parameter awsParam = new Parameter().withParameterKey((String) key).withParameterValue((String) value);
+            cfCompatibleParameters.add(awsParam);
+        });
+
+        for (Parameter parameter : cfCompatibleParameters) {
             if (parameter.getParameterKey().equals(WUM_USERNAME)) {
                 String wumUserName = EnvironmentUtil.getSystemVariableValue(parameter.getParameterValue());
                 if (wumUserName != null) {
                     parameter.setParameterValue(wumUserName);
                 } else {
-                    throw new TestGridInfrastructureException("WUM Credentials must be set as environment variables");
+                    throw new TestGridInfrastructureException("WUM Credentials (WUM_USERNAME, WUM_PASSWORD) must be "
+                            + "set as environment variables");
                 }
 
-            } else if (parameter.getParameterKey().equals(WUM_PASSWORD)) {
+            } else if (WUM_PASSWORD.equals(parameter.getParameterKey())) {
                 String wumPassword = EnvironmentUtil.getSystemVariableValue(parameter.getParameterValue());
                 if (wumPassword != null) {
                     parameter.setParameterValue(wumPassword);
@@ -279,7 +289,7 @@ public class AWSManager {
                 parameter.setParameterValue(this.infra.getImageId());
             }
         }
-        return parameters;
+        return cfCompatibleParameters;
     }
 
     /**

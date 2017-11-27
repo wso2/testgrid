@@ -23,15 +23,9 @@ import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Test class to test the functionality of the {@link JMeterExecutor} class.
@@ -52,11 +46,15 @@ public class JMeterExecutorTest {
         String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
 
-        return new String[][]{
-                {testLocation, Paths.get(testPath, "empty.jmx").toAbsolutePath().toString(),
-                 "JMeter test plan is empty."},
-                {testLocation, Paths.get(testPath, "invalid.jmx").toAbsolutePath().toString(),
-                 "Error occurred when loading test script."}
+        return new String[][] {
+                {
+                        testLocation, Paths.get(testPath, "empty.jmx").toAbsolutePath().toString(),
+                        "JMeter test plan is empty."
+                },
+                {
+                        testLocation, Paths.get(testPath, "invalid.jmx").toAbsolutePath().toString(),
+                        "Error occurred when loading test script."
+                }
         };
     }
 
@@ -74,7 +72,7 @@ public class JMeterExecutorTest {
                 .toAbsolutePath().toString();
         TestExecutor testExecutor = new JMeterExecutor();
         testExecutor.init(testLocation, "solution22", null);
-//        testExecutor.execute(testScript, new Deployment());
+        //        testExecutor.execute(testScript, new Deployment());
 
         // Assert if record exists in database
         // TODO: Do above assertion
@@ -98,7 +96,7 @@ public class JMeterExecutorTest {
     @Test(description = "Test for testing JMeter execute without init",
           expectedExceptions = TestAutomationException.class,
           expectedExceptionsMessageRegExp = "JMeter Executor not initialised properly.\\{ Test Name: null, " +
-                                            "Test Location: null\\}")
+                  "Test Location: null\\}")
     public void testNoInit() throws TestAutomationException {
         TestExecutor testExecutor = new JMeterExecutor();
         testExecutor.execute("Script", new Deployment());
@@ -140,32 +138,5 @@ public class JMeterExecutorTest {
         TestExecutor testExecutor = new JMeterExecutor();
         testExecutor.init(testLocation, "solution22", null);
         testExecutor.execute(testScript, new Deployment());
-    }
-
-    @Test(description = "Test for failing to create temp directory.",
-          expectedExceptions = TestAutomationException.class,
-          expectedExceptionsMessageRegExp = "Error occurred when creating temporary directory in .{0,}")
-    public void createTempDirectoryFailTest() throws TestAutomationException, IOException {
-        // Set cloned test plan location.
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource("test-grid-is-resources");
-        Assert.assertNotNull(resource);
-
-        // Create test location without write permission
-        // Permissions
-        Set<PosixFilePermission> permissions = new HashSet<>();
-        permissions.add(PosixFilePermission.OWNER_READ);
-        permissions.add(PosixFilePermission.OTHERS_READ);
-        permissions.add(PosixFilePermission.GROUP_READ);
-
-        Path testLocation = Paths.get(resource.getPath(), "temp");
-        if (!Files.exists(testLocation)) {
-            Files.createDirectory(testLocation);
-        }
-        Files.setPosixFilePermissions(testLocation, permissions);
-
-        TestExecutor testExecutor = new JMeterExecutor();
-        // Trying to create temp directory in a location without permission
-        testExecutor.init(testLocation.toAbsolutePath().toString(), "solution22", null);
     }
 }

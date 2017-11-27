@@ -18,6 +18,9 @@
 
 package org.wso2.testgrid.core;
 
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -27,22 +30,31 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.TestEngineImpl;
+import org.wso2.testgrid.common.Database;
+import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 import org.wso2.testgrid.reporting.TestReportEngineImpl;
 
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Paths;
 
 /**
  * Test class to test the functionality of the {@link TestGridMgtServiceImpl}.
  *
  * @since 1.0.0
  */
-@PrepareForTest({InfrastructureProviderFactory.class, TestGridUtil.class, TestEngineImpl.class,
-        TestReportEngineImpl.class, TestPlanExecutor.class})
-@PowerMockIgnore({"javax.management.*"})
+@PrepareForTest({
+                        InfrastructureProviderFactory.class, TestGridUtil.class, TestEngineImpl.class,
+                        TestReportEngineImpl.class, TestPlanExecutor.class
+                })
+@PowerMockIgnore({ "javax.management.*" })
 public class TestGridMgtServiceTest extends PowerMockTestCase {
 
     private static final String WSO2_PRODUCT = "WSO2 Identity Server";
@@ -74,161 +86,160 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Assert.assertTrue(path.endsWith(TIME_STAMP + ""));
     }
 
-//    @Test (dependsOnMethods = {"isEnvironmentConfiguredTest", "createTestDirectoryTest"})
-//    public void parseProductTestPlanTest() throws TestGridException, IOException, GitAPIException {
-//        ClassLoader classLoader = getClass().getClassLoader();
-//        URL resource = classLoader.getResource("test-grid-is-resources");
-//        Assert.assertNotNull(resource);
-//
-//        PowerMockito.mockStatic(TestGridUtil.class);
-//        Mockito.when(TestGridUtil.createTestDirectory(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong()))
-//                .thenReturn(java.util.Optional.ofNullable(resource.getPath()));
-//        Mockito.when(TestGridUtil.cloneRepository(Mockito.anyString(), Mockito.anyString()))
-//                .thenReturn(resource.getPath());
-//        productTestPlan = new TestGridMgtServiceImpl()
-//                .createProduct(WSO2_PRODUCT, PRODUCT_VERSION, "src/test/resources/test-grid-is-resources");
-//        Assert.assertNotNull(productTestPlan);
-//        Assert.assertTrue(WSO2_PRODUCT.equals(productTestPlan.getProductName()));
-//        Assert.assertTrue(PRODUCT_VERSION.equals(productTestPlan.getProductVersion()));
-//        Assert.assertTrue(ProductTestPlan.Status.PRODUCT_TEST_PLAN_PENDING.equals(productTestPlan.getStatus()));
-//        //Assert.assertTrue(productTestPlan.getTestPlans().size() == 2);
-//
-//        Assert.assertNotNull(productTestPlan.getInfrastructureMap().get("two-node"));
-//        Infrastructure infrastructure = productTestPlan.getInfrastructureMap().get(DEPLOYMENT_PATTERN);
-//        Assert.assertNotNull(infrastructure);
-//        Assert.assertTrue(DEPLOYMENT_PATTERN.equals(infrastructure.getName()));
-//        Assert.assertTrue("K8S".equals(infrastructure.getClusterType().name()));
-//        Assert.assertTrue("OPENSTACK".equals(infrastructure.getProviderType().name()));
-//        Assert.assertTrue("DOCKER_CONTAINERS".equals(infrastructure.getInstanceType().name()));
-//        Assert.assertNotNull(infrastructure.getDatabase());
-//        Assert.assertTrue(Database.DatabaseEngine.MYSQL.equals(infrastructure.getDatabase().getEngine()));
-//        Assert.assertTrue("5.7".equals(infrastructure.getDatabase().getVersion()));
-//        Assert.assertNotNull(infrastructure.getOperatingSystem());
-//        Assert.assertTrue("Ubuntu".equals(infrastructure.getOperatingSystem().getName()));
-//        Assert.assertTrue("17.04".equals(infrastructure.getOperatingSystem().getVersion()));
-//        Assert.assertNotNull(infrastructure.getSecurityProperties());
-//        Assert.assertNotNull(infrastructure.getScripts());
-//        Assert.assertTrue(infrastructure.getScripts().size() == 2);
-//    }
-//
-//    @Test (dependsOnMethods = "parseProductTestPlanTest")
-//    public void executeProductTestPlanTestWithUnsupportedProvider() throws UnsupportedProviderException,
-//            TestGridException, InfrastructureProviderInitializationException {
-//        PowerMockito.mockStatic(InfrastructureProviderFactory.class);
-//        Mockito.when(InfrastructureProviderFactory.getInfrastructureProvider(Mockito.anyObject()))
-//                .thenThrow(new UnsupportedProviderException());
-//        TestGridMgtServiceImpl testGridMgtService = new TestGridMgtServiceImpl();
-//        TestPlan testPlan = testGridMgtService.generateTestPlan(
-//                Paths.get("src/test/resources/test-grid-is-resources/ProductTests/testplan1.yaml"),
-//                "src/test/resources/test-grid-is-resources",
-//                "src/test/resources/test-grid-is-resources",
-//                Paths.get(System.getProperty("java.io.tmpdir"), "mytestgrid-home", "1").toString());
-//
-//        Assert.assertTrue(testGridMgtService.executeTestPlan(testPlan, productTestPlan));
-//    }
+    @Test(dependsOnMethods = { "isEnvironmentConfiguredTest", "createTestDirectoryTest" })
+    public void parseProductTestPlanTest() throws TestGridException, IOException, GitAPIException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        URL resource = classLoader.getResource("test-grid-is-resources");
+        Assert.assertNotNull(resource);
 
-//    @Test
-//    public void executeProductTestPlanTest() throws TestGridException, UnsupportedProviderException,
-//            InfrastructureProviderInitializationException, TestGridInfrastructureException,
-//            TestAutomationEngineException, TestGridDeployerException {
-//
-//
-//        InfrastructureProvider provider = Mockito.mock(OpenStackProvider.class);
-//
-//        DeployerService deployer = mock(PuppetDeployer.class);
-//        TestEngineImpl testEngine = mock(TestEngineImpl.class);
-//        TestReportEngineImpl testReportEngine = mock(TestReportEngineImpl.class);
-//
-//        PowerMockito.mockStatic(InfrastructureProviderFactory.class);
-//
-//        Mockito.when(InfrastructureProviderFactory.getInfrastructureProvider(Mockito.anyObject())).
-// thenReturn(provider);
-//        Mockito.when(provider.createInfrastructure(Mockito.anyObject(), Mockito.anyObject())).
-//                thenReturn(Mockito.mock(Deployment.class));
-//        Mockito.when(provider.removeInfrastructure(Mockito.anyObject(), Mockito.anyObject())).thenReturn(true);
-//        Mockito.when(provider.canHandle(Mockito.anyObject())).thenReturn(true);
-//
-//        Mockito.when(deployer.deploy(Mockito.anyObject())).thenReturn(Mockito.mock(Deployment.class));
-//        Mockito.when(testEngine.runScenario(Mockito.anyObject(), Mockito.anyObject(), Mockito.anyObject())).
-//                thenReturn(true);
-//
-//        try {
-//            PowerMockito.whenNew(DeployerServiceImpl.class).withNoArguments().thenReturn(deployer);
-//            PowerMockito.whenNew(TestEngineImpl.class).withNoArguments().thenReturn(testEngine);
-//            PowerMockito.whenNew(TestReportEngineImpl.class).withNoArguments().thenReturn(testReportEngine);
-//        } catch (Exception e) {
-//            log.error(e);
-//        }
-//
-//        Assert.assertTrue(new TestGridMgtServiceImpl().executeTestPlan(productTestPlan));
-//    }
+        PowerMockito.mockStatic(TestGridUtil.class);
+        Mockito.when(TestGridUtil.createTestDirectory(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong()))
+                .thenReturn(java.util.Optional.ofNullable(resource.getPath()));
+        Mockito.when(TestGridUtil.cloneRepository(Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(resource.getPath());
+        productTestPlan = new TestGridMgtServiceImpl().createProduct(WSO2_PRODUCT, PRODUCT_VERSION,
+                "src/test/resources/test-grid-is-resources/Infrastructure/single-node.yaml");
+        Assert.assertNotNull(productTestPlan);
+        Assert.assertTrue(WSO2_PRODUCT.equals(productTestPlan.getProductName()));
+        Assert.assertTrue(PRODUCT_VERSION.equals(productTestPlan.getProductVersion()));
+        Assert.assertTrue(ProductTestPlan.Status.PRODUCT_TEST_PLAN_PENDING.equals(productTestPlan.getStatus()));
+        //Assert.assertTrue(productTestPlan.getTestPlans().size() == 2);
 
-//    @Test (expectedExceptions = TestGridException.class)
-//    public void executeProductTestPlanTestWithReportingException() throws UnsupportedProviderException,
-//            TestGridException, InfrastructureProviderInitializationException {
-//        String deploymentPattern = "single-node";
-//
-//        String scenarioLocation = "/tmp/abc";
-//        TestScenario testScenario = Mockito.mock(TestScenario.class);
-//        Mockito.when(testScenario.getName()).thenReturn("Sample Test Scenario");
-//
-//        List<TestScenario> testScenarios = new ArrayList<>();
-//        testScenarios.add(testScenario);
-//
-//        TestPlan testPlan = Mockito.mock(TestPlan.class);
-//
-//        Infrastructure infrastructure = Mockito.mock(Infrastructure.class);
-//        infrastructure.setName(deploymentPattern);
-//        OperatingSystem operatingSystem = Mockito.mock(OperatingSystem.class);
-//        Mockito.when(operatingSystem.getName()).thenReturn("Ubuntu");
-//        Mockito.when(operatingSystem.getVersion()).thenReturn("17.04");
-//        Database database = Mockito.mock(Database.class);
-//        Mockito.when(database.getEngine()).thenReturn(Database.DatabaseEngine.MYSQL);
-//        Mockito.when(database.getVersion()).thenReturn("5.7");
-//        Mockito.when(infrastructure.getDatabase()).thenReturn(database);
-//        Mockito.when(infrastructure.getClusterType()).thenReturn(Infrastructure.ClusterType.K8S);
-//        Mockito.when(infrastructure.getInstanceType()).thenReturn(Infrastructure.InstanceType.DOCKER_CONTAINERS);
-//        Mockito.when(infrastructure.getProviderType()).thenReturn(Infrastructure.ProviderType.OPENSTACK);
-//        Mockito.when(infrastructure.getOperatingSystem()).thenReturn(operatingSystem);
-//        Mockito.when(infrastructure.getName()).thenReturn(deploymentPattern);
-//
-//        Mockito.when(testPlan.getName()).thenReturn("Sample Test Plan");
-//        Mockito.when(testPlan.getDescription()).thenReturn("Test plan description");
-//        Mockito.when(testPlan.getDeploymentPattern()).thenReturn(deploymentPattern);
-//        Mockito.when(testPlan.getTestScenarios()).thenReturn(testScenarios);
-//        Mockito.when(testPlan.getHome()).thenReturn(scenarioLocation);
-//        Mockito.when(testPlan.getInfraRepoDir()).thenReturn(scenarioLocation);
-//        Mockito.when(testPlan.getTestRepoDir()).thenReturn(scenarioLocation);
-//        Mockito.when(testPlan.getDeployerType()).thenReturn(TestPlan.DeployerType.PUPPET);
-//        Mockito.when(testPlan.getStatus()).thenReturn(TestPlan.Status.SCENARIO_EXECUTION_COMPLETED);
-//
-//        CopyOnWriteArrayList<TestPlan> testPlans = new CopyOnWriteArrayList<>();
-//        testPlans.add(testPlan);
-//
-//        ConcurrentHashMap<String, Infrastructure> infrastructureMap = new ConcurrentHashMap<>();
-//        infrastructureMap.put(infrastructure.getName(), infrastructure);
-//
-//        ProductTestPlan productTestPlan = Mockito.mock(ProductTestPlan.class);
-//        productTestPlan.setInfrastructureMap(infrastructureMap);
-//        Mockito.when(productTestPlan.getProductName()).thenReturn("WSO2 Identity Server");
-//        Mockito.when(productTestPlan.getProductVersion()).thenReturn("5.4.0");
-//        Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
-//        Mockito.when(productTestPlan.getTestPlans()).thenReturn(testPlans);
-//        Mockito.when(productTestPlan.getInfrastructure(deploymentPattern)).thenReturn(infrastructure);
-//
-//        PowerMockito.mockStatic(InfrastructureProviderFactory.class);
-//        Mockito.when(InfrastructureProviderFactory.getInfrastructureProvider(infrastructure))
-//                .thenThrow(new UnsupportedProviderException());
-//
-//        TestReportEngineImpl testReportEngine = mock(TestReportEngineImpl.class);
-//        try {
-//            PowerMockito.whenNew(TestReportEngineImpl.class).withNoArguments().thenReturn(testReportEngine);
-//            Mockito.doThrow(new TestReportEngineException()).when(testReportEngine).
-// generateReport(Mockito.anyObject());
-//        } catch (Exception e) {
-//            log.error(e);
-//        }
-//
-//        new TestGridMgtServiceImpl().executeTestPlan(productTestPlan);
-//    }
+        Infrastructure infrastructure = productTestPlan.getInfrastructureMap().get(DEPLOYMENT_PATTERN);
+        Assert.assertNotNull(infrastructure);
+        Assert.assertTrue(DEPLOYMENT_PATTERN.equals(infrastructure.getName()));
+        Assert.assertTrue("K8S".equals(infrastructure.getClusterType().name()));
+        Assert.assertTrue("OPENSTACK".equals(infrastructure.getProviderType().name()));
+        Assert.assertTrue("DOCKER_CONTAINERS".equals(infrastructure.getInstanceType().name()));
+        Assert.assertNotNull(infrastructure.getDatabase());
+        Assert.assertTrue(Database.DatabaseEngine.MYSQL.equals(infrastructure.getDatabase().getEngine()));
+        Assert.assertTrue("5.7".equals(infrastructure.getDatabase().getVersion()));
+        Assert.assertNotNull(infrastructure.getOperatingSystem());
+        Assert.assertTrue("Ubuntu".equals(infrastructure.getOperatingSystem().getName()));
+        Assert.assertTrue("17.04".equals(infrastructure.getOperatingSystem().getVersion()));
+        Assert.assertNotNull(infrastructure.getSecurityProperties());
+        Assert.assertNotNull(infrastructure.getScripts());
+        Assert.assertTrue(infrastructure.getScripts().size() == 2);
+    }
+
+    @Test(dependsOnMethods = "parseProductTestPlanTest")
+    public void executeProductTestPlanTestWithUnsupportedProvider() throws UnsupportedProviderException,
+            TestGridException, InfrastructureProviderInitializationException {
+        PowerMockito.mockStatic(InfrastructureProviderFactory.class);
+        Mockito.when(InfrastructureProviderFactory.getInfrastructureProvider(Mockito.anyObject()))
+                .thenThrow(new UnsupportedProviderException());
+        TestGridMgtServiceImpl testGridMgtService = new TestGridMgtServiceImpl();
+        TestPlan testPlan = testGridMgtService.generateTestPlan(
+                Paths.get("src/test/resources/test-grid-is-resources/ProductTests/testplan1.yaml"),
+                "src/test/resources/test-grid-is-resources",
+                "src/test/resources/test-grid-is-resources",
+                Paths.get(System.getProperty("java.io.tmpdir"), "mytestgrid-home", "1").toString());
+
+        Assert.assertTrue(testGridMgtService.executeTestPlan(testPlan, productTestPlan));
+    }
+
+    //    @Test
+    //    public void executeProductTestPlanTest() throws TestGridException, UnsupportedProviderException,
+    //            InfrastructureProviderInitializationException, TestGridInfrastructureException,
+    //            TestAutomationEngineException, TestGridDeployerException {
+    //
+    //
+    //        InfrastructureProvider provider = Mockito.mock(OpenStackProvider.class);
+    //
+    //        DeployerService deployer = mock(PuppetDeployer.class);
+    //        TestEngineImpl testEngine = mock(TestEngineImpl.class);
+    //        TestReportEngineImpl testReportEngine = mock(TestReportEngineImpl.class);
+    //
+    //        PowerMockito.mockStatic(InfrastructureProviderFactory.class);
+    //
+    //        Mockito.when(InfrastructureProviderFactory.getInfrastructureProvider(Mockito.anyObject())).
+    // thenReturn(provider);
+    //        Mockito.when(provider.createInfrastructure(Mockito.anyObject(), Mockito.anyObject())).
+    //                thenReturn(Mockito.mock(Deployment.class));
+    //        Mockito.when(provider.removeInfrastructure(Mockito.anyObject(), Mockito.anyObject())).thenReturn(true);
+    //        Mockito.when(provider.canHandle(Mockito.anyObject())).thenReturn(true);
+    //
+    //        Mockito.when(deployer.deploy(Mockito.anyObject())).thenReturn(Mockito.mock(Deployment.class));
+    //        Mockito.when(testEngine.runScenario(Mockito.anyObject(), Mockito.anyObject(), Mockito.anyObject())).
+    //                thenReturn(true);
+    //
+    //        try {
+    //            PowerMockito.whenNew(DeployerServiceImpl.class).withNoArguments().thenReturn(deployer);
+    //            PowerMockito.whenNew(TestEngineImpl.class).withNoArguments().thenReturn(testEngine);
+    //            PowerMockito.whenNew(TestReportEngineImpl.class).withNoArguments().thenReturn(testReportEngine);
+    //        } catch (Exception e) {
+    //            log.error(e);
+    //        }
+    //
+    //        Assert.assertTrue(new TestGridMgtServiceImpl().executeTestPlan(productTestPlan));
+    //    }
+
+    //    @Test (expectedExceptions = TestGridException.class)
+    //    public void executeProductTestPlanTestWithReportingException() throws UnsupportedProviderException,
+    //            TestGridException, InfrastructureProviderInitializationException {
+    //        String deploymentPattern = "single-node";
+    //
+    //        String scenarioLocation = "/tmp/abc";
+    //        TestScenario testScenario = Mockito.mock(TestScenario.class);
+    //        Mockito.when(testScenario.getName()).thenReturn("Sample Test Scenario");
+    //
+    //        List<TestScenario> testScenarios = new ArrayList<>();
+    //        testScenarios.add(testScenario);
+    //
+    //        TestPlan testPlan = Mockito.mock(TestPlan.class);
+    //
+    //        Infrastructure infrastructure = Mockito.mock(Infrastructure.class);
+    //        infrastructure.setName(deploymentPattern);
+    //        OperatingSystem operatingSystem = Mockito.mock(OperatingSystem.class);
+    //        Mockito.when(operatingSystem.getName()).thenReturn("Ubuntu");
+    //        Mockito.when(operatingSystem.getVersion()).thenReturn("17.04");
+    //        Database database = Mockito.mock(Database.class);
+    //        Mockito.when(database.getEngine()).thenReturn(Database.DatabaseEngine.MYSQL);
+    //        Mockito.when(database.getVersion()).thenReturn("5.7");
+    //        Mockito.when(infrastructure.getDatabase()).thenReturn(database);
+    //        Mockito.when(infrastructure.getClusterType()).thenReturn(Infrastructure.ClusterType.K8S);
+    //        Mockito.when(infrastructure.getInstanceType()).thenReturn(Infrastructure.InstanceType.DOCKER_CONTAINERS);
+    //        Mockito.when(infrastructure.getProviderType()).thenReturn(Infrastructure.ProviderType.OPENSTACK);
+    //        Mockito.when(infrastructure.getOperatingSystem()).thenReturn(operatingSystem);
+    //        Mockito.when(infrastructure.getName()).thenReturn(deploymentPattern);
+    //
+    //        Mockito.when(testPlan.getName()).thenReturn("Sample Test Plan");
+    //        Mockito.when(testPlan.getDescription()).thenReturn("Test plan description");
+    //        Mockito.when(testPlan.getDeploymentPattern()).thenReturn(deploymentPattern);
+    //        Mockito.when(testPlan.getTestScenarios()).thenReturn(testScenarios);
+    //        Mockito.when(testPlan.getHome()).thenReturn(scenarioLocation);
+    //        Mockito.when(testPlan.getInfraRepoDir()).thenReturn(scenarioLocation);
+    //        Mockito.when(testPlan.getTestRepoDir()).thenReturn(scenarioLocation);
+    //        Mockito.when(testPlan.getDeployerType()).thenReturn(TestPlan.DeployerType.PUPPET);
+    //        Mockito.when(testPlan.getStatus()).thenReturn(TestPlan.Status.SCENARIO_EXECUTION_COMPLETED);
+    //
+    //        CopyOnWriteArrayList<TestPlan> testPlans = new CopyOnWriteArrayList<>();
+    //        testPlans.add(testPlan);
+    //
+    //        ConcurrentHashMap<String, Infrastructure> infrastructureMap = new ConcurrentHashMap<>();
+    //        infrastructureMap.put(infrastructure.getName(), infrastructure);
+    //
+    //        ProductTestPlan productTestPlan = Mockito.mock(ProductTestPlan.class);
+    //        productTestPlan.setInfrastructureMap(infrastructureMap);
+    //        Mockito.when(productTestPlan.getProductName()).thenReturn("WSO2 Identity Server");
+    //        Mockito.when(productTestPlan.getProductVersion()).thenReturn("5.4.0");
+    //        Mockito.when(productTestPlan.getHomeDir()).thenReturn(scenarioLocation);
+    //        Mockito.when(productTestPlan.getTestPlans()).thenReturn(testPlans);
+    //        Mockito.when(productTestPlan.getInfrastructure(deploymentPattern)).thenReturn(infrastructure);
+    //
+    //        PowerMockito.mockStatic(InfrastructureProviderFactory.class);
+    //        Mockito.when(InfrastructureProviderFactory.getInfrastructureProvider(infrastructure))
+    //                .thenThrow(new UnsupportedProviderException());
+    //
+    //        TestReportEngineImpl testReportEngine = mock(TestReportEngineImpl.class);
+    //        try {
+    //            PowerMockito.whenNew(TestReportEngineImpl.class).withNoArguments().thenReturn(testReportEngine);
+    //            Mockito.doThrow(new TestReportEngineException()).when(testReportEngine).
+    // generateReport(Mockito.anyObject());
+    //        } catch (Exception e) {
+    //            log.error(e);
+    //        }
+    //
+    //        new TestGridMgtServiceImpl().executeTestPlan(productTestPlan);
+    //    }
 }

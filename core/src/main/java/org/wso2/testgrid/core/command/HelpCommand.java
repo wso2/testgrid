@@ -34,6 +34,9 @@ public class HelpCommand extends Command {
 
         String ls = System.lineSeparator();
         StringBuilder usageBuilder = new StringBuilder(256);
+        usageBuilder.append(ls);
+        usageBuilder.append("usage: generate-infrastructure-plan --template-path INFRA_TEMPLATE_PATH --output "
+                + "OUTPUT_FILE --input-parameters 'KEY=VALUE ...' ").append(ls);
         usageBuilder.append("usage: create-product-testplan -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL").append(ls);
         usageBuilder.append("usage: run-testplan -t TESTPLAN_PATH -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL")
                 .append(ls);
