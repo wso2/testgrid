@@ -33,19 +33,30 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @Table(
-        name = "operating_system",
+        name = OperatingSystem.OPERATING_SYSTEM_TABLE,
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"name", "version"})
+                @UniqueConstraint(columnNames = {OperatingSystem.NAME_COLUMN, OperatingSystem.VERSION_COLUMN})
         })
 public class OperatingSystem extends AbstractUUIDEntity implements Serializable {
 
+    /**
+     * Operating system table name.
+     */
+    public static final String OPERATING_SYSTEM_TABLE = "operating_system";
+
+    /**
+     * Column names of the table.
+     */
+    public static final String NAME_COLUMN = "name";
+    public static final String VERSION_COLUMN = "version";
+
     private static final long serialVersionUID = 1587798651636567846L;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = NAME_COLUMN, nullable = false)
     @Element(description = "defines the name of the required OS")
     private String name;
 
-    @Column(name = "version", length = 20, nullable = false)
+    @Column(name = VERSION_COLUMN, length = 20, nullable = false)
     @Element(description = "defines the version of the required OS")
     private String version;
 
@@ -87,6 +98,10 @@ public class OperatingSystem extends AbstractUUIDEntity implements Serializable 
 
     @Override
     public String toString() {
-        return "Operating System [name=" + name + ", version=" + version + "]";
+        return "OperatingSystem{" +
+               "id='" + this.getId() + '\'' +
+               ", name='" + name + '\'' +
+               ", version='" + version + '\'' +
+               '}';
     }
 }

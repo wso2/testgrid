@@ -35,30 +35,46 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @Table(
-        name = "infra_combination",
+        name = InfraCombination.INFRA_COMBINATION_TABLE,
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"jdk", "operating_system_id", "database_id"})
+                @UniqueConstraint(columnNames = {InfraCombination.JDK_COLUMN, "OPERATINGSYSTEM_id", "DATABASE_id"})
         })
 public class InfraCombination extends AbstractUUIDEntity implements Serializable {
+
+    /**
+     * InfraCombination table name.
+     */
+    public static final String INFRA_COMBINATION_TABLE = "infra_combination";
+
+    /**
+     * Column names of the table.
+     */
+    public static final String JDK_COLUMN = "jdk";
+    public static final String OPERATING_SYSTEM_COLUMN = "operatingSystem";
+    public static final String DATABASE_COLUMN = "database";
 
     private static final long serialVersionUID = 4742489056283093423L;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "jdk", nullable = false)
+    @Column(name = JDK_COLUMN, nullable = false)
     private JDK jdk;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = OperatingSystem.class)
-    @PrimaryKeyJoinColumn(name = "operating_system_id", referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = "OPERATINGSYSTEM_id", referencedColumnName = ID_COLUMN)
     private OperatingSystem operatingSystem;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = Database.class)
-    @PrimaryKeyJoinColumn(name = "database_engine_id", referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = "DATABASE_id", referencedColumnName = ID_COLUMN)
     private Database database;
 
     @Override
     public String toString() {
-        return "Infra Combination [JDK=" + jdk + ", operating system=" + operatingSystem +
-               ", database=" + database + "]";
+        return "InfraCombination{" +
+               "id='" + this.getId() + '\'' +
+               ", jdk=" + jdk +
+               ", operatingSystem=" + operatingSystem +
+               ", database=" + database +
+               '}';
     }
 
     /**

@@ -293,6 +293,23 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
         this.infrastructureMap.put(infrastructure.getName(), infrastructure);
     }
 
+    @Override
+    public String toString() {
+        return "ProductTestPlan{" +
+               "id='" + this.getId() + '\'' +
+               ", productName='" + productName + '\'' +
+               ", productVersion='" + productVersion + '\'' +
+               ", startTimestamp=" + startTimestamp +
+               ", modifiedTimestamp=" + modifiedTimestamp +
+               ", status=" + status +
+               ", infraRepository='" + infraRepository + '\'' +
+               ", deploymentRepository='" + deploymentRepository + '\'' +
+               ", scenarioRepository='" + scenarioRepository + '\'' +
+               ", homeDir='" + homeDir + '\'' +
+               ", infrastructureMap=" + infrastructureMap +
+               '}';
+    }
+
     /**
      * This defines the possible statuses of the ProductTestPlan.
      *
