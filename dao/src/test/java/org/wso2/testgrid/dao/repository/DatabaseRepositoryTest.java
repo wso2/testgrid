@@ -17,43 +17,192 @@
  */
 package org.wso2.testgrid.dao.repository;
 
+import org.testng.Assert;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.util.DAOUtil;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import javax.persistence.EntityManagerFactory;
 
 /**
  * Class to test the functionality of {@link DatabaseRepository}.
  *
  * @since 1.0.0
  */
-// TODO: Write Test Cases for All the repositories.
 public class DatabaseRepositoryTest {
+
+    private DatabaseRepository databaseRepository;
+
+    @BeforeTest
+    public void setUp() throws TestGridDAOException {
+        // H2 database properties
+        Properties properties = new Properties();
+        properties.setProperty("javax.persistence.jdbc.url", "jdbc:h2:mem:testgrid");
+        properties.setProperty("javax.persistence.jdbc.user", "sa");
+        properties.setProperty("javax.persistence.jdbc.username", "sa");
+        properties.setProperty("javax.persistence.jdbc.password", "");
+        properties.setProperty("javax.persistence.jdbc.driver", "org.h2.Driver");
+
+        // Initialise database repository.
+        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory(properties);
+        databaseRepository = new DatabaseRepository(entityManagerFactory);
+    }
+
+    @AfterTest
+    public void tearDown() {
+        databaseRepository.close();
+    }
 
     @Test(description = "Test persist data in the repository.")
     public void persistTest() throws TestGridDAOException {
+        Database database = new Database();
+        database.setEngine(Database.DatabaseEngine.MYSQL);
+        database.setVersion("5.7");
 
+        database = databaseRepository.persist(database);
+        Assert.assertNotNull(database);
+        Assert.assertNotNull(database.getId());
+
+        // Check if record persisted
+        Database foundedDatabase = databaseRepository.findByPrimaryKey(database.getId());
+
+        Assert.assertNotNull(foundedDatabase);
+        Assert.assertEquals(foundedDatabase.getId(), database.getId());
+        Assert.assertEquals(foundedDatabase.getEngine(), database.getEngine());
+        Assert.assertEquals(foundedDatabase.getVersion(), database.getVersion());
+
+        // Persist the same instance and check if duplicates
+        database.setVersion("5.5");
+        databaseRepository.persist(database);
+
+        Map<String, Object> params = Collections.singletonMap(Database.ID_COLUMN, database.getId());
+        List<Database> databases = databaseRepository.findByFields(params);
+        Assert.assertEquals(databases.size(), 1);
+        Assert.assertEquals(databases.get(0).getVersion(), "5.5"); // Successfully updated
     }
 
-    @Test(description = "Test delete data in the repository.")
-    public void deleteTest() throws TestGridDAOException {
-
+    /**
+     * Database table has unique references (engine and version). This test will check if this is properly set.
+     */
+    @Test(description = "Tests the unique references of the database table.",
+          dependsOnMethods = "persistTest",
+          expectedExceptions = TestGridDAOException.class,
+          expectedExceptionsMessageRegExp = "Error occurred when persisting entity in database.")
+    public void uniqueReferenceTest() throws TestGridDAOException {
+        Database database = new Database();
+        database.setEngine(Database.DatabaseEngine.MYSQL);
+        database.setVersion("5.5");
+        databaseRepository.persist(database);
     }
 
-    @Test(description = "Test find by primary key in the repository.")
-    public void findByPrimaryKeyTest() throws TestGridDAOException {
+    @Test(description = "Tests the unique references of the database table.",
+          dependsOnMethods = "persistTest")
+    public void updateUniqueReferenceTest() throws TestGridDAOException {
+        Database database = new Database();
+        database.setEngine(Database.DatabaseEngine.MYSQL);
+        database.setVersion("5.7");
 
+        // Persist entry
+        database = databaseRepository.persist(database);
+
+        // now try to update the entry
+        database.setVersion("5.5");
+
+        // Exception is expected only on this line. Other transactions should not throw an exception
+        try {
+            databaseRepository.persist(database);
+        } catch (TestGridDAOException e) {
+            Assert.assertEquals(e.getMessage(), "Error occurred when persisting entity in database.");
+        }
     }
 
     @Test(description = "Test find by field in the repository.")
     public void findByField() throws TestGridDAOException {
+        // DB 1
+        Database database1 = new Database();
+        database1.setEngine(Database.DatabaseEngine.H2);
+        database1.setVersion("1.0");
 
+        // DB2
+        Database database2 = new Database();
+        database2.setEngine(Database.DatabaseEngine.H2);
+        database2.setVersion("2.0");
+
+        // DB3
+        Database database3 = new Database();
+        database3.setEngine(Database.DatabaseEngine.H2);
+        database3.setVersion("3.0");
+
+        databaseRepository.persist(database1);
+        databaseRepository.persist(database2);
+        databaseRepository.persist(database3);
+
+        Map<String, Object> params = Collections.singletonMap(Database.ENGINE_COLUMN, Database.DatabaseEngine.H2);
+        List<Database> databases = databaseRepository.findByFields(params);
+        Assert.assertEquals(databases.size(), 3);
     }
 
-    @Test(description = "Test find all records from the repository.")
+    @Test(description = "Test delete data in the repository.",
+          dependsOnMethods = "findByField")
+    public void deleteTest() throws TestGridDAOException {
+        Map<String, Object> params = new HashMap<>();
+        params.put(Database.ENGINE_COLUMN, Database.DatabaseEngine.H2);
+        params.put(Database.VERSION_COLUMN, "3.0");
+
+        List<Database> databases = databaseRepository.findByFields(params);
+        Assert.assertEquals(databases.size(), 1);
+
+        Database database = databases.get(0);
+        databaseRepository.delete(database);
+
+        // Check if deleted
+        databases = databaseRepository.findByFields(params);
+        Assert.assertEquals(databases.size(), 0);
+    }
+
+    @Test(description = "Test find by primary key in the repository.",
+          dependsOnMethods = "persistTest")
+    public void findByPrimaryKeyTest() throws TestGridDAOException {
+        Map<String, Object> params = new HashMap<>();
+        params.put(Database.ENGINE_COLUMN, Database.DatabaseEngine.MYSQL);
+        params.put(Database.VERSION_COLUMN, "5.5");
+
+        List<Database> databases = databaseRepository.findByFields(params);
+        Assert.assertEquals(databases.size(), 1);
+
+        String id = databases.get(0).getId();
+        Database database = databaseRepository.findByPrimaryKey(id);
+
+        // Assert founded database
+        Assert.assertNotNull(database);
+        Assert.assertEquals(database.getEngine(), Database.DatabaseEngine.MYSQL);
+        Assert.assertEquals(database.getVersion(), "5.5");
+    }
+
+    @Test(description = "Test find all records from the repository.",
+          dependsOnMethods = {"persistTest", "findByField", "deleteTest", "updateUniqueReferenceTest"})
     public void findAllTest() throws TestGridDAOException {
+        List<Database> databases = databaseRepository.findAll();
+        Assert.assertEquals(databases.size(), 4);
     }
 
-    @Test(description = "Test close repository.")
-    public void closeTest() {
+    @Test(description = "Test close repository.",
+          expectedExceptions = TestGridDAOException.class,
+          expectedExceptionsMessageRegExp = "Error occurred when searching for entity.",
+          // Priority is added to indicate TestNG that this test should be the last test to run
+          priority = 1)
+    public void closeTest() throws TestGridDAOException {
+        databaseRepository.close();
 
+        // Now try to do a transaction which should fail
+        databaseRepository.findAll();
     }
 }
