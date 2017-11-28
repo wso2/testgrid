@@ -188,7 +188,7 @@ public class TestPlan {
     /**
      * Returns the modified timestamp of the test plan.
      *
-     * @return product test plan end timestamp
+     * @param modifiedTimestamp test plan modified timestamp
      */
     public void setModifiedTimestamp(String modifiedTimestamp) {
         this.modifiedTimestamp = modifiedTimestamp;

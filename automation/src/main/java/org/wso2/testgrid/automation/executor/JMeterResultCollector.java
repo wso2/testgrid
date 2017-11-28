@@ -57,7 +57,8 @@ public class JMeterResultCollector extends ResultCollector {
 
             // Persist result to the database
             TestAutomationUOW testAutomationUOW = new TestAutomationUOW();
-            TestCase testCase = testAutomationUOW.persistPendingTestCase(result.getSampleLabel(), testScenario);
+            TestCase testCase = testAutomationUOW.persistTestCase(result.getSampleLabel(), testScenario,
+                    result.isSuccessful(), result.getResponseMessage());
 
             // Set Test case label to the test case primary key value
             result.setSampleLabel(testCase.getId());

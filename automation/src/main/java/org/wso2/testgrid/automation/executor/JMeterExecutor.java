@@ -26,7 +26,6 @@ import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.util.JMeterUtils;
-import org.apache.jmeter.visualizers.Visualizer;
 import org.apache.jorphan.collections.HashTree;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
@@ -94,8 +93,6 @@ public class JMeterExecutor implements TestExecutor {
         }
 
         ResultCollector resultCollector = new JMeterResultCollector(summariser, testScenario);
-//        Visualizer testListener = new JMeterTestListener();
-//        resultCollector.setListener(testListener);
 
         if (testPlanTree.getArray().length == 0) {
             throw new TestAutomationException("JMeter test plan is empty.");
