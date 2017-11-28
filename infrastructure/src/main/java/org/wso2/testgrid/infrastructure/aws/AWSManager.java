@@ -140,15 +140,6 @@ public class AWSManager {
             log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
             Deployment deployment = new Deployment();
             deployment.setHosts(hosts);
-//        Deployment deployment = new Deployment();
-//        Host host = new Host();
-//        host.setLabel("server_host");
-//        host.setIp("localhost");
-//        Host host2 = new Host();
-//        host2.setLabel("server_port");
-//        host2.setIp("9443");
-//        deployment.setHosts(Arrays.asList(host,host2));
-
             return deployment;
         } catch (InterruptedException e) {
             throw new TestGridInfrastructureException("Error occured while waiting for " +

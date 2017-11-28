@@ -86,7 +86,6 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     public TestPlan generateTestPlan(Path testPlanPath, String testRepoDir, String infraRepoDir, String
             testRunDir) throws TestGridException {
         TestPlan testPlan;
-
         if (testPlanPath.toAbsolutePath().toFile().exists()
                 && (testPlanPath.getFileName() != null && Utils.isYamlFile(testPlanPath.toString()))) {
             try {
@@ -190,19 +189,6 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         } catch (TestGridDAOException e) {
             throw new TestGridException("Error occured while persisting TestPlan ", e);
         }
-        //        }
-
-        productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_REPORT_GENERATION);
-//
-//        try {
-//            new TestReportEngineImpl().generateReport(testPlan, productTestPlan);
-//        } catch (TestReportEngineException e) {
-//            String msg = "Unable to generate test report for the ProductTests ran for product '" +
-//                    productTestPlan.getProductName() + "', version '" + productTestPlan.getProductVersion() + "'";
-//            log.error(msg, e);
-//            throw new TestGridException(msg, e);
-//        }
-        productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_COMPLETED);
         return true;
     }
 

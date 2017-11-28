@@ -95,7 +95,10 @@ public class TestPlanExecutor {
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
+        } finally {
+            handlePersistance(testPlan);
         }
+
         return testPlan;
     }
 
@@ -136,6 +139,8 @@ public class TestPlanExecutor {
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'", e);
+        } finally {
+            handlePersistance(testPlan);
         }
         return testPlan;
     }
@@ -199,7 +204,8 @@ public class TestPlanExecutor {
                                 testPlan.getName() + "'", e);
                     }
                 }
-                // TODO: Set status test scenario execution completed
+                testPlan.setStatus(TestPlan.Status.TESTPLAN_COMPLETED);
+                testPlan = handlePersistance(testPlan);
             } else {
                 this.destroyInfrastructure(infrastructure, testPlan);
                 throw new TestPlanExecutorException("Exception occurred while running the deployment " +
@@ -207,7 +213,10 @@ public class TestPlanExecutor {
                         testPlan.getName() + "'");
             }
         } else {
-            // TODO: Set status infrastructure error
+            InfraResult infraResult = testPlan.getInfraResult();
+            infraResult.setStatus(InfraResult.Status.INFRASTRUCTURE_ERROR);
+            testPlan.setInfraResult(infraResult);
+            testPlan = handlePersistance(testPlan);
             throw new TestPlanExecutorException("Exception occurred while running the infrastructure creation for " +
                     "deployment pattern '" + testPlan.getDeploymentPattern() + "', in TestPlan '" + testPlan.getName()
                     + "'");
@@ -220,7 +229,7 @@ public class TestPlanExecutor {
     }
 
     /**
-     *This method handles persistence outside the try-catch ladder to avoid nested try-catch blocks.
+     * This method handles persistence outside the try-catch ladder to avoid nested try-catch blocks.
      *
      * @param testPlan TestPlan object to persist.
      * @throws TestPlanExecutorException When there is an error persisting the object.
