@@ -13,12 +13,31 @@
         </center>
     </td>
     <td style="font-weight: 300; font-size: 16px; line-height: 20px; padding-top: 15px; padding-bottom: 5px; padding-left: 15px; border-bottom: 1px solid #cccccc;">
-        <center>
-            <span style="color: #000000;">{{status}}</span>
-        </center>
+        {{#isTestCaseFailed}}
+            <center>
+                <span style="color: #ff0000;">{{status}}</span>
+            </center>
+        {{/isTestCaseFailed}}
+        {{#isTestSuccess}}
+            <center>
+                <span style="color: #09950B;">{{status}}</span>
+            </center>
+        {{/isTestSuccess}}
+        {{#isTestPending}}
+            <center>
+                <span style="color: #ffc300;">{{status}}</span>
+            </center>
+        {{/isTestPending}}
+        {{#isTestExecuting}}
+            <center>
+                <span style="color: #008080;">{{status}}</span>
+            </center>
+        {{/isTestExecuting}}
     </td>
     <td style="font-weight: 300; font-size: 16px; line-height: 20px; padding-top: 15px; padding-bottom: 5px; border-bottom: 1px solid #cccccc;">
-        <span style="color: #ff0000;">{{failureMessage}}</span>
+        {{#isTestCaseFailed}}
+            <span style="color: #ff0000;">{{failureMessage}}</span>
+        {{/isTestCaseFailed}}
     </td>
     <td style="font-weight: 300; font-size: 16px; line-height: 20px; padding-top: 15px; padding-bottom: 5px; border-bottom: 1px solid #cccccc;">
         <span style="color: #000000;">{{logLocation}}</span>

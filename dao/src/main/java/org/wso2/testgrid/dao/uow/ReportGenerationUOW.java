@@ -62,13 +62,11 @@ public class ReportGenerationUOW {
     public ProductTestPlan getProductTestPlan(String productName, String productVersion) throws TestGridDAOException {
         ProductTestPlanRepository productTestPlanRepository = new ProductTestPlanRepository(entityManagerFactory);
 
-        // Native SQL query to get the latest modifies product test plan for product name and version
-        String sqlQuery = StringUtil.concatStrings("SELECT * FROM ", ProductTestPlan.PRODUCT_TEST_PLAN_TABLE,
-                " WHERE ", ProductTestPlan.PRODUCT_NAME_COLUMN, "=", productName, " AND ",
-                ProductTestPlan.PRODUCT_VERSION_COLUMN, "=", productVersion, " AND ",
-                "MAX(", ProductTestPlan.MODIFIED_TIMESTAMP_COLUMN, ");");
-
-        return productTestPlanRepository.executeNativeQuery(sqlQuery);
+        // JPQL  query to get the latest modifies product test plan for product name and version
+        String sqlQuery = StringUtil.concatStrings("SELECT c FROM ", ProductTestPlan.class.getSimpleName(),
+                " c WHERE c.productName=\"", productName, "\" AND ",
+                "c.productVersion=\"", productVersion, "\" ORDER BY c.modifiedTimestamp");
+        return productTestPlanRepository.executeTypedQuary(sqlQuery, ProductTestPlan.class, 1);
     }
 
     /**
@@ -83,7 +81,7 @@ public class ReportGenerationUOW {
 
         // Get test plans to the product test plan
         Map<String, Object> params = new HashMap<>();
-        params.put(ProductTestPlan.PRODUCT_TEST_PLAN_TABLE, productTestPlan.getId());
+        params.put(TestPlan.PRODUCT_TEST_PLAN_COLUMN, productTestPlan);
         return testPlanRepository.findByFields(params);
     }
 
@@ -98,7 +96,7 @@ public class ReportGenerationUOW {
         TestScenarioRepository testScenarioRepository = new TestScenarioRepository(entityManagerFactory);
 
         // Get test scenarios for the test plan
-        Map<String, Object> params = Collections.singletonMap(TestScenario.TEST_PLAN_COLUMN, testPlan.getId());
+        Map<String, Object> params = Collections.singletonMap(TestScenario.TEST_PLAN_COLUMN, testPlan);
         return testScenarioRepository.findByFields(params);
     }
 
@@ -113,7 +111,7 @@ public class ReportGenerationUOW {
         TestCaseRepository testCaseRepository = new TestCaseRepository(entityManagerFactory);
 
         // Get test cases for the test scenario
-        Map<String, Object> params = Collections.singletonMap(TestCase.TEST_SCENARIO_COLUMN, testScenario.getId());
+        Map<String, Object> params = Collections.singletonMap(TestCase.TEST_SCENARIO_COLUMN, testScenario);
         return testCaseRepository.findByFields(params);
     }
 }

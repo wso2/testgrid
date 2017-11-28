@@ -49,6 +49,7 @@ public class ScenarioExecutor {
             throws ScenarioExecutorException {
         try {
             String homeDir = testPlan.getTestRepoDir();
+            testScenario.setTestPlan(testPlan);
             testScenario = setStatusAndPersistTestScenario(testScenario, TestScenario.Status.TEST_SCENARIO_RUNNING);
             new TestEngineImpl().runScenario(testScenario, homeDir, deployment);
             testScenario =

@@ -25,11 +25,6 @@ package org.wso2.testgrid.common.util;
 public class StringUtil {
 
     /**
-     * Denotes and empty string.
-     */
-    public static final String EMPTY = "";
-
-    /**
      * Returns whether the given string is a null or empty.
      *
      * @param string string to check whether null or empty
