@@ -19,7 +19,6 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
-import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -52,9 +51,10 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      */
     public static final String STATUS_COLUMN = "status";
     public static final String NAME_COLUMN = "name";
-    public static final String TEST_PLAN_COLUMN = "TESTPLAN_id";
+    public static final String TEST_PLAN_COLUMN = "testPlan";
 
     private static final long serialVersionUID = -2666342786241472418L;
+
     @Enumerated(EnumType.STRING)
     @Column(name = STATUS_COLUMN, nullable = false)
     private Status status;
@@ -64,7 +64,7 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     private String name;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class)
-    @PrimaryKeyJoinColumn(name = TEST_PLAN_COLUMN, referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = "TESTPLAN_id", referencedColumnName = ID_COLUMN)
     private TestPlan testPlan;
 
     @Transient
@@ -163,8 +163,8 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      *
      * @param testEngine test engine in which the test scenario should be executed
      */
-    public void setTestEngine(String testEngine) {
-        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
+    public void setTestEngine(TestEngine testEngine) {
+        this.testEngine = testEngine;
     }
 
     /**
@@ -172,14 +172,20 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      *
      * @param testEngine test engine in which the test scenario should be executed
      */
-    public void setTestEngine(TestEngine testEngine) {
-        this.testEngine = testEngine;
+    public void setTestEngine(String testEngine) {
+        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
     }
 
     @Override
     public String toString() {
-        return StringUtil.concatStrings("TestScenario [id=", this.getId(), ", status=", status.toString(),
-                ", name=", name, ", " + "TestPlan=", testPlan.toString(), "]");
+        return "TestScenario{" +
+               "id='" + this.getId() + '\'' +
+               ", status=" + status +
+               ", name='" + name + '\'' +
+               ", testPlan=" + testPlan +
+               ", enabled=" + enabled +
+               ", testEngine=" + testEngine +
+               '}';
     }
 
     /**

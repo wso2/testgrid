@@ -19,7 +19,6 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
-import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -38,12 +37,12 @@ import javax.persistence.UniqueConstraint;
 @Table(
         name = Database.DATABASE_TABLE,
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"engine", "version"})
+                @UniqueConstraint(columnNames = {Database.ENGINE_COLUMN, Database.VERSION_COLUMN})
         })
 public class Database extends AbstractUUIDEntity implements Serializable {
 
     /**
-     * Test plan table name.
+     * Database table name.
      */
     public static final String DATABASE_TABLE = "database_engine";
 
@@ -102,8 +101,11 @@ public class Database extends AbstractUUIDEntity implements Serializable {
 
     @Override
     public String toString() {
-        return StringUtil.concatStrings("Database [id=", this.getId(), ", engine=", engine.toString(),
-                ", version=", version, "]");
+        return "Database{" +
+               "id='" + this.getId() + '\'' +
+               ", engine=" + engine +
+               ", version='" + version + '\'' +
+               '}';
     }
 
     /**

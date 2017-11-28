@@ -51,7 +51,7 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     public static final String STATUS_COLUMN = "status";
     public static final String LOG_LOCATION_COLUMN = "log_location";
     public static final String FAILURE_MESSAGE_COLUMN = "failure_message";
-    public static final String TEST_SCENARIO_COLUMN = "TESTSCENARIO_id";
+    public static final String TEST_SCENARIO_COLUMN = "testScenario";
 
     private static final long serialVersionUID = -1947567322771472903L;
 
@@ -77,7 +77,7 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     private String failureMessage;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestScenario.class)
-    @PrimaryKeyJoinColumn(name = TEST_SCENARIO_COLUMN, referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = "TESTSCENARIO_id", referencedColumnName = "id")
     private TestScenario testScenario;
 
     /**
@@ -204,6 +204,20 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
      */
     public void setTestScenario(TestScenario testScenario) {
         this.testScenario = testScenario;
+    }
+
+    @Override
+    public String toString() {
+        return "TestCase{" +
+               "id='" + this.getId() + '\'' +
+               ", name='" + name + '\'' +
+               ", startTimestamp=" + startTimestamp +
+               ", modifiedTimestamp=" + modifiedTimestamp +
+               ", status=" + status +
+               ", logLocation='" + logLocation + '\'' +
+               ", failureMessage='" + failureMessage + '\'' +
+               ", testScenario=" + testScenario +
+               '}';
     }
 
     /**

@@ -63,7 +63,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     public static final String STATUS_COLUMN = "status";
     public static final String DEPLOYMENT_PATTERN_COLUMN = "deployment_pattern";
     public static final String DESCRIPTION_COLUMN = "deployment_pattern";
-    public static final String PRODUCT_TEST_PLAN_COLUMN = "PRODUCTTESTPLAN_id";
+    public static final String PRODUCT_TEST_PLAN_COLUMN = "productTestPlan";
 
     private static final long serialVersionUID = -4345126378695708155L;
 
@@ -100,7 +100,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
 
     @Ignore
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = ProductTestPlan.class)
-    @PrimaryKeyJoinColumn(name = PRODUCT_TEST_PLAN_COLUMN, referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = "PRODUCTTESTPLAN_id", referencedColumnName = ID_COLUMN)
     private ProductTestPlan productTestPlan;
 
     @Transient
@@ -451,6 +451,29 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      */
     public void setDeploymentScript(Script deploymentScript) {
         this.deploymentScript = deploymentScript;
+    }
+
+    @Override
+    public String toString() {
+        return "TestPlan{" +
+               "id='" + this.getId() + '\'' +
+               ", name='" + name + '\'' +
+               ", startTimestamp=" + startTimestamp +
+               ", modifiedTimestamp=" + modifiedTimestamp +
+               ", status=" + status +
+               ", deploymentPattern='" + deploymentPattern + '\'' +
+               ", description='" + description + '\'' +
+               ", productTestPlan=" + productTestPlan +
+               ", testScenarios=" + testScenarios +
+               ", home='" + home + '\'' +
+               ", deployerType=" + deployerType +
+               ", deployment=" + deployment +
+               ", enabled=" + enabled +
+               ", testRepoDir='" + testRepoDir + '\'' +
+               ", infraRepoDir='" + infraRepoDir + '\'' +
+               ", infrastructureScript=" + infrastructureScript +
+               ", deploymentScript=" + deploymentScript +
+               '}';
     }
 
     /**
