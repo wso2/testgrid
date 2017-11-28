@@ -46,7 +46,6 @@ public class InfraResult extends AbstractUUIDEntity implements Serializable {
      */
     public static final String STATUS_COLUMN = "status";
     public static final String INFRA_COMBINATION_COLUMN = "infraCombination";
-    public static final String TEST_PLAN_COLUMN = "testPlan";
 
     private static final long serialVersionUID = 9208083074380972876L;
 
@@ -57,10 +56,6 @@ public class InfraResult extends AbstractUUIDEntity implements Serializable {
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraCombination.class)
     @PrimaryKeyJoinColumn(name = "INFRACOMBINATION_id", referencedColumnName = ID_COLUMN)
     private InfraCombination infraCombination;
-
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class)
-    @PrimaryKeyJoinColumn(name = "TESTPLAN_id", referencedColumnName = ID_COLUMN)
-    private TestPlan testPlan;
 
     /**
      * Returns the status of the infrastructure.
@@ -98,31 +93,12 @@ public class InfraResult extends AbstractUUIDEntity implements Serializable {
         this.infraCombination = infraCombination;
     }
 
-    /**
-     * Returns the {@link TestPlan} associated with this infra result.
-     *
-     * @return {@link TestPlan} associated with this infra result
-     */
-    public TestPlan getTestPlan() {
-        return testPlan;
-    }
-
-    /**
-     * Sets the {@link TestPlan} associated with this infra result.
-     *
-     * @param testPlan {@link TestPlan} associated with this infra result
-     */
-    public void setTestPlan(TestPlan testPlan) {
-        this.testPlan = testPlan;
-    }
-
     @Override
     public String toString() {
         return "InfraResult{" +
                "id='" + this.getId() + '\'' +
                ", status=" + status +
                ", infraCombination=" + infraCombination +
-               ", testPlan=" + testPlan +
                '}';
     }
 
