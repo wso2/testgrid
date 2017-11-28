@@ -17,6 +17,14 @@
  */
 package org.wso2.testgrid.dao.util;
 
+import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Properties;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -36,5 +44,49 @@ public class DAOUtil {
      */
     public static EntityManagerFactory getEntityManagerFactory() {
         return Persistence.createEntityManagerFactory(TESTGRID_PERSISTENT_UNIT);
+    }
+
+    /**
+     * Returns the entity manager factory for the test grid persistent unit.
+     *
+     * @param propertyFilePath properties file path to specifying the properties for the persistence unit
+     * @return entity manager factory for the test grid persistent unit
+     * @throws TestGridDAOException thrown when error on loading properties
+     */
+    public static EntityManagerFactory getEntityManagerFactory(Path propertyFilePath) throws TestGridDAOException {
+        Properties properties = loadProperties(propertyFilePath);
+        return Persistence.createEntityManagerFactory(TESTGRID_PERSISTENT_UNIT, properties);
+    }
+
+    /**
+     * Returns the entity manager factory for the test grid persistent unit.
+     *
+     * @param properties properties for the persistence unit
+     * @return entity manager factory for the test grid persistent unit
+     * @throws TestGridDAOException thrown when error on loading properties
+     */
+    public static EntityManagerFactory getEntityManagerFactory(Properties properties) throws TestGridDAOException {
+        return Persistence.createEntityManagerFactory(TESTGRID_PERSISTENT_UNIT, properties);
+    }
+
+    /**
+     * Returns the properties of the given properties file path.
+     *
+     * @param filePath properties file path
+     * @return properties specified in the properties file
+     * @throws TestGridDAOException thrown when error on loading properties
+     */
+    private static Properties loadProperties(Path filePath) throws TestGridDAOException {
+        try (FileInputStream fileInput = new FileInputStream(filePath.toAbsolutePath().toString())) {
+            Properties properties = new Properties();
+            properties.load(fileInput);
+            return properties;
+        } catch (FileNotFoundException e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on reading properties file ",
+                    filePath.toAbsolutePath().toString()), e);
+        } catch (IOException e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on loading properties from file ",
+                    filePath.toAbsolutePath().toString()), e);
+        }
     }
 }

@@ -51,7 +51,7 @@ abstract class AbstractRepository<T> implements Closeable {
     }
 
     /**
-     * Persists an entity in the database.
+     * Persists or updates an entity in the database.
      *
      * @param entity entity to persist in the database
      * @return added or updated entity instance
@@ -218,6 +218,8 @@ abstract class AbstractRepository<T> implements Closeable {
     }
     @Override
     public void close() {
-        entityManagerFactory.close();
+        if (entityManagerFactory.isOpen()) {
+            entityManagerFactory.close();
+        }
     }
 }
