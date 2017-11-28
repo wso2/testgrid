@@ -89,7 +89,6 @@ public class ScenarioExecutor {
             if (persisted != null) {
                 persisted.setTestEngine(testScenario.getTestEngine());
                 persisted.setEnabled(testScenario.isEnabled());
-
             }
             return persisted;
         } catch (TestGridDAOException e) {
