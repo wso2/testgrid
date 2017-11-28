@@ -17,7 +17,6 @@
  */
 package org.wso2.testgrid.common;
 
-import java.util.Objects;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -32,8 +31,13 @@ import javax.persistence.PrePersist;
 @MappedSuperclass
 public abstract class AbstractUUIDEntity {
 
+    /**
+     * Column names of the table.
+     */
+    public static final String ID_COLUMN = "id";
+
     @Id
-    @Column(name = "id", length = 36)
+    @Column(name = ID_COLUMN, length = 36)
     private String id;
 
     /**
@@ -64,22 +68,5 @@ public abstract class AbstractUUIDEntity {
      */
     public void setId(String id) {
         this.id = id;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (!OperatingSystem.class.isAssignableFrom(obj.getClass())) {
-            return false;
-        }
-        final OperatingSystem other = (OperatingSystem) obj;
-        return this.id != null && other.getId() != null && this.id.equals(other.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }

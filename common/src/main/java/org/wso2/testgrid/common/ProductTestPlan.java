@@ -175,7 +175,7 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
     }
 
     /**
-     * Sets the status of the product test plan
+     * Sets the status of the product test plan.
      *
      * @param status status of the product test plan
      */
@@ -291,6 +291,23 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
      */
     public void addInfrastructure(Infrastructure infrastructure) {
         this.infrastructureMap.put(infrastructure.getName(), infrastructure);
+    }
+
+    @Override
+    public String toString() {
+        return "ProductTestPlan{" +
+               "id='" + this.getId() + '\'' +
+               ", productName='" + productName + '\'' +
+               ", productVersion='" + productVersion + '\'' +
+               ", startTimestamp=" + startTimestamp +
+               ", modifiedTimestamp=" + modifiedTimestamp +
+               ", status=" + status +
+               ", infraRepository='" + infraRepository + '\'' +
+               ", deploymentRepository='" + deploymentRepository + '\'' +
+               ", scenarioRepository='" + scenarioRepository + '\'' +
+               ", homeDir='" + homeDir + '\'' +
+               ", infrastructureMap=" + infrastructureMap +
+               '}';
     }
 
     /**

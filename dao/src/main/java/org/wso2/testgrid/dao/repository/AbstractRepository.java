@@ -51,7 +51,7 @@ abstract class AbstractRepository<T> implements Closeable {
     }
 
     /**
-     * Persists an entity in the database.
+     * Persists or updates an entity in the database.
      *
      * @param entity entity to persist in the database
      * @return added or updated entity instance
@@ -63,12 +63,12 @@ abstract class AbstractRepository<T> implements Closeable {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             entityManager.getTransaction().begin();
 
-            T mergedEntry = entityManager.merge(entity);
+            T merge = entityManager.merge(entity);
 
             // Commit transaction
             entityManager.getTransaction().commit();
             entityManager.close();
-            return mergedEntry;
+            return merge;
         } catch (Exception e) {
             throw new TestGridDAOException("Error occurred when persisting entity in database.", e);
         }
@@ -198,8 +198,28 @@ abstract class AbstractRepository<T> implements Closeable {
         }
     }
 
+    /**
+     * Executes the given native query and returns a result list.
+     *
+     * @param nativeQuery native SQL query to execute
+     * @return result list after executing the native query
+     */
+    @SuppressWarnings("unchecked")
+    public <R> R executeTypedQuary(String nativeQuery, Class bean, int limit) throws TestGridDAOException {
+        try {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            Query query = entityManager.createQuery(nativeQuery, bean);
+            query.setMaxResults(limit);
+            return (R) query.getSingleResult();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query [",
+                    nativeQuery, "]"), e);
+        }
+    }
     @Override
     public void close() {
-        entityManagerFactory.close();
+        if (entityManagerFactory.isOpen()) {
+            entityManagerFactory.close();
+        }
     }
 }

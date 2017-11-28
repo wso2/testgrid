@@ -31,6 +31,9 @@ public class TestPlan {
     private String status;
     private String productTestPlanId;
     private String infraResultId;
+    private String operatingSystem;
+    private String database;
+    private String jdk;
 
     /**
      * Returns the id of the test plan.
@@ -186,11 +189,65 @@ public class TestPlan {
     }
 
     /**
-     * Returns the modified timestamp of the test plan.
+     * Sets the modified timestamp of the test plan.
      *
      * @param modifiedTimestamp test plan modified timestamp
      */
     public void setModifiedTimestamp(long modifiedTimestamp) {
         this.modifiedTimestamp = modifiedTimestamp;
+    }
+
+    /**
+     * Returns the operating system of the test plan.
+     *
+     * @return product test plan operating system
+     */
+    public String getOperatingSystem() {
+        return operatingSystem;
+    }
+
+    /**
+     * Sets the operating system of the test plan.
+     *
+     * @param operatingSystem test plan operating system
+     */
+    public void setOperatingSystem(String operatingSystem) {
+        this.operatingSystem = operatingSystem;
+    }
+
+    /**
+     * Returns the database of the test plan.
+     *
+     * @return product test plan database
+     */
+    public String getDatabase() {
+        return database;
+    }
+
+    /**
+     * Sets the database of the test plan.
+     *
+     * @param database test plan database
+     */
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    /**
+     * Returns the JDK of the test plan.
+     *
+     * @return product test plan JDK
+     */
+    public String getJdk() {
+        return jdk;
+    }
+
+    /**
+     * Sets the jdk of the test plan.
+     *
+     * @param jdk test plan jdk
+     */
+    public void setJdk(String jdk) {
+        this.jdk = jdk;
     }
 }

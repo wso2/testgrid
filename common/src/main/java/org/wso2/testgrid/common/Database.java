@@ -35,11 +35,22 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @Table(
-        name = "database_engine",
+        name = Database.DATABASE_TABLE,
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"engine", "version"})
+                @UniqueConstraint(columnNames = {Database.ENGINE_COLUMN, Database.VERSION_COLUMN})
         })
 public class Database extends AbstractUUIDEntity implements Serializable {
+
+    /**
+     * Database table name.
+     */
+    public static final String DATABASE_TABLE = "database_engine";
+
+    /**
+     * Column names of the table.
+     */
+    public static final String ENGINE_COLUMN = "engine";
+    public static final String VERSION_COLUMN = "version";
 
     private static final long serialVersionUID = 3648225690542176032L;
 
@@ -90,7 +101,11 @@ public class Database extends AbstractUUIDEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "Database [engine=" + engine + ", version=" + version + "]";
+        return "Database{" +
+               "id='" + this.getId() + '\'' +
+               ", engine=" + engine +
+               ", version='" + version + '\'' +
+               '}';
     }
 
     /**

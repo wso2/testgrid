@@ -25,6 +25,7 @@ import org.wso2.testgrid.common.exception.TestGridException;
 
 import java.nio.file.Path;
 
+
 /**
  * This defines the contract of TestGridMgtService in which will serve as the main entry point to the TestGrid
  * Framework.
@@ -52,20 +53,6 @@ public interface TestGridMgtService {
             TestGridException;
 
     /**
-     * This includes the persistence logic to store the overall information of
-     * product/version/channel combination in a database.
-     *
-     * Persistence only happens if the above combination does not exist in the db.
-     *
-     * This method does not generate nor run test plan.
-     *
-     * @param productTestPlan test plan
-     * @throws TestGridException if exception
-     */
-    void persistProduct(ProductTestPlan productTestPlan) throws
-            TestGridException;
-
-    /**
      *
      * This method generates TestPlan object model that from the given input parameters.
      *
@@ -78,6 +65,14 @@ public interface TestGridMgtService {
      */
      TestPlan generateTestPlan(Path testPlanPath, String testRepoDir, String infraRepoDir, String
             testRunDir) throws TestGridException;
+
+    /**
+     * This method persists the test plan across the stages of test execution process.
+     *
+     * @param testPlan        the test plan we need to persist
+     */
+    void persistSingleTestPlan(TestPlan testPlan) throws TestGridException;
+
 
     /**
      * This method triggers the execution of a ProductTestPlan.

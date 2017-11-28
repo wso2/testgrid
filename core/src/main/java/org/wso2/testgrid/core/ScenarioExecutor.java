@@ -85,7 +85,12 @@ public class ScenarioExecutor {
             throws ScenarioExecutorException {
         try {
             TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
-            return testScenarioUOW.persistTestScenario(testScenario, status);
+            TestScenario persisted = testScenarioUOW.persistTestScenario(testScenario, status);
+            if (persisted != null) {
+                persisted.setTestEngine(testScenario.getTestEngine());
+                persisted.setEnabled(testScenario.isEnabled());
+            }
+            return persisted;
         } catch (TestGridDAOException e) {
             throw new ScenarioExecutorException(StringUtil
                     .concatStrings("Error occurred when persisting test scenario - ", testScenario.toString()), e);

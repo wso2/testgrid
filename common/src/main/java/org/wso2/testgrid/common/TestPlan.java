@@ -32,6 +32,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -62,7 +63,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     public static final String STATUS_COLUMN = "status";
     public static final String DEPLOYMENT_PATTERN_COLUMN = "deployment_pattern";
     public static final String DESCRIPTION_COLUMN = "deployment_pattern";
-    public static final String PRODUCT_TEST_PLAN_COLUMN = "PRODUCTTESTPLAN_id";
+    public static final String PRODUCT_TEST_PLAN_COLUMN = "productTestPlan";
 
     private static final long serialVersionUID = -4345126378695708155L;
 
@@ -86,7 +87,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private Status status;
 
     @Element(description = "value to uniquely identify the deployment pattern")
-    @Column(name = DEPLOYMENT_PATTERN_COLUMN, nullable = false, insertable = false, updatable = false)
+    @Column(name = DEPLOYMENT_PATTERN_COLUMN, nullable = false , insertable = false , updatable = false)
     private String deploymentPattern;
 
     @Element(description = "description about the test plan")
@@ -94,8 +95,12 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private String description;
 
     @Ignore
+    @OneToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraResult.class)
+    private InfraResult infraResult;
+
+    @Ignore
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = ProductTestPlan.class)
-    @PrimaryKeyJoinColumn(name = PRODUCT_TEST_PLAN_COLUMN, referencedColumnName = "id")
+    @PrimaryKeyJoinColumn(name = "PRODUCTTESTPLAN_id", referencedColumnName = ID_COLUMN)
     private ProductTestPlan productTestPlan;
 
     @Transient
@@ -240,6 +245,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
+     * Returns the infra result for the test plan.
+     *
+     * @return infra result for the test plan
+     */
+    public InfraResult getInfraResult() {
+        return infraResult;
+    }
+
+    /**
+     * Sets the infra result for the test plan.
+     *
+     * @param infraResult infra result for the test plan
+     */
+    public void setInfraResult(InfraResult infraResult) {
+        this.infraResult = infraResult;
+    }
+
+    /**
      * Returns the product test plan associated with the test plan.
      *
      * @return product test plan associated with the test plan
@@ -249,7 +272,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Sets the product test plan associated with the test plan
+     * Sets the product test plan associated with the test plan.
      *
      * @param productTestPlan product test plan associated with the test plan
      */
@@ -428,6 +451,29 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      */
     public void setDeploymentScript(Script deploymentScript) {
         this.deploymentScript = deploymentScript;
+    }
+
+    @Override
+    public String toString() {
+        return "TestPlan{" +
+               "id='" + this.getId() + '\'' +
+               ", name='" + name + '\'' +
+               ", startTimestamp=" + startTimestamp +
+               ", modifiedTimestamp=" + modifiedTimestamp +
+               ", status=" + status +
+               ", deploymentPattern='" + deploymentPattern + '\'' +
+               ", description='" + description + '\'' +
+               ", productTestPlan=" + productTestPlan +
+               ", testScenarios=" + testScenarios +
+               ", home='" + home + '\'' +
+               ", deployerType=" + deployerType +
+               ", deployment=" + deployment +
+               ", enabled=" + enabled +
+               ", testRepoDir='" + testRepoDir + '\'' +
+               ", infraRepoDir='" + infraRepoDir + '\'' +
+               ", infrastructureScript=" + infrastructureScript +
+               ", deploymentScript=" + deploymentScript +
+               '}';
     }
 
     /**
