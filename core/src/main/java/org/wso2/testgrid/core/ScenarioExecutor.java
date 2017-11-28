@@ -86,7 +86,7 @@ public class ScenarioExecutor {
         try {
             TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
             TestScenario persisted = testScenarioUOW.persistTestScenario(testScenario, status);
-            if(persisted!=null){
+            if (persisted != null) {
                 persisted.setTestEngine(testScenario.getTestEngine());
                 persisted.setEnabled(testScenario.isEnabled());
 

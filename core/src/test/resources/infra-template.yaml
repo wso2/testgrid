@@ -37,9 +37,9 @@ wso2.testgrid.infrastructure:
      name: "wso2-is-public-branch"
      scriptParameters:
        CloudFormationParameterFile: "wso2-is-with-alb-cf-template-parameters.json"
-       DBEngine: "MYSQL"
-       DBEngineVersion: "5.7"
-       JDK: "JDK7"
+       DBEngine: *databaseEngine
+       DBEngineVersion: *databaseVersion
+       JDK: *jdk
        WUMUsername: ""
        WUMPassword: ""
        EC2KeyPair: "test-grid-key"

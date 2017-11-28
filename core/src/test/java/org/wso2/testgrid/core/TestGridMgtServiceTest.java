@@ -51,10 +51,10 @@ import java.nio.file.Paths;
  * @since 1.0.0
  */
 @PrepareForTest({
-                        InfrastructureProviderFactory.class, TestGridUtil.class, TestEngineImpl.class,
-                        TestReportEngineImpl.class, TestPlanExecutor.class
-                })
-@PowerMockIgnore({ "javax.management.*" })
+        InfrastructureProviderFactory.class, TestGridUtil.class, TestEngineImpl.class,
+        TestReportEngineImpl.class, TestPlanExecutor.class
+})
+@PowerMockIgnore({"javax.management.*"})
 public class TestGridMgtServiceTest extends PowerMockTestCase {
 
     private static final String WSO2_PRODUCT = "WSO2 Identity Server";
@@ -86,7 +86,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Assert.assertTrue(path.endsWith(TIME_STAMP + ""));
     }
 
-    @Test(dependsOnMethods = { "isEnvironmentConfiguredTest", "createTestDirectoryTest" })
+    @Test(dependsOnMethods = {"isEnvironmentConfiguredTest", "createTestDirectoryTest"})
     public void parseProductTestPlanTest() throws TestGridException, IOException, GitAPIException {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("test-grid-is-resources");
@@ -98,7 +98,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Mockito.when(TestGridUtil.cloneRepository(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(resource.getPath());
         productTestPlan = new TestGridMgtServiceImpl().createProduct(WSO2_PRODUCT, PRODUCT_VERSION,
-                "src/test/resources/test-grid-is-resources/Infrastructure/single-node.yaml");
+                "src/test/resources/infra.yaml");
         Assert.assertNotNull(productTestPlan);
         Assert.assertTrue(WSO2_PRODUCT.equals(productTestPlan.getProductName()));
         Assert.assertTrue(PRODUCT_VERSION.equals(productTestPlan.getProductVersion()));
@@ -108,9 +108,9 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Infrastructure infrastructure = productTestPlan.getInfrastructureMap().get(DEPLOYMENT_PATTERN);
         Assert.assertNotNull(infrastructure);
         Assert.assertTrue(DEPLOYMENT_PATTERN.equals(infrastructure.getName()));
-        Assert.assertTrue("K8S".equals(infrastructure.getClusterType().name()));
-        Assert.assertTrue("OPENSTACK".equals(infrastructure.getProviderType().name()));
-        Assert.assertTrue("DOCKER_CONTAINERS".equals(infrastructure.getInstanceType().name()));
+        Assert.assertTrue("None".equals(infrastructure.getClusterType().name()));
+        Assert.assertTrue("AWS".equals(infrastructure.getProviderType().name()));
+        Assert.assertTrue("EC2".equals(infrastructure.getInstanceType().name()));
         Assert.assertNotNull(infrastructure.getDatabase());
         Assert.assertTrue(Database.DatabaseEngine.MYSQL.equals(infrastructure.getDatabase().getEngine()));
         Assert.assertTrue("5.7".equals(infrastructure.getDatabase().getVersion()));
@@ -119,7 +119,7 @@ public class TestGridMgtServiceTest extends PowerMockTestCase {
         Assert.assertTrue("17.04".equals(infrastructure.getOperatingSystem().getVersion()));
         Assert.assertNotNull(infrastructure.getSecurityProperties());
         Assert.assertNotNull(infrastructure.getScripts());
-        Assert.assertTrue(infrastructure.getScripts().size() == 2);
+        Assert.assertTrue(infrastructure.getScripts().size() == 1);
     }
 
     @Test(dependsOnMethods = "parseProductTestPlanTest")

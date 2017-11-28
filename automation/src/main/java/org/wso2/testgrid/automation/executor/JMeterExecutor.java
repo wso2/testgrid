@@ -68,7 +68,7 @@ public class JMeterExecutor implements TestExecutor {
         overrideJMeterConfig(testLocation, deployment); // Override JMeter properties for current deployment.
         //TODO change parameter replacing in jmx files to use JMeter properties file.
         try {
-            replaceProperties(script);
+            script = replaceProperties(script);
         } catch (IOException e) {
             throw new TestAutomationException("Error occurred when applying parameters.", e);
         }
@@ -103,6 +103,11 @@ public class JMeterExecutor implements TestExecutor {
         jMeterEngine.configure(testPlanTree);
         jMeterEngine.run();
         jMeterEngine.exit();
+        //delete temp file
+        boolean delete = new File(script).delete();
+        if (!delete) {
+            log.warn("Failed to delete temporary jmx file : " + script);
+        }
     }
 
     @Override
@@ -192,7 +197,7 @@ public class JMeterExecutor implements TestExecutor {
      * @param script Path of the jmx file as a String.
      * @throws IOException when there is an error reading the file.
      */
-    private void replaceProperties(String script) throws IOException {
+    private String replaceProperties(String script) throws IOException, TestAutomationException {
         Path path = Paths.get(script);
         if (Files.exists(path) && Files.isRegularFile(path)) {
             String jmx = new String(Files.readAllBytes(path), Charset.defaultCharset());
@@ -202,10 +207,25 @@ public class JMeterExecutor implements TestExecutor {
                 String name = (String) enumeration.nextElement();
                 jmx = jmx.replaceAll("\\$\\{__property\\(" + name + "\\)\\}", JMeterUtils.getProperty(name));
             }
-            BufferedWriter writer = Files.newBufferedWriter(path, Charset.defaultCharset());
+            String[] split = script.split(File.separatorChar == '\\' ? "\\\\" : File.separator);
+            StringBuilder buffer = new StringBuilder();
+            for (String s : split) {
+                if (s.equals(split[split.length - 1])) {
+                    buffer.append("tmp-");
+                    buffer.append(s);
+
+                } else {
+                    buffer.append(s);
+                    buffer.append(File.separator);
+                }
+            }
+            BufferedWriter writer = Files.newBufferedWriter(Paths.get(buffer.toString()), Charset.defaultCharset());
             writer.write(jmx);
             writer.flush();
             writer.close();
+            return buffer.toString();
+        } else {
+            throw new TestAutomationException("Error occurred when loading test script.");
         }
     }
 }
