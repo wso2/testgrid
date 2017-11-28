@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.testgrid.bean;
+package org.wso2.testgrid.web.bean;
 
 /**
  * Bean class of TestPlan object used in APIs.
@@ -26,8 +26,8 @@ public class TestPlan {
     private String name;
     private String deploymentPattern;
     private String description;
-    private String startTimestamp;
-    private String modifiedTimestamp;
+    private long startTimestamp;
+    private long modifiedTimestamp;
     private String status;
     private String productTestPlanId;
     private String infraResultId;
@@ -112,7 +112,7 @@ public class TestPlan {
      *
      * @return test plan timestamp
      */
-    public String getStartTimestamp() {
+    public long getStartTimestamp() {
         return startTimestamp;
     }
 
@@ -121,7 +121,7 @@ public class TestPlan {
      *
      * @param startTimestamp test plan start timestamp
      */
-    public void setStartTimestamp(String startTimestamp) {
+    public void setStartTimestamp(long startTimestamp) {
         this.startTimestamp = startTimestamp;
     }
 
@@ -184,7 +184,7 @@ public class TestPlan {
      *
      * @return product test plan end timestamp
      */
-    public String getModifiedTimestamp() {
+    public long getModifiedTimestamp() {
         return modifiedTimestamp;
     }
 
@@ -193,7 +193,7 @@ public class TestPlan {
      *
      * @param modifiedTimestamp test plan modified timestamp
      */
-    public void setModifiedTimestamp(String modifiedTimestamp) {
+    public void setModifiedTimestamp(long modifiedTimestamp) {
         this.modifiedTimestamp = modifiedTimestamp;
     }
 

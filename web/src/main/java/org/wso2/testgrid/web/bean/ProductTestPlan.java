@@ -16,15 +16,15 @@
  * under the License.
  */
 
-package org.wso2.testgrid.bean;
+package org.wso2.testgrid.web.bean;
 
 /**
  * Bean class of ProductTestPlan object used in APIs.
  */
 public class ProductTestPlan {
     private String id;
-    private String startTimestamp;
-    private String endTimestamp;
+    private long startTimestamp;
+    private long endTimestamp;
     private String status;
     private String productName;
     private String productVersion;
@@ -53,7 +53,7 @@ public class ProductTestPlan {
      *
      * @return product test plan timestamp
      */
-    public String getStartTimestamp() {
+    public long getStartTimestamp() {
         return startTimestamp;
     }
 
@@ -62,7 +62,7 @@ public class ProductTestPlan {
      *
      * @param startTimestamp product test plan start timestamp
      */
-    public void setStartTimestamp(String startTimestamp) {
+    public void setStartTimestamp(long startTimestamp) {
         this.startTimestamp = startTimestamp;
     }
 
@@ -71,7 +71,7 @@ public class ProductTestPlan {
      *
      * @return product test plan end timestamp
      */
-    public String getEndTimestamp() {
+    public long getEndTimestamp() {
         return endTimestamp;
     }
 
@@ -80,7 +80,7 @@ public class ProductTestPlan {
      *
      * @param endTimestamp product test plan end timestamp
      */
-    public void setEndTimestamp(String endTimestamp) {
+    public void setEndTimestamp(long endTimestamp) {
         this.endTimestamp = endTimestamp;
     }
 

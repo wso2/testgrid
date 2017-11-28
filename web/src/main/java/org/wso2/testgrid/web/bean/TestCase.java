@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.testgrid.bean;
+package org.wso2.testgrid.web.bean;
 
 /**
  * Bean class of TestCase object used in APIs.

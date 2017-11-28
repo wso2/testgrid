@@ -38,6 +38,12 @@
         <dependency>
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.carbon.config</groupId>
+                    <artifactId>org.wso2.carbon.config</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.testgrid</groupId>
@@ -46,6 +52,24 @@
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-server</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.glassfish.hk2.external</groupId>
+                    <artifactId>aopalliance-repackaged</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.javassist</groupId>
+                    <artifactId>javassist</artifactId>
+                </exclusion>
+                <!--<exclusion>-->
+                    <!--<groupId>javax.annotation</groupId>-->
+                    <!--<artifactId>javax.annotation-api</artifactId>-->
+                <!--</exclusion>-->
+                <exclusion>
+                    <groupId>org.glassfish.jersey.media</groupId>
+                    <artifactId>jersey-media-jaxb</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
@@ -59,10 +83,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
@@ -71,65 +91,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                    </configuration>
                 </plugin>
-                <!-- Maven Assembly Plugin -->
                 <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
+                    <artifactId>maven-war-plugin</artifactId>
                     <configuration>
-                        <!-- get all project dependencies -->
-                        <descriptorRefs>
-                            <descriptorRef>jar-with-dependencies</descriptorRef>
-                        </descriptorRefs>
-                        <!-- MainClass in mainfest make a executable jar -->
-                        <archive>
-                            <manifest>
-                                <!--<mainClass>org.wso2.testgrid.core.Main</mainClass>-->
-                            </manifest>
-                        </archive>
-
+                        <warName>testgrid#v0.9</warName>
                     </configuration>
-                    <executions>
-                        <execution>
-                            <id>make-assembly</id>
-                            <!-- bind to the packaging phase -->
-                            <phase>package</phase>
-                            <goals>
-                                <goal>single</goal>
-                            </goals>
-                        </execution>
-                    </executions>
                 </plugin>
-                <!--<plugin>
-                    <groupId>org.mortbay.jetty</groupId>
-                    <artifactId>maven-jetty-plugin</artifactId>
-                    <version>6.1.10</version>
-                    <configuration>
-                        <scanIntervalSeconds>10</scanIntervalSeconds>
-                        <stopKey>foo</stopKey>
-                        <stopPort>9999</stopPort>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>start-jetty</id>
-                            <phase>pre-integration-test</phase>
-                            <goals>
-                                <goal>run</goal>
-                            </goals>
-                            <configuration>
-                                <scanIntervalSeconds>0</scanIntervalSeconds>
-                                <daemon>true</daemon>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>stop-jetty</id>
-                            <phase>post-integration-test</phase>
-                            <goals>
-                                <goal>stop</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>-->
                 <plugin>
                     <groupId>org.apache.tomcat.maven</groupId>
                     <artifactId>tomcat7-maven-plugin</artifactId>
@@ -137,7 +109,5 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-        <finalName>api</finalName>
     </build>
-    
 </project>

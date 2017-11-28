@@ -85,6 +85,18 @@ public class WebAppUOW {
     }
 
     /**
+     * Returns all the test plans for a given product-test-plan id.
+     *
+     * @return list of {@link TestPlan} instances
+     * @throws TestGridDAOException thrown when error on retrieving results
+     */
+    public List<TestPlan> getTestPlansForProductTestPlan(String id) throws TestGridDAOException {
+        TestPlanRepository testPlanRepository = new TestPlanRepository(entityManagerFactory);
+        Map<String, Object> params = Collections.singletonMap(TestPlan.PRODUCT_TEST_PLAN_COLUMN, id);
+        return testPlanRepository.findByFields(params);
+    }
+
+    /**
      * Returns the {@link TestScenario} instance for the given id.
      *
      * @param id primary key of the test plan
@@ -94,6 +106,18 @@ public class WebAppUOW {
     public TestScenario getTestScenarioById(String id) throws TestGridDAOException {
         TestScenarioRepository testScenarioRepository = new TestScenarioRepository(entityManagerFactory);
         return testScenarioRepository.findByPrimaryKey(id);
+    }
+
+    /**
+     * Returns all the test plans for a given product-test-plan id.
+     *
+     * @return list of {@link TestPlan} instances
+     * @throws TestGridDAOException thrown when error on retrieving results
+     */
+    public List<TestScenario> getTestScenariosForTestPlan(String id) throws TestGridDAOException {
+        TestScenarioRepository testScenarioRepository = new TestScenarioRepository(entityManagerFactory);
+        Map<String, Object> params = Collections.singletonMap(TestScenario.TEST_PLAN_COLUMN, id);
+        return testScenarioRepository.findByFields(params);
     }
 
     /**
