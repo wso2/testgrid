@@ -109,7 +109,7 @@ public class WebAppUOW {
     }
 
     /**
-     * Returns a list of {@link TestCase} instances for the given Test Scenario ID
+     * Returns a list of {@link TestCase} instances for the given Test Scenario ID.
      *
      * @param id Test Scenario ID
      * @return a list of {@link TestCase} instances for the given Test Scenario ID

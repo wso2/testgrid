@@ -38,7 +38,7 @@ wso2.testgrid.infrastructure:
      scriptParameters:
        CloudFormationParameterFile: "wso2-is-with-alb-cf-template-parameters.json"
        DBEngine: *databaseEngine
-       DBEngineVersion: *databaseVersion 
+       DBEngineVersion: *databaseVersion
        JDK: *jdk
        WUMUsername: ""
        WUMPassword: ""

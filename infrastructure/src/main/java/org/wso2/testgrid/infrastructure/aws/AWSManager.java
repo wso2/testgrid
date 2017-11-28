@@ -68,7 +68,7 @@ public class AWSManager {
     private static final String IMAGE = "Image";
 
     private enum AWSRDSEngine {
-        MYSQL ("mysql"), ORACLE ("oracle-se"), SQL_SERVER ("sqlserver-ex"), POSTGRESQL ("postgre"),
+        MYSQL("mysql"), ORACLE("oracle-se"), SQL_SERVER("sqlserver-ex"), POSTGRESQL("postgre"),
         MariaDB("mariadb");
 
         private final String name;
@@ -133,11 +133,7 @@ public class AWSManager {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
-                    if (output.getOutputKey().contains("WSO2ISHostName")) {
-                        host.setLabel("server_host");
-                    } else {
-                        host.setLabel(output.getOutputKey());
-                    }
+                    host.setLabel(output.getOutputKey().replace("0", "_"));
                     hosts.add(host);
                 }
             }
@@ -197,7 +193,7 @@ public class AWSManager {
             }
             //if the operation is not complete then wait 5 seconds and check again.
             if (!completed) {
-                Thread.sleep(5000);
+                Thread.sleep(15000);
             }
         }
         return successful;
@@ -244,7 +240,8 @@ public class AWSManager {
             , TestGridInfrastructureException {
 
         Properties scriptParameters = script.getScriptParameters();
-        String cfParamFile = (String) scriptParameters.get("CloudFormationParameterFile");   //todo hard-coded
+        String cfParamFile = (String) scriptParameters.get("CloudFormationParameterFile"); //todo hard-coded
+        scriptParameters.remove("CloudFormationParameterFile");
         Path path = Paths.get(infraRepoDir, cfParamFile);
         String jsonArray = new String(Files.readAllBytes(path), Charset.defaultCharset());
         ObjectMapper objectMapper = new ObjectMapper();
@@ -288,7 +285,7 @@ public class AWSManager {
     /**
      * Converts the given db engine type to the AWS RDS engine type.
      *
-     * @param databaseEngine       Required DatabaseEngine type.
+     * @param databaseEngine Required DatabaseEngine type.
      * @return a {@link String} object which indicates the name of AWS RDS
      * @throws TestGridInfrastructureException When the given db engine is not supported by AWS RDS.
      */
@@ -296,21 +293,20 @@ public class AWSManager {
             TestGridInfrastructureException {
         switch (databaseEngine) {
             case MYSQL:
-                return AWSRDSEngine.MYSQL.name();
+                return AWSRDSEngine.MYSQL.name;
             case POSTGRESQL:
-                return AWSRDSEngine.POSTGRESQL.name();
+                return AWSRDSEngine.POSTGRESQL.name;
             case ORACLE:
-                return AWSRDSEngine.ORACLE.name();
+                return AWSRDSEngine.ORACLE.name;
             case SQL_SERVER:
-                return AWSRDSEngine.SQL_SERVER.name();
+                return AWSRDSEngine.SQL_SERVER.name;
             case MariaDB:
-                return AWSRDSEngine.MariaDB.name();
+                return AWSRDSEngine.MariaDB.name;
             default:
                 throw new TestGridInfrastructureException("Request DB engine '" + databaseEngine.name()
                         + "' is not supported by AWS.");
         }
     }
-
 
     /**
      * Wrapper TypeReference for json Object mapper function.

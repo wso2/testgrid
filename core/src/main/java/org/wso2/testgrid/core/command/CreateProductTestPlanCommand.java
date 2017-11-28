@@ -26,6 +26,8 @@ import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.core.TestGridMgtService;
 import org.wso2.testgrid.core.TestGridMgtServiceImpl;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
 /**
  * This creates a product test plan from the input arguments
@@ -37,19 +39,19 @@ public class CreateProductTestPlanCommand extends Command {
 
     @Option(name = "--product",
             usage = "Product Name",
-            aliases = { "-p" },
+            aliases = {"-p"},
             required = true)
     protected String productName = "";
 
     @Option(name = "--version",
             usage = "product version",
-            aliases = { "-v" },
+            aliases = {"-v"},
             required = true)
     protected String productVersion = "";
 
     @Option(name = "--channel",
             usage = "product channel",
-            aliases = { "-c" },
+            aliases = {"-c"},
             required = false)
     protected String channel = "public";
 
@@ -57,7 +59,7 @@ public class CreateProductTestPlanCommand extends Command {
             usage = "Location of Infra plans. "
                     + "Under this location, there should be a Infrastructure/ folder."
                     + "Assume this location is the test-grid-is-resources",
-            aliases = { "-ir" },
+            aliases = {"-ir"},
             required = true)
     protected String infraRepo = "";
 
@@ -65,9 +67,15 @@ public class CreateProductTestPlanCommand extends Command {
             usage = "Location of all the infra plans. "
                     + "Under this location, there should be a Infrastructure/ folder."
                     + "Assume this location is the test-grid-is-resources",
-            aliases = { "-ics" },
+            aliases = {"-ics"},
             required = true)
     protected String infraConfigsLocation = "";
+    @Option(name = "--infraPlan",
+            usage = "Infrastructure config file",
+            aliases = {"-i"},
+            required = true)
+    protected String infraPlan = "";
+
 
     @Override
     public void execute() throws TestGridException {
@@ -91,8 +99,12 @@ public class CreateProductTestPlanCommand extends Command {
         ProductTestPlan plan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
         //todo add channel as an argument.
 
-        testGridMgtService.persistProduct(plan);
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        try {
+            testPlanUOW.persistProductTestPlan(plan);
+        } catch (TestGridDAOException e) {
+            log.error("Error occured while persisting ProductTestPlan", e);
+        }
         //todo Persist product and version info in the db.
-        //git repo info for infra/deploy/scenarios are not yet retrieved as input arguments.
     }
 }

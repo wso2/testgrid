@@ -23,7 +23,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.config.ConfigProviderFactory;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
+import org.wso2.testgrid.common.Database;
+import org.wso2.testgrid.common.InfraCombination;
+import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.Infrastructure;
+import org.wso2.testgrid.common.OperatingSystem;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.Utils;
@@ -31,6 +35,8 @@ import org.wso2.testgrid.common.exception.TestGridConfigurationException;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -54,7 +60,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         File infraConfig = new File(infraYaml);
         if (infraConfig.exists()) {
             Infrastructure infrastructure;
-                try {
+            try {
 
                     if (Utils.isYamlFile(infraConfig.getName())) {
                         ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(Paths
@@ -80,7 +86,6 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     public TestPlan generateTestPlan(Path testPlanPath, String testRepoDir, String infraRepoDir, String
             testRunDir) throws TestGridException {
         TestPlan testPlan;
-
         if (testPlanPath.toAbsolutePath().toFile().exists()
                 && (testPlanPath.getFileName() != null && Utils.isYamlFile(testPlanPath.toString()))) {
             try {
@@ -133,47 +138,63 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         return productTestPlan;
     }
 
-    /**
-     * TODO: @Vidura/Asma
-     *
-     * @param productTestPlan test plan
-     * @throws TestGridException exception
-     */
-    @Override
-    public void persistProduct(ProductTestPlan productTestPlan) throws TestGridException {
-        log.warn("Peristence of product Not Implemented Yet.");
-    }
 
     @Override
     public boolean executeTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) throws TestGridException {
         productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
-        //        ListIterator<TestPlan> iterator = productTestPlan.getTestPlans().listIterator();
-
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
         try {
-            testPlan = new TestPlanExecutor().runTestPlan(testPlan, productTestPlan.getInfrastructure(testPlan
-                    .getDeploymentPattern()));
-            //Update the current TestPlan
-            //productTestPlan.getTestPlans().set(iterator.nextIndex() - 1, testPlan); //todo
-            persistSingleTestPlan(testPlan, productTestPlan);
+            Infrastructure infrastructure = productTestPlan.getInfrastructure(testPlan
+                    .getDeploymentPattern());
+            InfraCombination combination = new InfraCombination();
+            //Check if database entry already in the database.
+            Database databse = testPlanUOW.getDatabse(infrastructure.getDatabase().getEngine().toString(),
+                    infrastructure.getDatabase().getVersion());
+            if (databse != null) {
+                combination.setDatabase(databse);
+            } else {
+                combination.setDatabase(infrastructure.getDatabase());
+            }
+            //Check if Operating System entry already in the database.
+            OperatingSystem os = testPlanUOW.getOperatingSystem(infrastructure.getOperatingSystem().getName()
+                    , infrastructure.getOperatingSystem().getVersion());
+            if (os != null) {
+                combination.setOperatingSystem(os);
+            } else {
+                combination.setOperatingSystem(infrastructure.getOperatingSystem());
+            }
+            InfraResult infraResult = new InfraResult();
+            //Check if InfraCombination entry already in the database.
+            InfraCombination persistedCombination = testPlanUOW.getInfraCombination(infrastructure.getJDK().toString(),
+                    combination.getDatabase(), combination.getOperatingSystem());
+            if (persistedCombination != null) {
+                infraResult.setInfraCombination(persistedCombination);
+            } else {
+                combination.setJdk(getJDKversion(infrastructure.getJDK()));
+                infraResult.setInfraCombination(combination);
+            }
+
+            infraResult.setStatus(InfraResult.Status.INFRASTRUCTURE_PREPARATION);
+            testPlan.setInfraResult(infraResult);
+
+            //persist before runing test plan
+            testPlan.setProductTestPlan(productTestPlan);
+            testPlan = testPlanUOW.persistSingleTestPlan(testPlan);
+            new TestPlanExecutor().runTestPlan(testPlan, infrastructure);
+
         } catch (TestPlanExecutorException e) {
             String msg = "Unable to execute the TestPlan '" + testPlan.getName() + "' in Product '" +
                     productTestPlan.getProductName() + ", version '" + productTestPlan.getProductVersion() + "'";
             log.error(msg, e);
+        } catch (TestGridDAOException e) {
+            throw new TestGridException("Error occured while persisting TestPlan ", e);
         }
-        //        }
-
-        productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_REPORT_GENERATION);
-        // TODO: maintain report generation in a different location
-        productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_COMPLETED);
         return true;
     }
 
-    /**
-     * @param testPlan        the test plan we need to persist
-     * @param productTestPlan the product test plan DTO that contain the information u need.
-     */
-    private void persistSingleTestPlan(TestPlan testPlan, ProductTestPlan productTestPlan) {
-        //todo dummy method for Vidura/Asma
+    @Override
+    public void persistSingleTestPlan(TestPlan testPlan) throws TestGridException {
+
     }
 
     @Override
@@ -184,5 +205,22 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
     @Override
     public ProductTestPlan.Status getStatus(ProductTestPlan productTestPlan) throws TestGridException {
         return null;
+    }
+
+    /**
+     * This method maintains the mapping between JDK definitions.
+     *
+     * @param jdk {@link Infrastructure.JDK} enum value
+     * @return {@link InfraCombination.JDK} enum value.
+     */
+    private InfraCombination.JDK getJDKversion(Infrastructure.JDK jdk) {
+        switch (jdk) {
+            case JDK7:
+                return InfraCombination.JDK.ORACLE_JDK7;
+            case JDK8:
+                return InfraCombination.JDK.ORACLE_JDK8;
+            default:
+                return InfraCombination.JDK.ORACLE_JDK8;
+        }
     }
 }

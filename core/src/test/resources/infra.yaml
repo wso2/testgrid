@@ -24,9 +24,9 @@ wso2.testgrid.infrastructure:
     name: "Ubuntu"
     version: "17.04"
   database:
-    engine: &databaseEngine MySQL
-    version: &databaseVersion 5.6
-  jdk: &jdk JDK8
+    engine: &databaseEngine "MYSQL"
+    version: &databaseVersion "5.7"
+  jdk: &jdk "JDK8"
   securityProperties:
     apiKey: "242424"
     sshKey: "abc.key"

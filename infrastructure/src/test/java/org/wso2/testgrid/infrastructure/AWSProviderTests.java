@@ -90,8 +90,6 @@ public class AWSProviderTests extends PowerMockTestCase {
         infrastructure.setScripts(Collections.singletonList(script));
         AWSProvider provider = new AWSProvider();
         AWSManager manager = Mockito.mock(AWSManager.class);
-        Deployment deployment = new Deployment();
-        deployment.setName("TestDeployment");
         Mockito.when(manager.destroyInfrastructure(Mockito.any(Script.class))).thenReturn(true);
         PowerMockito.whenNew(AWSManager.class).withAnyArguments().thenReturn(manager);
         boolean removeInfrastructure = provider.removeInfrastructure(infrastructure, "dummyRepoDir");
