@@ -105,9 +105,10 @@ function getProductTestPlans () {
          success: function (data) {
             if (data.length > 0) {
                 for (var i = 0; i < data.length; i++) {
-                    $("#product-test-plans > tbody").append("<tr id = " + data[i].id + "><td><button class='expand-test-plans'>+</button>&nbsp;" + data[i].id + "</td><td>"
-                        + data[i].startTimestamp + "</td><td>"
-                        + data[i].endTimestamp + "</td><td>"
+                    $("#product-test-plans > tbody").append("<tr id = " + data[i].id + 
+                        "><td><button class='expand-test-plans'>+</button>&nbsp;" + data[i].id + "</td><td>"
+                        + toReadableDate(data[i].startTimestamp) + "</td><td>"
+                        + toReadableDate(data[i].endTimestamp) + "</td><td>"
                         + data[i].status + "</td><td>"
                         + data[i].productName + "</td><td>"
                         + data[i].productVersion + "</td></tr>");
@@ -128,7 +129,7 @@ function getProductTestPlans () {
 function getTestPlans (id) {
      $.ajax({
          type: "GET",
-         url: "api/test-plans?product-test-plan=" + id,
+         url: "api/test-plans?product-test-plan-id=" + id,
          dataType: "json",
          async : false,
          success: function (data) {
@@ -142,8 +143,8 @@ function getTestPlans (id) {
                         + data[i].id + "</td><td>"
                         + data[i].name + "</td><td>"
                         + data[i].deploymentPattern + "</td><td>"
-                        + data[i].startTimestamp + "</td><td>"
-                        + data[i].modifiedTimestamp + "</td><td>"
+                        + toReadableDate(data[i].startTimestamp) + "</td><td>"
+                        + toReadableDate(data[i].modifiedTimestamp) + "</td><td>"
                         + data[i].status + "</td></tr>";
                 }
                 innerHtml += "</tbody></table></td></tr>";
@@ -221,4 +222,9 @@ function getTestCases (id) {
              console.log(status);
          }
     });
+}
+
+function toReadableDate(timeMilis) {
+    var date = new Date(timeMilis);
+    return date.toString("yyyy-MM-dd HH:mm:ss");
 }
