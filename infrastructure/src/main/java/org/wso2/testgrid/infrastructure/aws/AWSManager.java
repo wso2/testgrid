@@ -133,7 +133,7 @@ public class AWSManager {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
-                    host.setLabel(output.getOutputKey().replace("0", "_"));
+                    host.setLabel(output.getOutputKey());
                     hosts.add(host);
                 }
             }
