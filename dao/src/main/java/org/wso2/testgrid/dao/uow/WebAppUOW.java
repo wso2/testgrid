@@ -101,7 +101,7 @@ public class WebAppUOW {
     /**
      * Returns the {@link TestScenario} instance for the given id.
      *
-     * @param id primary key of the test plan
+     * @param id primary key of the test scenario
      * @return matching {@link TestScenario} instance
      * @throws TestGridDAOException thrown when error on retrieving results
      */
@@ -113,7 +113,8 @@ public class WebAppUOW {
     /**
      * Returns all the test plans for a given product-test-plan id.
      *
-     * @return list of {@link TestPlan} instances
+     * @param id Test plan ID
+     * @return list of {@link TestScenario} instances
      * @throws TestGridDAOException thrown when error on retrieving results
      */
     public List<TestScenario> getTestScenariosForTestPlan(String id) throws TestGridDAOException {
@@ -139,7 +140,7 @@ public class WebAppUOW {
      * Returns a list of {@link TestCase} instances for the given Test Scenario ID.
      *
      * @param id Test Scenario ID
-     * @return a list of {@link TestCase} instances for the given Test Scenario ID
+     * @return list of {@link TestCase} instances for the given Test Scenario ID
      * @throws TestGridDAOException thrown when error on retrieving results
      */
     public List<TestCase> getTestCasesForTestScenario(String id) throws TestGridDAOException {
