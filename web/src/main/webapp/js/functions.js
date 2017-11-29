@@ -103,17 +103,17 @@ function getProductTestPlans () {
          url: "api/product-test-plans",
          dataType: "json",
          success: function (data) {
-
-         	for (var i = 0; i < data.length; i++) {
-         		$("#product-test-plans > tbody").append("<tr id = " + data[i].id + "><td><button class='expand-test-plans'>+</button>&nbsp;" + data[i].id + "</td><td>"
-         			+ data[i].startTimestamp + "</td><td>"
-         			+ data[i].endTimestamp + "</td><td>"
-         			+ data[i].status + "</td><td>"
-         			+ data[i].product_name + "</td><td>"
-         			+ data[i].product_version + "</td></tr>");
-         	}      	
+            if (data.length > 0) {
+                for (var i = 0; i < data.length; i++) {
+                    $("#product-test-plans > tbody").append("<tr id = " + data[i].id + "><td><button class='expand-test-plans'>+</button>&nbsp;" + data[i].id + "</td><td>"
+                        + data[i].startTimestamp + "</td><td>"
+                        + data[i].endTimestamp + "</td><td>"
+                        + data[i].status + "</td><td>"
+                        + data[i].productName + "</td><td>"
+                        + data[i].productVersion + "</td></tr>");
+                }
+         	}
          },
-
          error: function (status) {
              console.log(status);
          }
@@ -132,25 +132,25 @@ function getTestPlans (id) {
          dataType: "json",
          async : false,
          success: function (data) {
-            var innerHtml = "<tr class='hidden'><td colspan=6><h3>Test Plans</h3><hr/>"
-                    + "<table class='table test-plans'><thead><tr>"
-                    + "<th>ID</th><th>Name</th><th>Deployment Pattern</th>" 
-                    + "<th>Start Time</th><th>End Time</th><th>Status</th></tr></thead><tbody>";
-         	for (var i = 0; i < data.length; i++) {
-                innerHtml += "<tr id = " + data[i].id + "><td><button class='expand-test-scenarios'>+</button>&nbsp;"
-                    + data[i].id + "</td><td>"
-                    + data[i].name + "</td><td>"
-                    + data[i].deploymentPattern + "</td><td>"
-                    + data[i].startTimestamp + "</td><td>"
-                    + data[i].modifiedTimestamp + "</td><td>"
-                    + data[i].status + "</td></tr>";
-         	} 
-            innerHtml += "</tbody></table></td></tr>"; 
-            $("#product-test-plans > tbody > tr.selected").after(innerHtml);
-         	$("#product-test-plans > tbody > tr th").addClass("col-md-1");    
-                	
+            if (data.length > 0) {
+                var innerHtml = "<tr class='hidden'><td colspan=6><h3>Test Plans</h3><hr/>"
+                        + "<table class='table test-plans'><thead><tr>"
+                        + "<th>ID</th><th>Name</th><th>Deployment Pattern</th>"
+                        + "<th>Start Time</th><th>End Time</th><th>Status</th></tr></thead><tbody>";
+                for (var i = 0; i < data.length; i++) {
+                    innerHtml += "<tr id = " + data[i].id + "><td><button class='expand-test-scenarios'>+</button>&nbsp;"
+                        + data[i].id + "</td><td>"
+                        + data[i].name + "</td><td>"
+                        + data[i].deploymentPattern + "</td><td>"
+                        + data[i].startTimestamp + "</td><td>"
+                        + data[i].modifiedTimestamp + "</td><td>"
+                        + data[i].status + "</td></tr>";
+                }
+                innerHtml += "</tbody></table></td></tr>";
+                $("#product-test-plans > tbody > tr.selected").after(innerHtml);
+                $("#product-test-plans > tbody > tr th").addClass("col-md-1");
+            }
          },
-
          error: function (status) {
              console.log(status);
          }
@@ -169,20 +169,21 @@ function getTestScenarios (id) {
          dataType: "json",
          async : false,
          success: function (data) {
-            var innerHtml = "<tr class='test-scenario hidden'><td colspan=6><h4>Test Scenarios</h4><hr/>"
-                    + "<table class='table test-scenarios'><thead><tr>"
-                    + "<th>ID</th><th>Name</th><th>Status</th></tr></thead><tbody>";
-            for (var i = 0; i < data.length; i++) {
-                innerHtml += "<tr class = " + data[i].id + "><td><button class='expand-test-cases'>+</button>&nbsp;"
-                    + data[i].id + "</td><td>"
-                    + data[i].name + "</td><td>"
-                    + data[i].status + "</td></tr>";
-            } 
-            innerHtml += "</tbody></table></td></tr>"; 
-            $(".test-plans > tbody tr.selected").after(innerHtml);
-            $(".test-plans > tbody tr th").addClass("col-md-1");          
+            if (data.length > 0) {
+                var innerHtml = "<tr class='test-scenario hidden'><td colspan=6><h4>Test Scenarios</h4><hr/>"
+                        + "<table class='table test-scenarios'><thead><tr>"
+                        + "<th>ID</th><th>Name</th><th>Status</th></tr></thead><tbody>";
+                for (var i = 0; i < data.length; i++) {
+                    innerHtml += "<tr class = " + data[i].id + "><td><button class='expand-test-cases'>+</button>&nbsp;"
+                        + data[i].id + "</td><td>"
+                        + data[i].name + "</td><td>"
+                        + data[i].status + "</td></tr>";
+                }
+                innerHtml += "</tbody></table></td></tr>";
+                $(".test-plans > tbody tr.selected").after(innerHtml);
+                $(".test-plans > tbody tr th").addClass("col-md-1");
+            }
          },
-
          error: function (status) {
              console.log(status);
          }
@@ -201,20 +202,21 @@ function getTestCases (id) {
          dataType: "json",
          async : false,
          success: function (data) {
-            var innerHtml = "<tr class='test-case hidden'><td colspan=6><h5><strong>Test Cases<strong></h5><hr/>"
-                    + "<table class='table test-cases'><thead><tr>"
-                    + "<th>ID</th><th>Name</th><th>Status</th></tr></thead><tbody>";
-            for (var i = 0; i < data.length; i++) {
-                innerHtml += "<tr class = " + data[i].id + "><td>"
-                    + data[i].id + "</td><td>"
-                    + data[i].name + "</td><td>"
-                    + data[i].status + "</td></tr>";
-            } 
-            innerHtml += "</tbody></table></td></tr>"; 
-            $(".test-scenarios > tbody tr.selected").after(innerHtml);
-            $(".test-scenarios > tbody tr th").addClass("col-md-1");          
+            if (data.length > 0) {
+                var innerHtml = "<tr class='test-case hidden'><td colspan=6><h5><strong>Test Cases<strong></h5><hr/>"
+                        + "<table class='table test-cases'><thead><tr>"
+                        + "<th>ID</th><th>Name</th><th>Status</th></tr></thead><tbody>";
+                for (var i = 0; i < data.length; i++) {
+                    innerHtml += "<tr class = " + data[i].id + "><td>"
+                        + data[i].id + "</td><td>"
+                        + data[i].name + "</td><td>"
+                        + data[i].status + "</td></tr>";
+                }
+                innerHtml += "</tbody></table></td></tr>";
+                $(".test-scenarios > tbody tr.selected").after(innerHtml);
+                $(".test-scenarios > tbody tr th").addClass("col-md-1");
+            }
          },
-
          error: function (status) {
              console.log(status);
          }
