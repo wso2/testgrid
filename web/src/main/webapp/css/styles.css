@@ -19,7 +19,7 @@ tr.hidden{
 	display: none;
 } 
 #product-test-plans > tbody > tr {
-	background: #D3D3D3;
+	background: #C0C0C0;
 }
 .test-plans > tbody > tr {
 	background: #DCDCDC;
@@ -27,6 +27,20 @@ tr.hidden{
 .test-scenarios > tbody > tr {
 	background: #eee;
 }
+.test-cases > tbody > tr {
+	background: #fff;
+}
+
 h1, h2, h3, h4, h5, h6 {
 	text-align: center;
+}
+h1.title{
+	width: 100%;
+	padding: 30px;
+	background: #ff4c00;
+	color: #fff;
+}
+table thead tr{
+	background: #000;
+	color: #fff;
 }
