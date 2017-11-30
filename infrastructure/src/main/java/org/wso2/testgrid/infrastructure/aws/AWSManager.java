@@ -68,7 +68,7 @@ public class AWSManager {
     private static final String IMAGE = "Image";
 
     private enum AWSRDSEngine {
-        MYSQL("mysql"), ORACLE("oracle-se"), SQL_SERVER("sqlserver-ex"), POSTGRESQL("postgre"),
+        MYSQL("mysql"), ORACLE("oracle-se"), SQL_SERVER("sqlserver-ex"), POSTGRESQL("postgres"),
         MariaDB("mariadb");
 
         private final String name;
