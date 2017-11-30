@@ -175,7 +175,7 @@ function getTestScenarios (id) {
                         + "<table class='table test-scenarios'><thead><tr>"
                         + "<th>ID</th><th>Name</th><th>Status</th></tr></thead><tbody>";
                 for (var i = 0; i < data.length; i++) {
-                    innerHtml += "<tr class = " + data[i].id + "><td><button class='expand-test-cases'>+</button>&nbsp;"
+                    innerHtml += "<tr id = " + data[i].id + "><td><button class='expand-test-cases'>+</button>&nbsp;"
                         + data[i].id + "</td><td>"
                         + data[i].name + "</td><td>"
                         + data[i].status + "</td></tr>";
@@ -208,7 +208,7 @@ function getTestCases (id) {
                         + "<table class='table test-cases'><thead><tr>"
                         + "<th>ID</th><th>Name</th><th>Status</th></tr></thead><tbody>";
                 for (var i = 0; i < data.length; i++) {
-                    innerHtml += "<tr class = " + data[i].id + "><td>"
+                    innerHtml += "<tr id = " + data[i].id + "><td>"
                         + data[i].id + "</td><td>"
                         + data[i].name + "</td><td>"
                         + data[i].status + "</td></tr>";
