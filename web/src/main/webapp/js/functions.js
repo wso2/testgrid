@@ -107,11 +107,11 @@ function getProductTestPlans () {
                 for (var i = 0; i < data.length; i++) {
                     $("#product-test-plans > tbody").append("<tr id = " + data[i].id + 
                         "><td><button class='expand-test-plans'>+</button>&nbsp;" + data[i].id + "</td><td>"
-                        + toReadableDate(data[i].startTimestamp) + "</td><td>"
-                        + toReadableDate(data[i].endTimestamp) + "</td><td>"
-                        + data[i].status + "</td><td>"
                         + data[i].productName + "</td><td>"
-                        + data[i].productVersion + "</td></tr>");
+                        + data[i].productVersion + "</td><td class ='" + data[i].status + "'>"
+                        + data[i].status + "</td><td>"
+                        + toReadableDate(data[i].startTimestamp) + "</td><td>"
+                        + toReadableDate(data[i].endTimestamp) + "</td></tr>");
                 }
          	}
          },
@@ -136,16 +136,16 @@ function getTestPlans (id) {
             if (data.length > 0) {
                 var innerHtml = "<tr class='hidden'><td colspan=6><h3>Test Plans</h3><hr/>"
                         + "<table class='table test-plans'><thead><tr>"
-                        + "<th>ID</th><th>Name</th><th>Deployment Pattern</th>"
-                        + "<th>Start Time</th><th>End Time</th><th>Status</th></tr></thead><tbody>";
+                        + "<th>ID</th><th>Name</th><th>Deployment Pattern</th><th>Status</th>"
+                        + "<th>Start Time</th><th>End Time</th></tr></thead><tbody>";
                 for (var i = 0; i < data.length; i++) {
                     innerHtml += "<tr id = " + data[i].id + "><td><button class='expand-test-scenarios'>+</button>&nbsp;"
                         + data[i].id + "</td><td>"
                         + data[i].name + "</td><td>"
-                        + data[i].deploymentPattern + "</td><td>"
+                        + data[i].deploymentPattern + "</td><td class ='" + data[i].status + "'>"
+                        + data[i].status + "</td><td>"
                         + toReadableDate(data[i].startTimestamp) + "</td><td>"
-                        + toReadableDate(data[i].modifiedTimestamp) + "</td><td>"
-                        + data[i].status + "</td></tr>";
+                        + toReadableDate(data[i].modifiedTimestamp) + "</td></tr>";
                 }
                 innerHtml += "</tbody></table></td></tr>";
                 $("#product-test-plans > tbody > tr.selected").after(innerHtml);
@@ -177,7 +177,7 @@ function getTestScenarios (id) {
                 for (var i = 0; i < data.length; i++) {
                     innerHtml += "<tr id = " + data[i].id + "><td><button class='expand-test-cases'>+</button>&nbsp;"
                         + data[i].id + "</td><td>"
-                        + data[i].name + "</td><td>"
+                        + data[i].name + "</td><td class ='" + data[i].status + "'>"
                         + data[i].status + "</td></tr>";
                 }
                 innerHtml += "</tbody></table></td></tr>";
@@ -210,7 +210,7 @@ function getTestCases (id) {
                 for (var i = 0; i < data.length; i++) {
                     innerHtml += "<tr id = " + data[i].id + "><td>"
                         + data[i].id + "</td><td>"
-                        + data[i].name + "</td><td>"
+                        + data[i].name + "</td><td class ='" + data[i].status + "'>"
                         + data[i].status + "</td></tr>";
                 }
                 innerHtml += "</tbody></table></td></tr>";
@@ -226,5 +226,5 @@ function getTestCases (id) {
 
 function toReadableDate(timeMilis) {
     var date = new Date(timeMilis);
-    return date.toString("yyyy-MM-dd HH:mm:ss");
+    return date.toLocaleString();;
 }
