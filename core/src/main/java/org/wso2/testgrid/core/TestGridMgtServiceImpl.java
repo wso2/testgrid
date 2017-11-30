@@ -130,6 +130,7 @@ public class TestGridMgtServiceImpl implements TestGridMgtService {
         ProductTestPlan productTestPlan = new ProductTestPlan();
         //            productTestPlan.setHomeDir(path);
         productTestPlan.setStartTimestamp(new Timestamp(timeStamp));
+        productTestPlan.setModifiedTimestamp(new Timestamp(timeStamp));
         productTestPlan.setProductName(product);
         productTestPlan.setProductVersion(productVersion);
         productTestPlan.setInfrastructureMap(this.generateInfrastructureData(infraYaml));

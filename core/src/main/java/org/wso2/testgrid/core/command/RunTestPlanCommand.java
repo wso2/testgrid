@@ -36,6 +36,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.util.Date;
 
 
 /**
@@ -128,7 +130,7 @@ public class RunTestPlanCommand extends Command {
             productTestPlan2.setInfrastructureMap(productTestPlan1.getInfrastructureMap());
             productTestPlan2.setScenarioRepository(productTestPlan1.getScenarioRepository());
             productTestPlan2.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
-
+            productTestPlan2.setModifiedTimestamp((new Timestamp(new Date().getTime())));
             testPlanUOW.persistProductTestPlan(productTestPlan2);
             testGridMgtService.executeTestPlan(testPlan, productTestPlan2);
 

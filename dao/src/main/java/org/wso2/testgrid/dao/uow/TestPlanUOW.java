@@ -65,7 +65,7 @@ public class TestPlanUOW {
         // JPQL  query to get the latest modifies product test plan for product name and version
         String sqlQuery = StringUtil.concatStrings("SELECT c FROM ", ProductTestPlan.class.getSimpleName(),
                 " c WHERE c.productName=\"", productName, "\" AND ",
-                "c.productVersion=\"", productVersion, "\" ORDER BY c.modifiedTimestamp");
+                "c.productVersion=\"", productVersion, "\" ORDER BY c.modifiedTimestamp DESC");
         return productTestPlanRepository.executeTypedQuary(sqlQuery, ProductTestPlan.class, 1);
     }
 
