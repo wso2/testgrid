@@ -17,18 +17,21 @@
  */
 package org.wso2.testgrid.dao.repository;
 
+import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 
@@ -181,41 +184,50 @@ abstract class AbstractRepository<T> implements Closeable {
     }
 
     /**
-     * Executes the given native query and returns a result list.
+     * Returns a result list ordered by the given fields.
      *
-     * @param nativeQuery native SQL query to execute
-     * @return result list after executing the native query
+     * @param entityType type of the result list
+     * @param params     parameters (map of field name and values) for obtaining the result list
+     * @param fields     map of fields [Ascending / Descending, Field name> to sort ascending or descending
+     * @return a list of values for the matched criteria ordered by the given fields
      */
-    @SuppressWarnings("unchecked")
-    public <R> R executeNativeQuery(String nativeQuery) throws TestGridDAOException {
-        try {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            Query query = entityManager.createNativeQuery(nativeQuery);
-            return (R) query.getSingleResult();
-        } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query [",
-                    nativeQuery, "]"), e);
+    List<T> orderByFields(Class<T> entityType, Map<String, Object> params,
+                          LinkedListMultimap<SortOrder, String> fields) {
+        // From table name criteria
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityType);
+
+        // Select all criteria
+        Root<T> rootEntry = criteriaQuery.from(entityType);
+        criteriaQuery.select(rootEntry);
+
+        // Order by criteria
+        List<Order> orderList = new ArrayList<>();
+        for (Map.Entry<SortOrder, String> entry : fields.entries()) {
+            if (entry.getKey().equals(SortOrder.ASCENDING)) {
+                orderList.add(criteriaBuilder.asc(rootEntry.get(entry.getValue())));
+            } else {
+                orderList.add(criteriaBuilder.desc(rootEntry.get(entry.getValue())));
+            }
         }
+        criteriaQuery.orderBy(orderList);
+
+        // Where criteria
+        ParameterExpression<Object> parameterExpression = criteriaBuilder.parameter(Object.class);
+        // In case if params are empty the query can be still valid
+        TypedQuery<T> query = entityManager.createQuery(criteriaQuery);
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            criteriaQuery.where(criteriaBuilder.equal(rootEntry.get(entry.getKey()), parameterExpression));
+            query = entityManager.createQuery(criteriaQuery);
+            query.setParameter(parameterExpression, entry.getValue());
+        }
+
+        List<T> results = query.getResultList();
+        entityManager.close();
+        return results;
     }
 
-    /**
-     * Executes the given native query and returns a result list.
-     *
-     * @param nativeQuery native SQL query to execute
-     * @return result list after executing the native query
-     */
-    @SuppressWarnings("unchecked")
-    public <R> R executeTypedQuary(String nativeQuery, Class bean, int limit) throws TestGridDAOException {
-        try {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            Query query = entityManager.createQuery(nativeQuery, bean);
-            query.setMaxResults(limit);
-            return (R) query.getSingleResult();
-        } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query [",
-                    nativeQuery, "]"), e);
-        }
-    }
     @Override
     public void close() {
         if (entityManagerFactory.isOpen()) {
