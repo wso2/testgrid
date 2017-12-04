@@ -28,7 +28,6 @@ $(document).ready(function(){
             $(this).html("+");
         }
     });
-
     $(document.body).on('click', '.expand-test-plans' ,function(){
         var id = $(this).closest("tr").attr("id");
         $(this).closest("tr").addClass("selected");
@@ -43,8 +42,10 @@ $(document).ready(function(){
     });
 
     $(document.body).on('click', '.collapse-test-plans' ,function(){
-        $(this).closest("tr").next().removeClass("visible");
-        $(this).closest("tr").next().addClass("hidden");
+        if($(this).closest("tr").next().hasClass("test-plan")) {
+            $(this).closest("tr").next().removeClass("visible");
+            $(this).closest("tr").next().addClass("hidden");
+        }
         $(this).html("+");
         $(this).removeClass("collapse-test-plans");
         $(this).addClass("expand-test-plans");
@@ -64,8 +65,10 @@ $(document).ready(function(){
     });
 
     $(document.body).on('click', '.collapse-test-scenarios' ,function(){
-        $(this).closest("tr").next().removeClass("visible");
-        $(this).closest("tr").next().addClass("hidden");
+        if($(this).closest("tr").next().hasClass("test-scenario")) {
+            $(this).closest("tr").next().removeClass("visible");
+            $(this).closest("tr").next().addClass("hidden");
+        }
         $(this).html("+");
         $(this).removeClass("collapse-test-scenarios");
         $(this).addClass("expand-test-scenarios");
@@ -85,13 +88,14 @@ $(document).ready(function(){
     });
 
     $(document.body).on('click', '.collapse-test-cases' ,function(){
-        $(this).closest("tr").next().removeClass("visible");
-        $(this).closest("tr").next().addClass("hidden");
+        if($(this).closest("tr").next().hasClass("test-case")) {
+            $(this).closest("tr").next().removeClass("visible");
+            $(this).closest("tr").next().addClass("hidden");
+        }
         $(this).html("+");
         $(this).removeClass("collapse-test-cases");
         $(this).addClass("expand-test-cases");
     });
-
 });
 
 /**
@@ -106,13 +110,20 @@ function getProductTestPlans () {
             if (data.length > 0) {
                 for (var i = 0; i < data.length; i++) {
                     $("#product-test-plans > tbody").append("<tr id = " + data[i].id + 
-                        "><td><button class='expand-test-plans'>+</button>&nbsp;" + data[i].id + "</td><td>"
+                        "><td><button class='expand-test-plans'>+</button></td><td>"
                         + data[i].productName + "</td><td>"
                         + data[i].productVersion + "</td><td class ='" + data[i].status + "'>"
                         + data[i].status + "</td><td>"
                         + toReadableDate(data[i].startTimestamp) + "</td><td>"
                         + toReadableDate(data[i].endTimestamp) + "</td></tr>");
                 }
+
+                $('#product-test-plans').DataTable( {
+                    "order": [[ 4, "desc" ]],
+                    "columnDefs": [
+                        { "orderable": false, "targets": 0 }
+                    ]
+                });
          	}
          },
          error: function (status) {
@@ -134,13 +145,12 @@ function getTestPlans (id) {
          async : false,
          success: function (data) {
             if (data.length > 0) {
-                var innerHtml = "<tr class='hidden'><td colspan=6><h3>Test Plans</h3><hr/>"
-                        + "<table class='table test-plans'><thead><tr>"
-                        + "<th>ID</th><th>Name</th><th>Deployment Pattern</th><th>Status</th>"
+                var innerHtml = "<tr class='test-plan hidden'><td colspan=6><h3>Test Plans</h3><hr/>"
+                        + "<table id='test-plans' class='table test-plans'><thead><tr>"
+                        + "<th></th><th>Name</th><th>Deployment Pattern</th><th>Status</th>"
                         + "<th>Start Time</th><th>End Time</th></tr></thead><tbody>";
                 for (var i = 0; i < data.length; i++) {
-                    innerHtml += "<tr id = " + data[i].id + "><td><button class='expand-test-scenarios'>+</button>&nbsp;"
-                        + data[i].id + "</td><td>"
+                    innerHtml += "<tr id = " + data[i].id + "><td><button class='expand-test-scenarios'>+</button></td><td>"
                         + data[i].name + "</td><td>"
                         + data[i].deploymentPattern + "</td><td class ='" + data[i].status + "'>"
                         + data[i].status + "</td><td>"
@@ -150,6 +160,15 @@ function getTestPlans (id) {
                 innerHtml += "</tbody></table></td></tr>";
                 $("#product-test-plans > tbody > tr.selected").after(innerHtml);
                 $("#product-test-plans > tbody > tr th").addClass("col-md-1");
+                $('.test-plans').DataTable( {
+                    "order": [[ 4, "desc" ]],
+                    "columnDefs": [
+                        { "orderable": false, "targets": 0 }
+                    ],
+                    "paging": false,
+                    "info": false,
+                    "retrieve": true,
+                });
             }
          },
          error: function (status) {
@@ -172,17 +191,26 @@ function getTestScenarios (id) {
          success: function (data) {
             if (data.length > 0) {
                 var innerHtml = "<tr class='test-scenario hidden'><td colspan=6><h4>Test Scenarios</h4><hr/>"
-                        + "<table class='table test-scenarios'><thead><tr>"
-                        + "<th>ID</th><th>Name</th><th>Status</th></tr></thead><tbody>";
+                        + "<table id='test-scenarios' class='table test-scenarios'><thead><tr>"
+                        + "<th></th><th>Name</th><th>Status</th></tr></thead><tbody>";
                 for (var i = 0; i < data.length; i++) {
-                    innerHtml += "<tr id = " + data[i].id + "><td><button class='expand-test-cases'>+</button>&nbsp;"
-                        + data[i].id + "</td><td>"
+                    innerHtml += "<tr id = " + data[i].id + "><td><button class='expand-test-cases'>+</button></td><td>"
                         + data[i].name + "</td><td class ='" + data[i].status + "'>"
                         + data[i].status + "</td></tr>";
                 }
                 innerHtml += "</tbody></table></td></tr>";
                 $(".test-plans > tbody tr.selected").after(innerHtml);
                 $(".test-plans > tbody tr th").addClass("col-md-1");
+                $('.test-scenarios').DataTable( {
+                    "order": [[ 1, "desc" ]],
+                    "columnDefs": [
+                        { "orderable": false, "targets": 0 }
+                    ],
+                    "paging": false,
+                    "info": false,
+                    "retrieve": true,
+                    "autoWidth": false
+                });
             }
          },
          error: function (status) {
@@ -205,17 +233,24 @@ function getTestCases (id) {
          success: function (data) {
             if (data.length > 0) {
                 var innerHtml = "<tr class='test-case hidden'><td colspan=6><h5><strong>Test Cases<strong></h5><hr/>"
-                        + "<table class='table test-cases'><thead><tr>"
-                        + "<th>ID</th><th>Name</th><th>Status</th></tr></thead><tbody>";
+                        + "<table id='test-cases' class='table test-cases'><thead><tr>"
+                        + "<th>Name</th><th>Status</th><th>Start Time</th><th>End Time</th></tr></thead><tbody>";
                 for (var i = 0; i < data.length; i++) {
                     innerHtml += "<tr id = " + data[i].id + "><td>"
-                        + data[i].id + "</td><td>"
                         + data[i].name + "</td><td class ='" + data[i].status + "'>"
-                        + data[i].status + "</td></tr>";
+                        + data[i].status + "</td><td>"
+                        + toReadableDate(data[i].startTimestamp) + "</td><td>"
+                        + toReadableDate(data[i].modifiedTimestamp) + "</td></tr>";
                 }
                 innerHtml += "</tbody></table></td></tr>";
                 $(".test-scenarios > tbody tr.selected").after(innerHtml);
                 $(".test-scenarios > tbody tr th").addClass("col-md-1");
+                $('.test-cases').DataTable( {
+                    "order": [[ 2, "desc" ]],
+                    "paging": false,
+                    "info": false,
+                    "retrieve": true
+                });
             }
          },
          error: function (status) {
