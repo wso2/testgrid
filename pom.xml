@@ -370,6 +370,11 @@
                 <artifactId>awaitility</artifactId>
                 <version>${awaitility.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -398,13 +403,13 @@
         <mockito.all.version>1.10.19</mockito.all.version>
         <powermock.version>1.7.3</powermock.version>
         <com.h2database.version>1.4.196</com.h2database.version>
-        <!-- Other dependencies -->
-        <commons.logging.version>1.1.1</commons.logging.version>
-        <awaitility.version>3.0.0</awaitility.version>
-
         <!-- DAO dependencies -->
         <mysql.driver.version>6.0.6</mysql.driver.version>
         <javax.persistence.version>2.2.0</javax.persistence.version>
         <jersey.server.version>2.17</jersey.server.version>
+        <!-- Other dependencies -->
+        <commons.logging.version>1.2</commons.logging.version>
+        <awaitility.version>3.0.0</awaitility.version>
+        <guava.version>19.0</guava.version>
     </properties>
 </project>

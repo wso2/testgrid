@@ -17,11 +17,13 @@
  */
 package org.wso2.testgrid.dao.repository;
 
+import com.google.common.collect.LinkedListMultimap;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.Database;
+import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.util.DAOUtil;
 
@@ -192,6 +194,91 @@ public class DatabaseRepositoryTest {
     public void findAllTest() throws TestGridDAOException {
         List<Database> databases = databaseRepository.findAll();
         Assert.assertEquals(databases.size(), 4);
+    }
+
+    @Test(description = "Tests ordering ascending by multiple columns.",
+          dependsOnMethods = {"persistTest", "findByField", "deleteTest", "updateUniqueReferenceTest"})
+    public void orderByAscendingTest() throws TestGridDAOException {
+        Map<String, Object> params = Collections.emptyMap();
+        LinkedListMultimap<SortOrder, String> orderFieldMap = LinkedListMultimap.create();
+        orderFieldMap.put(SortOrder.ASCENDING, Database.ENGINE_COLUMN);
+        orderFieldMap.put(SortOrder.ASCENDING, Database.VERSION_COLUMN);
+        List<Database> databases = databaseRepository.orderByFields(params, orderFieldMap);
+        Assert.assertEquals(databases.size(), 4);
+
+        // Assert order
+        // 1
+        Assert.assertEquals(databases.get(0).getEngine(), Database.DatabaseEngine.H2);
+        Assert.assertEquals(databases.get(0).getVersion(), "1.0");
+
+        // 2
+        Assert.assertEquals(databases.get(1).getEngine(), Database.DatabaseEngine.H2);
+        Assert.assertEquals(databases.get(1).getVersion(), "2.0");
+
+        // 3
+        Assert.assertEquals(databases.get(2).getEngine(), Database.DatabaseEngine.MYSQL);
+        Assert.assertEquals(databases.get(2).getVersion(), "5.5");
+
+        // 4
+        Assert.assertEquals(databases.get(3).getEngine(), Database.DatabaseEngine.MYSQL);
+        Assert.assertEquals(databases.get(3).getVersion(), "5.7");
+    }
+
+    @Test(description = "Tests ordering descending by multiple columns.",
+          dependsOnMethods = {"persistTest", "findByField", "deleteTest", "updateUniqueReferenceTest"})
+    public void orderByDescendingTest() throws TestGridDAOException {
+        Map<String, Object> params = Collections.emptyMap();
+        LinkedListMultimap<SortOrder, String> orderFieldMap = LinkedListMultimap.create();
+        orderFieldMap.put(SortOrder.DESCENDING, Database.ENGINE_COLUMN);
+        orderFieldMap.put(SortOrder.DESCENDING, Database.VERSION_COLUMN);
+        List<Database> databases = databaseRepository.orderByFields(params, orderFieldMap);
+        Assert.assertEquals(databases.size(), 4);
+
+        // Assert order
+        // 4
+        Assert.assertEquals(databases.get(0).getEngine(), Database.DatabaseEngine.MYSQL);
+        Assert.assertEquals(databases.get(0).getVersion(), "5.7");
+
+        // 3
+        Assert.assertEquals(databases.get(1).getEngine(), Database.DatabaseEngine.MYSQL);
+        Assert.assertEquals(databases.get(1).getVersion(), "5.5");
+
+        // 2
+        Assert.assertEquals(databases.get(2).getEngine(), Database.DatabaseEngine.H2);
+        Assert.assertEquals(databases.get(2).getVersion(), "2.0");
+
+        // 1
+        Assert.assertEquals(databases.get(3).getEngine(), Database.DatabaseEngine.H2);
+        Assert.assertEquals(databases.get(3).getVersion(), "1.0");
+    }
+
+    @Test(description = "Tests ordering ascending and descending by multiple columns.",
+          dependsOnMethods = {"persistTest", "findByField", "deleteTest", "updateUniqueReferenceTest"})
+    public void orderByTest() throws TestGridDAOException {
+        Map<String, Object> params = Collections.emptyMap();
+        LinkedListMultimap<SortOrder, String> orderFieldMap = LinkedListMultimap.create();
+        orderFieldMap.put(SortOrder.ASCENDING, Database.ENGINE_COLUMN);
+        orderFieldMap.put(SortOrder.DESCENDING, Database.VERSION_COLUMN);
+
+        List<Database> databases = databaseRepository.orderByFields(params, orderFieldMap);
+        Assert.assertEquals(databases.size(), 4);
+
+        // Assert order
+        // 2
+        Assert.assertEquals(databases.get(0).getEngine(), Database.DatabaseEngine.H2);
+        Assert.assertEquals(databases.get(0).getVersion(), "2.0");
+
+        // 1
+        Assert.assertEquals(databases.get(1).getEngine(), Database.DatabaseEngine.H2);
+        Assert.assertEquals(databases.get(1).getVersion(), "1.0");
+
+        // 4
+        Assert.assertEquals(databases.get(2).getEngine(), Database.DatabaseEngine.MYSQL);
+        Assert.assertEquals(databases.get(2).getVersion(), "5.7");
+
+        // 3
+        Assert.assertEquals(databases.get(3).getEngine(), Database.DatabaseEngine.MYSQL);
+        Assert.assertEquals(databases.get(3).getVersion(), "5.5");
     }
 
     @Test(description = "Test close repository.",

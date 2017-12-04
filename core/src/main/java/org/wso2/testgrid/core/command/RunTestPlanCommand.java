@@ -124,7 +124,7 @@ public class RunTestPlanCommand extends Command {
                             testPlanHome);
 
             TestPlanUOW testPlanUOW = new TestPlanUOW();
-            ProductTestPlan productTestPlan2 = testPlanUOW.getProductTestPlan(productName, productVersion);
+            ProductTestPlan productTestPlan2 = testPlanUOW.getProductTestPlan(productName, productVersion).get();
             productTestPlan2.setInfraRepository(infraRepo);
             productTestPlan2.setDeploymentRepository(productTestPlan1.getDeploymentRepository());
             productTestPlan2.setInfrastructureMap(productTestPlan1.getInfrastructureMap());
