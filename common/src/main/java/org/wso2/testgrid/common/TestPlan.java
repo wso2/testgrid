@@ -88,7 +88,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private Status status;
 
     @Element(description = "value to uniquely identify the deployment pattern")
-    @Column(name = "deployment_pattern", nullable = false, insertable = false, updatable = false)
+    @Column(name = "deployment_pattern", nullable = true)
     private String deploymentPattern;
 
     @Element(description = "description about the test plan")
