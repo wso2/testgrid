@@ -50,7 +50,7 @@ public class InfraResult extends AbstractUUIDEntity implements Serializable {
     private static final long serialVersionUID = 9208083074380972876L;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = STATUS_COLUMN, nullable = false)
+    @Column(name = "status", nullable = false)
     private Status status;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraCombination.class)

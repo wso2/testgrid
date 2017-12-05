@@ -52,11 +52,11 @@ public class OperatingSystem extends AbstractUUIDEntity implements Serializable 
 
     private static final long serialVersionUID = 1587798651636567846L;
 
-    @Column(name = NAME_COLUMN, nullable = false)
+    @Column(name = "name", nullable = false)
     @Element(description = "defines the name of the required OS")
     private String name;
 
-    @Column(name = VERSION_COLUMN, length = 20, nullable = false)
+    @Column(name = "version", length = 20, nullable = false)
     @Element(description = "defines the version of the required OS")
     private String version;
 

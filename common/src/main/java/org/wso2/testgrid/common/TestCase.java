@@ -45,35 +45,35 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     /**
      * Column names of the table.
      */
-    public static final String NAME_COLUMN = "test_name";
-    public static final String START_TIMESTAMP_COLUMN = "start_timestamp";
-    public static final String MODIFIED_TIMESTAMP_COLUMN = "modified_timestamp";
+    public static final String NAME_COLUMN = "name";
+    public static final String START_TIMESTAMP_COLUMN = "startTimestamp";
+    public static final String MODIFIED_TIMESTAMP_COLUMN = "modifiedTimestamp";
     public static final String STATUS_COLUMN = "status";
-    public static final String LOG_LOCATION_COLUMN = "log_location";
-    public static final String FAILURE_MESSAGE_COLUMN = "failure_message";
+    public static final String LOG_LOCATION_COLUMN = "logLocation";
+    public static final String FAILURE_MESSAGE_COLUMN = "failureMessage";
     public static final String TEST_SCENARIO_COLUMN = "testScenario";
 
     private static final long serialVersionUID = -1947567322771472903L;
 
-    @Column(name = NAME_COLUMN, nullable = false)
+    @Column(name = "test_name", nullable = false)
     private String name;
 
-    @Column(name = START_TIMESTAMP_COLUMN, nullable = false,
+    @Column(name = "start_timestamp", nullable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp startTimestamp;
 
-    @Column(name = MODIFIED_TIMESTAMP_COLUMN, nullable = false,
+    @Column(name = "modified_timestamp", nullable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private Timestamp modifiedTimestamp;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = STATUS_COLUMN, nullable = false)
+    @Column(name = "status", nullable = false)
     private Status status;
 
-    @Column(name = LOG_LOCATION_COLUMN)
+    @Column(name = "log_location")
     private String logLocation;
 
-    @Column(name = FAILURE_MESSAGE_COLUMN)
+    @Column(name = "failure_message")
     private String failureMessage;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestScenario.class)
