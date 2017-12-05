@@ -58,40 +58,41 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      * Column names of the table.
      */
     public static final String NAME_COLUMN = "name";
-    public static final String START_TIMESTAMP_COLUMN = "start_timestamp";
-    public static final String MODIFIED_TIMESTAMP_COLUMN = "modified_timestamp";
+    public static final String START_TIMESTAMP_COLUMN = "startTimestamp";
+    public static final String MODIFIED_TIMESTAMP_COLUMN = "modifiedTimestamp";
     public static final String STATUS_COLUMN = "status";
-    public static final String DEPLOYMENT_PATTERN_COLUMN = "deployment_pattern";
-    public static final String DESCRIPTION_COLUMN = "deployment_pattern";
+    public static final String DEPLOYMENT_PATTERN_COLUMN = "deploymentPattern";
+    public static final String DESCRIPTION_COLUMN = "description";
+    public static final String INFRA_RESULT_COLUMN = "infraResult";
     public static final String PRODUCT_TEST_PLAN_COLUMN = "productTestPlan";
 
     private static final long serialVersionUID = -4345126378695708155L;
 
     @Element(description = "value to uniquely identify the TestPlan")
-    @Column(name = NAME_COLUMN, nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = START_TIMESTAMP_COLUMN, nullable = false,
+    @Column(name = "start_timestamp", nullable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Ignore
     private Timestamp startTimestamp;
 
-    @Column(name = MODIFIED_TIMESTAMP_COLUMN, nullable = false,
+    @Column(name = "modified_timestamp", nullable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     @Ignore
     private Timestamp modifiedTimestamp;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = STATUS_COLUMN, nullable = false)
+    @Column(name = "status", nullable = false)
     @Ignore
     private Status status;
 
     @Element(description = "value to uniquely identify the deployment pattern")
-    @Column(name = DEPLOYMENT_PATTERN_COLUMN, nullable = false, insertable = false, updatable = false)
+    @Column(name = "deployment_pattern", nullable = false, insertable = false, updatable = false)
     private String deploymentPattern;
 
     @Element(description = "description about the test plan")
-    @Column(name = DESCRIPTION_COLUMN)
+    @Column(name = "description")
     private String description;
 
     @Ignore

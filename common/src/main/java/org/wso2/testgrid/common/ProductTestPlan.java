@@ -49,42 +49,42 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
     /**
      * Column names of the table.
      */
-    public static final String PRODUCT_NAME_COLUMN = "product_name";
-    public static final String PRODUCT_VERSION_COLUMN = "product_version";
-    public static final String START_TIMESTAMP_COLUMN = "start_timestamp";
-    public static final String MODIFIED_TIMESTAMP_COLUMN = "modified_timestamp";
+    public static final String PRODUCT_NAME_COLUMN = "productName";
+    public static final String PRODUCT_VERSION_COLUMN = "productVersion";
+    public static final String START_TIMESTAMP_COLUMN = "startTimestamp";
+    public static final String MODIFIED_TIMESTAMP_COLUMN = "modifiedTimestamp";
     public static final String STATUS_COLUMN = "status";
-    public static final String INFRA_REPOSITORY_COLUMN = "infra_repository";
-    public static final String DEPLOYMENT_REPOSITORY_COLUMN = "deployment_repository";
-    public static final String SCENARIO_REPOSITORY_COLUMN = "scenario_repository";
+    public static final String INFRA_REPOSITORY_COLUMN = "infraRepository";
+    public static final String DEPLOYMENT_REPOSITORY_COLUMN = "deploymentRepository";
+    public static final String SCENARIO_REPOSITORY_COLUMN = "scenarioRepository";
 
     private static final long serialVersionUID = 5812347338918334430L;
 
-    @Column(name = PRODUCT_NAME_COLUMN, nullable = false, length = 50)
+    @Column(name = "product_name", nullable = false, length = 50)
     private String productName;
 
-    @Column(name = PRODUCT_VERSION_COLUMN, nullable = false, length = 20)
+    @Column(name = "product_version", nullable = false, length = 20)
     private String productVersion;
 
-    @Column(name = START_TIMESTAMP_COLUMN, nullable = false,
+    @Column(name = "start_timestamp", nullable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp startTimestamp;
 
-    @Column(name = MODIFIED_TIMESTAMP_COLUMN, nullable = false,
+    @Column(name = "modified_timestamp", nullable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private Timestamp modifiedTimestamp;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = STATUS_COLUMN, nullable = false)
+    @Column(name = "status", nullable = false)
     private Status status;
 
-    @Column(name = INFRA_REPOSITORY_COLUMN)
+    @Column(name = "infra_repository")
     private String infraRepository;
 
-    @Column(name = DEPLOYMENT_REPOSITORY_COLUMN)
+    @Column(name = "deployment_repository")
     private String deploymentRepository;
 
-    @Column(name = SCENARIO_REPOSITORY_COLUMN)
+    @Column(name = "scenario_repository")
     private String scenarioRepository;
 
     @Transient

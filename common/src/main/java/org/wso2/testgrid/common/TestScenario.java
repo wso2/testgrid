@@ -56,10 +56,10 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     private static final long serialVersionUID = -2666342786241472418L;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = STATUS_COLUMN, nullable = false)
+    @Column(name = "status", nullable = false)
     private Status status;
 
-    @Column(name = NAME_COLUMN, nullable = false)
+    @Column(name = "name", nullable = false)
     @Element(description = "name of the solution pattern which is covered by this test scenario")
     private String name;
 
