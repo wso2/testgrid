@@ -87,6 +87,10 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.dao</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.reporting</artifactId>
         </dependency>
         <dependency>
@@ -125,10 +129,6 @@
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.testgrid</groupId>
-            <artifactId>org.wso2.testgrid.dao</artifactId>
         </dependency>
     </dependencies>
 </project>

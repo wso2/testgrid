@@ -25,7 +25,6 @@ import org.wso2.carbon.config.annotation.Ignore;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Locale;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -107,10 +106,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     @Transient
     @Element(description = "list of test scenarios to be executed")
     private List<TestScenario> testScenarios;
-
-    // Directory of TestPlan home directory
-    @Transient
-    private String home;
 
     @Transient
     @Element(description = "type of the deployer (puppet/chef etc)")
@@ -300,24 +295,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns the home directory location of test plan.
-     *
-     * @return home directory location of the test plan
-     */
-    public String getHome() {
-        return home;
-    }
-
-    /**
-     * Sets the home directory location of test plan.
-     *
-     * @param home home directory location of the test plan
-     */
-    public void setHome(String home) {
-        this.home = home;
-    }
-
-    /**
      * Returns the deployer-type (puppet/ansible) of the test plan.
      *
      * @return the deployer-type (puppet/ansible) of the test plan
@@ -333,15 +310,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      */
     public void setDeployerType(DeployerType deployerType) {
         this.deployerType = deployerType;
-    }
-
-    /**
-     * Sets the deployer-type (puppet/ansible) of the test plan using the string value.
-     *
-     * @param deployerType string deployer-type (puppet/ansible) of the test plan
-     */
-    public void setDeployerType(String deployerType) {
-        this.deployerType = DeployerType.valueOf(deployerType.toUpperCase(Locale.ENGLISH));
     }
 
     /**
@@ -466,7 +434,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
                ", description='" + description + '\'' +
                ", productTestPlan=" + productTestPlan +
                ", testScenarios=" + testScenarios +
-               ", home='" + home + '\'' +
                ", deployerType=" + deployerType +
                ", deployment=" + deployment +
                ", enabled=" + enabled +

@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Element;
+
 import java.io.Serializable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -57,14 +59,17 @@ public class InfraCombination extends AbstractUUIDEntity implements Serializable
 
     @Enumerated(EnumType.STRING)
     @Column(name = "jdk", nullable = false)
+    @Element(description = "Defines the target JDK")
     private JDK jdk;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = OperatingSystem.class)
     @PrimaryKeyJoinColumn(name = "OPERATINGSYSTEM_id", referencedColumnName = ID_COLUMN)
+    @Element(description = "Defines the OS configuration")
     private OperatingSystem operatingSystem;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = Database.class)
     @PrimaryKeyJoinColumn(name = "DATABASE_id", referencedColumnName = ID_COLUMN)
+    @Element(description = "Defines the database configuration")
     private Database database;
 
     @Override

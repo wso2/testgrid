@@ -60,13 +60,15 @@ public class TestPlanUOW {
      * @param productVersion product version
      * @return an instance of {@link ProductTestPlan} for the given product name and product version
      */
-    public Optional<ProductTestPlan> getProductTestPlan(String productName, String productVersion) {
+    public Optional<ProductTestPlan> getProductTestPlan(String productName, String productVersion,
+                                                        ProductTestPlan.Channel channel) {
         ProductTestPlanRepository productTestPlanRepository = new ProductTestPlanRepository(entityManagerFactory);
 
         // Search criteria parameters
         Map<String, Object> params = new HashMap<>();
         params.put(ProductTestPlan.PRODUCT_NAME_COLUMN, productName);
         params.put(ProductTestPlan.PRODUCT_VERSION_COLUMN, productVersion);
+        params.put(ProductTestPlan.CHANNEL_COLUMN, channel);
 
         // Ordering criteria
         LinkedListMultimap<SortOrder, String> orderFieldMap = LinkedListMultimap.create();
@@ -105,7 +107,6 @@ public class TestPlanUOW {
             persisted.setDeployment(testPlan.getDeployment());
             persisted.setInfraRepoDir(testPlan.getInfraRepoDir());
             persisted.setDeployerType(testPlan.getDeployerType());
-            persisted.setHome(testPlan.getHome());
             persisted.setInfrastructureScript(testPlan.getInfrastructureScript());
             persisted.setTestRepoDir(testPlan.getTestRepoDir());
             persisted.setTestScenarios(testPlan.getTestScenarios());

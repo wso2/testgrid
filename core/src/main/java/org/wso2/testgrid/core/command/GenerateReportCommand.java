@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.Option;
 import org.wso2.testgrid.common.TestReportEngine;
-import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestReportEngineException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.reporting.TestReportEngineImpl;
@@ -33,20 +33,9 @@ import org.wso2.testgrid.reporting.TestReportEngineImpl;
  *
  * @since 1.0.0
  */
-public class GenerateReportCommand extends Command {
+public class GenerateReportCommand implements Command {
 
     private static final Log log = LogFactory.getLog(GenerateReportCommand.class);
-
-    /**
-     * Channels are how we distribute our products to customers.
-     * <p>
-     * Common channels include public branch, LTS (support) branch, premium/premium+ branches.
-     */
-    @Option(name = "--channel",
-            usage = "product channel",
-            aliases = {"-c"}
-    )
-    private String channel = "public";
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -60,9 +49,15 @@ public class GenerateReportCommand extends Command {
             required = true)
     private String productVersion = "";
 
+    @Option(name = "--channel",
+            usage = "product channel",
+            aliases = {"-c"}
+    )
+    private String channel = "LTS";
+
 
     @Override
-    public void execute() throws TestGridException {
+    public void execute() throws CommandExecutionException {
         log.info("Generating test result report...");
         log.info(
                 "Input Arguments: \n" +
@@ -74,7 +69,7 @@ public class GenerateReportCommand extends Command {
             TestReportEngine testReportEngine = new TestReportEngineImpl();
             testReportEngine.generateReport(productName, productVersion);
         } catch (TestReportEngineException e) {
-            throw new TestGridException(StringUtil
+            throw new CommandExecutionException(StringUtil
                     .concatStrings("Error occurred when generating test report for { product: ", productName,
                             ", version: ", productVersion, ", channel: ", channel, " }"), e);
         }

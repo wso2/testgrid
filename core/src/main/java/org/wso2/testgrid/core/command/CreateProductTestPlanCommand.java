@@ -23,17 +23,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.Option;
 import org.wso2.testgrid.common.ProductTestPlan;
-import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.core.TestGridMgtService;
-import org.wso2.testgrid.core.TestGridMgtServiceImpl;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
 /**
- * This creates a product test plan from the input arguments
- * and persist the information in a database.
+ * This creates a product test plan from the input arguments and persist the information in a database.
+ *
+ * @since 1.0.0
  */
-public class CreateProductTestPlanCommand extends Command {
+public class CreateProductTestPlanCommand implements Command {
 
     private static final Log log = LogFactory.getLog(CreateProductTestPlanCommand.class);
 
@@ -41,50 +41,27 @@ public class CreateProductTestPlanCommand extends Command {
             usage = "Product Name",
             aliases = {"-p"},
             required = true)
-    protected String productName = "";
+    private String productName = "";
 
     @Option(name = "--version",
             usage = "product version",
             aliases = {"-v"},
             required = true)
-    protected String productVersion = "";
+    private String productVersion = "";
 
     @Option(name = "--channel",
             usage = "product channel",
-            aliases = {"-c"},
-            required = false)
-    protected String channel = "public";
-
-    @Option(name = "--infraRepo",
-            usage = "Location of Infra plans. "
-                    + "Under this location, there should be a Infrastructure/ folder."
-                    + "Assume this location is the test-grid-is-resources",
-            aliases = {"-ir"},
-            required = true)
-    protected String infraRepo = "";
-
-    @Option(name = "--infra-configs-location",
-            usage = "Location of all the infra plans. "
-                    + "Under this location, there should be a Infrastructure/ folder."
-                    + "Assume this location is the test-grid-is-resources",
-            aliases = {"-ics"},
-            required = true)
-    protected String infraConfigsLocation = "";
-    @Option(name = "--infraPlan",
-            usage = "Infrastructure config file",
-            aliases = {"-i"},
-            required = true)
-    protected String infraPlan = "";
-
+            aliases = {"-c"})
+    private String channel = "LTS";
 
     @Override
-    public void execute() throws TestGridException {
-        log.info("Creating product test plan..");
+    public void execute() throws CommandExecutionException {
+        log.info("Creating product test plan...");
         log.info(
                 "Input Arguments: \n" +
-                        "\tProduct name: " + productName + "\n" +
-                        "\tProduct version: " + productVersion + "\n" +
-                        "\tChannel" + channel);
+                "\tProduct name: " + productName + "\n" +
+                "\tProduct version: " + productVersion + "\n" +
+                "\tChannel" + channel);
         /*
             psuedo code:
             query db: is product test plan for the given product/version/channel exist
@@ -92,19 +69,40 @@ public class CreateProductTestPlanCommand extends Command {
                 log Product information already stored in the db
             if false:
                 persist p/v/c into the db
-
          */
 
-        TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
-        ProductTestPlan plan = testGridMgtService.createProduct(productName, productVersion, infraRepo);
-        //todo add channel as an argument.
-
+        ProductTestPlan productTestPlan = createProductTestPlan(productName, productVersion, channel);
         TestPlanUOW testPlanUOW = new TestPlanUOW();
         try {
-            testPlanUOW.persistProductTestPlan(plan);
+            testPlanUOW.persistProductTestPlan(productTestPlan);
         } catch (TestGridDAOException e) {
-            log.error("Error occured while persisting ProductTestPlan", e);
+            throw new CommandExecutionException("Error occurred while persisting ProductTestPlan", e);
         }
-        //todo Persist product and version info in the db.
+    }
+
+    /**
+     * Creates an instance of {@link ProductTestPlan} for the given parameters.
+     *
+     * @param productName    product name
+     * @param productVersion product version
+     * @param channel        product test plan channel
+     * @return {@link ProductTestPlan} instance for the given parameters
+     * @throws CommandExecutionException thrown when error on creating an instance of {@link ProductTestPlan}
+     */
+    private ProductTestPlan createProductTestPlan(String productName, String productVersion, String channel)
+            throws CommandExecutionException {
+        try {
+            ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
+            ProductTestPlan productTestPlan = new ProductTestPlan();
+
+            productTestPlan.setProductName(productName);
+            productTestPlan.setProductVersion(productVersion);
+            productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_PENDING);
+            productTestPlan.setChannel(productTestPlanChannel);
+            return productTestPlan;
+        } catch (IllegalArgumentException e) {
+            throw new CommandExecutionException(StringUtil.concatStrings("Channel ",
+                    channel, " is not defined in the available channels enum"), e);
+        }
     }
 }

@@ -24,9 +24,9 @@ import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.Script;
-import org.wso2.testgrid.common.Utils;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.nio.file.Paths;
 
@@ -62,9 +62,8 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
         log.info("Creating the Kubernetes cluster...");
         try {
-            Utils.executeCommand("bash " +
-                    Paths.get(testPlanLocation, getScriptToExecute(infrastructure, Script.ScriptType.INFRA_CREATE)),
-                    null);
+            TestGridUtil.executeCommand("bash " + Paths.get(testPlanLocation,
+                    getScriptToExecute(infrastructure, Script.ScriptType.INFRA_CREATE)), null);
         } catch (CommandExecutionException e) {
             throw new TestGridInfrastructureException("Exception occurred while executing the infra-create script " +
                     "for deployment-pattern '" + infrastructure.getName() + "'" , e);
@@ -80,8 +79,8 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
         log.info("Destroying test environment...");
         try {
-            if (Utils.executeCommand("bash " +
-                            Paths.get(testPlanLocation, getScriptToExecute(infrastructure,
+            if (TestGridUtil.executeCommand("bash " +
+                                            Paths.get(testPlanLocation, getScriptToExecute(infrastructure,
                                     Script.ScriptType.INFRA_DESTROY)),
                     null)) {
                 return true;

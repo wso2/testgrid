@@ -21,34 +21,32 @@ package org.wso2.testgrid.core.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.StringUtil;
 
 /**
  * This class lists the available functions.
+ *
+ * @since 1.0.0
  */
-public class HelpCommand extends Command {
+public class HelpCommand implements Command {
 
     private static final Logger logger = LoggerFactory.getLogger(HelpCommand.class);
 
-    public void execute() throws TestGridException {
-
+    @Override
+    public void execute() throws CommandExecutionException {
         String ls = System.lineSeparator();
-        StringBuilder usageBuilder = new StringBuilder(256);
-        usageBuilder.append(ls);
-        usageBuilder.append("usage: generate-infrastructure-plan --template-path INFRA_TEMPLATE_PATH --output "
-                + "OUTPUT_FILE --input-parameters 'KEY=VALUE ...' ").append(ls);
-        usageBuilder.append("usage: create-product-testplan -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL").append(ls);
-        usageBuilder.append("usage: run-testplan -t TESTPLAN_PATH -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL")
-                .append(ls);
-        usageBuilder.append("usage: generate-report -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL").append(ls);
-        usageBuilder.append("usage: help").append(ls);
-
-        usageBuilder.append("example: sh testgrid.sh create-product-testplan -p wso2is -v 5.3.0 -c public_branch")
-                .append(ls);
-        usageBuilder.append("example: sh testgrid.sh run-testplan -t ./my-testplan.yaml"
-                + "-p wso2is -v 5.3.0 -c public_branch").append(ls);
-
-        logger.info(usageBuilder.toString());
+        String usageBuilder = StringUtil.concatStrings(ls,
+                "usage: create-product-testplan -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL", ls,
+                "usage: run-testplan -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL -t TESTPLAN_PATH -ir " +
+                "INFRA_REPO_PATH -sr SCENARIO_REPO_PATH", ls,
+                "usage: generate-infrastructure-plan -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL -i " +
+                "INFRASTRUCTURE_CONFIG_YAML_PATH", ls,
+                "usage: generate-report -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL", ls,
+                "usage: help", ls,
+                "example: sh testgrid.sh create-product-testplan -p wso2is -v 5.3.0 -c LTS", ls,
+                "example: sh testgrid.sh run-testplan -p wso2is -v 5.3.0 -c LTS -t ./my-testplan.yaml", ls);
+        logger.info(usageBuilder);
     }
 
     /**

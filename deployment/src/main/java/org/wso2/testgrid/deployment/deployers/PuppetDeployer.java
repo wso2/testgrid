@@ -21,9 +21,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.DeployerService;
 import org.wso2.testgrid.common.Deployment;
-import org.wso2.testgrid.common.Utils;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.deployment.DeployerConstants;
 import org.wso2.testgrid.deployment.DeploymentUtil;
 
@@ -52,7 +52,7 @@ public class PuppetDeployer implements DeployerService {
 
         //Set read,write and execute permissions to files related to deployment
         try {
-            Utils.executeCommand("chmod -R 777 " + testPlanLocation, null);
+            TestGridUtil.executeCommand("chmod -R 777 " + testPlanLocation, null);
         } catch (CommandExecutionException e) {
             throw new TestGridDeployerException("Error occurred while executing the filesystem permission command.", e);
         }
@@ -62,12 +62,13 @@ public class PuppetDeployer implements DeployerService {
         log.info("Deploying kubernetes artifacts...");
         //Execute deploy.sh scripts with required arguments to deploy artifacts
         try {
-            if (Utils.executeCommand("./deploy.sh "
-                    + getKubernetesMaster(Paths.get(testPlanLocation, DeployerConstants.K8S_PROPERTIES_FILE).toString())
-                    + " " + DeployerConstants.WSO2_PRIVATE_DOCKER_URL + " "
-                    + DeployerConstants.USERNAME + " "
-                    + DeployerConstants.PASSWORD + " "
-                    + DeployerConstants.DOCKER_EMAIL, file)) {
+            if (TestGridUtil.executeCommand("./deploy.sh "
+                                            + getKubernetesMaster(Paths.get(testPlanLocation,
+                    DeployerConstants.K8S_PROPERTIES_FILE).toString())
+                                            + " " + DeployerConstants.WSO2_PRIVATE_DOCKER_URL + " "
+                                            + DeployerConstants.USERNAME + " "
+                                            + DeployerConstants.PASSWORD + " "
+                                            + DeployerConstants.DOCKER_EMAIL, file)) {
                 return DeploymentUtil.getDeploymentInfo(testPlanLocation);
             } else {
                 throw new TestGridDeployerException("Error occurred while deploying artifacts");

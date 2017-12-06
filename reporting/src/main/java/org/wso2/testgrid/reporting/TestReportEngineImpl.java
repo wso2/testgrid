@@ -25,8 +25,8 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestReportEngine;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestReportEngineException;
-import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ReportGenerationUOW;
 import org.wso2.testgrid.reporting.model.ProductTestPlanView;
@@ -81,8 +81,7 @@ public class TestReportEngineImpl implements TestReportEngine {
      */
     private void writeHTMLToFile(String fileName, String hTMLString) throws TestReportEngineException {
         try {
-            // TODO: Implement a common way to get test grid home
-            String testGridHome = EnvironmentUtil.getSystemVariableValue("TESTGRID_HOME");
+            String testGridHome = TestGridUtil.getTestGridHomePath();
             Path reportPath = Paths.get(testGridHome).resolve(fileName);
 
             log.info("Started writing test results to file...");
