@@ -17,7 +17,9 @@
  */
 package org.wso2.testgrid.dao.repository;
 
+import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.Database;
+import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
@@ -91,5 +93,16 @@ public class DatabaseRepository extends AbstractRepository<Database> {
      */
     public List<Database> findAll() throws TestGridDAOException {
         return super.findAll(Database.class);
+    }
+
+    /**
+     * Returns a list of {@link Database} instances ordered accordingly by the given fields.
+     *
+     * @param params parameters (map of field name and values) for obtaining the result list
+     * @param fields map of fields [Ascending / Descending, Field name> to sort ascending or descending
+     * @return a list of {@link Database} instances for the matched criteria ordered accordingly by the given fields
+     */
+    public List<Database> orderByFields(Map<String, Object> params, LinkedListMultimap<SortOrder, String> fields) {
+        return super.orderByFields(Database.class, params, fields);
     }
 }

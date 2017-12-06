@@ -67,7 +67,7 @@ public class TestReportEngineImpl implements TestReportEngine {
 
         String hTMLString = renderParsedTestResultMap(parsedTestResultMap);
         String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
-                productTestPlan.getStartTimestamp() + HTML_EXTENSION;
+                          productTestPlan.getStartTimestamp() + HTML_EXTENSION;
 
         writeHTMLToFile(fileName, hTMLString);
     }
@@ -175,12 +175,11 @@ public class TestReportEngineImpl implements TestReportEngine {
      */
     private ProductTestPlan getProductTestPlan(String productName, String productVersion)
             throws TestReportEngineException {
-        try {
-            ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
-            return reportGenerationUOW.getProductTestPlan(productName, productVersion);
-        } catch (TestGridDAOException e) {
-            throw new TestReportEngineException("Error on obtaining product test plan.", e);
-        }
+        ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
+        return reportGenerationUOW.getProductTestPlan(productName, productVersion)
+                .orElseThrow(() -> new TestReportEngineException(StringUtil
+                        .concatStrings("No product test plan found for product ", productName, " - ",
+                                productVersion)));
     }
 
     /**

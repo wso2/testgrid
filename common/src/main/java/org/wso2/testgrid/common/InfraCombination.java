@@ -56,7 +56,7 @@ public class InfraCombination extends AbstractUUIDEntity implements Serializable
     private static final long serialVersionUID = 4742489056283093423L;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = JDK_COLUMN, nullable = false)
+    @Column(name = "jdk", nullable = false)
     private JDK jdk;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = OperatingSystem.class)
