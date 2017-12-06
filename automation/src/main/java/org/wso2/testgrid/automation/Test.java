@@ -22,7 +22,10 @@ import org.wso2.testgrid.automation.executor.TestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.StringUtil;
 
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -36,6 +39,8 @@ public class Test {
     private final TestExecutor testExecutor;
     private final List<String> scripts;
     private final TestScenario testScenario;
+    private String preScenarioScript;
+    private String postScenarioScript;
 
     /**
      * Constructs an instance of {@link Test} for the given params.
@@ -91,16 +96,66 @@ public class Test {
     }
 
     /**
+     * Returns the Pre scenario script.
+     *
+     * @return location of the script as a String.
+     */
+    public String getPreScenarioScript() {
+        return preScenarioScript;
+    }
+
+    /**
+     * Sets the Pre scenario script.
+     *
+     * @param preScenarioScript location of the script as a String.
+     */
+    public void setPreScenarioScript(String preScenarioScript) {
+        this.preScenarioScript = preScenarioScript;
+    }
+
+    /**
+     * Returns the Post scenario script.
+     *
+     * @return location of the script as a String.
+     */
+    public String getPostScenarioScript() {
+        return postScenarioScript;
+    }
+
+    /**
+     * Sets the Post scenario script.
+     *
+     * @param postScenarioScript location of the script as a String.
+     */
+    public void setPostScenarioScript(String postScenarioScript) {
+        this.postScenarioScript = postScenarioScript;
+    }
+
+    /**
      * Executes the test for the given test location and deployment.
      *
      * @param testLocation location of the tests
      * @param deployment   deployment to execute the tests on
      * @throws TestAutomationException thrown when error on executing tests
      */
-    public void execute(String testLocation, Deployment deployment) throws TestAutomationException {
+    public TestScenario execute(String testLocation, Deployment deployment)
+            throws TestAutomationException, CommandExecutionException {
+        if (!StringUtil.isStringNullOrEmpty(preScenarioScript)) {
+            String result = testExecutor.executeEnvironmentScript(Paths.get(preScenarioScript), deployment);
+            if (result.contains("OK")) {
+                testScenario.setIsPreScriptSuccessful(true);
+            }
+        }
         testExecutor.init(testLocation, getTestName(), testScenario);
         for (String script : scripts) {
             testExecutor.execute(script, deployment);
         }
+        if (!StringUtil.isStringNullOrEmpty(postScenarioScript)) {
+            String result = testExecutor.executeEnvironmentScript(Paths.get(postScenarioScript), deployment);
+            if (result.contains("OK")) {
+                testScenario.setIsPostScriptSuccessful(true);
+            }
+        }
+        return this.testScenario;
     }
 }

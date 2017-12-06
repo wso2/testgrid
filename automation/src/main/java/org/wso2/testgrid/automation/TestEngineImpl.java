@@ -24,6 +24,7 @@ import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.TestAutomationEngine;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.Utils;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestAutomationEngineException;
 import org.wso2.testgrid.common.util.StringUtil;
 
@@ -44,9 +45,17 @@ public class TestEngineImpl implements TestAutomationEngine {
         log.info("Executing Tests for Solution Pattern : " + scenario.getName());
         String testLocation = Utils.getTestScenarioLocation(scenario, location);
         List<Test> tests = getTests(scenario, testLocation);
-
-        // Execute tests
-        executeTests(tests, testLocation, deployment);
+        try {
+            for (Test test : tests) {
+                log.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
+                scenario = test.execute(testLocation, deployment);
+                log.info("---------------------------------------");
+            }
+        } catch (TestAutomationException e) {
+            throw new TestAutomationEngineException("Error occurred when executing tests.", e);
+        } catch (CommandExecutionException e) {
+            throw new TestAutomationEngineException("Error occurred when executing tests.", e);
+        }
         scenario.setStatus(TestScenario.Status.TEST_SCENARIO_COMPLETED);
         return true;
     }
@@ -54,27 +63,6 @@ public class TestEngineImpl implements TestAutomationEngine {
     @Override
     public boolean abortScenario(TestScenario scenario) throws TestAutomationEngineException {
         return false;
-    }
-
-    /**
-     * Executes the given list of {@link Test} instances.
-     *
-     * @param tests        list of {@link Test} instances to be executed
-     * @param testLocation location on which test files are
-     * @param deployment   {@link Deployment} on which the tests should be executed
-     * @throws TestAutomationEngineException thrown when error on executing tests
-     */
-    private void executeTests(List<Test> tests, String testLocation, Deployment deployment)
-            throws TestAutomationEngineException {
-        try {
-            for (Test test : tests) {
-                log.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test..."));
-                test.execute(testLocation, deployment);
-                log.info("---------------------------------------");
-            }
-        } catch (TestAutomationException e) {
-            throw new TestAutomationEngineException("Error occurred when executing tests.", e);
-        }
     }
 
     /**

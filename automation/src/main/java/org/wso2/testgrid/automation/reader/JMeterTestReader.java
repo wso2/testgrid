@@ -35,6 +35,9 @@ import java.util.List;
 public class JMeterTestReader implements TestReader {
 
     private static final String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
+    private static final String SHELL_SUFFIX = ".sh";
+    private static final String PRE_STRING = "pre-scenario-steps";
+    private static final String POST_STRING = "post-scenario-steps";
 
     /**
      * This method goes through the file structure and create an object model of the tests.
@@ -44,19 +47,27 @@ public class JMeterTestReader implements TestReader {
      * @return a list of {@link Test} instances
      */
     private List<Test> processTestStructure(File file, TestScenario scenario) throws TestAutomationException {
+        String preScript = "";
+        String postScript = "";
         List<Test> testsList = new ArrayList<>();
         File tests = new File(file.getAbsolutePath() +
-                              File.separator + JMETER_TEST_PATH);
+                File.separator + JMETER_TEST_PATH);
         List<String> jmxList = new ArrayList<>();
         if (tests.exists()) {
-            for (String jmx : ArrayUtils.nullToEmpty(tests.list())) {
-                if (jmx.endsWith(TestGridConstants.JMTER_SUFFIX)) {
-                    jmxList.add(tests.getAbsolutePath() + File.separator + jmx);
+            for (String script : ArrayUtils.nullToEmpty(tests.list())) {
+                if (script.endsWith(TestGridConstants.JMTER_SUFFIX)) {
+                    jmxList.add(tests.getAbsolutePath() + File.separator + script);
+                } else if (script.endsWith(SHELL_SUFFIX) && script.contains(PRE_STRING)) {
+                    preScript = tests.getAbsolutePath() + File.separator + script;
+                } else if (script.endsWith(SHELL_SUFFIX) && script.contains(POST_STRING)) {
+                    postScript = tests.getAbsolutePath() + File.separator + script;
                 }
             }
         }
         Collections.sort(jmxList);
         Test test = new Test(scenario.getName(), TestScenario.TestEngine.JMETER, jmxList, scenario);
+        test.setPreScenarioScript(preScript);
+        test.setPostScenarioScript(postScript);
         testsList.add(test);
         return testsList;
     }

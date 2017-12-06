@@ -50,7 +50,7 @@ import java.util.Properties;
  *
  * @since 1.0.0
  */
-public class JMeterExecutor implements TestExecutor {
+public class JMeterExecutor extends TestExecutor {
 
     private static final Log log = LogFactory.getLog(JMeterExecutor.class);
     private String testLocation;

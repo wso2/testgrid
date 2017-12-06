@@ -52,6 +52,8 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     public static final String STATUS_COLUMN = "status";
     public static final String NAME_COLUMN = "name";
     public static final String TEST_PLAN_COLUMN = "testPlan";
+    public static final String PRE_SCRIPT_STATUS_COLUMN = "preScript";
+    public static final String POST_SCRIPT_STATUS_COLUMN = "postScript";
 
     private static final long serialVersionUID = -2666342786241472418L;
 
@@ -74,6 +76,14 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     @Transient
     @Element(description = "holds the test engine type (i.e. JMETER, TESTNG)")
     private TestEngine testEngine;
+
+    @Column(name = PRE_SCRIPT_STATUS_COLUMN)
+    @Element(description = "holds the status true if pre script is successful")
+    private boolean isPreScriptSuccessful = false;
+
+    @Column(name = POST_SCRIPT_STATUS_COLUMN)
+    @Element(description = "holds the status true if post script is successful")
+    private boolean isPostScriptSuccessful = false;
 
     /**
      * Returns the status of the test scenario.
@@ -186,6 +196,22 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
                ", enabled=" + enabled +
                ", testEngine=" + testEngine +
                '}';
+    }
+
+    public void setIsPreScriptSuccessful(boolean isPreScriptSuccesful) {
+        this.isPreScriptSuccessful = isPreScriptSuccesful;
+    }
+
+    public void setIsPostScriptSuccessful(boolean isPostScriptSuccesful) {
+        this.isPostScriptSuccessful = isPostScriptSuccesful;
+    }
+
+    public boolean isPreScriptSuccessful() {
+        return isPreScriptSuccessful;
+    }
+
+    public boolean isPostScriptSuccessful() {
+        return isPostScriptSuccessful;
     }
 
     /**

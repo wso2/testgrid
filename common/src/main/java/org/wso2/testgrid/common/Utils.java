@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.Map;
 
 /**
  * This Util class holds the common utility methods.
@@ -70,6 +71,59 @@ public final class Utils {
                 String result = builder.toString();
                 log.info("Execution result : " + result);
                 return true;
+            } catch (IOException e) {
+                throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
+                        + command + "'", e);
+            }
+        } catch (IOException e) {
+            throw new CommandExecutionException("Error occurred while executing the command '" + command + "', " +
+                    "from directory '" + workingDirectory.getName() + "", e);
+        }
+    }
+
+    /**
+     * Executes a command.
+     * Used to execute a script with given deployment details as environment variables.
+     *
+     * @param command          Command to execute.
+     * @param workingDirectory Directory the command is executed.
+     * @param deployment       Deployment details for environment.
+     * @return Returns the output of script execution as a String.
+     * @throws CommandExecutionException When there is an error executing the command.
+     */
+    public static String executeCommand(String command, File workingDirectory, Deployment deployment)
+            throws CommandExecutionException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
+        }
+
+        ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
+        Process process;
+
+        try {
+            if (workingDirectory != null && workingDirectory.exists()) {
+                processBuilder.directory(workingDirectory);
+            }
+            if (deployment != null) {
+                Map<String, String> environment = processBuilder.environment();
+                for (Host host : deployment.getHosts()) {
+                    environment.put(host.getLabel(), host.getIp());
+                }
+            }
+            process = processBuilder.start();
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(),
+                    StandardCharsets.UTF_8))) {
+                StringBuilder builder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                    builder.append(System.getProperty("line.separator"));
+                }
+                String result = builder.toString();
+                log.info("Execution result : " + result);
+                return result;
             } catch (IOException e) {
                 throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
                         + command + "'", e);
