@@ -57,7 +57,7 @@ public class AWSDeployer implements DeployerService {
             } catch (MalformedURLException e) {
                 continue;
             }
-            validator.waitForDeployment(host.getIp(), 20, TimeUnit.MINUTES, 15, TimeUnit.SECONDS);
+            validator.waitForDeployment(host.getIp(), 60, TimeUnit.MINUTES, 15, TimeUnit.SECONDS);
         }
         return deployment;
     }
