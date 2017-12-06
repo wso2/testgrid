@@ -26,8 +26,10 @@ import org.wso2.testgrid.common.constants.TestGridConstants;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Reader for reading Jmeter test files of the standard maven structure.
@@ -47,31 +49,36 @@ public class JMeterTestReader implements TestReader {
      * @return a list of {@link Test} instances
      */
     private List<Test> processTestStructure(File file, TestScenario scenario) throws TestAutomationException {
-        String preScript = "";
-        String postScript = "";
         List<Test> testsList = new ArrayList<>();
         File tests = new File(file.getAbsolutePath() +
                 File.separator + JMETER_TEST_PATH);
-        List<String> jmxList = new ArrayList<>();
         if (tests.exists()) {
-            for (String script : ArrayUtils.nullToEmpty(tests.list())) {
-                if (script.endsWith(TestGridConstants.JMTER_SUFFIX)) {
-                    jmxList.add(tests.getAbsolutePath() + File.separator + script);
-                } else if (script.endsWith(SHELL_SUFFIX) && script.contains(PRE_STRING)) {
-                    preScript = tests.getAbsolutePath() + File.separator + script;
-                } else if (script.endsWith(SHELL_SUFFIX) && script.contains(POST_STRING)) {
-                    postScript = tests.getAbsolutePath() + File.separator + script;
-                }
-            }
+            List<String> scripts = Arrays.asList(ArrayUtils.nullToEmpty(tests.list()));
+            List<String> jmxList = scripts.stream()
+                    .filter(x -> x.endsWith(TestGridConstants.JMTER_SUFFIX))
+                    .map(x -> file.getAbsolutePath() +
+                            File.separator + JMETER_TEST_PATH + File.separator + x)
+                    .collect(Collectors.toList());
+            Collections.sort(jmxList);
+
+            Test test = new Test(scenario.getName(), TestScenario.TestEngine.JMETER, jmxList, scenario);
+            scripts.stream()
+                    .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(PRE_STRING))
+                    .map(x -> file.getAbsolutePath() +
+                            File.separator + JMETER_TEST_PATH + File.separator + x)
+                    .findFirst()
+                    .ifPresent(test::setPreScenarioScript);
+
+            scripts.stream()
+                    .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(POST_STRING))
+                    .map(x -> file.getAbsolutePath() +
+                            File.separator + JMETER_TEST_PATH + File.separator + x)
+                    .findFirst()
+                    .ifPresent(test::setPostScenarioScript);
+            testsList.add(test);
         }
-        Collections.sort(jmxList);
-        Test test = new Test(scenario.getName(), TestScenario.TestEngine.JMETER, jmxList, scenario);
-        test.setPreScenarioScript(preScript);
-        test.setPostScenarioScript(postScript);
-        testsList.add(test);
         return testsList;
     }
-
 
     /**
      * This method initiates the test reading process.

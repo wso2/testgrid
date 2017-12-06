@@ -32,6 +32,7 @@ import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+
 /**
  * Defines a model object of TestScenario with required attributes.
  *
@@ -52,8 +53,8 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     public static final String STATUS_COLUMN = "status";
     public static final String NAME_COLUMN = "name";
     public static final String TEST_PLAN_COLUMN = "testPlan";
-    public static final String PRE_SCRIPT_STATUS_COLUMN = "preScript";
-    public static final String POST_SCRIPT_STATUS_COLUMN = "postScript";
+    public static final String PRE_SCRIPT_STATUS_COLUMN = "isPreScriptSuccessful";
+    public static final String POST_SCRIPT_STATUS_COLUMN = "isPostScriptSuccessful";
 
     private static final long serialVersionUID = -2666342786241472418L;
 
@@ -77,11 +78,11 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     @Element(description = "holds the test engine type (i.e. JMETER, TESTNG)")
     private TestEngine testEngine;
 
-    @Column(name = PRE_SCRIPT_STATUS_COLUMN)
+    @Column(name = "is_pre_script_success")
     @Element(description = "holds the status true if pre script is successful")
     private boolean isPreScriptSuccessful = false;
 
-    @Column(name = POST_SCRIPT_STATUS_COLUMN)
+    @Column(name = "is_post_script_success")
     @Element(description = "holds the status true if post script is successful")
     private boolean isPostScriptSuccessful = false;
 
@@ -198,18 +199,38 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
                '}';
     }
 
-    public void setIsPreScriptSuccessful(boolean isPreScriptSuccesful) {
-        this.isPreScriptSuccessful = isPreScriptSuccesful;
+    /**
+     * Sets the status of the pre script execution.
+     *
+     * @param isPreScriptSuccessful Status of pre script execution
+     */
+    public void setIsPreScriptSuccessful(boolean isPreScriptSuccessful) {
+        this.isPreScriptSuccessful = isPreScriptSuccessful;
     }
 
-    public void setIsPostScriptSuccessful(boolean isPostScriptSuccesful) {
-        this.isPostScriptSuccessful = isPostScriptSuccesful;
+    /**
+     * Sets the status of the post script execution.
+     *
+     * @param isPostScriptSuccessful Status of the post script execution
+     */
+    public void setIsPostScriptSuccessful(boolean isPostScriptSuccessful) {
+        this.isPostScriptSuccessful = isPostScriptSuccessful;
     }
 
+    /**
+     * Checks if pre script is successful.
+     *
+     * @return Status of the script execution
+     */
     public boolean isPreScriptSuccessful() {
         return isPreScriptSuccessful;
     }
 
+    /**
+     * Checks if post script is successful.
+     *
+     * @return Status of the script execution
+     */
     public boolean isPostScriptSuccessful() {
         return isPostScriptSuccessful;
     }

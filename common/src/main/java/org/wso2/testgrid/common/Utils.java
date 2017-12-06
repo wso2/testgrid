@@ -88,7 +88,7 @@ public final class Utils {
      * @param command          Command to execute.
      * @param workingDirectory Directory the command is executed.
      * @param deployment       Deployment details for environment.
-     * @return Returns the output of script execution as a String.
+     * @return The output of script execution as a String.
      * @throws CommandExecutionException When there is an error executing the command.
      */
     public static String executeCommand(String command, File workingDirectory, Deployment deployment)

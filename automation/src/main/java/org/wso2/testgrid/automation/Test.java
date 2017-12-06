@@ -89,7 +89,7 @@ public class Test {
     /**
      * Returns the test script associated with this test.
      *
-     * @return test script associated with this test
+     * @return test script associated with this test.
      */
     public TestScenario getTestScenario() {
         return testScenario;
@@ -98,7 +98,7 @@ public class Test {
     /**
      * Returns the Pre scenario script.
      *
-     * @return location of the script as a String.
+     * @return location of the script.
      */
     public String getPreScenarioScript() {
         return preScenarioScript;
@@ -107,7 +107,7 @@ public class Test {
     /**
      * Sets the Pre scenario script.
      *
-     * @param preScenarioScript location of the script as a String.
+     * @param preScenarioScript location of the script.
      */
     public void setPreScenarioScript(String preScenarioScript) {
         this.preScenarioScript = preScenarioScript;
@@ -116,7 +116,7 @@ public class Test {
     /**
      * Returns the Post scenario script.
      *
-     * @return location of the script as a String.
+     * @return location of the script.
      */
     public String getPostScenarioScript() {
         return postScenarioScript;
@@ -125,7 +125,7 @@ public class Test {
     /**
      * Sets the Post scenario script.
      *
-     * @param postScenarioScript location of the script as a String.
+     * @param postScenarioScript location of the script.
      */
     public void setPostScenarioScript(String postScenarioScript) {
         this.postScenarioScript = postScenarioScript;
