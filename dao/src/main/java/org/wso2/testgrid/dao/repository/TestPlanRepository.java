@@ -61,6 +61,8 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      */
     public void delete(TestPlan entity) throws TestGridDAOException {
         super.delete(entity);
+        entity.setTestScenarios(null);
+        entity.setInfraResult(null);
     }
 
     /**

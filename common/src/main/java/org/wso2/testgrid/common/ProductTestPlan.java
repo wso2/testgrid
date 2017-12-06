@@ -20,10 +20,13 @@ package org.wso2.testgrid.common;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -75,6 +78,9 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
     @Enumerated(EnumType.STRING)
     @Column(name = "channel", nullable = false)
     private Channel channel;
+
+    @OneToMany(mappedBy = "productTestPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TestPlan> testPlans;
 
     /**
      * Returns the product name.
@@ -182,6 +188,24 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
      */
     public void setChannel(Channel channel) {
         this.channel = channel;
+    }
+
+    /**
+     * Returns the associated test plans list.
+     *
+     * @return associated test plans list
+     */
+    public List<TestPlan> getTestPlans() {
+        return testPlans;
+    }
+
+    /**
+     * Sets the associated test plans list.
+     *
+     * @param testPlans associated test plans list
+     */
+    public void setTestPlans(List<TestPlan> testPlans) {
+        this.testPlans = testPlans;
     }
 
     @Override

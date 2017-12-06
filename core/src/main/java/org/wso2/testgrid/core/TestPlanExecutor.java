@@ -153,11 +153,10 @@ public class TestPlanExecutor {
      * @throws TestPlanExecutorException If something goes wrong while executing the TestPlan.
      */
     public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
         testPlan = setupInfrastructure(infrastructure, testPlan);
         testPlan.setStatus(TestPlan.Status.TESTPLAN_DEPLOYMENT_PREPARATION);
-        try {
-            testPlan = testPlanUOW.persistSingleTestPlan(testPlan);
+        try (TestPlanUOW testPlanUOW = new TestPlanUOW()) {
+            testPlan = testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             destroyInfrastructure(infrastructure, testPlan);
             throw new TestPlanExecutorException("Error occured while Persisting TestPlan ", e);
@@ -235,9 +234,8 @@ public class TestPlanExecutor {
      * @throws TestPlanExecutorException When there is an error persisting the object.
      */
     private TestPlan handlePersistance(TestPlan testPlan) throws TestPlanExecutorException {
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
-        try {
-            return testPlanUOW.persistSingleTestPlan(testPlan);
+        try (TestPlanUOW testPlanUOW = new TestPlanUOW()) {
+            return testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             throw new TestPlanExecutorException("Error occurred while persisting the test plan");
         }

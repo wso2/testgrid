@@ -198,7 +198,7 @@ public class DatabaseRepositoryTest {
 
     @Test(description = "Tests ordering ascending by multiple columns.",
           dependsOnMethods = {"persistTest", "findByField", "deleteTest", "updateUniqueReferenceTest"})
-    public void orderByAscendingTest() throws TestGridDAOException {
+    public void orderByAscendingTest() {
         Map<String, Object> params = Collections.emptyMap();
         LinkedListMultimap<SortOrder, String> orderFieldMap = LinkedListMultimap.create();
         orderFieldMap.put(SortOrder.ASCENDING, Database.ENGINE_COLUMN);
@@ -226,7 +226,7 @@ public class DatabaseRepositoryTest {
 
     @Test(description = "Tests ordering descending by multiple columns.",
           dependsOnMethods = {"persistTest", "findByField", "deleteTest", "updateUniqueReferenceTest"})
-    public void orderByDescendingTest() throws TestGridDAOException {
+    public void orderByDescendingTest() {
         Map<String, Object> params = Collections.emptyMap();
         LinkedListMultimap<SortOrder, String> orderFieldMap = LinkedListMultimap.create();
         orderFieldMap.put(SortOrder.DESCENDING, Database.ENGINE_COLUMN);
@@ -254,7 +254,7 @@ public class DatabaseRepositoryTest {
 
     @Test(description = "Tests ordering ascending and descending by multiple columns.",
           dependsOnMethods = {"persistTest", "findByField", "deleteTest", "updateUniqueReferenceTest"})
-    public void orderByTest() throws TestGridDAOException {
+    public void orderByTest() {
         Map<String, Object> params = Collections.emptyMap();
         LinkedListMultimap<SortOrder, String> orderFieldMap = LinkedListMultimap.create();
         orderFieldMap.put(SortOrder.ASCENDING, Database.ENGINE_COLUMN);

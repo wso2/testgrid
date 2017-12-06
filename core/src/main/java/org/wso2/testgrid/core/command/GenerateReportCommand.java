@@ -58,16 +58,16 @@ public class GenerateReportCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
-        log.info("Generating test result report...");
-        log.info(
-                "Input Arguments: \n" +
-                "\tProduct name: " + productName + "\n" +
-                "\tProduct version: " + productVersion + "\n" +
-                "\tChannel" + channel);
-
         try {
+            log.info("Generating test result report...");
+            log.info(
+                    "Input Arguments: \n" +
+                    "\tProduct name: " + productName + "\n" +
+                    "\tProduct version: " + productVersion + "\n" +
+                    "\tChannel" + channel);
+
             TestReportEngine testReportEngine = new TestReportEngineImpl();
-            testReportEngine.generateReport(productName, productVersion);
+            testReportEngine.generateReport(productName, productVersion, channel);
         } catch (TestReportEngineException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error occurred when generating test report for { product: ", productName,

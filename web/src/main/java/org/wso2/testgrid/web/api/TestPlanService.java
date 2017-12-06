@@ -22,7 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.WebAppUOW;
+import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
@@ -49,11 +50,10 @@ public class TestPlanService {
      */
     @GET
     public Response getTestPlansForProductTestPlan(@QueryParam("product-test-plan-id") String productTestPlanId) {
-        WebAppUOW webAppUOW = new WebAppUOW();
-
-        try {
-            List<org.wso2.testgrid.common.TestPlan> testPlans = webAppUOW.
-                    getTestPlansForProductTestPlan(productTestPlanId);
+        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+            org.wso2.testgrid.common.ProductTestPlan productTestPlan = productTestPlanUOW
+                    .getProductTestPlanById(productTestPlanId);
+            List<org.wso2.testgrid.common.TestPlan> testPlans = productTestPlan.getTestPlans();
             return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlans.";
@@ -71,11 +71,8 @@ public class TestPlanService {
     @GET
     @Path("/{id}")
     public Response getTestPlan(@PathParam("id") String id) {
-        WebAppUOW webAppUOW = new WebAppUOW();
-
-        try {
-            TestPlan testPlan = webAppUOW.getTestPlanById(id);
-
+        try (TestPlanUOW testPlanUOW = new TestPlanUOW()) {
+            TestPlan testPlan = testPlanUOW.getTestPlanById(id);
             if (testPlan != null) {
                 return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBean(testPlan)).build();
             } else {

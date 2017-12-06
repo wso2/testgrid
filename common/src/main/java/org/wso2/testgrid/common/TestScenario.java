@@ -21,13 +21,16 @@ package org.wso2.testgrid.common;
 import org.wso2.carbon.config.annotation.Element;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Locale;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -66,9 +69,12 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     @Element(description = "name of the solution pattern which is covered by this test scenario")
     private String name;
 
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class)
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class, fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumn(name = "TESTPLAN_id", referencedColumnName = ID_COLUMN)
     private TestPlan testPlan;
+
+    @OneToMany(mappedBy = "testScenario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TestCase> testCases;
 
     @Transient
     @Element(description = "flag to enable or disable the test scenario")
@@ -138,6 +144,24 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      */
     public void setTestPlan(TestPlan testPlan) {
         this.testPlan = testPlan;
+    }
+
+    /**
+     * Returns the associated test cases list.
+     *
+     * @return associated test cases list
+     */
+    public List<TestCase> getTestCases() {
+        return testCases;
+    }
+
+    /**
+     * Sets the associated test cases list.
+     *
+     * @param testCases associated test cases list
+     */
+    public void setTestCases(List<TestCase> testCases) {
+        this.testCases = testCases;
     }
 
     /**

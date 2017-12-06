@@ -27,8 +27,7 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestReportEngineException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.ReportGenerationUOW;
+import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.reporting.model.ProductTestPlanView;
 import org.wso2.testgrid.reporting.model.TestPlanView;
 import org.wso2.testgrid.reporting.model.TestScenarioView;
@@ -60,9 +59,10 @@ public class TestReportEngineImpl implements TestReportEngine {
     private static final String HTML_EXTENSION = ".html";
 
     @Override
-    public void generateReport(String productName, String productVersion) throws TestReportEngineException {
+    public void generateReport(String productName, String productVersion, String channel)
+            throws TestReportEngineException {
 
-        ProductTestPlan productTestPlan = getProductTestPlan(productName, productVersion);
+        ProductTestPlan productTestPlan = getProductTestPlan(productName, productVersion, channel);
         Map<String, Object> parsedTestResultMap = parseTestResult(productTestPlan);
 
         String hTMLString = renderParsedTestResultMap(parsedTestResultMap);
@@ -118,15 +118,15 @@ public class TestReportEngineImpl implements TestReportEngine {
      */
     private Map<String, Object> parseTestResult(ProductTestPlan productTestPlan) throws TestReportEngineException {
         try {
-            List<TestPlan> testPlans = getTestPlans(productTestPlan);
+            List<TestPlan> testPlans = productTestPlan.getTestPlans();
             List<TestPlanView> testPlanViews = new ArrayList<>();
 
             for (TestPlan testPlan : testPlans) {
-                List<TestScenario> testScenarios = getTestScenariosForTestPlan(testPlan);
+                List<TestScenario> testScenarios = testPlan.getTestScenarios();
                 List<TestScenarioView> testScenarioViews = new ArrayList<>();
 
                 for (TestScenario testScenario : testScenarios) {
-                    List<TestCase> testCases = getTestCasesForTestScenario(testScenario);
+                    List<TestCase> testCases = testScenario.getTestCases();
                     TestScenarioView testScenarioReport =
                             new TestScenarioView(testScenario, testCases, TEST_CASE_MUSTACHE);
                     testScenarioViews.add(testScenarioReport);
@@ -148,68 +148,26 @@ public class TestReportEngineImpl implements TestReportEngine {
     }
 
     /**
-     * Returns a list of test plans associated with the product test plan.
-     *
-     * @param productTestPlan product test plan to obtain the list of test plans
-     * @return a list of {@link TestPlan} instances associated with the product test plan
-     * @throws TestReportEngineException thrown when error on obtaining records for the given product test plan
-     */
-    private List<TestPlan> getTestPlans(ProductTestPlan productTestPlan) throws TestReportEngineException {
-        try {
-            ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
-            return reportGenerationUOW.getTestPlanListForProductTest(productTestPlan);
-        } catch (TestGridDAOException e) {
-            throw new TestReportEngineException("Error on obtaining test plans from product test plan.", e);
-        }
-    }
-
-    /**
      * Returns an instance of {@link ProductTestPlan} for the given product name and product version.
      *
      * @param productName    product name
      * @param productVersion product version
+     * @param channel        product test plan channel
      * @return an instance of {@link ProductTestPlan} for the given product name and product version
      * @throws TestReportEngineException throw when error on obtaining product test plan for the given product name
      *                                   and product version
      */
-    private ProductTestPlan getProductTestPlan(String productName, String productVersion)
+    private ProductTestPlan getProductTestPlan(String productName, String productVersion, String channel)
             throws TestReportEngineException {
-        ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
-        return reportGenerationUOW.getProductTestPlan(productName, productVersion)
-                .orElseThrow(() -> new TestReportEngineException(StringUtil
-                        .concatStrings("No product test plan found for product ", productName, " - ",
-                                productVersion)));
-    }
-
-    /**
-     * Returns a list of {@link TestScenario} instances associated with the given test plan.
-     *
-     * @param testPlan test plan to obtain the test scenarios
-     * @return list of {@link TestScenario} instances associated with the given test plan
-     * @throws TestReportEngineException thrown when error on retrieving test scenarios
-     */
-    private List<TestScenario> getTestScenariosForTestPlan(TestPlan testPlan) throws TestReportEngineException {
-        try {
-            ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
-            return reportGenerationUOW.getTestScenariosForTestPlan(testPlan);
-        } catch (TestGridDAOException e) {
-            throw new TestReportEngineException("Error on obtaining test scenarios for the test plan.", e);
-        }
-    }
-
-    /**
-     * Returns a list of {@link TestCase} instances associated with the given test scenario.
-     *
-     * @param testScenario test scenario to obtain the test cases
-     * @return list of {@link TestCase} instances associated with the given test scenario
-     * @throws TestReportEngineException thrown when error on retrieving test cases
-     */
-    private List<TestCase> getTestCasesForTestScenario(TestScenario testScenario) throws TestReportEngineException {
-        try {
-            ReportGenerationUOW reportGenerationUOW = new ReportGenerationUOW();
-            return reportGenerationUOW.getTestCasesForTestScenario(testScenario);
-        } catch (TestGridDAOException e) {
-            throw new TestReportEngineException("Error on obtaining test cases for the test scenario.", e);
+        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+            ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
+            return productTestPlanUOW.getProductTestPlan(productName, productVersion, productTestPlanChannel)
+                    .orElseThrow(() -> new TestReportEngineException(StringUtil
+                            .concatStrings("No product test plan found for product {product name: ", productName,
+                                    ", product version: ", productVersion, ", channel: ", channel, "}")));
+        } catch (IllegalArgumentException e) {
+            throw new TestReportEngineException(StringUtil.concatStrings("Channel ", channel,
+                    " not found in channels enum."));
         }
     }
 }

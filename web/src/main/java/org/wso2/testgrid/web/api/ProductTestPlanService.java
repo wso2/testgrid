@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.WebAppUOW;
+import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
@@ -49,15 +49,13 @@ public class ProductTestPlanService {
      */
     @GET
     public Response getAllProductTestPlans() {
-        WebAppUOW webAppUOW = new WebAppUOW();
-
-        try {
-            List<ProductTestPlan> testPlans = webAppUOW.getAllProductTestPlans();
+        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+            List<ProductTestPlan> testPlans = productTestPlanUOW.getAllProductTestPlans();
             return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBeans(testPlans)).build();
         } catch (TestGridDAOException e) {
-           String msg = "Error occurred while fetching the ProductTestPlans.";
-           log.error(msg, e);
-           return Response.serverError().entity(
+            String msg = "Error occurred while fetching the ProductTestPlans.";
+            log.error(msg, e);
+            return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
     }
@@ -70,10 +68,8 @@ public class ProductTestPlanService {
     @GET
     @Path("/{id}")
     public Response getProductTestPlan(@PathParam("id") String id) {
-        WebAppUOW webAppUOW = new WebAppUOW();
-
-        try {
-            ProductTestPlan productTestPlan = webAppUOW.getProductTestPlanById(id);
+        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+            ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlanById(id);
 
             if (productTestPlan != null) {
                 return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBean(productTestPlan)).
