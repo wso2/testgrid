@@ -28,8 +28,6 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.Database;
@@ -42,10 +40,8 @@ import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -239,7 +235,7 @@ public class AWSManager {
     /**
      * Reads the parameters for the stack from file.
      *
-     * @param script       Script object with script details.
+     * @param script Script object with script details.
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
@@ -307,11 +303,5 @@ public class AWSManager {
                 throw new TestGridInfrastructureException("Request DB engine '" + databaseEngine.name()
                         + "' is not supported by AWS.");
         }
-    }
-
-    /**
-     * Wrapper TypeReference for json Object mapper function.
-     */
-    private static class AWSTypeReference extends TypeReference<List<Parameter>> {
     }
 }
