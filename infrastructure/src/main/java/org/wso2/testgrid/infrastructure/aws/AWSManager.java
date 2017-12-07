@@ -37,6 +37,7 @@ import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
+import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.IOException;
@@ -249,15 +250,15 @@ public class AWSManager {
             cfCompatibleParameters.add(awsParam);
         });
 
-        script.getEnvironmentScriptParameters().forEach((key, value) -> {
+        script.getEnvironmentScriptParameters().forEach(LambdaExceptionUtils.rethrowBiConsumer((key, value) -> {
             String envVariable = EnvironmentUtil.getSystemVariableValue((String) value);
             if (envVariable != null) {
                 Parameter awsParam = new Parameter().withParameterKey((String) key).withParameterValue(envVariable);
                 cfCompatibleParameters.add(awsParam);
             } else {
-                log.error("Environment Variable " + value + "not found !!");
+                throw new TestGridInfrastructureException("Environment Variable " + value + " not found !!");
             }
-        });
+        }));
 
         for (Parameter parameter : cfCompatibleParameters) {
             if (DB_ENGINE.equals(parameter.getParameterKey())) {

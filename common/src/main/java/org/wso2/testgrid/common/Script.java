@@ -24,7 +24,7 @@ import java.io.Serializable;
 import java.util.Properties;
 
 /**
- *  Defines a model object for a provided custom script.
+ * Defines a model object for a provided custom script.
  */
 public class Script implements Serializable {
 
@@ -52,17 +52,17 @@ public class Script implements Serializable {
         /**
          * Defines the AWS cloud-formation script type.
          */
-        CLOUD_FORMATION ("Cloud Formation"),
+        CLOUD_FORMATION("Cloud Formation"),
 
         /**
          * Defines the create-infra shell script type.
          */
-        INFRA_CREATE ("Infra Create"),
+        INFRA_CREATE("Infra Create"),
 
         /**
          * Defines the destroy-infra shell script type.
          */
-        INFRA_DESTROY ("Infra Destroy");
+        INFRA_DESTROY("Infra Destroy");
 
         private final String name;
 
@@ -89,7 +89,7 @@ public class Script implements Serializable {
      * @return script parameters
      */
     public Properties getEnvironmentScriptParameters() {
-        return environmentScriptParameters;
+        return environmentScriptParameters != null ? environmentScriptParameters : new Properties();
     }
 
     /**
