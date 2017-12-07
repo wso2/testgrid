@@ -118,7 +118,7 @@ public class AWSManager {
             String file = new String(Files.readAllBytes(Paths.get(infraRepoDir,
                     script.getFilePath())), StandardCharsets.UTF_8);
             stackRequest.setTemplateBody(file);
-            stackRequest.setParameters(getParameters(script, infraRepoDir));
+            stackRequest.setParameters(getParameters(script));
             stackbuilder.createStack(stackRequest);
             if (log.isDebugEnabled()) {
                 log.info("Stack configuration created for name " + cloudFormationName);
@@ -129,6 +129,14 @@ public class AWSManager {
             DescribeStacksResult describeStacksResult = stackbuilder
                     .describeStacks(describeStacksRequest);
             List<Host> hosts = new ArrayList<>();
+            Host tomcatHost = new Host();
+            tomcatHost.setLabel("tomcatHost");
+            tomcatHost.setIp("ec2-52-54-230-106.compute-1.amazonaws.com");
+            Host tomcatPort = new Host();
+            tomcatPort.setLabel("tomcatPort");
+            tomcatPort.setIp("8080");
+            hosts.add(tomcatHost);
+            hosts.add(tomcatPort);
             for (Stack st : describeStacksResult.getStacks()) {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
@@ -232,21 +240,14 @@ public class AWSManager {
      * Reads the parameters for the stack from file.
      *
      * @param script       Script object with script details.
-     * @param infraRepoDir Path of TestGrid home location in file system as a String.
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
-    private List<Parameter> getParameters(Script script, String infraRepoDir) throws IOException
+    private List<Parameter> getParameters(Script script) throws IOException
             , TestGridInfrastructureException {
 
         Properties scriptParameters = script.getScriptParameters();
-        String cfParamFile = (String) scriptParameters.get("CloudFormationParameterFile"); //todo hard-coded
-        scriptParameters.remove("CloudFormationParameterFile");
-        Path path = Paths.get(infraRepoDir, cfParamFile);
-        String jsonArray = new String(Files.readAllBytes(path), Charset.defaultCharset());
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        List<Parameter> cfCompatibleParameters = objectMapper.readValue(jsonArray, new AWSTypeReference());
+        List<Parameter> cfCompatibleParameters = new ArrayList<>();
         scriptParameters.forEach((key, value) -> {
             Parameter awsParam = new Parameter().withParameterKey((String) key).withParameterValue((String) value);
             cfCompatibleParameters.add(awsParam);
