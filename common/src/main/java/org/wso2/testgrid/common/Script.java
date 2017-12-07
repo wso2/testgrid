@@ -40,6 +40,9 @@ public class Script implements Serializable {
     private ScriptType scriptType;
     @Element(description = "defines the parameters file name (not necessary)")
     private Properties scriptParameters;
+    @Element(description = "defines the parameters that are stored as environment variables")
+    private Properties environmentScriptParameters;
+
 
     /**
      * This defines the supported executable script types.
@@ -78,6 +81,24 @@ public class Script implements Serializable {
 
     public void setScriptParameters(Properties scriptParameters) {
         this.scriptParameters = scriptParameters;
+    }
+
+    /**
+     * Get Script parameters that needs to be retrieved as Environment variables.
+     *
+     * @return script parameters
+     */
+    public Properties getEnvironmentScriptParameters() {
+        return environmentScriptParameters;
+    }
+
+    /**
+     * Set Script parameters that needs to be retrieved as Environment variables.
+     *
+     * @param environmentScriptParameters {@link Properties} object populated by script parameters
+     */
+    public void setEnvironmentScriptParameters(Properties environmentScriptParameters) {
+        this.environmentScriptParameters = environmentScriptParameters;
     }
 
     public String getFilePath() {

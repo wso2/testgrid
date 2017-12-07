@@ -111,6 +111,9 @@ public class AWSManagerTest extends PowerMockTestCase {
         scriptParameters.setProperty("EC2KeyPair", "test-grid.key");
         script.setScriptParameters(scriptParameters);
         //create dummy infrastructure object
+        Properties envScriptParameters = new Properties();
+        envScriptParameters.setProperty("AWSAccessKey", "AWS_KEY");
+        script.setEnvironmentScriptParameters(envScriptParameters);
         Infrastructure infrastructure = new Infrastructure();
         infrastructure.setName(patternName);
         infrastructure.setScripts(Collections.singletonList(script));
