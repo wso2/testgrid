@@ -33,7 +33,7 @@ import java.net.URLClassLoader;
 /**
  * This class is responsible for Executing TestNG tests.
  */
-public class TestNgExecutor implements TestExecutor {
+public class TestNgExecutor extends TestExecutor {
 
     private static final Log log = LogFactory.getLog(TestNgExecutor.class);
     private String testsLocation;

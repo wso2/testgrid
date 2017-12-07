@@ -21,13 +21,17 @@ package org.wso2.testgrid.automation.executor;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.Utils;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
+
+import java.nio.file.Path;
 
 /**
  * Interface for Test executors.
  *
  * @since 1.0.0
  */
-public interface TestExecutor {
+public abstract class TestExecutor {
 
     /**
      * Executes a test based on the given script and the deployment.
@@ -36,7 +40,7 @@ public interface TestExecutor {
      * @param deployment deployment to run the test script on
      * @throws TestAutomationException thrown when error on executing the given test script
      */
-    void execute(String script, Deployment deployment) throws TestAutomationException;
+    public abstract void execute(String script, Deployment deployment) throws TestAutomationException;
 
     /**
      * Initialises the test executor.
@@ -48,5 +52,24 @@ public interface TestExecutor {
      * @param testScenario  {@link TestScenario} instance associated with the test
      * @throws TestAutomationException thrown when error on initialising the test executor
      */
-    void init(String testsLocation, String testName, TestScenario testScenario) throws TestAutomationException;
+    public abstract void init(String testsLocation, String testName, TestScenario testScenario)
+            throws TestAutomationException;
+
+    /**
+     * Executes companion scripts.
+     * <p>
+     * <p>Used for test scenarios that have seperate scripts to create or destroy environments</p>
+     *
+     * @param script     {@link Path} reference to the script.
+     * @param deployment {@link Deployment} object with current environment details.
+     * @return The response of script execution.
+     * @throws TestAutomationException Throws exception when there is an error executing the script.
+     */
+    public String executeEnvironmentScript(Path script, Deployment deployment) throws TestAutomationException {
+        try {
+            return Utils.executeCommand("bash " + script.toString(), null, deployment);
+        } catch (CommandExecutionException e) {
+            throw new TestAutomationException("Error executing " + script.toString(), e);
+        }
+    }
 }
