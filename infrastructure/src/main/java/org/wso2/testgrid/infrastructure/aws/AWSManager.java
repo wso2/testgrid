@@ -37,6 +37,7 @@ import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
+import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.IOException;
@@ -249,24 +250,18 @@ public class AWSManager {
             cfCompatibleParameters.add(awsParam);
         });
 
-        for (Parameter parameter : cfCompatibleParameters) {
-            if (parameter.getParameterKey().equals(WUM_USERNAME)) {
-                String wumUserName = EnvironmentUtil.getSystemVariableValue(parameter.getParameterValue());
-                if (wumUserName != null) {
-                    parameter.setParameterValue(wumUserName);
-                } else {
-                    throw new TestGridInfrastructureException("WUM Credentials (WUM_USERNAME, WUM_PASSWORD) must be "
-                            + "set as environment variables");
-                }
+        script.getEnvironmentScriptParameters().forEach(LambdaExceptionUtils.rethrowBiConsumer((key, value) -> {
+            String envVariable = EnvironmentUtil.getSystemVariableValue((String) value);
+            if (envVariable != null) {
+                Parameter awsParam = new Parameter().withParameterKey((String) key).withParameterValue(envVariable);
+                cfCompatibleParameters.add(awsParam);
+            } else {
+                throw new TestGridInfrastructureException("Environment Variable " + value + " not found !!");
+            }
+        }));
 
-            } else if (WUM_PASSWORD.equals(parameter.getParameterKey())) {
-                String wumPassword = EnvironmentUtil.getSystemVariableValue(parameter.getParameterValue());
-                if (wumPassword != null) {
-                    parameter.setParameterValue(wumPassword);
-                } else {
-                    throw new TestGridInfrastructureException("WUM Credentials must be set as environment variables");
-                }
-            } else if (DB_ENGINE.equals(parameter.getParameterKey())) {
+        for (Parameter parameter : cfCompatibleParameters) {
+            if (DB_ENGINE.equals(parameter.getParameterKey())) {
                 parameter.setParameterValue(this.getDatabaseEngineName(this.infra.getDatabase().getEngine()));
             } else if (DB_ENGINE_VERSION.equals(parameter.getParameterKey())) {
                 parameter.setParameterValue(this.infra.getDatabase().getVersion());
