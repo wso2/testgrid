@@ -108,7 +108,7 @@ public class AWSManagerTest extends PowerMockTestCase {
         script.setFilePath(scriptFile);
         script.setName(mockStackName);
         Properties scriptParameters = new Properties();
-        scriptParameters.setProperty("CloudFormationParameterFile", "parameters.json");
+        scriptParameters.setProperty("EC2KeyPair", "test-grid.key");
         script.setScriptParameters(scriptParameters);
         //create dummy infrastructure object
         Infrastructure infrastructure = new Infrastructure();
@@ -150,8 +150,8 @@ public class AWSManagerTest extends PowerMockTestCase {
         Deployment dep = awsManager.createInfrastructure(script, resourcePath.getAbsolutePath());
 
         Assert.assertNotNull(dep);
-        Assert.assertEquals(dep.getHosts().size(), 1);
-        Assert.assertEquals(dep.getHosts().get(0).getIp(), outputValue);
+        Assert.assertEquals(dep.getHosts().size(), 3);
+        Assert.assertEquals(dep.getHosts().get(2).getIp(), outputValue);
     }
 
     @Test(description = "This test case tests destroying infrastructure given a already built stack name.")
