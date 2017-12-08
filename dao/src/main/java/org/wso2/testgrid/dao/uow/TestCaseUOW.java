@@ -23,22 +23,24 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestCaseRepository;
 import org.wso2.testgrid.dao.util.DAOUtil;
 
+import java.io.Closeable;
 import javax.persistence.EntityManagerFactory;
 
 /**
- * Unit of work class to handle to data base transactions related to test cases.
+ * This class defines the Unit of work related to a {@link TestCase}.
  *
  * @since 1.0.0
  */
-public class TestAutomationUOW {
+public class TestCaseUOW implements Closeable {
 
-    private final EntityManagerFactory entityManagerFactory;
+    private final TestCaseRepository testCaseRepository;
 
     /**
-     * Initialises the entity manager factory when constructing an instance of this type.
+     * Constructs an instance of {@link TestCaseUOW} to manager use cases related to product test plan.
      */
-    public TestAutomationUOW() {
-        entityManagerFactory = DAOUtil.getEntityManagerFactory();
+    public TestCaseUOW() {
+        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
+        testCaseRepository = new TestCaseRepository(entityManagerFactory);
     }
 
     /**
@@ -52,7 +54,6 @@ public class TestAutomationUOW {
      */
     public TestCase persistTestCase(String testName, TestScenario testScenario, boolean isSuccess,
                                     String responseMessage) throws TestGridDAOException {
-        TestCaseRepository testCaseRepository = new TestCaseRepository(entityManagerFactory);
         TestCase.Status status = isSuccess ? TestCase.Status.TESTCASE_COMPLETED : TestCase.Status.TESTCASE_ERROR;
 
         // Create test case instance
@@ -64,5 +65,21 @@ public class TestAutomationUOW {
 
         // Persist test case
         return testCaseRepository.persist(testCase);
+    }
+
+    /**
+     * Returns the {@link TestCase} instance for the given id.
+     *
+     * @param id primary key of the test case
+     * @return matching {@link TestCase} instance
+     * @throws TestGridDAOException thrown when error on retrieving results
+     */
+    public TestCase getTestCaseById(String id) throws TestGridDAOException {
+        return testCaseRepository.findByPrimaryKey(id);
+    }
+
+    @Override
+    public void close() {
+        testCaseRepository.close();
     }
 }

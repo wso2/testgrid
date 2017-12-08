@@ -18,9 +18,11 @@ limitations under the License.
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 
 <suite name="TestGrid - Test Automation Module">
-    <test name="executor-test" parallel="false">
+    <test name="dao-test" parallel="false">
         <classes>
             <class name="org.wso2.testgrid.dao.repository.DatabaseRepositoryTest"/>
+            <!-- TODO: H2 fails to create tables due to SQL syntax error -->
+            <!--<class name="org.wso2.testgrid.dao.repository.ProductTestPlanRepository"/>-->
         </classes>
     </test>
 </suite>

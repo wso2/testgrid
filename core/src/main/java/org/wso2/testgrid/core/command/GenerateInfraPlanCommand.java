@@ -29,7 +29,7 @@ import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -41,7 +41,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 /**
  * Responsible for generating the infrastructure plan and persisting them in the file system.
@@ -78,36 +77,36 @@ public class GenerateInfraPlanCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
-        if (StringUtil.isStringNullOrEmpty(infraConfigFile) || !infraConfigFile.endsWith(YAML_EXTENSION)) {
-            throw new CommandExecutionException(StringUtil
-                    .concatStrings("Provided infra plan file is not a YAML file: ", infraConfigFile));
+        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+            if (StringUtil.isStringNullOrEmpty(infraConfigFile) || !infraConfigFile.endsWith(YAML_EXTENSION)) {
+                throw new CommandExecutionException(StringUtil
+                        .concatStrings("Provided infra plan file is not a YAML file: ", infraConfigFile));
+            }
+
+            Path infraConfigFilePath = Paths.get(infraConfigFile).toAbsolutePath();
+
+            if (!Files.exists(infraConfigFilePath)) {
+                throw new CommandExecutionException(StringUtil
+                        .concatStrings("Unable to find the Infrastructure configuration directory in location '",
+                                infraConfigFile, "'"));
+            }
+
+            // Get infra from config
+            Infrastructure infrastructure = getInfrastructureFromConfig(infraConfigFilePath);
+
+            // Create directory to persist infra data
+            ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
+            ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlan(productName, productVersion,
+                    productTestPlanChannel)
+                    .orElseThrow(() -> new CommandExecutionException(StringUtil
+                            .concatStrings("Product test plan for {product name: ",
+                                    productName, ", product version: ", productVersion, ", channel: ", channel,
+                                    "} cannot be located.")));
+
+            // Save infrastructure to file
+            String infraGenDirectory = createInfraGenDirectory(productTestPlan);
+            saveInfrastructureFile(infrastructure, infraGenDirectory);
         }
-
-        Path infraConfigFilePath = Paths.get(infraConfigFile).toAbsolutePath();
-
-        if (!Files.exists(infraConfigFilePath)) {
-            throw new CommandExecutionException(StringUtil
-                    .concatStrings("Unable to find the Infrastructure configuration directory in location '",
-                            infraConfigFile, "'"));
-        }
-
-        // Get infra from config
-        Infrastructure infrastructure = getInfrastructureFromConfig(infraConfigFilePath);
-
-        // Create directory to persist infra data
-        ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
-        Optional<ProductTestPlan> productTestPlan = testPlanUOW.getProductTestPlan(productName, productVersion,
-                productTestPlanChannel);
-        if (!productTestPlan.isPresent()) {
-            throw new CommandExecutionException(StringUtil.concatStrings("Product test plan for {product name: ",
-                    productName, ", product version: ", productVersion, ", channel: ", channel,
-                    "} cannot be located."));
-        }
-
-        // Save infrastructure to file
-        String infraGenDirectory = createInfraGenDirectory(productTestPlan.get());
-        saveInfrastructureFile(infrastructure, infraGenDirectory);
     }
 
     /**

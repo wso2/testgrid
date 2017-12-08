@@ -36,6 +36,7 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.TestPlanExecutor;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
 import java.io.BufferedInputStream;
@@ -149,11 +150,11 @@ public class RunTestPlanCommand implements Command {
      */
     private void executeTestPlan(ProductTestPlan productTestPlan, TestPlan testPlan,
                                  Infrastructure infrastructure) throws CommandExecutionException {
-        try {
+        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
+             TestPlanUOW testPlanUOW = new TestPlanUOW()) {
             // Update product test plan status
             productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
-            TestPlanUOW testPlanUOW = new TestPlanUOW();
-            testPlanUOW.persistProductTestPlan(productTestPlan);
+            productTestPlanUOW.persistProductTestPlan(productTestPlan);
 
             // Persist infra combination, infra result and test plan
             InfraCombination infraCombination = infrastructure.getInfraCombination();
@@ -162,7 +163,7 @@ public class RunTestPlanCommand implements Command {
             infraResult.setStatus(InfraResult.Status.INFRASTRUCTURE_PREPARATION);
             testPlan.setInfraResult(infraResult);
             testPlan.setProductTestPlan(productTestPlan);
-            testPlan = testPlanUOW.persistSingleTestPlan(testPlan);
+            testPlan = testPlanUOW.persistTestPlan(testPlan);
 
             // Run test plan
             new TestPlanExecutor().runTestPlan(testPlan, infrastructure);
@@ -225,12 +226,16 @@ public class RunTestPlanCommand implements Command {
      */
     private ProductTestPlan getProductTestPlan(String productName, String productVersion, String channel)
             throws CommandExecutionException {
-        ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
-        return testPlanUOW.getProductTestPlan(productName, productVersion, productTestPlanChannel)
-                .orElseThrow(() -> new CommandExecutionException(StringUtil
-                        .concatStrings("Product test plan not found for {product name: ", productName,
-                                ", product version: ", productVersion, ", channel: ", channel)));
+        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+            ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
+            return productTestPlanUOW.getProductTestPlan(productName, productVersion, productTestPlanChannel)
+                    .orElseThrow(() -> new CommandExecutionException(StringUtil
+                            .concatStrings("Product test plan not found for {product name: ", productName,
+                                    ", product version: ", productVersion, ", channel: ", channel, "}")));
+        } catch (IllegalArgumentException e) {
+            throw new CommandExecutionException(StringUtil.concatStrings("Channel ", channel,
+                    " not found in channels enum."));
+        }
     }
 
     /**

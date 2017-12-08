@@ -24,6 +24,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
@@ -76,7 +77,7 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     @Column(name = "failure_message")
     private String failureMessage;
 
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestScenario.class)
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestScenario.class, fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumn(name = "TESTSCENARIO_id", referencedColumnName = "id")
     private TestScenario testScenario;
 

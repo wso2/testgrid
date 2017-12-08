@@ -22,22 +22,24 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestScenarioRepository;
 import org.wso2.testgrid.dao.util.DAOUtil;
 
+import java.io.Closeable;
 import javax.persistence.EntityManagerFactory;
 
 /**
- * Unit of work class to handle to data base transactions related to test scenarios.
+ * Unit of work class to handle to data base transactions related to {@link TestScenario}.
  *
  * @since 1.0.0
  */
-public class TestScenarioUOW {
+public class TestScenarioUOW implements Closeable {
 
-    private final EntityManagerFactory entityManagerFactory;
+    private final TestScenarioRepository testScenarioRepository;
 
     /**
-     * Initialises the entity manager factory when constructing an instance of this type.
+     * Constructs an instance of {@link TestScenarioUOW} to manager use cases related to product test plan.
      */
     public TestScenarioUOW() {
-        entityManagerFactory = DAOUtil.getEntityManagerFactory();
+        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
+        testScenarioRepository = new TestScenarioRepository(entityManagerFactory);
     }
 
     /**
@@ -51,7 +53,22 @@ public class TestScenarioUOW {
     public TestScenario persistTestScenario(TestScenario testScenario, TestScenario.Status status)
             throws TestGridDAOException {
         testScenario.setStatus(status);
-        TestScenarioRepository testScenarioRepository = new TestScenarioRepository(entityManagerFactory);
         return testScenarioRepository.persist(testScenario);
+    }
+
+    /**
+     * Returns the {@link TestScenario} instance for the given id.
+     *
+     * @param id primary key of the test scenario
+     * @return matching {@link TestScenario} instance
+     * @throws TestGridDAOException thrown when error on retrieving results
+     */
+    public TestScenario getTestScenarioById(String id) throws TestGridDAOException {
+        return testScenarioRepository.findByPrimaryKey(id);
+    }
+
+    @Override
+    public void close() {
+        testScenarioRepository.close();
     }
 }

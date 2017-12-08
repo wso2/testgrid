@@ -30,7 +30,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
@@ -87,7 +89,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private Status status;
 
     @Element(description = "value to uniquely identify the deployment pattern")
-    @Column(name = "deployment_pattern", nullable = true)
+    @Column(name = "deployment_pattern")
     private String deploymentPattern;
 
     @Element(description = "description about the test plan")
@@ -95,15 +97,16 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private String description;
 
     @Ignore
-    @OneToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraResult.class)
+    @OneToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraResult.class, orphanRemoval = true)
     private InfraResult infraResult;
 
     @Ignore
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = ProductTestPlan.class)
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = ProductTestPlan.class,
+               fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumn(name = "PRODUCTTESTPLAN_id", referencedColumnName = ID_COLUMN)
     private ProductTestPlan productTestPlan;
 
-    @Transient
+    @OneToMany(mappedBy = "testPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     @Element(description = "list of test scenarios to be executed")
     private List<TestScenario> testScenarios;
 

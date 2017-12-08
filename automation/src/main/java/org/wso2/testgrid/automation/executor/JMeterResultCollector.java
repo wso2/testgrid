@@ -25,7 +25,7 @@ import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.TestAutomationUOW;
+import org.wso2.testgrid.dao.uow.TestCaseUOW;
 
 /**
  * This class is responsible for collecting JMeter test results.
@@ -44,20 +44,19 @@ public class JMeterResultCollector extends ResultCollector {
      * @param summariser   JMeter result summariser
      * @param testScenario {@link TestScenario} instance associated with the test
      */
-    public JMeterResultCollector(Summariser summariser, TestScenario testScenario) {
+    JMeterResultCollector(Summariser summariser, TestScenario testScenario) {
         super(summariser);
         this.testScenario = testScenario;
     }
 
     @Override
     public void sampleOccurred(SampleEvent sampleEvent) {
-        try {
+        try (TestCaseUOW testCaseUOW = new TestCaseUOW()) {
             super.sampleOccurred(sampleEvent);
             SampleResult result = sampleEvent.getResult();
 
             // Persist result to the database
-            TestAutomationUOW testAutomationUOW = new TestAutomationUOW();
-            TestCase testCase = testAutomationUOW.persistTestCase(result.getSampleLabel(), testScenario,
+            TestCase testCase = testCaseUOW.persistTestCase(result.getSampleLabel(), testScenario,
                     result.isSuccessful(), result.getResponseMessage());
 
             // Set Test case label to the test case primary key value

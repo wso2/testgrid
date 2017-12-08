@@ -31,7 +31,9 @@ public interface TestReportEngine {
      *
      * @param productName    product name to generate the test plan for
      * @param productVersion product version to generate the test plan for
+     * @param channel        product test plan channel
      * @throws TestReportEngineException thrown when error on generating test report
      */
-    void generateReport(String productName, String productVersion) throws TestReportEngineException;
+    void generateReport(String productName, String productVersion, String channel)
+            throws TestReportEngineException;
 }

@@ -26,7 +26,7 @@ import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 
 /**
  * This creates a product test plan from the input arguments and persist the information in a database.
@@ -56,25 +56,24 @@ public class CreateProductTestPlanCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
-        log.info("Creating product test plan...");
-        log.info(
-                "Input Arguments: \n" +
-                "\tProduct name: " + productName + "\n" +
-                "\tProduct version: " + productVersion + "\n" +
-                "\tChannel" + channel);
-        /*
-            psuedo code:
-            query db: is product test plan for the given product/version/channel exist
-            if true:
-                log Product information already stored in the db
-            if false:
-                persist p/v/c into the db
-         */
+        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+            log.info("Creating product test plan...");
+            log.info(
+                    "Input Arguments: \n" +
+                    "\tProduct name: " + productName + "\n" +
+                    "\tProduct version: " + productVersion + "\n" +
+                    "\tChannel" + channel);
+            /*
+                psuedo code:
+                query db: is product test plan for the given product/version/channel exist
+                if true:
+                    log Product information already stored in the db
+                if false:
+                    persist p/v/c into the db
+             */
 
-        ProductTestPlan productTestPlan = createProductTestPlan(productName, productVersion, channel);
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
-        try {
-            testPlanUOW.persistProductTestPlan(productTestPlan);
+            ProductTestPlan productTestPlan = createProductTestPlan(productName, productVersion, channel);
+            productTestPlanUOW.persistProductTestPlan(productTestPlan);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred while persisting ProductTestPlan", e);
         }

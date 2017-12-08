@@ -20,9 +20,11 @@ package org.wso2.testgrid.web.api;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.WebAppUOW;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
@@ -50,11 +52,9 @@ public class TestScenarioService {
      */
     @GET
     public Response getTestScenariosForTestPlan(@QueryParam("test-plan-id") String testPlanId) {
-        WebAppUOW webAppUOW = new WebAppUOW();
-
-        try {
-            List<org.wso2.testgrid.common.TestScenario> testScenarios = webAppUOW.
-                    getTestScenariosForTestPlan(testPlanId);
+        try (TestPlanUOW testPlanUOW = new TestPlanUOW()) {
+            TestPlan testPlan = testPlanUOW.getTestPlanById(testPlanId);
+            List<org.wso2.testgrid.common.TestScenario> testScenarios = testPlan.getTestScenarios();
             return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlans.";
@@ -72,10 +72,8 @@ public class TestScenarioService {
     @GET
     @Path("/{id}")
     public Response getTestScenario(@PathParam("id") String id) {
-        WebAppUOW webAppUOW = new WebAppUOW();
-
-        try {
-            TestScenario testScenario = webAppUOW.getTestScenarioById(id);
+        try (TestScenarioUOW testScenarioUOW = new TestScenarioUOW()) {
+            TestScenario testScenario = testScenarioUOW.getTestScenarioById(id);
 
             if (testScenario != null) {
                 return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBean(testScenario)).build();
