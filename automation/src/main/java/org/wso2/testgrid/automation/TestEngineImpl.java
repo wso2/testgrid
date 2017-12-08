@@ -23,10 +23,10 @@ import org.wso2.testgrid.automation.util.AutomationUtil;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.TestAutomationEngine;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.Utils;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestAutomationEngineException;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class TestEngineImpl implements TestAutomationEngine {
     public boolean runScenario(TestScenario scenario, String location, Deployment deployment)
             throws TestAutomationEngineException {
         log.info("Executing Tests for Solution Pattern : " + scenario.getName());
-        String testLocation = Utils.getTestScenarioLocation(scenario, location);
+        String testLocation = TestGridUtil.getTestScenarioLocation(scenario, location);
         List<Test> tests = getTests(scenario, testLocation);
         try {
             for (Test test : tests) {

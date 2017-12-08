@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
+import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -260,13 +261,14 @@ public class AWSManager {
             }
         }));
 
+        InfraCombination infraCombination = infra.getInfraCombination();
         for (Parameter parameter : cfCompatibleParameters) {
             if (DB_ENGINE.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(this.getDatabaseEngineName(this.infra.getDatabase().getEngine()));
+                parameter.setParameterValue(this.getDatabaseEngineName(infraCombination.getDatabase().getEngine()));
             } else if (DB_ENGINE_VERSION.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(this.infra.getDatabase().getVersion());
+                parameter.setParameterValue(infraCombination.getDatabase().getVersion());
             } else if (JDK.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(this.infra.getJDK().name());
+                parameter.setParameterValue(infraCombination.getJdk().name());
             } else if (IMAGE.equals(parameter.getParameterKey())) {
                 parameter.setParameterValue(this.infra.getImageId());
             }

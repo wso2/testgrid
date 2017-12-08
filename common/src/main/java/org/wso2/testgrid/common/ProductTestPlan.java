@@ -18,17 +18,13 @@
 
 package org.wso2.testgrid.common;
 
-import org.wso2.testgrid.common.util.EnvironmentUtil;
-
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 /**
  * This represents a model of the ProductTestPlan which includes all the necessary data to run the Test plans created
@@ -54,9 +50,7 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
     public static final String START_TIMESTAMP_COLUMN = "startTimestamp";
     public static final String MODIFIED_TIMESTAMP_COLUMN = "modifiedTimestamp";
     public static final String STATUS_COLUMN = "status";
-    public static final String INFRA_REPOSITORY_COLUMN = "infraRepository";
-    public static final String DEPLOYMENT_REPOSITORY_COLUMN = "deploymentRepository";
-    public static final String SCENARIO_REPOSITORY_COLUMN = "scenarioRepository";
+    public static final String CHANNEL_COLUMN = "channel";
 
     private static final long serialVersionUID = 5812347338918334430L;
 
@@ -78,20 +72,9 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
     @Column(name = "status", nullable = false)
     private Status status;
 
-    @Column(name = "infra_repository")
-    private String infraRepository;
-
-    @Column(name = "deployment_repository")
-    private String deploymentRepository;
-
-    @Column(name = "scenario_repository")
-    private String scenarioRepository;
-
-    @Transient
-    private String homeDir;
-
-    @Transient
-    private ConcurrentHashMap<String, Infrastructure> infrastructureMap = new ConcurrentHashMap<>();
+    @Enumerated(EnumType.STRING)
+    @Column(name = "channel", nullable = false)
+    private Channel channel;
 
     /**
      * Returns the product name.
@@ -184,113 +167,21 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
     }
 
     /**
-     * Returns the infrastructure repository for the product test plan.
+     * Returns the channel of the product test plan.
      *
-     * @return infrastructure repository for the product test plan
+     * @return product test plan channel
      */
-    public String getInfraRepository() {
-        return infraRepository;
+    public Channel getChannel() {
+        return channel;
     }
 
     /**
-     * Sets the infrastructure repository for the product test plan.
+     * Sets the channel of the product test plan.
      *
-     * @param infraRepository infrastructure repository for the product test plan
+     * @param channel product test plan channel
      */
-    public void setInfraRepository(String infraRepository) {
-        this.infraRepository = infraRepository;
-    }
-
-    /**
-     * Returns the deployment repository of the product test plan.
-     *
-     * @return deployment repository of the product test plan
-     */
-    public String getDeploymentRepository() {
-        return deploymentRepository;
-    }
-
-    /**
-     * Sets the deployment repository of the product test plan.
-     *
-     * @param deploymentRepository deployment repository of the product test plan
-     */
-    public void setDeploymentRepository(String deploymentRepository) {
-        this.deploymentRepository = deploymentRepository;
-    }
-
-    /**
-     * Returns the scenario repository for the product test plan.
-     *
-     * @return scenario repository for the product test plan
-     */
-    public String getScenarioRepository() {
-        return scenarioRepository;
-    }
-
-    /**
-     * Sets the scenario repository for the product test plan.
-     *
-     * @param scenarioRepository scenario repository for the product test plan
-     */
-    public void setScenarioRepository(String scenarioRepository) {
-        this.scenarioRepository = scenarioRepository;
-    }
-
-    /**
-     * Returns the home directory of the product test plan.
-     *
-     * @return home directory of the product test plan
-     */
-    public String getHomeDir() {
-        return EnvironmentUtil.getSystemVariableValue("TESTGRID_HOME");
-    }
-
-    /**
-     * Sets the home directory of the product test plan.
-     *
-     * @param homeDir home directory of the product test plan
-     */
-    @Deprecated
-    public void setHomeDir(String homeDir) {
-        // No operation
-    }
-
-    /**
-     * Returns the infrastructure map for the product test plan.
-     *
-     * @return infrastructure map for the product test plan
-     */
-    public ConcurrentHashMap<String, Infrastructure> getInfrastructureMap() {
-        return infrastructureMap;
-    }
-
-    /**
-     * Sets the infrastructure map for the product test plan.
-     *
-     * @param infrastructureMap infrastructure map for the product test plan
-     */
-    public void setInfrastructureMap(ConcurrentHashMap<String, Infrastructure> infrastructureMap) {
-        this.infrastructureMap = infrastructureMap;
-    }
-
-    /**
-     * Returns the infrastructure for the given infrastructure name.
-     *
-     * @param name infrastructure name
-     * @return infrastructure for the given infrastructure name
-     */
-    public Infrastructure getInfrastructure(String name) {
-        return this.infrastructureMap.get(name);
-    }
-
-    /**
-     * Adds an infrastructure for the product test plan.
-     *
-     * @param infrastructure infrastructure to be added to the product test plan
-     */
-    public void addInfrastructure(Infrastructure infrastructure) {
-        this.infrastructureMap.put(infrastructure.getName(), infrastructure);
+    public void setChannel(Channel channel) {
+        this.channel = channel;
     }
 
     @Override
@@ -302,12 +193,42 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
                ", startTimestamp=" + startTimestamp +
                ", modifiedTimestamp=" + modifiedTimestamp +
                ", status=" + status +
-               ", infraRepository='" + infraRepository + '\'' +
-               ", deploymentRepository='" + deploymentRepository + '\'' +
-               ", scenarioRepository='" + scenarioRepository + '\'' +
-               ", homeDir='" + homeDir + '\'' +
-               ", infrastructureMap=" + infrastructureMap +
+               ", channel=" + channel +
                '}';
+    }
+
+    /**
+     * This defines the possible channels of the ProductTestPlan.
+     *
+     * @since 1.0.0
+     */
+    public enum Channel {
+
+        /**
+         * LTS channel.
+         */
+        LTS("LTS"),
+
+        /**
+         * Premium channel.
+         */
+        PREMIUM("PREMIUM");
+
+        private final String channel;
+
+        /**
+         * Sets the channel of the product test plan.
+         *
+         * @param channel product test plan channel
+         */
+        Channel(String channel) {
+            this.channel = channel;
+        }
+
+        @Override
+        public String toString() {
+            return this.channel;
+        }
     }
 
     /**

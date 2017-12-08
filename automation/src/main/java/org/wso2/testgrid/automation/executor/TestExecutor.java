@@ -21,8 +21,8 @@ package org.wso2.testgrid.automation.executor;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.Utils;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.nio.file.Path;
 
@@ -67,7 +67,7 @@ public abstract class TestExecutor {
      */
     public String executeEnvironmentScript(Path script, Deployment deployment) throws TestAutomationException {
         try {
-            return Utils.executeCommand("bash " + script.toString(), null, deployment);
+            return TestGridUtil.executeCommand("bash " + script.toString(), null, deployment);
         } catch (CommandExecutionException e) {
             throw new TestAutomationException("Error executing " + script.toString(), e);
         }

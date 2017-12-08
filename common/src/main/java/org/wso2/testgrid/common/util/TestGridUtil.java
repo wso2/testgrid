@@ -16,10 +16,13 @@
  * under the License.
  */
 
-package org.wso2.testgrid.common;
+package org.wso2.testgrid.common.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.Host;
+import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 
 import java.io.BufferedReader;
@@ -27,16 +30,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
 /**
  * This Util class holds the common utility methods.
+ *
+ * @since 1.0.0
  */
-public final class Utils {
+public final class TestGridUtil {
 
-    private static final Log log = LogFactory.getLog(Utils.class);
-    private static final String YAML_EXTENSION = ".yaml";
+    private static final Log log = LogFactory.getLog(TestGridUtil.class);
+    private static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
 
     /**
      * Executes a command.
@@ -73,11 +79,11 @@ public final class Utils {
                 return true;
             } catch (IOException e) {
                 throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
-                        + command + "'", e);
+                                                    + command + "'", e);
             }
         } catch (IOException e) {
             throw new CommandExecutionException("Error occurred while executing the command '" + command + "', " +
-                    "from directory '" + workingDirectory.getName() + "", e);
+                                                "from directory '" + workingDirectory.getName() + "", e);
         }
     }
 
@@ -126,11 +132,11 @@ public final class Utils {
                 return result;
             } catch (IOException e) {
                 throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
-                        + command + "'", e);
+                                                    + command + "'", e);
             }
         } catch (IOException e) {
             throw new CommandExecutionException("Error occurred while executing the command '" + command + "', " +
-                    "from directory '" + workingDirectory.getName() + "", e);
+                                                "from directory '" + workingDirectory.getName() + "", e);
         }
     }
 
@@ -142,9 +148,13 @@ public final class Utils {
     }
 
     /**
-     * This Utility method is used to check if the given file is a yaml file.
+     * Returns the path of the test grid home.
+     *
+     * @return test grid home path
      */
-    public static boolean isYamlFile(String fileName) {
-        return fileName != null && !fileName.isEmpty() && fileName.endsWith(YAML_EXTENSION);
+    public static String getTestGridHomePath() {
+        String testGridHome = EnvironmentUtil.getSystemVariableValue(TESTGRID_HOME_ENV);
+        Path testGridHomePath = Paths.get(testGridHome);
+        return testGridHomePath.toAbsolutePath().toString();
     }
 }

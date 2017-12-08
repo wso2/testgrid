@@ -19,14 +19,23 @@
 
 package org.wso2.testgrid.core.command;
 
-import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
 
 /**
  * To map the commands entered via command-line for TestGrid.
+ * <p>
  * This is an abstract command class from which all the sub-commands stems.
+ * <p>
  * This is based on best practices for args4j command-line argument parser.
+ *
+ * @since 1.0.0
  */
-public abstract class Command {
+public interface Command {
 
-    public abstract void execute() throws TestGridException;
+    /**
+     * Executes the implemented command.
+     *
+     * @throws CommandExecutionException thrown when error on executing command
+     */
+    void execute() throws CommandExecutionException;
 }

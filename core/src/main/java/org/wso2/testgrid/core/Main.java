@@ -22,12 +22,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-import org.wso2.testgrid.common.exception.TestGridConfigurationException;
-import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.command.CommandHandler;
 
 /**
  * This is the Main class of TestGrid which initiates the Test execution process for a particular project.
+ *
+ * @since 1.0.0
  */
 public class Main {
 
@@ -35,12 +38,13 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-
+            // Parse command line arguments
             CommandHandler commandHandler = new CommandHandler();
             CmdLineParser parser = new CmdLineParser(commandHandler);
             parser.parseArgument(args);
 
-//            String repo = "https://github.com/sameerawickramasekara/test-grid-is-resources.git"; //todo
+            // TODO: Remove default arguments
+//            String repo = "https://github.com/sameerawickramasekara/test-grid-is-resources.git";
             String product = "WSO2_Identity_Server";
             String productVersion = "5.3.0";
             if (args.length == 3) {
@@ -49,14 +53,17 @@ public class Main {
                 productVersion = args[2];
             }
 
-            TestGridMgtService testGridMgtService = new TestGridMgtServiceImpl();
-            if (testGridMgtService.isEnvironmentConfigured()) {
+            // Validate test grid home
+            String testGridHome = TestGridUtil.getTestGridHomePath();
+            if (!StringUtil.isStringNullOrEmpty(testGridHome)) {
                 log.info("Initializing TestGrid for product : '"
-                        + product + ", version  '" + productVersion + "'");
+                         + product + ", version  '" + productVersion + "'");
                 commandHandler.execute();
             }
-        } catch (TestGridException | TestGridConfigurationException | CmdLineException e) {
-            log.error(e.getMessage(), e);
+        } catch (CmdLineException e) {
+            log.error("Error in parsing command line arguments.", e);
+        } catch (CommandExecutionException e) {
+            log.error("Error in executing command.", e);
         }
     }
 }

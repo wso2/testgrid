@@ -21,8 +21,12 @@ package org.wso2.testgrid.common.exception;
 /**
  * This is a custom exception class to throw all issues related to command execution. This will also be visible
  * to external callers.
+ *
+ * @since 1.0.0
  */
 public class CommandExecutionException extends Exception {
+
+    private static final long serialVersionUID = -3737172758165430862L;
 
     /**
      * Constructs a new exception with {@code null} as its detail message. The cause is not initialized, and may
