@@ -30,12 +30,14 @@ import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.TestPlanExecutor;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.InfraCombinationUOW;
 import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
@@ -127,6 +129,7 @@ public class RunTestPlanCommand implements Command {
                 return;
             }
             Infrastructure infrastructure = getInfrastructure(infraFilePath.get());
+            deleteFile(Paths.get(infraFilePath.get())); // Delete infra file
             TestPlan testPlan = generateTestPlan(testPlanPath, scenarioRepoDir, infraRepo);
 
             // Execute test plan
@@ -151,16 +154,23 @@ public class RunTestPlanCommand implements Command {
     private void executeTestPlan(ProductTestPlan productTestPlan, TestPlan testPlan,
                                  Infrastructure infrastructure) throws CommandExecutionException {
         try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-             TestPlanUOW testPlanUOW = new TestPlanUOW()) {
+             TestPlanUOW testPlanUOW = new TestPlanUOW();
+             InfraCombinationUOW infraCombinationUOW = new InfraCombinationUOW()) {
             // Update product test plan status
             productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
             productTestPlanUOW.persistProductTestPlan(productTestPlan);
 
             // Persist infra combination, infra result and test plan
-            InfraCombination infraCombination = infrastructure.getInfraCombination();
+            InfraCombination infraCombination = infraCombinationUOW
+                    .getInfraCombination(infrastructure.getInfraCombination());
             InfraResult infraResult = new InfraResult();
             infraResult.setInfraCombination(infraCombination);
             infraResult.setStatus(InfraResult.Status.INFRASTRUCTURE_PREPARATION);
+
+            // Set test scenario status
+            testPlan.getTestScenarios()
+                    .forEach(testScenario -> testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_PENDING));
+
             testPlan.setInfraResult(infraResult);
             testPlan.setProductTestPlan(productTestPlan);
             testPlan = testPlanUOW.persistTestPlan(testPlan);
@@ -174,6 +184,21 @@ public class RunTestPlanCommand implements Command {
                             productTestPlan.getProductVersion(), "'"), e);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred while persisting test plan.", e);
+        }
+    }
+
+    /**
+     * Deletes a file in the given path.
+     *
+     * @param filePath path of the file to be deleted
+     * @throws CommandExecutionException thrown when error on deleting file
+     */
+    private void deleteFile(Path filePath) throws CommandExecutionException {
+        try {
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            throw new CommandExecutionException(StringUtil.concatStrings("Error in deleting file ",
+                    filePath.toAbsolutePath().toString()), e);
         }
     }
 

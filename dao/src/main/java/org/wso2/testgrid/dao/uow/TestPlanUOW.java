@@ -35,7 +35,7 @@ public class TestPlanUOW implements Closeable {
     private final TestPlanRepository testPlanRepository;
 
     /**
-     * Constructs an instance of {@link TestPlanUOW} to manager use cases related to product test plan.
+     * Constructs an instance of {@link TestPlanUOW} to manager use cases related to test plans.
      */
     public TestPlanUOW() {
         EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
@@ -54,7 +54,6 @@ public class TestPlanUOW implements Closeable {
         if (persisted != null) {
             persisted.setDeployerType(testPlan.getDeployerType());
             persisted.setDeployment(testPlan.getDeployment());
-            persisted.setEnabled(testPlan.isEnabled());
             persisted.setTestRepoDir(testPlan.getTestRepoDir());
             persisted.setInfraRepoDir(testPlan.getInfraRepoDir());
             persisted.setInfrastructureScript(testPlan.getInfrastructureScript());

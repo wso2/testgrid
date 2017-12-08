@@ -20,6 +20,7 @@ package org.wso2.testgrid.common;
 import org.wso2.carbon.config.annotation.Element;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -71,16 +72,6 @@ public class InfraCombination extends AbstractUUIDEntity implements Serializable
     @PrimaryKeyJoinColumn(name = "DATABASE_id", referencedColumnName = ID_COLUMN)
     @Element(description = "Defines the database configuration")
     private Database database;
-
-    @Override
-    public String toString() {
-        return "InfraCombination{" +
-               "id='" + this.getId() + '\'' +
-               ", jdk=" + jdk +
-               ", operatingSystem=" + operatingSystem +
-               ", database=" + database +
-               '}';
-    }
 
     /**
      * Returns the JDK for the infra-combination.
@@ -134,6 +125,34 @@ public class InfraCombination extends AbstractUUIDEntity implements Serializable
      */
     public void setDatabase(Database database) {
         this.database = database;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof InfraCombination)) {
+            return false;
+        }
+        InfraCombination that = (InfraCombination) object;
+        return jdk == that.jdk && Objects.equals(operatingSystem, that.operatingSystem) &&
+               Objects.equals(database, that.database);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(jdk, operatingSystem, database);
+    }
+
+    @Override
+    public String toString() {
+        return "InfraCombination{" +
+               "id='" + this.getId() + '\'' +
+               ", jdk=" + jdk +
+               ", operatingSystem=" + operatingSystem +
+               ", database=" + database +
+               '}';
     }
 
     /**

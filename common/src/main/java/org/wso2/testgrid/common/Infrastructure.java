@@ -18,41 +18,27 @@
 
 package org.wso2.testgrid.common;
 
-import org.wso2.carbon.config.annotation.Configuration;
-import org.wso2.carbon.config.annotation.Element;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Defines a model object for a Infrastructure.
+ *
+ * @since 1.0.0
  */
-@Configuration(namespace = "wso2.testgrid.infrastructure",
-               description = "TestGrid Infrastructure Configuration Parameters")
 public class Infrastructure implements Serializable {
 
     private static final long serialVersionUID = -1660815137752094462L;
 
-    @Element(description = "defines the name of this infrastructure")
     private String name;
-    @Element(description = "defines the infrastructure provider type (i.e. AWS, OpenStack)")
     private ProviderType providerType;
-    @Element(description = "defines the required instance type (i.e. EC2, Docker)")
     private InstanceType instanceType;
-    @Element(description = "defines the required cluster type (i.e. ECS, Kubernetes)")
     private ClusterType clusterType;
-    @Element(description = "defines the required infrastructure combination")
     private InfraCombination infraCombination;
-    @Element(description = "holds the required properties for security related stuff")
     private Map<String, String> securityProperties;
-    @Element(description = "holds the list of customized scripts if provided")
     private List<Script> scripts;
-    @Element(description = "defines the region in which the infrastructure should be created")
     private String region;
-    @Element(description = "holds the additional properties for the infrastructure")
-    private Map<String, String> infraArguments;
-    @Element(description = "defines the image to be used when setting up the instances")
     private String imageId;
 
     /**
@@ -197,24 +183,6 @@ public class Infrastructure implements Serializable {
      */
     public void setRegion(String region) {
         this.region = region;
-    }
-
-    /**
-     * Returns the infrastructure arguments.
-     *
-     * @return the infrastructure arguments
-     */
-    public Map<String, String> getInfraArguments() {
-        return infraArguments;
-    }
-
-    /**
-     * Sets the the infrastructure arguments.
-     *
-     * @param infraArguments the infrastructure arguments
-     */
-    public void setInfraArguments(Map<String, String> infraArguments) {
-        this.infraArguments = infraArguments;
     }
 
     /**

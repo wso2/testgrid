@@ -20,13 +20,37 @@ wso2.testgrid.infrastructure:
   clusterType: "None"
   instanceType: "EC2"
   name: "single-node"
-  operatingSystem:
-    name: "Ubuntu"
-    version: "17.04"
-  database:
-    engine: &databaseEngine "MYSQL"
-    version: &databaseVersion "5.7"
-  jdk: &jdk "JDK8"
+  operatingSystems:
+    - name: "Ubuntu"
+      version: "15.04"
+    - name: "Ubuntu"
+      version: "16.04"
+  databases:
+     - engine: "MYSQL"
+       version: "5.5"
+     - engine: "MYSQL"
+       version: "5.7"
+  jdks:
+     - "ORACLE_JDK8"
+     - "ORACLE_JDK7"
+  includeInfraCombinations:
+    -
+      operatingSystem:
+        name: "Windows"
+        version: "7"
+      database:
+        engine: "POSTGRESQL"
+        version: "10.1"
+      jdk: "ORACLE_JDK8"
+  excludeInfraCombinations:
+    -
+      operatingSystem:
+        name: "Ubuntu"
+        version: "16.04"
+      database:
+        engine: "MYSQL"
+        version: "5.7"
+      jdk: "ORACLE_JDK8"
   securityProperties:
     apiKey: "242424"
     sshKey: "abc.key"
@@ -37,10 +61,13 @@ wso2.testgrid.infrastructure:
      name: "wso2-is-public-branch"
      scriptParameters:
        CloudFormationParameterFile: "wso2-is-with-alb-cf-template-parameters.json"
-       DBEngine: *databaseEngine
-       DBEngineVersion: *databaseVersion
-       JDK: *jdk
-       WUMUsername: ""
-       WUMPassword: ""
-       EC2KeyPair: "test-grid-key"
-       ALBCertificateARN: "arn:aws:acm:us-east-1:610968236798:certificate/158f2c31-3ae7-409d-bffb-f25d85c2e7c1"
+       OSName: "operatingsystems.name"
+       OSVersion: "operatingsystems.version"
+       DBEngine: "databases.engine"
+       DBEngineVersion: "databases.version" 
+       JDK: "jdks.jdk"
+       WUMUsername: "WUM_USERNAME"
+       WUMPassword: "WUM_PASSWORD"
+       EC2KeyPair: "EC2KeyPair"
+       ALBCertificateARN: "ALBCertificateARN"
+

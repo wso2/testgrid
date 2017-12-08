@@ -24,11 +24,15 @@ import org.kohsuke.args4j.Option;
 import org.wso2.carbon.config.ConfigProviderFactory;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
+import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.Infrastructure;
+import org.wso2.testgrid.common.OperatingSystem;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.core.InfraConfig;
 import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 
 import java.io.BufferedOutputStream;
@@ -41,6 +45,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * Responsible for generating the infrastructure plan and persisting them in the file system.
@@ -91,9 +96,6 @@ public class GenerateInfraPlanCommand implements Command {
                                 infraConfigFile, "'"));
             }
 
-            // Get infra from config
-            Infrastructure infrastructure = getInfrastructureFromConfig(infraConfigFilePath);
-
             // Create directory to persist infra data
             ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
             ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlan(productName, productVersion,
@@ -103,9 +105,12 @@ public class GenerateInfraPlanCommand implements Command {
                                     productName, ", product version: ", productVersion, ", channel: ", channel,
                                     "} cannot be located.")));
 
-            // Save infrastructure to file
             String infraGenDirectory = createInfraGenDirectory(productTestPlan);
-            saveInfrastructureFile(infrastructure, infraGenDirectory);
+
+            // Get infrastructures from config and save to files
+            List<Infrastructure> infrastructures = getInfrastructuresFromConfig(infraConfigFilePath);
+            infrastructures.forEach(LambdaExceptionUtils
+                    .rethrowConsumer(infrastructure -> saveInfrastructureFile(infrastructure, infraGenDirectory)));
         }
     }
 
@@ -118,8 +123,14 @@ public class GenerateInfraPlanCommand implements Command {
      */
     private void saveInfrastructureFile(Infrastructure infrastructure, String filePath)
             throws CommandExecutionException {
-        String fileName = Paths.get(filePath, infrastructure.getName()).toAbsolutePath().toString();
-        try (OutputStream file = new FileOutputStream(fileName);
+        OperatingSystem operatingSystem = infrastructure.getInfraCombination().getOperatingSystem();
+        Database database = infrastructure.getInfraCombination().getDatabase();
+        String jdk = infrastructure.getInfraCombination().getJdk().toString();
+        String fileName = StringUtil.concatStrings(infrastructure.getName(), "-", operatingSystem.getName(), ".",
+                operatingSystem.getVersion(), "-", database.getEngine().toString(), ".", database.getVersion(), "-",
+                jdk);
+        String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
+        try (OutputStream file = new FileOutputStream(fileAbsolutePath);
              OutputStream buffer = new BufferedOutputStream(file);
              ObjectOutput output = new ObjectOutputStream(buffer)) {
             output.writeObject(infrastructure);
@@ -129,17 +140,19 @@ public class GenerateInfraPlanCommand implements Command {
     }
 
     /**
-     * Retrieves the {@link Infrastructure} instance from the given configuration.
+     * Retrieves a list of {@link Infrastructure} instances from the given configuration.
      *
      * @param infraConfigFilePath infrastructure configuration file
-     * @return {@link Infrastructure} instance from the given configuration
-     * @throws CommandExecutionException thrown when error on retrieving infra from configuration
+     * @return a list of {@link Infrastructure} instances from the given configuration
+     * @throws CommandExecutionException thrown when error on retrieving infrastructures from configuration
      */
-    private Infrastructure getInfrastructureFromConfig(Path infraConfigFilePath) throws CommandExecutionException {
+    private List<Infrastructure> getInfrastructuresFromConfig(Path infraConfigFilePath)
+            throws CommandExecutionException {
         try {
             ConfigProvider configProvider = ConfigProviderFactory
                     .getConfigProvider(infraConfigFilePath, null);
-            return configProvider.getConfigurationObject(Infrastructure.class);
+            InfraConfig infraConfig = configProvider.getConfigurationObject(InfraConfig.class);
+            return infraConfig.getInfrastructures();
         } catch (ConfigurationException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Unable to parse Infrastructure configuration file '",

@@ -36,7 +36,7 @@ public class TestCaseUOW implements Closeable {
     private final TestCaseRepository testCaseRepository;
 
     /**
-     * Constructs an instance of {@link TestCaseUOW} to manager use cases related to product test plan.
+     * Constructs an instance of {@link TestCaseUOW} to manager use cases related to test cases.
      */
     public TestCaseUOW() {
         EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
