@@ -51,9 +51,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-
 /**
+ * This runs the test plans for the given parameters.
  *
+ * @since 1.0.0
  */
 public class RunTestPlanCommand implements Command {
 
