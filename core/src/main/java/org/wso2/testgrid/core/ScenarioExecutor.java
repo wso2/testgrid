@@ -50,12 +50,14 @@ public class ScenarioExecutor {
         try {
             String homeDir = testPlan.getTestRepoDir();
             testScenario.setTestPlan(testPlan);
-            testScenario = setStatusAndPersistTestScenario(testScenario, TestScenario.Status.TEST_SCENARIO_RUNNING);
+            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_RUNNING);
+            testScenario = persistTestScenario(testScenario);
             new TestEngineImpl().runScenario(testScenario, homeDir, deployment);
-            testScenario =
-                    setStatusAndPersistTestScenario(testScenario, TestScenario.Status.TEST_SCENARIO_COMPLETED);
+            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_COMPLETED);
+            testScenario = persistTestScenario(testScenario);
         } catch (TestAutomationEngineException e) {
-            testScenario = setStatusAndPersistTestScenario(testScenario, TestScenario.Status.TEST_SCENARIO_ERROR);
+            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_ERROR);
+            testScenario = persistTestScenario(testScenario);
             throw new ScenarioExecutorException(StringUtil
                     .concatStrings("Exception occurred while running the Tests for Solution Pattern '",
                             testScenario.getName(), "'"));
@@ -75,23 +77,17 @@ public class ScenarioExecutor {
     }
 
     /**
-     * Sets the given status and persists the {@link TestScenario} instance.
+     * Persists the {@link TestScenario} instance.
      *
      * @param testScenario test scenario to be persisted
-     * @param status       status of the test scenario
      * @return persisted {@link TestScenario} instance
      * @throws ScenarioExecutorException thrown when error on persisting the {@link TestScenario} instance
      */
-    private TestScenario setStatusAndPersistTestScenario(TestScenario testScenario, TestScenario.Status status)
+    private TestScenario persistTestScenario(TestScenario testScenario)
             throws ScenarioExecutorException {
         try {
             TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
-            TestScenario persisted = testScenarioUOW.persistTestScenario(testScenario, status);
-            if (persisted != null) {
-                persisted.setTestEngine(testScenario.getTestEngine());
-                persisted.setEnabled(testScenario.isEnabled());
-            }
-            return persisted;
+            return testScenarioUOW.persistTestScenario(testScenario);
         } catch (TestGridDAOException e) {
             throw new ScenarioExecutorException(StringUtil
                     .concatStrings("Error occurred when persisting test scenario - ", testScenario.toString()), e);

@@ -118,10 +118,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private Deployment deployment;
 
     @Transient
-    @Element(description = "flag to enable or disable the testplan")
-    private boolean enabled;
-
-    @Transient
     private String testRepoDir;
 
     @Transient
@@ -334,24 +330,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns if the test plan is enabled or not.
-     *
-     * @return if the test plan is enabled or not
-     */
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    /**
-     * Sets if the test plan is enabled or not.
-     *
-     * @param enabled test plan is enabled or not
-     */
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    /**
      * Returns the path of the test plans' test artifacts.
      *
      * @return the path of the test plans' test artifacts.
@@ -439,7 +417,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
                ", testScenarios=" + testScenarios +
                ", deployerType=" + deployerType +
                ", deployment=" + deployment +
-               ", enabled=" + enabled +
                ", testRepoDir='" + testRepoDir + '\'' +
                ", infraRepoDir='" + infraRepoDir + '\'' +
                ", infrastructureScript=" + infrastructureScript +

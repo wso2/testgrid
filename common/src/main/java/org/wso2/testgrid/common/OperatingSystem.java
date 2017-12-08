@@ -21,6 +21,7 @@ package org.wso2.testgrid.common;
 import org.wso2.carbon.config.annotation.Element;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -94,6 +95,23 @@ public class OperatingSystem extends AbstractUUIDEntity implements Serializable 
      */
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof OperatingSystem)) {
+            return false;
+        }
+        OperatingSystem that = (OperatingSystem) object;
+        return Objects.equals(name, that.name) && Objects.equals(version, that.version);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, version);
     }
 
     @Override

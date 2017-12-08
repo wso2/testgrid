@@ -35,7 +35,7 @@ public class TestScenarioUOW implements Closeable {
     private final TestScenarioRepository testScenarioRepository;
 
     /**
-     * Constructs an instance of {@link TestScenarioUOW} to manager use cases related to product test plan.
+     * Constructs an instance of {@link TestScenarioUOW} to manager use cases related to test scenarios.
      */
     public TestScenarioUOW() {
         EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
@@ -46,13 +46,10 @@ public class TestScenarioUOW implements Closeable {
      * Persists (adds if not exists, updates otherwise) an {@link TestScenario} instance.
      *
      * @param testScenario {@link TestScenario} instance tp be persisted
-     * @param status       status of the test scenario
      * @return the persisted {@link TestScenario} instance
      * @throws TestGridDAOException thrown when error on persisting the {@link TestScenario} instance
      */
-    public TestScenario persistTestScenario(TestScenario testScenario, TestScenario.Status status)
-            throws TestGridDAOException {
-        testScenario.setStatus(status);
+    public TestScenario persistTestScenario(TestScenario testScenario) throws TestGridDAOException {
         return testScenarioRepository.persist(testScenario);
     }
 

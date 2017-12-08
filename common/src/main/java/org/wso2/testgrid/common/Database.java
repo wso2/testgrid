@@ -21,6 +21,7 @@ package org.wso2.testgrid.common;
 import org.wso2.carbon.config.annotation.Element;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -97,6 +98,23 @@ public class Database extends AbstractUUIDEntity implements Serializable {
      */
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof Database)) {
+            return false;
+        }
+        Database database = (Database) object;
+        return engine == database.engine && Objects.equals(version, database.version);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(engine, version);
     }
 
     @Override
