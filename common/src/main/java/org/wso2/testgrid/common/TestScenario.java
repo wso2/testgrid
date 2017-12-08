@@ -164,7 +164,7 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     /**
      * Checks if pre script is successful.
      *
-     * @return {@code true} of the pre script is successful, {@code false} otherwise
+     * @return {@code true} if the pre script is successful, {@code false} otherwise
      */
     public boolean isPreScriptSuccessful() {
         return isPreScriptSuccessful;
@@ -182,7 +182,7 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     /**
      * Checks if post script is successful.
      *
-     * @return @return {@code true} of the post script is successful, {@code false} otherwise
+     * @return {@code true} if the post script is successful, {@code false} otherwise
      */
     public boolean isPostScriptSuccessful() {
         return isPostScriptSuccessful;
