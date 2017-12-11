@@ -205,7 +205,7 @@ public class JMeterExecutor extends TestExecutor {
             Enumeration<?> enumeration = jMeterProperties.propertyNames();
             while (enumeration.hasMoreElements()) {
                 String name = (String) enumeration.nextElement();
-                jmx = jmx.replaceAll("\\$\\{__property\\(" + name + "\\)\\}", JMeterUtils.getProperty(name));
+                jmx = jmx.replaceAll("\\$\\{__property\\(" + name + "\\)\\}", JMeterUtils.getProperty(name).trim());
             }
             String[] split = script.split(File.separatorChar == '\\' ? "\\\\" : File.separator);
             StringBuilder buffer = new StringBuilder();
