@@ -54,12 +54,10 @@ public class TestCaseUOW implements Closeable {
      */
     public TestCase persistTestCase(String testName, TestScenario testScenario, boolean isSuccess,
                                     String responseMessage) throws TestGridDAOException {
-        TestCase.Status status = isSuccess ? TestCase.Status.TESTCASE_COMPLETED : TestCase.Status.TESTCASE_ERROR;
-
         // Create test case instance
         TestCase testCase = new TestCase();
         testCase.setName(testName);
-        testCase.setStatus(status);
+        testCase.setTestSuccess(isSuccess);
         testCase.setTestScenario(testScenario);
         testCase.setFailureMessage(responseMessage);
 

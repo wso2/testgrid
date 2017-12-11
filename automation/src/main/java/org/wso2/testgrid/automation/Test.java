@@ -22,7 +22,6 @@ import org.wso2.testgrid.automation.executor.TestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.nio.file.Paths;
@@ -38,7 +37,7 @@ public class Test {
     private final String testName;
     private final TestExecutor testExecutor;
     private final List<String> scripts;
-    private final TestScenario testScenario;
+    private TestScenario testScenario;
     private String preScenarioScript;
     private String postScenarioScript;
 
@@ -138,8 +137,7 @@ public class Test {
      * @param deployment   deployment to execute the tests on
      * @throws TestAutomationException thrown when error on executing tests
      */
-    public TestScenario execute(String testLocation, Deployment deployment)
-            throws TestAutomationException, CommandExecutionException {
+    public TestScenario execute(String testLocation, Deployment deployment) throws TestAutomationException {
         if (!StringUtil.isStringNullOrEmpty(preScenarioScript)) {
             String result = testExecutor.executeEnvironmentScript(Paths.get(preScenarioScript), deployment);
             if (result.contains("OK")) {

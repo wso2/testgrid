@@ -273,9 +273,9 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
         PRODUCT_TEST_PLAN_RUNNING("PRODUCT_TEST_PLAN_RUNNING"),
 
         /**
-         * Generating the test-report of the ProductTestPlan.
+         * Error on executing product test plan.
          */
-        PRODUCT_TEST_PLAN_REPORT_GENERATION("PRODUCT_TEST_PLAN_REPORT_GENERATION"),
+        PRODUCT_TEST_PLAN_ERROR("PRODUCT_TEST_PLAN_ERROR"),
 
         /**
          * Execution completed.

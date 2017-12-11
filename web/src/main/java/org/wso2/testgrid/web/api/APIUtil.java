@@ -138,7 +138,7 @@ public class APIUtil {
         TestCase testCase1 = new TestCase();
         testCase1.setId(testCase.getId());
         testCase1.setName(testCase.getName());
-        testCase1.setStatus(testCase.getStatus().toString());
+        testCase1.setStatus(testCase.isTestSuccess());
         testCase1.setModifiedTimestamp(testCase.getModifiedTimestamp().getTime());
         testCase1.setStartTimestamp(testCase.getStartTimestamp().getTime());
         return testCase1;
