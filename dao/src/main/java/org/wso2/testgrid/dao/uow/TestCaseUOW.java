@@ -21,17 +21,13 @@ import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestCaseRepository;
-import org.wso2.testgrid.dao.util.DAOUtil;
-
-import java.io.Closeable;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * This class defines the Unit of work related to a {@link TestCase}.
  *
  * @since 1.0.0
  */
-public class TestCaseUOW implements Closeable {
+public class TestCaseUOW {
 
     private final TestCaseRepository testCaseRepository;
 
@@ -39,8 +35,7 @@ public class TestCaseUOW implements Closeable {
      * Constructs an instance of {@link TestCaseUOW} to manager use cases related to test cases.
      */
     public TestCaseUOW() {
-        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
-        testCaseRepository = new TestCaseRepository(entityManagerFactory);
+        testCaseRepository = new TestCaseRepository();
     }
 
     /**
@@ -61,6 +56,9 @@ public class TestCaseUOW implements Closeable {
         testCase.setTestScenario(testScenario);
         testCase.setFailureMessage(responseMessage);
 
+        // Set test scenario -> test case link
+        testScenario.addTestCase(testCase);
+
         // Persist test case
         return testCaseRepository.persist(testCase);
     }
@@ -74,10 +72,5 @@ public class TestCaseUOW implements Closeable {
      */
     public TestCase getTestCaseById(String id) throws TestGridDAOException {
         return testCaseRepository.findByPrimaryKey(id);
-    }
-
-    @Override
-    public void close() {
-        testCaseRepository.close();
     }
 }

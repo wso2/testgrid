@@ -20,17 +20,13 @@ package org.wso2.testgrid.dao.uow;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestPlanRepository;
-import org.wso2.testgrid.dao.util.DAOUtil;
-
-import java.io.Closeable;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * This class defines the Unit of work related to a {@link TestPlan}.
  *
  * @since 1.0.0
  */
-public class TestPlanUOW implements Closeable {
+public class TestPlanUOW {
 
     private final TestPlanRepository testPlanRepository;
 
@@ -38,8 +34,7 @@ public class TestPlanUOW implements Closeable {
      * Constructs an instance of {@link TestPlanUOW} to manager use cases related to test plans.
      */
     public TestPlanUOW() {
-        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
-        testPlanRepository = new TestPlanRepository(entityManagerFactory);
+        testPlanRepository = new TestPlanRepository();
     }
 
     /**
@@ -71,10 +66,5 @@ public class TestPlanUOW implements Closeable {
      */
     public TestPlan getTestPlanById(String id) throws TestGridDAOException {
         return testPlanRepository.findByPrimaryKey(id);
-    }
-
-    @Override
-    public void close() {
-        testPlanRepository.close();
     }
 }

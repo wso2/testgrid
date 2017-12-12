@@ -21,6 +21,7 @@ package org.wso2.testgrid.common;
 import org.wso2.carbon.config.annotation.Element;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.persistence.CascadeType;
@@ -74,7 +75,7 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     private TestPlan testPlan;
 
     @OneToMany(mappedBy = "testScenario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TestCase> testCases;
+    private List<TestCase> testCases = new ArrayList<>();
 
     @Column(name = "is_pre_script_success")
     @Element(description = "holds the status true if pre script is successful")
@@ -159,6 +160,15 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      */
     public void setTestCases(List<TestCase> testCases) {
         this.testCases = testCases;
+    }
+
+    /**
+     * Adds the given test case to the test case list.
+     *
+     * @param testCase test case to be added
+     */
+    public void addTestCase(TestCase testCase) {
+        this.testCases.add(testCase);
     }
 
     /**

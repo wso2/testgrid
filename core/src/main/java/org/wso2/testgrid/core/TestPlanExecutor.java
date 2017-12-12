@@ -214,7 +214,8 @@ public class TestPlanExecutor {
      * @throws TestPlanExecutorException When there is an error persisting the object.
      */
     private TestPlan persistTestPlan(TestPlan testPlan) throws TestPlanExecutorException {
-        try (TestPlanUOW testPlanUOW = new TestPlanUOW()) {
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
             return testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             throw new TestPlanExecutorException("Error occurred while persisting the test plan.");

@@ -56,7 +56,8 @@ public class CreateProductTestPlanCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             log.info("Creating product test plan...");
             log.info(
                     "Input Arguments: \n" +

@@ -20,17 +20,13 @@ package org.wso2.testgrid.dao.uow;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestScenarioRepository;
-import org.wso2.testgrid.dao.util.DAOUtil;
-
-import java.io.Closeable;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * Unit of work class to handle to data base transactions related to {@link TestScenario}.
  *
  * @since 1.0.0
  */
-public class TestScenarioUOW implements Closeable {
+public class TestScenarioUOW {
 
     private final TestScenarioRepository testScenarioRepository;
 
@@ -38,8 +34,7 @@ public class TestScenarioUOW implements Closeable {
      * Constructs an instance of {@link TestScenarioUOW} to manager use cases related to test scenarios.
      */
     public TestScenarioUOW() {
-        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
-        testScenarioRepository = new TestScenarioRepository(entityManagerFactory);
+        testScenarioRepository = new TestScenarioRepository();
     }
 
     /**
@@ -62,10 +57,5 @@ public class TestScenarioUOW implements Closeable {
      */
     public TestScenario getTestScenarioById(String id) throws TestGridDAOException {
         return testScenarioRepository.findByPrimaryKey(id);
-    }
-
-    @Override
-    public void close() {
-        testScenarioRepository.close();
     }
 }

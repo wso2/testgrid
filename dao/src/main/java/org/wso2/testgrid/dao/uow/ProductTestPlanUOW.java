@@ -22,21 +22,18 @@ import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.ProductTestPlanRepository;
-import org.wso2.testgrid.dao.util.DAOUtil;
 
-import java.io.Closeable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * This class defines the Unit of work related to a {@link ProductTestPlan}.
  *
  * @since 1.0.0
  */
-public class ProductTestPlanUOW implements Closeable {
+public class ProductTestPlanUOW {
 
     private final ProductTestPlanRepository productTestPlanRepository;
 
@@ -44,8 +41,7 @@ public class ProductTestPlanUOW implements Closeable {
      * Constructs an instance of {@link ProductTestPlanUOW} to manager use cases related to product test plan.
      */
     public ProductTestPlanUOW() {
-        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
-        productTestPlanRepository = new ProductTestPlanRepository(entityManagerFactory);
+        productTestPlanRepository = new ProductTestPlanRepository();
     }
 
     /**
@@ -105,10 +101,5 @@ public class ProductTestPlanUOW implements Closeable {
      */
     public ProductTestPlan persistProductTestPlan(ProductTestPlan productTestPlan) throws TestGridDAOException {
         return productTestPlanRepository.persist(productTestPlan);
-    }
-
-    @Override
-    public void close() {
-        productTestPlanRepository.close();
     }
 }

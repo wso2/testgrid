@@ -198,7 +198,8 @@ public class RunTestPlanCommand implements Command {
      * @throws CommandExecutionException thrown when error on retrieving infra combination
      */
     private InfraCombination getInfraCombination(Infrastructure infrastructure) throws CommandExecutionException {
-        try (InfraCombinationUOW infraCombinationUOW = new InfraCombinationUOW()) {
+        try {
+            InfraCombinationUOW infraCombinationUOW = new InfraCombinationUOW();
             return infraCombinationUOW.getInfraCombination(infrastructure.getInfraCombination());
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred while retrieving infra combination.", e);
@@ -213,7 +214,8 @@ public class RunTestPlanCommand implements Command {
      * @throws CommandExecutionException thrown when error on product test plan
      */
     private TestPlan persistTestPlan(TestPlan testPlan) throws CommandExecutionException {
-        try (TestPlanUOW testPlanUOW = new TestPlanUOW()) {
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
             return testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred while test plan.", e);
@@ -228,7 +230,8 @@ public class RunTestPlanCommand implements Command {
      * @throws CommandExecutionException thrown when error on persisting product test plan
      */
     private ProductTestPlan persistProductTestPlan(ProductTestPlan productTestPlan) throws CommandExecutionException {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             return productTestPlanUOW.persistProductTestPlan(productTestPlan);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred while persisting product test plan.", e);
@@ -299,7 +302,8 @@ public class RunTestPlanCommand implements Command {
      */
     private ProductTestPlan getProductTestPlan(String productName, String productVersion, String channel)
             throws CommandExecutionException {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
             return productTestPlanUOW.getProductTestPlan(productName, productVersion, productTestPlanChannel)
                     .orElseThrow(() -> new CommandExecutionException(StringUtil
