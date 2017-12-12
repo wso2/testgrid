@@ -27,7 +27,7 @@ public class TestCase {
     private String name;
     private long startTimestamp;
     private long modifiedTimestamp;
-    private String status;
+    private boolean status;
 
     /**
      * Returns the id of the test case.
@@ -104,9 +104,9 @@ public class TestCase {
     /**
      * Returns the status of the test case.
      *
-     * @return test case status
+     * @return {@code true} if the test is success, {@code false} otherwise
      */
-    public String getStatus() {
+    public boolean getStatus() {
         return status;
     }
 
@@ -115,7 +115,7 @@ public class TestCase {
      *
      * @param status test case status
      */
-    public void setStatus(String status) {
+    public void setStatus(boolean status) {
         this.status = status;
     }
 }

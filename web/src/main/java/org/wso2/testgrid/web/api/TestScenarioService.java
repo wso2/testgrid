@@ -52,7 +52,8 @@ public class TestScenarioService {
      */
     @GET
     public Response getTestScenariosForTestPlan(@QueryParam("test-plan-id") String testPlanId) {
-        try (TestPlanUOW testPlanUOW = new TestPlanUOW()) {
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
             TestPlan testPlan = testPlanUOW.getTestPlanById(testPlanId);
             List<org.wso2.testgrid.common.TestScenario> testScenarios = testPlan.getTestScenarios();
             return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios)).build();
@@ -72,7 +73,8 @@ public class TestScenarioService {
     @GET
     @Path("/{id}")
     public Response getTestScenario(@PathParam("id") String id) {
-        try (TestScenarioUOW testScenarioUOW = new TestScenarioUOW()) {
+        try {
+            TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
             TestScenario testScenario = testScenarioUOW.getTestScenarioById(id);
 
             if (testScenario != null) {

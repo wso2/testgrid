@@ -51,7 +51,8 @@ public class TestCaseService {
      */
     @GET
     public Response getTestCasesForTestScenario(@QueryParam("test-scenario-id") String testScenarioId) {
-        try (TestScenarioUOW testScenarioUOW = new TestScenarioUOW()) {
+        try {
+            TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
             TestScenario testScenario = testScenarioUOW.getTestScenarioById(testScenarioId);
             List<org.wso2.testgrid.common.TestCase> testCases = testScenario.getTestCases();
             return Response.status(Response.Status.OK).entity(APIUtil.getTestCaseBeans(testCases)).build();
@@ -71,7 +72,8 @@ public class TestCaseService {
     @GET
     @Path("/{id}")
     public Response getTestCase(@PathParam("id") String id) {
-        try (TestCaseUOW testCaseUOW = new TestCaseUOW()) {
+        try {
+            TestCaseUOW testCaseUOW = new TestCaseUOW();
             org.wso2.testgrid.common.TestCase testCase = testCaseUOW.getTestCaseById(id);
 
             if (testCase != null) {

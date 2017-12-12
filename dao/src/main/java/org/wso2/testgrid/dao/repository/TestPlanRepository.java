@@ -24,7 +24,6 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * Repository class for {@link org.wso2.testgrid.common.TestPlan} table.
@@ -32,15 +31,6 @@ import javax.persistence.EntityManagerFactory;
  * @since 1.0.0
  */
 public class TestPlanRepository extends AbstractRepository<TestPlan> {
-
-    /**
-     * Constructs an instance of the repository class.
-     *
-     * @param entityManagerFactory {@link EntityManagerFactory} instance
-     */
-    public TestPlanRepository(EntityManagerFactory entityManagerFactory) {
-        super(entityManagerFactory);
-    }
 
     /**
      * Persists an {@link TestPlan} instance in the database.

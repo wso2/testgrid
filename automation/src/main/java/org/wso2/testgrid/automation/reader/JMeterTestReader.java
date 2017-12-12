@@ -22,12 +22,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.constants.TestGridConstants;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,6 +34,7 @@ import java.util.stream.Collectors;
  */
 public class JMeterTestReader implements TestReader {
 
+    private static final String JMTER_SUFFIX = ".jmx";
     private static final String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
     private static final String SHELL_SUFFIX = ".sh";
     private static final String PRE_STRING = "pre-scenario-steps";
@@ -55,11 +54,11 @@ public class JMeterTestReader implements TestReader {
         if (tests.exists()) {
             List<String> scripts = Arrays.asList(ArrayUtils.nullToEmpty(tests.list()));
             List<String> jmxList = scripts.stream()
-                    .filter(x -> x.endsWith(TestGridConstants.JMTER_SUFFIX))
+                    .filter(x -> x.endsWith(JMTER_SUFFIX))
                     .map(x -> file.getAbsolutePath() +
                             File.separator + JMETER_TEST_PATH + File.separator + x)
+                    .sorted()
                     .collect(Collectors.toList());
-            Collections.sort(jmxList);
 
             Test test = new Test(scenario.getName(), TestScenario.TestEngine.JMETER, jmxList, scenario);
             scripts.stream()

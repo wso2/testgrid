@@ -442,6 +442,11 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
         TESTPLAN_ERROR("TESTPLAN_ERROR"),
 
         /**
+         * TestPlan execution is in progress.
+         */
+        TESTPLAN_RUNNING("TESTPLAN_RUNNING"),
+
+        /**
          * Product deployment for the TestPlan execution is being prepared.
          */
         TESTPLAN_DEPLOYMENT_PREPARATION("TESTPLAN_DEPLOYMENT_PREPARATION"),

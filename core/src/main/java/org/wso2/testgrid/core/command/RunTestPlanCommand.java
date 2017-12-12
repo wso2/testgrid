@@ -153,16 +153,13 @@ public class RunTestPlanCommand implements Command {
      */
     private void executeTestPlan(ProductTestPlan productTestPlan, TestPlan testPlan,
                                  Infrastructure infrastructure) throws CommandExecutionException {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-             TestPlanUOW testPlanUOW = new TestPlanUOW();
-             InfraCombinationUOW infraCombinationUOW = new InfraCombinationUOW()) {
+        try {
             // Update product test plan status
             productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
-            productTestPlanUOW.persistProductTestPlan(productTestPlan);
+            productTestPlan = persistProductTestPlan(productTestPlan);
 
             // Persist infra combination, infra result and test plan
-            InfraCombination infraCombination = infraCombinationUOW
-                    .getInfraCombination(infrastructure.getInfraCombination());
+            InfraCombination infraCombination = getInfraCombination(infrastructure);
             InfraResult infraResult = new InfraResult();
             infraResult.setInfraCombination(infraCombination);
             infraResult.setStatus(InfraResult.Status.INFRASTRUCTURE_PREPARATION);
@@ -173,17 +170,71 @@ public class RunTestPlanCommand implements Command {
 
             testPlan.setInfraResult(infraResult);
             testPlan.setProductTestPlan(productTestPlan);
-            testPlan = testPlanUOW.persistTestPlan(testPlan);
+            testPlan = persistTestPlan(testPlan);
 
             // Run test plan
-            new TestPlanExecutor().runTestPlan(testPlan, infrastructure);
+            TestPlanExecutor testPlanExecutor = new TestPlanExecutor();
+            testPlanExecutor.runTestPlan(testPlan, infrastructure);
+
+            // product test plan completed
+            productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_COMPLETED);
+            persistProductTestPlan(productTestPlan);
         } catch (TestPlanExecutorException e) {
+            // Product test plan error
+            productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_ERROR);
+            persistProductTestPlan(productTestPlan);
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan '", testPlan.getName(),
                             "' in Product '", productTestPlan.getProductName(), ", version '",
                             productTestPlan.getProductVersion(), "'"), e);
+        }
+    }
+
+    /**
+     * Returns the infra combination for the given infrastructure.
+     *
+     * @param infrastructure infrastructure to get infra combination
+     * @return infra combination associated with the infrastructure
+     * @throws CommandExecutionException thrown when error on retrieving infra combination
+     */
+    private InfraCombination getInfraCombination(Infrastructure infrastructure) throws CommandExecutionException {
+        try {
+            InfraCombinationUOW infraCombinationUOW = new InfraCombinationUOW();
+            return infraCombinationUOW.getInfraCombination(infrastructure.getInfraCombination());
         } catch (TestGridDAOException e) {
-            throw new CommandExecutionException("Error occurred while persisting test plan.", e);
+            throw new CommandExecutionException("Error occurred while retrieving infra combination.", e);
+        }
+    }
+
+    /**
+     * Persist the given test plan.
+     *
+     * @param testPlan test plan to persist
+     * @return persisted test plan
+     * @throws CommandExecutionException thrown when error on product test plan
+     */
+    private TestPlan persistTestPlan(TestPlan testPlan) throws CommandExecutionException {
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            return testPlanUOW.persistTestPlan(testPlan);
+        } catch (TestGridDAOException e) {
+            throw new CommandExecutionException("Error occurred while test plan.", e);
+        }
+    }
+
+    /**
+     * Persist the given product test plan.
+     *
+     * @param productTestPlan product test plan to persist
+     * @return persisted product test plan
+     * @throws CommandExecutionException thrown when error on persisting product test plan
+     */
+    private ProductTestPlan persistProductTestPlan(ProductTestPlan productTestPlan) throws CommandExecutionException {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
+            return productTestPlanUOW.persistProductTestPlan(productTestPlan);
+        } catch (TestGridDAOException e) {
+            throw new CommandExecutionException("Error occurred while persisting product test plan.", e);
         }
     }
 
@@ -251,7 +302,8 @@ public class RunTestPlanCommand implements Command {
      */
     private ProductTestPlan getProductTestPlan(String productName, String productVersion, String channel)
             throws CommandExecutionException {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
             return productTestPlanUOW.getProductTestPlan(productName, productVersion, productTestPlanChannel)
                     .orElseThrow(() -> new CommandExecutionException(StringUtil

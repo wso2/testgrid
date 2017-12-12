@@ -82,36 +82,34 @@ public class GenerateInfraPlanCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
-            if (StringUtil.isStringNullOrEmpty(infraConfigFile) || !infraConfigFile.endsWith(YAML_EXTENSION)) {
-                throw new CommandExecutionException(StringUtil
-                        .concatStrings("Provided infra plan file is not a YAML file: ", infraConfigFile));
-            }
-
-            Path infraConfigFilePath = Paths.get(infraConfigFile).toAbsolutePath();
-
-            if (!Files.exists(infraConfigFilePath)) {
-                throw new CommandExecutionException(StringUtil
-                        .concatStrings("Unable to find the Infrastructure configuration directory in location '",
-                                infraConfigFile, "'"));
-            }
-
-            // Create directory to persist infra data
-            ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
-            ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlan(productName, productVersion,
-                    productTestPlanChannel)
-                    .orElseThrow(() -> new CommandExecutionException(StringUtil
-                            .concatStrings("Product test plan for {product name: ",
-                                    productName, ", product version: ", productVersion, ", channel: ", channel,
-                                    "} cannot be located.")));
-
-            String infraGenDirectory = createInfraGenDirectory(productTestPlan);
-
-            // Get infrastructures from config and save to files
-            List<Infrastructure> infrastructures = getInfrastructuresFromConfig(infraConfigFilePath);
-            infrastructures.forEach(LambdaExceptionUtils
-                    .rethrowConsumer(infrastructure -> saveInfrastructureFile(infrastructure, infraGenDirectory)));
+        ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
+        if (StringUtil.isStringNullOrEmpty(infraConfigFile) || !infraConfigFile.endsWith(YAML_EXTENSION)) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Provided infra plan file is not a YAML file: ", infraConfigFile));
         }
+
+        Path infraConfigFilePath = Paths.get(infraConfigFile).toAbsolutePath();
+        if (!Files.exists(infraConfigFilePath)) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Unable to find the Infrastructure configuration directory in location '",
+                            infraConfigFile, "'"));
+        }
+
+        // Create directory to persist infra data
+        ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
+        ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlan(productName, productVersion,
+                productTestPlanChannel)
+                .orElseThrow(() -> new CommandExecutionException(StringUtil
+                        .concatStrings("Product test plan for {product name: ",
+                                productName, ", product version: ", productVersion, ", channel: ", channel,
+                                "} cannot be located.")));
+
+        String infraGenDirectory = createInfraGenDirectory(productTestPlan);
+
+        // Get infrastructures from config and save to files
+        List<Infrastructure> infrastructures = getInfrastructuresFromConfig(infraConfigFilePath);
+        infrastructures.forEach(LambdaExceptionUtils
+                .rethrowConsumer(infrastructure -> saveInfrastructureFile(infrastructure, infraGenDirectory)));
     }
 
     /**

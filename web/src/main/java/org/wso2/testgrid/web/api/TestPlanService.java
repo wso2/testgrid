@@ -50,7 +50,8 @@ public class TestPlanService {
      */
     @GET
     public Response getTestPlansForProductTestPlan(@QueryParam("product-test-plan-id") String productTestPlanId) {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             org.wso2.testgrid.common.ProductTestPlan productTestPlan = productTestPlanUOW
                     .getProductTestPlanById(productTestPlanId);
             List<org.wso2.testgrid.common.TestPlan> testPlans = productTestPlan.getTestPlans();
@@ -71,7 +72,8 @@ public class TestPlanService {
     @GET
     @Path("/{id}")
     public Response getTestPlan(@PathParam("id") String id) {
-        try (TestPlanUOW testPlanUOW = new TestPlanUOW()) {
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
             TestPlan testPlan = testPlanUOW.getTestPlanById(id);
             if (testPlan != null) {
                 return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBean(testPlan)).build();

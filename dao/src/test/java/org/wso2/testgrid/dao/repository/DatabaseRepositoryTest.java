@@ -19,20 +19,16 @@ package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
 import org.testng.Assert;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.util.DAOUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * Class to test the functionality of {@link DatabaseRepository}.
@@ -44,23 +40,8 @@ public class DatabaseRepositoryTest {
     private DatabaseRepository databaseRepository;
 
     @BeforeTest
-    public void setUp() throws TestGridDAOException {
-        // H2 database properties
-        Properties properties = new Properties();
-        properties.setProperty("javax.persistence.jdbc.url", "jdbc:h2:mem:testgrid");
-        properties.setProperty("javax.persistence.jdbc.user", "sa");
-        properties.setProperty("javax.persistence.jdbc.username", "sa");
-        properties.setProperty("javax.persistence.jdbc.password", "");
-        properties.setProperty("javax.persistence.jdbc.driver", "org.h2.Driver");
-
-        // Initialise database repository.
-        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory(properties);
-        databaseRepository = new DatabaseRepository(entityManagerFactory);
-    }
-
-    @AfterTest
-    public void tearDown() {
-        databaseRepository.close();
+    public void setUp() {
+        databaseRepository = new DatabaseRepository();
     }
 
     @Test(description = "Test persist data in the repository.")
@@ -279,17 +260,5 @@ public class DatabaseRepositoryTest {
         // 3
         Assert.assertEquals(databases.get(3).getEngine(), Database.DatabaseEngine.MYSQL);
         Assert.assertEquals(databases.get(3).getVersion(), "5.5");
-    }
-
-    @Test(description = "Test close repository.",
-          expectedExceptions = TestGridDAOException.class,
-          expectedExceptionsMessageRegExp = "Error occurred when searching for entity.",
-          // Priority is added to indicate TestNG that this test should be the last test to run
-          priority = 1)
-    public void closeTest() throws TestGridDAOException {
-        databaseRepository.close();
-
-        // Now try to do a transaction which should fail
-        databaseRepository.findAll();
     }
 }

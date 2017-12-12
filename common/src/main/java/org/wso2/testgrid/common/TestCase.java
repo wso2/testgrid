@@ -22,8 +22,6 @@ import java.sql.Timestamp;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
@@ -49,7 +47,7 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     public static final String NAME_COLUMN = "name";
     public static final String START_TIMESTAMP_COLUMN = "startTimestamp";
     public static final String MODIFIED_TIMESTAMP_COLUMN = "modifiedTimestamp";
-    public static final String STATUS_COLUMN = "status";
+    public static final String IS_TEST_SUCCESS_COLUMN = "isTestSuccess";
     public static final String LOG_LOCATION_COLUMN = "logLocation";
     public static final String FAILURE_MESSAGE_COLUMN = "failureMessage";
     public static final String TEST_SCENARIO_COLUMN = "testScenario";
@@ -67,9 +65,8 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private Timestamp modifiedTimestamp;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private Status status;
+    @Column(name = "is_test_success", nullable = false)
+    private boolean isTestSuccess;
 
     @Column(name = "log_location")
     private String logLocation;
@@ -136,21 +133,21 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns the status of the test case.
+     * Returns whether the test is successful or failed.
      *
-     * @return test case status
+     * @return {@code true} if the test case is successful, {@code false} otherwise
      */
-    public Status getStatus() {
-        return status;
+    public boolean isTestSuccess() {
+        return isTestSuccess;
     }
 
     /**
-     * Sets the status of the test case.
+     * Sets whether the test is successful or failed.
      *
-     * @param status test case status
+     * @param testSuccess whether the test is successful or failed
      */
-    public void setStatus(Status status) {
-        this.status = status;
+    public void setTestSuccess(boolean testSuccess) {
+        isTestSuccess = testSuccess;
     }
 
     /**
@@ -214,54 +211,10 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
                ", name='" + name + '\'' +
                ", startTimestamp=" + startTimestamp +
                ", modifiedTimestamp=" + modifiedTimestamp +
-               ", status=" + status +
+               ", isTestSuccess=" + isTestSuccess +
                ", logLocation='" + logLocation + '\'' +
                ", failureMessage='" + failureMessage + '\'' +
                ", testScenario=" + testScenario +
                '}';
-    }
-
-    /**
-     * This defines the possible statuses of the {@link TestCase}.
-     *
-     * @since 1.0.0
-     */
-    public enum Status {
-
-        /**
-         * Test case is being executed.
-         */
-        TESTCASE_PENDING("TESTCASE_PENDING"),
-
-        /**
-         * Test case is being executed.
-         */
-        TESTCASE_EXECUTION("TESTCASE_EXECUTION"),
-
-        /**
-         * There was an error when executing the test case.
-         */
-        TESTCASE_ERROR("TESTCASE_ERROR"),
-
-        /**
-         * Test case execution has completed.
-         */
-        TESTCASE_COMPLETED("TESTCASE_COMPLETED");
-
-        private final String status;
-
-        /**
-         * Sets the status of the test case.
-         *
-         * @param status test case status
-         */
-        Status(String status) {
-            this.status = status;
-        }
-
-        @Override
-        public String toString() {
-            return this.status;
-        }
     }
 }

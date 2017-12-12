@@ -49,7 +49,8 @@ public class ProductTestPlanService {
      */
     @GET
     public Response getAllProductTestPlans() {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             List<ProductTestPlan> testPlans = productTestPlanUOW.getAllProductTestPlans();
             return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBeans(testPlans)).build();
         } catch (TestGridDAOException e) {
@@ -68,7 +69,8 @@ public class ProductTestPlanService {
     @GET
     @Path("/{id}")
     public Response getProductTestPlan(@PathParam("id") String id) {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlanById(id);
 
             if (productTestPlan != null) {

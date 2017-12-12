@@ -21,7 +21,6 @@ import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.samplers.SampleEvent;
 import org.apache.jmeter.samplers.SampleResult;
-import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -51,16 +50,14 @@ public class JMeterResultCollector extends ResultCollector {
 
     @Override
     public void sampleOccurred(SampleEvent sampleEvent) {
-        try (TestCaseUOW testCaseUOW = new TestCaseUOW()) {
+        try {
+            TestCaseUOW testCaseUOW = new TestCaseUOW();
             super.sampleOccurred(sampleEvent);
             SampleResult result = sampleEvent.getResult();
 
             // Persist result to the database
-            TestCase testCase = testCaseUOW.persistTestCase(result.getSampleLabel(), testScenario,
-                    result.isSuccessful(), result.getResponseMessage());
-
-            // Set Test case label to the test case primary key value
-            result.setSampleLabel(testCase.getId());
+            testCaseUOW.persistTestCase(result.getSampleLabel(), testScenario, result.isSuccessful(),
+                    result.getResponseMessage());
         } catch (TestGridDAOException e) {
             throw new RuntimeException(StringUtil.concatStrings("Error occurred when persisting test case."), e);
         }

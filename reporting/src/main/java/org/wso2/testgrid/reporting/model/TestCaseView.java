@@ -18,7 +18,6 @@
 package org.wso2.testgrid.reporting.model;
 
 import org.wso2.testgrid.common.TestCase;
-import org.wso2.testgrid.reporting.ReportingException;
 
 import java.sql.Timestamp;
 
@@ -32,31 +31,20 @@ public class TestCaseView {
     private final String testName;
     private final Timestamp startTimestamp;
     private final Timestamp modifiedTimestamp;
-    private final TestCase.Status status;
+    private final boolean isTestSuccess;
     private final String logLocation;
     private final String failureMessage;
-    private final boolean isTestSuccess;
-    private final boolean isTestCaseFailed;
-    private final boolean isTestPending;
-    private final boolean isTestExecuting;
 
     /**
      * Constructs an instance of a test result view.
      *
      * @param testCase test case of the test scenario
-     * @throws ReportingException thrown when error occurs in getting the formatted time-stamp
      */
-    public TestCaseView(TestCase testCase) throws ReportingException {
-        // Test case statuses
-        this.isTestSuccess = testCase.getStatus().equals(TestCase.Status.TESTCASE_COMPLETED);
-        this.isTestCaseFailed = testCase.getStatus().equals(TestCase.Status.TESTCASE_ERROR);
-        this.isTestPending = testCase.getStatus().equals(TestCase.Status.TESTCASE_PENDING);
-        this.isTestExecuting = testCase.getStatus().equals(TestCase.Status.TESTCASE_EXECUTION);
-
+    TestCaseView(TestCase testCase) {
         this.testName = testCase.getName();
         this.startTimestamp = new Timestamp(testCase.getStartTimestamp().getTime());
         this.modifiedTimestamp = new Timestamp(testCase.getModifiedTimestamp().getTime());
-        this.status = testCase.getStatus();
+        this.isTestSuccess = testCase.isTestSuccess();
         this.logLocation = testCase.getLogLocation();
         this.failureMessage = testCase.getFailureMessage();
     }
@@ -89,15 +77,6 @@ public class TestCaseView {
     }
 
     /**
-     * Returns the test case status.
-     *
-     * @return test case status
-     */
-    public TestCase.Status getStatus() {
-        return status;
-    }
-
-    /**
      * Returns the log location of the test.
      *
      * @return log location of the test
@@ -122,32 +101,5 @@ public class TestCaseView {
      */
     public boolean isTestSuccess() {
         return isTestSuccess;
-    }
-
-    /**
-     * Returns whether the test case is failed.
-     *
-     * @return returns {@code true} if test case is failed, {@code false} otherwise
-     */
-    public boolean isTestCaseFailed() {
-        return isTestCaseFailed;
-    }
-
-    /**
-     * Returns whether the test case is pending.
-     *
-     * @return returns {@code true} if test case is pending, {@code false} otherwise
-     */
-    public boolean isTestPending() {
-        return isTestPending;
-    }
-
-    /**
-     * Returns whether the test case is executing.
-     *
-     * @return returns {@code true} if test case is executing, {@code false} otherwise
-     */
-    public boolean isTestExecuting() {
-        return isTestExecuting;
     }
 }

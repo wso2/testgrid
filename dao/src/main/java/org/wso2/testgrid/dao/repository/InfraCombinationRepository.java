@@ -24,7 +24,6 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * Repository class for {@link org.wso2.testgrid.common.InfraCombination} table.
@@ -32,15 +31,6 @@ import javax.persistence.EntityManagerFactory;
  * @since 1.0.0
  */
 public class InfraCombinationRepository extends AbstractRepository<InfraCombination> {
-
-    /**
-     * Constructs an instance of the repository class.
-     *
-     * @param entityManagerFactory {@link EntityManagerFactory} instance
-     */
-    public InfraCombinationRepository(EntityManagerFactory entityManagerFactory) {
-        super(entityManagerFactory);
-    }
 
     /**
      * Persists an {@link InfraCombination} instance in the database.

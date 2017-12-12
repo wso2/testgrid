@@ -159,7 +159,8 @@ public class TestReportEngineImpl implements TestReportEngine {
      */
     private ProductTestPlan getProductTestPlan(String productName, String productVersion, String channel)
             throws TestReportEngineException {
-        try (ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW()) {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
             return productTestPlanUOW.getProductTestPlan(productName, productVersion, productTestPlanChannel)
                     .orElseThrow(() -> new TestReportEngineException(StringUtil

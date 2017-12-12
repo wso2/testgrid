@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
-import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 
 import java.io.BufferedReader;
@@ -138,13 +137,6 @@ public final class TestGridUtil {
             throw new CommandExecutionException("Error occurred while executing the command '" + command + "', " +
                                                 "from directory '" + workingDirectory.getName() + "", e);
         }
-    }
-
-    /**
-     * This Utility method is used to return the folder location of the TestScenario.
-     */
-    public static String getTestScenarioLocation(TestScenario scenario, String testPlanHome) {
-        return Paths.get(testPlanHome, scenario.getName()).toAbsolutePath().toString();
     }
 
     /**

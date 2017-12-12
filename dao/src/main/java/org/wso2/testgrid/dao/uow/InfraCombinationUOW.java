@@ -27,20 +27,17 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.DatabaseRepository;
 import org.wso2.testgrid.dao.repository.InfraCombinationRepository;
 import org.wso2.testgrid.dao.repository.OperatingSystemRepository;
-import org.wso2.testgrid.dao.util.DAOUtil;
 
-import java.io.Closeable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * This class defines the Unit of work related to a {@link InfraCombination}.
  *
  * @since 1.0.0
  */
-public class InfraCombinationUOW implements Closeable {
+public class InfraCombinationUOW {
 
     private static final Log log = LogFactory.getLog(InfraCombinationUOW.class);
 
@@ -52,10 +49,9 @@ public class InfraCombinationUOW implements Closeable {
      * Constructs an instance of {@link InfraCombinationUOW} to manager use cases related to infra combination.
      */
     public InfraCombinationUOW() {
-        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory();
-        infraCombinationRepository = new InfraCombinationRepository(entityManagerFactory);
-        operatingSystemRepository = new OperatingSystemRepository(entityManagerFactory);
-        databaseRepository = new DatabaseRepository(entityManagerFactory);
+        infraCombinationRepository = new InfraCombinationRepository();
+        operatingSystemRepository = new OperatingSystemRepository();
+        databaseRepository = new DatabaseRepository();
     }
 
     /**
@@ -103,12 +99,5 @@ public class InfraCombinationUOW implements Closeable {
             return infraCombination;
         }
         return infraCombinations.get(0); // Only one DB for given params
-    }
-
-    @Override
-    public void close() {
-        infraCombinationRepository.close();
-        operatingSystemRepository.close();
-        databaseRepository.close();
     }
 }

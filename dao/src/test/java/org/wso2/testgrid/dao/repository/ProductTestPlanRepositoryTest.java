@@ -18,18 +18,14 @@
 package org.wso2.testgrid.dao.repository;
 
 import org.testng.Assert;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.util.DAOUtil;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
-import javax.persistence.EntityManagerFactory;
 
 /**
  * Class to test the functionality of {@link ProductTestPlanRepository}.
@@ -41,28 +37,12 @@ public class ProductTestPlanRepositoryTest {
     private ProductTestPlanRepository productTestPlanRepository;
 
     @BeforeTest
-    public void setUp() throws TestGridDAOException {
-        // H2 database properties
-        Properties properties = new Properties();
-        properties.setProperty("javax.persistence.jdbc.url", "jdbc:h2:mem:testgrid");
-        properties.setProperty("javax.persistence.jdbc.user", "sa");
-        properties.setProperty("javax.persistence.jdbc.username", "sa");
-        properties.setProperty("javax.persistence.jdbc.password", "");
-        properties.setProperty("javax.persistence.jdbc.driver", "org.h2.Driver");
-
-        // Initialise database repository.
-        EntityManagerFactory entityManagerFactory = DAOUtil.getEntityManagerFactory(properties);
-        productTestPlanRepository = new ProductTestPlanRepository(entityManagerFactory);
-    }
-
-    @AfterTest
-    public void tearDown() {
-        productTestPlanRepository.close();
+    public void setUp() {
+        productTestPlanRepository = new ProductTestPlanRepository();
     }
 
     @Test(description = "Test persist data in the repository.")
     public void persistTest() throws TestGridDAOException {
-        List<ProductTestPlan> productTestPlans = productTestPlanRepository.findAll();
         // Product test plan
         ProductTestPlan productTestPlan = new ProductTestPlan();
         productTestPlan.setProductName("WSO2 IS");
@@ -120,17 +100,5 @@ public class ProductTestPlanRepositoryTest {
 
         List<TestPlan> testPlans = productTestPlans.get(0).getTestPlans();
         Assert.assertEquals(testPlans.size(), 1);
-    }
-
-    @Test(description = "Test close repository.",
-          expectedExceptions = TestGridDAOException.class,
-          expectedExceptionsMessageRegExp = "Error occurred when searching for entity.",
-          // Priority is added to indicate TestNG that this test should be the last test to run
-          priority = 1)
-    public void closeTest() throws TestGridDAOException {
-        productTestPlanRepository.close();
-
-        // Now try to do a transaction which should fail
-        productTestPlanRepository.findAll();
     }
 }

@@ -19,15 +19,14 @@ package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
-import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -40,18 +39,7 @@ import javax.persistence.criteria.Root;
  *
  * @param <T> type of the entity the repository handles
  */
-abstract class AbstractRepository<T> implements Closeable {
-
-    private final EntityManagerFactory entityManagerFactory;
-
-    /**
-     * Constructs an instance of the repository class.
-     *
-     * @param entityManagerFactory {@link EntityManagerFactory} instance
-     */
-    AbstractRepository(EntityManagerFactory entityManagerFactory) {
-        this.entityManagerFactory = entityManagerFactory;
-    }
+abstract class AbstractRepository<T> {
 
     /**
      * Persists or updates an entity in the database.
@@ -63,14 +51,13 @@ abstract class AbstractRepository<T> implements Closeable {
     T persist(T entity) throws TestGridDAOException {
         try {
             // Begin entity manager transaction
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            EntityManager entityManager = EntityManagerHelper.getEntityManager();
             entityManager.getTransaction().begin();
 
             T merge = entityManager.merge(entity);
 
             // Commit transaction
             entityManager.getTransaction().commit();
-            entityManager.close();
             return merge;
         } catch (Exception e) {
             throw new TestGridDAOException("Error occurred when persisting entity in database.", e);
@@ -86,14 +73,13 @@ abstract class AbstractRepository<T> implements Closeable {
     void delete(T entity) throws TestGridDAOException {
         try {
             // Begin entity manager transaction
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            EntityManager entityManager = EntityManagerHelper.getEntityManager();
             entityManager.getTransaction().begin();
 
             entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
 
             // Commit transaction
             entityManager.getTransaction().commit();
-            entityManager.close();
         } catch (Exception e) {
             throw new TestGridDAOException("Error occurred when deleting entry from database.", e);
         }
@@ -109,10 +95,8 @@ abstract class AbstractRepository<T> implements Closeable {
      */
     T findByPrimaryKey(Class<T> classType, String id) throws TestGridDAOException {
         try {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            T entity = entityManager.find(classType, id);
-            entityManager.close();
-            return entity;
+            EntityManager entityManager = EntityManagerHelper.getEntityManager();
+            return entityManager.find(classType, id);
         } catch (Exception e) {
             throw new TestGridDAOException("Error occurred when searching for entity.", e);
         }
@@ -129,7 +113,7 @@ abstract class AbstractRepository<T> implements Closeable {
     List<T> findByFields(Class<T> entityClass, Map<String, Object> params) throws TestGridDAOException {
         try {
             // From table name criteria
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            EntityManager entityManager = EntityManagerHelper.getEntityManager();
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
             CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityClass);
             Root<T> root = criteriaQuery.from(entityClass);
@@ -144,10 +128,7 @@ abstract class AbstractRepository<T> implements Closeable {
                 query = entityManager.createQuery(criteriaQuery);
                 query.setParameter(parameterExpression, entry.getValue());
             }
-
-            List<T> resultList = query.getResultList();
-            entityManager.close();
-            return resultList;
+            return query.getResultList();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil
                     .concatStrings("Error when searching for entities with the params: ", params.toString()), e);
@@ -166,7 +147,7 @@ abstract class AbstractRepository<T> implements Closeable {
     List<T> findAll(Class<T> entityType) throws TestGridDAOException {
         try {
             // From table name criteria
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            EntityManager entityManager = EntityManagerHelper.getEntityManager();
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
             CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityType);
 
@@ -174,10 +155,7 @@ abstract class AbstractRepository<T> implements Closeable {
             Root<T> rootEntry = criteriaQuery.from(entityType);
             CriteriaQuery<T> criteriaQueryAll = criteriaQuery.select(rootEntry);
             TypedQuery<T> allQuery = entityManager.createQuery(criteriaQueryAll);
-
-            List<T> resultList = allQuery.getResultList();
-            entityManager.close();
-            return resultList;
+            return allQuery.getResultList();
         } catch (Exception e) {
             throw new TestGridDAOException("Error occurred when searching for entity.", e);
         }
@@ -194,7 +172,7 @@ abstract class AbstractRepository<T> implements Closeable {
     List<T> orderByFields(Class<T> entityType, Map<String, Object> params,
                           LinkedListMultimap<SortOrder, String> fields) {
         // From table name criteria
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityManager entityManager = EntityManagerHelper.getEntityManager();
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityType);
 
@@ -222,16 +200,6 @@ abstract class AbstractRepository<T> implements Closeable {
             query = entityManager.createQuery(criteriaQuery);
             query.setParameter(parameterExpression, entry.getValue());
         }
-
-        List<T> results = query.getResultList();
-        entityManager.close();
-        return results;
-    }
-
-    @Override
-    public void close() {
-        if (entityManagerFactory.isOpen()) {
-            entityManagerFactory.close();
-        }
+        return query.getResultList();
     }
 }

@@ -21,7 +21,6 @@ import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.Script;
-import org.wso2.testgrid.common.constants.TestGridConstants;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.infrastructure.aws.AWSManager;
 
@@ -34,6 +33,8 @@ import org.wso2.testgrid.infrastructure.aws.AWSManager;
 public class AWSProvider implements InfrastructureProvider {
 
     private static final String AWS_PROVIDER = "AWS";
+    private static final String AWS_ACCESS_KEY = "AWS_ACCESS_KEY_ID";
+    private static final String AWS_SECRET_KEY = "AWS_SECRET_ACCESS_KEY";
 
     @Override
     public String getProviderName() {
@@ -55,7 +56,7 @@ public class AWSProvider implements InfrastructureProvider {
     @Override
     public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir)
             throws TestGridInfrastructureException {
-        AWSManager awsManager = new AWSManager(TestGridConstants.AWS_ACCESS_KEY, TestGridConstants.AWS_SECRET_KEY);
+        AWSManager awsManager = new AWSManager(AWS_ACCESS_KEY, AWS_SECRET_KEY);
         awsManager.init(infrastructure);
             for (Script script : infrastructure.getScripts()) {
                 if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
@@ -68,7 +69,7 @@ public class AWSProvider implements InfrastructureProvider {
     @Override
     public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir)
             throws TestGridInfrastructureException {
-        AWSManager awsManager = new AWSManager(TestGridConstants.AWS_ACCESS_KEY, TestGridConstants.AWS_SECRET_KEY);
+        AWSManager awsManager = new AWSManager(AWS_ACCESS_KEY, AWS_SECRET_KEY);
         awsManager.init(infrastructure);
         try {
             for (Script script : infrastructure.getScripts()) {
