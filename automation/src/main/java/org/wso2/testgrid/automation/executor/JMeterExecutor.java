@@ -165,7 +165,7 @@ public class JMeterExecutor extends TestExecutor {
             }
         } catch (IOException e) {
             throw new TestAutomationException(StringUtil
-                    .concatStrings("Error occurred when copying file ", filePath.toAbsolutePath().toString()), e);
+                    .concatStrings("Error occurred when copying file ", filePath.toAbsolutePath()), e);
         }
     }
 

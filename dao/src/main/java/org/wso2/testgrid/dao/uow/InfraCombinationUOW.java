@@ -95,7 +95,7 @@ public class InfraCombinationUOW {
         List<InfraCombination> infraCombinations = infraCombinationRepository.findByFields(infraCombinationParams);
         if (infraCombinations.isEmpty()) {
             log.info(StringUtil.concatStrings("Infra combinations cannot be located for given params",
-                    infraCombinationParams.toString()));
+                    infraCombinationParams));
             return infraCombination;
         }
         return infraCombinations.get(0); // Only one DB for given params

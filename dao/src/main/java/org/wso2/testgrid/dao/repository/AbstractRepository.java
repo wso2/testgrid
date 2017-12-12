@@ -131,7 +131,7 @@ abstract class AbstractRepository<T> {
             return query.getResultList();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil
-                    .concatStrings("Error when searching for entities with the params: ", params.toString()), e);
+                    .concatStrings("Error when searching for entities with the params: ", params), e);
         }
     }
 

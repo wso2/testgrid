@@ -19,6 +19,7 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -119,11 +120,11 @@ public class Database extends AbstractUUIDEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "Database{" +
-               "id='" + this.getId() + '\'' +
-               ", engine=" + engine +
-               ", version='" + version + '\'' +
-               '}';
+        return StringUtil.concatStrings("Database{",
+                "id='", this.getId(), "\'",
+                ", engine='", engine, "\'",
+                ", version='", version, "\'",
+                '}');
     }
 
     /**

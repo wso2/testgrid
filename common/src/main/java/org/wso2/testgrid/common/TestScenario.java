@@ -19,6 +19,7 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -221,8 +222,8 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      *
      * @param testEngine test engine in which the test scenario should be executed
      */
-    public void setTestEngine(TestEngine testEngine) {
-        this.testEngine = testEngine;
+    public void setTestEngine(String testEngine) {
+        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
     }
 
     /**
@@ -230,19 +231,19 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      *
      * @param testEngine test engine in which the test scenario should be executed
      */
-    public void setTestEngine(String testEngine) {
-        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
+    public void setTestEngine(TestEngine testEngine) {
+        this.testEngine = testEngine;
     }
 
     @Override
     public String toString() {
-        return "TestScenario{" +
-               "id='" + this.getId() + '\'' +
-               ", status=" + status +
-               ", name='" + name + '\'' +
-               ", testPlan=" + testPlan +
-               ", testEngine=" + testEngine +
-               '}';
+        return StringUtil.concatStrings("TestScenario{",
+                "id='", this.getId(), "\'",
+                ", name='", name, "\'",
+                ", status='", status, "\'",
+                ", testPlan=", testPlan,
+                ", testEngine='", testEngine, "\'",
+                '}');
     }
 
     /**

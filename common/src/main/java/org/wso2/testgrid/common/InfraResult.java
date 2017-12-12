@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.common;
 
+import org.wso2.testgrid.common.util.StringUtil;
+
 import java.io.Serializable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -95,11 +97,11 @@ public class InfraResult extends AbstractUUIDEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "InfraResult{" +
-               "id='" + this.getId() + '\'' +
-               ", status=" + status +
-               ", infraCombination=" + infraCombination +
-               '}';
+        return StringUtil.concatStrings("InfraResult{",
+                "id='", this.getId(), "\'",
+                ", status='", status, "\'",
+                ", infraCombination=", infraCombination,
+                '}');
     }
 
     /**

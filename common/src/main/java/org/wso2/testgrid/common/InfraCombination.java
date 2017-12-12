@@ -18,6 +18,7 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -147,12 +148,12 @@ public class InfraCombination extends AbstractUUIDEntity implements Serializable
 
     @Override
     public String toString() {
-        return "InfraCombination{" +
-               "id='" + this.getId() + '\'' +
-               ", jdk=" + jdk +
-               ", operatingSystem=" + operatingSystem +
-               ", database=" + database +
-               '}';
+        return StringUtil.concatStrings("InfraCombination{",
+                "id='", this.getId(), "\'",
+                ", jdk='", jdk, "\'",
+                ", operatingSystem=", operatingSystem,
+                ", database=", database,
+                '}');
     }
 
     /**

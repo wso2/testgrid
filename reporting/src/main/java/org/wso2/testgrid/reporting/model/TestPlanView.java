@@ -95,7 +95,7 @@ public class TestPlanView {
         this.jdk = infraCombination.getJdk().toString();
         this.operatingSystem = StringUtil.concatStrings(infraCombination.getOperatingSystem().getName(), " - ",
                 infraCombination.getOperatingSystem().getVersion());
-        this.database = StringUtil.concatStrings(infraCombination.getDatabase().getEngine().toString(), " - ",
+        this.database = StringUtil.concatStrings(infraCombination.getDatabase().getEngine(), " - ",
                 infraCombination.getDatabase().getVersion());
 
         // Infra statuses

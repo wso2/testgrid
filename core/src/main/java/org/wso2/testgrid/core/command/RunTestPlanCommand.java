@@ -107,7 +107,7 @@ public class RunTestPlanCommand implements Command {
             Path testPlanPath = Paths.get(testPlanLocation);
             if (!Files.exists(testPlanPath)) {
                 throw new CommandExecutionException(StringUtil.concatStrings("The test plan path does not exist: ",
-                        testPlanPath.toAbsolutePath().toString()));
+                        testPlanPath.toAbsolutePath()));
             }
 
             if (log.isDebugEnabled()) {
@@ -125,7 +125,7 @@ public class RunTestPlanCommand implements Command {
             Optional<String> infraFilePath = getInfraFilePath(productTestPlan);
             if (!infraFilePath.isPresent()) {
                 log.info(StringUtil.concatStrings("No infra files found for the given product test plan - ",
-                        productTestPlan.toString()));
+                        productTestPlan));
                 return;
             }
             Infrastructure infrastructure = getInfrastructure(infraFilePath.get());
@@ -249,7 +249,7 @@ public class RunTestPlanCommand implements Command {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Error in deleting file ",
-                    filePath.toAbsolutePath().toString()), e);
+                    filePath.toAbsolutePath()), e);
         }
     }
 
@@ -335,7 +335,7 @@ public class RunTestPlanCommand implements Command {
             return testPlan;
         } catch (ConfigurationException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Unable to parse TestPlan file '",
-                    testPlanPath.toAbsolutePath().toString(), "'. Please check the syntax of the file."), e);
+                    testPlanPath.toAbsolutePath(), "'. Please check the syntax of the file."), e);
         }
     }
 }

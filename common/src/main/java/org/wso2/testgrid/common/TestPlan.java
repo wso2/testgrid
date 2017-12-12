@@ -21,6 +21,7 @@ package org.wso2.testgrid.common;
 import org.wso2.carbon.config.annotation.Configuration;
 import org.wso2.carbon.config.annotation.Element;
 import org.wso2.carbon.config.annotation.Ignore;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -405,23 +406,23 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "TestPlan{" +
-               "id='" + this.getId() + '\'' +
-               ", name='" + name + '\'' +
-               ", startTimestamp=" + startTimestamp +
-               ", modifiedTimestamp=" + modifiedTimestamp +
-               ", status=" + status +
-               ", deploymentPattern='" + deploymentPattern + '\'' +
-               ", description='" + description + '\'' +
-               ", productTestPlan=" + productTestPlan +
-               ", testScenarios=" + testScenarios +
-               ", deployerType=" + deployerType +
-               ", deployment=" + deployment +
-               ", testRepoDir='" + testRepoDir + '\'' +
-               ", infraRepoDir='" + infraRepoDir + '\'' +
-               ", infrastructureScript=" + infrastructureScript +
-               ", deploymentScript=" + deploymentScript +
-               '}';
+        return StringUtil.concatStrings("TestPlan{",
+                "id='", this.getId(), "\'",
+                ", name='", name, "\'",
+                ", startTimestamp='", startTimestamp, "\'",
+                ", modifiedTimestamp='", modifiedTimestamp, "\'",
+                ", status='", status, "\'",
+                ", deploymentPattern='", deploymentPattern, "\'",
+                ", description='", description, "\'",
+                ", infraResult='", infraResult, "\'",
+                ", productTestPlan=", productTestPlan,
+                ", deployerType='", deployerType, "\'",
+                ", deployment='", deployment, "\'",
+                ", testRepoDir='", testRepoDir, "\'",
+                ", infraRepoDir='", infraRepoDir, "\'",
+                ", infrastructureScript='", infrastructureScript, "\'",
+                ", deploymentScript='", deploymentScript, "\'",
+                '}');
     }
 
     /**

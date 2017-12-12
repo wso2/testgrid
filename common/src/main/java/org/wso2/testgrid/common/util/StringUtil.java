@@ -17,12 +17,17 @@
  */
 package org.wso2.testgrid.common.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Utility class to handle {@link String} related operations.
  *
  * @since 1.0.0
  */
 public class StringUtil {
+
+    private static final Log log = LogFactory.getLog(StringUtil.class);
 
     /**
      * Returns whether the given string is a null or empty.
@@ -37,13 +42,13 @@ public class StringUtil {
     /**
      * Returns a string concatenating the given strings.
      *
-     * @param strings list of strings to concatenate
+     * @param objects list of objects to concatenate as strings
      * @return concatenated string
      */
-    public static String concatStrings(String... strings) {
+    public static String concatStrings(Object... objects) {
         StringBuilder stringBuilder = new StringBuilder();
-        for (String string : strings) {
-            stringBuilder.append(string);
+        for (Object object : objects) {
+            stringBuilder.append(object); // Null is handled by the append method.
         }
         return stringBuilder.toString();
     }
