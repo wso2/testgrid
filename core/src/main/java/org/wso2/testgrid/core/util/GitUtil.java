@@ -18,10 +18,10 @@
 
 package org.wso2.testgrid.core.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.File;
@@ -34,7 +34,7 @@ import java.nio.file.Paths;
  */
 public class GitUtil {
 
-    private static final Log log = LogFactory.getLog(GitUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(GitUtil.class);
 
     /**
      * Clone the given git repository to the given location.
@@ -45,7 +45,7 @@ public class GitUtil {
      * @throws GitAPIException thrown when error on cloning repository
      */
     public static String cloneRepository(String repositoryUrl, String directory) throws GitAPIException {
-        log.info(StringUtil.concatStrings("Cloning git repository ", repositoryUrl, " to ", directory));
+        logger.info(StringUtil.concatStrings("Cloning git repository ", repositoryUrl, " to ", directory));
         String clonePath = Paths.get(directory, getCloneDirectoryName(repositoryUrl)).toAbsolutePath().toString();
         Git.cloneRepository().setURI(repositoryUrl).setDirectory(new File(clonePath))
                 .setCloneAllBranches(false).call();

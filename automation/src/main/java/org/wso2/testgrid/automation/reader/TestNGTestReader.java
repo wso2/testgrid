@@ -19,8 +19,6 @@
 package org.wso2.testgrid.automation.reader;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.TestScenario;
@@ -38,7 +36,6 @@ import java.util.List;
  */
 public class TestNGTestReader implements TestReader {
 
-    private static final Log log = LogFactory.getLog(JMeterTestReader.class);
     private static final String JAR_EXTENSION = ".jar";
 
     /**

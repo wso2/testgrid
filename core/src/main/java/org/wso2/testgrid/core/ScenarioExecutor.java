@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.reader.TestReader;
@@ -47,7 +47,7 @@ import java.util.Optional;
  */
 public class ScenarioExecutor {
 
-    private static final Log log = LogFactory.getLog(ScenarioExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ScenarioExecutor.class);
 
     /**
      * This method executes a given TestScenario.
@@ -66,14 +66,14 @@ public class ScenarioExecutor {
             testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_RUNNING);
             testScenario = persistTestScenario(testScenario);
 
-            log.info("Executing Tests for Solution Pattern : " + testScenario.getName());
+            logger.info("Executing Tests for Solution Pattern : " + testScenario.getName());
             String testLocation = Paths.get(homeDir, testScenario.getName()).toAbsolutePath().toString();
             List<Test> tests = getTests(testScenario, testLocation);
 
             for (Test test : tests) {
-                log.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
+                logger.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
                 test.execute(testLocation, deployment);
-                log.info("---------------------------------------");
+                logger.info("---------------------------------------");
             }
 
             // Test scenario completed.

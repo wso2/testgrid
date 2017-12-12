@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.web.api;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -43,7 +43,7 @@ import javax.ws.rs.core.Response;
 @Path("/test-scenarios")
 @Produces(MediaType.APPLICATION_JSON)
 public class TestScenarioService {
-    private static final Log log = LogFactory.getLog(TestScenarioService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestScenarioService.class);
 
     /**
      * This has the implementation of the REST API for fetching all the TestScenarioss available in a TestPlan.
@@ -59,7 +59,7 @@ public class TestScenarioService {
             return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlans.";
-            log.error(msg, e);
+            logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
@@ -85,7 +85,7 @@ public class TestScenarioService {
             }
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestScenario by id : '" + id + "'";
-            log.error(msg, e);
+            logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }

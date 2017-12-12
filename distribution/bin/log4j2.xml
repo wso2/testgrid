@@ -17,19 +17,11 @@
   ~ under the License.
   ~
   -->
-
 <Configuration>
     <Appenders>
         <Console name="TESTGRID_CONSOLE" target="SYSTEM_OUT">
             <PatternLayout pattern="[%d] %5p {%c} - %m%ex%n"/>
         </Console>
-        <RollingFile name="TESTGRID_LOGFILE" fileName="${sys:testgrid.home}/logs/carbon.log"
-                     filePattern="${sys:testgrid.home}/logs/wso2testgrid-%d{MM-dd-yyyy}.log">
-            <PatternLayout pattern="[%d] %5p {%c} - %m%ex%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy/>
-            </Policies>
-        </RollingFile>
         <RollingFile name="AUDIT_LOGFILE" fileName="${sys:testgrid.home}/logs/audit.log"
                      filePattern="${sys:testgrid.home}/logs/audit-%d{MM-dd-yyyy}.log">
             <PatternLayout pattern="[%d] %5p %X %m%ex%n"/>
@@ -37,15 +29,33 @@
                 <TimeBasedTriggeringPolicy/>
             </Policies>
         </RollingFile>
+
+        <Routing name="Routing">
+            <Routes pattern="$${ptp:key2}">
+                <Route>
+                    <RollingFile name="SCENARIO_LOGFILE" fileName="${sys:testgrid.home}/${ptp:key2}.log"
+                                 filePattern="${sys:testgrid.home}/${ptp:key2}-%d{MM-dd-yyyy}-%i.log">
+                        <PatternLayout pattern="[%d] %5p {%c} - %m%ex%n" />
+                        <Policies>
+                            <SizeBasedTriggeringPolicy size="50 MB" />
+                        </Policies>
+                        <DefaultRolloverStrategy max="100" />
+                    </RollingFile>
+                </Route>
+            </Routes>
+        </Routing>
     </Appenders>
     <Loggers>
         <Root level="info">
             <AppenderRef ref="TESTGRID_CONSOLE"/>
-            <AppenderRef ref="TESTGRID_LOGFILE"/>
+            <AppenderRef ref="Routing" />
         </Root>
         <Logger name="AUDIT_LOG" level="info" additivity="false">
             <AppenderRef ref="AUDIT_LOGFILE"/>
         </Logger>
-        <!--<Logger name="org.wso2.TESTGRID.kernel" level="debug"/>-->
+        <Logger name="org.eclipse.persistence" level="debug" additivity="false">
+            <AppenderRef ref="TESTGRID_CONSOLE"/>
+            <AppenderRef ref="Routing"/>
+        </Logger>
     </Loggers>
 </Configuration>

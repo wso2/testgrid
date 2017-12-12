@@ -18,8 +18,6 @@
 
 package org.wso2.testgrid.infrastructure.providers;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.InfrastructureProvider;
@@ -30,7 +28,6 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
  */
 public class OpenStackProvider implements InfrastructureProvider {
 
-    private static final Log log = LogFactory.getLog(OpenStackProvider.class);
     private static final String OPENSTACK_PROVIDER = "OPENSTACK";
 
     @Override

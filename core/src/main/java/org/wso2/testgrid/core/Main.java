@@ -18,10 +18,10 @@
 
 package org.wso2.testgrid.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -34,7 +34,7 @@ import org.wso2.testgrid.core.command.CommandHandler;
  */
 public class Main {
 
-    private static final Log log = LogFactory.getLog(Main.class);
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {
         try {
@@ -56,14 +56,14 @@ public class Main {
             // Validate test grid home
             String testGridHome = TestGridUtil.getTestGridHomePath();
             if (!StringUtil.isStringNullOrEmpty(testGridHome)) {
-                log.info("Initializing TestGrid for product : '"
+                logger.info("Initializing TestGrid for product : '"
                          + product + ", version  '" + productVersion + "'");
                 commandHandler.execute();
             }
         } catch (CmdLineException e) {
-            log.error("Error in parsing command line arguments.", e);
+            logger.error("Error in parsing command line arguments.", e);
         } catch (CommandExecutionException e) {
-            log.error("Error in executing command.", e);
+            logger.error("Error in executing command.", e);
         }
     }
 }

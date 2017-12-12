@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.automation.executor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.TestNG;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
@@ -35,7 +35,7 @@ import java.net.URLClassLoader;
  */
 public class TestNgExecutor extends TestExecutor {
 
-    private static final Log log = LogFactory.getLog(TestNgExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestNgExecutor.class);
     private String testsLocation;
 
     @Override
@@ -71,7 +71,7 @@ public class TestNgExecutor extends TestExecutor {
                 Thread.currentThread().setContextClassLoader(classLoader);
             } catch (MalformedURLException e) {
                 String msg = "Error occurred while loading " + jarFile.getName() + " into classpath";
-                log.error(msg, e);
+                logger.error(msg, e);
             }
         }
     }

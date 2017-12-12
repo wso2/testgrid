@@ -19,9 +19,9 @@
 
 package org.wso2.testgrid.core.command;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestReportEngine;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestReportEngineException;
@@ -35,7 +35,7 @@ import org.wso2.testgrid.reporting.TestReportEngineImpl;
  */
 public class GenerateReportCommand implements Command {
 
-    private static final Log log = LogFactory.getLog(GenerateReportCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(GenerateReportCommand.class);
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -59,8 +59,8 @@ public class GenerateReportCommand implements Command {
     @Override
     public void execute() throws CommandExecutionException {
         try {
-            log.info("Generating test result report...");
-            log.info(
+            logger.info("Generating test result report...");
+            logger.info(
                     "Input Arguments: \n" +
                     "\tProduct name: " + productName + "\n" +
                     "\tProduct version: " + productVersion + "\n" +

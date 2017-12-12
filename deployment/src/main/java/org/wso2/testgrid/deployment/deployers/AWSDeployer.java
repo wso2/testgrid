@@ -17,9 +17,8 @@
 */
 package org.wso2.testgrid.deployment.deployers;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeployerService;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
@@ -37,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class AWSDeployer implements DeployerService {
 
-    private static final Log log = LogFactory.getLog(AWSDeployer.class);
+    private static final Logger logger = LoggerFactory.getLogger(AWSDeployer.class);
     private static final String DEPLOYER_NAME = "AWS_CF";
 
     @Override
@@ -48,9 +47,9 @@ public class AWSDeployer implements DeployerService {
     @Override
     public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
         //wait for server startup
-        log.info("Deploying the pattern..");
+        logger.info("Deploying the pattern..");
         DeploymentValidator validator = new DeploymentValidator();
-        log.info("Waiting for server startup..");
+        logger.info("Waiting for server startup..");
         for (Host host : deployment.getHosts()) {
             try {
                 new URL(host.getIp());

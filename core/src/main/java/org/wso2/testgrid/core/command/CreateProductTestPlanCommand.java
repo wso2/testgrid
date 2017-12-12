@@ -19,9 +19,9 @@
 
 package org.wso2.testgrid.core.command;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -35,7 +35,7 @@ import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
  */
 public class CreateProductTestPlanCommand implements Command {
 
-    private static final Log log = LogFactory.getLog(CreateProductTestPlanCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(CreateProductTestPlanCommand.class);
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -58,8 +58,8 @@ public class CreateProductTestPlanCommand implements Command {
     public void execute() throws CommandExecutionException {
         try {
             ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            log.info("Creating product test plan...");
-            log.info(
+            logger.info("Creating product test plan...");
+            logger.info(
                     "Input Arguments: \n" +
                     "\tProduct name: " + productName + "\n" +
                     "\tProduct version: " + productVersion + "\n" +
@@ -68,7 +68,7 @@ public class CreateProductTestPlanCommand implements Command {
                 psuedo code:
                 query db: is product test plan for the given product/version/channel exist
                 if true:
-                    log Product information already stored in the db
+                    logger Product information already stored in the db
                 if false:
                     persist p/v/c into the db
              */

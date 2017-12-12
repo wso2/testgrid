@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.web.api;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestCaseUOW;
@@ -42,7 +42,8 @@ import javax.ws.rs.core.Response;
 @Path("/test-cases")
 @Produces(MediaType.APPLICATION_JSON)
 public class TestCaseService {
-    private static final Log log = LogFactory.getLog(TestCaseService.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(TestCaseService.class);
 
     /**
      * This has the implementation of the REST API for fetching all the TestCases available in a TestScenario.
@@ -58,7 +59,7 @@ public class TestCaseService {
             return Response.status(Response.Status.OK).entity(APIUtil.getTestCaseBeans(testCases)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestCases.";
-            log.error(msg, e);
+            logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
@@ -84,7 +85,7 @@ public class TestCaseService {
             }
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestCase by id : '" + id + "'";
-            log.error(msg, e);
+            logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
