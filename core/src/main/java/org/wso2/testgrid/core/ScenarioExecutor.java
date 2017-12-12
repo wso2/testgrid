@@ -101,7 +101,7 @@ public class ScenarioExecutor {
             return testScenarioUOW.persistTestScenario(testScenario);
         } catch (TestGridDAOException e) {
             throw new ScenarioExecutorException(StringUtil
-                    .concatStrings("Error occurred when persisting test scenario - ", testScenario.toString()), e);
+                    .concatStrings("Error occurred when persisting test scenario - ", testScenario), e);
         }
     }
 

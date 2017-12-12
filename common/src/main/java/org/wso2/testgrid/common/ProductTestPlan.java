@@ -18,6 +18,8 @@
 
 package org.wso2.testgrid.common;
 
+import org.wso2.testgrid.common.util.StringUtil;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
@@ -210,15 +212,15 @@ public class ProductTestPlan extends AbstractUUIDEntity implements Serializable 
 
     @Override
     public String toString() {
-        return "ProductTestPlan{" +
-               "id='" + this.getId() + '\'' +
-               ", productName='" + productName + '\'' +
-               ", productVersion='" + productVersion + '\'' +
-               ", startTimestamp=" + startTimestamp +
-               ", modifiedTimestamp=" + modifiedTimestamp +
-               ", status=" + status +
-               ", channel=" + channel +
-               '}';
+        return StringUtil.concatStrings("ProductTestPlan{",
+                "id='", this.getId(), "\'",
+                ", productName='", productName, "\'",
+                ", productVersion='", productVersion, "\'",
+                ", startTimestamp='", startTimestamp, "\'",
+                ", modifiedTimestamp='", modifiedTimestamp, "\'",
+                ", status='", status, "\'",
+                ", channel='", channel, "\'",
+                '}');
     }
 
     /**

@@ -43,7 +43,7 @@ public class TestExecutorFactory {
                 return new TestNgExecutor();
             default:
                 throw new TestAutomationException(StringUtil.concatStrings("Test executor for test type ",
-                        testType.toString(), " not implemented."));
+                        testType, " not implemented."));
         }
     }
 }

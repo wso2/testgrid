@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.common;
 
+import org.wso2.testgrid.common.util.StringUtil;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import javax.persistence.CascadeType;
@@ -71,7 +73,7 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     @Column(name = "log_location")
     private String logLocation;
 
-    @Column(name = "failure_message")
+    @Column(name = "failure_message", length = 20000)
     private String failureMessage;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestScenario.class, fetch = FetchType.LAZY)
@@ -206,15 +208,14 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "TestCase{" +
-               "id='" + this.getId() + '\'' +
-               ", name='" + name + '\'' +
-               ", startTimestamp=" + startTimestamp +
-               ", modifiedTimestamp=" + modifiedTimestamp +
-               ", isTestSuccess=" + isTestSuccess +
-               ", logLocation='" + logLocation + '\'' +
-               ", failureMessage='" + failureMessage + '\'' +
-               ", testScenario=" + testScenario +
-               '}';
+        return StringUtil.concatStrings("TestCase{",
+                "id='", this.getId(),
+                ", name='", name, "\'",
+                ", startTimestamp='", startTimestamp, "\'",
+                ", modifiedTimestamp='", modifiedTimestamp, "\'",
+                ", isTestSuccess='", isTestSuccess, "\'",
+                ", logLocation='", logLocation, "\'",
+                ", failureMessage='", failureMessage, "\'",
+                '}');
     }
 }

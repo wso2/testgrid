@@ -19,6 +19,7 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -116,10 +117,10 @@ public class OperatingSystem extends AbstractUUIDEntity implements Serializable 
 
     @Override
     public String toString() {
-        return "OperatingSystem{" +
-               "id='" + this.getId() + '\'' +
-               ", name='" + name + '\'' +
-               ", version='" + version + '\'' +
-               '}';
+        return StringUtil.concatStrings("OperatingSystem{",
+                "id='", this.getId(), "\'",
+                ", name='", name, "\'",
+                ", version='", version, "\'",
+                '}');
     }
 }

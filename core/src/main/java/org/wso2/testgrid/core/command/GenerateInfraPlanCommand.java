@@ -125,8 +125,7 @@ public class GenerateInfraPlanCommand implements Command {
         Database database = infrastructure.getInfraCombination().getDatabase();
         String jdk = infrastructure.getInfraCombination().getJdk().toString();
         String fileName = StringUtil.concatStrings(infrastructure.getName(), "-", operatingSystem.getName(), ".",
-                operatingSystem.getVersion(), "-", database.getEngine().toString(), ".", database.getVersion(), "-",
-                jdk);
+                operatingSystem.getVersion(), "-", database.getEngine(), ".", database.getVersion(), "-", jdk);
         String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
         try (OutputStream file = new FileOutputStream(fileAbsolutePath);
              OutputStream buffer = new BufferedOutputStream(file);
@@ -154,8 +153,7 @@ public class GenerateInfraPlanCommand implements Command {
         } catch (ConfigurationException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Unable to parse Infrastructure configuration file '",
-                            infraConfigFilePath.toAbsolutePath().toString(),
-                            "'. Please check the syntax of the file."), e);
+                            infraConfigFilePath.toAbsolutePath(), "'. Please check the syntax of the file."), e);
         }
     }
 
@@ -176,9 +174,9 @@ public class GenerateInfraPlanCommand implements Command {
             // if the directory exists, remove it
             removeDirectories(directory);
 
-            log.info(StringUtil.concatStrings("Creating test directory : ", directory.toString()));
+            log.info(StringUtil.concatStrings("Creating test directory : ", directory));
             Path createdDirectory = createDirectories(directory);
-            log.info(StringUtil.concatStrings("Directory created : ", createdDirectory.toAbsolutePath().toString()));
+            log.info(StringUtil.concatStrings("Directory created : ", createdDirectory.toAbsolutePath()));
             return createdDirectory.toAbsolutePath().toString();
         } catch (IOException e) {
             throw new CommandExecutionException("Error in creating infra generation directory", e);
@@ -204,7 +202,7 @@ public class GenerateInfraPlanCommand implements Command {
      */
     private void removeDirectories(Path directory) throws IOException {
         if (Files.exists(directory)) {
-            log.info(StringUtil.concatStrings("Removing test directory : ", directory.toAbsolutePath().toString()));
+            log.info(StringUtil.concatStrings("Removing test directory : ", directory.toAbsolutePath()));
             FileUtils.forceDelete(new File(directory.toString()));
         }
     }
