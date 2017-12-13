@@ -31,21 +31,9 @@ import javax.persistence.Persistence;
  */
 public class EntityManagerHelper {
 
-    private static final ThreadLocal<Map<String, EntityManager>> entityManagerThreadLocal;
-    private static final ThreadLocal<Map<String, EntityManagerFactory>> entityManagerFactoryThreadLocal;
+    private static final Map<String, EntityManager> entityManagerMap = new HashMap<>();
+    private static final Map<String, EntityManagerFactory> entityManagerFactoryMap = new HashMap<>();
     private static final String TESTGRID_PU_MYSQL = "testgrid_mysql";
-
-    static {
-        // Entity manager map
-        Map<String, EntityManager> entityManagerMap = new HashMap<>();
-        entityManagerThreadLocal = new ThreadLocal<>();
-        entityManagerThreadLocal.set(entityManagerMap);
-
-        // Entity manager factory
-        Map<String, EntityManagerFactory> entityManagerFactoryMap = new HashMap<>();
-        entityManagerFactoryThreadLocal = new ThreadLocal<>();
-        entityManagerFactoryThreadLocal.set(entityManagerFactoryMap);
-    }
 
     /**
      * Returns a thread safe {@link EntityManager}.
@@ -62,12 +50,12 @@ public class EntityManagerHelper {
      * @return thread safe {@link EntityManager}
      */
     public static EntityManager getEntityManager(String persistenceUnitName) {
-        EntityManager entityManager = entityManagerThreadLocal.get().get(persistenceUnitName);
+        EntityManager entityManager = entityManagerMap.get(persistenceUnitName);
         if (entityManager == null || !entityManager.isOpen()) {
             EntityManagerFactory entityManagerFactory = getEntityManagerFactory(persistenceUnitName);
             entityManager = entityManagerFactory.createEntityManager();
             entityManager.setFlushMode(FlushModeType.COMMIT); // Flushing will happen on committing the transaction.
-            entityManagerThreadLocal.get().put(persistenceUnitName, entityManager);
+            entityManagerMap.put(persistenceUnitName, entityManager);
         }
         return entityManager;
     }
@@ -81,16 +69,16 @@ public class EntityManagerHelper {
      */
     public static void closeEntityManager(String persistenceUnitName) {
         // Remove entity manager from thread local
-        EntityManager entityManager = entityManagerThreadLocal.get().get(persistenceUnitName);
+        EntityManager entityManager = entityManagerMap.get(persistenceUnitName);
         if (entityManager != null) {
-            entityManagerThreadLocal.get().remove(persistenceUnitName);
+            entityManagerMap.remove(persistenceUnitName);
         }
 
         // Close and remove entity manager factory. This closes the entity manager automatically
-        EntityManagerFactory entityManagerFactory = entityManagerFactoryThreadLocal.get().get(persistenceUnitName);
+        EntityManagerFactory entityManagerFactory = entityManagerFactoryMap.get(persistenceUnitName);
         if (entityManagerFactory != null) {
             entityManagerFactory.close();
-            entityManagerFactoryThreadLocal.get().remove(persistenceUnitName);
+            entityManagerFactoryMap.remove(persistenceUnitName);
         }
     }
 
@@ -101,10 +89,10 @@ public class EntityManagerHelper {
      * @return entity manager factory with the given persistence unit name
      */
     private static EntityManagerFactory getEntityManagerFactory(String persistenceUnitName) {
-        EntityManagerFactory entityManagerFactory = entityManagerFactoryThreadLocal.get().get(persistenceUnitName);
+        EntityManagerFactory entityManagerFactory = entityManagerFactoryMap.get(persistenceUnitName);
         if (entityManagerFactory == null) {
             entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
-            entityManagerFactoryThreadLocal.get().put(persistenceUnitName, entityManagerFactory);
+            entityManagerFactoryMap.put(persistenceUnitName, entityManagerFactory);
         }
         return entityManagerFactory;
     }
