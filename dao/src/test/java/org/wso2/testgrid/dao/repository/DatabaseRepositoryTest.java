@@ -22,6 +22,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.Database;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.EntityManager;
 
 /**
  * Class to test the functionality of {@link DatabaseRepository}.
@@ -41,7 +43,8 @@ public class DatabaseRepositoryTest {
 
     @BeforeTest
     public void setUp() {
-        databaseRepository = new DatabaseRepository();
+        EntityManager entityManager = EntityManagerHelper.getEntityManager("testgrid_h2");
+        databaseRepository = new DatabaseRepository(entityManager);
     }
 
     @Test(description = "Test persist data in the repository.")

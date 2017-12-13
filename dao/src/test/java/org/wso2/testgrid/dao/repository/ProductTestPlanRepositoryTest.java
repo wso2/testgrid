@@ -22,10 +22,12 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.Collections;
 import java.util.List;
+import javax.persistence.EntityManager;
 
 /**
  * Class to test the functionality of {@link ProductTestPlanRepository}.
@@ -38,7 +40,8 @@ public class ProductTestPlanRepositoryTest {
 
     @BeforeTest
     public void setUp() {
-        productTestPlanRepository = new ProductTestPlanRepository();
+        EntityManager entityManager = EntityManagerHelper.getEntityManager("testgrid_h2");
+        productTestPlanRepository = new ProductTestPlanRepository(entityManager);
     }
 
     @Test(description = "Test persist data in the repository.")

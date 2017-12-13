@@ -18,8 +18,11 @@
 package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestPlanRepository;
+
+import javax.persistence.EntityManager;
 
 /**
  * This class defines the Unit of work related to a {@link TestPlan}.
@@ -34,7 +37,8 @@ public class TestPlanUOW {
      * Constructs an instance of {@link TestPlanUOW} to manager use cases related to test plans.
      */
     public TestPlanUOW() {
-        testPlanRepository = new TestPlanRepository();
+        EntityManager entityManager = EntityManagerHelper.getEntityManager();
+        testPlanRepository = new TestPlanRepository(entityManager);
     }
 
     /**

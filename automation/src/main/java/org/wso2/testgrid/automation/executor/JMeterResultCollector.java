@@ -17,7 +17,6 @@
  */
 package org.wso2.testgrid.automation.executor;
 
-import org.apache.jmeter.protocol.http.sampler.HTTPSampleResult;
 import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.samplers.SampleEvent;
@@ -55,13 +54,6 @@ public class JMeterResultCollector extends ResultCollector {
             TestCaseUOW testCaseUOW = new TestCaseUOW();
             super.sampleOccurred(sampleEvent);
             SampleResult result = sampleEvent.getResult();
-
-            // Get query string
-            String queryString = "";
-            if (result instanceof HTTPSampleResult) {
-                queryString = ((HTTPSampleResult) result).getQueryString().replaceAll("\"", "\\\"");
-            }
-
             String failureMessage = result.isSuccessful() ? "" :
                                     StringUtil.concatStrings("{ \"Response Data\": \"",
                                             result.getResponseDataAsString().replaceAll("\"", "\\\""),
@@ -69,8 +61,8 @@ public class JMeterResultCollector extends ResultCollector {
                                             result.getResponseCode().replaceAll("\"", "\\\""),
                                             "\", \"Response Message\": \"",
                                             result.getResponseMessage().replaceAll("\"", "\\\""),
-                                            "\", \"Query String\": \"",
-                                            queryString, "\"}");
+                                            "\", \"Sampler Data\": \"",
+                                            result.getSamplerData().replaceAll("\"", "\\\""), "\"}");
             // Persist result to the database
             testCaseUOW.persistTestCase(result.getSampleLabel(), testScenario, result.isSuccessful(), failureMessage);
         } catch (TestGridDAOException e) {

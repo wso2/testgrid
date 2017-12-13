@@ -20,8 +20,7 @@ limitations under the License.
 <suite name="TestGrid - Test Automation Module">
     <test name="dao-test" parallel="false">
         <classes>
-            <!-- TODO: Fix persistence unit testtable -->
-            <!--<class name="org.wso2.testgrid.dao.repository.DatabaseRepositoryTest"/>-->
+            <class name="org.wso2.testgrid.dao.repository.DatabaseRepositoryTest"/>
             <!-- TODO: H2 fails to create tables due to SQL syntax error -->
             <!--<class name="org.wso2.testgrid.dao.repository.ProductTestPlanRepository"/>-->
         </classes>
