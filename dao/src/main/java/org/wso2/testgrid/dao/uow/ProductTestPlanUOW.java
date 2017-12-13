@@ -19,6 +19,7 @@ package org.wso2.testgrid.dao.uow;
 
 import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.ProductTestPlanRepository;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.persistence.EntityManager;
 
 /**
  * This class defines the Unit of work related to a {@link ProductTestPlan}.
@@ -41,7 +43,8 @@ public class ProductTestPlanUOW {
      * Constructs an instance of {@link ProductTestPlanUOW} to manager use cases related to product test plan.
      */
     public ProductTestPlanUOW() {
-        productTestPlanRepository = new ProductTestPlanRepository();
+        EntityManager entityManager = EntityManagerHelper.getEntityManager();
+        productTestPlanRepository = new ProductTestPlanRepository(entityManager);
     }
 
     /**

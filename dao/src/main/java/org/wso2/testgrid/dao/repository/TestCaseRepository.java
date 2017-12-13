@@ -24,6 +24,7 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
 import java.util.Map;
+import javax.persistence.EntityManager;
 
 /**
  * Repository class for {@link org.wso2.testgrid.common.TestCase} table.
@@ -31,6 +32,15 @@ import java.util.Map;
  * @since 1.0.0
  */
 public class TestCaseRepository extends AbstractRepository<TestCase> {
+
+    /**
+     * Constructs an instance of the repository class.
+     *
+     * @param entityManager {@link EntityManager} instance
+     */
+    public TestCaseRepository(EntityManager entityManager) {
+        super(entityManager);
+    }
 
     /**
      * Persists an {@link TestCase} instance in the database.

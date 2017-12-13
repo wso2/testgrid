@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.dao;
 
+import java.util.HashMap;
+import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.FlushModeType;
@@ -29,16 +31,20 @@ import javax.persistence.Persistence;
  */
 public class EntityManagerHelper {
 
-    private static final EntityManagerFactory entityManagerFactory;
-    private static final ThreadLocal<EntityManager> threadLocal;
-    private static final String TESTGRID_PERSISTENT_UNIT = "eclipse_link_jpa";
+    private static final ThreadLocal<Map<String, EntityManager>> entityManagerThreadLocal;
+    private static final ThreadLocal<Map<String, EntityManagerFactory>> entityManagerFactoryThreadLocal;
+    private static final String TESTGRID_PU_MYSQL = "testgrid_mysql";
 
-    /*
-      Initialises the entity manager factory.
-     */
     static {
-        entityManagerFactory = Persistence.createEntityManagerFactory(TESTGRID_PERSISTENT_UNIT);
-        threadLocal = new ThreadLocal<>();
+        // Entity manager map
+        Map<String, EntityManager> entityManagerMap = new HashMap<>();
+        entityManagerThreadLocal = new ThreadLocal<>();
+        entityManagerThreadLocal.set(entityManagerMap);
+
+        // Entity manager factory
+        Map<String, EntityManagerFactory> entityManagerFactoryMap = new HashMap<>();
+        entityManagerFactoryThreadLocal = new ThreadLocal<>();
+        entityManagerFactoryThreadLocal.set(entityManagerFactoryMap);
     }
 
     /**
@@ -47,32 +53,59 @@ public class EntityManagerHelper {
      * @return thread safe {@link EntityManager}
      */
     public static EntityManager getEntityManager() {
-        EntityManager entityManager = threadLocal.get();
+        return getEntityManager(TESTGRID_PU_MYSQL);
+    }
+
+    /**
+     * Returns a thread safe {@link EntityManager}.
+     *
+     * @return thread safe {@link EntityManager}
+     */
+    public static EntityManager getEntityManager(String persistenceUnitName) {
+        EntityManager entityManager = entityManagerThreadLocal.get().get(persistenceUnitName);
         if (entityManager == null || !entityManager.isOpen()) {
+            EntityManagerFactory entityManagerFactory = getEntityManagerFactory(persistenceUnitName);
             entityManager = entityManagerFactory.createEntityManager();
             entityManager.setFlushMode(FlushModeType.COMMIT); // Flushing will happen on committing the transaction.
-            threadLocal.set(entityManager);
+            entityManagerThreadLocal.get().put(persistenceUnitName, entityManager);
         }
         return entityManager;
     }
 
     /**
      * Closes the entity manager.
+     * <p>
+     * This method will close the associated entity manager factory as well.
+     *
+     * @param persistenceUnitName persistence unit name of the entity manager
      */
-    public static void closeEntityManager() {
-        EntityManager entityManager = threadLocal.get();
-        if (entityManager != null && entityManager.isOpen()) {
-            entityManager.close();
+    public static void closeEntityManager(String persistenceUnitName) {
+        // Remove entity manager from thread local
+        EntityManager entityManager = entityManagerThreadLocal.get().get(persistenceUnitName);
+        if (entityManager != null) {
+            entityManagerThreadLocal.get().remove(persistenceUnitName);
         }
-        threadLocal.set(null);
+
+        // Close and remove entity manager factory. This closes the entity manager automatically
+        EntityManagerFactory entityManagerFactory = entityManagerFactoryThreadLocal.get().get(persistenceUnitName);
+        if (entityManagerFactory != null) {
+            entityManagerFactory.close();
+            entityManagerFactoryThreadLocal.get().remove(persistenceUnitName);
+        }
     }
 
     /**
-     * Closes the entity manager factory.
+     * Returns the entity manager factory for the given persistence unit name.
+     *
+     * @param persistenceUnitName persistence unit name of the entity manager factory
+     * @return entity manager factory with the given persistence unit name
      */
-    public static void closeEntityManagerFactory() {
-        if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
-            entityManagerFactory.close();
+    private static EntityManagerFactory getEntityManagerFactory(String persistenceUnitName) {
+        EntityManagerFactory entityManagerFactory = entityManagerFactoryThreadLocal.get().get(persistenceUnitName);
+        if (entityManagerFactory == null) {
+            entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
+            entityManagerFactoryThreadLocal.get().put(persistenceUnitName, entityManagerFactory);
         }
+        return entityManagerFactory;
     }
 }

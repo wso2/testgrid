@@ -23,6 +23,7 @@ import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.OperatingSystem;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.DatabaseRepository;
 import org.wso2.testgrid.dao.repository.InfraCombinationRepository;
@@ -31,6 +32,7 @@ import org.wso2.testgrid.dao.repository.OperatingSystemRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.EntityManager;
 
 /**
  * This class defines the Unit of work related to a {@link InfraCombination}.
@@ -49,9 +51,10 @@ public class InfraCombinationUOW {
      * Constructs an instance of {@link InfraCombinationUOW} to manager use cases related to infra combination.
      */
     public InfraCombinationUOW() {
-        infraCombinationRepository = new InfraCombinationRepository();
-        operatingSystemRepository = new OperatingSystemRepository();
-        databaseRepository = new DatabaseRepository();
+        EntityManager entityManager = EntityManagerHelper.getEntityManager();
+        infraCombinationRepository = new InfraCombinationRepository(entityManager);
+        operatingSystemRepository = new OperatingSystemRepository(entityManager);
+        databaseRepository = new DatabaseRepository(entityManager);
     }
 
     /**

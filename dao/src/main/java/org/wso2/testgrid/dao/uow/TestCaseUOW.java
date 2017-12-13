@@ -19,8 +19,11 @@ package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestCaseRepository;
+
+import javax.persistence.EntityManager;
 
 /**
  * This class defines the Unit of work related to a {@link TestCase}.
@@ -35,7 +38,8 @@ public class TestCaseUOW {
      * Constructs an instance of {@link TestCaseUOW} to manager use cases related to test cases.
      */
     public TestCaseUOW() {
-        testCaseRepository = new TestCaseRepository();
+        EntityManager entityManager = EntityManagerHelper.getEntityManager();
+        testCaseRepository = new TestCaseRepository(entityManager);
     }
 
     /**
