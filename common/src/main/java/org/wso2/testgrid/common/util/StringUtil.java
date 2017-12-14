@@ -17,17 +17,12 @@
  */
 package org.wso2.testgrid.common.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /**
  * Utility class to handle {@link String} related operations.
  *
  * @since 1.0.0
  */
 public class StringUtil {
-
-    private static final Log log = LogFactory.getLog(StringUtil.class);
 
     /**
      * Returns whether the given string is a null or empty.

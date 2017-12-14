@@ -19,14 +19,14 @@
 package org.wso2.testgrid.automation.executor;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.jmeter.engine.StandardJMeterEngine;
 import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.collections.HashTree;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
@@ -52,7 +52,7 @@ import java.util.Properties;
  */
 public class JMeterExecutor extends TestExecutor {
 
-    private static final Log log = LogFactory.getLog(JMeterExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(JMeterExecutor.class);
     private String testLocation;
     private String testName;
     private TestScenario testScenario;
@@ -106,7 +106,7 @@ public class JMeterExecutor extends TestExecutor {
         //delete temp file
         boolean delete = new File(script).delete();
         if (!delete) {
-            log.warn("Failed to delete temporary jmx file : " + script);
+            logger.warn("Failed to delete temporary jmx file : " + script);
         }
     }
 
@@ -179,7 +179,7 @@ public class JMeterExecutor extends TestExecutor {
     private void overrideJMeterConfig(String testLocation, Deployment deployment) {
         Path path = Paths.get(testLocation, "src", "test", "resources", "user.properties");
         if (!Files.exists(path)) {
-            log.info("JMeter user.properties file not specified - proceeding with JMeter default properties.");
+            logger.info("JMeter user.properties file not specified - proceeding with JMeter default properties.");
             return;
         }
         JMeterUtils.loadJMeterProperties(path.toAbsolutePath().toString());

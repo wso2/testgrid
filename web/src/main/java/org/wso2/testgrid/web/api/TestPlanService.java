@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.web.api;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
@@ -41,7 +41,8 @@ import javax.ws.rs.core.Response;
 @Path("/test-plans")
 @Produces(MediaType.APPLICATION_JSON)
 public class TestPlanService {
-    private static final Log log = LogFactory.getLog(TestPlanService.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
 
     /**
      * This has the implementation of the REST API for fetching all the TestPlans available in a ProductTestPlan.
@@ -58,7 +59,7 @@ public class TestPlanService {
             return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlans.";
-            log.error(msg, e);
+            logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
@@ -83,7 +84,7 @@ public class TestPlanService {
             }
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
-            log.error(msg, e);
+            logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }

@@ -28,8 +28,8 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -56,8 +57,9 @@ import java.util.Properties;
  */
 public class AWSManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(AWSManager.class);
+
     private Infrastructure infra;
-    private static final Log log = LogFactory.getLog(AWSManager.class);
     private static final String WUM_USERNAME = "WUMUsername";
     private static final String WUM_PASSWORD = "WUMPassword";
     private static final String DB_ENGINE = "DBEngine";
@@ -118,8 +120,8 @@ public class AWSManager {
             stackRequest.setTemplateBody(file);
             stackRequest.setParameters(getParameters(script));
             stackbuilder.createStack(stackRequest);
-            if (log.isDebugEnabled()) {
-                log.info("Stack configuration created for name " + cloudFormationName);
+            if (logger.isDebugEnabled()) {
+                logger.info("Stack configuration created for name " + cloudFormationName);
             }
             waitForAWSProcess(stackbuilder, cloudFormationName);
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
@@ -143,7 +145,7 @@ public class AWSManager {
                     hosts.add(host);
                 }
             }
-            log.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
+            logger.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
             Deployment deployment = new Deployment();
             deployment.setHosts(hosts);
             return deployment;
@@ -173,7 +175,7 @@ public class AWSManager {
         boolean completed = false;
         //result of the operation
         boolean successful = false;
-        log.info("Waiting ..");
+        logger.info("Waiting ..");
         while (!completed) {
             List<Stack> stacks = stackBuilder.describeStacks(wait).getStacks();
             if (stacks.isEmpty()) {

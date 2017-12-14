@@ -69,15 +69,19 @@
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
 
         <!-- Other dependencies -->
         <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
-            <artifactId>org.eclipse.persistence.jpa</artifactId>
+            <artifactId>javax.persistence</artifactId>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>

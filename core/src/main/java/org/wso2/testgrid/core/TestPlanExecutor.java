@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.Infrastructure;
@@ -49,7 +49,7 @@ import java.nio.file.Paths;
 public class TestPlanExecutor {
 
     private static final String DEPLOYMENT_DIR = "DeploymentPatterns";
-    private static final Log log = LogFactory.getLog(TestPlanExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestPlanExecutor.class);
 
     /**
      * This method executes a given {@link TestPlan}.
@@ -80,7 +80,7 @@ public class TestPlanExecutor {
             } catch (ScenarioExecutorException e) {
                 testPlan.setStatus(TestPlan.Status.TESTPLAN_ERROR);
                 testPlan = persistTestPlan(testPlan);
-                log.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
+                logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
                         testScenario.getName(), "' , in TestPlan '",
                         testPlan.getName(), "'"), e);
             }

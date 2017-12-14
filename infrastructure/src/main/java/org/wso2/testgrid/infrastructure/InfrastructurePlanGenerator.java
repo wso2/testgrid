@@ -19,8 +19,8 @@
 
 package org.wso2.testgrid.infrastructure;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.TestGridException;
 
 import java.io.IOException;
@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  */
 public class InfrastructurePlanGenerator {
 
-    private static final Log log = LogFactory.getLog(InfrastructurePlanGenerator.class);
+    private static final Logger logger = LoggerFactory.getLogger(InfrastructurePlanGenerator.class);
 
     public void generateInfrastructure(Path templatePath, Map<String, String> inputParams, Path output)
             throws IOException, TestGridException {
@@ -73,7 +73,7 @@ public class InfrastructurePlanGenerator {
             throw new IllegalArgumentException("Output cannot be created, its parent folder does not exist'" +
                     output.getParent());
         } else if (Files.exists(output)) {
-            log.warn("Output path exists already. It will be overwritten: " + output);
+            logger.warn("Output path exists already. It will be overwritten: " + output);
         }
 
     }

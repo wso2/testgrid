@@ -18,8 +18,8 @@
 package org.wso2.testgrid.deployment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 
@@ -32,8 +32,7 @@ import java.nio.file.Paths;
  */
 public class DeploymentUtil {
 
-    private static final Log log = LogFactory.getLog(DeploymentUtil.class);
-
+    private static final Logger logger = LoggerFactory.getLogger(Deployment.class);
 
     /**
      * Reads the deployment.json file and constructs the deployment object.
@@ -50,7 +49,7 @@ public class DeploymentUtil {
         try {
             return mapper.readValue(file, Deployment.class);
         } catch (IOException e) {
-            log.error(e);
+            logger.error(e.getMessage());
             throw new TestGridDeployerException("Error occurred while reading the "
                     + DeployerConstants.DEPLOYMENT_FILE + " file", e);
         }

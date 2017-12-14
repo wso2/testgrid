@@ -17,8 +17,8 @@
  */
 package org.wso2.testgrid.dao.uow;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.OperatingSystem;
@@ -41,7 +41,7 @@ import javax.persistence.EntityManager;
  */
 public class InfraCombinationUOW {
 
-    private static final Log log = LogFactory.getLog(InfraCombinationUOW.class);
+    private static final Logger logger = LoggerFactory.getLogger(InfraCombinationUOW.class);
 
     private final InfraCombinationRepository infraCombinationRepository;
     private final OperatingSystemRepository operatingSystemRepository;
@@ -97,8 +97,8 @@ public class InfraCombinationUOW {
         infraCombinationParams.put(InfraCombination.JDK_COLUMN, infraCombination.getJdk());
         List<InfraCombination> infraCombinations = infraCombinationRepository.findByFields(infraCombinationParams);
         if (infraCombinations.isEmpty()) {
-            log.info(StringUtil.concatStrings("Infra combinations cannot be located for given params",
-                    infraCombinationParams));
+            logger.info(StringUtil.concatStrings("Infra combinations cannot be located for given params",
+                    infraCombinationParams.toString()));
             return infraCombination;
         }
         return infraCombinations.get(0); // Only one DB for given params

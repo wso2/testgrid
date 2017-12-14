@@ -17,8 +17,8 @@
  */
 package org.wso2.testgrid.reporting;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
@@ -49,7 +49,7 @@ import java.util.Map;
  */
 public class TestReportEngineImpl implements TestReportEngine {
 
-    private static final Log log = LogFactory.getLog(TestReportEngineImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestReportEngineImpl.class);
 
     private static final String PRODUCT_TEST_PLAN_VIEW = "productTestPlanView";
     private static final String PRODUCT_TEST_PLAN_MUSTACHE = "product_test_plan.mustache";
@@ -84,9 +84,9 @@ public class TestReportEngineImpl implements TestReportEngine {
             String testGridHome = TestGridUtil.getTestGridHomePath();
             Path reportPath = Paths.get(testGridHome).resolve(fileName);
 
-            log.info("Started writing test results to file...");
+            logger.info("Started writing test results to file...");
             FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), hTMLString);
-            log.info("Finished writing test results to file");
+            logger.info("Finished writing test results to file");
         } catch (ReportingException e) {
             throw new TestReportEngineException(StringUtil
                     .concatStrings("Error occurred while writing the HTML string to file", fileName), e);

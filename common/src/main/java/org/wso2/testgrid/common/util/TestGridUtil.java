@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.common.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
@@ -40,7 +40,7 @@ import java.util.Map;
  */
 public final class TestGridUtil {
 
-    private static final Log log = LogFactory.getLog(TestGridUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestGridUtil.class);
     private static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
 
     /**
@@ -52,8 +52,8 @@ public final class TestGridUtil {
      */
     public static boolean executeCommand(String command, File workingDirectory) throws CommandExecutionException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
         }
 
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
@@ -74,7 +74,7 @@ public final class TestGridUtil {
                     builder.append(System.getProperty("line.separator"));
                 }
                 String result = builder.toString();
-                log.info("Execution result : " + result);
+                logger.info("Execution result : " + result);
                 return true;
             } catch (IOException e) {
                 throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
@@ -99,8 +99,8 @@ public final class TestGridUtil {
     public static String executeCommand(String command, File workingDirectory, Deployment deployment)
             throws CommandExecutionException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
         }
 
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
@@ -127,7 +127,7 @@ public final class TestGridUtil {
                     builder.append(System.getProperty("line.separator"));
                 }
                 String result = builder.toString();
-                log.info("Execution result : " + result);
+                logger.info("Execution result : " + result);
                 return result;
             } catch (IOException e) {
                 throw new CommandExecutionException("Error occurred while fetching execution output of the command '"

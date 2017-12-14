@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.infrastructure.providers;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.InfrastructureProvider;
@@ -34,7 +34,8 @@ import java.nio.file.Paths;
  * This class creates the infrastructure for running tests.
  */
 public class ShellScriptProvider implements InfrastructureProvider {
-    private static final Log log = LogFactory.getLog(ShellScriptProvider.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(ShellScriptProvider.class);
     private static final String SHELL_SCRIPT_PROVIDER = "Shell Executor";
 
     @Override
@@ -60,7 +61,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" ,
                 infrastructure.getName()).toString();
 
-        log.info("Creating the Kubernetes cluster...");
+        logger.info("Creating the Kubernetes cluster...");
         try {
             TestGridUtil.executeCommand("bash " + Paths.get(testPlanLocation,
                     getScriptToExecute(infrastructure, Script.ScriptType.INFRA_CREATE)), null);
@@ -77,7 +78,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" ,
                 infrastructure.getName()).toString();
 
-        log.info("Destroying test environment...");
+        logger.info("Destroying test environment...");
         try {
             if (TestGridUtil.executeCommand("bash " +
                                             Paths.get(testPlanLocation, getScriptToExecute(infrastructure,

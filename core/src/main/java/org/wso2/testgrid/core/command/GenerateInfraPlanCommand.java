@@ -18,9 +18,9 @@
 package org.wso2.testgrid.core.command;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.config.ConfigProviderFactory;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
@@ -54,7 +54,7 @@ import java.util.List;
  */
 public class GenerateInfraPlanCommand implements Command {
 
-    private static final Log log = LogFactory.getLog(GenerateInfraPlanCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(GenerateInfraPlanCommand.class);
     private static final String YAML_EXTENSION = ".yaml";
 
     @Option(name = "--product",
@@ -174,9 +174,9 @@ public class GenerateInfraPlanCommand implements Command {
             // if the directory exists, remove it
             removeDirectories(directory);
 
-            log.info(StringUtil.concatStrings("Creating test directory : ", directory));
+            logger.info(StringUtil.concatStrings("Creating test directory : ", directory.toString()));
             Path createdDirectory = createDirectories(directory);
-            log.info(StringUtil.concatStrings("Directory created : ", createdDirectory.toAbsolutePath()));
+            logger.info(StringUtil.concatStrings("Directory created : ", createdDirectory.toAbsolutePath().toString()));
             return createdDirectory.toAbsolutePath().toString();
         } catch (IOException e) {
             throw new CommandExecutionException("Error in creating infra generation directory", e);
@@ -202,7 +202,7 @@ public class GenerateInfraPlanCommand implements Command {
      */
     private void removeDirectories(Path directory) throws IOException {
         if (Files.exists(directory)) {
-            log.info(StringUtil.concatStrings("Removing test directory : ", directory.toAbsolutePath()));
+            logger.info(StringUtil.concatStrings("Removing test directory : ", directory.toAbsolutePath().toString()));
             FileUtils.forceDelete(new File(directory.toString()));
         }
     }

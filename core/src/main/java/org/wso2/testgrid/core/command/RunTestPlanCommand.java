@@ -19,9 +19,9 @@
 
 package org.wso2.testgrid.core.command;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.config.ConfigProviderFactory;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
@@ -40,6 +40,7 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfraCombinationUOW;
 import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.logging.plugins.ProductTestPlanLookup;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -62,7 +63,7 @@ import java.util.Optional;
 public class RunTestPlanCommand implements Command {
 
     private static final String YAML_EXTENSION = ".yaml";
-    private static final Log log = LogFactory.getLog(RunTestPlanCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(GenerateInfraPlanCommand.class);
 
     @Option(name = "--testplan",
             usage = "Path to Test plan",
@@ -99,7 +100,7 @@ public class RunTestPlanCommand implements Command {
     @Override
     public void execute() throws CommandExecutionException {
         try {
-            log.info("Running the test plan: " + testPlanLocation);
+            logger.info("Running the test plan: " + testPlanLocation);
             if (StringUtil.isStringNullOrEmpty(testPlanLocation) || !testPlanLocation.endsWith(YAML_EXTENSION)) {
                 throw new CommandExecutionException(StringUtil.concatStrings("Invalid test plan location path - ",
                         testPlanLocation, ". Test plan path location should point to a ", YAML_EXTENSION, " file"));
@@ -110,13 +111,13 @@ public class RunTestPlanCommand implements Command {
                         testPlanPath.toAbsolutePath()));
             }
 
-            if (log.isDebugEnabled()) {
-                log.debug(
+            if (logger.isDebugEnabled()) {
+                logger.debug(
                         "Input Arguments: \n" +
                         "\tProduct name: " + productName + "\n" +
                         "\tProduct version: " + productVersion + "\n" +
                         "\tChannel" + channel);
-                log.debug("TestPlan contents : \n" + new String(Files.readAllBytes(testPlanPath),
+                logger.debug("TestPlan contents : \n" + new String(Files.readAllBytes(testPlanPath),
                         Charset.forName("UTF-8")));
             }
 
@@ -124,7 +125,7 @@ public class RunTestPlanCommand implements Command {
             ProductTestPlan productTestPlan = getProductTestPlan(productName, productVersion, channel);
             Optional<String> infraFilePath = getInfraFilePath(productTestPlan);
             if (!infraFilePath.isPresent()) {
-                log.info(StringUtil.concatStrings("No infra files found for the given product test plan - ",
+                logger.info(StringUtil.concatStrings("No infra files found for the given product test plan - ",
                         productTestPlan));
                 return;
             }
@@ -132,6 +133,8 @@ public class RunTestPlanCommand implements Command {
             deleteFile(Paths.get(infraFilePath.get())); // Delete infra file
             TestPlan testPlan = generateTestPlan(testPlanPath, scenarioRepoDir, infraRepo);
 
+            //Set logger file path
+            setLogFilePath(productTestPlan, infrastructure);
             // Execute test plan
             executeTestPlan(productTestPlan, testPlan, infrastructure);
         } catch (IllegalArgumentException e) {
@@ -337,5 +340,18 @@ public class RunTestPlanCommand implements Command {
             throw new CommandExecutionException(StringUtil.concatStrings("Unable to parse TestPlan file '",
                     testPlanPath.toAbsolutePath(), "'. Please check the syntax of the file."), e);
         }
+    }
+
+    private void setLogFilePath(ProductTestPlan productTestPlan, Infrastructure infrastructure) {
+        //Set productTestPlanId and testPlanId lookup fields for logging
+        ProductTestPlanLookup.setProductTestDirectory(productTestPlan.getProductName() + "_"
+                + productTestPlan.getProductVersion() + "_" + productTestPlan.getChannel());
+        ProductTestPlanLookup.setDeploymentPattern(infrastructure.getName());
+        ProductTestPlanLookup
+                .setInfraCombination(infrastructure.getInfraCombination().getOperatingSystem().getName()
+                        + infrastructure.getInfraCombination().getOperatingSystem().getVersion() + "_"
+                        + infrastructure.getInfraCombination().getDatabase().getEngine()
+                        + infrastructure.getInfraCombination().getDatabase().getVersion() + "_"
+                        + infrastructure.getInfraCombination().getJdk());
     }
 }
