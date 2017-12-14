@@ -19,6 +19,8 @@ package org.wso2.testgrid.reporting;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.InfraCombination;
+import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
@@ -28,9 +30,8 @@ import org.wso2.testgrid.common.exception.TestReportEngineException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
-import org.wso2.testgrid.reporting.model.ProductTestPlanView;
-import org.wso2.testgrid.reporting.model.TestPlanView;
-import org.wso2.testgrid.reporting.model.TestScenarioView;
+import org.wso2.testgrid.reporting.model.Report;
+import org.wso2.testgrid.reporting.model.ReportElement;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
 import org.wso2.testgrid.reporting.util.FileUtil;
@@ -51,35 +52,103 @@ public class TestReportEngineImpl implements TestReportEngine {
 
     private static final Logger logger = LoggerFactory.getLogger(TestReportEngineImpl.class);
 
-    private static final String PRODUCT_TEST_PLAN_VIEW = "productTestPlanView";
-    private static final String PRODUCT_TEST_PLAN_MUSTACHE = "product_test_plan.mustache";
-    private static final String TEST_PLAN_MUSTACHE = "test_plan.mustache";
-    private static final String TEST_SCENARIO_MUSTACHE = "test_scenario.mustache";
-    private static final String TEST_CASE_MUSTACHE = "test_case.mustache";
+    private static final String REPORT_MUSTACHE = "report.mustache";
+    private static final String REPORT_TEMPLATE_KEY = "parsedReport";
     private static final String HTML_EXTENSION = ".html";
 
     @Override
     public void generateReport(String productName, String productVersion, String channel)
             throws TestReportEngineException {
+        try {
+            ProductTestPlan productTestPlan = getProductTestPlan(productName, productVersion, channel);
 
-        ProductTestPlan productTestPlan = getProductTestPlan(productName, productVersion, channel);
-        Map<String, Object> parsedTestResultMap = parseTestResult(productTestPlan);
+            // Construct views
+            List<ReportElement> reportElements = constructReportElements(productTestPlan);
+            Report report = new Report(productTestPlan, reportElements);
+            Map<String, Object> parsedResultMap = new HashMap<>();
+            parsedResultMap.put(REPORT_TEMPLATE_KEY, report);
+            Renderable renderable = RenderableFactory.getRenderable(REPORT_MUSTACHE);
+            String htmlString = renderable.render(REPORT_MUSTACHE, parsedResultMap);
 
-        String hTMLString = renderParsedTestResultMap(parsedTestResultMap);
-        String fileName = productTestPlan.getProductName() + "-" + productTestPlan.getProductVersion() + "-" +
-                          productTestPlan.getStartTimestamp() + HTML_EXTENSION;
+            String fileName = StringUtil.concatStrings(productTestPlan.getProductName(), "-",
+                    productTestPlan.getProductVersion(), "-", productTestPlan.getChannel(), HTML_EXTENSION);
+            writeHTMLToFile(fileName, htmlString);
+        } catch (ReportingException e) {
+            throw new TestReportEngineException(StringUtil
+                    .concatStrings("Error on generating report for product test plan {Product name: ",
+                            productName, ", product version: ", productVersion, ", channel: ", channel));
+        }
+    }
 
-        writeHTMLToFile(fileName, hTMLString);
+    /**
+     * Returns constructed the report elements for the report.
+     *
+     * @param productTestPlan product test plan to construct the report elements
+     * @return constructed report elements
+     */
+    private List<ReportElement> constructReportElements(ProductTestPlan productTestPlan) {
+        List<TestPlan> testPlans = productTestPlan.getTestPlans();
+        List<ReportElement> reportElements = new ArrayList<>();
+
+        for (TestPlan testPlan : testPlans) {
+            InfraResult.Status infraStatus = testPlan.getInfraResult().getStatus();
+            InfraCombination infraCombination = testPlan.getInfraResult().getInfraCombination();
+            boolean isInfraSuccess = !infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_ERROR) &&
+                                     !infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
+
+            if (infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_ERROR)) {
+                ReportElement reportElement = new ReportElement();
+                reportElement.setDeployment(testPlan.getDeploymentPattern());
+                reportElement.setOperatingSystem(infraCombination.getOperatingSystem());
+                reportElement.setDatabase(infraCombination.getDatabase());
+                reportElement.setJdk(infraCombination.getJdk());
+                reportElement.setInfraSuccess(isInfraSuccess);
+                reportElement.setInfraFailureMessage(InfraResult.Status.INFRASTRUCTURE_ERROR.toString());
+
+                // Add report element to list
+                reportElements.add(reportElement);
+                continue; // If infra is failed then there are no test scenarios
+            }
+
+            // Test scenarios
+            List<TestScenario> testScenarios = testPlan.getTestScenarios();
+            for (TestScenario testScenario : testScenarios) {
+
+                // Test cases
+                List<TestCase> testCases = testScenario.getTestCases();
+                for (TestCase testCase : testCases) {
+
+                    // Create report element.
+                    ReportElement reportElement = new ReportElement();
+                    reportElement.setDeployment(testPlan.getDeploymentPattern());
+                    reportElement.setOperatingSystem(infraCombination.getOperatingSystem());
+                    reportElement.setDatabase(infraCombination.getDatabase());
+                    reportElement.setJdk(infraCombination.getJdk());
+                    reportElement.setInfraSuccess(isInfraSuccess);
+                    reportElement.setScenarioName(testScenario.getName());
+                    reportElement.setTestCase(testCase.getName());
+                    reportElement.setTestSuccess(testCase.isTestSuccess());
+
+                    if (!testCase.isTestSuccess()) {
+                        reportElement.setTestCaseFailureMessage(testCase.getFailureMessage());
+                    }
+
+                    // Add report element to list
+                    reportElements.add(reportElement);
+                }
+            }
+        }
+        return reportElements;
     }
 
     /**
      * Write the given HTML string to the given file at test grid home.
      *
      * @param fileName   file name to write
-     * @param hTMLString HTML string to be written to the file
+     * @param htmlString HTML string to be written to the file
      * @throws TestReportEngineException thrown when error on writing the HTML string to file
      */
-    private void writeHTMLToFile(String fileName, String hTMLString) throws TestReportEngineException {
+    private void writeHTMLToFile(String fileName, String htmlString) throws TestReportEngineException {
         try {
             String testGridHome = TestGridUtil.getTestGridHomePath();
             Path reportPath = Paths.get(testGridHome).resolve(fileName);
@@ -90,60 +159,6 @@ public class TestReportEngineImpl implements TestReportEngine {
         } catch (ReportingException e) {
             throw new TestReportEngineException(StringUtil
                     .concatStrings("Error occurred while writing the HTML string to file", fileName), e);
-        }
-    }
-
-    /**
-     * Renders the parsed test result map and returns the HTML string.
-     *
-     * @param parsedTestResultMap parsed test result map
-     * @return HTML string generated from the parsed test result map
-     * @throws TestReportEngineException thrown when error on rendering HTML template
-     */
-    private String renderParsedTestResultMap(Map<String, Object> parsedTestResultMap) throws TestReportEngineException {
-        try {
-            Renderable renderable = RenderableFactory.getRenderable(PRODUCT_TEST_PLAN_MUSTACHE);
-            return renderable.render(PRODUCT_TEST_PLAN_MUSTACHE, parsedTestResultMap);
-        } catch (ReportingException e) {
-            throw new TestReportEngineException("Exception occurred while rendering the html template.", e);
-        }
-    }
-
-    /**
-     * Parse test plan result to a map.
-     *
-     * @param productTestPlan test plan to generate results
-     * @return parsed result map
-     * @throws TestReportEngineException thrown error on parsing test result
-     */
-    private Map<String, Object> parseTestResult(ProductTestPlan productTestPlan) throws TestReportEngineException {
-        try {
-            List<TestPlan> testPlans = productTestPlan.getTestPlans();
-            List<TestPlanView> testPlanViews = new ArrayList<>();
-
-            for (TestPlan testPlan : testPlans) {
-                List<TestScenario> testScenarios = testPlan.getTestScenarios();
-                List<TestScenarioView> testScenarioViews = new ArrayList<>();
-
-                for (TestScenario testScenario : testScenarios) {
-                    List<TestCase> testCases = testScenario.getTestCases();
-                    TestScenarioView testScenarioReport =
-                            new TestScenarioView(testScenario, testCases, TEST_CASE_MUSTACHE);
-                    testScenarioViews.add(testScenarioReport);
-                }
-
-                TestPlanView testPlanView = new TestPlanView(testPlan, testScenarioViews, TEST_SCENARIO_MUSTACHE);
-                testPlanViews.add(testPlanView);
-            }
-
-            ProductTestPlanView productTestPlanView =
-                    new ProductTestPlanView(productTestPlan, testPlanViews, TEST_PLAN_MUSTACHE);
-            Map<String, Object> parsedResultMap = new HashMap<>();
-            parsedResultMap.put(PRODUCT_TEST_PLAN_VIEW, productTestPlanView);
-
-            return parsedResultMap;
-        } catch (ReportingException e) {
-            throw new TestReportEngineException("Error on parsing test results.", e);
         }
     }
 

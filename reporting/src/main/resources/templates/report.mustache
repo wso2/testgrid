@@ -30,17 +30,19 @@
 <body>
 <center>
     <div style="width: 100%; margin: auto; background-color: #ffffff; ">
-        {{#productTestPlanView}}
+        {{#parsedReport}}
             <table style="padding: 0 0; width: 100%; background: #ffffff;">
                 <tr>
                     <td valign="middle"
                         style="text-align: center; width: 5%; background: #ffffff; text-align: left; padding: 0.5% 7%;">
-                        <a href="http://wso2.com/" target="_blank">
+                        <a href="http://wso2.com/">
                             <img style="height: 30px;"
                                  src="http://b.content.wso2.com/sites/all/wum/wso2-logo-w.png"/></a>
                     </td>
                     <td style="width: 95%; background: #ffffff; text-align: left; padding: 0.5% 7%;font-family: arial; font-size: 16px;">
-                        WSO2 Test Grid - Test Execution Summary
+                        WSO2 Test Grid - Test Execution Summary for {{productName}}
+                        - {{productVersion}}
+                        - {{channel}}
                     </td>
                 </tr>
                 <tr>
@@ -55,8 +57,9 @@
                                 </td>
                                 <td style=" padding: 1% 5%; font-family: arial; font-size: 16px; line-height: 24px; text-align: left;">
                                     <span style="font-weight: 600; font-size: 34px; width: 100%; margin-bottom: 20px; color: #272727;">Test Execution Summary for</span><br/>
-                                    <span style="font-weight: 200; font-size: 30px; width: 100%; margin-bottom: 20px; color: #272727;">{{productName}}
-                                        - {{productVersion}}</span>
+                                    <span style="font-weight: 200; font-size: 30px; width: 100%; margin-bottom: 20px; color: #272727;">
+                                   {{productName}} - {{productVersion}} - {{channel}}
+                                </span>
                                 </td>
                             </tr>
                         </table>
@@ -65,9 +68,31 @@
             </table>
             <hr/>
             <br/>
-            {{{parsedTestPlanView}}}
-            <hr style="width: 50%"/>
-        {{/productTestPlanView}}
+            <!-- Test results -->
+            <table style="font-family: arial; width: 85%; border-collapse: collapse;">
+                <tr>
+                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                    </th>
+                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                        <span style="color: #000000;">Deployment</span>
+                    </th>
+                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                        <span style="color: #000000;">Infrastructure</span>
+                    </th>
+                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                        <span style="color: #000000;">Scenario</span>
+                    </th>
+                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                        <span style="color: #000000;">Test case</span>
+                    </th>
+                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 45%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
+                        <span style="color: #000000;">Failure Message</span>
+                    </th>
+                </tr>
+                {{{parsedReportElements}}}
+            </table>
+            <!-- End of test results -->
+        {{/parsedReport}}
     </div>
 </center>
 </body>
