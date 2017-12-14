@@ -126,7 +126,7 @@ public class RunTestPlanCommand implements Command {
             Optional<String> infraFilePath = getInfraFilePath(productTestPlan);
             if (!infraFilePath.isPresent()) {
                 logger.info(StringUtil.concatStrings("No infra files found for the given product test plan - ",
-                        productTestPlan.toString()));
+                        productTestPlan));
                 return;
             }
             Infrastructure infrastructure = getInfrastructure(infraFilePath.get());

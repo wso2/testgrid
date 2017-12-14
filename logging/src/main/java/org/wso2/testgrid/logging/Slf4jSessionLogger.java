@@ -64,9 +64,6 @@ public class Slf4jSessionLogger extends AbstractSessionLog {
        addLogger(DEFAULT_CATEGORY, DEFAULT_ECLIPSELINK_NAMESPACE);
    }
 
-   /**
-    * {@inheritDoc}
-    */
    @Override
    public void log(SessionLogEntry entry) {
       if (!shouldLog(entry.getLevel(), entry.getNameSpace())) {
@@ -96,9 +93,6 @@ public class Slf4jSessionLogger extends AbstractSessionLog {
       }
    }
 
-   /**
-    * {@inheritDoc}
-    */
    @Override
    public boolean shouldLog(int level, String category) {
       Logger logger = getLogger(category);
@@ -119,17 +113,11 @@ public class Slf4jSessionLogger extends AbstractSessionLog {
       }
    }
 
-   /**
-    * {@inheritDoc}
-    */
    @Override
    public boolean shouldLog(int level) {
       return shouldLog(level, "default");
    }
 
-   /**
-    * {@inheritDoc}
-    */
    @Override
    public boolean shouldDisplayData() {
       if (this.shouldDisplayData != null) {

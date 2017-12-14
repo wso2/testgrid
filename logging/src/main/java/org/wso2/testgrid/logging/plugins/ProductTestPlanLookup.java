@@ -43,29 +43,11 @@ public class ProductTestPlanLookup implements StrLookup {
     private static final String DB_LOGFILE = "/db-testplan";
     private static final String SCENARIO_LOGFILE = "/scenario";
 
-    public static void setProductTestDirectory(String productTestDirectory) {
-        ProductTestPlanLookup.productTestDirectory = productTestDirectory;
-    }
-
-    public static void setDeploymentPattern(String deploymentPattern) {
-        ProductTestPlanLookup.deploymentPattern = deploymentPattern;
-    }
-
-    public static void setInfraCombination(String infraCombination) {
-        ProductTestPlanLookup.infraCombination = infraCombination;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String lookup(String key) {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String lookup(LogEvent logEvent, String key) {
         if (productTestDirectory == null) {
@@ -80,5 +62,35 @@ public class ProductTestPlanLookup implements StrLookup {
         }
         return productTestDirectory + SEPARATOR + LOG_DIR
                 + deploymentPattern + SEPARATOR + infraCombination + SCENARIO_LOGFILE;
+    }
+
+    /**
+     * Sets the product test directory.
+     * This is the root for all the scenario related log files.
+     *
+     * @param productTestDirectory product test directory created in the runtime
+     */
+    public static void setProductTestDirectory(String productTestDirectory) {
+        ProductTestPlanLookup.productTestDirectory = productTestDirectory;
+    }
+
+    /**
+     * Sets the deployment pattern.
+     * This is a child directory of productTestDirectory.
+     *
+     * @param deploymentPattern
+     */
+    public static void setDeploymentPattern(String deploymentPattern) {
+        ProductTestPlanLookup.deploymentPattern = deploymentPattern;
+    }
+
+    /**
+     * Sets the infra combination.
+     * This is a child directory of productTestDirectory/deploymentPattern
+     *
+     * @param infraCombination
+     */
+    public static void setInfraCombination(String infraCombination) {
+        ProductTestPlanLookup.infraCombination = infraCombination;
     }
 }
