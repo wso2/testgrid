@@ -15,36 +15,42 @@
         </td>
 
         <!-- Deployment -->
-        {{#isInfraSuccess}}
-            <td class="successText">{{deployment}}</td>
-        {{/isInfraSuccess}}
-        {{^isInfraSuccess}}
-            <td class="errorText">{{deployment}}</td>
-        {{/isInfraSuccess}}
+        {{^isGroupByDeployment}}
+            {{#isInfraSuccess}}
+                <td class="successText">{{deployment}}</td>
+            {{/isInfraSuccess}}
+            {{^isInfraSuccess}}
+                <td class="errorText">{{deployment}}</td>
+            {{/isInfraSuccess}}
+        {{/isGroupByDeployment}}
 
         <!-- Infrastructure -->
-        {{#isInfraSuccess}}
-            <td class="successText">
-                <b>Operating system: </b>{{operatingSystem}} <br/><br/>
-                <b>Database: </b>{{database}} <br/><br/>
-                <b>JDK: </b>{{jdk}} <br/><br/>
-            </td>
-        {{/isInfraSuccess}}
-        {{^isInfraSuccess}}
-            <td class="errorText">
-                <b>Operating system: </b>{{operatingSystem}} <br/><br/>
-                <b>Database: </b>{{database}} <br/><br/>
-                <b>JDK: </b>{{jdk}} <br/><br/>
-            </td>
-        {{/isInfraSuccess}}
+        {{^isGroupByInfrastructure}}
+            {{#isInfraSuccess}}
+                <td class="successText">
+                    <b>Operating system: </b>{{operatingSystem}} <br/><br/>
+                    <b>Database: </b>{{database}} <br/><br/>
+                    <b>JDK: </b>{{jdk}} <br/><br/>
+                </td>
+            {{/isInfraSuccess}}
+            {{^isInfraSuccess}}
+                <td class="errorText">
+                    <b>Operating system: </b>{{operatingSystem}} <br/><br/>
+                    <b>Database: </b>{{database}} <br/><br/>
+                    <b>JDK: </b>{{jdk}} <br/><br/>
+                </td>
+            {{/isInfraSuccess}}
+        {{/isGroupByInfrastructure}}
 
         <!-- Scenario -->
-        {{#isTestSuccess}}
-            <td class="successText">{{scenarioName}}</td>
-        {{/isTestSuccess}}
-        {{^isTestSuccess}}
-            <td class="errorText">{{scenarioName}}</td>
-        {{/isTestSuccess}}
+        {{^isGroupByScenario}}
+            {{#isTestSuccess}}
+                <td class="successText">{{scenarioName}}</td>
+            {{/isTestSuccess}}
+            {{^isTestSuccess}}
+                <td class="errorText">{{scenarioName}}</td>
+            {{/isTestSuccess}}
+        {{/isGroupByScenario}}
 
         <!-- Test case -->
         {{#isTestSuccess}}

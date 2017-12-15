@@ -20,6 +20,7 @@ package org.wso2.testgrid.reporting.model;
 import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.OperatingSystem;
+import org.wso2.testgrid.reporting.AxisColumn;
 
 /**
  * Bean class to maintain a single report element in a report.
@@ -28,6 +29,9 @@ import org.wso2.testgrid.common.OperatingSystem;
  */
 public class ReportElement {
 
+    private final boolean isGroupByDeployment;
+    private final boolean isGroupByInfrastructure;
+    private final boolean isGroupByScenario;
     private String deployment;
     private String operatingSystem;
     private String database;
@@ -37,6 +41,17 @@ public class ReportElement {
     private String testCaseFailureMessage;
     private boolean isInfraSuccess;
     private boolean isTestSuccess;
+
+    /**
+     * Constructs an instance of {@link ReportElement} for the given parameters.
+     *
+     * @param axisColumn axis column grouped by
+     */
+    public ReportElement(AxisColumn axisColumn) {
+        isGroupByDeployment = axisColumn.equals(AxisColumn.DEPLOYMENT);
+        isGroupByInfrastructure = axisColumn.equals(AxisColumn.INFRASTRUCTURE);
+        isGroupByScenario = axisColumn.equals(AxisColumn.SCENARIO);
+    }
 
     /**
      * Returns the name of the deployment.
@@ -198,5 +213,33 @@ public class ReportElement {
      */
     public void setTestSuccess(boolean testSuccess) {
         isTestSuccess = testSuccess;
+    }
+
+
+    /**
+     * Returns whether the grouping is done by the deployment column.
+     *
+     * @return {@code true} if grouped by deployment, {@code false} otherwise
+     */
+    public boolean isGroupByDeployment() {
+        return isGroupByDeployment;
+    }
+
+    /**
+     * Returns whether the grouping is done by the infrastructure column.
+     *
+     * @return {@code true} if grouped by infrastructure, {@code false} otherwise
+     */
+    public boolean isGroupByInfrastructure() {
+        return isGroupByInfrastructure;
+    }
+
+    /**
+     * Returns whether the grouping is done by the scenario column.
+     *
+     * @return {@code true} if grouped by scenario, {@code false} otherwise
+     */
+    public boolean isGroupByScenario() {
+        return isGroupByScenario;
     }
 }
