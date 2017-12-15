@@ -233,7 +233,7 @@ public class TestReportEngine {
                 .filter(ReportElement::isTestSuccess)
                 .collect(Collectors.toList());
 
-        List<ReportElement> filteredSuccessList = new ArrayList<>();
+        List<ReportElement> filteredSuccessList = new ArrayList<>(failList);
 
         for (ReportElement successListReportElement : successList) {
             for (ReportElement failListReportElement : failList) {
@@ -248,9 +248,7 @@ public class TestReportEngine {
             }
             filteredSuccessList.add(successListReportElement);
         }
-
-        failList.addAll(filteredSuccessList);
-        return failList;
+        return filteredSuccessList;
     }
 
     /**
