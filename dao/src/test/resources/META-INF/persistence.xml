@@ -25,10 +25,10 @@
         <class>org.wso2.testgrid.common.OperatingSystem</class>
         <class>org.wso2.testgrid.common.InfraResult</class>
         <class>org.wso2.testgrid.common.InfraCombination</class>
-        <class>org.wso2.testgrid.common.TestPlan</class>
+        <class>org.wso2.testgrid.common.DeploymentPattern</class>
         <class>org.wso2.testgrid.common.TestCase</class>
         <class>org.wso2.testgrid.common.TestScenario</class>
-        <class>org.wso2.testgrid.common.ProductTestPlan</class>
+        <class>org.wso2.testgrid.common.Product</class>
         <properties>
             <property name="javax.persistence.jdbc.url"
                       value="jdbc:h2:mem:testgrid"/>

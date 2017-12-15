@@ -66,6 +66,7 @@ public class InfraCombinationUOW {
      */
     public InfraCombination getInfraCombination(InfraCombination infraCombination) throws TestGridDAOException {
 
+
         // Operating system
         Map<String, Object> operatingSystemParams = new HashMap<>();
         operatingSystemParams.put(OperatingSystem.NAME_COLUMN, infraCombination.getOperatingSystem().getName());

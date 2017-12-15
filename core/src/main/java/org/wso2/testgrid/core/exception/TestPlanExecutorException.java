@@ -19,7 +19,7 @@
 package org.wso2.testgrid.core.exception;
 
 /**
- * Represents the custom exceptions class to hold exceptions related to TestPlan execution.
+ * Represents the custom exceptions class to hold exceptions related to DeploymentPattern execution.
  */
 public class TestPlanExecutorException extends Exception {
 

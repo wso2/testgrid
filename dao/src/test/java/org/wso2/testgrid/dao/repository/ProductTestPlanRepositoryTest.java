@@ -20,7 +20,8 @@ package org.wso2.testgrid.dao.repository;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -30,78 +31,75 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 /**
- * Class to test the functionality of {@link ProductTestPlanRepository}.
+ * Class to test the functionality of {@link ProductRepository}.
  *
  * @since 1.0.0
  */
 public class ProductTestPlanRepositoryTest {
 
-    private ProductTestPlanRepository productTestPlanRepository;
+    private ProductRepository productTestPlanRepository;
 
     @BeforeTest
     public void setUp() {
         EntityManager entityManager = EntityManagerHelper.getEntityManager("testgrid_h2");
-        productTestPlanRepository = new ProductTestPlanRepository(entityManager);
+        productTestPlanRepository = new ProductRepository(entityManager);
     }
 
     @Test(description = "Test persist data in the repository.")
     public void persistTest() throws TestGridDAOException {
         // Product test plan
-        ProductTestPlan productTestPlan = new ProductTestPlan();
-        productTestPlan.setProductName("WSO2 IS");
-        productTestPlan.setProductVersion("5.4.0");
-        productTestPlan.setChannel(ProductTestPlan.Channel.LTS);
-        productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_PENDING);
+        Product product = new Product();
+        product.setProductName("WSO2 IS");
+        product.setProductVersion("5.4.0");
+        product.setChannel(Product.Channel.LTS);
 
-        // Test plan
+        DeploymentPattern deploymentPattern = new DeploymentPattern();
+        deploymentPattern.setName("single-node");
+        deploymentPattern.setTestSuccess(true);
+        deploymentPattern.setProduct(product);
+        /*// Test plan
         TestPlan testPlan = new TestPlan();
         testPlan.setName("TestPlan1");
         testPlan.setStatus(TestPlan.Status.TESTPLAN_PENDING);
         testPlan.setDeploymentPattern("deployment pattern 1");
         testPlan.setDescription("Description 1");
-        testPlan.setProductTestPlan(productTestPlan);
+        testPlan.setDeploymentPattern(product);*/
 
         // Product test plan -> Test plan mapping
-        productTestPlan.setTestPlans(Collections.singletonList(testPlan));
+        product.setDeploymentPatterns(Collections.singletonList(deploymentPattern));
 
         // Persist
-        productTestPlan = productTestPlanRepository.persist(productTestPlan);
+        product = productTestPlanRepository.persist(product);
 
         // Assertion
-        ProductTestPlan foundedProductTestPlan = productTestPlanRepository.findByPrimaryKey(productTestPlan.getId());
+        Product foundedProductTestPlan = productTestPlanRepository.findByPrimaryKey(product.getId());
 
         // Assert product test plan
         Assert.assertNotNull(foundedProductTestPlan);
-        Assert.assertEquals(foundedProductTestPlan.getId(), productTestPlan.getId());
-        Assert.assertEquals(foundedProductTestPlan.getProductName(), productTestPlan.getProductName());
-        Assert.assertEquals(foundedProductTestPlan.getProductVersion(), productTestPlan.getProductVersion());
-        Assert.assertEquals(foundedProductTestPlan.getChannel(), productTestPlan.getChannel());
-        Assert.assertEquals(foundedProductTestPlan.getStatus(), productTestPlan.getStatus());
-        Assert.assertEquals(foundedProductTestPlan.getStartTimestamp(), productTestPlan.getStartTimestamp());
-        Assert.assertEquals(foundedProductTestPlan.getModifiedTimestamp(), productTestPlan.getModifiedTimestamp());
+        Assert.assertEquals(foundedProductTestPlan.getId(), product.getId());
+        Assert.assertEquals(foundedProductTestPlan.getProductName(), product.getProductName());
+        Assert.assertEquals(foundedProductTestPlan.getProductVersion(), product.getProductVersion());
+        Assert.assertEquals(foundedProductTestPlan.getChannel(), product.getChannel());
 
         // Assert test plan
-        List<TestPlan> foundedTestPlanList = foundedProductTestPlan.getTestPlans();
-        Assert.assertEquals(foundedTestPlanList.size(), 1);
+        List<DeploymentPattern> foundedDeploymentPatterns = foundedProductTestPlan.getDeploymentPatterns();
+        Assert.assertEquals(foundedDeploymentPatterns.size(), 1);
 
-        TestPlan foundedTestPlan = foundedTestPlanList.get(0);
+        DeploymentPattern foundedTestPlan = foundedDeploymentPatterns.get(0);
 
-        Assert.assertEquals(testPlan.getName(), foundedTestPlan.getName());
-        Assert.assertEquals(testPlan.getStatus(), foundedTestPlan.getStatus());
-        Assert.assertEquals(testPlan.getDeploymentPattern(), foundedTestPlan.getDeploymentPattern());
-        Assert.assertEquals(testPlan.getDescription(), foundedTestPlan.getDescription());
-        Assert.assertEquals(testPlan.getStartTimestamp(), foundedTestPlan.getStartTimestamp());
-        Assert.assertEquals(testPlan.getModifiedTimestamp(), foundedTestPlan.getModifiedTimestamp());
-        Assert.assertEquals(productTestPlan.getId(), foundedTestPlan.getProductTestPlan().getId());
+        Assert.assertEquals(deploymentPattern.getName(), foundedTestPlan.getName());
+        Assert.assertEquals(deploymentPattern.getProduct(), foundedTestPlan.getProduct());
+        Assert.assertEquals(deploymentPattern.getTestSuccessStatus(), foundedTestPlan.getTestSuccessStatus());
+        Assert.assertEquals(product.getId(), foundedTestPlan.getProduct().getId());
     }
 
     @Test(description = "Test find all records from the repository.",
           dependsOnMethods = "persistTest")
     public void findAllTest() throws TestGridDAOException {
-        List<ProductTestPlan> productTestPlans = productTestPlanRepository.findAll();
+        List<Product> productTestPlans = productTestPlanRepository.findAll();
         Assert.assertEquals(productTestPlans.size(), 1);
 
-        List<TestPlan> testPlans = productTestPlans.get(0).getTestPlans();
-        Assert.assertEquals(testPlans.size(), 1);
+        List<DeploymentPattern> deploymentPatterns = productTestPlans.get(0).getDeploymentPatterns();
+        Assert.assertEquals(deploymentPatterns.size(), 1);
     }
 }

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -205,5 +206,22 @@ abstract class AbstractRepository<T> {
             query.setParameter(parameterExpression, entry.getValue());
         }
         return query.getResultList();
+    }
+
+    /**
+     * Executes the given native query and returns a result list.
+     *
+     * @param nativeQuery native SQL query to execute
+     * @return result list after executing the native query
+     */
+    @SuppressWarnings("unchecked")
+    List<Object> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
+        try {
+            Query query = entityManager.createNativeQuery(nativeQuery);
+            return query.getResultList();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query [",
+                    nativeQuery, "]"), e);
+        }
     }
 }

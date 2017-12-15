@@ -24,7 +24,6 @@ import org.wso2.carbon.config.annotation.Ignore;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -65,7 +64,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     public static final String STATUS_COLUMN = "status";
     public static final String DEPLOYMENT_PATTERN_COLUMN = "deploymentPattern";
     public static final String DESCRIPTION_COLUMN = "description";
-    public static final String INFRA_RESULT_COLUMN = "infraResult";
+    public static final String INFRA_RESULT_COLUMN = "infraCombination";
     public static final String PRODUCT_TEST_PLAN_COLUMN = "productTestPlan";
 
     private static final long serialVersionUID = -4345126378695708155L;
@@ -74,38 +73,28 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "start_timestamp", nullable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    @Ignore
-    private Timestamp startTimestamp;
-
-    @Column(name = "modified_timestamp", nullable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    @Ignore
-    private Timestamp modifiedTimestamp;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Ignore
     private Status status;
 
-    @Element(description = "value to uniquely identify the deployment pattern")
-    @Column(name = "deployment_pattern")
-    private String deploymentPattern;
+    @Column(name = "test_success_status", nullable = false)
+    private boolean testSuccessStatus;
+
 
     @Element(description = "description about the test plan")
     @Column(name = "description")
     private String description;
 
-    @Ignore
-    @OneToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraResult.class, orphanRemoval = true)
-    private InfraResult infraResult;
+    @OneToMany(mappedBy = "testPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Element(description = "list of test scenarios to be executed")
+    private List<InfraCombination> infraCombinations;
 
     @Ignore
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = ProductTestPlan.class,
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = DeploymentPattern.class,
                fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumn(name = "PRODUCTTESTPLAN_id", referencedColumnName = ID_COLUMN)
-    private ProductTestPlan productTestPlan;
+    @PrimaryKeyJoinColumn(name = "DEPLOYMENTPATTERN_id", referencedColumnName = ID_COLUMN)
+    private DeploymentPattern deploymentPattern;
 
     @OneToMany(mappedBy = "testPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     @Element(description = "list of test scenarios to be executed")
@@ -151,42 +140,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns the start time of the test plan.
-     *
-     * @return the start time of the test plan
-     */
-    public Timestamp getStartTimestamp() {
-        return new Timestamp(startTimestamp.getTime());
-    }
-
-    /**
-     * Sets the start time of test plan.
-     *
-     * @param startTimestamp start time of the test plan
-     */
-    public void setStartTimestamp(Timestamp startTimestamp) {
-        this.startTimestamp = new Timestamp(startTimestamp.getTime());
-    }
-
-    /**
-     * Returns the modified time of the test plan.
-     *
-     * @return the modified time of the test plan
-     */
-    public Timestamp getModifiedTimestamp() {
-        return new Timestamp(modifiedTimestamp.getTime());
-    }
-
-    /**
-     * Sets the modified time of the test plan.
-     *
-     * @param modifiedTimestamp modified time of the test plan
-     */
-    public void setModifiedTimestamp(Timestamp modifiedTimestamp) {
-        this.modifiedTimestamp = new Timestamp(modifiedTimestamp.getTime());
-    }
-
-    /**
      * Returns the current status of the test plan.
      *
      * @return the status of the test plan
@@ -205,23 +158,22 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns the deployment pattern name of the test plan in which it was created.
+     * Returns whether the test is successful or failed.
      *
-     * @return the deployment pattern name of the test plan
+     * @return {@code true} if the test case is successful, {@code false} otherwise
      */
-    public String getDeploymentPattern() {
-        return deploymentPattern;
+    public boolean getTestSuccessStatus() {
+        return testSuccessStatus;
     }
 
     /**
-     * Sets the deployment pattern name of the test plan in which it was created.
+     * Sets whether the test is successful or failed.
      *
-     * @param deploymentPattern deployment pattern name of the test plan
+     * @param testSuccessStatus whether the test is successful or failed
      */
-    public void setDeploymentPattern(String deploymentPattern) {
-        this.deploymentPattern = deploymentPattern;
+    public void setTestSuccessStatus(boolean testSuccessStatus) {
+        this.testSuccessStatus = testSuccessStatus;
     }
-
     /**
      * Returns the description of the test plan.
      *
@@ -245,35 +197,35 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      *
      * @return infra result for the test plan
      */
-    public InfraResult getInfraResult() {
-        return infraResult;
+    public List<InfraCombination> getInfraCombination() {
+        return infraCombinations;
     }
 
     /**
      * Sets the infra result for the test plan.
      *
-     * @param infraResult infra result for the test plan
+     * @param infraCombinations infra result for the test plan
      */
-    public void setInfraResult(InfraResult infraResult) {
-        this.infraResult = infraResult;
+    public void setInfraCombination(List<InfraCombination> infraCombinations) {
+        this.infraCombinations = infraCombinations;
     }
 
     /**
-     * Returns the product test plan associated with the test plan.
+     * Returns the deploymentPattern test plan associated with the test plan.
      *
-     * @return product test plan associated with the test plan
+     * @return deploymentPattern test plan associated with the test plan
      */
-    public ProductTestPlan getProductTestPlan() {
-        return productTestPlan;
+    public DeploymentPattern getDeploymentPattern() {
+        return deploymentPattern;
     }
 
     /**
-     * Sets the product test plan associated with the test plan.
+     * Sets the deploymentPattern test plan associated with the test plan.
      *
-     * @param productTestPlan product test plan associated with the test plan
+     * @param deploymentPattern deploymentPattern test plan associated with the test plan
      */
-    public void setProductTestPlan(ProductTestPlan productTestPlan) {
-        this.productTestPlan = productTestPlan;
+    public void setDeploymentPattern(DeploymentPattern deploymentPattern) {
+        this.deploymentPattern = deploymentPattern;
     }
 
     /**
@@ -409,13 +361,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
         return StringUtil.concatStrings("TestPlan{",
                 "id='", this.getId(), "\'",
                 ", name='", name, "\'",
-                ", startTimestamp='", startTimestamp, "\'",
-                ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 ", status='", status, "\'",
-                ", deploymentPattern='", deploymentPattern, "\'",
                 ", description='", description, "\'",
-                ", infraResult='", infraResult, "\'",
-                ", productTestPlan=", productTestPlan,
+                ", deploymentPattern=", deploymentPattern,
                 ", deployerType='", deployerType, "\'",
                 ", deployment='", deployment, "\'",
                 ", testRepoDir='", testRepoDir, "\'",

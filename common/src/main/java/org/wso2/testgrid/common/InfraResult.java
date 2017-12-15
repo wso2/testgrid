@@ -17,6 +17,7 @@
  */
 package org.wso2.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Ignore;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
@@ -25,6 +26,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
@@ -34,8 +36,8 @@ import javax.persistence.Table;
  *
  * @since 1.0.0
  */
-@Entity
-@Table(name = InfraResult.INFRA_RESULT_TABLE)
+//@Entity
+//@Table(name = InfraResult.INFRA_RESULT_TABLE)
 public class InfraResult extends AbstractUUIDEntity implements Serializable {
 
     /**
@@ -51,30 +53,35 @@ public class InfraResult extends AbstractUUIDEntity implements Serializable {
 
     private static final long serialVersionUID = 9208083074380972876L;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private Status status;
+    @Column(name = "testSuccessStatus", nullable = false)
+    private boolean testSuccessStatus;
+
+    @Ignore
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = DeploymentPattern.class,
+            fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn(name = "DEPLOYMENTPATTERN_id", referencedColumnName = ID_COLUMN)
+    private DeploymentPattern deploymentPattern;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraCombination.class)
     @PrimaryKeyJoinColumn(name = "INFRACOMBINATION_id", referencedColumnName = ID_COLUMN)
     private InfraCombination infraCombination;
 
     /**
-     * Returns the status of the infrastructure.
+     * Returns whether the test is successful or failed.
      *
-     * @return infrastructure status
+     * @return {@code true} if the test case is successful, {@code false} otherwise
      */
-    public Status getStatus() {
-        return status;
+    public boolean getTestSuccessStatus() {
+        return testSuccessStatus;
     }
 
     /**
-     * Sets the status of the infrastructure.
+     * Sets whether the test is successful or failed.
      *
-     * @param status infrastructure status
+     * @param testSuccess whether the test is successful or failed
      */
-    public void setStatus(Status status) {
-        this.status = status;
+    public void setTestSuccess(boolean testSuccess) {
+        testSuccessStatus = testSuccess;
     }
 
     /**
@@ -95,56 +102,30 @@ public class InfraResult extends AbstractUUIDEntity implements Serializable {
         this.infraCombination = infraCombination;
     }
 
+    /**
+     * Returns an {@link DeploymentPattern} instance for the deployment-pattern.
+     *
+     * @return {@link DeploymentPattern} instance for the deployment-pattern
+     */
+    public DeploymentPattern getDeploymentPattern() {
+        return deploymentPattern;
+    }
+
+    /**
+     * Sets the {@link DeploymentPattern} instance for the deployment-pattern.
+     *
+     * @param deploymentPattern {@link DeploymentPattern} instance for the deployment-pattern
+     */
+    public void setDeploymentPattern(DeploymentPattern deploymentPattern) {
+        this.deploymentPattern = deploymentPattern;
+    }
+
     @Override
     public String toString() {
         return StringUtil.concatStrings("InfraResult{",
                 "id='", this.getId(), "\'",
-                ", status='", status, "\'",
+                ", testSuccessStatus='", testSuccessStatus, "\'",
                 ", infraCombination=", infraCombination,
                 '}');
-    }
-
-    /**
-     * This defines the possible statuses of the {@link InfraResult}.
-     *
-     * @since 1.0.0
-     */
-    public enum Status {
-
-        /**
-         * Infrastructure for the TestPlan execution is being prepared.
-         */
-        INFRASTRUCTURE_PREPARATION("INFRASTRUCTURE_PREPARATION"),
-
-        /**
-         * Infrastructure for the TestPlan execution is ready to use.
-         */
-        INFRASTRUCTURE_READY("INFRASTRUCTURE_READY"),
-
-        /**
-         * There was an error when creating Infrastructure for the TestPlan.
-         */
-        INFRASTRUCTURE_ERROR("INFRASTRUCTURE_ERROR"),
-
-        /**
-         * There was an error when destroying Infrastructure created for the TestPlan.
-         */
-        INFRASTRUCTURE_DESTROY_ERROR("INFRASTRUCTURE_DESTROY_ERROR");
-
-        private final String status;
-
-        /**
-         * Sets the status of the infrastructure.
-         *
-         * @param status infrastructure status
-         */
-        Status(String status) {
-            this.status = status;
-        }
-
-        @Override
-        public String toString() {
-            return this.status;
-        }
     }
 }

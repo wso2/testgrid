@@ -20,9 +20,9 @@ package org.wso2.testgrid.web.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
+import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
@@ -34,7 +34,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * REST service implementation of ProductTestPlan.
+ * REST service implementation of Product.
  */
 
 @Path("/product-test-plans")
@@ -51,9 +51,10 @@ public class ProductTestPlanService {
     @GET
     public Response getAllProductTestPlans() {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            List<ProductTestPlan> testPlans = productTestPlanUOW.getAllProductTestPlans();
-            return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBeans(testPlans)).build();
+            ProductUOW productTestPlanUOW = new ProductUOW();
+            List<Product> productTestPlans = productTestPlanUOW.getAllProductTestPlans();
+            return Response.status(Response.Status.OK)
+                    .entity(APIUtil.getProductTestPlanBeans(productTestPlans)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the ProductTestPlans.";
             logger.error(msg, e);
@@ -63,27 +64,27 @@ public class ProductTestPlanService {
     }
 
     /**
-     * This has the implementation of the REST API for fetching a ProductTestPlan by id.
+     * This has the implementation of the REST API for fetching a Product by id.
      *
-     * @return the matching ProductTestPlan.
+     * @return the matching Product.
      */
     @GET
     @Path("/{id}")
     public Response getProductTestPlan(@PathParam("id") String id) {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlanById(id);
+            ProductUOW productTestPlanUOW = new ProductUOW();
+            Product productTestPlan = productTestPlanUOW.getProductTestPlanById(id);
 
             if (productTestPlan != null) {
                 return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBean(productTestPlan)).
                         build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
-                        setMessage("Unable to find the requested ProductTestPlan by id : '" + id + "'").build()).
+                        setMessage("Unable to find the requested Product by id : '" + id + "'").build()).
                         build();
             }
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the ProductTestPlan by id : '" + id + "'";
+            String msg = "Error occurred while fetching the Product by id : '" + id + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();

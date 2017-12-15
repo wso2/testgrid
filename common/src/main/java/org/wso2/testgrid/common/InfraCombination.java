@@ -18,6 +18,7 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.carbon.config.annotation.Element;
+import org.wso2.carbon.config.annotation.Ignore;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
@@ -27,6 +28,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
@@ -73,6 +75,10 @@ public class InfraCombination extends AbstractUUIDEntity implements Serializable
     @PrimaryKeyJoinColumn(name = "DATABASE_id", referencedColumnName = ID_COLUMN)
     @Element(description = "Defines the database configuration")
     private Database database;
+
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn(name = "TESTPLAN_id", referencedColumnName = ID_COLUMN)
+    private TestPlan testPlan;
 
     /**
      * Returns the JDK for the infra-combination.
@@ -127,6 +133,25 @@ public class InfraCombination extends AbstractUUIDEntity implements Serializable
     public void setDatabase(Database database) {
         this.database = database;
     }
+
+    /**
+     * Returns the test plan associated with this test scenario.
+     *
+     * @return test plan associated with this test scenario
+     */
+    public TestPlan getTestPlan() {
+        return testPlan;
+    }
+
+    /**
+     * Sets the test plan associated with this test scenario.
+     *
+     * @param testPlan test plan associated with this test scenario
+     */
+    public void setTestPlan(TestPlan testPlan) {
+        this.testPlan = testPlan;
+    }
+
 
     @Override
     public boolean equals(Object object) {

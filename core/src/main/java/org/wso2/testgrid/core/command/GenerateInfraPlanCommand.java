@@ -27,13 +27,14 @@ import org.wso2.carbon.config.provider.ConfigProvider;
 import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.OperatingSystem;
-import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.InfraConfig;
-import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.ProductUOW;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -82,7 +83,7 @@ public class GenerateInfraPlanCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
-        ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
+        ProductUOW productTestPlanUOW = new ProductUOW();
         if (StringUtil.isStringNullOrEmpty(infraConfigFile) || !infraConfigFile.endsWith(YAML_EXTENSION)) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Provided infra plan file is not a YAML file: ", infraConfigFile));
@@ -96,13 +97,18 @@ public class GenerateInfraPlanCommand implements Command {
         }
 
         // Create directory to persist infra data
-        ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
-        ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlan(productName, productVersion,
-                productTestPlanChannel)
-                .orElseThrow(() -> new CommandExecutionException(StringUtil
-                        .concatStrings("Product test plan for {product name: ",
-                                productName, ", product version: ", productVersion, ", channel: ", channel,
-                                "} cannot be located.")));
+        Product.Channel productTestPlanChannel = Product.Channel.valueOf(channel);
+        Product productTestPlan = null;
+        try {
+            productTestPlan = productTestPlanUOW.getProduct(productName, productVersion,
+                    productTestPlanChannel)
+                    .orElseThrow(() -> new CommandExecutionException(StringUtil
+                            .concatStrings("Product test plan for {product name: ",
+                                    productName, ", product version: ", productVersion, ", channel: ", channel,
+                                    "} cannot be located.")));
+        } catch (TestGridDAOException e) {
+            e.printStackTrace();
+        }
 
         String infraGenDirectory = createInfraGenDirectory(productTestPlan);
 
@@ -164,7 +170,7 @@ public class GenerateInfraPlanCommand implements Command {
      * @return location of the created directory
      * @throws CommandExecutionException thrown when error on creating directories
      */
-    private String createInfraGenDirectory(ProductTestPlan productTestPlan)
+    private String createInfraGenDirectory(Product productTestPlan)
             throws CommandExecutionException {
         try {
             String directoryName = productTestPlan.getId();

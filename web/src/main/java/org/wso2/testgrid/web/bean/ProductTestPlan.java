@@ -19,7 +19,7 @@
 package org.wso2.testgrid.web.bean;
 
 /**
- * Bean class of ProductTestPlan object used in APIs.
+ * Bean class of Product object used in APIs.
  */
 public class ProductTestPlan {
     private String id;

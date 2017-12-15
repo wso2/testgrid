@@ -20,10 +20,11 @@ package org.wso2.testgrid.web.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
-import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.dao.uow.ProductUOW;
+import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
@@ -36,7 +37,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * REST service implementation of TestPlan
+ * REST service implementation of DeploymentPattern
  */
 @Path("/test-plans")
 @Produces(MediaType.APPLICATION_JSON)
@@ -45,17 +46,17 @@ public class TestPlanService {
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
 
     /**
-     * This has the implementation of the REST API for fetching all the TestPlans available in a ProductTestPlan.
+     * This has the implementation of the REST API for fetching all the TestPlans available in a Product.
      *
      * @return A list of available TestPlans.
      */
     @GET
     public Response getTestPlansForProductTestPlan(@QueryParam("product-test-plan-id") String productTestPlanId) {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            org.wso2.testgrid.common.ProductTestPlan productTestPlan = productTestPlanUOW
+            ProductUOW productTestPlanUOW = new ProductUOW();
+            Product productTestPlan = productTestPlanUOW
                     .getProductTestPlanById(productTestPlanId);
-            List<org.wso2.testgrid.common.TestPlan> testPlans = productTestPlan.getTestPlans();
+            List<DeploymentPattern> testPlans = productTestPlan.getDeploymentPatterns();
             return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlans.";
@@ -66,7 +67,7 @@ public class TestPlanService {
     }
 
     /**
-     * This has the implementation of the REST API for fetching a specific TestPlan by id.
+     * This has the implementation of the REST API for fetching a specific DeploymentPattern by id.
      *
      * @return A list of available TestCases.
      */
@@ -74,16 +75,16 @@ public class TestPlanService {
     @Path("/{id}")
     public Response getTestPlan(@PathParam("id") String id) {
         try {
-            TestPlanUOW testPlanUOW = new TestPlanUOW();
-            TestPlan testPlan = testPlanUOW.getTestPlanById(id);
+            DeploymentPatternUOW testPlanUOW = new DeploymentPatternUOW();
+            DeploymentPattern testPlan = testPlanUOW.getTestPlanById(id);
             if (testPlan != null) {
                 return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBean(testPlan)).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
-                        setMessage("Unable to find the requested TestPlan by id : '" + id + "'").build()).build();
+                        setMessage("Unable to find the requested DeploymentPattern by id : '" + id + "'").build()).build();
             }
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            String msg = "Error occurred while fetching the DeploymentPattern by id : '" + id + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
