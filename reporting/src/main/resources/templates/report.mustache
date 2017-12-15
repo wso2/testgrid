@@ -23,6 +23,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
         /*
+        Message boxes
+         */
+        .isa_info, .isa_success, .isa_warning, .isa_error {
+            margin: 10px 0px;
+            padding: 12px;
+            text-align: left;
+            font-family: sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .isa_info {
+            color: #00529B;
+            background-color: #BDE5F8;
+        }
+
+        .isa_success {
+            color: #4F8A10;
+            background-color: #DFF2BF;
+        }
+
+        .isa_warning {
+            color: #9F6000;
+            background-color: #FEEFB3;
+        }
+
+        .isa_error {
+            color: #D8000C;
+            background-color: #FFD2D2;
+        }
+
+        /*
         Report table style
          */
         table.reportTable {
@@ -64,12 +96,21 @@
         }
 
         /*
-        Table title
+        Titles
          */
         .tableTitle {
             font-family: sans-serif;
             font-weight: 600;
             font-size: 20px;
+            line-height: 20px;
+            width: 100%;
+            color: #e46226;
+        }
+
+        .mainTitle {
+            font-family: sans-serif;
+            font-weight: 900;
+            font-size: 30px;
             line-height: 20px;
             width: 100%;
             color: #e46226;
@@ -128,6 +169,26 @@
                 </tr>
             </table>
             <hr/>
+            {{#isShowSuccess}}
+                <div class="isa_info">
+                    Please note that the results are generated considering the success tests as
+                    well.
+                </div>
+            {{/isShowSuccess}}
+            <br/>
+            <br/>
+            <!-- Summaries -->
+            {{{perSummaryString}}}
+            <br/>
+            <hr/>
+            <br/>
+            <br/>
+
+            <!-- Detailed Report -->
+            <br/>
+            <span class="mainTitle">Detailed Report</span>
+            <br/>
+            <br/>
             <br/>
             {{{parsedGroupByListString}}}
         {{/parsedReport}}

@@ -22,7 +22,6 @@ package org.wso2.testgrid.core.command;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.TestReportEngine;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.reporting.ReportingException;
@@ -63,7 +62,7 @@ public class GenerateReportCommand implements Command {
     @Option(name = "--groupBy",
             usage = "Group by the given column",
             aliases = {"--groupBy"})
-    private String groupBy = "";
+    private String groupBy = "SCENARIO";
 
 
     @Override

@@ -35,30 +35,50 @@ public class Report {
 
     private static final String GROUP_BY_TEMPLATE_KEY = "groupBy";
     private static final String GROUP_BY_MUSTACHE = "group_by.mustache";
+    private static final String PER_AXIS_HEADER_TEMPLATE_KEY = "perAxis";
+    private static final String PER_AXIS_HEADER_MUSTACHE = "per_axis_header.mustache";
+
+    private final boolean isShowSuccess;
     private final String productName;
     private final String productVersion;
     private final String channel;
-    private final List<GroupBy> groupByList;
-    private String parsedGroupByListString;
+    private final String parsedGroupByListString;
+    private final String perSummaryString;
 
     /**
      * Constructs an instance of {@link Report} for the given parameters.
      *
+     * @param isShowSuccess   whether the report is showing success tests as well
      * @param productTestPlan product test plan
      * @param groupByList     group by elements of the report
      */
-    public Report(ProductTestPlan productTestPlan, List<GroupBy> groupByList)
-            throws ReportingException {
+    public Report(boolean isShowSuccess, ProductTestPlan productTestPlan, List<GroupBy> groupByList,
+                  List<PerAxisHeader> perSummaryList) throws ReportingException {
+        this.isShowSuccess = isShowSuccess;
         this.productName = productTestPlan.getProductName();
         this.productVersion = productTestPlan.getProductVersion();
         this.channel = productTestPlan.getChannel().toString();
-        this.groupByList = groupByList;
+
+        // Render per infra summary
+        Map<String, Object> perSummariesMap = new HashMap<>();
+        perSummariesMap.put(PER_AXIS_HEADER_TEMPLATE_KEY, perSummaryList);
+        Renderable perInfraSummaryRenderer = RenderableFactory.getRenderable(PER_AXIS_HEADER_MUSTACHE);
+        this.perSummaryString = perInfraSummaryRenderer.render(PER_AXIS_HEADER_MUSTACHE, perSummariesMap);
 
         // Render group by list
         Map<String, Object> parsedGroupByElements = new HashMap<>();
         parsedGroupByElements.put(GROUP_BY_TEMPLATE_KEY, groupByList);
-        Renderable renderable = RenderableFactory.getRenderable(GROUP_BY_MUSTACHE);
-        this.parsedGroupByListString = renderable.render(GROUP_BY_MUSTACHE, parsedGroupByElements);
+        Renderable groupByRenderer = RenderableFactory.getRenderable(GROUP_BY_MUSTACHE);
+        this.parsedGroupByListString = groupByRenderer.render(GROUP_BY_MUSTACHE, parsedGroupByElements);
+    }
+
+    /**
+     * Whether the report is showing success tests as well.
+     *
+     * @return {@code true} if success tests are also shown, {@code false} otherwise
+     */
+    public boolean isShowSuccess() {
+        return isShowSuccess;
     }
 
     /**
@@ -89,20 +109,20 @@ public class Report {
     }
 
     /**
-     * Returns the group by list.
-     *
-     * @return the group by list
-     */
-    public List<GroupBy> getGroupByList() {
-        return groupByList;
-    }
-
-    /**
      * Returns the HTML string for group by list.
      *
      * @return HTML string for group by list
      */
     public String getParsedGroupByListString() {
         return parsedGroupByListString;
+    }
+
+    /**
+     * Returns the HTML string for per axis summaries.
+     *
+     * @return HTML string for per axis summaries
+     */
+    public String getPerSummaryString() {
+        return perSummaryString;
     }
 }

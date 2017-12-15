@@ -18,45 +18,40 @@
 package org.wso2.testgrid.reporting;
 
 /**
- * Enum class to define the group by columns.
+ * Enum class to define the axis columns.
  *
  * @since 1.0.0
  */
-public enum GroupByColumn {
+public enum AxisColumn {
 
     /**
-     * Group by deployment column
+     * Deployment column
      */
     DEPLOYMENT("DEPLOYMENT"),
 
     /**
-     * Group by infrastructure column
+     * Infrastructure column
      */
     INFRASTRUCTURE("INFRASTRUCTURE"),
 
     /**
-     * Group by scenario column
+     * Scenario column
      */
-    SCENARIO("SCENARIO"),
+    SCENARIO("SCENARIO");
+
+    private final String axisColumn;
 
     /**
-     * Do not group by
-     */
-    NONE("NONE");
-
-    private final String groupByColumn;
-
-    /**
-     * Sets group by column.
+     * Sets axis column.
      *
-     * @param groupByColumn group by column
+     * @param axisColumn axis column
      */
-    GroupByColumn(String groupByColumn) {
-        this.groupByColumn = groupByColumn;
+    AxisColumn(String axisColumn) {
+        this.axisColumn = axisColumn;
     }
 
     @Override
     public String toString() {
-        return this.groupByColumn;
+        return this.axisColumn;
     }
 }

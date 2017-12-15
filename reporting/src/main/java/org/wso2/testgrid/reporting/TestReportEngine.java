@@ -17,8 +17,8 @@
  */
 package org.wso2.testgrid.reporting;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.ProductTestPlan;
@@ -29,6 +29,8 @@ import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.reporting.model.GroupBy;
+import org.wso2.testgrid.reporting.model.PerAxisHeader;
+import org.wso2.testgrid.reporting.model.PerAxisSummary;
 import org.wso2.testgrid.reporting.model.Report;
 import org.wso2.testgrid.reporting.model.ReportElement;
 import org.wso2.testgrid.reporting.renderer.Renderable;
@@ -38,12 +40,20 @@ import org.wso2.testgrid.reporting.util.FileUtil;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
+import static org.wso2.testgrid.reporting.AxisColumn.INFRASTRUCTURE;
+import static org.wso2.testgrid.reporting.AxisColumn.SCENARIO;
 
 /**
  * This class is responsible for generating the test reports.
@@ -52,7 +62,7 @@ import java.util.stream.Collectors;
  */
 public class TestReportEngine {
 
-    private static final Log log = LogFactory.getLog(TestReportEngine.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestReportEngine.class);
 
     private static final String REPORT_MUSTACHE = "report.mustache";
     private static final String REPORT_TEMPLATE_KEY = "parsedReport";
@@ -72,16 +82,19 @@ public class TestReportEngine {
                                String groupBy)
             throws ReportingException {
         ProductTestPlan productTestPlan = getProductTestPlan(productName, productVersion, channel);
-        GroupByColumn groupByColumn = getGroupByColumn(groupBy);
+        AxisColumn uniqueAxisColumn = getGroupByColumn(groupBy);
 
         // Construct report elements
-        List<ReportElement> reportElements = constructReportElements(productTestPlan, showSuccess);
+        List<ReportElement> reportElements = Collections.unmodifiableList(constructReportElements(productTestPlan));
 
-        // Break elements by group by
-        List<GroupBy> groupByList = groupReportElementsBy(groupByColumn, reportElements);
+        // Break elements by group by (sorting also handled)
+        List<GroupBy> groupByList = groupReportElementsBy(uniqueAxisColumn, reportElements, showSuccess);
+
+        // Create per axis summaries
+        List<PerAxisHeader> perAxisHeaders = createPerAxisHeaders(uniqueAxisColumn, reportElements, showSuccess);
 
         // Generate HTML string
-        Report report = new Report(productTestPlan, groupByList);
+        Report report = new Report(showSuccess, productTestPlan, groupByList, perAxisHeaders);
         Map<String, Object> parsedResultMap = new HashMap<>();
         parsedResultMap.put(REPORT_TEMPLATE_KEY, report);
         Renderable renderable = RenderableFactory.getRenderable(REPORT_MUSTACHE);
@@ -94,37 +107,362 @@ public class TestReportEngine {
     }
 
     /**
-     * Group a list of {@link ReportElement}s by a given {@link GroupByColumn}.
+     * Creates and returns a list of per axis headers for the given params.
      *
-     * @param groupByColumn  column to group by
-     * @param reportElements report elements to group
+     * @param uniqueAxisColumn unique axis column
+     * @param reportElements   report elements
+     * @param showSuccess      whether success tests should be show as well
+     * @return list of per axis headers for the given params
+     * @throws ReportingException thrown when error on creating per axis headers
+     */
+    private List<PerAxisHeader> createPerAxisHeaders(AxisColumn uniqueAxisColumn, List<ReportElement> reportElements,
+                                                     boolean showSuccess)
+            throws ReportingException {
+        List<PerAxisHeader> perAxisHeaders = new ArrayList<>();
+
+        // Get report elements grouped
+        Map<String, List<ReportElement>> groupedReportElements =
+                getGroupedReportElementsByColumn(uniqueAxisColumn, reportElements);
+
+        List<PerAxisSummary> perAxisSummaries = new ArrayList<>();
+        for (Map.Entry<String, List<ReportElement>> entry : groupedReportElements.entrySet()) {
+
+            // Capture success and fail count
+            Map<Boolean, List<ReportElement>> groupedByTestStatusMap = entry.getValue().stream()
+                    .collect(Collectors.groupingBy(ReportElement::isTestSuccess));
+            int successCount = groupedByTestStatusMap.get(true) == null ? 0 : groupedByTestStatusMap.get(true).size();
+            int failCount = groupedByTestStatusMap.get(false) == null ? 0 : groupedByTestStatusMap.get(false).size();
+
+            // Process overall result
+            List<ReportElement> reportElementsForOverallResult =
+                    processOverallResultForUniqueAxis(uniqueAxisColumn, entry.getValue());
+
+            // Filter success test cases based on user input
+            List<ReportElement> filteredReportElements = showSuccess ?
+                                                         reportElementsForOverallResult :
+                                                         filterSuccessReportElements(reportElementsForOverallResult);
+
+            // grouped by the value of the unique column
+            for (ReportElement reportElement : filteredReportElements) {
+                PerAxisSummary perAxisSummary = createPerAxisSummary(uniqueAxisColumn, reportElement);
+                perAxisSummaries.add(perAxisSummary);
+            }
+
+            if (!perAxisSummaries.isEmpty()) {
+                PerAxisHeader perAxisHeader = createPerAxisHeader(uniqueAxisColumn, entry.getKey(),
+                        sortPerAxisSummaries(perAxisSummaries), successCount, failCount);
+                perAxisHeaders.add(perAxisHeader);
+            }
+        }
+        return sortPerAxisHeaders(perAxisHeaders);
+    }
+
+    /**
+     * Processes the overall result for the given axis.
+     *
+     * @param reportElements report elements to process
+     * @return processed report elements
+     */
+    @SuppressWarnings("unchecked")
+    private List<ReportElement> processOverallResultForUniqueAxis(AxisColumn uniqueAxisColumn,
+                                                                  List<ReportElement> reportElements) {
+        switch (uniqueAxisColumn) {
+            case INFRASTRUCTURE:
+                return processOverallResultForInfrastructureAxis(reportElements);
+            case DEPLOYMENT:
+                return processOverallResultForDeploymentAxis(reportElements);
+            case SCENARIO:
+            default:
+                return processOverallResultForScenarioAxis(reportElements);
+        }
+    }
+
+    /**
+     * Processes the overall result for scenario axis.
+     *
+     * @param reportElements report elements to process
+     * @return processed report elements
+     */
+    private List<ReportElement> processOverallResultForScenarioAxis(List<ReportElement> reportElements) {
+        List<ReportElement> distinctElements = distinctList(reportElements, ReportElement::getDeployment,
+                this::constructInfraString, ReportElement::isTestSuccess);
+
+        // Fail list
+        List<ReportElement> failList = distinctElements.stream()
+                .filter(reportElement -> !reportElement.isTestSuccess())
+                .collect(Collectors.toList());
+
+        // Success list
+        List<ReportElement> successList = distinctElements.stream()
+                .filter(ReportElement::isTestSuccess)
+                .collect(Collectors.toList());
+
+        List<ReportElement> filteredSuccessList = successList.stream()
+                .filter(reportElement -> {
+                    for (ReportElement failListReportElement : failList) {
+                        if (reportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
+                            constructInfraString(reportElement).equals(constructInfraString(failListReportElement))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        failList.addAll(filteredSuccessList);
+        return failList;
+    }
+
+    /**
+     * Processes the overall result for deployment axis.
+     *
+     * @param reportElements report elements to process
+     * @return processed report elements
+     */
+    private List<ReportElement> processOverallResultForDeploymentAxis(List<ReportElement> reportElements) {
+        List<ReportElement> distinctElements = distinctList(reportElements, this::constructInfraString,
+                ReportElement::getScenarioName, ReportElement::isTestSuccess);
+
+        // Fail list
+        List<ReportElement> failList = distinctElements.stream()
+                .filter(reportElement -> !reportElement.isTestSuccess())
+                .collect(Collectors.toList());
+
+        // Success list
+        List<ReportElement> successList = distinctElements.stream()
+                .filter(ReportElement::isTestSuccess)
+                .collect(Collectors.toList());
+
+        List<ReportElement> filteredSuccessList = new ArrayList<>();
+
+        for (ReportElement successListReportElement : successList) {
+            for (ReportElement failListReportElement : failList) {
+                if (constructInfraString(successListReportElement)
+                            .equals(constructInfraString(failListReportElement)) &&
+                    successListReportElement.getScenarioName().equals(failListReportElement.getScenarioName())) {
+
+                    // If same combination os found, omit this next time
+                    failList.remove(failListReportElement);
+                    break;
+                }
+            }
+            filteredSuccessList.add(successListReportElement);
+        }
+
+        failList.addAll(filteredSuccessList);
+        return failList;
+    }
+
+    /**
+     * Processes the overall result for infrastructure axis.
+     *
+     * @param reportElements report elements to process
+     * @return processed report elements
+     */
+    private List<ReportElement> processOverallResultForInfrastructureAxis(List<ReportElement> reportElements) {
+        List<ReportElement> distinctElements = distinctList(reportElements, ReportElement::getDeployment,
+                ReportElement::getScenarioName, ReportElement::isTestSuccess);
+
+        // Fail list
+        List<ReportElement> failList = distinctElements.stream()
+                .filter(reportElement -> !reportElement.isTestSuccess())
+                .collect(Collectors.toList());
+
+        // Success list
+        List<ReportElement> successList = distinctElements.stream()
+                .filter(ReportElement::isTestSuccess)
+                .collect(Collectors.toList());
+
+        List<ReportElement> filteredSuccessList = successList.stream()
+                .filter(reportElement -> {
+                    for (ReportElement failListReportElement : failList) {
+                        if (reportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
+                            reportElement.getScenarioName().equals(failListReportElement.getScenarioName())) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        failList.addAll(filteredSuccessList);
+        return failList;
+    }
+
+    /**
+     * Returns a list distinct by the given predicates.
+     *
+     * @param list          list for distinction
+     * @param keyExtractors key extractors
+     * @param <T>           type of the list
+     * @return list distinct by the given predicates
+     */
+    @SafeVarargs
+    private final <T> List<T> distinctList(List<T> list, Function<? super T, ?>... keyExtractors) {
+        return list
+                .stream()
+                .filter(distinctByKeys(keyExtractors))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a predicate for distinction by the given fields.
+     *
+     * @param keyExtractors key extractors
+     * @param <T>           type of the predicate
+     * @return predicate for distinction by the given fields
+     */
+    @SafeVarargs
+    private final <T> Predicate<T> distinctByKeys(Function<? super T, ?>... keyExtractors) {
+        final Map<List<?>, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> {
+            final List<?> keys = Arrays.stream(keyExtractors)
+                    .map(ke -> ke.apply(t))
+                    .collect(Collectors.toList());
+            return seen.putIfAbsent(keys, Boolean.TRUE) == null;
+        };
+    }
+
+    /**
+     * Sort per axis headers by unique column value.
+     *
+     * @param perAxisHeaders per axis headers to sort
+     * @return sorted per axis headers
+     */
+    private List<PerAxisHeader> sortPerAxisHeaders(List<PerAxisHeader> perAxisHeaders) {
+        perAxisHeaders.sort((perAxisHeader1, perAxisHeader2) ->
+                perAxisHeader1.getUniqueAxisValue().compareToIgnoreCase(perAxisHeader2.getUniqueAxisValue()));
+        return perAxisHeaders;
+    }
+
+    /**
+     * Sort per axis summaries by axis 1 and 2.
+     *
+     * @param perAxisSummaries per axis summaries to sort
+     * @return sorted per axis summaries
+     */
+    private List<PerAxisSummary> sortPerAxisSummaries(List<PerAxisSummary> perAxisSummaries) {
+        perAxisSummaries.sort((perAxisSummary1, perAxisSummary2) -> {
+            // First sort by axis 1
+            int result = perAxisSummary1.getAxis1Value().compareToIgnoreCase(perAxisSummary2.getAxis1Value());
+            if (result != 0) {
+                return result;
+            }
+            // Finally by axis 2
+            return perAxisSummary1.getAxis2Value().compareToIgnoreCase(perAxisSummary2.getAxis2Value());
+        });
+        return perAxisSummaries;
+    }
+
+    /**
+     * Creates and returns an instance of {@link PerAxisSummary} for the given params.
+     *
+     * @param uniqueAxisColumn unique axis column
+     * @param reportElement    report element
+     * @return instance of {@link PerAxisSummary}
+     */
+    private PerAxisSummary createPerAxisSummary(AxisColumn uniqueAxisColumn, ReportElement reportElement) {
+        boolean isTestSuccess = reportElement.isTestSuccess();
+        String scenarioName = reportElement.getScenarioName();
+        String deployment = reportElement.getDeployment();
+        String infrastructure = constructInfraString(reportElement);
+
+        switch (uniqueAxisColumn) {
+            case INFRASTRUCTURE:
+                return new PerAxisSummary(deployment, scenarioName, isTestSuccess);
+            case DEPLOYMENT:
+                return new PerAxisSummary(infrastructure, scenarioName, isTestSuccess);
+            case SCENARIO:
+            default:
+                return new PerAxisSummary(deployment, infrastructure, isTestSuccess);
+        }
+    }
+
+    /**
+     * Returns an instance of {@link PerAxisHeader} for the given unique column. By default this will return the per
+     * axis header for the scenario
+     *
+     * @param uniqueAxisColumn unique axis column
+     * @param uniqueAxisValue  unique axis value
+     * @param perAxisSummaries per axis summaries
+     * @param failCount        total failed test count
+     * @param successCount     total success test count
+     * @return an instance of {@link PerAxisHeader} for the given unique column
+     * @throws ReportingException thrown when error on returning the instance
+     */
+    private PerAxisHeader createPerAxisHeader(AxisColumn uniqueAxisColumn, String uniqueAxisValue,
+                                              List<PerAxisSummary> perAxisSummaries, int successCount, int failCount)
+            throws ReportingException {
+        switch (uniqueAxisColumn) {
+            case INFRASTRUCTURE:
+                return new PerAxisHeader(INFRASTRUCTURE, uniqueAxisValue, DEPLOYMENT, SCENARIO, perAxisSummaries,
+                        successCount, failCount);
+            case DEPLOYMENT:
+                return new PerAxisHeader(DEPLOYMENT, uniqueAxisValue, INFRASTRUCTURE, SCENARIO, perAxisSummaries,
+                        successCount, failCount);
+            case SCENARIO:
+            default:
+                return new PerAxisHeader(SCENARIO, uniqueAxisValue, DEPLOYMENT, INFRASTRUCTURE, perAxisSummaries,
+                        successCount, failCount);
+        }
+    }
+
+    /**
+     * Returns a map of unique column value and report elements grouped by the unique column.
+     *
+     * @param uniqueAxisColumn unique axis column
+     * @param reportElements   report elements to group
+     * @return map of unique column value and report elements grouped by the unique column
+     */
+    private Map<String, List<ReportElement>> getGroupedReportElementsByColumn(AxisColumn uniqueAxisColumn,
+                                                                              List<ReportElement> reportElements) {
+        switch (uniqueAxisColumn) {
+            case INFRASTRUCTURE:
+                return reportElements.stream().collect(Collectors.groupingBy(this::constructInfraString));
+            case DEPLOYMENT:
+                return reportElements.stream().collect(Collectors.groupingBy(ReportElement::getDeployment));
+            case SCENARIO:
+            default:
+                return reportElements.stream().collect(Collectors.groupingBy(ReportElement::getScenarioName));
+        }
+    }
+
+    /**
+     * Filter out success tests from report elements.
+     *
+     * @param reportElements report elements to filter
+     * @return filtered report elements
+     */
+    private List<ReportElement> filterSuccessReportElements(List<ReportElement> reportElements) {
+        return reportElements.stream()
+                .filter(reportElement -> !reportElement.isTestSuccess())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Group a list of {@link ReportElement}s by a given {@link AxisColumn}.
+     *
+     * @param uniqueAxisColumn column to group by
+     * @param reportElements   report elements to group
+     * @param showSuccess      whether success tests should be show as well
      * @return list of grouped report elements
      * @throws ReportingException thrown when error on grouping report elements
      */
-    private List<GroupBy> groupReportElementsBy(GroupByColumn groupByColumn, List<ReportElement> reportElements)
+    private List<GroupBy> groupReportElementsBy(AxisColumn uniqueAxisColumn, List<ReportElement> reportElements,
+                                                boolean showSuccess)
             throws ReportingException {
         List<GroupBy> groupByList = new ArrayList<>();
-        Map<String, List<ReportElement>> groupedReportElements;
-        switch (groupByColumn) {
-            case SCENARIO:
-                groupedReportElements = reportElements.stream()
-                        .collect(Collectors.groupingBy(ReportElement::getScenarioName));
-                break;
-            case INFRASTRUCTURE:
-                groupedReportElements = reportElements.stream()
-                        .collect(Collectors.groupingBy(this::constructGroupByInfraString));
-                break;
-            case DEPLOYMENT:
-                groupedReportElements = reportElements.stream()
-                        .collect(Collectors.groupingBy(ReportElement::getDeployment));
-                break;
-            case NONE:
-            default:
-                groupedReportElements = Collections.singletonMap("", reportElements);
-        }
+
+        // If show success is false and the test is a success ignore the result of this test
+        List<ReportElement> filteredReportElements = showSuccess ?
+                                                     new ArrayList<>(reportElements) :
+                                                     filterSuccessReportElements(reportElements);
+
+        Map<String, List<ReportElement>> groupedReportElements =
+                getGroupedReportElementsByColumn(uniqueAxisColumn, filteredReportElements);
 
         for (Map.Entry<String, List<ReportElement>> element : groupedReportElements.entrySet()) {
-            groupByList.add(new GroupBy(element.getKey(), sortReportElements(element.getValue()), groupByColumn));
+            groupByList.add(new GroupBy(element.getKey(), sortReportElements(element.getValue()), uniqueAxisColumn));
         }
 
         // Sort group by list and return
@@ -156,7 +494,7 @@ public class TestReportEngine {
                 return result;
             }
             // The by Infra
-            result = constructGroupByInfraString(re1).compareToIgnoreCase(constructGroupByInfraString(re2));
+            result = constructInfraString(re1).compareToIgnoreCase(constructInfraString(re2));
             if (result != 0) {
                 return result;
             }
@@ -172,12 +510,12 @@ public class TestReportEngine {
     }
 
     /**
-     * Constructs a string to group report elements by the infrastructures.
+     * Constructs a string to output infrastructures.
      *
      * @param reportElement report element to consider
-     * @return string to group report elements by the infrastructures
+     * @return infrastructure string
      */
-    private String constructGroupByInfraString(ReportElement reportElement) {
+    private String constructInfraString(ReportElement reportElement) {
         return StringUtil.concatStrings("Operating System: ", reportElement.getOperatingSystem(),
                 " | Database: ", reportElement.getDatabase(), " | JDK: ", reportElement.getJdk());
     }
@@ -189,12 +527,13 @@ public class TestReportEngine {
      * @return group by column
      * @throws ReportingException thrown on error on getting group by column
      */
-    private GroupByColumn getGroupByColumn(String groupBy) throws ReportingException {
+    private AxisColumn getGroupByColumn(String groupBy) throws ReportingException {
         try {
             if (StringUtil.isStringNullOrEmpty(groupBy)) {
-                return GroupByColumn.NONE;
+                throw new ReportingException(StringUtil
+                        .concatStrings("Column to group by is null or empty", groupBy));
             }
-            return GroupByColumn.valueOf(groupBy.toUpperCase(Locale.ENGLISH));
+            return AxisColumn.valueOf(groupBy.toUpperCase(Locale.ENGLISH));
         } catch (IllegalArgumentException e) {
             throw new ReportingException(StringUtil
                     .concatStrings("Column to group by is not supported ", groupBy), e);
@@ -205,10 +544,9 @@ public class TestReportEngine {
      * Returns constructed the report elements for the report.
      *
      * @param productTestPlan product test plan to construct the report elements
-     * @param showSuccess     whether success tests should be show as well
      * @return constructed report elements
      */
-    private List<ReportElement> constructReportElements(ProductTestPlan productTestPlan, boolean showSuccess) {
+    private List<ReportElement> constructReportElements(ProductTestPlan productTestPlan) {
         List<TestPlan> testPlans = productTestPlan.getTestPlans();
         List<ReportElement> reportElements = new ArrayList<>();
 
@@ -229,11 +567,6 @@ public class TestReportEngine {
                 // Test cases
                 List<TestCase> testCases = testScenario.getTestCases();
                 for (TestCase testCase : testCases) {
-                    // If show success is false and the test is a success ignore the result of this test
-                    if (testCase.isTestSuccess() && !showSuccess) {
-                        continue;
-                    }
-
                     ReportElement reportElement = createReportElement(testPlan, testScenario, testCase);
                     reportElements.add(reportElement);
                 }
@@ -298,9 +631,9 @@ public class TestReportEngine {
         String testGridHome = TestGridUtil.getTestGridHomePath();
         Path reportPath = Paths.get(testGridHome).resolve(fileName);
 
-        log.info("Started writing test results to file...");
+        logger.info("Started writing test results to file...");
         FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), htmlString);
-        log.info("Finished writing test results to file");
+        logger.info("Finished writing test results to file");
     }
 
     /**

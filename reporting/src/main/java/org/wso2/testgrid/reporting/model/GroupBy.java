@@ -17,7 +17,7 @@
  */
 package org.wso2.testgrid.reporting.model;
 
-import org.wso2.testgrid.reporting.GroupByColumn;
+import org.wso2.testgrid.reporting.AxisColumn;
 import org.wso2.testgrid.reporting.ReportingException;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
@@ -46,12 +46,12 @@ public class GroupBy {
      *
      * @param groupByColumnValue group by column
      * @param reportElements     report elements of the report
-     * @param groupByColumn      column in which group by is performed
+     * @param axisColumn         column in which group by is performed
      * @throws ReportingException thrown when error on rendering HTML
      */
-    public GroupBy(String groupByColumnValue, List<ReportElement> reportElements, GroupByColumn groupByColumn)
+    public GroupBy(String groupByColumnValue, List<ReportElement> reportElements, AxisColumn axisColumn)
             throws ReportingException {
-        this.groupByColumnKey = groupByColumn.equals(GroupByColumn.NONE) ? "" : groupByColumn.toString();
+        this.groupByColumnKey = axisColumn.toString();
         this.groupByColumnValue = groupByColumnValue;
         this.reportElements = reportElements;
 

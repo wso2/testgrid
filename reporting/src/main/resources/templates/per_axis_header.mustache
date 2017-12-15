@@ -1,0 +1,51 @@
+{{#perAxis}}
+    <span class="tableTitle">Summary for {{uniqueAxis}} - {{uniqueAxisValue}}</span>
+    <br/>
+    <br/>
+
+    <table class="reportTable">
+        <thead>
+        <tr>
+            <th style="width: 33%">
+                <span>Total Success</span>
+            </th>
+            <th style="width: 33%">
+                <span>Total Failed</span>
+            </th>
+            <th style="width: 44%">
+                <span>Success percentage</span>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td valign="center" align="center" class="successText">{{passedTestCount}}</td>
+            <td valign="center" align="center" class="errorText">{{failedTestCount}}</td>
+            <td valign="center" align="center">{{successPercentage}}</td>
+        </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+    <br/>
+
+    <!-- Summaries -->
+    <table class="reportTable">
+        <thead>
+        <tr>
+            <th style="width: 5%">
+            </th>
+            <th style="width: 25%">
+                <span>{{axis1Title}}</span>
+            </th>
+            <th style="width: 25%">
+                <span>{{axis2Title}}</span>
+            </th>
+        </tr>
+        </thead>
+        {{{parsedAxisSummariesString}}}
+    </table>
+    <br/>
+    <br/>
+    <!-- End of summaries -->
+{{/perAxis}}
