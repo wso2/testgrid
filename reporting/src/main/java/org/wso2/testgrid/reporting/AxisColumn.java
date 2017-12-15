@@ -17,18 +17,41 @@
  */
 package org.wso2.testgrid.reporting;
 
-import org.testng.annotations.Test;
-import org.wso2.testgrid.common.exception.TestReportEngineException;
-
 /**
- * Test class to test the functionality of the {@link TestReportEngineImpl}.
+ * Enum class to define the axis columns.
  *
  * @since 1.0.0
  */
-public class TestReportEngineTest {
+public enum AxisColumn {
 
-    // TODO: Write tests from TestReportEngineImpl
-    @Test
-    public void generateReportTest() throws TestReportEngineException {
+    /**
+     * Deployment column
+     */
+    DEPLOYMENT("DEPLOYMENT"),
+
+    /**
+     * Infrastructure column
+     */
+    INFRASTRUCTURE("INFRASTRUCTURE"),
+
+    /**
+     * Scenario column
+     */
+    SCENARIO("SCENARIO");
+
+    private final String axisColumn;
+
+    /**
+     * Sets axis column.
+     *
+     * @param axisColumn axis column
+     */
+    AxisColumn(String axisColumn) {
+        this.axisColumn = axisColumn;
+    }
+
+    @Override
+    public String toString() {
+        return this.axisColumn;
     }
 }
