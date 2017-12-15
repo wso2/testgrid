@@ -39,6 +39,9 @@ public class GroupBy {
     private final String groupByColumnKey;
     private final String groupByColumnValue;
     private final List<ReportElement> reportElements;
+    private final boolean isGroupByDeployment;
+    private final boolean isGroupByInfrastructure;
+    private final boolean isGroupByScenario;
     private final String parsedReportElementsString;
 
     /**
@@ -54,6 +57,11 @@ public class GroupBy {
         this.groupByColumnKey = axisColumn.toString();
         this.groupByColumnValue = groupByColumnValue;
         this.reportElements = reportElements;
+
+        // Group by column booleans
+        isGroupByDeployment = axisColumn.equals(AxisColumn.DEPLOYMENT);
+        isGroupByInfrastructure = axisColumn.equals(AxisColumn.INFRASTRUCTURE);
+        isGroupByScenario = axisColumn.equals(AxisColumn.SCENARIO);
 
         // Render report elements
         Map<String, Object> reportElementsMap = new HashMap<>();
@@ -87,6 +95,33 @@ public class GroupBy {
      */
     public List<ReportElement> getReportElements() {
         return reportElements;
+    }
+
+    /**
+     * Returns whether the grouping is done by the deployment column.
+     *
+     * @return {@code true} if grouped by deployment, {@code false} otherwise
+     */
+    public boolean isGroupByDeployment() {
+        return isGroupByDeployment;
+    }
+
+    /**
+     * Returns whether the grouping is done by the infrastructure column.
+     *
+     * @return {@code true} if grouped by infrastructure, {@code false} otherwise
+     */
+    public boolean isGroupByInfrastructure() {
+        return isGroupByInfrastructure;
+    }
+
+    /**
+     * Returns whether the grouping is done by the scenario column.
+     *
+     * @return {@code true} if grouped by scenario, {@code false} otherwise
+     */
+    public boolean isGroupByScenario() {
+        return isGroupByScenario;
     }
 
     /**

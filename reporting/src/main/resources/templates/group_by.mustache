@@ -8,15 +8,21 @@
         <tr>
             <th style="width: 5%">
             </th>
-            <th style="width: 12.5%">
-                <span>Deployment</span>
-            </th>
-            <th style="width: 12.5%">
-                <span>Infrastructure</span>
-            </th>
-            <th style="width: 12.5%">
-                <span>Scenario</span>
-            </th>
+            {{^isGroupByDeployment}}
+                <th style="width: 12.5%">
+                    <span>Deployment</span>
+                </th>
+            {{/isGroupByDeployment}}
+            {{^isGroupByInfrastructure}}
+                <th style="width: 12.5%">
+                    <span>Infrastructure</span>
+                </th>
+            {{/isGroupByInfrastructure}}
+            {{^isGroupByScenario}}
+                <th style="width: 12.5%">
+                    <span>Scenario</span>
+                </th>
+            {{/isGroupByScenario}}
             <th style="width: 12.5%">
                 <span>Test case</span>
             </th>

@@ -85,7 +85,8 @@ public class TestReportEngine {
         AxisColumn uniqueAxisColumn = getGroupByColumn(groupBy);
 
         // Construct report elements
-        List<ReportElement> reportElements = Collections.unmodifiableList(constructReportElements(productTestPlan));
+        List<ReportElement> reportElements = Collections
+                .unmodifiableList(constructReportElements(productTestPlan, uniqueAxisColumn));
 
         // Break elements by group by (sorting also handled)
         List<GroupBy> groupByList = groupReportElementsBy(uniqueAxisColumn, reportElements, showSuccess);
@@ -102,7 +103,8 @@ public class TestReportEngine {
 
         // Write to HTML file
         String fileName = StringUtil.concatStrings(productTestPlan.getProductName(), "-",
-                productTestPlan.getProductVersion(), "-", productTestPlan.getChannel(), HTML_EXTENSION);
+                productTestPlan.getProductVersion(), "-", productTestPlan.getChannel(), "-",
+                productTestPlan.getStartTimestamp(), "-", uniqueAxisColumn, HTML_EXTENSION);
         writeHTMLToFile(fileName, htmlString);
     }
 
@@ -124,8 +126,8 @@ public class TestReportEngine {
         Map<String, List<ReportElement>> groupedReportElements =
                 getGroupedReportElementsByColumn(uniqueAxisColumn, reportElements);
 
-        List<PerAxisSummary> perAxisSummaries = new ArrayList<>();
         for (Map.Entry<String, List<ReportElement>> entry : groupedReportElements.entrySet()) {
+            List<PerAxisSummary> perAxisSummaries = new ArrayList<>();
 
             // Capture success and fail count
             Map<Boolean, List<ReportElement>> groupedByTestStatusMap = entry.getValue().stream()
@@ -197,20 +199,27 @@ public class TestReportEngine {
                 .filter(ReportElement::isTestSuccess)
                 .collect(Collectors.toList());
 
-        List<ReportElement> filteredSuccessList = successList.stream()
-                .filter(reportElement -> {
-                    for (ReportElement failListReportElement : failList) {
-                        if (reportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
-                            constructInfraString(reportElement).equals(constructInfraString(failListReportElement))) {
-                            return false;
-                        }
-                    }
-                    return true;
-                })
-                .collect(Collectors.toList());
+        List<ReportElement> filteredSuccessList = new ArrayList<>(failList);
 
-        failList.addAll(filteredSuccessList);
-        return failList;
+        for (ReportElement successListReportElement : successList) {
+            boolean isBreakLoop = false;
+            for (ReportElement failListReportElement : failList) {
+                if (successListReportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
+                    constructInfraString(successListReportElement)
+                            .equals(constructInfraString(failListReportElement))) {
+
+                    // If same combination os found, omit this next time
+                    failList.remove(failListReportElement);
+                    isBreakLoop = true;
+                    break;
+                }
+            }
+            if (isBreakLoop) {
+                continue;
+            }
+            filteredSuccessList.add(successListReportElement);
+        }
+        return filteredSuccessList;
     }
 
     /**
@@ -236,6 +245,7 @@ public class TestReportEngine {
         List<ReportElement> filteredSuccessList = new ArrayList<>(failList);
 
         for (ReportElement successListReportElement : successList) {
+            boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
                 if (constructInfraString(successListReportElement)
                             .equals(constructInfraString(failListReportElement)) &&
@@ -243,8 +253,12 @@ public class TestReportEngine {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
+                    isBreakLoop = true;
                     break;
                 }
+            }
+            if (isBreakLoop) {
+                continue;
             }
             filteredSuccessList.add(successListReportElement);
         }
@@ -271,20 +285,26 @@ public class TestReportEngine {
                 .filter(ReportElement::isTestSuccess)
                 .collect(Collectors.toList());
 
-        List<ReportElement> filteredSuccessList = successList.stream()
-                .filter(reportElement -> {
-                    for (ReportElement failListReportElement : failList) {
-                        if (reportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
-                            reportElement.getScenarioName().equals(failListReportElement.getScenarioName())) {
-                            return false;
-                        }
-                    }
-                    return true;
-                })
-                .collect(Collectors.toList());
+        List<ReportElement> filteredSuccessList = new ArrayList<>(failList);
 
-        failList.addAll(filteredSuccessList);
-        return failList;
+        for (ReportElement successListReportElement : successList) {
+            boolean isBreakLoop = false;
+            for (ReportElement failListReportElement : failList) {
+                if (successListReportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
+                    successListReportElement.getScenarioName().equals(failListReportElement.getScenarioName())) {
+
+                    // If same combination os found, omit this next time
+                    failList.remove(failListReportElement);
+                    isBreakLoop = true;
+                    break;
+                }
+            }
+            if (isBreakLoop) {
+                continue;
+            }
+            filteredSuccessList.add(successListReportElement);
+        }
+        return filteredSuccessList;
     }
 
     /**
@@ -541,10 +561,11 @@ public class TestReportEngine {
     /**
      * Returns constructed the report elements for the report.
      *
-     * @param productTestPlan product test plan to construct the report elements
+     * @param productTestPlan   product test plan to construct the report elements
+     * @param groupByAxisColumn grouped by column name
      * @return constructed report elements
      */
-    private List<ReportElement> constructReportElements(ProductTestPlan productTestPlan) {
+    private List<ReportElement> constructReportElements(ProductTestPlan productTestPlan, AxisColumn groupByAxisColumn) {
         List<TestPlan> testPlans = productTestPlan.getTestPlans();
         List<ReportElement> reportElements = new ArrayList<>();
 
@@ -553,7 +574,8 @@ public class TestReportEngine {
 
             // If infra is failed then there are no test scenarios
             if (infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_ERROR)) {
-                ReportElement reportElement = createReportElement(testPlan, null, null);
+                ReportElement reportElement = createReportElement(testPlan, null, null,
+                        groupByAxisColumn);
                 reportElements.add(reportElement);
                 continue;
             }
@@ -565,7 +587,8 @@ public class TestReportEngine {
                 // Test cases
                 List<TestCase> testCases = testScenario.getTestCases();
                 for (TestCase testCase : testCases) {
-                    ReportElement reportElement = createReportElement(testPlan, testScenario, testCase);
+                    ReportElement reportElement =
+                            createReportElement(testPlan, testScenario, testCase, groupByAxisColumn);
                     reportElements.add(reportElement);
                 }
             }
@@ -576,18 +599,20 @@ public class TestReportEngine {
     /**
      * Creates and returns an {@link ReportElement} instance for the given params.
      *
-     * @param testPlan     test plan
-     * @param testScenario test scenario (can be null if the infra is failed)
-     * @param testCase     test case (can be null if the infra is failed)
+     * @param testPlan          test plan
+     * @param testScenario      test scenario (can be null if the infra is failed)
+     * @param testCase          test case (can be null if the infra is failed)
+     * @param groupByAxisColumn grouped by column name
      * @return {@link ReportElement} for the given params
      */
-    private ReportElement createReportElement(TestPlan testPlan, TestScenario testScenario, TestCase testCase) {
+    private ReportElement createReportElement(TestPlan testPlan, TestScenario testScenario, TestCase testCase,
+                                              AxisColumn groupByAxisColumn) {
         InfraCombination infraCombination = testPlan.getInfraResult().getInfraCombination();
         InfraResult.Status infraStatus = testPlan.getInfraResult().getStatus();
         boolean isInfraSuccess = !infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_ERROR) &&
                                  !infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
 
-        ReportElement reportElement = new ReportElement();
+        ReportElement reportElement = new ReportElement(groupByAxisColumn);
 
         // Information related to the test plan.
         reportElement.setDeployment(testPlan.getDeploymentPattern());
