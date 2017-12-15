@@ -22,9 +22,70 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-        @font-face {
-            font-family: Arial Unicode MS;
+        /*
+        Report table style
+         */
+        table.reportTable {
+            font-family: sans-serif;
+            border: 1px solid #000000;
+            background-color: #FFFFFF;
+            width: 95%;
+            text-align: left;
+            border-collapse: collapse;
         }
+
+        table.reportTable td, table.reportTable th {
+            border: 1px solid #000000;
+            padding: 10px 5px;
+        }
+
+        table.reportTable tbody td {
+            font-size: 14px;
+        }
+
+        table.reportTable tr:nth-child(even) {
+            background: #F6F6F6;
+        }
+
+        table.reportTable thead {
+            background: #949494;
+            border-bottom: 2px solid #000000;
+        }
+
+        table.reportTable thead th {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000000;
+            text-align: center;
+        }
+
+        table.reportTable thead th:first-child {
+            border-left: none;
+        }
+
+        /*
+        Table title
+         */
+        .tableTitle {
+            font-family: sans-serif;
+            font-weight: 600;
+            font-size: 20px;
+            line-height: 20px;
+            width: 100%;
+            color: #e46226;
+        }
+
+        /*
+        Test styles
+         */
+        .errorText {
+            color: #FF0000;
+        }
+
+        .successText {
+            color: #09950B;
+        }
+
     </style>
 </head>
 <body>
@@ -68,30 +129,7 @@
             </table>
             <hr/>
             <br/>
-            <!-- Test results -->
-            <table style="font-family: arial; width: 85%; border-collapse: collapse;">
-                <tr>
-                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                    </th>
-                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                        <span style="color: #000000;">Deployment</span>
-                    </th>
-                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                        <span style="color: #000000;">Infrastructure</span>
-                    </th>
-                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                        <span style="color: #000000;">Scenario</span>
-                    </th>
-                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 12.5%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                        <span style="color: #000000;">Test case</span>
-                    </th>
-                    <th style="font-weight: 600; font-size: 18px; line-height: 20px; width: 45%; padding-top: 15px; padding-bottom: 5px; background: #cccccc;">
-                        <span style="color: #000000;">Failure Message</span>
-                    </th>
-                </tr>
-                {{{parsedReportElements}}}
-            </table>
-            <!-- End of test results -->
+            {{{parsedGroupByListString}}}
         {{/parsedReport}}
     </div>
 </center>

@@ -33,33 +33,32 @@ import java.util.Map;
  */
 public class Report {
 
-    private static final String REPORT_ELEMENT_TEMPLATE_KEY = "parsedReportElements";
-    private static final String REPORT_ELEMENT_MUSTACHE = "report_element.mustache";
+    private static final String GROUP_BY_TEMPLATE_KEY = "groupBy";
+    private static final String GROUP_BY_MUSTACHE = "group_by.mustache";
     private final String productName;
     private final String productVersion;
     private final String channel;
-    private final List<ReportElement> reportElements;
-    private String parsedReportElements;
+    private final List<GroupBy> groupByList;
+    private String parsedGroupByListString;
 
     /**
      * Constructs an instance of {@link Report} for the given parameters.
      *
      * @param productTestPlan product test plan
-     * @param reportElements  report elements of the report
+     * @param groupByList     group by elements of the report
      */
-    public Report(ProductTestPlan productTestPlan, List<ReportElement> reportElements)
+    public Report(ProductTestPlan productTestPlan, List<GroupBy> groupByList)
             throws ReportingException {
         this.productName = productTestPlan.getProductName();
         this.productVersion = productTestPlan.getProductVersion();
         this.channel = productTestPlan.getChannel().toString();
-        this.reportElements = reportElements;
+        this.groupByList = groupByList;
 
-        // Render report elements.
-        // Render test scenarios
-        Map<String, Object> parsedTestScenarios = new HashMap<>();
-        parsedTestScenarios.put(REPORT_ELEMENT_TEMPLATE_KEY, reportElements);
-        Renderable renderable = RenderableFactory.getRenderable(REPORT_ELEMENT_MUSTACHE);
-        this.parsedReportElements = renderable.render(REPORT_ELEMENT_MUSTACHE, parsedTestScenarios);
+        // Render group by list
+        Map<String, Object> parsedGroupByElements = new HashMap<>();
+        parsedGroupByElements.put(GROUP_BY_TEMPLATE_KEY, groupByList);
+        Renderable renderable = RenderableFactory.getRenderable(GROUP_BY_MUSTACHE);
+        this.parsedGroupByListString = renderable.render(GROUP_BY_MUSTACHE, parsedGroupByElements);
     }
 
     /**
@@ -90,15 +89,20 @@ public class Report {
     }
 
     /**
-     * Returns the {@link ReportElement} instances associated with this {@link Report}.
+     * Returns the group by list.
      *
-     * @return {@link ReportElement} instances associated with this {@link Report}
+     * @return the group by list
      */
-    public List<ReportElement> getReportElements() {
-        return reportElements;
+    public List<GroupBy> getGroupByList() {
+        return groupByList;
     }
 
-    public String getParsedReportElements() {
-        return parsedReportElements;
+    /**
+     * Returns the HTML string for group by list.
+     *
+     * @return HTML string for group by list
+     */
+    public String getParsedGroupByListString() {
+        return parsedGroupByListString;
     }
 }

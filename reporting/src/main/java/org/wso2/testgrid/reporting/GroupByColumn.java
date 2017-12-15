@@ -17,18 +17,46 @@
  */
 package org.wso2.testgrid.reporting;
 
-import org.testng.annotations.Test;
-import org.wso2.testgrid.common.exception.TestReportEngineException;
-
 /**
- * Test class to test the functionality of the {@link TestReportEngineImpl}.
+ * Enum class to define the group by columns.
  *
  * @since 1.0.0
  */
-public class TestReportEngineTest {
+public enum GroupByColumn {
 
-    // TODO: Write tests from TestReportEngineImpl
-    @Test
-    public void generateReportTest() throws TestReportEngineException {
+    /**
+     * Group by deployment column
+     */
+    DEPLOYMENT("DEPLOYMENT"),
+
+    /**
+     * Group by infrastructure column
+     */
+    INFRASTRUCTURE("INFRASTRUCTURE"),
+
+    /**
+     * Group by scenario column
+     */
+    SCENARIO("SCENARIO"),
+
+    /**
+     * Do not group by
+     */
+    NONE("NONE");
+
+    private final String groupByColumn;
+
+    /**
+     * Sets group by column.
+     *
+     * @param groupByColumn group by column
+     */
+    GroupByColumn(String groupByColumn) {
+        this.groupByColumn = groupByColumn;
+    }
+
+    @Override
+    public String toString() {
+        return this.groupByColumn;
     }
 }

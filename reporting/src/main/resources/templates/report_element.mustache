@@ -1,7 +1,7 @@
 {{#parsedReportElements}}
-    <tr style="border-bottom: 2px solid #cccccc;">
+    <tr>
         <!-- Status -->
-        <td style="padding: 10px;">
+        <td>
             <center>
                 {{#isTestSuccess}}
                     <img width="42" height="42"
@@ -16,55 +16,50 @@
 
         <!-- Deployment -->
         {{#isInfraSuccess}}
-            <td style="color: #09950B; padding: 10px;">{{deployment}}</td>
+            <td class="successText">{{deployment}}</td>
         {{/isInfraSuccess}}
         {{^isInfraSuccess}}
-            <td style="color: #FF0000; padding: 10px;">{{deployment}}</td>
+            <td class="errorText">{{deployment}}</td>
         {{/isInfraSuccess}}
 
         <!-- Infrastructure -->
         {{#isInfraSuccess}}
-            <td style="color: #09950B; padding: 10px;">
+            <td class="successText">
                 <b>Operating system: </b>{{operatingSystem}} <br/><br/>
                 <b>Database: </b>{{database}} <br/><br/>
                 <b>JDK: </b>{{jdk}} <br/><br/>
             </td>
         {{/isInfraSuccess}}
         {{^isInfraSuccess}}
-            <td style="color: #FF0000; padding: 10px;">
+            <td class="errorText">
                 <b>Operating system: </b>{{operatingSystem}} <br/><br/>
                 <b>Database: </b>{{database}} <br/><br/>
                 <b>JDK: </b>{{jdk}} <br/><br/>
-                <br/>
-                {{^isInfraSuccess}}
-                    <b>Failure Message: {{infraFailureMessage}}</b>
-                {{/isInfraSuccess}}
             </td>
         {{/isInfraSuccess}}
 
         <!-- Scenario -->
         {{#isTestSuccess}}
-            <td style="color: #09950B; padding: 10px;">{{scenarioName}}</td>
-            <td></td>
+            <td class="successText">{{scenarioName}}</td>
         {{/isTestSuccess}}
         {{^isTestSuccess}}
-            <td style="color: #FF0000; padding: 10px;">{{scenarioName}}</td>
+            <td class="errorText">{{scenarioName}}</td>
         {{/isTestSuccess}}
 
         <!-- Test case -->
         {{#isTestSuccess}}
-            <td style="color: #09950B; padding: 10px;">{{testCase}}</td>
+            <td class="successText">{{testCase}}</td>
         {{/isTestSuccess}}
         {{^isTestSuccess}}
-            <td style="color: #FF0000; padding: 10px;">{{testCase}}</td>
+            <td class="errorText">{{testCase}}</td>
         {{/isTestSuccess}}
 
         <!-- Failure message -->
         {{#isTestSuccess}}
-            <td style="color: #09950B; padding: 10px;"></td>
+            <td class="successText"></td>
         {{/isTestSuccess}}
         {{^isTestSuccess}}
-            <td style="color: #FF0000; padding: 10px;">{{testCaseFailureMessage}}</td>
+            <td class="errorText">{{testCaseFailureMessage}}</td>
         {{/isTestSuccess}}
     </tr>
 {{/parsedReportElements}}

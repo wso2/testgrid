@@ -24,9 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestReportEngine;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
-import org.wso2.testgrid.common.exception.TestReportEngineException;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.reporting.TestReportEngineImpl;
+import org.wso2.testgrid.reporting.ReportingException;
+import org.wso2.testgrid.reporting.TestReportEngine;
 
 /**
  * This generates a cumulative test report that consists of all test plans for a given product, version and channel.
@@ -55,6 +55,16 @@ public class GenerateReportCommand implements Command {
     )
     private String channel = "LTS";
 
+    @Option(name = "--showSuccess",
+            usage = "Show success tests",
+            aliases = {"--showSuccess"})
+    private boolean showSuccess = false;
+
+    @Option(name = "--groupBy",
+            usage = "Group by the given column",
+            aliases = {"--groupBy"})
+    private String groupBy = "";
+
 
     @Override
     public void execute() throws CommandExecutionException {
@@ -66,9 +76,9 @@ public class GenerateReportCommand implements Command {
                     "\tProduct version: " + productVersion + "\n" +
                     "\tChannel" + channel);
 
-            TestReportEngine testReportEngine = new TestReportEngineImpl();
-            testReportEngine.generateReport(productName, productVersion, channel);
-        } catch (TestReportEngineException e) {
+            TestReportEngine testReportEngine = new TestReportEngine();
+            testReportEngine.generateReport(productName, productVersion, channel, showSuccess, groupBy);
+        } catch (ReportingException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error occurred when generating test report for { product: ", productName,
                             ", version: ", productVersion, ", channel: ", channel, " }"), e);

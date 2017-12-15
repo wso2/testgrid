@@ -35,7 +35,6 @@ public class ReportElement {
     private String scenarioName;
     private String testCase;
     private String testCaseFailureMessage;
-    private String infraFailureMessage;
     private boolean isInfraSuccess;
     private boolean isTestSuccess;
 
@@ -163,24 +162,6 @@ public class ReportElement {
      */
     public void setTestCaseFailureMessage(String testCaseFailureMessage) {
         this.testCaseFailureMessage = testCaseFailureMessage;
-    }
-
-    /**
-     * Returns the infra failure message.
-     *
-     * @return infra failure message
-     */
-    public String getInfraFailureMessage() {
-        return infraFailureMessage;
-    }
-
-    /**
-     * Sets the infra failure message.
-     *
-     * @param infraFailureMessage infra failure message
-     */
-    public void setInfraFailureMessage(String infraFailureMessage) {
-        this.infraFailureMessage = infraFailureMessage;
     }
 
     /**
