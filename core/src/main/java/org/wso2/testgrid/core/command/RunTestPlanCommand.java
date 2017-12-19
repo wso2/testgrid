@@ -345,13 +345,13 @@ public class RunTestPlanCommand implements Command {
     private void setLogFilePath(ProductTestPlan productTestPlan, Infrastructure infrastructure) {
         //Set productTestPlanId and testPlanId lookup fields for logging
         ProductTestPlanLookup.setProductTestDirectory(productTestPlan.getProductName() + "_"
-                + productTestPlan.getProductVersion() + "_" + productTestPlan.getChannel());
+                                                      + productTestPlan.getProductVersion() + "_" + productTestPlan.getChannel());
         ProductTestPlanLookup.setDeploymentPattern(infrastructure.getName());
         ProductTestPlanLookup
                 .setInfraCombination(infrastructure.getInfraCombination().getOperatingSystem().getName()
-                        + infrastructure.getInfraCombination().getOperatingSystem().getVersion() + "_"
-                        + infrastructure.getInfraCombination().getDatabase().getEngine()
-                        + infrastructure.getInfraCombination().getDatabase().getVersion() + "_"
-                        + infrastructure.getInfraCombination().getJdk());
+                                     + infrastructure.getInfraCombination().getOperatingSystem().getVersion() + "_"
+                                     + infrastructure.getInfraCombination().getDatabase().getEngine()
+                                     + infrastructure.getInfraCombination().getDatabase().getVersion() + "_"
+                                     + infrastructure.getInfraCombination().getJdk());
     }
 }

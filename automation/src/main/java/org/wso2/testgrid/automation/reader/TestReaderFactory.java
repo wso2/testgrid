@@ -18,7 +18,7 @@
 
 package org.wso2.testgrid.automation.reader;
 
-import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.TestEngine;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ public class TestReaderFactory {
      * @param testType type of tests
      * @return instance of an {@link TestReader} for the given test type
      */
-    public static Optional<TestReader> getTestReader(TestScenario.TestEngine testType) {
+    public static Optional<TestReader> getTestReader(TestEngine testType) {
         switch (testType) {
             case JMETER:
                 return Optional.of(new JMeterTestReader());

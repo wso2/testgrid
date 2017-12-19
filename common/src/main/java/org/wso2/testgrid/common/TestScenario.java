@@ -24,7 +24,6 @@ import org.wso2.testgrid.common.util.StringUtil;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -54,29 +53,21 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     /**
      * Column names of the table.
      */
-    public static final String STATUS_COLUMN = "status";
     public static final String NAME_COLUMN = "name";
-    public static final String TEST_PLAN_COLUMN = "testPlan";
+    public static final String STATUS_COLUMN = "status";
     public static final String PRE_SCRIPT_STATUS_COLUMN = "isPreScriptSuccessful";
     public static final String POST_SCRIPT_STATUS_COLUMN = "isPostScriptSuccessful";
-    public static final String TEST_ENGINE_COLUMN = "testEngine";
+    public static final String TEST_PLAN_COLUMN = "testPlan";
 
     private static final long serialVersionUID = -2666342786241472418L;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private Status status;
 
     @Column(name = "name", nullable = false)
     @Element(description = "name of the solution pattern which is covered by this test scenario")
     private String name;
 
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class, fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumn(name = "TESTPLAN_id", referencedColumnName = ID_COLUMN)
-    private TestPlan testPlan;
-
-    @OneToMany(mappedBy = "testScenario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TestCase> testCases = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private Status status;
 
     @Column(name = "is_pre_script_success")
     @Element(description = "holds the status true if pre script is successful")
@@ -86,28 +77,12 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     @Element(description = "holds the status true if post script is successful")
     private boolean isPostScriptSuccessful = false;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "test_engine", nullable = false)
-    @Element(description = "holds the test engine type (i.e. JMETER, TESTNG)")
-    private TestEngine testEngine;
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class, fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn(name = "TESTPLAN_id", referencedColumnName = ID_COLUMN)
+    private TestPlan testPlan;
 
-    /**
-     * Returns the status of the test scenario.
-     *
-     * @return test scenario status
-     */
-    public Status getStatus() {
-        return status;
-    }
-
-    /**
-     * Sets the test scenario status.
-     *
-     * @param status test scenario status
-     */
-    public void setStatus(Status status) {
-        this.status = status;
-    }
+    @OneToMany(mappedBy = "testScenario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TestCase> testCases = new ArrayList<>();
 
     /**
      * Returns the name of the test scenario.
@@ -128,48 +103,21 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns the test plan associated with this test scenario.
+     * Returns the status of the test scenario.
      *
-     * @return test plan associated with this test scenario
+     * @return test scenario status
      */
-    public TestPlan getTestPlan() {
-        return testPlan;
+    public Status getStatus() {
+        return status;
     }
 
     /**
-     * Sets the test plan associated with this test scenario.
+     * Sets the test scenario status.
      *
-     * @param testPlan test plan associated with this test scenario
+     * @param status test scenario status
      */
-    public void setTestPlan(TestPlan testPlan) {
-        this.testPlan = testPlan;
-    }
-
-    /**
-     * Returns the associated test cases list.
-     *
-     * @return associated test cases list
-     */
-    public List<TestCase> getTestCases() {
-        return testCases;
-    }
-
-    /**
-     * Sets the associated test cases list.
-     *
-     * @param testCases associated test cases list
-     */
-    public void setTestCases(List<TestCase> testCases) {
-        this.testCases = testCases;
-    }
-
-    /**
-     * Adds the given test case to the test case list.
-     *
-     * @param testCase test case to be added
-     */
-    public void addTestCase(TestCase testCase) {
-        this.testCases.add(testCase);
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     /**
@@ -209,30 +157,48 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns the test engine in which the test scenario should be executed.
+     * Returns the test plan associated with this test scenario.
      *
-     * @return test scenario executing test engine
+     * @return test plan associated with this test scenario
      */
-    public TestEngine getTestEngine() {
-        return testEngine;
+    public TestPlan getTestPlan() {
+        return testPlan;
     }
 
     /**
-     * Sets the test engine in which the test scenario should be executed.
+     * Sets the test plan associated with this test scenario.
      *
-     * @param testEngine test engine in which the test scenario should be executed
+     * @param testPlan test plan associated with this test scenario
      */
-    public void setTestEngine(String testEngine) {
-        this.testEngine = TestEngine.valueOf(testEngine.toUpperCase(Locale.ENGLISH));
+    public void setTestPlan(TestPlan testPlan) {
+        this.testPlan = testPlan;
     }
 
     /**
-     * Sets the test engine in which the test scenario should be executed.
+     * Returns the associated test cases list.
      *
-     * @param testEngine test engine in which the test scenario should be executed
+     * @return associated test cases list
      */
-    public void setTestEngine(TestEngine testEngine) {
-        this.testEngine = testEngine;
+    public List<TestCase> getTestCases() {
+        return testCases;
+    }
+
+    /**
+     * Sets the associated test cases list.
+     *
+     * @param testCases associated test cases list
+     */
+    public void setTestCases(List<TestCase> testCases) {
+        this.testCases = testCases;
+    }
+
+    /**
+     * Adds a test case to the test case list.
+     *
+     * @param testCase test case to be added to the list
+     */
+    public void addTestCase(TestCase testCase) {
+        testCases.add(testCase);
     }
 
     @Override
@@ -241,91 +207,9 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
                 "id='", this.getId(), "\'",
                 ", name='", name, "\'",
                 ", status='", status, "\'",
-                ", testPlan=", testPlan,
-                ", testEngine='", testEngine, "\'",
+                ", createdTimestamp='", this.getCreatedTimestamp(), "\'",
+                ", modifiedTimestamp='", this.getModifiedTimestamp(), "\'",
+                ", testPlan='", testPlan, "\'",
                 '}');
-    }
-
-    /**
-     * This defines the possible statuses of the {@link TestScenario}.
-     *
-     * @since 1.0.0
-     */
-    public enum Status {
-
-        /**
-         * Planned to execute.
-         */
-        TEST_SCENARIO_PENDING("TEST_SCENARIO_PENDING"),
-
-        /**
-         * Executing in TestEngine.
-         */
-        TEST_SCENARIO_RUNNING("TEST_SCENARIO_RUNNING"),
-
-        /**
-         * Execution completed.
-         */
-        TEST_SCENARIO_COMPLETED("TEST_SCENARIO_COMPLETED"),
-
-        /**
-         * Execution error.
-         */
-        TEST_SCENARIO_ERROR("TEST_SCENARIO_ERROR");
-
-        private final String status;
-
-        /**
-         * Sets the status of the test case.
-         *
-         * @param status test case status
-         */
-        Status(String status) {
-            this.status = status;
-        }
-
-        @Override
-        public String toString() {
-            return this.status;
-        }
-    }
-
-    /**
-     * This defines the TestEngines in which the TestScenario can be executed.
-     *
-     * @since 1.0.0
-     */
-    public enum TestEngine {
-
-        /**
-         * Defines the JMeter TestEngine.
-         */
-        JMETER("JMETER"),
-
-        /**
-         * Defines the TestNg TestEngine.
-         */
-        TESTNG("TESTNG"),
-
-        /**
-         * Defines the Selenium TestEngine.
-         */
-        SELENIUM("SELENIUM");
-
-        private final String testEngine;
-
-        /**
-         * Sets the test engine for the test scenario.
-         *
-         * @param testEngine test engine for the test scenario
-         */
-        TestEngine(String testEngine) {
-            this.testEngine = testEngine;
-        }
-
-        @Override
-        public String toString() {
-            return this.testEngine;
-        }
     }
 }

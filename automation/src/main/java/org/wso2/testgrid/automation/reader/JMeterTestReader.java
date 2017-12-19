@@ -21,6 +21,7 @@ package org.wso2.testgrid.automation.reader;
 import org.apache.commons.lang3.ArrayUtils;
 import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
+import org.wso2.testgrid.common.TestEngine;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
@@ -60,7 +61,7 @@ public class JMeterTestReader implements TestReader {
                     .sorted()
                     .collect(Collectors.toList());
 
-            Test test = new Test(scenario.getName(), TestScenario.TestEngine.JMETER, jmxList, scenario);
+            Test test = new Test(scenario.getName(), TestEngine.JMETER, jmxList, scenario);
             scripts.stream()
                     .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(PRE_STRING))
                     .map(x -> file.getAbsolutePath() +

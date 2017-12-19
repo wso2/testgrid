@@ -56,7 +56,7 @@ public class TestCaseUOW {
         // Create test case instance
         TestCase testCase = new TestCase();
         testCase.setName(testName);
-        testCase.setTestSuccess(isSuccess);
+        testCase.setSuccess(isSuccess);
         testCase.setTestScenario(testScenario);
         testCase.setFailureMessage(responseMessage);
 
@@ -65,16 +65,5 @@ public class TestCaseUOW {
 
         // Persist test case
         return testCaseRepository.persist(testCase);
-    }
-
-    /**
-     * Returns the {@link TestCase} instance for the given id.
-     *
-     * @param id primary key of the test case
-     * @return matching {@link TestCase} instance
-     * @throws TestGridDAOException thrown when error on retrieving results
-     */
-    public TestCase getTestCaseById(String id) throws TestGridDAOException {
-        return testCaseRepository.findByPrimaryKey(id);
     }
 }

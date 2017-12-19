@@ -18,7 +18,7 @@
 package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
-import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
@@ -27,64 +27,63 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 
 /**
- * Repository class for {@link TestPlan} table.
+ * Repository class for {@link DeploymentPattern} table.
  *
  * @since 1.0.0
  */
-public class TestPlanRepository extends AbstractRepository<TestPlan> {
+public class DeploymentPatternRepository extends AbstractRepository<DeploymentPattern> {
 
     /**
      * Constructs an instance of the repository class.
      *
      * @param entityManager {@link EntityManager} instance
      */
-    public TestPlanRepository(EntityManager entityManager) {
+    public DeploymentPatternRepository(EntityManager entityManager) {
         super(entityManager);
     }
 
     /**
-     * Persists an {@link TestPlan} instance in the database.
+     * Persists an {@link DeploymentPattern} instance in the database.
      *
      * @param entity TestPlan to persist in the database
-     * @return added or updated {@link TestPlan} instance
+     * @return added or updated {@link DeploymentPattern} instance
      * @throws TestGridDAOException thrown when error on persisting the TestPlan instance
      */
-    public TestPlan persist(TestPlan entity) throws TestGridDAOException {
+    public DeploymentPattern persist(DeploymentPattern entity) throws TestGridDAOException {
         return super.persist(entity);
     }
 
     /**
-     * Removes an {@link TestPlan} instance from database.
+     * Removes an {@link DeploymentPattern} instance from database.
      *
      * @param entity TestPlan instance to be removed from database.
      * @throws TestGridDAOException thrown when error on removing entry from database
      */
-    public void delete(TestPlan entity) throws TestGridDAOException {
+    public void delete(DeploymentPattern entity) throws TestGridDAOException {
         super.delete(entity);
-        entity.setTestScenarios(null);
-        entity.setInfraParameters(null);
+        entity.setTestPlans(null);
     }
 
     /**
-     * Find a specific {@link TestPlan} instance from database for the given primary key.
+     * Find a specific {@link DeploymentPattern} instance from database for the given primary key.
      *
      * @param id primary key of the entity to be searched for
-     * @return instance of an {@link TestPlan} matching the given primary key
+     * @return instance of an {@link DeploymentPattern} matching the given primary key
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public TestPlan findByPrimaryKey(String id) throws TestGridDAOException {
-        return findByPrimaryKey(TestPlan.class, id);
+    public DeploymentPattern findByPrimaryKey(String id) throws TestGridDAOException {
+        return findByPrimaryKey(DeploymentPattern.class, id);
     }
 
     /**
-     * Returns a list of {@link TestPlan} instances matching the given criteria.
+     * Returns a list of {@link DeploymentPattern} instances matching the given criteria.
      *
      * @param params parameters (map of field name and values) for obtaining the result list
      * @return a list of values for the matched criteria
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public List<TestPlan> findByFields(Map<String, Object> params) throws TestGridDAOException {
-        return super.findByFields(TestPlan.class, params);
+    public List<DeploymentPattern> findByFields(Map<String, Object> params) throws TestGridDAOException {
+        return super.findByFields(DeploymentPattern.class, params);
     }
 
     /**
@@ -93,18 +92,20 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * @return List<TestPlan> all the entries from the table matching the given entity type
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public List<TestPlan> findAll() throws TestGridDAOException {
-        return super.findAll(TestPlan.class);
+    public List<DeploymentPattern> findAll() throws TestGridDAOException {
+        return super.findAll(DeploymentPattern.class);
     }
 
     /**
-     * Returns a list of {@link TestPlan} instances ordered accordingly by the given fields.
+     * Returns a list of {@link DeploymentPattern} instances ordered accordingly by the given fields.
      *
      * @param params parameters (map of field name and values) for obtaining the result list
      * @param fields map of fields [Ascending / Descending, Field name> to sort ascending or descending
-     * @return a list of {@link TestPlan} instances for the matched criteria ordered accordingly by the given fields
+     * @return a list of {@link DeploymentPattern} instances for the matched criteria ordered accordingly by the
+     * given fields
      */
-    public List<TestPlan> orderByFields(Map<String, Object> params, LinkedListMultimap<SortOrder, String> fields) {
-        return super.orderByFields(TestPlan.class, params, fields);
+    public List<DeploymentPattern> orderByFields(Map<String, Object> params,
+                                                 LinkedListMultimap<SortOrder, String> fields) {
+        return super.orderByFields(DeploymentPattern.class, params, fields);
     }
 }

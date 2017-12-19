@@ -15,16 +15,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.testgrid.common;
 
-import org.wso2.carbon.config.annotation.Configuration;
-import org.wso2.carbon.config.annotation.Element;
-import org.wso2.carbon.config.annotation.Ignore;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -34,497 +30,149 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 /**
- * This represents a model of the TestPlan which includes all the necessary data to run the required SolutionPatterns.
- * <p>
- * A single deployment will have a single TestPlan.
+ * Defines a model object of TestPlan with required attributes.
  *
  * @since 1.0.0
  */
 @Entity
 @Table(name = TestPlan.TEST_PLAN_TABLE)
-@Configuration(namespace = "wso2.testgrid.testplan", description = "TestGrid Testplan Configuration Parameters")
 public class TestPlan extends AbstractUUIDEntity implements Serializable {
 
     /**
-     * Test plan table name.
+     * TestPlan table name.
      */
     public static final String TEST_PLAN_TABLE = "test_plan";
 
     /**
      * Column names of the table.
      */
-    public static final String NAME_COLUMN = "name";
-    public static final String START_TIMESTAMP_COLUMN = "startTimestamp";
-    public static final String MODIFIED_TIMESTAMP_COLUMN = "modifiedTimestamp";
     public static final String STATUS_COLUMN = "status";
+    public static final String LOG_LOCATION_COLUMN = "logLocation";
     public static final String DEPLOYMENT_PATTERN_COLUMN = "deploymentPattern";
-    public static final String DESCRIPTION_COLUMN = "description";
-    public static final String INFRA_RESULT_COLUMN = "infraResult";
-    public static final String PRODUCT_TEST_PLAN_COLUMN = "productTestPlan";
 
-    private static final long serialVersionUID = -4345126378695708155L;
-
-    @Element(description = "value to uniquely identify the TestPlan")
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "start_timestamp", nullable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    @Ignore
-    private Timestamp startTimestamp;
-
-    @Column(name = "modified_timestamp", nullable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    @Ignore
-    private Timestamp modifiedTimestamp;
+    private static final long serialVersionUID = 9208083074380972876L;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    @Ignore
+    @Column(name = "status", nullable = false, length = 50)
     private Status status;
 
-    @Element(description = "value to uniquely identify the deployment pattern")
-    @Column(name = "deployment_pattern")
-    private String deploymentPattern;
+    @Column(name = "log_location")
+    private String logLocation;
 
-    @Element(description = "description about the test plan")
-    @Column(name = "description")
-    private String description;
-
-    @Ignore
-    @OneToOne(optional = false, cascade = CascadeType.ALL, targetEntity = InfraResult.class, orphanRemoval = true)
-    private InfraResult infraResult;
-
-    @Ignore
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = ProductTestPlan.class,
+    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = DeploymentPattern.class,
                fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumn(name = "PRODUCTTESTPLAN_id", referencedColumnName = ID_COLUMN)
-    private ProductTestPlan productTestPlan;
+    @PrimaryKeyJoinColumn(name = "DEPLOYMENTPATTERN_id", referencedColumnName = ID_COLUMN)
+    private DeploymentPattern deploymentPattern;
 
     @OneToMany(mappedBy = "testPlan", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Element(description = "list of test scenarios to be executed")
-    private List<TestScenario> testScenarios;
+    private List<TestScenario> testScenarios = new ArrayList<>();
 
-    @Transient
-    @Element(description = "type of the deployer (puppet/chef etc)")
-    private DeployerType deployerType;
-
-    @Transient
-    private Deployment deployment;
-
-    @Transient
-    private String testRepoDir;
-
-    @Transient
-    private String infraRepoDir;
-
-    @Transient
-    @Element(description = "additional script to be run after infrastructure creation step")
-    private Script infrastructureScript;
-
-    @Transient
-    @Element(description = "additional script to be run after deployment step")
-    private Script deploymentScript;
+    @OneToMany(mappedBy = "testPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InfraParameter> infraParameters = new ArrayList<>();
 
     /**
-     * Returns the name of the test plan.
+     * Returns the status of the infrastructure.
      *
-     * @return the name of the test plan
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the name of test plan.
-     *
-     * @param name name of the test plan
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * Returns the start time of the test plan.
-     *
-     * @return the start time of the test plan
-     */
-    public Timestamp getStartTimestamp() {
-        return new Timestamp(startTimestamp.getTime());
-    }
-
-    /**
-     * Sets the start time of test plan.
-     *
-     * @param startTimestamp start time of the test plan
-     */
-    public void setStartTimestamp(Timestamp startTimestamp) {
-        this.startTimestamp = new Timestamp(startTimestamp.getTime());
-    }
-
-    /**
-     * Returns the modified time of the test plan.
-     *
-     * @return the modified time of the test plan
-     */
-    public Timestamp getModifiedTimestamp() {
-        return new Timestamp(modifiedTimestamp.getTime());
-    }
-
-    /**
-     * Sets the modified time of the test plan.
-     *
-     * @param modifiedTimestamp modified time of the test plan
-     */
-    public void setModifiedTimestamp(Timestamp modifiedTimestamp) {
-        this.modifiedTimestamp = new Timestamp(modifiedTimestamp.getTime());
-    }
-
-    /**
-     * Returns the current status of the test plan.
-     *
-     * @return the status of the test plan
+     * @return infrastructure status
      */
     public Status getStatus() {
         return status;
     }
 
     /**
-     * Sets the status of the test plan.
+     * Sets the status of the infrastructure.
      *
-     * @param status current status of the test plan
+     * @param status infrastructure status
      */
     public void setStatus(Status status) {
         this.status = status;
     }
 
     /**
-     * Returns the deployment pattern name of the test plan in which it was created.
+     * Returns the location of the log file
      *
-     * @return the deployment pattern name of the test plan
+     * @return log file location
      */
-    public String getDeploymentPattern() {
+    public String getLogLocation() {
+        return logLocation;
+    }
+
+    /**
+     * Sets the location of the log file.
+     *
+     * @param logLocation log file location
+     */
+    public void setLogLocation(String logLocation) {
+        this.logLocation = logLocation;
+    }
+
+    /**
+     * Returns the deployment pattern associated with.
+     *
+     * @return deployment pattern associated with
+     */
+    public DeploymentPattern getDeploymentPattern() {
         return deploymentPattern;
     }
 
     /**
-     * Sets the deployment pattern name of the test plan in which it was created.
+     * Sets the deployment pattern associated with.
      *
-     * @param deploymentPattern deployment pattern name of the test plan
+     * @param deploymentPattern deployment pattern associated with
      */
-    public void setDeploymentPattern(String deploymentPattern) {
+    public void setDeploymentPattern(DeploymentPattern deploymentPattern) {
         this.deploymentPattern = deploymentPattern;
     }
 
     /**
-     * Returns the description of the test plan.
+     * Returns the associated test scenarios.
      *
-     * @return the name of the test plan
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Sets the description of the test plan.
-     *
-     * @param description description of the test plan
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    /**
-     * Returns the infra result for the test plan.
-     *
-     * @return infra result for the test plan
-     */
-    public InfraResult getInfraResult() {
-        return infraResult;
-    }
-
-    /**
-     * Sets the infra result for the test plan.
-     *
-     * @param infraResult infra result for the test plan
-     */
-    public void setInfraResult(InfraResult infraResult) {
-        this.infraResult = infraResult;
-    }
-
-    /**
-     * Returns the product test plan associated with the test plan.
-     *
-     * @return product test plan associated with the test plan
-     */
-    public ProductTestPlan getProductTestPlan() {
-        return productTestPlan;
-    }
-
-    /**
-     * Sets the product test plan associated with the test plan.
-     *
-     * @param productTestPlan product test plan associated with the test plan
-     */
-    public void setProductTestPlan(ProductTestPlan productTestPlan) {
-        this.productTestPlan = productTestPlan;
-    }
-
-    /**
-     * Returns the list of TestScenarios available under this test plan.
-     *
-     * @return list of TestScenarios in the test plan
+     * @return associated test scenarios
      */
     public List<TestScenario> getTestScenarios() {
         return testScenarios;
     }
 
     /**
-     * Sets the test scenarios to this test plan.
+     * Sets the associated test scenarios.
      *
-     * @param testScenarios Generated id of the test plan
+     * @param testScenarios associated test scenarios
      */
     public void setTestScenarios(List<TestScenario> testScenarios) {
         this.testScenarios = testScenarios;
     }
 
     /**
-     * Returns the deployer-type (puppet/ansible) of the test plan.
+     * Returns the associated list of infra parameters.
      *
-     * @return the deployer-type (puppet/ansible) of the test plan
+     * @return associated list of infra parameters
      */
-    public DeployerType getDeployerType() {
-        return deployerType;
+    public List<InfraParameter> getInfraParameters() {
+        return infraParameters;
     }
 
     /**
-     * Sets the deployer-type (puppet/ansible) of the test plan.
+     * Sets the associated list of infra parameters.
      *
-     * @param deployerType deployer-type (puppet/ansible) of the test plan
+     * @param infraParameters associated list of infra parameters
      */
-    public void setDeployerType(DeployerType deployerType) {
-        this.deployerType = deployerType;
-    }
-
-    /**
-     * Returns the deployment information of the test plan.
-     *
-     * @return the deployment information of the test plan
-     */
-    public Deployment getDeployment() {
-        return deployment;
-    }
-
-    /**
-     * Sets the deployment information of the test plan.
-     *
-     * @param deployment the deployment information of the test plan
-     */
-    public void setDeployment(Deployment deployment) {
-        this.deployment = deployment;
-    }
-
-    /**
-     * Returns the path of the test plans' test artifacts.
-     *
-     * @return the path of the test plans' test artifacts.
-     */
-    public String getTestRepoDir() {
-        return testRepoDir;
-    }
-
-    /**
-     * Sets the path of the test plans' test artifacts.
-     *
-     * @param testRepoDir the path of the test plans' test artifacts.
-     */
-    public void setTestRepoDir(String testRepoDir) {
-        this.testRepoDir = testRepoDir;
-    }
-
-    /**
-     * Returns the path of the test plans' infrastructure artifacts.
-     *
-     * @return the path of the test plans' infrastructure artifacts
-     */
-    public String getInfraRepoDir() {
-        return infraRepoDir;
-    }
-
-    /**
-     * Sets the path of the test plans' infrastructure artifacts.
-     *
-     * @param infraRepoDir the path of the test plans' infrastructure artifacts
-     */
-    public void setInfraRepoDir(String infraRepoDir) {
-        this.infraRepoDir = infraRepoDir;
-    }
-
-    /**
-     * Returns the location of additional infrastructure scripts attached with this test plan.
-     *
-     * @return additional infrastructureScript script path
-     */
-    public Script getInfrastructureScript() {
-        return infrastructureScript;
-    }
-
-    /**
-     * Sets an additional infrastructure script path to this test plan to be executed after the general infrastructure
-     * has completed.
-     *
-     * @param infrastructureScript additional infrastructureScript script path
-     */
-    public void setInfrastructureScript(Script infrastructureScript) {
-        this.infrastructureScript = infrastructureScript;
-    }
-
-    /**
-     * Returns the location of additional deployment scripts attached with this test plan.
-     *
-     * @return the location of additional deployment scripts
-     */
-    public Script getDeploymentScript() {
-        return deploymentScript;
-    }
-
-    /**
-     * Sets an additional deployment script path to this test plan to be executed after the general deployment has
-     * completed.
-     *
-     * @param deploymentScript additional deployment script path
-     */
-    public void setDeploymentScript(Script deploymentScript) {
-        this.deploymentScript = deploymentScript;
+    public void setInfraParameters(List<InfraParameter> infraParameters) {
+        this.infraParameters = infraParameters;
     }
 
     @Override
     public String toString() {
         return StringUtil.concatStrings("TestPlan{",
                 "id='", this.getId(), "\'",
-                ", name='", name, "\'",
-                ", startTimestamp='", startTimestamp, "\'",
-                ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 ", status='", status, "\'",
+                ", logLocation='", logLocation, "\'",
+                ", createdTimestamp='", this.getCreatedTimestamp(), "\'",
+                ", modifiedTimestamp='", this.getModifiedTimestamp(), "\'",
                 ", deploymentPattern='", deploymentPattern, "\'",
-                ", description='", description, "\'",
-                ", infraResult='", infraResult, "\'",
-                ", productTestPlan=", productTestPlan,
-                ", deployerType='", deployerType, "\'",
-                ", deployment='", deployment, "\'",
-                ", testRepoDir='", testRepoDir, "\'",
-                ", infraRepoDir='", infraRepoDir, "\'",
-                ", infrastructureScript='", infrastructureScript, "\'",
-                ", deploymentScript='", deploymentScript, "\'",
                 '}');
-    }
-
-    /**
-     * This defines the possible statuses of the TestPlan.
-     *
-     * @since 1.0.0
-     */
-    public enum Status {
-
-        /**
-         * TestPlan execution has planned.
-         */
-        TESTPLAN_PENDING("TESTPLAN_PENDING"),
-
-        /**
-         * TestPlan execution error.
-         */
-        TESTPLAN_ERROR("TESTPLAN_ERROR"),
-
-        /**
-         * TestPlan execution is in progress.
-         */
-        TESTPLAN_RUNNING("TESTPLAN_RUNNING"),
-
-        /**
-         * Product deployment for the TestPlan execution is being prepared.
-         */
-        TESTPLAN_DEPLOYMENT_PREPARATION("TESTPLAN_DEPLOYMENT_PREPARATION"),
-
-        /**
-         * Product deployment for the TestPlan execution is ready to use.
-         */
-        TESTPLAN_DEPLOYMENT_READY("TESTPLAN_DEPLOYMENT_READY"),
-
-        /**
-         * There was an error when deploying the products for the TestPlan.
-         */
-        TESTPLAN_DEPLOYMENT_ERROR("TESTPLAN_DEPLOYMENT_ERROR"),
-
-        /**
-         * TestPlan execution has completed.
-         */
-        TESTPLAN_COMPLETED("TESTPLAN_COMPLETED");
-
-        private final String status;
-
-        /**
-         * Sets the status of the test plan.
-         *
-         * @param status test plan status
-         */
-        Status(String status) {
-            this.status = status;
-        }
-
-        @Override
-        public String toString() {
-            return this.status;
-        }
-    }
-
-    /**
-     * This defines the supported deployment automation tools.
-     *
-     * @since 1.0.0
-     */
-    public enum DeployerType {
-
-        /**
-         * Defines the puppet automation.
-         */
-        PUPPET("PUPPET"),
-
-        /**
-         * Defines the ansible automation.
-         */
-        ANSIBLE("ANSIBLE"),
-
-        /**
-         * Defines the ansible automation.
-         */
-        AWS_CF("AWS_CF"),
-
-        /**
-         * Defines the chef automation.
-         */
-        CHEF("CHEF");
-
-        private final String deployerType;
-
-        /**
-         * Sets the deployer type of the test plan.
-         *
-         * @param deployerType deployer type of the test plan
-         */
-        DeployerType(String deployerType) {
-            this.deployerType = deployerType;
-        }
-
-        @Override
-        public String toString() {
-            return this.deployerType;
-        }
     }
 }

@@ -70,4 +70,3 @@ wso2.testgrid.infrastructure:
        WUMPassword: "WUM_PASSWORD"
        EC2KeyPair: "EC2KeyPair"
        ALBCertificateARN: "ALBCertificateARN"
-
