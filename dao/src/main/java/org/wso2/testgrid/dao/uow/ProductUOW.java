@@ -67,4 +67,27 @@ public class ProductUOW {
         }
         return Optional.of(products.get(0));
     }
+
+    /**
+     * This method persists a {@link Product} to the database.
+     *
+     * @param name    product name
+     * @param version product version
+     * @param channel product test plan channel
+     * @return persisted {@link Product} instance
+     * @throws TestGridDAOException thrown when error on persisting the object
+     */
+    public Product persistProduct(String name, String version, Product.Channel channel) throws TestGridDAOException {
+        Optional<Product> optionalProduct = getProduct(name, version, channel);
+        if (optionalProduct.isPresent()) {
+            return optionalProduct.get();
+        }
+
+        // Create a new product and persist if the product doesn't exist already.
+        Product product = new Product();
+        product.setName(name);
+        product.setVersion(version);
+        product.setChannel(channel);
+        return productRepository.persist(product);
+    }
 }
