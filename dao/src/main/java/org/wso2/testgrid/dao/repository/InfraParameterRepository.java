@@ -18,7 +18,7 @@
 package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
-import org.wso2.testgrid.common.InfraCombination;
+import org.wso2.testgrid.common.InfraParameter;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
@@ -27,84 +27,84 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 
 /**
- * Repository class for {@link org.wso2.testgrid.common.InfraCombination} table.
+ * Repository class for {@link InfraParameter} table.
  *
  * @since 1.0.0
  */
-public class InfraCombinationRepository extends AbstractRepository<InfraCombination> {
+public class InfraParameterRepository extends AbstractRepository<InfraParameter> {
 
     /**
      * Constructs an instance of the repository class.
      *
      * @param entityManager {@link EntityManager} instance
      */
-    public InfraCombinationRepository(EntityManager entityManager) {
+    public InfraParameterRepository(EntityManager entityManager) {
         super(entityManager);
     }
 
     /**
-     * Persists an {@link InfraCombination} instance in the database.
+     * Persists an {@link InfraParameter} instance in the database.
      *
-     * @param entity InfraCombination to persist in the database
-     * @return added or updated {@link InfraCombination} instance
-     * @throws TestGridDAOException thrown when error on persisting the InfraCombination instance
+     * @param entity InfraParameter to persist in the database
+     * @return added or updated {@link InfraParameter} instance
+     * @throws TestGridDAOException thrown when error on persisting the InfraParameter instance
      */
-    public InfraCombination persist(InfraCombination entity) throws TestGridDAOException {
+    public InfraParameter persist(InfraParameter entity) throws TestGridDAOException {
         return super.persist(entity);
     }
 
     /**
-     * Removes an {@link InfraCombination} instance from database.
+     * Removes an {@link InfraParameter} instance from database.
      *
-     * @param entity InfraCombination instance to be removed from database.
+     * @param entity InfraParameter instance to be removed from database.
      * @throws TestGridDAOException thrown when error on removing entry from database
      */
-    public void delete(InfraCombination entity) throws TestGridDAOException {
+    public void delete(InfraParameter entity) throws TestGridDAOException {
         super.delete(entity);
     }
 
     /**
-     * Find a specific {@link InfraCombination} instance from database for the given primary key.
+     * Find a specific {@link InfraParameter} instance from database for the given primary key.
      *
      * @param id primary key of the entity to be searched for
-     * @return instance of an {@link InfraCombination} matching the given primary key
+     * @return instance of an {@link InfraParameter} matching the given primary key
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public InfraCombination findByPrimaryKey(String id) throws TestGridDAOException {
-        return findByPrimaryKey(InfraCombination.class, id);
+    public InfraParameter findByPrimaryKey(String id) throws TestGridDAOException {
+        return findByPrimaryKey(InfraParameter.class, id);
     }
 
     /**
-     * Returns a list of {@link InfraCombination} instances matching the given criteria.
+     * Returns a list of {@link InfraParameter} instances matching the given criteria.
      *
      * @param params parameters (map of field name and values) for obtaining the result list
      * @return a list of values for the matched criteria
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public List<InfraCombination> findByFields(Map<String, Object> params) throws TestGridDAOException {
-        return super.findByFields(InfraCombination.class, params);
+    public List<InfraParameter> findByFields(Map<String, Object> params) throws TestGridDAOException {
+        return super.findByFields(InfraParameter.class, params);
     }
 
     /**
-     * Returns all the entries from the InfraCombination table.
+     * Returns all the entries from the InfraParameter table.
      *
-     * @return List<InfraCombination> all the entries from the table matching the given entity type
+     * @return List<InfraParameter> all the entries from the table matching the given entity type
      * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public List<InfraCombination> findAll() throws TestGridDAOException {
-        return super.findAll(InfraCombination.class);
+    public List<InfraParameter> findAll() throws TestGridDAOException {
+        return super.findAll(InfraParameter.class);
     }
 
     /**
-     * Returns a list of {@link InfraCombination} instances ordered accordingly by the given fields.
+     * Returns a list of {@link InfraParameter} instances ordered accordingly by the given fields.
      *
      * @param params parameters (map of field name and values) for obtaining the result list
      * @param fields map of fields [Ascending / Descending, Field name> to sort ascending or descending
-     * @return a list of {@link InfraCombination} instances for the matched criteria ordered accordingly by the given
+     * @return a list of {@link InfraParameter} instances for the matched criteria ordered accordingly by the given
      * fields
      */
-    public List<InfraCombination> orderByFields(
+    public List<InfraParameter> orderByFields(
             Map<String, Object> params, LinkedListMultimap<SortOrder, String> fields) {
-        return super.orderByFields(InfraCombination.class, params, fields);
+        return super.orderByFields(InfraParameter.class, params, fields);
     }
 }

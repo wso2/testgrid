@@ -26,7 +26,6 @@ public class TestScenario {
     private String id;
     private String status;
     private String name;
-    private String endStatus;
 
     /**
      * Returns the id of the test scenario.
@@ -80,13 +79,5 @@ public class TestScenario {
      */
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getEndStatus() {
-        return endStatus;
-    }
-
-    public void setEndStatus(String endStatus) {
-        this.endStatus = endStatus;
     }
 }

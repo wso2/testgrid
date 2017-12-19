@@ -17,10 +17,8 @@
  */
 package org.wso2.testgrid.dao.uow;
 
-import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.dao.EntityManagerHelper;
-import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.ProductRepository;
 
@@ -50,17 +48,17 @@ public class ProductUOW {
     /**
      * Returns an instance of {@link Product} for the given product name and product version.
      *
-     * @param productName    product name
-     * @param productVersion product version
-     * @param channel        product test plan channel
+     * @param name    product name
+     * @param version product version
+     * @param channel product test plan channel
      * @return an instance of {@link Product} for the given product name and product version
      */
-    public Optional<Product> getProduct(String productName, String productVersion,
-                                                        Product.Channel channel) throws TestGridDAOException {
+    public Optional<Product> getProduct(String name, String version, Product.Channel channel)
+            throws TestGridDAOException {
         // Search criteria parameters
         Map<String, Object> params = new HashMap<>();
-        params.put(Product.PRODUCT_NAME_COLUMN, productName);
-        params.put(Product.PRODUCT_VERSION_COLUMN, productVersion);
+        params.put(Product.NAME_COLUMN, name);
+        params.put(Product.VERSION_COLUMN, version);
         params.put(Product.CHANNEL_COLUMN, channel);
 
         List<Product> products = productRepository.findByFields(params);
@@ -68,42 +66,5 @@ public class ProductUOW {
             return Optional.empty();
         }
         return Optional.of(products.get(0));
-    }
-
-    /**
-     * Returns all the product test plans.
-     *
-     * @return list of {@link Product} instances
-     * @throws TestGridDAOException thrown when error on retrieving results
-     */
-    public List<Product> getAllProductTestPlans() throws TestGridDAOException {
-        return productRepository.findAll();
-    }
-
-    /**
-     * Returns the {@link Product} instance for the given id.
-     *
-     * @param id primary key of the product test plan
-     * @return matching {@link Product} instance
-     * @throws TestGridDAOException thrown when error on retrieving results
-     */
-    public Product getProductTestPlanById(String id) throws TestGridDAOException {
-        return productRepository.findByPrimaryKey(id);
-    }
-
-    /**
-     * This method persists a {@link Product} to the database.
-     *
-     * @param product Populated Product object
-     * @return persisted {@link Product} instance
-     * @throws TestGridDAOException thrown when error on persisting the object
-     */
-    public Product persistProduct(Product product) throws TestGridDAOException {
-        return productRepository.persist(product);
-    }
-
-    //
-    public List getProductSummary(String sqlQuery) throws TestGridDAOException {
-        return productRepository.executeTypedQuery(sqlQuery);
     }
 }

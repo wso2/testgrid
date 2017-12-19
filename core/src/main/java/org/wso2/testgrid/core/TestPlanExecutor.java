@@ -21,6 +21,7 @@ package org.wso2.testgrid.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
@@ -144,7 +145,7 @@ public class TestPlanExecutor {
             throws TestPlanExecutorException {
         try {
             if (infrastructure == null) {
-//                testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_ERROR);
+                testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_ERROR);
                 throw new TestPlanExecutorException(StringUtil
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan '", testPlan.getName(), "'"));
@@ -155,14 +156,14 @@ public class TestPlanExecutor {
             deployment.setDeploymentScriptsDir(Paths.get(testPlan.getInfraRepoDir(), DEPLOYMENT_DIR,
                     infrastructure.getName(), infrastructure.getProviderType().name()).toString());
             testPlan.setDeployment(deployment);
-//            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_READY);
+            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_READY);
         } catch (TestGridInfrastructureException e) {
-//            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_ERROR);
+            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_ERROR);
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure creation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan '", testPlan.getName(), "'"), e);
         } catch (InfrastructureProviderInitializationException | UnsupportedProviderException e) {
-//            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_ERROR);
+            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_ERROR);
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("No Infrastructure Provider implementation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan '", testPlan.getName(), "'"), e);
@@ -183,7 +184,7 @@ public class TestPlanExecutor {
             TestPlanExecutorException {
         try {
             if (infrastructure == null || testPlan.getDeployment() == null) {
-//                testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
+                testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
                 persistTestPlan(testPlan);
                 throw new TestPlanExecutorException(StringUtil
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
@@ -192,13 +193,13 @@ public class TestPlanExecutor {
             InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
                     .removeInfrastructure(infrastructure, testPlan.getInfraRepoDir());
         } catch (TestGridInfrastructureException e) {
-//            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
+            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
             persistTestPlan(testPlan);
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan '", testPlan.getName(), "'"), e);
         } catch (InfrastructureProviderInitializationException | UnsupportedProviderException e) {
-//            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
+            testPlan.getInfraResult().setStatus(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
             persistTestPlan(testPlan);
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("No Infrastructure Provider implementation for deployment pattern '",

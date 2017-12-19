@@ -20,10 +20,10 @@ package org.wso2.testgrid.web.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
@@ -37,7 +37,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * REST service implementation of Product.
+ * REST service implementation of ProductTestPlan.
  */
 
 @Path("/test-scenarios")
@@ -46,18 +46,17 @@ public class TestScenarioService {
     private static final Logger logger = LoggerFactory.getLogger(TestScenarioService.class);
 
     /**
-     * This has the implementation of the REST API for fetching all the TestScenarioss available in a DeploymentPattern.
+     * This has the implementation of the REST API for fetching all the TestScenarioss available in a TestPlan.
      *
      * @return A list of available TestScenarios.
      */
     @GET
     public Response getTestScenariosForTestPlan(@QueryParam("test-plan-id") String testPlanId) {
         try {
-            DeploymentPatternUOW testPlanUOW = new DeploymentPatternUOW();
-            DeploymentPattern testPlan = testPlanUOW.getTestPlanById(testPlanId);
-            /*List<org.wso2.testgrid.common.TestScenario> testScenarios = testPlan.getInfraResults();
-            return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios)).build();*/
-            return Response.status(Response.Status.OK).entity(testPlan).build();
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            TestPlan testPlan = testPlanUOW.getTestPlanById(testPlanId);
+            List<org.wso2.testgrid.common.TestScenario> testScenarios = testPlan.getTestScenarios();
+            return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlans.";
             logger.error(msg, e);

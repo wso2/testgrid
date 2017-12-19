@@ -19,7 +19,7 @@
 package org.wso2.testgrid.web.bean;
 
 /**
- * Bean class of DeploymentPattern object used in APIs.
+ * Bean class of TestPlan object used in APIs.
  */
 public class TestPlan {
     private String id;

@@ -17,6 +17,7 @@
  */
 package org.wso2.testgrid.common;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -39,6 +40,14 @@ public abstract class AbstractUUIDEntity {
     @Id
     @Column(name = ID_COLUMN, length = 36)
     private String id;
+
+    @Column(name = "created_timestamp", nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private Timestamp createdTimestamp;
+
+    @Column(name = "modified_timestamp", nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    private Timestamp modifiedTimestamp;
 
     /**
      * Sets an UUID for the id field (primary key of the table) if not set.
@@ -68,5 +77,41 @@ public abstract class AbstractUUIDEntity {
      */
     public void setId(String id) {
         this.id = id;
+    }
+
+    /**
+     * Returns the created timestamp.
+     *
+     * @return created timestamp
+     */
+    public Timestamp getCreatedTimestamp() {
+        return new Timestamp(createdTimestamp.getTime());
+    }
+
+    /**
+     * Sets the created time stamp.
+     *
+     * @param createdTimestamp created time stamp
+     */
+    public void setCreatedTimestamp(Timestamp createdTimestamp) {
+        this.createdTimestamp = new Timestamp(createdTimestamp.getTime());
+    }
+
+    /**
+     * Returns the modified timestamp of the test case.
+     *
+     * @return modified test case timestamp
+     */
+    public Timestamp getModifiedTimestamp() {
+        return new Timestamp(modifiedTimestamp.getTime());
+    }
+
+    /**
+     * Sets the modified timestamp of the test case.
+     *
+     * @param modifiedTimestamp modified test case timestamp
+     */
+    public void setModifiedTimestamp(Timestamp modifiedTimestamp) {
+        this.modifiedTimestamp = new Timestamp(modifiedTimestamp.getTime());
     }
 }

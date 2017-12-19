@@ -18,8 +18,6 @@
 
 package org.wso2.testgrid.web.api;
 
-import org.wso2.testgrid.common.DeploymentPattern;
-import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.web.bean.ProductTestPlan;
 import org.wso2.testgrid.web.bean.TestCase;
 import org.wso2.testgrid.web.bean.TestPlan;
@@ -34,12 +32,12 @@ import java.util.List;
 public class APIUtil {
 
     /**
-     * Util method to convert Product DTO to a Product Bean object.
+     * Util method to convert ProductTestPlan DTO to a ProductTestPlan Bean object.
      *
-     * @param productTestPlan Product DTO to be converted
-     * @return Product bean object with necessary information
+     * @param productTestPlan ProductTestPlan DTO to be converted
+     * @return ProductTestPlan bean object with necessary information
      */
-    static ProductTestPlan getProductTestPlanBean(Product productTestPlan) {
+    static ProductTestPlan getProductTestPlanBean(org.wso2.testgrid.common.ProductTestPlan productTestPlan) {
         ProductTestPlan productTestPlanBean = new ProductTestPlan();
         productTestPlanBean.setId(productTestPlan.getId());
         productTestPlanBean.setProductName(productTestPlan.getProductName());
@@ -52,28 +50,28 @@ public class APIUtil {
     }
 
     /**
-     * Util method to convert list of Product DTOs to a list of Product Bean objects.
+     * Util method to convert list of ProductTestPlan DTOs to a list of ProductTestPlan Bean objects.
      *
-     * @param productTestPlans list of Product DTOs to be converted
-     * @return List of Product bean objects with necessary information
+     * @param productTestPlans list of ProductTestPlan DTOs to be converted
+     * @return List of ProductTestPlan bean objects with necessary information
      */
-    static List<ProductTestPlan> getProductTestPlanBeans(List<Product>
+    static List<ProductTestPlan> getProductTestPlanBeans(List<org.wso2.testgrid.common.ProductTestPlan>
                                                                  productTestPlans) {
         List<ProductTestPlan> plans = new ArrayList<>();
 
-        for (Product productTestPlan : productTestPlans) {
+        for (org.wso2.testgrid.common.ProductTestPlan productTestPlan : productTestPlans) {
             plans.add(getProductTestPlanBean(productTestPlan));
         }
         return plans;
     }
 
     /**
-     * Util method to convert DeploymentPattern DTO to a DeploymentPattern Bean object.
+     * Util method to convert TestPlan DTO to a TestPlan Bean object.
      *
-     * @param testPlan DeploymentPattern DTO to be converted
-     * @return DeploymentPattern bean object with necessary information
+     * @param testPlan TestPlan DTO to be converted
+     * @return TestPlan bean object with necessary information
      */
-    static TestPlan getTestPlanBean(DeploymentPattern testPlan) {
+    static TestPlan getTestPlanBean(org.wso2.testgrid.common.TestPlan testPlan) {
         TestPlan testPlan1 = new TestPlan();
         testPlan1.setId(testPlan.getId());
         testPlan1.setName(testPlan.getName());
@@ -82,20 +80,20 @@ public class APIUtil {
         testPlan1.setStatus(testPlan.getStatus().toString());
         testPlan1.setStartTimestamp(testPlan.getStartTimestamp().getTime());
         testPlan1.setModifiedTimestamp(testPlan.getModifiedTimestamp().getTime());
-        testPlan1.setProductTestPlanId(testPlan.getProduct().getId());
+        testPlan1.setProductTestPlanId(testPlan.getProductTestPlan().getId());
         return testPlan1;
     }
 
     /**
-     * Util method to convert list of DeploymentPattern DTOs to a list of DeploymentPattern Bean objects.
+     * Util method to convert list of TestPlan DTOs to a list of TestPlan Bean objects.
      *
-     * @param testPlans list of DeploymentPattern DTOs to be converted
-     * @return List of DeploymentPattern bean objects with necessary information
+     * @param testPlans list of TestPlan DTOs to be converted
+     * @return List of TestPlan bean objects with necessary information
      */
-    static List<TestPlan> getTestPlanBeans(List<DeploymentPattern> testPlans) {
+    static List<TestPlan> getTestPlanBeans(List<org.wso2.testgrid.common.TestPlan> testPlans) {
         List<TestPlan> plans = new ArrayList<>();
 
-        for (DeploymentPattern testPlan : testPlans) {
+        for (org.wso2.testgrid.common.TestPlan testPlan : testPlans) {
             plans.add(getTestPlanBean(testPlan));
         }
         return plans;

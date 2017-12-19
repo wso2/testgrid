@@ -27,7 +27,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 
 /**
- * Repository class for {@link org.wso2.testgrid.common.TestPlan} table.
+ * Repository class for {@link TestPlan} table.
  *
  * @since 1.0.0
  */
@@ -62,7 +62,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
     public void delete(TestPlan entity) throws TestGridDAOException {
         super.delete(entity);
         entity.setTestScenarios(null);
-        entity.setInfraCombination(null);
+        entity.setInfraParameters(null);
     }
 
     /**

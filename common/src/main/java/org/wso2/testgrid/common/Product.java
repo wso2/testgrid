@@ -21,6 +21,7 @@ package org.wso2.testgrid.common;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -33,7 +34,7 @@ import javax.persistence.Table;
 /**
  * This represents a model of the Product which includes the name, version and the channel.
  * All the test-configs will be mapped to a product based on the configuration.
- *
+ * <p>
  * A single product will have multiple deployment patterns
  *
  * @since 1.0.0
@@ -50,41 +51,41 @@ public class Product extends AbstractUUIDEntity implements Serializable {
     /**
      * Column names of the table.
      */
-    public static final String PRODUCT_NAME_COLUMN = "productName";
-    public static final String PRODUCT_VERSION_COLUMN = "productVersion";
+    public static final String NAME_COLUMN = "name";
+    public static final String VERSION_COLUMN = "version";
     public static final String CHANNEL_COLUMN = "channel";
 
     private static final long serialVersionUID = 5812347338918334430L;
 
-    @Column(name = "product_name", nullable = false, length = 50)
-    private String productName;
+    @Column(name = "name", nullable = false, length = 50)
+    private String name;
 
-    @Column(name = "product_version", nullable = false, length = 20)
-    private String productVersion;
+    @Column(name = "version", nullable = false, length = 20)
+    private String version;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "channel", nullable = false)
     private Channel channel;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DeploymentPattern> deploymentPatterns;
+    private List<DeploymentPattern> deploymentPatterns = new ArrayList<>();
 
     /**
      * Returns the product name.
      *
      * @return product name
      */
-    public String getProductName() {
-        return productName;
+    public String getName() {
+        return name;
     }
 
     /**
      * Sets the product name.
      *
-     * @param productName product name
+     * @param name product name
      */
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -92,17 +93,17 @@ public class Product extends AbstractUUIDEntity implements Serializable {
      *
      * @return product version
      */
-    public String getProductVersion() {
-        return productVersion;
+    public String getVersion() {
+        return version;
     }
 
     /**
      * Sets the product version.
      *
-     * @param productVersion product version
+     * @param version product version
      */
-    public void setProductVersion(String productVersion) {
-        this.productVersion = productVersion;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     /**
@@ -145,9 +146,11 @@ public class Product extends AbstractUUIDEntity implements Serializable {
     public String toString() {
         return StringUtil.concatStrings("Product{",
                 "id='", this.getId(), "\'",
-                ", productName='", productName, "\'",
-                ", productVersion='", productVersion, "\'",
+                ", name='", name, "\'",
+                ", version='", version, "\'",
                 ", channel='", channel, "\'",
+                ", createdTimestamp='", this.getCreatedTimestamp(), "\'",
+                ", modifiedTimestamp='", this.getModifiedTimestamp(), "\'",
                 '}');
     }
 

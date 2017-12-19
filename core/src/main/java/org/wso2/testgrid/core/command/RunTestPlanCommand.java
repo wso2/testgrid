@@ -25,10 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.config.ConfigProviderFactory;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
-import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.InfraCombination;
+import org.wso2.testgrid.common.InfraResult;
 import org.wso2.testgrid.common.Infrastructure;
-import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
@@ -37,9 +37,8 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.TestPlanExecutor;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.InfraCombinationUOW;
-import org.wso2.testgrid.dao.uow.ProductUOW;
+import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.logging.plugins.ProductTestPlanLookup;
 
@@ -123,11 +122,11 @@ public class RunTestPlanCommand implements Command {
             }
 
             // Get an infrastructure to execute test plan
-            Product product = getProduct(productName, productVersion, channel);
-            Optional<String> infraFilePath = getInfraFilePath(product);
+            ProductTestPlan productTestPlan = getProductTestPlan(productName, productVersion, channel);
+            Optional<String> infraFilePath = getInfraFilePath(productTestPlan);
             if (!infraFilePath.isPresent()) {
                 logger.info(StringUtil.concatStrings("No infra files found for the given product test plan - ",
-                        product));
+                        productTestPlan));
                 return;
             }
             Infrastructure infrastructure = getInfrastructure(infraFilePath.get());
@@ -135,9 +134,9 @@ public class RunTestPlanCommand implements Command {
             TestPlan testPlan = generateTestPlan(testPlanPath, scenarioRepoDir, infraRepo);
 
             //Set logger file path
-            setLogFilePath(product, infrastructure);
+            setLogFilePath(productTestPlan, infrastructure);
             // Execute test plan
-            executeTestPlan(product, testPlan, infrastructure);
+            executeTestPlan(productTestPlan, testPlan, infrastructure);
         } catch (IllegalArgumentException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Channel ",
                     channel, " is not defined in the available channels enum."), e);
@@ -151,30 +150,29 @@ public class RunTestPlanCommand implements Command {
      * This method triggers the execution of a {@link TestPlan}.
      *
      * @param testPlan        test plan to execute
-     * @param product product test plan associated with the test plan
+     * @param productTestPlan product test plan associated with the test plan
      * @param infrastructure  associated with the test plan
      * @throws CommandExecutionException thrown when error on executing test plan
      */
-    private void executeTestPlan(Product product, TestPlan testPlan,
+    private void executeTestPlan(ProductTestPlan productTestPlan, TestPlan testPlan,
                                  Infrastructure infrastructure) throws CommandExecutionException {
         try {
-
             // Update product test plan status
-            product = persistProduct(product);
+            productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_RUNNING);
+            productTestPlan = persistProductTestPlan(productTestPlan);
 
             // Persist infra combination, infra result and test plan
             InfraCombination infraCombination = getInfraCombination(infrastructure);
+            InfraResult infraResult = new InfraResult();
+            infraResult.setInfraCombination(infraCombination);
+            infraResult.setStatus(InfraResult.Status.INFRASTRUCTURE_PREPARATION);
 
             // Set test scenario status
             testPlan.getTestScenarios()
                     .forEach(testScenario -> testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_PENDING));
 
-//            testPlan.setInfraCombination(infraCombination);
-//            testPlan.setInfraResult(infraResult);
-//            testPlan.setDeploymentPattern(product);
-            DeploymentPattern deploymentPattern = new DeploymentPattern();
-            deploymentPattern.setName(infrastructure.getName());
-            persistDeploymentPattern(deploymentPattern);
+            testPlan.setInfraResult(infraResult);
+            testPlan.setProductTestPlan(productTestPlan);
             testPlan = persistTestPlan(testPlan);
 
             // Run test plan
@@ -182,14 +180,16 @@ public class RunTestPlanCommand implements Command {
             testPlanExecutor.runTestPlan(testPlan, infrastructure);
 
             // product test plan completed
-            persistProduct(product);
+            productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_COMPLETED);
+            persistProductTestPlan(productTestPlan);
         } catch (TestPlanExecutorException e) {
             // Product test plan error
-            persistProduct(product);
+            productTestPlan.setStatus(ProductTestPlan.Status.PRODUCT_TEST_PLAN_ERROR);
+            persistProductTestPlan(productTestPlan);
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan '", testPlan.getName(),
-                            "' in Product '", product.getProductName(), ", version '",
-                            product.getProductVersion(), "'"), e);
+                            "' in Product '", productTestPlan.getProductName(), ", version '",
+                            productTestPlan.getProductVersion(), "'"), e);
         }
     }
 
@@ -228,30 +228,14 @@ public class RunTestPlanCommand implements Command {
     /**
      * Persist the given product test plan.
      *
-     * @param product product test plan to persist
+     * @param productTestPlan product test plan to persist
      * @return persisted product test plan
      * @throws CommandExecutionException thrown when error on persisting product test plan
      */
-    private Product persistProduct(Product product) throws CommandExecutionException {
+    private ProductTestPlan persistProductTestPlan(ProductTestPlan productTestPlan) throws CommandExecutionException {
         try {
-            ProductUOW productTestPlanUOW = new ProductUOW();
-            return productTestPlanUOW.persistProduct(product);
-        } catch (TestGridDAOException e) {
-            throw new CommandExecutionException("Error occurred while persisting product test plan.", e);
-        }
-    }
-
-    /**
-     * Persist the given product test plan.
-     *
-     * @param deploymentPattern product test plan to persist
-     * @return persisted product test plan
-     * @throws CommandExecutionException thrown when error on persisting product test plan
-     */
-    private DeploymentPattern persistDeploymentPattern(DeploymentPattern deploymentPattern) throws CommandExecutionException {
-        try {
-            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
-            return deploymentPatternUOW.persistDeploymentPattern(deploymentPattern);
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
+            return productTestPlanUOW.persistProductTestPlan(productTestPlan);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred while persisting product test plan.", e);
         }
@@ -278,7 +262,7 @@ public class RunTestPlanCommand implements Command {
      * @param productTestPlan product test plan to locate the infrastructure generated location
      * @return file path of an infrastructure file
      */
-    private Optional<String> getInfraFilePath(Product productTestPlan) {
+    private Optional<String> getInfraFilePath(ProductTestPlan productTestPlan) {
         String directoryName = productTestPlan.getId();
         String testGridHome = TestGridUtil.getTestGridHomePath();
         Path directory = Paths.get(testGridHome, directoryName).toAbsolutePath();
@@ -316,52 +300,21 @@ public class RunTestPlanCommand implements Command {
      * @param productName    product name
      * @param productVersion product version
      * @param channel        product test plan channel
-     * @return an instance of {@link Product} for the given parameters
+     * @return an instance of {@link ProductTestPlan} for the given parameters
      * @throws CommandExecutionException thrown when error on retrieving product test plan
      */
-    private Product getProduct(String productName, String productVersion, String channel)
+    private ProductTestPlan getProductTestPlan(String productName, String productVersion, String channel)
             throws CommandExecutionException {
         try {
-            ProductUOW productUOW = new ProductUOW();
-            Product.Channel productTestPlanChannel = Product.Channel.valueOf(channel);
-            return productUOW.getProduct(productName, productVersion, productTestPlanChannel)
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
+            ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
+            return productTestPlanUOW.getProductTestPlan(productName, productVersion, productTestPlanChannel)
                     .orElseThrow(() -> new CommandExecutionException(StringUtil
-                            .concatStrings("Product not found for {product name: ", productName,
+                            .concatStrings("Product test plan not found for {product name: ", productName,
                                     ", product version: ", productVersion, ", channel: ", channel, "}")));
         } catch (IllegalArgumentException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Channel ", channel,
                     " not found in channels enum."));
-        } catch (TestGridDAOException e) {
-            throw new CommandExecutionException(StringUtil.concatStrings(
-                    "Error fetching records for product {product name: ", productName,
-                    ", product version: ", productVersion, ", channel: ", channel, "}"));
-        }
-    }
-
-    /**
-     * Returns the product test plan for the given parameters.
-     *
-     * @param deploymentPatternName    deployment pattern name
-     * @return an instance of {@link Product} for the given parameters
-     * @throws CommandExecutionException thrown when error on retrieving product test plan
-     */
-    private Product getDeploymentPattern(String deploymentPatternName)
-            throws CommandExecutionException {
-        try {
-            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
-            ProductUOW productUOW = new ProductUOW();
-            Product.Channel productTestPlanChannel = Product.Channel.valueOf(channel);
-            return productUOW.getProduct(productName, productVersion, productTestPlanChannel)
-                    .orElseThrow(() -> new CommandExecutionException(StringUtil
-                            .concatStrings("Product not found for {product name: ", productName,
-                                    ", product version: ", productVersion, ", channel: ", channel, "}")));
-        } catch (IllegalArgumentException e) {
-            throw new CommandExecutionException(StringUtil.concatStrings("Channel ", channel,
-                    " not found in channels enum."));
-        } catch (TestGridDAOException e) {
-            throw new CommandExecutionException(StringUtil.concatStrings(
-                    "Error fetching records for product {product name: ", productName,
-                    ", product version: ", productVersion, ", channel: ", channel, "}"));
         }
     }
 
@@ -389,16 +342,16 @@ public class RunTestPlanCommand implements Command {
         }
     }
 
-    private void setLogFilePath(Product productTestPlan, Infrastructure infrastructure) {
+    private void setLogFilePath(ProductTestPlan productTestPlan, Infrastructure infrastructure) {
         //Set productTestPlanId and testPlanId lookup fields for logging
         ProductTestPlanLookup.setProductTestDirectory(productTestPlan.getProductName() + "_"
-                + productTestPlan.getProductVersion() + "_" + productTestPlan.getChannel());
+                                                      + productTestPlan.getProductVersion() + "_" + productTestPlan.getChannel());
         ProductTestPlanLookup.setDeploymentPattern(infrastructure.getName());
         ProductTestPlanLookup
                 .setInfraCombination(infrastructure.getInfraCombination().getOperatingSystem().getName()
-                        + infrastructure.getInfraCombination().getOperatingSystem().getVersion() + "_"
-                        + infrastructure.getInfraCombination().getDatabase().getEngine()
-                        + infrastructure.getInfraCombination().getDatabase().getVersion() + "_"
-                        + infrastructure.getInfraCombination().getJdk());
+                                     + infrastructure.getInfraCombination().getOperatingSystem().getVersion() + "_"
+                                     + infrastructure.getInfraCombination().getDatabase().getEngine()
+                                     + infrastructure.getInfraCombination().getDatabase().getVersion() + "_"
+                                     + infrastructure.getInfraCombination().getJdk());
     }
 }

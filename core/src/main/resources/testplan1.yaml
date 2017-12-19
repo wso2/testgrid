@@ -14,14 +14,14 @@
 #   limitations under the License.
 ################################################################################
 
-# TestGrid DeploymentPattern Configuration Parameters
+# TestGrid TestPlan Configuration Parameters
 wso2.testgrid.testplan:
   enabled: true
   name: "TestPlan1"
   description: "Two node pattern test suite"
   deploymentPattern: "single-node"
   deployerType: "PUPPET"
-  infraResults:
+  testScenarios:
     -
       enabled: true
       name: SolutionPattern22

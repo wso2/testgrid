@@ -21,14 +21,12 @@
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
 
     <persistence-unit name="testgrid_h2" transaction-type="RESOURCE_LOCAL">
-        <class>org.wso2.testgrid.common.Database</class>
-        <class>org.wso2.testgrid.common.OperatingSystem</class>
-        <class>org.wso2.testgrid.common.InfraResult</class>
-        <class>org.wso2.testgrid.common.InfraCombination</class>
-        <class>org.wso2.testgrid.common.DeploymentPattern</class>
-        <class>org.wso2.testgrid.common.TestCase</class>
-        <class>org.wso2.testgrid.common.TestScenario</class>
         <class>org.wso2.testgrid.common.Product</class>
+        <class>org.wso2.testgrid.common.DeploymentPattern</class>
+        <class>org.wso2.testgrid.common.TestPlan</class>
+        <class>org.wso2.testgrid.common.InfraParameter</class>
+        <class>org.wso2.testgrid.common.TestScenario</class>
+        <class>org.wso2.testgrid.common.TestCase</class>
         <properties>
             <property name="javax.persistence.jdbc.url"
                       value="jdbc:h2:mem:testgrid"/>
