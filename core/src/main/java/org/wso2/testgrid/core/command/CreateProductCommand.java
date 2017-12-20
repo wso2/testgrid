@@ -80,7 +80,9 @@ public class CreateProductCommand implements Command {
             Product.Channel productChannel = Product.Channel.valueOf(channel);
             productUOW.persistProduct(name, version, productChannel);
         } catch (TestGridDAOException e) {
-            throw new CommandExecutionException("Error occurred while persisting ProductTestPlan", e);
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Error occurred while persisting Product { name: ", name,
+                            ", version: ", version, ", channel: ", channel, " }"), e);
         }
     }
 }

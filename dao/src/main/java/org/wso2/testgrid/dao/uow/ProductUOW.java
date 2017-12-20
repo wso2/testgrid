@@ -73,7 +73,7 @@ public class ProductUOW {
      *
      * @param name    product name
      * @param version product version
-     * @param channel product test plan channel
+     * @param channel product channel
      * @return persisted {@link Product} instance
      * @throws TestGridDAOException thrown when error on persisting the object
      */
