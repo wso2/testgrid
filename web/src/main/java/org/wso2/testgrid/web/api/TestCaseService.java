@@ -48,7 +48,7 @@ public class TestCaseService {
     /**
      * This has the implementation of the REST API for fetching all the TestCases available in a TestScenario.
      *
-     * @return A list of available TestCases.
+     * @return A list of available TestCases in the given TestScenario.
      */
     @GET
     public Response getTestCasesForTestScenario(@QueryParam("test-scenario-id") String testScenarioId) {

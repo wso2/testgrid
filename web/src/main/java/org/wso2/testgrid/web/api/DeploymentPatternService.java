@@ -30,32 +30,33 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * REST service implementation of ProductTestPlan.
+ * REST service implementation of Deployment-Patterns.
  */
 
-@Path("/product-test-plans")
+@Path("/deployment-patterns")
 @Produces(MediaType.APPLICATION_JSON)
-public class ProductTestPlanService {
+public class DeploymentPatternService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProductTestPlanService.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeploymentPatternService.class);
 
     /**
-     * This has the implementation of the REST API for fetching all the ProductTestPlans.
+     * This has the implementation of the REST API for fetching all the Deployment-Patterns.
      *
-     * @return A list of available ProductTestPlans.
+     * @return A list of available Deployment-Patterns.
      */
     @GET
-    public Response getAllProductTestPlans() {
+    public Response getAllDeploymentPatterns() {
         try {
             ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             List<ProductTestPlan> testPlans = productTestPlanUOW.getAllProductTestPlans();
             return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBeans(testPlans)).build();
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the ProductTestPlans.";
+            String msg = "Error occurred while fetching all Deployment-Patterns.";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
@@ -63,13 +64,13 @@ public class ProductTestPlanService {
     }
 
     /**
-     * This has the implementation of the REST API for fetching a ProductTestPlan by id.
+     * This has the implementation of the REST API for fetching a Deployment-Pattern by id.
      *
-     * @return the matching ProductTestPlan.
+     * @return the matching Deployment-Pattern.
      */
     @GET
     @Path("/{id}")
-    public Response getProductTestPlan(@PathParam("id") String id) {
+    public Response getDeploymentPattern(@PathParam("id") String id) {
         try {
             ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlanById(id);
@@ -79,11 +80,32 @@ public class ProductTestPlanService {
                         build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
-                        setMessage("Unable to find the requested ProductTestPlan by id : '" + id + "'").build()).
+                        setMessage("Unable to find the requested Deployment-Pattern by id : '" + id + "'").build()).
                         build();
             }
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the ProductTestPlan by id : '" + id + "'";
+            String msg = "Error occurred while fetching the Deployment-Pattern by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError().entity(
+                    new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
+     * This has the implementation of the REST API for fetching Products with build history status.
+     *
+     * @return Product list with build status.
+     */
+    @GET
+    @Path("/recent-test-info")
+    public Response getDeploymentPatternsWithTestInfo(@QueryParam("productId") String productId,
+                                                      @QueryParam("date") int date) {
+        try {
+            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
+            List<ProductTestPlan> testPlans = productTestPlanUOW.getAllProductTestPlans();
+            return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBeans(testPlans)).build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the Products with build info.";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();

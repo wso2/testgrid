@@ -18,7 +18,7 @@
 
 package org.wso2.testgrid.web.api;
 
-import org.wso2.testgrid.web.bean.ProductTestPlan;
+import org.wso2.testgrid.web.bean.Product;
 import org.wso2.testgrid.web.bean.TestCase;
 import org.wso2.testgrid.web.bean.TestPlan;
 import org.wso2.testgrid.web.bean.TestScenario;
@@ -32,32 +32,29 @@ import java.util.List;
 public class APIUtil {
 
     /**
-     * Util method to convert ProductTestPlan DTO to a ProductTestPlan Bean object.
+     * Util method to convert Product DTO to a Product Bean object.
      *
-     * @param productTestPlan ProductTestPlan DTO to be converted
-     * @return ProductTestPlan bean object with necessary information
+     * @param productTestPlan Product DTO to be converted
+     * @return Product bean object with necessary information
      */
-    static ProductTestPlan getProductTestPlanBean(org.wso2.testgrid.common.ProductTestPlan productTestPlan) {
-        ProductTestPlan productTestPlanBean = new ProductTestPlan();
-        productTestPlanBean.setId(productTestPlan.getId());
-        productTestPlanBean.setProductName(productTestPlan.getProductName());
-        productTestPlanBean.setProductVersion(productTestPlan.getProductVersion());
-        productTestPlanBean.setStartTimestamp(productTestPlan.getStartTimestamp().getTime());
-        productTestPlanBean.setEndTimestamp(productTestPlan.getModifiedTimestamp().getTime());
-        productTestPlanBean.setStatus(productTestPlan.getStatus().toString());
-        //productTestPlanBean.setReportLocation();
-        return productTestPlanBean;
+    static Product getProductTestPlanBean(org.wso2.testgrid.common.ProductTestPlan productTestPlan) {
+        Product productBean = new Product();
+        productBean.setId(productTestPlan.getId());
+        productBean.setName(productTestPlan.getProductName());
+        productBean.setVersion(productTestPlan.getProductVersion());
+        //productTestPlanBean.setChannel();
+        return productBean;
     }
 
     /**
-     * Util method to convert list of ProductTestPlan DTOs to a list of ProductTestPlan Bean objects.
+     * Util method to convert list of Product DTOs to a list of Product Bean objects.
      *
-     * @param productTestPlans list of ProductTestPlan DTOs to be converted
-     * @return List of ProductTestPlan bean objects with necessary information
+     * @param productTestPlans list of Product DTOs to be converted
+     * @return List of Product bean objects with necessary information
      */
-    static List<ProductTestPlan> getProductTestPlanBeans(List<org.wso2.testgrid.common.ProductTestPlan>
+    static List<Product> getProductTestPlanBeans(List<org.wso2.testgrid.common.ProductTestPlan>
                                                                  productTestPlans) {
-        List<ProductTestPlan> plans = new ArrayList<>();
+        List<Product> plans = new ArrayList<>();
 
         for (org.wso2.testgrid.common.ProductTestPlan productTestPlan : productTestPlans) {
             plans.add(getProductTestPlanBean(productTestPlan));
@@ -74,13 +71,8 @@ public class APIUtil {
     static TestPlan getTestPlanBean(org.wso2.testgrid.common.TestPlan testPlan) {
         TestPlan testPlan1 = new TestPlan();
         testPlan1.setId(testPlan.getId());
-        testPlan1.setName(testPlan.getName());
         testPlan1.setDeploymentPattern(testPlan.getDeploymentPattern());
-        testPlan1.setDescription(testPlan.getDescription());
         testPlan1.setStatus(testPlan.getStatus().toString());
-        testPlan1.setStartTimestamp(testPlan.getStartTimestamp().getTime());
-        testPlan1.setModifiedTimestamp(testPlan.getModifiedTimestamp().getTime());
-        testPlan1.setProductTestPlanId(testPlan.getProductTestPlan().getId());
         return testPlan1;
     }
 
@@ -138,9 +130,9 @@ public class APIUtil {
         TestCase testCase1 = new TestCase();
         testCase1.setId(testCase.getId());
         testCase1.setName(testCase.getName());
-        testCase1.setStatus(testCase.isTestSuccess());
+        testCase1.setSuccess(testCase.isTestSuccess());
         testCase1.setModifiedTimestamp(testCase.getModifiedTimestamp().getTime());
-        testCase1.setStartTimestamp(testCase.getStartTimestamp().getTime());
+        testCase1.setCreatedTimestamp(testCase.getStartTimestamp().getTime());
         return testCase1;
     }
 

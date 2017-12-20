@@ -18,236 +18,124 @@
 
 package org.wso2.testgrid.web.bean;
 
+import java.util.List;
+
 /**
  * Bean class of TestPlan object used in APIs.
  */
 public class TestPlan {
     private String id;
-    private String name;
+    private String deploymentPatternId;
     private String deploymentPattern;
-    private String description;
-    private long startTimestamp;
-    private long modifiedTimestamp;
     private String status;
-    private String productTestPlanId;
-    private String infraResultId;
-    private String operatingSystem;
-    private String database;
-    private String jdk;
+    private String infraParams;
+    private List<TestScenario> testScenarios;
 
     /**
-     * Returns the id of the test plan.
+     * Returns the id of the test-plan.
      *
-     * @return test plan id
+     * @return test-plan id
      */
     public String getId() {
         return id;
     }
 
     /**
-     * Sets the id of the test plan.
+     * Sets the id of the test-plan.
      *
-     * @param id test plan id
+     * @param id test-plan id
      */
     public void setId(String id) {
         this.id = id;
     }
 
     /**
-     * Returns the name of the test plan.
+     * Returns the id of the associated deployment-pattern.
      *
-     * @return test plan name
+     * @return associated deployment-pattern id
      */
-    public String getName() {
-        return name;
+    public String getDeploymentPatternId() {
+        return deploymentPatternId;
     }
 
     /**
-     * Sets the name of the test plan.
+     * Sets the id of the associated deployment-pattern.
      *
-     * @param name test plan name
+     * @param deploymentPatternId associated deployment-pattern id
      */
-    public void setName(String name) {
-        this.name = name;
+    public void setDeploymentPatternId(String deploymentPatternId) {
+        this.deploymentPatternId = deploymentPatternId;
     }
 
     /**
-     * Returns the deployment pattern of the test plan.
+     * Returns the deployment-pattern name used in the test-plan.
      *
-     * @return test plan deployment pattern
+     * @return deployment-pattern used in the test-plan
      */
     public String getDeploymentPattern() {
         return deploymentPattern;
     }
 
     /**
-     * Sets the deployment pattern of the test plan.
+     * Sets the deployment-pattern of the test-plan.
      *
-     * @param deploymentPattern test plan deployment pattern
+     * @param deploymentPattern deployment-pattern used in this test-plan
      */
     public void setDeploymentPattern(String deploymentPattern) {
         this.deploymentPattern = deploymentPattern;
     }
 
     /**
-     * Returns the description of the test plan.
+     * Returns the status of the test-plan.
      *
-     * @return test plan description
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Sets the description pattern of the test plan.
-     *
-     * @param description test plan description
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    /**
-     * Returns the start timestamp of the test plan.
-     *
-     * @return test plan timestamp
-     */
-    public long getStartTimestamp() {
-        return startTimestamp;
-    }
-
-    /**
-     * Sets the start timestamp of the test plan.
-     *
-     * @param startTimestamp test plan start timestamp
-     */
-    public void setStartTimestamp(long startTimestamp) {
-        this.startTimestamp = startTimestamp;
-    }
-
-    /**
-     * Returns the status of the test plan.
-     *
-     * @return test plan status
+     * @return test-plan status
      */
     public String getStatus() {
         return status;
     }
 
     /**
-     * Sets the status of the test plan.
+     * Sets the status of the test-plan.
      *
-     * @param status test plan status
+     * @param status test-plan status
      */
     public void setStatus(String status) {
         this.status = status;
     }
 
     /**
-     * Returns the id of the product test plan.
+     * Returns the params used for generating infrastructure.
      *
-     * @return product test plan id
+     * @return infra parameters used for generating infrastructure
      */
-    public String getProductTestPlanId() {
-        return productTestPlanId;
+    public String getInfraParams() {
+        return infraParams;
     }
 
     /**
-     * Sets the id of the product test plan.
+     * Sets the infra params of the test-plan.
      *
-     * @param productTestPlanId product test plan id
+     * @param infraParams {@link Map} infra parameters used for generating infrastructure
      */
-    public void setProductTestPlanId(String productTestPlanId) {
-        this.productTestPlanId = productTestPlanId;
+    public void setInfraParams(String infraParams) {
+        this.infraParams = infraParams;
     }
 
     /**
-     * Returns the id of the infra result.
+     * Returns the test-scenarios in this test-plan.
      *
-     * @return infra result test plan id
+     * @return list of test-scenarios available in the test-plan
      */
-    public String getInfraResultId() {
-        return infraResultId;
+    public List<TestScenario> getTestScenarios() {
+        return testScenarios;
     }
 
     /**
-     * Sets the id of the infra result.
+     * Sets the test-scenarios of the test-plan.
      *
-     * @param infraResultId infra result id
+     * @param testScenarios {@link TestScenario} list of test-scenarios available in the test-plan
      */
-    public void setInfraResultId(String infraResultId) {
-        this.infraResultId = infraResultId;
-    }
-
-    /**
-     * Returns the modified timestamp of the test plan.
-     *
-     * @return product test plan end timestamp
-     */
-    public long getModifiedTimestamp() {
-        return modifiedTimestamp;
-    }
-
-    /**
-     * Sets the modified timestamp of the test plan.
-     *
-     * @param modifiedTimestamp test plan modified timestamp
-     */
-    public void setModifiedTimestamp(long modifiedTimestamp) {
-        this.modifiedTimestamp = modifiedTimestamp;
-    }
-
-    /**
-     * Returns the operating system of the test plan.
-     *
-     * @return product test plan operating system
-     */
-    public String getOperatingSystem() {
-        return operatingSystem;
-    }
-
-    /**
-     * Sets the operating system of the test plan.
-     *
-     * @param operatingSystem test plan operating system
-     */
-    public void setOperatingSystem(String operatingSystem) {
-        this.operatingSystem = operatingSystem;
-    }
-
-    /**
-     * Returns the database of the test plan.
-     *
-     * @return product test plan database
-     */
-    public String getDatabase() {
-        return database;
-    }
-
-    /**
-     * Sets the database of the test plan.
-     *
-     * @param database test plan database
-     */
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    /**
-     * Returns the JDK of the test plan.
-     *
-     * @return product test plan JDK
-     */
-    public String getJdk() {
-        return jdk;
-    }
-
-    /**
-     * Sets the jdk of the test plan.
-     *
-     * @param jdk test plan jdk
-     */
-    public void setJdk(String jdk) {
-        this.jdk = jdk;
+    public void setTestScenarios(List<TestScenario> testScenarios) {
+        this.testScenarios = testScenarios;
     }
 }

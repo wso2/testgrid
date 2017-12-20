@@ -37,7 +37,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * REST service implementation of ProductTestPlan.
+ * REST service implementation of Test-Scenarios.
  */
 
 @Path("/test-scenarios")
@@ -46,19 +46,20 @@ public class TestScenarioService {
     private static final Logger logger = LoggerFactory.getLogger(TestScenarioService.class);
 
     /**
-     * This has the implementation of the REST API for fetching all the TestScenarioss available in a TestPlan.
+     * This has the implementation of the REST API for fetching all the TestScenarios ran for a given infrastructure.
      *
      * @return A list of available TestScenarios.
      */
     @GET
-    public Response getTestScenariosForTestPlan(@QueryParam("test-plan-id") String testPlanId) {
+    public Response getTestScenariosForTestPlan(@QueryParam("test-plan-id") String testPlanId,
+                                                @QueryParam("requireTestCaseInfo") boolean requireTestCaseInfo) {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             TestPlan testPlan = testPlanUOW.getTestPlanById(testPlanId);
             List<org.wso2.testgrid.common.TestScenario> testScenarios = testPlan.getTestScenarios();
             return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios)).build();
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestPlans.";
+            String msg = "Error occurred while fetching the TestScenarios for the test-plan-id : '" + testPlanId + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();

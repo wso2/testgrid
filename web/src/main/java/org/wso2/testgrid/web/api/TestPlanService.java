@@ -45,16 +45,19 @@ public class TestPlanService {
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
 
     /**
-     * This has the implementation of the REST API for fetching all the TestPlans available in a ProductTestPlan.
+     * This has the implementation of the REST API for fetching all the TestPlans for a given deployment-pattern
+     * and date.
      *
      * @return A list of available TestPlans.
      */
     @GET
-    public Response getTestPlansForProductTestPlan(@QueryParam("product-test-plan-id") String productTestPlanId) {
+    public Response getTestPlansForDeploymentPatternAndDate(@QueryParam("deployment-pattern-id")
+                                             String deploymentPatternId, @QueryParam("date") long date,
+                                              @QueryParam("requireTestScenarioInfo") boolean requireTestScenarioInfo) {
         try {
             ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
             org.wso2.testgrid.common.ProductTestPlan productTestPlan = productTestPlanUOW
-                    .getProductTestPlanById(productTestPlanId);
+                    .getProductTestPlanById(deploymentPatternId);
             List<org.wso2.testgrid.common.TestPlan> testPlans = productTestPlan.getTestPlans();
             return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans)).build();
         } catch (TestGridDAOException e) {
@@ -68,11 +71,12 @@ public class TestPlanService {
     /**
      * This has the implementation of the REST API for fetching a specific TestPlan by id.
      *
-     * @return A list of available TestCases.
+     * @return The requested Test-Plan.
      */
     @GET
     @Path("/{id}")
-    public Response getTestPlan(@PathParam("id") String id) {
+    public Response getTestPlan(@PathParam("id") String id, @QueryParam("requireTestCaseInfo")
+            boolean requireTestCaseInfo) {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             TestPlan testPlan = testPlanUOW.getTestPlanById(id);
