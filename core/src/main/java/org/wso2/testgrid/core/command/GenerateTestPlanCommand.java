@@ -37,13 +37,12 @@ import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -162,10 +161,9 @@ public class GenerateTestPlanCommand implements Command {
      */
     private void saveFile(String content, String filePath, String fileName) throws CommandExecutionException {
         String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
-        try (OutputStream file = new FileOutputStream(fileAbsolutePath);
-             OutputStream buffer = new BufferedOutputStream(file);
-             ObjectOutput output = new ObjectOutputStream(buffer)) {
-            output.writeObject(content);
+        try (OutputStream outputStream = new FileOutputStream(fileAbsolutePath);
+             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+            outputStreamWriter.write(content);
         } catch (IOException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Error in writing file ", fileName), e);
         }

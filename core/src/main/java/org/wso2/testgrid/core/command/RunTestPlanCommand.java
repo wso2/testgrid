@@ -357,10 +357,8 @@ public class RunTestPlanCommand implements Command {
      * @param testRepoDir  test repo directory
      * @param infraRepoDir infrastructure repo directory
      * @return TestPlan object model
-     * @throws CommandExecutionException if an error occurred during test plan generation.
      */
-    private TestPlan generateTestPlan(TestConfig testConfig, String testRepoDir, String infraRepoDir)
-            throws CommandExecutionException {
+    private TestPlan generateTestPlan(TestConfig testConfig, String testRepoDir, String infraRepoDir) {
         TestPlan testPlan = new TestPlan();
         DeploymentPattern deploymentPattern = new DeploymentPattern();
         deploymentPattern.setName(testConfig.getDeploymentPattern());
