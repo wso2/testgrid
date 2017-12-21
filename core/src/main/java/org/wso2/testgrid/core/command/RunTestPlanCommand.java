@@ -40,8 +40,11 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.logging.plugins.ProductTestPlanLookup;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -160,15 +163,17 @@ public class RunTestPlanCommand implements Command {
      *
      * @param location location of the test plan YAML file
      * @return instance of {@link TestConfig}
-     * @throws CommandExecutionException thrown when error on retrieving instance
+     * @throws CommandExecutionException thrown when error on reading file
      */
     private TestConfig readTestConfig(String location) throws CommandExecutionException {
-        try {
-            Path testConfigPath = Paths.get(location);
-            ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(testConfigPath, null);
-            return configProvider.getConfigurationObject(TestConfig.class);
-        } catch (ConfigurationException e) {
-            throw new CommandExecutionException("Error when initializing carbon config provider.", e);
+        try (FileInputStream fileInputStream = new FileInputStream(new File(location))) {
+            return new Yaml().loadAs(fileInputStream, TestConfig.class);
+        } catch (FileNotFoundException e) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Test plan YAML not found (file: ", location, ")"), e);
+        } catch (IOException e) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Error in reading file ", location), e);
         }
     }
 
