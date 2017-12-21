@@ -88,8 +88,8 @@ public class TestScenarioService {
             Optional<TestScenario> testScenario = testScenarioUOW.getTestScenarioById(id);
 
             if (testScenario.isPresent()) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBean(testScenario.get(), true)).
-                        build();
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBean(testScenario.get(),
+                        true)).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
                         setMessage("Unable to find the requested TestScenario by id : '" + id + "'").build()).build();

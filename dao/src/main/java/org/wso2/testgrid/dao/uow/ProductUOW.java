@@ -23,6 +23,7 @@ import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.ProductRepository;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +123,7 @@ public class ProductUOW {
      * @param date date up to the history should be looked
      * @return a List of {@link ProductTestStatus} instances
      */
-    public List<ProductTestStatus> getProductTestHistory(long date) throws TestGridDAOException {
+    public List<ProductTestStatus> getProductTestHistory(Timestamp date) throws TestGridDAOException {
         return productRepository.getProductTestHistory(date);
     }
 }

@@ -25,6 +25,7 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.GET;
@@ -52,12 +53,12 @@ public class TestPlanService {
      */
     @GET
     public Response getTestPlansForDeploymentPatternAndDate(@QueryParam("deployment-pattern-id")
-                                             String deploymentPatternId, @QueryParam("date") long date,
+                                             String deploymentPatternId, @QueryParam("date") String date,
                                               @QueryParam("requireTestScenarioInfo") boolean requireTestScenarioInfo) {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             List<org.wso2.testgrid.common.TestPlan> testPlans = testPlanUOW.
-                    getTestPlansByDeploymentIdAndDate(deploymentPatternId, date);
+                    getTestPlansByDeploymentIdAndDate(deploymentPatternId, Timestamp.valueOf(date));
             return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans,
                     requireTestScenarioInfo)).build();
         } catch (TestGridDAOException e) {

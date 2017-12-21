@@ -16,28 +16,34 @@
  * under the License.
  */
 
-package org.wso2.testgrid.web.bean;
+package org.wso2.testgrid.common;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
 /**
- * Bean class of Test status used in APIs.
+ * Created by harshan on 12/21/17.
  */
-public class TestStatus {
-    private String status;
-    private String date;
+@Entity
+public class DeploymentPatternTestFailureStat {
 
-    public String getStatus() {
-        return status;
+    @Id
+    private String deploymentPatternId;
+    private Integer failureCount;
+
+    public String getDeploymentPatternId() {
+        return deploymentPatternId;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setDeploymentPatternId(String deploymentPatternId) {
+        this.deploymentPatternId = deploymentPatternId;
     }
 
-    public String getDate() {
-        return date;
+    public Integer getFailureCount() {
+        return failureCount;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setFailureCount(Integer failureCount) {
+        this.failureCount = failureCount;
     }
 }

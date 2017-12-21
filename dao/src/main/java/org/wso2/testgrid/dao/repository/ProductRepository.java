@@ -24,6 +24,7 @@ import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -128,10 +129,14 @@ public class ProductRepository extends AbstractRepository<Product> {
      * @param date timestamp up to
      * @return result list after executing the query
      */
-    public List<ProductTestStatus> getProductTestHistory(long date) throws TestGridDAOException {
-        String queryStr = "SELECT * from PRODUCT;";
+    public List<ProductTestStatus> getProductTestHistory(Timestamp date) throws TestGridDAOException {
+        String queryStr = "SELECT p.id, p.name, p.version, p.channel, dp.id AS deploymentPatternId, dp.name AS " +
+                "deploymentPattern, tp.status, tp.created_time AS testExecutionTime FROM product AS p INNER JOIN " +
+                "deployment_pattern AS dp ON p.id = dp.product_id INNER JOIN testplan AS tp ON " +
+                "dp.id = tp.deployment_pattern_id WHERE tp.created_time >= '" + date + "' ORDER BY p.name, " +
+                "p.version, p.channel, tp.created_time DESC;";
         try {
-            Query query = entityManager.createNativeQuery(queryStr);
+            Query query = entityManager.createNativeQuery(queryStr, ProductTestStatus.class);
             return query.getResultList();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query " +

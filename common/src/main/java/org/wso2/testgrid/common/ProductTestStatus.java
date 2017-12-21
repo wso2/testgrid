@@ -18,52 +18,89 @@
 
 package org.wso2.testgrid.common;
 
-import java.util.List;
+import java.sql.Timestamp;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
 /**
  * This represents a model of the Product with its recent test statuses.
  *
  * @since 1.0.0
  */
+@Entity
 public class ProductTestStatus {
 
-    private Product product;
-    private List<TestPlan> testPlans;
+    @Id
+    private String id;
+    private String name;
+    private String version;
+    private String channel;
+    private String deploymentPattern;
+    private String deploymentPatternId;
+    private String status;
+    private Timestamp testExecutionTime;
 
-    /**
-     * Returns the product.
-     *
-     * @return product
-     */
-    public Product getProduct() {
-        return product;
+    public String getId() {
+        return id;
     }
 
-    /**
-     * Sets the product.
-     *
-     * @param product product
-     */
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    /**
-     * Returns the recent test-plans associated with this product.
-     *
-     * @return recent test-plans associated with this product
-     */
-    public List<TestPlan> getTestPlans() {
-        return testPlans;
+    public String getName() {
+        return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    /**
-     * Sets the recent test-plans associated with this product.
-     *
-     * @param testPlans recent test-plans associated with this product
-     */
-    public void setTestPlans(List<TestPlan> testPlans) {
-        this.testPlans = testPlans;
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
+    public String getDeploymentPattern() {
+        return deploymentPattern;
+    }
+
+    public void setDeploymentPattern(String deploymentPattern) {
+        this.deploymentPattern = deploymentPattern;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Timestamp getTestExecutionTime() {
+        return testExecutionTime;
+    }
+
+    public void setTestExecutionTime(Timestamp testExecutionTime) {
+        this.testExecutionTime = testExecutionTime;
+    }
+
+    public String getDeploymentPatternId() {
+        return deploymentPatternId;
+    }
+
+    public void setDeploymentPatternId(String deploymentPatternId) {
+        this.deploymentPatternId = deploymentPatternId;
     }
 }

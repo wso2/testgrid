@@ -22,6 +22,7 @@ import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestPlanRepository;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.EntityManager;
@@ -87,7 +88,7 @@ public class TestPlanUOW {
      * @return matching {@link TestPlan} instances
      * @throws TestGridDAOException thrown when error on retrieving results
      */
-    public List<TestPlan> getTestPlansByDeploymentIdAndDate(String deploymentId, long date) throws
+    public List<TestPlan> getTestPlansByDeploymentIdAndDate(String deploymentId, Timestamp date) throws
             TestGridDAOException {
         return testPlanRepository.findByDeploymentPatternAndDate(deploymentId, date);
     }

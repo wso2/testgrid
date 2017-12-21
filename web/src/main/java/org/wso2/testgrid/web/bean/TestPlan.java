@@ -30,6 +30,7 @@ public class TestPlan {
     private String status;
     private String infraParams;
     private List<TestScenario> testScenarios;
+    private String logLocation;
 
     /**
      * Returns the id of the test-plan.
@@ -115,7 +116,7 @@ public class TestPlan {
     /**
      * Sets the infra params of the test-plan.
      *
-     * @param infraParams {@link Map} infra parameters used for generating infrastructure
+     * @param infraParams infra parameters used for generating infrastructure
      */
     public void setInfraParams(String infraParams) {
         this.infraParams = infraParams;
@@ -137,5 +138,23 @@ public class TestPlan {
      */
     public void setTestScenarios(List<TestScenario> testScenarios) {
         this.testScenarios = testScenarios;
+    }
+
+    /**
+     * Returns the location of logs for this test-plan.
+     *
+     * @return the location of logs for this test-plan
+     */
+    public String getLogLocation() {
+        return logLocation;
+    }
+
+    /**
+     * Sets the location of logs for this test-plan.
+     *
+     * @param logLocation the location of logs for this test-plan
+     */
+    public void setLogLocation(String logLocation) {
+        this.logLocation = logLocation;
     }
 }

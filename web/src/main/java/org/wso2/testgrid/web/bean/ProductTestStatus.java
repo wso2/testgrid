@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.web.bean;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,6 +30,15 @@ public class ProductTestStatus {
     private String version;
     private String channel;
     private List<TestStatus> testStatuses;
+
+    public ProductTestStatus(String key) {
+        String properties[] = key.split("_");
+        this.id = properties[0];
+        this.name = properties[1];
+        this.version = properties[2];
+        this.channel = properties[3];
+        this.testStatuses = new ArrayList<>();
+    }
 
     /**
      * Returns the id of the product.

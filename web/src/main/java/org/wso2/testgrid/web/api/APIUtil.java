@@ -18,21 +18,25 @@
 
 package org.wso2.testgrid.web.api;
 
+import org.wso2.testgrid.common.DeploymentPatternTestFailureStat;
 import org.wso2.testgrid.web.bean.DeploymentPattern;
 import org.wso2.testgrid.web.bean.Product;
-import org.wso2.testgrid.web.bean.ProductTestStatus;
 import org.wso2.testgrid.web.bean.TestCase;
 import org.wso2.testgrid.web.bean.TestPlan;
 import org.wso2.testgrid.web.bean.TestScenario;
-import org.wso2.testgrid.web.bean.TestStatus;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Util class which holds utility methods required for TestGrid APIs.
  */
-public class APIUtil {
+class APIUtil {
+
+    private static final String SUCCESS_STATUS = "SUCCESS";
+    private static final String FAILURE_STATUS = "FAILURE";
 
     /**
      * Util method to convert {@link org.wso2.testgrid.common.Product} instance to a {@link Product} instance.
@@ -66,58 +70,6 @@ public class APIUtil {
     }
 
     /**
-     * Util method to convert {@link org.wso2.testgrid.common.TestPlan} instance to a {@link TestStatus} instance.
-     *
-     * @param testPlan {@link org.wso2.testgrid.common.TestPlan} instance to be converted
-     * @return {@link TestStatus} instance with necessary information
-     */
-    static TestStatus getTestStatusBean(org.wso2.testgrid.common.TestPlan testPlan) {
-        TestStatus testStatus = new TestStatus();
-        testStatus.setDate(testPlan.getModifiedTimestamp().getTime());
-        testStatus.setStatus(testPlan.getStatus().name());
-        return testStatus;
-    }
-
-    /**
-     * Util method to convert {@link org.wso2.testgrid.common.ProductTestStatus} instance to a
-     * {@link ProductTestStatus} instance.
-     *
-     * @param productTestStatus {@link org.wso2.testgrid.common.ProductTestStatus} instance to be converted
-     * @return {@link ProductTestStatus} instance with necessary information
-     */
-    static ProductTestStatus getProductTestStatusBean(org.wso2.testgrid.common.ProductTestStatus productTestStatus) {
-        ProductTestStatus productTestStatus1 = new ProductTestStatus();
-        productTestStatus1.setId(productTestStatus.getProduct().getId());
-        productTestStatus1.setName(productTestStatus.getProduct().getName());
-        productTestStatus1.setChannel(productTestStatus.getProduct().getChannel().name());
-        productTestStatus1.setVersion(productTestStatus.getProduct().getVersion());
-        List<TestStatus> testStatuses = new ArrayList<>();
-        for (org.wso2.testgrid.common.TestPlan testPlan : productTestStatus.getTestPlans()) {
-            TestStatus testStatus = getTestStatusBean(testPlan);
-            testStatuses.add(testStatus);
-        }
-        productTestStatus1.setTestStatuses(testStatuses);
-        return productTestStatus1;
-    }
-
-    /**
-     * Util method to convert list of {@link org.wso2.testgrid.common.ProductTestStatus} instances to a list of
-     * {@link ProductTestStatus} instances.
-     *
-     * @param productTestStatusList list of {@link org.wso2.testgrid.common.ProductTestStatus} instances to be converted
-     * @return List of {@link ProductTestStatus} instances with necessary information
-     */
-    static List<ProductTestStatus> getProductTestStatusBeans(List<org.wso2.testgrid.common.ProductTestStatus>
-                                                                     productTestStatusList) {
-        List<ProductTestStatus> productTestStatuses = new ArrayList<>();
-
-        for (org.wso2.testgrid.common.ProductTestStatus productTestStatus : productTestStatusList) {
-            productTestStatuses.add(getProductTestStatusBean(productTestStatus));
-        }
-        return productTestStatuses;
-    }
-
-    /**
      * Util method to convert {@link org.wso2.testgrid.common.DeploymentPattern} instance to a
      * {@link DeploymentPattern} instance.
      *
@@ -139,14 +91,26 @@ public class APIUtil {
      * {@link DeploymentPattern} instances.
      *
      * @param deploymentPatterns list of {@link org.wso2.testgrid.common.DeploymentPattern} instances to be converted
+     * @param stats list of {@link DeploymentPatternTestFailureStat} instances including test-stats
      * @return List of {@link DeploymentPattern} instances with necessary information
      */
     static List<DeploymentPattern> getDeploymentPatternBeans(List<org.wso2.testgrid.common.DeploymentPattern>
-                                                                     deploymentPatterns) {
+                                                                     deploymentPatterns,
+                                                             List<DeploymentPatternTestFailureStat> stats) {
         List<DeploymentPattern> deploymentPatterns1 = new ArrayList<>();
+        //Convert List to a Map
+        Map<String, Integer> failureStats = new HashMap<>();
+        for (DeploymentPatternTestFailureStat stat : stats) {
+            failureStats.put(stat.getDeploymentPatternId() , stat.getFailureCount());
+        }
 
         for (org.wso2.testgrid.common.DeploymentPattern deploymentPattern : deploymentPatterns) {
-            deploymentPatterns1.add(getDeploymentPatternBean(deploymentPattern, ""));
+
+            if (failureStats.containsKey(deploymentPattern.getId())) {
+                deploymentPatterns1.add(getDeploymentPatternBean(deploymentPattern, FAILURE_STATUS));
+            } else {
+                deploymentPatterns1.add(getDeploymentPatternBean(deploymentPattern, SUCCESS_STATUS));
+            }
         }
         return deploymentPatterns1;
     }
@@ -163,8 +127,7 @@ public class APIUtil {
         testPlan1.setId(testPlan.getId());
         testPlan1.setDeploymentPattern(testPlan.getDeploymentPattern().getName());
         testPlan1.setDeploymentPatternId(testPlan.getDeploymentPattern().getId());
-        //TODO : Fix this
-        testPlan1.setInfraParams(testPlan.getInfraParameters().toString());
+        testPlan1.setInfraParams(testPlan.getInfraParameters());
         testPlan1.setStatus(testPlan.getStatus().toString());
         if (requireTestScenarios) {
             testPlan1.setTestScenarios(getTestScenarioBeans(testPlan.getTestScenarios(), false));

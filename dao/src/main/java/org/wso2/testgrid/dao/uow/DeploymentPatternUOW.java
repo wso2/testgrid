@@ -18,11 +18,13 @@
 package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.DeploymentPatternTestFailureStat;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.DeploymentPatternRepository;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,8 +122,13 @@ public class DeploymentPatternUOW {
      * @return matching distinct {@link DeploymentPattern} instances
      * @throws TestGridDAOException thrown when error on retrieving results
      */
-    public List<DeploymentPattern> getDeploymentPatternsByProductAndDate(String productId, long date)
+    public List<DeploymentPattern> getDeploymentPatternsByProductAndDate(String productId, Timestamp date)
             throws TestGridDAOException {
         return deploymentPatternRepository.findByProductAndDate(productId, date);
+    }
+
+    public List<DeploymentPatternTestFailureStat> getFailedTestCounts(String productId, Timestamp date) throws
+            TestGridDAOException {
+        return deploymentPatternRepository.findFailedTestCounts(productId, date);
     }
 }

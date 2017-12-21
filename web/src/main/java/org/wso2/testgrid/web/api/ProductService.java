@@ -25,8 +25,15 @@ import org.wso2.testgrid.common.ProductTestStatus;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
+import org.wso2.testgrid.web.bean.TestStatus;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -45,6 +52,7 @@ import javax.ws.rs.core.Response;
 public class ProductService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
+    private static final String DELIMITER = "_";
 
     /**
      * This has the implementation of the REST API for fetching all the Products.
@@ -127,18 +135,60 @@ public class ProductService {
      */
     @GET
     @Path("/test-status")
-    public Response getProductsWithRecentTestStatus(@QueryParam("date") long date) {
+    public Response getProductsWithRecentTestStatus(@QueryParam("date") String date) {
         try {
             ProductUOW productUOW = new ProductUOW();
-            List<ProductTestStatus> productTestStatuses = productUOW.getProductTestHistory(date);
+            //Get the history of all products
+            List<ProductTestStatus> productTestStatuses = productUOW.getProductTestHistory(Timestamp.valueOf(date));
 
-            return Response.status(Response.Status.OK).entity(APIUtil.getProductTestStatusBeans(productTestStatuses)).
-                    build();
+            ProductTestStatus status;
+            Map<String, String> productStatuses = new HashMap<>();
+            //Iterate through available product information to populate statuses
+            Iterator<ProductTestStatus> itr = productTestStatuses.iterator();
+            while (itr.hasNext()) {
+                status = itr.next();
+                productStatuses.put(this.generateKey(status), status.getStatus());
+            }
+
+            org.wso2.testgrid.web.bean.ProductTestStatus testStatusBean;
+            TestStatus testStatus;
+            Map<String, org.wso2.testgrid.web.bean.ProductTestStatus> products = new HashMap<>();
+            String key, productId, strDate;
+            for (Map.Entry<String, String> entry : productStatuses.entrySet()) {
+                key = entry.getKey();
+
+                testStatusBean = new org.wso2.testgrid.web.bean.ProductTestStatus(key);
+                //Extract the product-id
+                productId = key.substring(0, key.indexOf(DELIMITER));
+                //Extract the test-date
+                strDate = key.substring(key.lastIndexOf(DELIMITER) + 1);
+
+                if (!products.containsKey(productId)) {
+                    products.put(productId, testStatusBean);
+                }
+
+                testStatus = new TestStatus();
+                testStatus.setDate(strDate);
+                testStatus.setStatus(entry.getValue());
+
+                org.wso2.testgrid.web.bean.ProductTestStatus productTestStatus = products.get(productId);
+                productTestStatus.getTestStatuses().add(testStatus);
+                products.put(productId, productTestStatus);
+            }
+
+            return Response.status(Response.Status.OK).entity(products.values()).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the Products with test info.";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
+    }
+
+    private String generateKey (ProductTestStatus status) {
+        Date date = new Date(status.getTestExecutionTime().getTime());
+        return new StringBuilder().append(status.getId() + DELIMITER).append(status.getName() + DELIMITER).
+                append(status.getVersion() + DELIMITER).append(status.getChannel() + DELIMITER).
+                append(new SimpleDateFormat("dd-MM-yyyy").format(date)).toString();
     }
 }
