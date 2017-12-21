@@ -31,6 +31,7 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestCaseUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
 import java.io.File;
@@ -79,7 +80,7 @@ public class ScenarioExecutor {
             }
 
             // Test scenario completed.
-            testScenario.setStatus(Status.SUCCESS);
+            setScenarioStatus(testScenario);
             persistTestScenario(testScenario);
         } catch (TestAutomationException e) {
             testScenario.setStatus(Status.FAIL);
@@ -87,6 +88,10 @@ public class ScenarioExecutor {
             throw new ScenarioExecutorException(StringUtil
                     .concatStrings("Exception occurred while running the Tests for Solution Pattern '",
                             testScenario.getName(), "'"));
+        } catch (TestGridDAOException e) {
+            throw new ScenarioExecutorException(StringUtil
+                    .concatStrings("Exception occurred while checking for failed test cases for scenario'",
+                            testScenario.getName(), "'", e));
         }
     }
 
@@ -137,6 +142,21 @@ public class ScenarioExecutor {
             return testList;
         } catch (TestAutomationException e) {
             throw new ScenarioExecutorException("Error while reading tests for test scenario.", e);
+        }
+    }
+
+    /**
+     * Checks for any failed test cases and sets final status of the scenario accordingly.
+     *
+     * @param testScenario test scenario
+     * @throws TestGridDAOException thrown when error fetching test cases
+     */
+    private void setScenarioStatus(TestScenario testScenario) throws TestGridDAOException {
+        TestCaseUOW testCaseUOW = new TestCaseUOW();
+        if (testCaseUOW.isExistsFailedTests(testScenario)) {
+            testScenario.setStatus(Status.FAIL);
+        } else {
+            testScenario.setStatus(Status.SUCCESS);
         }
     }
 }

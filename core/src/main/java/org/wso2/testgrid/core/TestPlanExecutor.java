@@ -36,6 +36,7 @@ import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
@@ -80,7 +81,13 @@ public class TestPlanExecutor {
         }
 
         // Test plan completed.
-        testPlan.setStatus(Status.SUCCESS);
+        try {
+            setTestPlanStatus(testPlan);
+        } catch (TestGridDAOException e) {
+            throw new TestPlanExecutorException(StringUtil
+                    .concatStrings("Exception occurred while checking for failed scenarios for test plan'",
+                            testPlan.getId(), "'", e));
+        }
         testPlan = persistTestPlan(testPlan);
 
         // Destroy the infrastructure.
@@ -212,6 +219,21 @@ public class TestPlanExecutor {
             return testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             throw new TestPlanExecutorException("Error occurred while persisting the test plan.");
+        }
+    }
+
+    /**
+     * Checks for any failed scenarios and sets final status of the test plan accordingly.
+     *
+     * @param testPlan test plan
+     * @throws TestGridDAOException thrown when error fetching scenarios
+     */
+    private void setTestPlanStatus(TestPlan testPlan) throws TestGridDAOException {
+        TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
+        if (testScenarioUOW.isExistsFailedScenarios(testPlan)) {
+            testPlan.setStatus(Status.FAIL);
+        } else {
+            testPlan.setStatus(Status.SUCCESS);
         }
     }
 }

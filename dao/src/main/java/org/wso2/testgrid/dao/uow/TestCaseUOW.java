@@ -24,6 +24,7 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestCaseRepository;
 
 import javax.persistence.EntityManager;
+import java.util.Vector;
 
 /**
  * This class defines the Unit of work related to a {@link TestCase}.
@@ -65,5 +66,18 @@ public class TestCaseUOW {
 
         // Persist test case
         return testCaseRepository.persist(testCase);
+    }
+
+    /**
+     * Checks if there are any failed test cases pertaining to a scenario.
+     *
+     * @param testScenario test scenario
+     * @return boolean - true if there exists failed tests and false otherwise
+     * @throws TestGridDAOException thrown when error processing native query
+     */
+    public boolean isExistsFailedTests(TestScenario testScenario) throws TestGridDAOException {
+        Object resultObject = testCaseRepository.executeTypedQuery("SELECT * FROM test_case "
+                + "WHERE TESTSCENARIO_id = '" + testScenario.getId() + "' AND is_success = FALSE;");
+        return ((Vector) resultObject).size() > 0;
     }
 }
