@@ -17,9 +17,6 @@
  */
 package org.wso2.testgrid.core.config;
 
-import org.wso2.carbon.config.annotation.Configuration;
-import org.wso2.carbon.config.annotation.Element;
-
 import java.util.List;
 import java.util.Map;
 
@@ -28,22 +25,12 @@ import java.util.Map;
  *
  * @since 1.0.0
  */
-@Configuration(namespace = "wso2.testgrid.test", description = "TestGrid Test Configuration Parameters")
 public class TestConfig {
 
-    @Element(description = "Defines the product config.")
     private ProductConfig productConfig;
-
-    @Element(required = true, description = "Defines the deployment pattern repository.")
     private String deploymentPatternRepository;
-
-    @Element(required = true, description = "Defines the deployment pattern.")
     private String deploymentPattern;
-
-    @Element(required = true, description = "Defines the infrastructure parameters.")
     private List<Map<String, String>> infraParams;
-
-    @Element(required = true, description = "Defines the scenarios.")
     private ScenarioConfig scenarioConfig;
 
     /**

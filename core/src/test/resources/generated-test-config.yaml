@@ -20,25 +20,11 @@ wso2.testgrid.test:
     name: "WSO2-IS"
     version: "5.4.0"
     channel: "LTS"
-  deploymentPattern:
-    gitRepo: "https://github.com/wso2/cloudformation-is"
-    names:
-      -  "cloudformation-templates/pattern-1"
-      -  "cloudformation-templates/pattern-2"
+  deploymentPatternRepository: "https://github.com/wso2/cloudformation-is"
+  deploymentPattern: "cloudformation-templates/pattern-1"
   infraParams:
-    osName: "Ubuntu"
-    osVersion:
-      - "15.04"
-      - "16.04"
-    databaseName: "MYSQL"
-    databaseVersion:
-      - "5.5"
-      - "5.7"
-    jdk:
-        - "ORACLE_JDK7"
-        - "ORACLE_JDK8"
-    - osName: "Windows"
-      osVersion: "7"
+    - osName: "Ubuntu"
+      osVersion: "15.04"
       databaseName: "MYSQL"
       databaseVersion: "5.5"
       jdk: "ORACLE_JDK7"

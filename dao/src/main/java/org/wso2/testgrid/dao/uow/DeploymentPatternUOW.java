@@ -18,11 +18,14 @@
 package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.DeploymentPatternRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 
@@ -44,13 +47,44 @@ public class DeploymentPatternUOW {
     }
 
     /**
-     * Persists the {@link DeploymentPattern} instance.
+     * Returns an instance of {@link Product} for the given product name and product version.
      *
-     * @param deploymentPattern    {@link DeploymentPattern} instance
-     * @throws TestGridDAOException thrown when error on persisting
+     * @param name    product name
+     * @param product product
+     * @return an instance of {@link Product} for the given product name and product version
      */
-    public DeploymentPattern persistDeploymentPattern(DeploymentPattern deploymentPattern) throws TestGridDAOException {
-        // Persist deployment pattern
+    public Optional<DeploymentPattern> getDeploymentPattern(Product product, String name)
+            throws TestGridDAOException {
+        // Search criteria parameters
+        Map<String, Object> params = new HashMap<>();
+        params.put(DeploymentPattern.NAME_COLUMN, name);
+        params.put(DeploymentPattern.PRODUCT_COLUMN, product);
+
+        List<DeploymentPattern> deploymentPatterns = deploymentPatternRepository.findByFields(params);
+        if (deploymentPatterns.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(deploymentPatterns.get(0));
+    }
+
+    /**
+     * This method persists a {@link Product} to the database.
+     *
+     * @param name    product name
+     * @param product product
+     * @return persisted {@link Product} instance
+     * @throws TestGridDAOException thrown when error on persisting the object
+     */
+    public DeploymentPattern persistDeploymentPattern(Product product, String name) throws TestGridDAOException {
+        Optional<DeploymentPattern> deploymentPatternOptional = getDeploymentPattern(product, name);
+        if (deploymentPatternOptional.isPresent()) {
+            return deploymentPatternOptional.get();
+        }
+
+        // Create a new product and persist if the product doesn't exist already.
+        DeploymentPattern deploymentPattern = new DeploymentPattern();
+        deploymentPattern.setName(name);
+        deploymentPattern.setProduct(product);
         return deploymentPatternRepository.persist(deploymentPattern);
     }
 
