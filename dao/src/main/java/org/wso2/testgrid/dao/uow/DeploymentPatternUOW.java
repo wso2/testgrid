@@ -17,77 +17,75 @@
  */
 package org.wso2.testgrid.dao.uow;
 
+import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.repository.DeploymentPatternRepository;
 import org.wso2.testgrid.dao.repository.DeploymentRepository;
 
+import javax.persistence.EntityManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.persistence.EntityManager;
 
 /**
  * This class defines the Unit of work related to a {@link Product}.
  *
  * @since 1.0.0
  */
-public class ProductUOW {
+public class DeploymentPatternUOW {
 
-    private final DeploymentRepository productRepository;
+    private final DeploymentPatternRepository deploymentPatternRepository;
 
     /**
-     * Constructs an instance of {@link ProductUOW} to manager use cases related to product test plan.
+     * Constructs an instance of {@link DeploymentPatternUOW} to manager use cases related to product test plan.
      */
-    public ProductUOW() {
+    public DeploymentPatternUOW() {
         EntityManager entityManager = EntityManagerHelper.getEntityManager();
-        productRepository = new DeploymentRepository(entityManager);
+        deploymentPatternRepository = new DeploymentPatternRepository(entityManager);
     }
 
     /**
      * Returns an instance of {@link Product} for the given product name and product version.
      *
      * @param name    product name
-     * @param version product version
-     * @param channel product test plan channel
+     * @param product product
      * @return an instance of {@link Product} for the given product name and product version
      */
-    public Optional<Product> getProduct(String name, String version, Product.Channel channel)
+    public Optional<DeploymentPattern> getDeploymentPattern(Product product, String name)
             throws TestGridDAOException {
         // Search criteria parameters
         Map<String, Object> params = new HashMap<>();
-        params.put(Product.NAME_COLUMN, name);
-        params.put(Product.VERSION_COLUMN, version);
-        params.put(Product.CHANNEL_COLUMN, channel);
+        params.put(DeploymentPattern.NAME_COLUMN, name);
+        params.put(DeploymentPattern.PRODUCT_COLUMN, product);
 
-        List<Product> products = productRepository.findByFields(params);
-        if (products.isEmpty()) {
+        List<DeploymentPattern> deploymentPatterns = deploymentPatternRepository.findByFields(params);
+        if (deploymentPatterns.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(products.get(0));
+        return Optional.of(deploymentPatterns.get(0));
     }
 
     /**
      * This method persists a {@link Product} to the database.
      *
      * @param name    product name
-     * @param version product version
-     * @param channel product channel
+     * @param product product
      * @return persisted {@link Product} instance
      * @throws TestGridDAOException thrown when error on persisting the object
      */
-    public Product persistProduct(String name, String version, Product.Channel channel) throws TestGridDAOException {
-        Optional<Product> optionalProduct = getProduct(name, version, channel);
-        if (optionalProduct.isPresent()) {
-            return optionalProduct.get();
+    public DeploymentPattern persistDeploymentPattern(Product product, String name) throws TestGridDAOException {
+        Optional<DeploymentPattern> deploymentPatternOptional = getDeploymentPattern(product, name);
+        if (deploymentPatternOptional.isPresent()) {
+            return deploymentPatternOptional.get();
         }
 
         // Create a new product and persist if the product doesn't exist already.
-        Product product = new Product();
-        product.setName(name);
-        product.setVersion(version);
-        product.setChannel(channel);
-        return productRepository.persist(product);
+        DeploymentPattern deploymentPattern = new DeploymentPattern();
+        deploymentPattern.setName(name);
+        deploymentPattern.setProduct(product);
+        return deploymentPatternRepository.persist(deploymentPattern);
     }
 }

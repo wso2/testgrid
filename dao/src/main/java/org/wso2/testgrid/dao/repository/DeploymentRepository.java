@@ -31,14 +31,14 @@ import javax.persistence.EntityManager;
  *
  * @since 1.0.0
  */
-public class ProductRepository extends AbstractRepository<Product> {
+public class DeploymentRepository extends AbstractRepository<Product> {
 
     /**
      * Constructs an instance of the repository class.
      *
      * @param entityManager {@link EntityManager} instance
      */
-    public ProductRepository(EntityManager entityManager) {
+    public DeploymentRepository(EntityManager entityManager) {
         super(entityManager);
     }
 

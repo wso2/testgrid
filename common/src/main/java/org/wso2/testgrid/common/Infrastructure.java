@@ -18,6 +18,9 @@
 
 package org.wso2.testgrid.common;
 
+import org.wso2.carbon.config.annotation.Configuration;
+import org.wso2.carbon.config.annotation.Element;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -27,18 +30,36 @@ import java.util.Map;
  *
  * @since 1.0.0
  */
+@Configuration(namespace = "wso2.testgrid.infrastructure", description = "TestGrid Test Configuration Parameters")
 public class Infrastructure implements Serializable {
 
     private static final long serialVersionUID = -1660815137752094462L;
 
+    @Element(required = true, description = "Defines the deployment pattern.")
     private String name;
+
+    @Element(required = true, description = "Defines the deployment pattern.")
     private ProviderType providerType;
+
+    @Element(required = true, description = "Defines the deployment pattern.")
     private InstanceType instanceType;
+
+    @Element(required = true, description = "Defines the deployment pattern.")
     private ClusterType clusterType;
-    private String infraParams;
+
+    @Element(description = "Defines the deployment pattern.")
+    private List<Map<String, String>> infraParams;
+
+    @Element(required = true, description = "Defines the deployment pattern.")
     private Map<String, String> securityProperties;
+
+    @Element(required = true, description = "Defines the deployment pattern.")
     private List<Script> scripts;
+
+    @Element(description = "Defines the deployment pattern.")
     private String region;
+
+    @Element(description = "Defines the deployment pattern.")
     private String imageId;
 
     /**
@@ -118,7 +139,7 @@ public class Infrastructure implements Serializable {
      *
      * @return infrastructure combination
      */
-    public String getInfraParams() {
+    public List<Map<String, String>> getInfraParams() {
         return infraParams;
     }
 
@@ -127,7 +148,7 @@ public class Infrastructure implements Serializable {
      *
      * @param infraParams infrastructure combination
      */
-    public void setInfraParams(String infraParams) {
+    public void setInfraParams(List<Map<String, String>> infraParams) {
         this.infraParams = infraParams;
     }
 

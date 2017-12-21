@@ -19,29 +19,20 @@ wso2.testgrid.infrastructure:
   providerType: "AWS"
   clusterType: "None"
   instanceType: "EC2"
-  name: "single-node"
-  operatingSystems:
-    - name: "Ubuntu"
-      version: "17.04"
-  databases:
-     - engine: "MYSQL"
-       version: "5.6.35"
-  jdks:
-     - "ORACLE_JDK8"
+  name: "cloudformation-templates/pattern-2"
   securityProperties:
     apiKey: "242424"
     sshKey: "abc.key"
   scripts:
-    -
-     scriptType: "CLOUD_FORMATION"
-     filePath: "pattern-1-with-puppet-cloudformation.template.yml"
-     name: "wso2-is-public-branch"
-     environmentScriptParameters:
-     scriptParameters:
-       DBEngine: "databases.engine"
-       DBEngineVersion: "databases.version" 
-       JDK: "jdks.jdk"
-       DBPassword: "DB_Password"
-       EC2KeyPair: "testgrid-key"
-       ALBCertificateARN: "arn:aws:acm:us-east-1:809489900555:certificate/2ab5aded-5df1-4549-9f7e-91639ff6634e"
+    - scriptType: "CLOUD_FORMATION"
+      filePath: "pattern-1-with-puppet-cloudformation.template.yml"
+      name: "wso2-is-public-branch"
+      environmentScriptParameters:
+      scriptParameters:
+        DBEngine: "databases.engine"
+        DBEngineVersion: "databases.version"
+        JDK: "jdks.jdk"
+        DBPassword: "DB_Password"
+        EC2KeyPair: "testgrid-key"
+        ALBCertificateARN: "arn:aws:acm:us-east-1:809489900555:certificate/2ab5aded-5df1-4549-9f7e-91639ff6634e"
 
