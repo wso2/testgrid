@@ -53,7 +53,7 @@ public class DeploymentPattern extends AbstractUUIDEntity implements Serializabl
 
     private static final long serialVersionUID = -4345126378695708155L;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = Product.class,

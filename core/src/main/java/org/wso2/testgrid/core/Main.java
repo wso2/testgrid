@@ -57,7 +57,7 @@ public class Main {
             String testGridHome = TestGridUtil.getTestGridHomePath();
             if (!StringUtil.isStringNullOrEmpty(testGridHome)) {
                 logger.info("Initializing TestGrid for product : '"
-                         + product + ", version  '" + productVersion + "'");
+                            + product + ", version  '" + productVersion + "'");
                 commandHandler.execute();
             }
         } catch (CmdLineException e) {

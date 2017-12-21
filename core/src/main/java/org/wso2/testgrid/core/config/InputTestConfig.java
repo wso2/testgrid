@@ -39,7 +39,7 @@ public class InputTestConfig {
     private DeploymentPatternConfig deploymentPattern;
 
     @Element(required = true, description = "Defines the infrastructure parameters.")
-    private List<Map<String, Object>> infraParams = new ArrayList<>();
+    private List<List<Map<String, Object>>> infraParamsList = new ArrayList<>();
 
     @Element(required = true, description = "Defines the scenario.")
     private ScenarioConfig scenario;
@@ -81,21 +81,21 @@ public class InputTestConfig {
     }
 
     /**
-     * Returns the infrastructure configuration.
+     * Returns the infrastructure parameters list.
      *
-     * @return infrastructure configuration
+     * @return infrastructure parameters list
      */
-    public List<Map<String, Object>> getInfraParams() {
-        return infraParams;
+    public List<List<Map<String, Object>>> getInfraParamsList() {
+        return infraParamsList;
     }
 
     /**
-     * Sets the infrastructure configuration.
+     * Sets the infrastructure parameters list.
      *
-     * @param infraParams infrastructure configuration
+     * @param infraParamsList infrastructure parameters list
      */
-    public void setInfraParams(List<Map<String, Object>> infraParams) {
-        this.infraParams = infraParams;
+    public void setInfraParamsList(List<List<Map<String, Object>>> infraParamsList) {
+        this.infraParamsList = infraParamsList;
     }
 
     /**

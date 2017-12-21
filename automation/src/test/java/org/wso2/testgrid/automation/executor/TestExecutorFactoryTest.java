@@ -20,7 +20,7 @@ package org.wso2.testgrid.automation.executor;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.common.TestEngine;
+import org.wso2.testgrid.automation.TestEngine;
 
 /**
  * Test class to test the functionality of {@link TestExecutorFactory}.
