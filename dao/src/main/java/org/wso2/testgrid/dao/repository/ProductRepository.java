@@ -114,16 +114,6 @@ public class ProductRepository extends AbstractRepository<Product> {
     }
 
     /**
-     * Executes the given native query and returns a result list.
-     *
-     * @param nativeQuery native SQL query to execute
-     * @return result list after executing the native query
-     */
-    public List<Product> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
-        return super.executeTypedQuery(nativeQuery);
-    }
-
-    /**
      * Returns a list of {@link ProductTestStatus} instances matching the given criteria.
      *
      * @param date timestamp up to

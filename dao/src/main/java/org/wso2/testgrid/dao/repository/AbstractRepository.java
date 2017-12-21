@@ -215,7 +215,24 @@ abstract class AbstractRepository<T> {
      * @return result list after executing the native query
      */
     @SuppressWarnings("unchecked")
-    List<T> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
+    List<Object> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
+        try {
+            Query query = entityManager.createNativeQuery(nativeQuery);
+            return query.getResultList();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query [",
+                    nativeQuery, "]"), e);
+        }
+    }
+
+    /**
+     * Executes the given native query and returns a result list.
+     *
+     * @param nativeQuery native SQL query to execute
+     * @return result list after executing the native query
+     */
+    @SuppressWarnings("unchecked")
+    List<T> executeTypedClassQuery(String nativeQuery) throws TestGridDAOException {
         try {
             Query query = entityManager.createNativeQuery(nativeQuery);
             return query.getResultList();

@@ -19,6 +19,7 @@ package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
@@ -26,6 +27,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 /**
  * Repository class for {@link TestPlan} table.
@@ -116,12 +118,19 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * @param date created before date
      * @return a list of {@link TestPlan} instances for given deploymentId and created after given date
      */
-    public List<TestPlan> findByDeploymentPatternAndDate(String deploymentId, Timestamp date) throws TestGridDAOException {
+    public List<TestPlan> findByDeploymentPatternAndDate(String deploymentId, Timestamp date) throws
+            TestGridDAOException {
         String queryStr = "SELECT tp.id, tp.deployment_pattern_id, tp.infra_params, tp.status FROM (SELECT " +
                 "infra_params, max(created_time) AS maxtime, deployment_pattern_id FROM testplan WHERE created_time " +
                 "<= '" + date + "' AND deployment_pattern_id = '" + deploymentId + "' GROUP BY infra_params) AS r " +
                 "INNER JOIN testplan AS tp on tp.infra_params = r.infra_params AND tp.created_time = r.maxtime AND " +
                 "tp.deployment_pattern_id = r.deployment_pattern_id;";
-        return super.executeTypedQuery(queryStr);
+        try {
+            Query query = entityManager.createNativeQuery(queryStr, TestPlan.class);
+            return query.getResultList();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL" +
+                    " query [", queryStr, "]"), e);
+        }
     }
 }

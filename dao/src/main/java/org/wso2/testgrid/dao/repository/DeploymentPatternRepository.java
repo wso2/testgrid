@@ -123,10 +123,16 @@ public class DeploymentPatternRepository extends AbstractRepository<DeploymentPa
      */
     public List<DeploymentPattern> findByProductAndDate(String productId, Timestamp date)
             throws TestGridDAOException {
-        String query = "SELECT dp.id, dp.name, dp.product_id FROM deployment_pattern AS dp INNER JOIN testplan AS tp" +
+        String queryStr = "SELECT dp.id, dp.name, dp.product_id FROM deployment_pattern AS dp INNER JOIN testplan AS tp" +
                 " ON dp.id = tp.deployment_pattern_id where tp.created_time <= '" + date + "' AND dp.product_id = '" +
                 productId + "' GROUP BY dp.id;";
-        return super.executeTypedQuery(query);
+        try {
+            Query query = entityManager.createNativeQuery(queryStr, DeploymentPattern.class);
+            return query.getResultList();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query " +
+                    "[", queryStr, "]"), e);
+        }
     }
 
     /**
