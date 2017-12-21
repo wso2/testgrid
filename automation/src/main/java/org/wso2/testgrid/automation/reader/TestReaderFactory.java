@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.automation.reader;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.testgrid.automation.TestEngine;
 
 import java.util.Optional;
@@ -60,7 +61,7 @@ public class TestReaderFactory {
      */
     private static Optional<TestEngine> getTestEngineFromString(String testType) {
         try {
-            return Optional.of(TestEngine.valueOf(testType.toUpperCase()));
+            return Optional.of(TestEngine.valueOf(StringUtils.upperCase(testType)));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }

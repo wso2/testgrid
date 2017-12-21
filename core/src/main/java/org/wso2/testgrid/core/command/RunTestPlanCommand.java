@@ -205,28 +205,6 @@ public class RunTestPlanCommand implements Command {
     }
 
     /**
-     * Returns the product for the given parameters.
-     *
-     * @param product    product
-     * @param name       deployment pattern name
-     * @return an instance of {@link DeploymentPattern} for the given parameters
-     * @throws CommandExecutionException thrown when error on retrieving deployment pattern
-     */
-    private DeploymentPattern getDeploymentPattern(Product product, String name)
-            throws CommandExecutionException {
-        try {
-            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
-            return deploymentPatternUOW.getDeploymentPattern(product, name)
-                    .orElseThrow(() -> new CommandExecutionException(StringUtil
-                            .concatStrings("DeploymentPattern not found for {deployment name: ", name,
-                                    ", product : ", product.getName(), ", version : ", product.getVersion(),
-                                    ", channel: ", product.getChannel(), "}")));
-        } catch (TestGridDAOException e) {
-            throw new CommandExecutionException("Error occurred when initialising DB transaction.", e);
-        }
-    }
-
-    /**
      * Deletes a file in the given path.
      *
      * @param filePath path of the file to be deleted
