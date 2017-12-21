@@ -19,12 +19,15 @@ package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.ProductTestStatus;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 /**
  * Repository class for {@link Product} table.
@@ -115,7 +118,24 @@ public class ProductRepository extends AbstractRepository<Product> {
      * @param nativeQuery native SQL query to execute
      * @return result list after executing the native query
      */
-    public List<Object> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
+    public List<Product> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
         return super.executeTypedQuery(nativeQuery);
+    }
+
+    /**
+     * Returns a list of {@link ProductTestStatus} instances matching the given criteria.
+     *
+     * @param date timestamp up to
+     * @return result list after executing the query
+     */
+    public List<ProductTestStatus> getProductTestHistory(long date) throws TestGridDAOException {
+        String queryStr = "SELECT * from PRODUCT;";
+        try {
+            Query query = entityManager.createNativeQuery(queryStr);
+            return query.getResultList();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query " +
+                            "[", queryStr, "]"), e);
+        }
     }
 }

@@ -41,7 +41,7 @@ import javax.persistence.criteria.Root;
  */
 abstract class AbstractRepository<T> {
 
-    private final EntityManager entityManager;
+    final EntityManager entityManager;
 
     /**
      * Constructs an instance of the repository class.
@@ -215,7 +215,7 @@ abstract class AbstractRepository<T> {
      * @return result list after executing the native query
      */
     @SuppressWarnings("unchecked")
-    List<Object> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
+    List<T> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
         try {
             Query query = entityManager.createNativeQuery(nativeQuery);
             return query.getResultList();

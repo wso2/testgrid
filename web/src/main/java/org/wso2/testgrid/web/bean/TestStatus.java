@@ -23,7 +23,7 @@ package org.wso2.testgrid.web.bean;
  */
 public class TestStatus {
     private String status;
-    private String date;
+    private long date;
 
     public String getStatus() {
         return status;
@@ -33,11 +33,11 @@ public class TestStatus {
         this.status = status;
     }
 
-    public String getDate() {
+    public long getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(long date) {
         this.date = date;
     }
 }

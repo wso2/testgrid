@@ -18,6 +18,7 @@
 package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.ProductTestStatus;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.ProductRepository;
@@ -50,7 +51,7 @@ public class ProductUOW {
      *
      * @param name    product name
      * @param version product version
-     * @param channel product test plan channel
+     * @param channel product channel
      * @return an instance of {@link Product} for the given product name and product version
      */
     public Optional<Product> getProduct(String name, String version, Product.Channel channel)
@@ -69,7 +70,30 @@ public class ProductUOW {
     }
 
     /**
-     * This method persists a {@link Product} to the database.
+     * Returns an instance of {@link Product} for the given product id.
+     *
+     * @param id product id
+     * @return an instance of {@link Product} for the given id
+     */
+    public Optional<Product> getProduct(String id) throws TestGridDAOException {
+        Product product = productRepository.findByPrimaryKey(id);
+        if (product == null) {
+            return Optional.empty();
+        }
+        return Optional.of(product);
+    }
+
+    /**
+     * Returns a List of {@link Product} instances.
+     *
+     * @return a List of {@link Product} instances
+     */
+    public List<Product> getProducts() throws TestGridDAOException {
+        return productRepository.findAll();
+    }
+
+    /**
+     * This method persists a {@link Product} instance to the database.
      *
      * @param name    product name
      * @param version product version
@@ -89,5 +113,16 @@ public class ProductUOW {
         product.setVersion(version);
         product.setChannel(channel);
         return productRepository.persist(product);
+    }
+
+    /**
+     * Returns a List of {@link ProductTestStatus} instances which includes all the products with their test history
+     * status up to the given date.
+     *
+     * @param date date up to the history should be looked
+     * @return a List of {@link ProductTestStatus} instances
+     */
+    public List<ProductTestStatus> getProductTestHistory(long date) throws TestGridDAOException {
+        return productRepository.getProductTestHistory(date);
     }
 }

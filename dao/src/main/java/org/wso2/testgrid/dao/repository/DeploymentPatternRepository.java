@@ -108,4 +108,18 @@ public class DeploymentPatternRepository extends AbstractRepository<DeploymentPa
                                                  LinkedListMultimap<SortOrder, String> fields) {
         return super.orderByFields(DeploymentPattern.class, params, fields);
     }
+
+    /**
+     * Returns a list of distinct {@link DeploymentPattern} instances for given product-id and test ran before given
+     * date.
+     *
+     * @param productId product id of the associated product
+     * @param date tests ran before date
+     * @return a list of {@link DeploymentPattern} instances for given product-id and created after given date
+     */
+    public List<DeploymentPattern> findByProductAndDate(String productId, long date)
+            throws TestGridDAOException {
+        String query = "SELECT";
+        return super.executeTypedQuery(query);
+    }
 }

@@ -20,12 +20,14 @@ package org.wso2.testgrid.web.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.ProductTestStatus;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
+import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -52,11 +54,39 @@ public class ProductService {
     @GET
     public Response getAllProducts() {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            List<ProductTestPlan> testPlans = productTestPlanUOW.getAllProductTestPlans();
-            return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBeans(testPlans)).build();
+            ProductUOW productUOW = new ProductUOW();
+            return Response.status(Response.Status.OK).entity(APIUtil.getProductBeans(productUOW.getProducts())).
+                    build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the Products.";
+            logger.error(msg, e);
+            return Response.serverError().entity(
+                    new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
+     * This has the implementation of the REST API for fetching a Product by name, version and channel.
+     *
+     * @return the matching Product for the given name, version and channel.
+     */
+    @GET
+    public Response getProduct(@QueryParam("name") String name, @QueryParam("version") String version,
+                               @QueryParam("channel") String channel) {
+        try {
+            ProductUOW productUOW = new ProductUOW();
+            Optional<Product> product = productUOW.getProduct(name, version, Product.Channel.valueOf(channel));
+            if (product.isPresent()) {
+                return Response.status(Response.Status.OK).entity(APIUtil.getProductBean(product.get())).
+                        build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
+                        setMessage("Unable to find the requested Product by name: '" + name + "', " +
+                                "version: '" + version + "', channel: '" + channel + "'").build()).build();
+            }
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the Product by name: '" + name + "', " + "version: '" +
+                    version + "', channel: '" + channel + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
@@ -72,12 +102,10 @@ public class ProductService {
     @Path("/{id}")
     public Response getProduct(@PathParam("id") String id) {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlanById(id);
-
-            if (productTestPlan != null) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBean(productTestPlan)).
-                        build();
+            ProductUOW productUOW = new ProductUOW();
+            Optional<Product> product = productUOW.getProduct(id);
+            if (product.isPresent()) {
+                return Response.status(Response.Status.OK).entity(APIUtil.getProductBean(product.get())).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
                         setMessage("Unable to find the requested Product by id : '" + id + "'").build()).
@@ -94,18 +122,20 @@ public class ProductService {
     /**
      * This has the implementation of the REST API for fetching Product info with the test history.
      *
-     * @param dates number of dates the history should be given
-     * @return Product list with build status.
+     * @param date number of dates the history should be given
+     * @return Product list with recent test status.
      */
     @GET
     @Path("/test-status")
-    public Response getProductsWithRecentTestStatus(@QueryParam("dates") int dates) {
+    public Response getProductsWithRecentTestStatus(@QueryParam("date") long date) {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            List<ProductTestPlan> testPlans = productTestPlanUOW.getAllProductTestPlans();
-            return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBeans(testPlans)).build();
+            ProductUOW productUOW = new ProductUOW();
+            List<ProductTestStatus> productTestStatuses = productUOW.getProductTestHistory(date);
+
+            return Response.status(Response.Status.OK).entity(APIUtil.getProductTestStatusBeans(productTestStatuses)).
+                    build();
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the Products with build info.";
+            String msg = "Error occurred while fetching the Products with test info.";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();

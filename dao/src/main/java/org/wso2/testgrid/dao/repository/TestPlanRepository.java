@@ -107,4 +107,16 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
     public List<TestPlan> orderByFields(Map<String, Object> params, LinkedListMultimap<SortOrder, String> fields) {
         return super.orderByFields(TestPlan.class, params, fields);
     }
+
+    /**
+     * Returns a list of distinct {@link TestPlan} instances for given deploymentId and created before given date.
+     *
+     * @param deploymentId deployment id of the required TestPlans
+     * @param date created before date
+     * @return a list of {@link TestPlan} instances for given deploymentId and created after given date
+     */
+    public List<TestPlan> findByDeploymentPatternAndDate(String deploymentId, long date) throws TestGridDAOException {
+        String query = "SELECT";
+        return super.executeTypedQuery(query);
+    }
 }

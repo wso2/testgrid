@@ -20,12 +20,13 @@ package org.wso2.testgrid.web.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
+import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -52,9 +53,10 @@ public class DeploymentPatternService {
     @GET
     public Response getAllDeploymentPatterns() {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            List<ProductTestPlan> testPlans = productTestPlanUOW.getAllProductTestPlans();
-            return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBeans(testPlans)).build();
+            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
+            List<DeploymentPattern> deploymentPatterns = deploymentPatternUOW.getDeploymentPatterns();
+            return Response.status(Response.Status.OK).entity(APIUtil.getDeploymentPatternBeans(deploymentPatterns)).
+                    build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching all Deployment-Patterns.";
             logger.error(msg, e);
@@ -72,12 +74,12 @@ public class DeploymentPatternService {
     @Path("/{id}")
     public Response getDeploymentPattern(@PathParam("id") String id) {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            ProductTestPlan productTestPlan = productTestPlanUOW.getProductTestPlanById(id);
+            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
+            Optional<DeploymentPattern> deploymentPattern = deploymentPatternUOW.getDeploymentPatternById(id);
 
-            if (productTestPlan != null) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBean(productTestPlan)).
-                        build();
+            if (deploymentPattern.isPresent()) {
+                return Response.status(Response.Status.OK).entity(APIUtil.
+                        getDeploymentPatternBean(deploymentPattern.get(), "")).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
                         setMessage("Unable to find the requested Deployment-Pattern by id : '" + id + "'").build()).
@@ -99,13 +101,16 @@ public class DeploymentPatternService {
     @GET
     @Path("/recent-test-info")
     public Response getDeploymentPatternsWithTestInfo(@QueryParam("productId") String productId,
-                                                      @QueryParam("date") int date) {
+                                                      @QueryParam("date") long date) {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            List<ProductTestPlan> testPlans = productTestPlanUOW.getAllProductTestPlans();
-            return Response.status(Response.Status.OK).entity(APIUtil.getProductTestPlanBeans(testPlans)).build();
+            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
+            List<DeploymentPattern> deploymentPatterns = deploymentPatternUOW.
+                    getDeploymentPatternsByProductAndDate(productId, date);
+            return Response.status(Response.Status.OK).entity(APIUtil.getDeploymentPatternBeans(deploymentPatterns)).
+                    build();
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the Products with build info.";
+            String msg = "Error occurred while fetching the Deployment-patterns with test info for the product id : '"
+                    + productId + "' , and date : '" + date + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();

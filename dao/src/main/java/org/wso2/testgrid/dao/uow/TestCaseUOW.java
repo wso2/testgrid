@@ -23,6 +23,7 @@ import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestCaseRepository;
 
+import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /**
@@ -65,5 +66,20 @@ public class TestCaseUOW {
 
         // Persist test case
         return testCaseRepository.persist(testCase);
+    }
+
+    /**
+     * Returns the {@link TestCase} instance for the given id.
+     *
+     * @param id primary key of the test case
+     * @return matching {@link TestCase} instance
+     * @throws TestGridDAOException thrown when error on retrieving results
+     */
+    public Optional<TestCase> getTestCaseById(String id) throws TestGridDAOException {
+        TestCase testCase = testCaseRepository.findByPrimaryKey(id);
+        if (testCase == null) {
+            return Optional.empty();
+        }
+        return Optional.of(testCase);
     }
 }

@@ -28,6 +28,7 @@ import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -55,11 +56,19 @@ public class TestScenarioService {
                                                 @QueryParam("requireTestCaseInfo") boolean requireTestCaseInfo) {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
-            TestPlan testPlan = testPlanUOW.getTestPlanById(testPlanId);
-            List<org.wso2.testgrid.common.TestScenario> testScenarios = testPlan.getTestScenarios();
-            return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios)).build();
+            Optional<TestPlan> testPlan = testPlanUOW.getTestPlanById(testPlanId);
+
+            if (testPlan.isPresent()) {
+                List<org.wso2.testgrid.common.TestScenario> testScenarios = testPlan.get().getTestScenarios();
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios,
+                        requireTestCaseInfo)).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
+                        setMessage("Unable to find the requested TestScenarios for the TestPlan id : '" +
+                                testPlanId + "'").build()).build();
+            }
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestScenarios for the test-plan-id : '" + testPlanId + "'";
+            String msg = "Error occurred while fetching the TestScenarios for the TestPlan : '" + testPlanId + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
@@ -76,10 +85,11 @@ public class TestScenarioService {
     public Response getTestScenario(@PathParam("id") String id) {
         try {
             TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
-            TestScenario testScenario = testScenarioUOW.getTestScenarioById(id);
+            Optional<TestScenario> testScenario = testScenarioUOW.getTestScenarioById(id);
 
-            if (testScenario != null) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBean(testScenario)).build();
+            if (testScenario.isPresent()) {
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBean(testScenario.get(), true)).
+                        build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
                         setMessage("Unable to find the requested TestScenario by id : '" + id + "'").build()).build();

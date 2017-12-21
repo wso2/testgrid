@@ -22,11 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -46,7 +46,7 @@ public class TestPlanService {
 
     /**
      * This has the implementation of the REST API for fetching all the TestPlans for a given deployment-pattern
-     * and date.
+     * and created before date.
      *
      * @return A list of available TestPlans.
      */
@@ -55,11 +55,11 @@ public class TestPlanService {
                                              String deploymentPatternId, @QueryParam("date") long date,
                                               @QueryParam("requireTestScenarioInfo") boolean requireTestScenarioInfo) {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            org.wso2.testgrid.common.ProductTestPlan productTestPlan = productTestPlanUOW
-                    .getProductTestPlanById(deploymentPatternId);
-            List<org.wso2.testgrid.common.TestPlan> testPlans = productTestPlan.getTestPlans();
-            return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans)).build();
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            List<org.wso2.testgrid.common.TestPlan> testPlans = testPlanUOW.
+                    getTestPlansByDeploymentIdAndDate(deploymentPatternId, date);
+            return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans,
+                    requireTestScenarioInfo)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlans.";
             logger.error(msg, e);
@@ -75,13 +75,14 @@ public class TestPlanService {
      */
     @GET
     @Path("/{id}")
-    public Response getTestPlan(@PathParam("id") String id, @QueryParam("requireTestCaseInfo")
-            boolean requireTestCaseInfo) {
+    public Response getTestPlan(@PathParam("id") String id, @QueryParam("requireTestScenarioInfo")
+            boolean requireTestScenarioInfo) {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
-            TestPlan testPlan = testPlanUOW.getTestPlanById(id);
-            if (testPlan != null) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBean(testPlan)).build();
+            Optional<TestPlan> testPlan = testPlanUOW.getTestPlanById(id);
+            if (testPlan.isPresent()) {
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBean(testPlan.get(),
+                        requireTestScenarioInfo)).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
                         setMessage("Unable to find the requested TestPlan by id : '" + id + "'").build()).build();
