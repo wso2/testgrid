@@ -120,16 +120,6 @@ public class RunTestPlanCommand implements Command {
             logger.debug("TestPlan contents : \n" + new String(Files.readAllBytes(testPlanPath),
                     Charset.forName("UTF-8")));
 
-            // Get an infrastructure to execute test plan
-//            Product product = getProduct(productName, productVersion, channel);
-            /*Optional<String> infraFilePath = getInfraFilePath(product);
-            if (!infraFilePath.isPresent()) {
-                logger.info(StringUtil.concatStrings("No infra files found for the given product test plan - ",
-                        product));
-                return;
-            }*/
-
-
             // Get test plan YAML file path location
             Product product = getProduct(productName, productVersion, channel);
             Optional<String> testPlanYAMLFilePath = getTestPlanGenFilePath(product);
@@ -150,6 +140,7 @@ public class RunTestPlanCommand implements Command {
             DeploymentPattern deploymentPattern = new DeploymentPattern();
             deploymentPattern.setName(testConfig.getDeploymentPattern());
             deploymentPattern.setProduct(product);
+            deploymentPattern = persistDeploymentPattern(deploymentPattern);
             testPlan.setDeploymentPattern(deploymentPattern);
             testPlan.setInfraParameters(infrastructure.getInfraParams().toString());
 
@@ -157,7 +148,7 @@ public class RunTestPlanCommand implements Command {
             setLogFilePath(product, testPlan);
 
             // Execute test plan
-            executeTestPlan(product, testPlan, infrastructure);
+            executeTestPlan(product,  testPlan, infrastructure);
         } catch (IllegalArgumentException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Channel ",
                     channel, " is not defined in the available channels enum."), e);
@@ -214,6 +205,28 @@ public class RunTestPlanCommand implements Command {
     }
 
     /**
+     * Returns the product for the given parameters.
+     *
+     * @param product    product
+     * @param name       deployment pattern name
+     * @return an instance of {@link DeploymentPattern} for the given parameters
+     * @throws CommandExecutionException thrown when error on retrieving deployment pattern
+     */
+    private DeploymentPattern getDeploymentPattern(Product product, String name)
+            throws CommandExecutionException {
+        try {
+            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
+            return deploymentPatternUOW.getDeploymentPattern(product, name)
+                    .orElseThrow(() -> new CommandExecutionException(StringUtil
+                            .concatStrings("DeploymentPattern not found for {deployment name: ", name,
+                                    ", product : ", product.getName(), ", version : ", product.getVersion(),
+                                    ", channel: ", product.getChannel(), "}")));
+        } catch (TestGridDAOException e) {
+            throw new CommandExecutionException("Error occurred when initialising DB transaction.", e);
+        }
+    }
+
+    /**
      * Deletes a file in the given path.
      *
      * @param filePath path of the file to be deleted
@@ -262,17 +275,6 @@ public class RunTestPlanCommand implements Command {
             throw new CommandExecutionException(StringUtil.concatStrings("Unable to parse TestPlan file '",
                     infraFile.getAbsolutePath(), "'. Please check the syntax of the file."), e);
         }
-
-
-        /*try (InputStream file = new FileInputStream(infraFile);
-                InputStream buffer = new BufferedInputStream(file);
-                ObjectInput input = new ObjectInputStream(buffer)
-        ) {
-            return Infrastructure.class.cast(input.readObject());
-        } catch (IOException | ClassNotFoundException e) {
-            throw new CommandExecutionException(StringUtil
-                    .concatStrings("Error in retrieving infrastructure from file - ", infraFile), e);
-        }*/
     }
 
     /**
