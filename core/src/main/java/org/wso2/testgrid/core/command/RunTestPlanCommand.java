@@ -363,10 +363,12 @@ public class RunTestPlanCommand implements Command {
      * @return persisted product test plan
      * @throws CommandExecutionException thrown when error on persisting product test plan
      */
-    private DeploymentPattern persistDeploymentPattern(DeploymentPattern deploymentPattern) throws CommandExecutionException {
+    private DeploymentPattern persistDeploymentPattern(DeploymentPattern deploymentPattern) throws
+            CommandExecutionException {
         try {
             DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
-            return deploymentPatternUOW.persistDeploymentPattern(deploymentPattern.getProduct(), deploymentPattern.getName());
+            return deploymentPatternUOW.persistDeploymentPattern(deploymentPattern.getProduct(),
+                    deploymentPattern.getName());
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred while persisting product test plan.", e);
         }
