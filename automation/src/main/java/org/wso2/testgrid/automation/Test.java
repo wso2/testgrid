@@ -21,7 +21,6 @@ package org.wso2.testgrid.automation;
 import org.wso2.testgrid.automation.executor.TestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
 import org.wso2.testgrid.common.Deployment;
-import org.wso2.testgrid.common.TestEngine;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 

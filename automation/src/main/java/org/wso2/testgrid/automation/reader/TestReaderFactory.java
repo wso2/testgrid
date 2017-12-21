@@ -18,7 +18,7 @@
 
 package org.wso2.testgrid.automation.reader;
 
-import org.wso2.testgrid.common.TestEngine;
+import org.wso2.testgrid.automation.TestEngine;
 
 import java.util.Optional;
 

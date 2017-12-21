@@ -63,6 +63,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     @Column(name = "log_location")
     private String logLocation;
 
+    @Column(name = "infra_parameters")
+    private String infraParameters;
+
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = DeploymentPattern.class,
                fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumn(name = "DEPLOYMENTPATTERN_id", referencedColumnName = ID_COLUMN)
@@ -70,9 +73,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
 
     @OneToMany(mappedBy = "testPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestScenario> testScenarios = new ArrayList<>();
-
-    @OneToMany(mappedBy = "testPlan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<InfraParameter> infraParameters = new ArrayList<>();
 
     /**
      * Returns the status of the infrastructure.
@@ -111,6 +111,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
+     * Returns the infra parameters.
+     *
+     * @return infra parameters
+     */
+    public String getInfraParameters() {
+        return infraParameters;
+    }
+
+    /**
+     * Sets the infra parameters.
+     *
+     * @param infraParameters infra parameters
+     */
+    public void setInfraParameters(String infraParameters) {
+        this.infraParameters = infraParameters;
+    }
+
+    /**
      * Returns the deployment pattern associated with.
      *
      * @return deployment pattern associated with
@@ -144,24 +162,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      */
     public void setTestScenarios(List<TestScenario> testScenarios) {
         this.testScenarios = testScenarios;
-    }
-
-    /**
-     * Returns the associated list of infra parameters.
-     *
-     * @return associated list of infra parameters
-     */
-    public List<InfraParameter> getInfraParameters() {
-        return infraParameters;
-    }
-
-    /**
-     * Sets the associated list of infra parameters.
-     *
-     * @param infraParameters associated list of infra parameters
-     */
-    public void setInfraParameters(List<InfraParameter> infraParameters) {
-        this.infraParameters = infraParameters;
     }
 
     @Override

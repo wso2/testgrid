@@ -18,7 +18,6 @@
 
 package org.wso2.testgrid.common;
 
-import org.wso2.carbon.config.annotation.Element;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
@@ -62,7 +61,6 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     private static final long serialVersionUID = -2666342786241472418L;
 
     @Column(name = "name", nullable = false)
-    @Element(description = "name of the solution pattern which is covered by this test scenario")
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -70,11 +68,9 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     private Status status;
 
     @Column(name = "is_pre_script_success")
-    @Element(description = "holds the status true if pre script is successful")
     private boolean isPreScriptSuccessful = false;
 
     @Column(name = "is_post_script_success")
-    @Element(description = "holds the status true if post script is successful")
     private boolean isPostScriptSuccessful = false;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestPlan.class, fetch = FetchType.LAZY)

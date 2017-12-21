@@ -60,7 +60,7 @@ public class TestConfig {
      *
      * @param productConfig product config
      */
-    public void setProduct(ProductConfig productConfig) {
+    public void setProductConfig(ProductConfig productConfig) {
         this.productConfig = productConfig;
     }
 

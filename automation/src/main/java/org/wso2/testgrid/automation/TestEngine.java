@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.testgrid.common;
+package org.wso2.testgrid.automation;
 
 /**
  * This defines the TestEngines in which the TestScenario can be executed.
