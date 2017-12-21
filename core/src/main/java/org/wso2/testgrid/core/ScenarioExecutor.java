@@ -133,12 +133,6 @@ public class ScenarioExecutor {
                         testList.addAll(tests);
                     }
                 }
-               /* Optional<TestReader> testReader = TestReaderFactory.getTestReader(testScenario.getTestEngine());
-
-                if (testReader.isPresent()) {
-                    List<Test> tests = testReader.get().readTests(testLocation, testScenario);
-                    testList.addAll(tests);
-                }*/
             }
             return testList;
         } catch (TestAutomationException e) {
