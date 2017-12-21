@@ -262,30 +262,4 @@ public class AWSManager {
 
         return cfCompatibleParameters;
     }
-
-    /**
-     * Converts the given db engine type to the AWS RDS engine type.
-     *
-     * @param databaseEngine Required DatabaseEngine type.
-     * @return a {@link String} object which indicates the name of AWS RDS
-     * @throws TestGridInfrastructureException When the given db engine is not supported by AWS RDS.
-     */
-    private String getDatabaseEngineName(String databaseEngine) throws
-            TestGridInfrastructureException {
-        switch (databaseEngine) {
-            case "MYSQL":
-                return AWSRDSEngine.MYSQL.name;
-            case "POSTGRESQL":
-                return AWSRDSEngine.POSTGRESQL.name;
-            case "ORACLE":
-                return AWSRDSEngine.ORACLE.name;
-            case "SQL_SERVER":
-                return AWSRDSEngine.SQL_SERVER.name;
-            case "MariaDB":
-                return AWSRDSEngine.MariaDB.name;
-            default:
-                throw new TestGridInfrastructureException("Request DB engine '" + databaseEngine
-                                                          + "' is not supported by AWS.");
-        }
-    }
 }

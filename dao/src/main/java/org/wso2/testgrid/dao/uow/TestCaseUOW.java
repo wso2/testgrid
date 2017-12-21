@@ -23,8 +23,8 @@ import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestCaseRepository;
 
+import java.util.List;
 import javax.persistence.EntityManager;
-import java.util.Vector;
 
 /**
  * This class defines the Unit of work related to a {@link TestCase}.
@@ -75,9 +75,11 @@ public class TestCaseUOW {
      * @return boolean - true if there exists failed tests and false otherwise
      * @throws TestGridDAOException thrown when error processing native query
      */
+    @SuppressWarnings("unchecked")
     public boolean isExistsFailedTests(TestScenario testScenario) throws TestGridDAOException {
-        Object resultObject = testCaseRepository.executeTypedQuery("SELECT * FROM test_case "
+        List<Object> resultObject = testCaseRepository.executeTypedQuery("SELECT * FROM test_case "
                 + "WHERE TESTSCENARIO_id = '" + testScenario.getId() + "' AND is_success = FALSE;");
-        return ((Vector) resultObject).size() > 0;
+
+        return resultObject.isEmpty();
     }
 }

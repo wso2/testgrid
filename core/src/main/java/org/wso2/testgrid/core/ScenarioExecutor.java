@@ -153,7 +153,7 @@ public class ScenarioExecutor {
      */
     private void setScenarioStatus(TestScenario testScenario) throws TestGridDAOException {
         TestCaseUOW testCaseUOW = new TestCaseUOW();
-        if (testCaseUOW.isExistsFailedTests(testScenario)) {
+        if (!testCaseUOW.isExistsFailedTests(testScenario)) {
             testScenario.setStatus(Status.FAIL);
         } else {
             testScenario.setStatus(Status.SUCCESS);
