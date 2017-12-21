@@ -34,12 +34,10 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -126,6 +124,7 @@ public class ScenarioExecutor {
             if (Files.exists(testLocationPath)) {
                 File file = new File(Paths.get(testLocationPath.toString(), "src", "test").toString());
                 String[] testDirectories = file.list((current, name) -> new File(current, name).isDirectory());
+                testDirectories = testDirectories == null ? new String[0] : testDirectories;
 
                 for (String testDirectory : testDirectories) {
                     Optional<TestReader> testReader = TestReaderFactory.getTestReader(testDirectory);

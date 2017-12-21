@@ -27,17 +27,17 @@ public enum TestEngine {
     /**
      * Defines the JMeter TestEngine.
      */
-    JMETER("JMETER"),
+    JMETER("jmeter"),
 
     /**
      * Defines the TestNg TestEngine.
      */
-    TESTNG("TESTNG"),
+    TESTNG("testng"),
 
     /**
      * Defines the Selenium TestEngine.
      */
-    SELENIUM("SELENIUM");
+    SELENIUM("selenium");
 
     private final String testEngine;
 

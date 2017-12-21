@@ -16,30 +16,12 @@
 
         <!-- Deployment -->
         {{^isGroupByDeployment}}
-            {{#isInfraSuccess}}
-                <td class="successText">{{deployment}}</td>
-            {{/isInfraSuccess}}
-            {{^isInfraSuccess}}
-                <td class="errorText">{{deployment}}</td>
-            {{/isInfraSuccess}}
+            <td>{{deployment}}</td>
         {{/isGroupByDeployment}}
 
         <!-- Infrastructure -->
         {{^isGroupByInfrastructure}}
-            {{#isInfraSuccess}}
-                <td class="successText">
-                    <b>Operating system: </b>{{operatingSystem}} <br/><br/>
-                    <b>Database: </b>{{database}} <br/><br/>
-                    <b>JDK: </b>{{jdk}} <br/><br/>
-                </td>
-            {{/isInfraSuccess}}
-            {{^isInfraSuccess}}
-                <td class="errorText">
-                    <b>Operating system: </b>{{operatingSystem}} <br/><br/>
-                    <b>Database: </b>{{database}} <br/><br/>
-                    <b>JDK: </b>{{jdk}} <br/><br/>
-                </td>
-            {{/isInfraSuccess}}
+            <td>{{infraParams}}</td>
         {{/isGroupByInfrastructure}}
 
         <!-- Scenario -->

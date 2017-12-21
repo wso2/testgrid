@@ -19,17 +19,14 @@ package org.wso2.testgrid.reporting;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-//import org.wso2.testgrid.common.InfraCombination;
-//import org.wso2.testgrid.common.InfraResult;
+import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
-//import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
-//import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.reporting.model.GroupBy;
 import org.wso2.testgrid.reporting.model.PerAxisHeader;
@@ -84,12 +81,12 @@ public class TestReportEngine {
     public void generateReport(String productName, String productVersion, String channel, boolean showSuccess,
                                String groupBy)
             throws ReportingException {
-        Product productTestPlan = getProductTestPlan(productName, productVersion, channel);
+        Product product = getProduct(productName, productVersion, channel);
         AxisColumn uniqueAxisColumn = getGroupByColumn(groupBy);
 
         // Construct report elements
         List<ReportElement> reportElements = Collections
-                .unmodifiableList(constructReportElements(productTestPlan, uniqueAxisColumn));
+                .unmodifiableList(constructReportElements(product, uniqueAxisColumn));
 
         // Break elements by group by (sorting also handled)
         List<GroupBy> groupByList = groupReportElementsBy(uniqueAxisColumn, reportElements, showSuccess);
@@ -98,16 +95,16 @@ public class TestReportEngine {
         List<PerAxisHeader> perAxisHeaders = createPerAxisHeaders(uniqueAxisColumn, reportElements, showSuccess);
 
         // Generate HTML string
-        Report report = new Report(showSuccess, productTestPlan, groupByList, perAxisHeaders);
+        Report report = new Report(showSuccess, product, groupByList, perAxisHeaders);
         Map<String, Object> parsedResultMap = new HashMap<>();
         parsedResultMap.put(REPORT_TEMPLATE_KEY, report);
         Renderable renderable = RenderableFactory.getRenderable(REPORT_MUSTACHE);
         String htmlString = renderable.render(REPORT_MUSTACHE, parsedResultMap);
 
         // Write to HTML file
-        String fileName = StringUtil.concatStrings(productTestPlan.getName(), "-",
-                productTestPlan.getVersion(), "-", productTestPlan.getChannel(), "-",
-                uniqueAxisColumn, HTML_EXTENSION);
+        String fileName = StringUtil.concatStrings(product.getName(), "-",
+                product.getVersion(), "-", product.getChannel(), "-",
+                product.getCreatedTimestamp(), "-", uniqueAxisColumn, HTML_EXTENSION);
         writeHTMLToFile(fileName, htmlString);
     }
 
@@ -190,7 +187,7 @@ public class TestReportEngine {
      */
     private List<ReportElement> processOverallResultForScenarioAxis(List<ReportElement> reportElements) {
         List<ReportElement> distinctElements = distinctList(reportElements, ReportElement::getDeployment,
-                this::constructInfraString, ReportElement::isTestSuccess);
+                ReportElement::getInfraParams, ReportElement::isTestSuccess);
 
         // Fail list
         List<ReportElement> failList = distinctElements.stream()
@@ -208,8 +205,8 @@ public class TestReportEngine {
             boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
                 if (successListReportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
-                    constructInfraString(successListReportElement)
-                            .equals(constructInfraString(failListReportElement))) {
+                    successListReportElement.getInfraParams()
+                            .equals(failListReportElement.getInfraParams())) {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
@@ -232,7 +229,7 @@ public class TestReportEngine {
      * @return processed report elements
      */
     private List<ReportElement> processOverallResultForDeploymentAxis(List<ReportElement> reportElements) {
-        List<ReportElement> distinctElements = distinctList(reportElements, this::constructInfraString,
+        List<ReportElement> distinctElements = distinctList(reportElements, ReportElement::getInfraParams,
                 ReportElement::getScenarioName, ReportElement::isTestSuccess);
 
         // Fail list
@@ -250,8 +247,8 @@ public class TestReportEngine {
         for (ReportElement successListReportElement : successList) {
             boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
-                if (constructInfraString(successListReportElement)
-                            .equals(constructInfraString(failListReportElement)) &&
+                if (successListReportElement.getInfraParams()
+                            .equals(failListReportElement.getInfraParams()) &&
                     successListReportElement.getScenarioName().equals(failListReportElement.getScenarioName())) {
 
                     // If same combination os found, omit this next time
@@ -386,7 +383,7 @@ public class TestReportEngine {
         boolean isTestSuccess = reportElement.isTestSuccess();
         String scenarioName = reportElement.getScenarioName();
         String deployment = reportElement.getDeployment();
-        String infrastructure = constructInfraString(reportElement);
+        String infrastructure = reportElement.getInfraParams();
 
         switch (uniqueAxisColumn) {
             case INFRASTRUCTURE:
@@ -439,7 +436,7 @@ public class TestReportEngine {
                                                                               List<ReportElement> reportElements) {
         switch (uniqueAxisColumn) {
             case INFRASTRUCTURE:
-                return reportElements.stream().collect(Collectors.groupingBy(this::constructInfraString));
+                return reportElements.stream().collect(Collectors.groupingBy(ReportElement::getInfraParams));
             case DEPLOYMENT:
                 return reportElements.stream().collect(Collectors.groupingBy(ReportElement::getDeployment));
             case SCENARIO:
@@ -515,7 +512,7 @@ public class TestReportEngine {
                 return result;
             }
             // The by Infra
-            result = constructInfraString(re1).compareToIgnoreCase(constructInfraString(re2));
+            result = re1.getInfraParams().compareToIgnoreCase(re2.getInfraParams());
             if (result != 0) {
                 return result;
             }
@@ -528,17 +525,6 @@ public class TestReportEngine {
             return re1.getTestCase().compareToIgnoreCase(re2.getTestCase());
         });
         return reportElements;
-    }
-
-    /**
-     * Constructs a string to output infrastructures.
-     *
-     * @param reportElement report element to consider
-     * @return infrastructure string
-     */
-    private String constructInfraString(ReportElement reportElement) {
-        return StringUtil.concatStrings("Operating System: ", reportElement.getOperatingSystem(),
-                " | Database: ", reportElement.getDatabase(), " | JDK: ", reportElement.getJdk());
     }
 
     /**
@@ -564,88 +550,74 @@ public class TestReportEngine {
     /**
      * Returns constructed the report elements for the report.
      *
-     * @param product   product test plan to construct the report elements
+     * @param product           product test plan to construct the report elements
      * @param groupByAxisColumn grouped by column name
      * @return constructed report elements
      */
     private List<ReportElement> constructReportElements(Product product, AxisColumn groupByAxisColumn) {
-       /* List<TestPlan> testPlans = product.getTestPlans();
         List<ReportElement> reportElements = new ArrayList<>();
 
-        for (TestPlan testPlan : testPlans) {
-            InfraResult.Status infraStatus = testPlan.getInfraResult().getStatus();
+        // Deployment patterns
+        List<DeploymentPattern> deploymentPatterns = product.getDeploymentPatterns();
+        for (DeploymentPattern deploymentPattern : deploymentPatterns) {
 
-            // If infra is failed then there are no test scenarios
-            if (infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_ERROR)) {
-                ReportElement reportElement = createReportElement(testPlan, null, null,
-                        groupByAxisColumn);
-                reportElements.add(reportElement);
-                continue;
-            }
+            // Test plans
+            List<TestPlan> testPlans = deploymentPattern.getTestPlans();
+            for (TestPlan testPlan : testPlans) {
 
-            // Test scenarios
-            List<TestScenario> testScenarios = testPlan.getTestScenarios();
-            for (TestScenario testScenario : testScenarios) {
+                // Test scenarios
+                List<TestScenario> testScenarios = testPlan.getTestScenarios();
+                for (TestScenario testScenario : testScenarios) {
 
-                // Test cases
-                List<TestCase> testCases = testScenario.getTestCases();
-                for (TestCase testCase : testCases) {
-                    ReportElement reportElement =
-                            createReportElement(testPlan, testScenario, testCase, groupByAxisColumn);
-                    reportElements.add(reportElement);
+                    // Test cases
+                    List<TestCase> testCases = testScenario.getTestCases();
+                    for (TestCase testCase : testCases) {
+                        ReportElement reportElement = createReportElement(deploymentPattern, testPlan, testScenario,
+                                testCase, groupByAxisColumn);
+                        reportElements.add(reportElement);
+                    }
                 }
             }
         }
-        return reportElements;*/
-       return null;
+        return reportElements;
     }
 
     /**
      * Creates and returns an {@link ReportElement} instance for the given params.
      *
+     * @param deploymentPattern deployment pattern
      * @param testPlan          test plan
      * @param testScenario      test scenario (can be null if the infra is failed)
      * @param testCase          test case (can be null if the infra is failed)
      * @param groupByAxisColumn grouped by column name
      * @return {@link ReportElement} for the given params
      */
-    private ReportElement createReportElement(TestPlan testPlan, TestScenario testScenario, TestCase testCase,
+    private ReportElement createReportElement(DeploymentPattern deploymentPattern, TestPlan testPlan,
+                                              TestScenario testScenario, TestCase testCase,
                                               AxisColumn groupByAxisColumn) {
-        /*InfraCombination infraCombination = testPlan.getInfraResult().getInfraCombination();
-        InfraResult.Status infraStatus = testPlan.getInfraResult().getStatus();
-        boolean isInfraSuccess = !infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_ERROR) &&
-                                 !infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
 
         ReportElement reportElement = new ReportElement(groupByAxisColumn);
 
         // Information related to the test plan.
-        reportElement.setDeployment(testPlan.getDeploymentPattern());
-        reportElement.setOperatingSystem(infraCombination.getOperatingSystem());
-        reportElement.setDatabase(infraCombination.getDatabase());
-        reportElement.setJdk(infraCombination.getJdk());
-        reportElement.setInfraSuccess(isInfraSuccess);
+        reportElement.setDeployment(deploymentPattern.getName());
+        reportElement.setInfraParams(testPlan.getInfraParameters());
 
-        // Test scenario can be null if the infra fails.
-        String testScenarioName = testScenario != null ? testScenario.getName() : "";
-        reportElement.setScenarioName(testScenarioName);
+        // Test scenario information
+        reportElement.setScenarioName(testScenario.getName());
 
         // Test case can be null if the infra fails.
         if (testCase != null) {
             reportElement.setTestCase(testCase.getName());
-            reportElement.setTestSuccess(testCase.isTestSuccess());
+            reportElement.setTestSuccess(testCase.isSuccess());
 
-            if (!testCase.isTestSuccess()) {
+            if (!testCase.isSuccess()) {
                 reportElement.setTestCaseFailureMessage(testCase.getFailureMessage());
             }
         } else {
             reportElement.setTestCase("");
             reportElement.setTestSuccess(false);
-
-            // Failure is due to infra failure
-            reportElement.setTestCaseFailureMessage(infraStatus.toString());
         }
-        return reportElement;*/
-        return null;
+        return reportElement;
     }
 
     /**
@@ -671,15 +643,13 @@ public class TestReportEngine {
      * @param productVersion product version
      * @param channel        product test plan channel
      * @return an instance of {@link Product} for the given product name and product version
-     * @throws ReportingException throw when error on obtaining product test plan for the given product name
-     *                            and product version
+     * @throws ReportingException throw when error on obtaining product for the given product name and product version
      */
-    private Product getProductTestPlan(String productName, String productVersion, String channel)
-            throws ReportingException {
+    private Product getProduct(String productName, String productVersion, String channel) throws ReportingException {
         try {
-            ProductUOW productTestPlanUOW = new ProductUOW();
-            Product.Channel productTestPlanChannel = Product.Channel.valueOf(channel);
-            return productTestPlanUOW.getProduct(productName, productVersion, productTestPlanChannel)
+            ProductUOW productUOW = new ProductUOW();
+            Product.Channel productChannel = Product.Channel.valueOf(channel);
+            return productUOW.getProduct(productName, productVersion, productChannel)
                     .orElseThrow(() -> new ReportingException(StringUtil
                             .concatStrings("No product test plan found for product {product name: ", productName,
                                     ", product version: ", productVersion, ", channel: ", channel, "}")));
@@ -687,8 +657,7 @@ public class TestReportEngine {
             throw new ReportingException(StringUtil.concatStrings("Channel ", channel,
                     " not found in channels enum."));
         } catch (TestGridDAOException e) {
-            throw new ReportingException(StringUtil.concatStrings("Product ", productName,
-                    " not found."));
+            throw new ReportingException("Error in instantiating DB transaction.", e);
         }
     }
 }

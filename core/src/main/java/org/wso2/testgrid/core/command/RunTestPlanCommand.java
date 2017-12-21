@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.config.ConfigProviderFactory;
 import org.wso2.carbon.config.ConfigurationException;
 import org.wso2.carbon.config.provider.ConfigProvider;
-import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Product;
@@ -34,23 +33,16 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.core.config.TestConfig;
 import org.wso2.testgrid.core.TestPlanExecutor;
 import org.wso2.testgrid.core.config.TestConfig;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
-import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.logging.plugins.ProductTestPlanLookup;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -115,9 +107,9 @@ public class RunTestPlanCommand implements Command {
             }
             logger.debug(
                     "Input Arguments: \n" +
-                            "\tProduct name: " + productName + "\n" +
-                            "\tProduct version: " + productVersion + "\n" +
-                            "\tChannel" + channel);
+                    "\tProduct name: " + productName + "\n" +
+                    "\tProduct version: " + productVersion + "\n" +
+                    "\tChannel" + channel);
             logger.debug("TestPlan contents : \n" + new String(Files.readAllBytes(testPlanPath),
                     Charset.forName("UTF-8")));
 
@@ -131,14 +123,14 @@ public class RunTestPlanCommand implements Command {
             }*/
 
 
-        // Get test plan YAML file path location
-        Product product = getProduct(productName, productVersion, channel);
-        Optional<String> testPlanYAMLFilePath = getTestPlanGenFilePath(product);
-        if (!testPlanYAMLFilePath.isPresent()) {
-            logger.info(StringUtil.concatStrings("No test plan YAML files found for the given product - ",
-                    product));
-            return;
-        }
+            // Get test plan YAML file path location
+            Product product = getProduct(productName, productVersion, channel);
+            Optional<String> testPlanYAMLFilePath = getTestPlanGenFilePath(product);
+            if (!testPlanYAMLFilePath.isPresent()) {
+                logger.info(StringUtil.concatStrings("No test plan YAML files found for the given product - ",
+                        product));
+                return;
+            }
             // Get test config
             TestConfig testConfig = readTestConfig(testPlanYAMLFilePath.get());
 
@@ -300,10 +292,11 @@ public class RunTestPlanCommand implements Command {
      * This method triggers the execution of a {@link TestPlan}.
      *
      * @param testPlan test plan to execute
-     * @param product product associated with the test plan
+     * @param product  product associated with the test plan
      * @throws CommandExecutionException thrown when error on executing test plan
      */
-    private void executeTestPlan(Product product, TestPlan testPlan, Infrastructure infrastructure) throws CommandExecutionException {
+    private void executeTestPlan(Product product, TestPlan testPlan, Infrastructure infrastructure)
+            throws CommandExecutionException {
         try {
             // Update product test plan status
             product = persistProduct(product);
@@ -347,7 +340,7 @@ public class RunTestPlanCommand implements Command {
     private void setLogFilePath(Product product, TestPlan testPlan) {
         //Set productTestPlanId and testPlanId lookup fields for logging
         ProductTestPlanLookup.setProductTestDirectory(product.getName() + "_"
-                + product.getVersion() + "_" + product.getChannel());
+                                                      + product.getVersion() + "_" + product.getChannel());
         ProductTestPlanLookup.setDeploymentPattern(testPlan.getDeploymentPattern().getName());
         /*ProductTestPlanLookup
                 .setInfraParams(testPlan.getInfraParams().getOperatingSystem().getName()
@@ -360,7 +353,7 @@ public class RunTestPlanCommand implements Command {
     /**
      * This method generates TestPlan object model that from the given input parameters.
      *
-     * @param testConfig testConfig object
+     * @param testConfig   testConfig object
      * @param testRepoDir  test repo directory
      * @param infraRepoDir infrastructure repo directory
      * @return TestPlan object model

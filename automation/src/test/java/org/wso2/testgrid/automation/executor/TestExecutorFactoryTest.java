@@ -44,7 +44,7 @@ public class TestExecutorFactoryTest {
     }
 
     @Test(expectedExceptions = TestAutomationException.class,
-          expectedExceptionsMessageRegExp = "Test executor for test type SELENIUM not implemented.",
+          expectedExceptionsMessageRegExp = "Test executor for test type selenium not implemented.",
           description = "Tests whether an exception is thrown for other types")
     public void testTypeUnknownTest() throws TestAutomationException {
         TestExecutorFactory.getTestExecutor(TestEngine.SELENIUM);
