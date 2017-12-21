@@ -19,15 +19,18 @@ package org.wso2.testgrid.reporting;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.InfraCombination;
-import org.wso2.testgrid.common.InfraResult;
-import org.wso2.testgrid.common.ProductTestPlan;
+//import org.wso2.testgrid.common.InfraCombination;
+//import org.wso2.testgrid.common.InfraResult;
+import org.wso2.testgrid.common.Product;
+//import org.wso2.testgrid.common.ProductTestPlan;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
+import org.wso2.testgrid.dao.TestGridDAOException;
+//import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
+import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.reporting.model.GroupBy;
 import org.wso2.testgrid.reporting.model.PerAxisHeader;
 import org.wso2.testgrid.reporting.model.PerAxisSummary;
@@ -81,7 +84,7 @@ public class TestReportEngine {
     public void generateReport(String productName, String productVersion, String channel, boolean showSuccess,
                                String groupBy)
             throws ReportingException {
-        ProductTestPlan productTestPlan = getProductTestPlan(productName, productVersion, channel);
+        Product productTestPlan = getProductTestPlan(productName, productVersion, channel);
         AxisColumn uniqueAxisColumn = getGroupByColumn(groupBy);
 
         // Construct report elements
@@ -102,9 +105,9 @@ public class TestReportEngine {
         String htmlString = renderable.render(REPORT_MUSTACHE, parsedResultMap);
 
         // Write to HTML file
-        String fileName = StringUtil.concatStrings(productTestPlan.getProductName(), "-",
-                productTestPlan.getProductVersion(), "-", productTestPlan.getChannel(), "-",
-                productTestPlan.getStartTimestamp(), "-", uniqueAxisColumn, HTML_EXTENSION);
+        String fileName = StringUtil.concatStrings(productTestPlan.getName(), "-",
+                productTestPlan.getVersion(), "-", productTestPlan.getChannel(), "-",
+                uniqueAxisColumn, HTML_EXTENSION);
         writeHTMLToFile(fileName, htmlString);
     }
 
@@ -561,12 +564,12 @@ public class TestReportEngine {
     /**
      * Returns constructed the report elements for the report.
      *
-     * @param productTestPlan   product test plan to construct the report elements
+     * @param product   product test plan to construct the report elements
      * @param groupByAxisColumn grouped by column name
      * @return constructed report elements
      */
-    private List<ReportElement> constructReportElements(ProductTestPlan productTestPlan, AxisColumn groupByAxisColumn) {
-        List<TestPlan> testPlans = productTestPlan.getTestPlans();
+    private List<ReportElement> constructReportElements(Product product, AxisColumn groupByAxisColumn) {
+       /* List<TestPlan> testPlans = product.getTestPlans();
         List<ReportElement> reportElements = new ArrayList<>();
 
         for (TestPlan testPlan : testPlans) {
@@ -593,7 +596,8 @@ public class TestReportEngine {
                 }
             }
         }
-        return reportElements;
+        return reportElements;*/
+       return null;
     }
 
     /**
@@ -607,7 +611,7 @@ public class TestReportEngine {
      */
     private ReportElement createReportElement(TestPlan testPlan, TestScenario testScenario, TestCase testCase,
                                               AxisColumn groupByAxisColumn) {
-        InfraCombination infraCombination = testPlan.getInfraResult().getInfraCombination();
+        /*InfraCombination infraCombination = testPlan.getInfraResult().getInfraCombination();
         InfraResult.Status infraStatus = testPlan.getInfraResult().getStatus();
         boolean isInfraSuccess = !infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_ERROR) &&
                                  !infraStatus.equals(InfraResult.Status.INFRASTRUCTURE_DESTROY_ERROR);
@@ -640,7 +644,8 @@ public class TestReportEngine {
             // Failure is due to infra failure
             reportElement.setTestCaseFailureMessage(infraStatus.toString());
         }
-        return reportElement;
+        return reportElement;*/
+        return null;
     }
 
     /**
@@ -660,27 +665,30 @@ public class TestReportEngine {
     }
 
     /**
-     * Returns an instance of {@link ProductTestPlan} for the given product name and product version.
+     * Returns an instance of {@link Product} for the given product name and product version.
      *
      * @param productName    product name
      * @param productVersion product version
      * @param channel        product test plan channel
-     * @return an instance of {@link ProductTestPlan} for the given product name and product version
+     * @return an instance of {@link Product} for the given product name and product version
      * @throws ReportingException throw when error on obtaining product test plan for the given product name
      *                            and product version
      */
-    private ProductTestPlan getProductTestPlan(String productName, String productVersion, String channel)
+    private Product getProductTestPlan(String productName, String productVersion, String channel)
             throws ReportingException {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            ProductTestPlan.Channel productTestPlanChannel = ProductTestPlan.Channel.valueOf(channel);
-            return productTestPlanUOW.getProductTestPlan(productName, productVersion, productTestPlanChannel)
+            ProductUOW productTestPlanUOW = new ProductUOW();
+            Product.Channel productTestPlanChannel = Product.Channel.valueOf(channel);
+            return productTestPlanUOW.getProduct(productName, productVersion, productTestPlanChannel)
                     .orElseThrow(() -> new ReportingException(StringUtil
                             .concatStrings("No product test plan found for product {product name: ", productName,
                                     ", product version: ", productVersion, ", channel: ", channel, "}")));
         } catch (IllegalArgumentException e) {
             throw new ReportingException(StringUtil.concatStrings("Channel ", channel,
                     " not found in channels enum."));
+        } catch (TestGridDAOException e) {
+            throw new ReportingException(StringUtil.concatStrings("Product ", productName,
+                    " not found."));
         }
     }
 }

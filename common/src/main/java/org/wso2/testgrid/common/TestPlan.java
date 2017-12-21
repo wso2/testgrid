@@ -32,6 +32,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * Defines a model object of TestPlan with required attributes.
@@ -73,6 +74,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
 
     @OneToMany(mappedBy = "testPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestScenario> testScenarios = new ArrayList<>();
+
+    @Transient
+    private DeployerType deployerType;
+
+    @Transient
+    private Deployment deployment;
+
+    @Transient
+    private String testRepoDir;
+
+    @Transient
+    private String infraRepoDir;
+
+    @Transient
+    private Script infrastructureScript;
+
+    @Transient
+    private Script deploymentScript;
 
     /**
      * Returns the status of the infrastructure.
@@ -162,6 +181,160 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      */
     public void setTestScenarios(List<TestScenario> testScenarios) {
         this.testScenarios = testScenarios;
+    }
+
+    /**
+     * Returns the deployer-type (puppet/ansible) of the test plan.
+     *
+     * @return the deployer-type (puppet/ansible) of the test plan
+     */
+    public DeployerType getDeployerType() {
+        return deployerType;
+    }
+
+    /**
+     * Sets the deployer-type (puppet/ansible) of the test plan.
+     *
+     * @param deployerType deployer-type (puppet/ansible) of the test plan
+     */
+    public void setDeployerType(DeployerType deployerType) {
+        this.deployerType = deployerType;
+    }
+
+    /**
+     * Returns the deployment information of the test plan.
+     *
+     * @return the deployment information of the test plan
+     */
+    public Deployment getDeployment() {
+        return deployment;
+    }
+
+    /**
+     * Sets the deployment information of the test plan.
+     *
+     * @param deployment the deployment information of the test plan
+     */
+    public void setDeployment(Deployment deployment) {
+        this.deployment = deployment;
+    }
+
+    /**
+     * Returns the path of the test plans' test artifacts.
+     *
+     * @return the path of the test plans' test artifacts.
+     */
+    public String getTestRepoDir() {
+        return testRepoDir;
+    }
+
+    /**
+     * Sets the path of the test plans' test artifacts.
+     *
+     * @param testRepoDir the path of the test plans' test artifacts.
+     */
+    public void setTestRepoDir(String testRepoDir) {
+        this.testRepoDir = testRepoDir;
+    }
+
+    /**
+     * Returns the path of the test plans' infrastructure artifacts.
+     *
+     * @return the path of the test plans' infrastructure artifacts
+     */
+    public String getInfraRepoDir() {
+        return infraRepoDir;
+    }
+
+    /**
+     * Sets the path of the test plans' infrastructure artifacts.
+     *
+     * @param infraRepoDir the path of the test plans' infrastructure artifacts
+     */
+    public void setInfraRepoDir(String infraRepoDir) {
+        this.infraRepoDir = infraRepoDir;
+    }
+
+    /**
+     * Returns the location of additional infrastructure scripts attached with this test plan.
+     *
+     * @return additional infrastructureScript script path
+     */
+    public Script getInfrastructureScript() {
+        return infrastructureScript;
+    }
+
+    /**
+     * Sets an additional infrastructure script path to this test plan to be executed after the general infrastructure
+     * has completed.
+     *
+     * @param infrastructureScript additional infrastructureScript script path
+     */
+    public void setInfrastructureScript(Script infrastructureScript) {
+        this.infrastructureScript = infrastructureScript;
+    }
+
+    /**
+     * Returns the location of additional deployment scripts attached with this test plan.
+     *
+     * @return the location of additional deployment scripts
+     */
+    public Script getDeploymentScript() {
+        return deploymentScript;
+    }
+
+    /**
+     * Sets an additional deployment script path to this test plan to be executed after the general deployment has
+     * completed.
+     *
+     * @param deploymentScript additional deployment script path
+     */
+    public void setDeploymentScript(Script deploymentScript) {
+        this.deploymentScript = deploymentScript;
+    }
+
+    /**
+     * This defines the supported deployment automation tools.
+     *
+     * @since 1.0.0
+     */
+    public enum DeployerType {
+
+        /**
+         * Defines the puppet automation.
+         */
+        PUPPET("PUPPET"),
+
+        /**
+         * Defines the ansible automation.
+         */
+        ANSIBLE("ANSIBLE"),
+
+        /**
+         * Defines the ansible automation.
+         */
+        AWS_CF("AWS_CF"),
+
+        /**
+         * Defines the chef automation.
+         */
+        CHEF("CHEF");
+
+        private final String deployerType;
+
+        /**
+         * Sets the deployer type of the test plan.
+         *
+         * @param deployerType deployer type of the test plan
+         */
+        DeployerType(String deployerType) {
+            this.deployerType = deployerType;
+        }
+
+        @Override
+        public String toString() {
+            return this.deployerType;
+        }
     }
 
     @Override

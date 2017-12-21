@@ -28,12 +28,13 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
-import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -153,6 +154,9 @@ public class AWSManager {
                     "CloudFormation Stack creation", e);
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occured while Reading CloudFormation script", e);
+        } catch (ParseException e) {
+            throw new TestGridInfrastructureException("Error occurred while parsing infra param object " +
+                    "CloudFormation Stack creation", e);
         }
     }
 
@@ -242,8 +246,8 @@ public class AWSManager {
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
-    private List<Parameter> getParameters(Script script) throws IOException
-            , TestGridInfrastructureException {
+    private List<Parameter> getParameters(Script script)
+            throws IOException, TestGridInfrastructureException, ParseException {
 
         Properties scriptParameters = script.getScriptParameters();
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
@@ -262,14 +266,16 @@ public class AWSManager {
             }
         }));
 
-        InfraCombination infraCombination = infra.getInfraCombination();
+        JSONParser parser = new JSONParser();
+        JSONObject infraParams = (JSONObject) parser.parse(infra.getInfraParams());
+
         for (Parameter parameter : cfCompatibleParameters) {
             if (DB_ENGINE.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(this.getDatabaseEngineName(infraCombination.getDatabase().getEngine()));
+                parameter.setParameterValue(this.getDatabaseEngineName(infraParams.get("databaseName").toString()));
             } else if (DB_ENGINE_VERSION.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(infraCombination.getDatabase().getVersion());
+                parameter.setParameterValue(infraParams.get("databaseVersion").toString());
             } else if (JDK.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(infraCombination.getJdk().name());
+                parameter.setParameterValue(infraParams.get("jdk").toString());
             } else if (IMAGE.equals(parameter.getParameterKey())) {
                 parameter.setParameterValue(this.infra.getImageId());
             }
@@ -284,21 +290,21 @@ public class AWSManager {
      * @return a {@link String} object which indicates the name of AWS RDS
      * @throws TestGridInfrastructureException When the given db engine is not supported by AWS RDS.
      */
-    private String getDatabaseEngineName(Database.DatabaseEngine databaseEngine) throws
+    private String getDatabaseEngineName(String databaseEngine) throws
             TestGridInfrastructureException {
         switch (databaseEngine) {
-            case MYSQL:
+            case "MYSQL":
                 return AWSRDSEngine.MYSQL.name;
-            case POSTGRESQL:
+            case "POSTGRESQL":
                 return AWSRDSEngine.POSTGRESQL.name;
-            case ORACLE:
+            case "ORACLE":
                 return AWSRDSEngine.ORACLE.name;
-            case SQL_SERVER:
+            case "SQL_SERVER":
                 return AWSRDSEngine.SQL_SERVER.name;
-            case MariaDB:
+            case "MariaDB":
                 return AWSRDSEngine.MariaDB.name;
             default:
-                throw new TestGridInfrastructureException("Request DB engine '" + databaseEngine.name()
+                throw new TestGridInfrastructureException("Request DB engine '" + databaseEngine
                                                           + "' is not supported by AWS.");
         }
     }

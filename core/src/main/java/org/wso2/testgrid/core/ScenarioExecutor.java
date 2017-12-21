@@ -25,6 +25,7 @@ import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.reader.TestReader;
 import org.wso2.testgrid.automation.reader.TestReaderFactory;
 import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -32,10 +33,13 @@ import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,7 +67,7 @@ public class ScenarioExecutor {
             // Run test scenario.
             String homeDir = testPlan.getTestRepoDir();
             testScenario.setTestPlan(testPlan);
-            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_RUNNING);
+            testScenario.setStatus(Status.RUNNING);
             testScenario = persistTestScenario(testScenario);
 
             logger.info("Executing Tests for Solution Pattern : " + testScenario.getName());
@@ -77,10 +81,10 @@ public class ScenarioExecutor {
             }
 
             // Test scenario completed.
-            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_COMPLETED);
+            testScenario.setStatus(Status.SUCCESS);
             persistTestScenario(testScenario);
         } catch (TestAutomationException e) {
-            testScenario.setStatus(TestScenario.Status.TEST_SCENARIO_ERROR);
+            testScenario.setStatus(Status.FAIL);
             persistTestScenario(testScenario);
             throw new ScenarioExecutorException(StringUtil
                     .concatStrings("Exception occurred while running the Tests for Solution Pattern '",
@@ -120,13 +124,22 @@ public class ScenarioExecutor {
             List<Test> testList = new ArrayList<>();
 
             if (Files.exists(testLocationPath)) {
-                TestScenario.TestEngine testType = testScenario.getTestEngine();
-                Optional<TestReader> testReader = TestReaderFactory.getTestReader(testType);
+                File file = new File(Paths.get(testLocationPath.toString(), "src", "test").toString());
+                String[] testDirectories = file.list((current, name) -> new File(current, name).isDirectory());
+
+                for (String testDirectory : testDirectories) {
+                    Optional<TestReader> testReader = TestReaderFactory.getTestReader(testDirectory);
+                    if (testReader.isPresent()) {
+                        List<Test> tests = testReader.get().readTests(testLocation, testScenario);
+                        testList.addAll(tests);
+                    }
+                }
+               /* Optional<TestReader> testReader = TestReaderFactory.getTestReader(testScenario.getTestEngine());
 
                 if (testReader.isPresent()) {
                     List<Test> tests = testReader.get().readTests(testLocation, testScenario);
                     testList.addAll(tests);
-                }
+                }*/
             }
             return testList;
         } catch (TestAutomationException e) {

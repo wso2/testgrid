@@ -35,11 +35,11 @@ public class TestReaderFactory {
      * @param testType type of tests
      * @return instance of an {@link TestReader} for the given test type
      */
-    public static Optional<TestReader> getTestReader(TestEngine testType) {
-        switch (testType) {
-            case JMETER:
+    public static Optional<TestReader> getTestReader(String testType) {
+        switch (testType.toLowerCase()) {
+            case "jmeter":
                 return Optional.of(new JMeterTestReader());
-            case TESTNG:
+            case "testng":
                 return Optional.of(new TestNGTestReader());
             default:
                 return Optional.empty();
