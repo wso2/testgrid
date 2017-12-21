@@ -19,7 +19,7 @@
 package org.wso2.testgrid.automation.executor;
 
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.common.TestEngine;
+import org.wso2.testgrid.automation.TestEngine;
 import org.wso2.testgrid.common.util.StringUtil;
 
 /**

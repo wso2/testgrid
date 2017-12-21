@@ -21,7 +21,7 @@ package org.wso2.testgrid.automation.reader;
 import org.apache.commons.lang3.ArrayUtils;
 import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.common.TestEngine;
+import org.wso2.testgrid.automation.TestEngine;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
