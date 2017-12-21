@@ -62,11 +62,6 @@ public class TestPlanExecutor {
         testPlan = setupInfrastructure(infrastructure, testPlan);
         testPlan = persistTestPlan(testPlan);
 
-        // Deployment creation.
-        Deployment deployment = createDeployment(infrastructure, testPlan);
-        testPlan.setDeployment(deployment);
-        testPlan = persistTestPlan(testPlan);
-
         // Run test plan.
         testPlan.setStatus(Status.RUNNING);
         testPlan = persistTestPlan(testPlan);
@@ -75,7 +70,7 @@ public class TestPlanExecutor {
         for (TestScenario testScenario : testPlan.getTestScenarios()) {
             try {
                 ScenarioExecutor scenarioExecutor = new ScenarioExecutor();
-                scenarioExecutor.runScenario(testScenario, deployment, testPlan);
+                scenarioExecutor.runScenario(testScenario, testPlan.getDeployment(), testPlan);
             } catch (ScenarioExecutorException e) {
                 testPlan.setStatus(Status.FAIL);
                 testPlan = persistTestPlan(testPlan);

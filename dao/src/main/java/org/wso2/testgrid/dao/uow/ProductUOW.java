@@ -20,7 +20,7 @@ package org.wso2.testgrid.dao.uow;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.repository.DeploymentRepository;
+import org.wso2.testgrid.dao.repository.ProductRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,14 +35,14 @@ import javax.persistence.EntityManager;
  */
 public class ProductUOW {
 
-    private final DeploymentRepository productRepository;
+    private final ProductRepository productRepository;
 
     /**
      * Constructs an instance of {@link ProductUOW} to manager use cases related to product test plan.
      */
     public ProductUOW() {
         EntityManager entityManager = EntityManagerHelper.getEntityManager();
-        productRepository = new DeploymentRepository(entityManager);
+        productRepository = new ProductRepository(entityManager);
     }
 
     /**

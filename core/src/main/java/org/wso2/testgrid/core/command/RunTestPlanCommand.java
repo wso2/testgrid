@@ -30,6 +30,7 @@ import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -51,6 +52,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -143,7 +146,12 @@ public class RunTestPlanCommand implements Command {
             Infrastructure infrastructure = getInfrastructure();
             infrastructure.setInfraParams(testConfig.getInfraParams());
             TestPlan testPlan = generateTestPlan(testConfig, scenarioRepoDir, infraRepo);
-            testPlan.getDeploymentPattern().setProduct(product);
+
+            DeploymentPattern deploymentPattern = new DeploymentPattern();
+            deploymentPattern.setName(testConfig.getDeploymentPattern());
+            deploymentPattern.setProduct(product);
+            testPlan.setDeploymentPattern(deploymentPattern);
+            testPlan.setInfraParameters(infrastructure.getInfraParams().toString());
 
             //Set logger file path
             setLogFilePath(product, testPlan);
@@ -307,12 +315,13 @@ public class RunTestPlanCommand implements Command {
         try {
             // Update product test plan status
             product = persistProduct(product);
-            persistDeploymentPattern(testPlan.getDeploymentPattern());
+            DeploymentPattern deploymentPattern = persistDeploymentPattern(testPlan.getDeploymentPattern());
 
             // Set test scenario status
             testPlan.getTestScenarios()
                     .forEach(testScenario -> testScenario.setStatus(Status.PENDING));
 
+            testPlan.setDeploymentPattern(deploymentPattern);
             testPlan = persistTestPlan(testPlan);
 
             // Run test plan
@@ -384,19 +393,17 @@ public class RunTestPlanCommand implements Command {
      */
     private TestPlan generateTestPlan(TestConfig testConfig, String testRepoDir, String infraRepoDir) {
         TestPlan testPlan = new TestPlan();
-        DeploymentPattern deploymentPattern = new DeploymentPattern();
-        deploymentPattern.setName(testConfig.getDeploymentPattern());
-        testPlan.setDeploymentPattern(deploymentPattern);
         testPlan.setStatus(Status.PENDING);
         testPlan.setInfraRepoDir(infraRepoDir);
         testPlan.setTestRepoDir(testRepoDir);
-           /* GitUtil.cloneRepository(testConfig.getScenarioConfig().getGitRepo(),
-                    Paths.get(TestGridUtil.getTestGridHomePath(), "identity-test-integration").toString());
-            scenarioRepoDir = Paths.get(TestGridUtil.getTestGridHomePath(), "identity-test-integration").toString();
-            GitUtil.cloneRepository(testConfig.getDeploymentPatternRepository(),
-                    Paths.get(TestGridUtil.getTestGridHomePath(), "cloudformation-is").toString());
-            deploymentRepoDir = Paths.get(TestGridUtil.getTestGridHomePath(),
-                    "cloudformation-is", testConfig.getDeploymentPattern()).toString();*/
+        List<TestScenario> testScenarios = new ArrayList<>();
+        for (String name : testConfig.getScenarioConfig().getNames()) {
+            TestScenario testScenario = new TestScenario();
+            testScenario.setName(name);
+            testScenario.setTestPlan(testPlan);
+            testScenarios.add(testScenario);
+        }
+        testPlan.setTestScenarios(testScenarios);
         return testPlan;
     }
 }

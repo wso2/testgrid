@@ -60,7 +60,7 @@ public class TestReaderFactory {
      */
     private static Optional<TestEngine> getTestEngineFromString(String testType) {
         try {
-            return Optional.of(TestEngine.valueOf(testType));
+            return Optional.of(TestEngine.valueOf(testType.toUpperCase()));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
