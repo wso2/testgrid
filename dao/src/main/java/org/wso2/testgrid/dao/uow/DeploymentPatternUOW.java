@@ -22,7 +22,6 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.DeploymentPatternRepository;
-import org.wso2.testgrid.dao.repository.DeploymentRepository;
 
 import javax.persistence.EntityManager;
 import java.util.HashMap;

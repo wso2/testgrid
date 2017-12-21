@@ -76,7 +76,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private List<TestScenario> testScenarios = new ArrayList<>();
 
     @Transient
-    private DeployerType deployerType;
+    private DeployerType deployerType = DeployerType.AWS_CF;
 
     @Transient
     private Deployment deployment;

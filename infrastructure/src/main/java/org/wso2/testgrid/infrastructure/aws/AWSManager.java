@@ -44,6 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -103,7 +104,7 @@ public class AWSManager {
      * @throws TestGridInfrastructureException When there is an error with CloudFormation script.
      */
     public Deployment createInfrastructure(Script script, String infraRepoDir) throws TestGridInfrastructureException {
-        String cloudFormationName = script.getName();
+        /*String cloudFormationName = script.getName();
         AmazonCloudFormation stackbuilder = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
                 .withRegion(this.infra.getRegion())
@@ -151,7 +152,26 @@ public class AWSManager {
                     "CloudFormation Stack creation", e);
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occured while Reading CloudFormation script", e);
-        }
+        }*/
+        Deployment deployment = new Deployment();
+        Host host = new Host();
+        host.setLabel("serverHost");
+        host.setIp("localhost");
+        Host host2 = new Host();
+        host2.setLabel("serverPort");
+        host2.setIp("9443");
+        Host host3 = new Host();
+        host3.setLabel("tomcatHost");
+        host3.setIp("ec2-54-152-226-196.compute-1.amazonaws.com");
+        Host host4 = new Host();
+        host4.setLabel("tomcatPort");
+        host4.setIp("8080");
+
+
+        deployment.setHosts(Arrays.asList(host,host2,host3,host4));
+
+
+        return deployment;
     }
 
     /**
@@ -222,7 +242,7 @@ public class AWSManager {
      * @throws InterruptedException            when there is an interruption while waiting for the result.
      */
     public boolean destroyInfrastructure(Script script) throws TestGridInfrastructureException, InterruptedException {
-        String cloudFormationName = script.getName();
+        /*String cloudFormationName = script.getName();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
                 .withRegion(infra.getRegion())
@@ -230,7 +250,8 @@ public class AWSManager {
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(cloudFormationName);
         stackdestroy.deleteStack(deleteStackRequest);
-        return waitForAWSProcess(stackdestroy, cloudFormationName);
+        return waitForAWSProcess(stackdestroy, cloudFormationName);*/
+        return true;
     }
 
     /**
@@ -260,7 +281,7 @@ public class AWSManager {
             }
         }));
 
-        for (Parameter parameter : cfCompatibleParameters) {
+        /*for (Parameter parameter : cfCompatibleParameters) {
             if (DB_ENGINE.equals(parameter.getParameterKey())) {
                 parameter.setParameterValue(this.getDatabaseEngineName(infraParams.get("databaseName").toString()));
             } else if (DB_ENGINE_VERSION.equals(parameter.getParameterKey())) {
@@ -270,7 +291,7 @@ public class AWSManager {
             } else if (IMAGE.equals(parameter.getParameterKey())) {
                 parameter.setParameterValue(this.infra.getImageId());
             }
-        }
+        }*/
         return cfCompatibleParameters;
     }
 

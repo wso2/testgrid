@@ -50,6 +50,14 @@ public class TestPlanUOW {
      */
     public TestPlan persistTestPlan(TestPlan testPlan) throws TestGridDAOException {
         TestPlan persisted = testPlanRepository.persist(testPlan);
+        if (persisted != null) {
+            persisted.setDeployerType(testPlan.getDeployerType());
+            persisted.setDeployment(testPlan.getDeployment());
+            persisted.setTestRepoDir(testPlan.getTestRepoDir());
+            persisted.setInfraRepoDir(testPlan.getInfraRepoDir());
+            persisted.setInfrastructureScript(testPlan.getInfrastructureScript());
+            persisted.setDeploymentScript(testPlan.getDeploymentScript());
+        }
         return persisted;
     }
 
