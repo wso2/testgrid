@@ -29,9 +29,6 @@ wso2.testgrid.infrastructure:
       name: "wso2-is-public-branch"
       environmentScriptParameters:
       scriptParameters:
-        DBEngine: "databases.engine"
-        DBEngineVersion: "databases.version"
-        JDK: "jdks.jdk"
         DBPassword: "DB_Password"
         EC2KeyPair: "testgrid-key"
         ALBCertificateARN: "arn:aws:acm:us-east-1:809489900555:certificate/2ab5aded-5df1-4549-9f7e-91639ff6634e"
