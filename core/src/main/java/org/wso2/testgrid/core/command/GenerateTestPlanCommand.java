@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.lang.reflect.ParameterizedType;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -110,11 +109,11 @@ public class GenerateTestPlanCommand implements Command {
         String infraGenDirectory = createTestPlanGenDirectory(product);
 
         // Save test configs to file
-        for (TestConfig testConfig : testConfigs) {
+        for (int i = 0; i < testConfigs.size(); i++) {
+            TestConfig testConfig = testConfigs.get(i);
             String fileName = StringUtil.concatStrings(testConfig.getProductConfig().getName(), "-",
                     testConfig.getProductConfig().getVersion(), "-", testConfig.getProductConfig().getChannel(),
-                    "-", testConfig.getDeploymentPattern(), "-", testConfig.getInfraParams().toString(),
-                    YAML_EXTENSION);
+                    "-", (i + 1), YAML_EXTENSION);
             String output = yaml.dump(testConfig);
             saveFile(output, infraGenDirectory, fileName);
         }
@@ -193,9 +192,9 @@ public class GenerateTestPlanCommand implements Command {
         List<String> deploymentNames = inputTestConfig.getDeploymentPatternConfig().getNames();
         for (String deploymentName : deploymentNames) {
             // Infra params
-            List<List<Map<String, Object>>> infraParamsList = inputTestConfig.getInfraParamsList();
+            List<Map<String, Object>> infraParamsList = inputTestConfig.getInfraParamsList();
             List<List<Map<String, String>>> infraCombinations = new ArrayList<>();
-            for (List<Map<String, Object>> infraParams : infraParamsList) {
+            for (Map<String, Object> infraParams : infraParamsList) {
                 Map<String, List<String>> groupInfraParams = groupInfraParams(infraParams);
                 infraCombinations.addAll(createInfraCombinations(groupInfraParams));
             }
@@ -223,21 +222,16 @@ public class GenerateTestPlanCommand implements Command {
      * @return grouped infra parameters
      */
     @SuppressWarnings("unchecked")
-    private Map<String, List<String>> groupInfraParams(List<Map<String, Object>> infraParams) {
+    private Map<String, List<String>> groupInfraParams(Map<String, Object> infraParams) {
         Map<String, List<String>> groupedInfraParamsMap = new HashMap<>();
-        for (Map<String, Object> infraParam : infraParams) {
-            for (Map.Entry<String, Object> infraParamEntry : infraParam.entrySet()) {
-                if (infraParamEntry.getValue() instanceof String) {
-                    // If the infra value is a string
-                    groupedInfraParamsMap.put(infraParamEntry.getKey(), Collections
-                            .singletonList((String) infraParamEntry.getValue()));
-                } else if (infraParamEntry.getValue() instanceof Collection &&
-                           ((ParameterizedType) infraParamEntry.getValue().getClass()
-                                   .getGenericSuperclass()).getActualTypeArguments()[0].equals(String.class)) {
-                    // If the infra value is a collection of strings
-                    List<String> infraValuesList = (List<String>) infraParamEntry.getValue();
-                    groupedInfraParamsMap.put(infraParamEntry.getKey(), infraValuesList);
-                }
+        for (Map.Entry<String, Object> infraParamEntry : infraParams.entrySet()) {
+            if (infraParamEntry.getValue() instanceof String) {
+                groupedInfraParamsMap.put(infraParamEntry.getKey(),
+                        Collections.singletonList((String) infraParamEntry.getValue()));
+            } else if (infraParamEntry.getValue() instanceof Collection) {
+                // If the infra value is a collection of strings
+                List<String> infraValuesList = (List<String>) infraParamEntry.getValue();
+                groupedInfraParamsMap.put(infraParamEntry.getKey(), infraValuesList);
             }
         }
         return groupedInfraParamsMap;
@@ -291,7 +285,6 @@ public class GenerateTestPlanCommand implements Command {
         }
         return newInfraCombinations;
     }
-
 
     /**
      * Returns an instance of {@link InputTestConfig} from the given test configuration YAML.
