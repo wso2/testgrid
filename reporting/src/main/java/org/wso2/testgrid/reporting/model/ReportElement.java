@@ -16,10 +16,10 @@
  * under the License.
  */
 package org.wso2.testgrid.reporting.model;
-
+/*
 import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.InfraCombination;
-import org.wso2.testgrid.common.OperatingSystem;
+import org.wso2.testgrid.common.OperatingSystem;*/
 import org.wso2.testgrid.reporting.AxisColumn;
 
 /**
@@ -85,9 +85,9 @@ public class ReportElement {
      *
      * @param operatingSystem name of the operating system
      */
-    public void setOperatingSystem(OperatingSystem operatingSystem) {
+   /* public void setOperatingSystem(OperatingSystem operatingSystem) {
         this.operatingSystem = operatingSystem.getName() + " - " + operatingSystem.getVersion();
-    }
+    }*/
 
     /**
      * Returns the database name and version.
@@ -103,9 +103,9 @@ public class ReportElement {
      *
      * @param database name of the database
      */
-    public void setDatabase(Database database) {
-        this.database = database.getEngine() + " - " + database.getVersion();
-    }
+//    public void setDatabase(Database database) {
+//        this.database = database.getEngine() + " - " + database.getVersion();
+//    }
 
     /**
      * Returns the name of the JDK.
@@ -121,9 +121,9 @@ public class ReportElement {
      *
      * @param jdk name of the JDK
      */
-    public void setJdk(InfraCombination.JDK jdk) {
-        this.jdk = jdk.toString();
-    }
+//    public void setJdk(InfraCombination.JDK jdk) {
+//        this.jdk = jdk.toString();
+//    }
 
     /**
      * Returns the test scenario name.
