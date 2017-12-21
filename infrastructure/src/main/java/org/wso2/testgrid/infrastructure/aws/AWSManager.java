@@ -28,9 +28,6 @@ import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
@@ -154,9 +151,6 @@ public class AWSManager {
                     "CloudFormation Stack creation", e);
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occured while Reading CloudFormation script", e);
-        } catch (ParseException e) {
-            throw new TestGridInfrastructureException("Error occurred while parsing infra param object " +
-                    "CloudFormation Stack creation", e);
         }
     }
 
@@ -247,7 +241,7 @@ public class AWSManager {
      * @throws IOException When there is an error reading the parameters file.
      */
     private List<Parameter> getParameters(Script script)
-            throws IOException, TestGridInfrastructureException, ParseException {
+            throws IOException, TestGridInfrastructureException {
 
         Properties scriptParameters = script.getScriptParameters();
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
@@ -265,9 +259,6 @@ public class AWSManager {
                 throw new TestGridInfrastructureException("Environment Variable " + value + " not found !!");
             }
         }));
-
-        JSONParser parser = new JSONParser();
-        JSONObject infraParams = (JSONObject) parser.parse(infra.getInfraParams());
 
         for (Parameter parameter : cfCompatibleParameters) {
             if (DB_ENGINE.equals(parameter.getParameterKey())) {

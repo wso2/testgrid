@@ -37,6 +37,7 @@ import org.wso2.testgrid.core.TestPlanExecutor;
 import org.wso2.testgrid.core.config.TestConfig;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.logging.plugins.ProductTestPlanLookup;
@@ -140,6 +141,7 @@ public class RunTestPlanCommand implements Command {
             // Delete test config YAML file
             deleteFile(Paths.get(testPlanYAMLFilePath.get()));
             Infrastructure infrastructure = getInfrastructure();
+            infrastructure.setInfraParams(testConfig.getInfraParams());
             TestPlan testPlan = generateTestPlan(testConfig, scenarioRepoDir, infraRepo);
             testPlan.getDeploymentPattern().setProduct(product);
 
@@ -305,6 +307,7 @@ public class RunTestPlanCommand implements Command {
         try {
             // Update product test plan status
             product = persistProduct(product);
+            persistDeploymentPattern(testPlan.getDeploymentPattern());
 
             // Set test scenario status
             testPlan.getTestScenarios()
@@ -337,6 +340,22 @@ public class RunTestPlanCommand implements Command {
         try {
             ProductUOW productUOW = new ProductUOW();
             return productUOW.persistProduct(product.getName(), product.getVersion(), product.getChannel());
+        } catch (TestGridDAOException e) {
+            throw new CommandExecutionException("Error occurred while persisting product test plan.", e);
+        }
+    }
+
+    /**
+     * Persist the given product test plan.
+     *
+     * @param deploymentPattern product test plan to persist
+     * @return persisted product test plan
+     * @throws CommandExecutionException thrown when error on persisting product test plan
+     */
+    private DeploymentPattern persistDeploymentPattern(DeploymentPattern deploymentPattern) throws CommandExecutionException {
+        try {
+            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
+            return deploymentPatternUOW.persistDeploymentPattern(deploymentPattern.getProduct(), deploymentPattern.getName());
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred while persisting product test plan.", e);
         }

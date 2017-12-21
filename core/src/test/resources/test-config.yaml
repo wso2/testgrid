@@ -26,15 +26,15 @@ wso2.testgrid.test:
       -  "cloudformation-templates/pattern-1"
       -  "cloudformation-templates/pattern-2"
   infraParams:
-    - osName: "Ubuntu"
-      osVersion:
-        - "15.04"
-        - "16.04"
-      databaseName: "MYSQL"
-      databaseVersion:
-        - "5.5"
-        - "5.7"
-      jdk:
+    osName: "Ubuntu"
+    osVersion:
+      - "15.04"
+      - "16.04"
+    databaseName: "MYSQL"
+    databaseVersion:
+      - "5.5"
+      - "5.7"
+    jdk:
         - "ORACLE_JDK7"
         - "ORACLE_JDK8"
     - osName: "Windows"
