@@ -121,10 +121,10 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
     public List<TestPlan> findByDeploymentPatternAndDate(String deploymentId, Timestamp date) throws
             TestGridDAOException {
         String queryStr = "SELECT tp.id, tp.DEPLOYMENTPATTERN_id, tp.infra_parameters, tp.status FROM (SELECT " +
-                "infra_parameters, max(created_timestamp) AS maxtime, DEPLOYMENTPATTERN_id  FROM test_plan WHERE " +
+                "infra_parameters, max(created_timestamp) AS maxtime, DEPLOYMENTPATTERN_id FROM test_plan WHERE " +
                 "created_timestamp <= '" + date + "' AND DEPLOYMENTPATTERN_id = '" + deploymentId + "' GROUP BY " +
                 "infra_parameters) AS r INNER JOIN test_plan AS tp on tp.infra_parameters = r.infra_parameters AND " +
-                "tp.created_timestamp = r.maxtime AND tp.DEPLOYMENTPATTERN_id = r.DEPLOYMENTPATTERN_id ;";
+                "tp.created_timestamp = r.maxtime AND tp.DEPLOYMENTPATTERN_id = r.DEPLOYMENTPATTERN_id;";
         try {
             Query query = entityManager.createNativeQuery(queryStr, TestPlan.class);
             return query.getResultList();

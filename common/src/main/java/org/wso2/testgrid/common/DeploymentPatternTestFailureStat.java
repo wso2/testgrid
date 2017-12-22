@@ -24,9 +24,9 @@ package org.wso2.testgrid.common;
 public class DeploymentPatternTestFailureStat {
 
     private String deploymentPatternId;
-    private Integer failureCount;
+    private Long failureCount;
 
-    public DeploymentPatternTestFailureStat(String deploymentPatternId, Integer failureCount) {
+    public DeploymentPatternTestFailureStat(String deploymentPatternId, Long failureCount) {
         this.deploymentPatternId = deploymentPatternId;
         this.failureCount = failureCount;
     }
@@ -39,11 +39,11 @@ public class DeploymentPatternTestFailureStat {
         this.deploymentPatternId = deploymentPatternId;
     }
 
-    public Integer getFailureCount() {
+    public Long getFailureCount() {
         return failureCount;
     }
 
-    public void setFailureCount(Integer failureCount) {
+    public void setFailureCount(Long failureCount) {
         this.failureCount = failureCount;
     }
 }
