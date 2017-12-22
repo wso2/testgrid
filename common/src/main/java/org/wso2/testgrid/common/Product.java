@@ -25,10 +25,13 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.ColumnResult;
+import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.OneToMany;
+import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 
 /**
@@ -39,6 +42,15 @@ import javax.persistence.Table;
  *
  * @since 1.0.0
  */
+@SqlResultSetMapping(name = "ProductTestStatusMapping",
+        classes = {
+                @ConstructorResult(targetClass = ProductTestStatus.class,
+                        columns = {@ColumnResult(name = "id"), @ColumnResult(name = "name"),
+                                   @ColumnResult(name = "version"),
+                                   @ColumnResult(name = "channel"), @ColumnResult(name = "deploymentPatternId"),
+                                   @ColumnResult(name = "deploymentPattern"), @ColumnResult(name = "status"),
+                                   @ColumnResult(name = "testExecutionTime")})}
+)
 @Entity
 @Table(name = Product.PRODUCT_TABLE)
 public class Product extends AbstractUUIDEntity implements Serializable {

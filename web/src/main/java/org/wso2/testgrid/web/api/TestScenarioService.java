@@ -53,7 +53,7 @@ public class TestScenarioService {
      */
     @GET
     public Response getTestScenariosForTestPlan(@QueryParam("test-plan-id") String testPlanId,
-                                                @QueryParam("requireTestCaseInfo") boolean requireTestCaseInfo) {
+                                                @QueryParam("require-testcase-info") boolean requireTestCaseInfo) {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             Optional<TestPlan> testPlan = testPlanUOW.getTestPlanById(testPlanId);

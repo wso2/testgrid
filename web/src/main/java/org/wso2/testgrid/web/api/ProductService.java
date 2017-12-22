@@ -28,6 +28,8 @@ import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.TestStatus;
 
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -79,6 +81,7 @@ public class ProductService {
      * @return the matching Product for the given name, version and channel.
      */
     @GET
+    @Path("/search")
     public Response getProduct(@QueryParam("name") String name, @QueryParam("version") String version,
                                @QueryParam("channel") String channel) {
         try {
@@ -139,7 +142,16 @@ public class ProductService {
         try {
             ProductUOW productUOW = new ProductUOW();
             //Get the history of all products
-            List<ProductTestStatus> productTestStatuses = productUOW.getProductTestHistory(Timestamp.valueOf(date));
+            DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            Date parsedDate = null;
+            try {
+                parsedDate = dateFormat.parse(date);
+            } catch (ParseException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(
+                        new ErrorResponse.ErrorResponseBuilder().setMessage("Invalid date format.").build()).build();
+            }
+            List<ProductTestStatus> productTestStatuses = productUOW.
+                    getProductTestHistory(new Timestamp(parsedDate.getTime()));
 
             ProductTestStatus status;
             Map<String, String> productStatuses = new HashMap<>();
