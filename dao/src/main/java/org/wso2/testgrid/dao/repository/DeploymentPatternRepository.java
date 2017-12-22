@@ -165,7 +165,7 @@ public class DeploymentPatternRepository extends AbstractRepository<DeploymentPa
 
         for (Object []result : results) {
             deploymentPatternTestFailureStats.add(new DeploymentPatternTestFailureStat((String) result[0],
-                    (Integer) result[1]));
+                    (Long) result[1]));
         }
         return deploymentPatternTestFailureStats;
     }
