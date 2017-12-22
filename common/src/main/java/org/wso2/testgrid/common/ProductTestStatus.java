@@ -19,6 +19,7 @@
 package org.wso2.testgrid.common;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -89,11 +90,18 @@ public class ProductTestStatus {
     }
 
     public Timestamp getTestExecutionTime() {
-        return testExecutionTime;
+        if (testExecutionTime != null) {
+            return new Timestamp(testExecutionTime.getTime());
+        }
+        return new Timestamp(new Date().getTime());
     }
 
     public void setTestExecutionTime(Timestamp testExecutionTime) {
-        this.testExecutionTime = testExecutionTime;
+        if (testExecutionTime != null) {
+            this.testExecutionTime = new Timestamp(testExecutionTime.getTime());
+        } else {
+            this.testExecutionTime = new Timestamp(new Date().getTime());
+        }
     }
 
     public String getDeploymentPatternId() {

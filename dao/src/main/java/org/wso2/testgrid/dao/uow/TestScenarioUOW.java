@@ -23,8 +23,8 @@ import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestScenarioRepository;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /**
