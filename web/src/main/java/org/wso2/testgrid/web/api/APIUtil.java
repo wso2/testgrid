@@ -204,6 +204,7 @@ class APIUtil {
         testCase1.setSuccess(testCase.isSuccess());
         testCase1.setModifiedTimestamp(testCase.getModifiedTimestamp());
         testCase1.setCreatedTimestamp(testCase.getCreatedTimestamp());
+        testCase1.setErrorMsg(testCase.getFailureMessage());
         return testCase1;
     }
 

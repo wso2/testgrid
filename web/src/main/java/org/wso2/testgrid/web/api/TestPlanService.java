@@ -88,7 +88,7 @@ public class TestPlanService {
      */
     @GET
     @Path("/{id}")
-    public Response getTestPlan(@PathParam("id") String id, @QueryParam("requireTestScenarioInfo")
+    public Response getTestPlan(@PathParam("id") String id, @QueryParam("require-test-scenario-info")
             boolean requireTestScenarioInfo) {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
