@@ -48,7 +48,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         boolean isScriptsAvailable = true;
         for (Script script : infrastructure.getScripts()) {
             if (!Script.ScriptType.INFRA_CREATE.equals(script.getScriptType()) &&
-                    !Script.ScriptType.INFRA_DESTROY.equals(script.getScriptType())) {
+                !Script.ScriptType.INFRA_DESTROY.equals(script.getScriptType())) {
                 isScriptsAvailable = false;
             }
         }
@@ -67,7 +67,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
                     getScriptToExecute(infrastructure, Script.ScriptType.INFRA_CREATE)), null);
         } catch (CommandExecutionException e) {
             throw new TestGridInfrastructureException("Exception occurred while executing the infra-create script " +
-                    "for deployment-pattern '" + infrastructure.getName() + "'" , e);
+                                                      "for deployment-pattern '" + infrastructure.getName() + "'" , e);
         }
         return null;
     }
@@ -82,13 +82,13 @@ public class ShellScriptProvider implements InfrastructureProvider {
         try {
             if (TestGridUtil.executeCommand("bash " +
                                             Paths.get(testPlanLocation, getScriptToExecute(infrastructure,
-                                    Script.ScriptType.INFRA_DESTROY)),
+                                                    Script.ScriptType.INFRA_DESTROY)),
                     null)) {
                 return true;
             }
         } catch (CommandExecutionException e) {
             throw new TestGridInfrastructureException("Exception occurred while executing the infra-destroy script " +
-                    "for deployment-pattern '" + infrastructure.getName() + "'"  , e);
+                                                      "for deployment-pattern '" + infrastructure.getName() + "'"  , e);
         }
         return false;
     }

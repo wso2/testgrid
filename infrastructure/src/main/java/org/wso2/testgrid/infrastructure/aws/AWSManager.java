@@ -1,20 +1,20 @@
 /*
-* Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* WSO2 Inc. licenses this file to you under the Apache License,
-* Version 2.0 (the "License"); you may not use this file except
-* in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied. See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.testgrid.infrastructure.aws;
 
 import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
@@ -30,10 +30,8 @@ import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.Database;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
-import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -182,18 +180,18 @@ public class AWSManager {
             } else {
                 for (Stack stack : stacks) {
                     if (StackStatus.CREATE_COMPLETE.toString().equals(stack.getStackStatus()) ||
-                            StackStatus.DELETE_COMPLETE.toString().equals(stack.getStackStatus())) {
+                        StackStatus.DELETE_COMPLETE.toString().equals(stack.getStackStatus())) {
                         completed = true;
                         successful = true;
                     } else if (StackStatus.CREATE_FAILED.toString().equals(stack.getStackStatus()) ||
-                            StackStatus.ROLLBACK_FAILED.toString().equals(stack.getStackStatus()) ||
-                            StackStatus.ROLLBACK_COMPLETE.toString().equals(stack.getStackStatus())) {
+                               StackStatus.ROLLBACK_FAILED.toString().equals(stack.getStackStatus()) ||
+                               StackStatus.ROLLBACK_COMPLETE.toString().equals(stack.getStackStatus())) {
                         completed = true;
                         successful = false;
                     } else if (StackStatus.CREATE_IN_PROGRESS.toString().equals(stack.getStackStatus()) ||
-                            StackStatus.DELETE_IN_PROGRESS.toString().equals(stack.getStackStatus()) ||
-                            StackStatus.ROLLBACK_IN_PROGRESS.toString().equals(stack.getStackStatus()) ||
-                            StackStatus.REVIEW_IN_PROGRESS.toString().equals(stack.getStackStatus())) {
+                               StackStatus.DELETE_IN_PROGRESS.toString().equals(stack.getStackStatus()) ||
+                               StackStatus.ROLLBACK_IN_PROGRESS.toString().equals(stack.getStackStatus()) ||
+                               StackStatus.REVIEW_IN_PROGRESS.toString().equals(stack.getStackStatus())) {
                         completed = false;
                     }
                 }
@@ -242,8 +240,8 @@ public class AWSManager {
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
-    private List<Parameter> getParameters(Script script) throws IOException
-            , TestGridInfrastructureException {
+    private List<Parameter> getParameters(Script script)
+            throws IOException, TestGridInfrastructureException {
 
         Properties scriptParameters = script.getScriptParameters();
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
@@ -262,44 +260,6 @@ public class AWSManager {
             }
         }));
 
-        InfraCombination infraCombination = infra.getInfraCombination();
-        for (Parameter parameter : cfCompatibleParameters) {
-            if (DB_ENGINE.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(this.getDatabaseEngineName(infraCombination.getDatabase().getEngine()));
-            } else if (DB_ENGINE_VERSION.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(infraCombination.getDatabase().getVersion());
-            } else if (JDK.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(infraCombination.getJdk().name());
-            } else if (IMAGE.equals(parameter.getParameterKey())) {
-                parameter.setParameterValue(this.infra.getImageId());
-            }
-        }
         return cfCompatibleParameters;
-    }
-
-    /**
-     * Converts the given db engine type to the AWS RDS engine type.
-     *
-     * @param databaseEngine Required DatabaseEngine type.
-     * @return a {@link String} object which indicates the name of AWS RDS
-     * @throws TestGridInfrastructureException When the given db engine is not supported by AWS RDS.
-     */
-    private String getDatabaseEngineName(Database.DatabaseEngine databaseEngine) throws
-            TestGridInfrastructureException {
-        switch (databaseEngine) {
-            case MYSQL:
-                return AWSRDSEngine.MYSQL.name;
-            case POSTGRESQL:
-                return AWSRDSEngine.POSTGRESQL.name;
-            case ORACLE:
-                return AWSRDSEngine.ORACLE.name;
-            case SQL_SERVER:
-                return AWSRDSEngine.SQL_SERVER.name;
-            case MariaDB:
-                return AWSRDSEngine.MariaDB.name;
-            default:
-                throw new TestGridInfrastructureException("Request DB engine '" + databaseEngine.name()
-                        + "' is not supported by AWS.");
-        }
     }
 }

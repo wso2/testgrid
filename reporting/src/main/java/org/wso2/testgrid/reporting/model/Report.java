@@ -17,7 +17,7 @@
  */
 package org.wso2.testgrid.reporting.model;
 
-import org.wso2.testgrid.common.ProductTestPlan;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.reporting.ReportingException;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
@@ -48,16 +48,16 @@ public class Report {
     /**
      * Constructs an instance of {@link Report} for the given parameters.
      *
-     * @param isShowSuccess   whether the report is showing success tests as well
-     * @param productTestPlan product test plan
-     * @param groupByList     group by elements of the report
+     * @param isShowSuccess whether the report is showing success tests as well
+     * @param product       product
+     * @param groupByList   group by elements of the report
      */
-    public Report(boolean isShowSuccess, ProductTestPlan productTestPlan, List<GroupBy> groupByList,
+    public Report(boolean isShowSuccess, Product product, List<GroupBy> groupByList,
                   List<PerAxisHeader> perSummaryList) throws ReportingException {
         this.isShowSuccess = isShowSuccess;
-        this.productName = productTestPlan.getProductName();
-        this.productVersion = productTestPlan.getProductVersion();
-        this.channel = productTestPlan.getChannel().toString();
+        this.productName = product.getName();
+        this.productVersion = product.getVersion();
+        this.channel = product.getChannel().toString();
 
         // Render per infra summary
         Map<String, Object> perSummariesMap = new HashMap<>();

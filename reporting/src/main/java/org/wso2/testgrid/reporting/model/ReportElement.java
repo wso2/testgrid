@@ -17,9 +17,6 @@
  */
 package org.wso2.testgrid.reporting.model;
 
-import org.wso2.testgrid.common.Database;
-import org.wso2.testgrid.common.InfraCombination;
-import org.wso2.testgrid.common.OperatingSystem;
 import org.wso2.testgrid.reporting.AxisColumn;
 
 /**
@@ -33,13 +30,10 @@ public class ReportElement {
     private final boolean isGroupByInfrastructure;
     private final boolean isGroupByScenario;
     private String deployment;
-    private String operatingSystem;
-    private String database;
-    private String jdk;
+    private String infraParams;
     private String scenarioName;
     private String testCase;
     private String testCaseFailureMessage;
-    private boolean isInfraSuccess;
     private boolean isTestSuccess;
 
     /**
@@ -72,57 +66,21 @@ public class ReportElement {
     }
 
     /**
-     * Returns the name and version of the operating system.
+     * Returns the infra params.
      *
-     * @return name and version of the operating system
+     * @return infra params
      */
-    public String getOperatingSystem() {
-        return operatingSystem;
+    public String getInfraParams() {
+        return infraParams;
     }
 
     /**
-     * Sets the name of the operating system.
+     * Sets the infra params.
      *
-     * @param operatingSystem name of the operating system
+     * @param infraParams infra params
      */
-    public void setOperatingSystem(OperatingSystem operatingSystem) {
-        this.operatingSystem = operatingSystem.getName() + " - " + operatingSystem.getVersion();
-    }
-
-    /**
-     * Returns the database name and version.
-     *
-     * @return database name and version
-     */
-    public String getDatabase() {
-        return database;
-    }
-
-    /**
-     * Sets the name of the database.
-     *
-     * @param database name of the database
-     */
-    public void setDatabase(Database database) {
-        this.database = database.getEngine() + " - " + database.getVersion();
-    }
-
-    /**
-     * Returns the name of the JDK.
-     *
-     * @return JDK name
-     */
-    public String getJdk() {
-        return jdk;
-    }
-
-    /**
-     * Sets the name of the JDK.
-     *
-     * @param jdk name of the JDK
-     */
-    public void setJdk(InfraCombination.JDK jdk) {
-        this.jdk = jdk.toString();
+    public void setInfraParams(String infraParams) {
+        this.infraParams = infraParams;
     }
 
     /**
@@ -177,24 +135,6 @@ public class ReportElement {
      */
     public void setTestCaseFailureMessage(String testCaseFailureMessage) {
         this.testCaseFailureMessage = testCaseFailureMessage;
-    }
-
-    /**
-     * Returns whether the infra is successful or not.
-     *
-     * @return {@code true} if the infra is successful, {@code false} otherwise
-     */
-    public boolean isInfraSuccess() {
-        return isInfraSuccess;
-    }
-
-    /**
-     * Sets whether the infra is successful or not.
-     *
-     * @param infraSuccess whether the infra is successful or not.
-     */
-    public void setInfraSuccess(boolean infraSuccess) {
-        isInfraSuccess = infraSuccess;
     }
 
     /**

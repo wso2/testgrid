@@ -21,6 +21,7 @@ package org.wso2.testgrid.automation.reader;
 import org.apache.commons.lang3.ArrayUtils;
 import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
+import org.wso2.testgrid.automation.TestEngine;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
@@ -59,7 +60,7 @@ public class TestNGTestReader implements TestReader {
         }
 
         Collections.sort(testNGList);
-        Test test = new Test(file.getName(), TestScenario.TestEngine.TESTNG, testNGList, testScenario);
+        Test test = new Test(file.getName(), TestEngine.TESTNG, testNGList, testScenario);
         testsList.add(test);
 
         return testsList;

@@ -50,7 +50,7 @@ public class Test {
      * @param testScenario test scenario associated with the test
      * @throws TestAutomationException thrown when the the test executor is not found for the given test type
      */
-    public Test(String testName, TestScenario.TestEngine testType, List<String> scripts, TestScenario testScenario)
+    public Test(String testName, TestEngine testType, List<String> scripts, TestScenario testScenario)
             throws TestAutomationException {
         this.testName = testName;
         this.testExecutor = TestExecutorFactory.getTestExecutor(testType);

@@ -22,11 +22,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.ProductTestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -45,18 +50,29 @@ public class TestPlanService {
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
 
     /**
-     * This has the implementation of the REST API for fetching all the TestPlans available in a ProductTestPlan.
+     * This has the implementation of the REST API for fetching all the TestPlans for a given deployment-pattern
+     * and created before date.
      *
      * @return A list of available TestPlans.
      */
     @GET
-    public Response getTestPlansForProductTestPlan(@QueryParam("product-test-plan-id") String productTestPlanId) {
+    public Response getTestPlansForDeploymentPatternAndDate(@QueryParam("deployment-pattern-id")
+                                           String deploymentPatternId, @QueryParam("date") String date,
+                                           @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
         try {
-            ProductTestPlanUOW productTestPlanUOW = new ProductTestPlanUOW();
-            org.wso2.testgrid.common.ProductTestPlan productTestPlan = productTestPlanUOW
-                    .getProductTestPlanById(productTestPlanId);
-            List<org.wso2.testgrid.common.TestPlan> testPlans = productTestPlan.getTestPlans();
-            return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans)).build();
+            DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            Date parsedDate = null;
+            try {
+                parsedDate = dateFormat.parse(date);
+            } catch (ParseException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(
+                        new ErrorResponse.ErrorResponseBuilder().setMessage("Invalid date format.").build()).build();
+            }
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            List<org.wso2.testgrid.common.TestPlan> testPlans = testPlanUOW.
+                    getTestPlansByDeploymentIdAndDate(deploymentPatternId, new Timestamp(parsedDate.getTime()));
+            return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans,
+                    requireTestScenarioInfo)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlans.";
             logger.error(msg, e);
@@ -68,16 +84,18 @@ public class TestPlanService {
     /**
      * This has the implementation of the REST API for fetching a specific TestPlan by id.
      *
-     * @return A list of available TestCases.
+     * @return The requested Test-Plan.
      */
     @GET
     @Path("/{id}")
-    public Response getTestPlan(@PathParam("id") String id) {
+    public Response getTestPlan(@PathParam("id") String id, @QueryParam("require-test-scenario-info")
+            boolean requireTestScenarioInfo) {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
-            TestPlan testPlan = testPlanUOW.getTestPlanById(id);
-            if (testPlan != null) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBean(testPlan)).build();
+            Optional<TestPlan> testPlan = testPlanUOW.getTestPlanById(id);
+            if (testPlan.isPresent()) {
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBean(testPlan.get(),
+                        requireTestScenarioInfo)).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
                         setMessage("Unable to find the requested TestPlan by id : '" + id + "'").build()).build();

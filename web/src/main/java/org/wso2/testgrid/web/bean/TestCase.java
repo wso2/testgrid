@@ -18,6 +18,9 @@
 
 package org.wso2.testgrid.web.bean;
 
+import java.sql.Timestamp;
+import java.util.Date;
+
 /**
  * Bean class of TestCase object used in APIs.
  */
@@ -25,97 +28,122 @@ public class TestCase {
 
     private String id;
     private String name;
-    private long startTimestamp;
-    private long modifiedTimestamp;
-    private boolean status;
+    private String errorMsg;
+    private Timestamp createdTimestamp;
+    private Timestamp modifiedTimestamp;
+    private boolean isSuccess;
 
     /**
-     * Returns the id of the test case.
+     * Returns the id of the test-case.
      *
-     * @return test case id
+     * @return test-case id
      */
     public String getId() {
         return id;
     }
 
     /**
-     * Sets the id of the test case.
+     * Sets the id of the test-case.
      *
-     * @param id test case id
+     * @param id test-case id
      */
     public void setId(String id) {
         this.id = id;
     }
 
     /**
-     * Returns the name of the test case.
+     * Returns the name of the test-case.
      *
-     * @return test case name
+     * @return test-case name
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Sets the name of the test case.
+     * Sets the name of the test-case.
      *
-     * @param name test case name
+     * @param name test-case name
      */
     public void setName(String name) {
         this.name = name;
     }
 
     /**
-     * Returns the start timestamp of the test case.
+     * Returns the start timestamp of the test-case.
      *
-     * @return test case start timestamp
+     * @return test-case start timestamp
      */
-    public long getStartTimestamp() {
-        return startTimestamp;
+    public Timestamp getCreatedTimestamp() {
+        if (createdTimestamp != null) {
+            return new Timestamp(createdTimestamp.getTime());
+        }
+        return new Timestamp(new Date().getTime());
     }
 
     /**
-     * Sets the start timestamp of the test case.
+     * Sets the start timestamp of the test-case.
      *
-     * @param startTimestamp test case start timestamp
+     * @param createdTimestamp test-case start timestamp
      */
-    public void setStartTimestamp(long startTimestamp) {
-        this.startTimestamp = startTimestamp;
+    public void setCreatedTimestamp(Timestamp createdTimestamp) {
+        this.createdTimestamp = new Timestamp(createdTimestamp.getTime());
     }
 
     /**
-     * Returns the modified timestamp of the test case.
+     * Returns the modified timestamp of the test-case.
      *
-     * @return modified test case timestamp
+     * @return modified test-case timestamp
      */
-    public long getModifiedTimestamp() {
-        return modifiedTimestamp;
+    public Timestamp getModifiedTimestamp() {
+        if (modifiedTimestamp != null) {
+            return new Timestamp(modifiedTimestamp.getTime());
+        }
+        return new Timestamp(new Date().getTime());
     }
 
     /**
-     * Sets the modified timestamp of the test case.
+     * Sets the modified timestamp of the test-case.
      *
-     * @param modifiedTimestamp modified test case timestamp
+     * @param modifiedTimestamp modified test-case timestamp
      */
-    public void setModifiedTimestamp(long modifiedTimestamp) {
-        this.modifiedTimestamp = modifiedTimestamp;
+    public void setModifiedTimestamp(Timestamp modifiedTimestamp) {
+        this.modifiedTimestamp = new Timestamp(modifiedTimestamp.getTime());
     }
 
     /**
-     * Returns the status of the test case.
+     * Returns the isSuccess of the test-case.
      *
      * @return {@code true} if the test is success, {@code false} otherwise
      */
-    public boolean getStatus() {
-        return status;
+    public boolean isSuccess() {
+        return isSuccess;
     }
 
     /**
-     * Sets the status of the test case.
+     * Sets the isSuccess of the test-case.
      *
-     * @param status test case status
+     * @param success test-case isSuccess
      */
-    public void setStatus(boolean status) {
-        this.status = status;
+    public void setSuccess(boolean success) {
+        this.isSuccess = success;
+    }
+
+    /**
+     * Returns the error message if there's any.
+     *
+     * @return error message
+     */
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    /**
+     * Sets the error message (if available) in the test-case.
+     *
+     * @param errorMsg error message
+     */
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
     }
 }

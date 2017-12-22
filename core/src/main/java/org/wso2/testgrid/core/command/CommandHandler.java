@@ -51,12 +51,8 @@ public class CommandHandler extends HelpCommand {
             handler = SubCommandHandler.class
     )
     @SubCommands({
-                         @SubCommand(name = "generate-infrastructure-plan",
-                                     impl = GenerateInfraPlanCommand.class),
-                         @SubCommand(name = "gen-infra-plan",
-                                     impl = GenerateInfraPlanCommand.class),
-                         @SubCommand(name = "create-product-testplan",
-                                     impl = CreateProductTestPlanCommand.class),
+                         @SubCommand(name = "generate-test-plan",
+                                     impl = GenerateTestPlanCommand.class),
                          @SubCommand(name = "run-testplan",
                                      impl = RunTestPlanCommand.class),
                          @SubCommand(name = "generate-report",

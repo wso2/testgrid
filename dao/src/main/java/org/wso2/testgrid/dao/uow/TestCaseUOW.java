@@ -23,6 +23,8 @@ import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestCaseRepository;
 
+import java.util.List;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /**
@@ -56,7 +58,7 @@ public class TestCaseUOW {
         // Create test case instance
         TestCase testCase = new TestCase();
         testCase.setName(testName);
-        testCase.setTestSuccess(isSuccess);
+        testCase.setSuccess(isSuccess);
         testCase.setTestScenario(testScenario);
         testCase.setFailureMessage(responseMessage);
 
@@ -74,7 +76,26 @@ public class TestCaseUOW {
      * @return matching {@link TestCase} instance
      * @throws TestGridDAOException thrown when error on retrieving results
      */
-    public TestCase getTestCaseById(String id) throws TestGridDAOException {
-        return testCaseRepository.findByPrimaryKey(id);
+    public Optional<TestCase> getTestCaseById(String id) throws TestGridDAOException {
+        TestCase testCase = testCaseRepository.findByPrimaryKey(id);
+        if (testCase == null) {
+            return Optional.empty();
+        }
+        return Optional.of(testCase);
+    }
+
+    /**
+     * Checks if there are any failed test cases pertaining to a scenario.
+     *
+     * @param testScenario test scenario
+     * @return boolean - true if there exists failed tests and false otherwise
+     * @throws TestGridDAOException thrown when error processing native query
+     */
+    @SuppressWarnings("unchecked")
+    public boolean isExistsFailedTests(TestScenario testScenario) throws TestGridDAOException {
+        List<Object> resultObject = testCaseRepository.executeTypedQuery("SELECT * FROM test_case "
+                + "WHERE TESTSCENARIO_id = '" + testScenario.getId() + "' AND is_success = FALSE;");
+
+        return resultObject.isEmpty();
     }
 }

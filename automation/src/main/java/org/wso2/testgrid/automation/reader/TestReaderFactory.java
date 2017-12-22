@@ -18,7 +18,8 @@
 
 package org.wso2.testgrid.automation.reader;
 
-import org.wso2.testgrid.common.TestScenario;
+import org.apache.commons.lang.StringUtils;
+import org.wso2.testgrid.automation.TestEngine;
 
 import java.util.Optional;
 
@@ -35,14 +36,34 @@ public class TestReaderFactory {
      * @param testType type of tests
      * @return instance of an {@link TestReader} for the given test type
      */
-    public static Optional<TestReader> getTestReader(TestScenario.TestEngine testType) {
-        switch (testType) {
+    public static Optional<TestReader> getTestReader(String testType) {
+        Optional<TestEngine> testEngine = getTestEngineFromString(testType);
+        if (!testEngine.isPresent()) {
+            return Optional.empty();
+        }
+
+        switch (testEngine.get()) {
             case JMETER:
                 return Optional.of(new JMeterTestReader());
             case TESTNG:
                 return Optional.of(new TestNGTestReader());
             default:
                 return Optional.empty();
+        }
+    }
+
+    /**
+     * Returns the {@link TestEngine} enum value from string.
+     *
+     * @param testType string to get {@link TestEngine} enum value
+     * @return {@link TestEngine} enum value for the given string or an Optional.empty() if the string do not
+     * correspond to an {@link TestEngine} enum value
+     */
+    private static Optional<TestEngine> getTestEngineFromString(String testType) {
+        try {
+            return Optional.of(TestEngine.valueOf(StringUtils.upperCase(testType)));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
         }
     }
 }

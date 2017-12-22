@@ -105,4 +105,14 @@ public class TestCaseRepository extends AbstractRepository<TestCase> {
     public List<TestCase> orderByFields(Map<String, Object> params, LinkedListMultimap<SortOrder, String> fields) {
         return super.orderByFields(TestCase.class, params, fields);
     }
+
+    /**
+     * Executes the given native query and returns a result list.
+     *
+     * @param nativeQuery native SQL query to execute
+     * @return result list after executing the native query
+     */
+    public List<Object> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
+        return super.executeTypedQuery(nativeQuery);
+    }
 }

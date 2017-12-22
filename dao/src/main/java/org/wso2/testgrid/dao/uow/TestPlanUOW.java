@@ -22,6 +22,9 @@ import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestPlanRepository;
 
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /**
@@ -68,7 +71,25 @@ public class TestPlanUOW {
      * @return matching {@link TestPlan} instance
      * @throws TestGridDAOException thrown when error on retrieving results
      */
-    public TestPlan getTestPlanById(String id) throws TestGridDAOException {
-        return testPlanRepository.findByPrimaryKey(id);
+    public Optional<TestPlan> getTestPlanById(String id) throws TestGridDAOException {
+        TestPlan testPlan = testPlanRepository.findByPrimaryKey(id);
+        if (testPlan == null) {
+            return Optional.empty();
+        }
+        return Optional.of(testPlan);
+    }
+
+
+    /**
+     * Returns a list of {@link TestPlan} instances for the given deployment-pattern-id and date.
+     *
+     * @param deploymentId id of the associated deployment-pattern
+     * @param date created before date
+     * @return matching {@link TestPlan} instances
+     * @throws TestGridDAOException thrown when error on retrieving results
+     */
+    public List<TestPlan> getTestPlansByDeploymentIdAndDate(String deploymentId, Timestamp date) throws
+            TestGridDAOException {
+        return testPlanRepository.findByDeploymentPatternAndDate(deploymentId, date);
     }
 }

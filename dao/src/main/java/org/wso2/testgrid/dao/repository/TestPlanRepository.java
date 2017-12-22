@@ -19,15 +19,18 @@ package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 /**
- * Repository class for {@link org.wso2.testgrid.common.TestPlan} table.
+ * Repository class for {@link TestPlan} table.
  *
  * @since 1.0.0
  */
@@ -62,7 +65,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
     public void delete(TestPlan entity) throws TestGridDAOException {
         super.delete(entity);
         entity.setTestScenarios(null);
-        entity.setInfraResult(null);
+        entity.setInfraParameters(null);
     }
 
     /**
@@ -106,5 +109,28 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      */
     public List<TestPlan> orderByFields(Map<String, Object> params, LinkedListMultimap<SortOrder, String> fields) {
         return super.orderByFields(TestPlan.class, params, fields);
+    }
+
+    /**
+     * Returns a list of distinct {@link TestPlan} instances for given deploymentId and created before given date.
+     *
+     * @param deploymentId deployment id of the required TestPlans
+     * @param date created before date
+     * @return a list of {@link TestPlan} instances for given deploymentId and created after given date
+     */
+    public List<TestPlan> findByDeploymentPatternAndDate(String deploymentId, Timestamp date) throws
+            TestGridDAOException {
+        String queryStr = "SELECT tp.id, tp.DEPLOYMENTPATTERN_id, tp.infra_parameters, tp.status FROM (SELECT " +
+                "infra_parameters, max(created_timestamp) AS maxtime, DEPLOYMENTPATTERN_id FROM test_plan WHERE " +
+                "created_timestamp <= '" + date + "' AND DEPLOYMENTPATTERN_id = '" + deploymentId + "' GROUP BY " +
+                "infra_parameters) AS r INNER JOIN test_plan AS tp on tp.infra_parameters = r.infra_parameters AND " +
+                "tp.created_timestamp = r.maxtime AND tp.DEPLOYMENTPATTERN_id = r.DEPLOYMENTPATTERN_id;";
+        try {
+            Query query = entityManager.createNativeQuery(queryStr, TestPlan.class);
+            return query.getResultList();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL" +
+                    " query [", queryStr, "]"), e);
+        }
     }
 }
