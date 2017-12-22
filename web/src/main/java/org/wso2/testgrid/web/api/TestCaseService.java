@@ -20,13 +20,14 @@ package org.wso2.testgrid.web.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestCaseUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
-import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -48,17 +49,23 @@ public class TestCaseService {
     /**
      * This has the implementation of the REST API for fetching all the TestCases available in a TestScenario.
      *
-     * @return A list of available TestCases.
+     * @return A list of available TestCases in the given TestScenario.
      */
     @GET
     public Response getTestCasesForTestScenario(@QueryParam("test-scenario-id") String testScenarioId) {
         try {
             TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
-            TestScenario testScenario = testScenarioUOW.getTestScenarioById(testScenarioId);
-            List<org.wso2.testgrid.common.TestCase> testCases = testScenario.getTestCases();
-            return Response.status(Response.Status.OK).entity(APIUtil.getTestCaseBeans(testCases)).build();
+            Optional<TestScenario> testScenario = testScenarioUOW.getTestScenarioById(testScenarioId);
+            if (testScenario.isPresent()) {
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestCaseBeans(testScenario.get().
+                        getTestCases())).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
+                        setMessage("Unable to find the requested TestCases for TestScenario id : '" + testScenarioId
+                                + "'").build()).build();
+            }
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestCases.";
+            String msg = "Error occurred while fetching the TestCases for TestScenario id : '" + testScenarioId + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
@@ -75,10 +82,9 @@ public class TestCaseService {
     public Response getTestCase(@PathParam("id") String id) {
         try {
             TestCaseUOW testCaseUOW = new TestCaseUOW();
-            org.wso2.testgrid.common.TestCase testCase = testCaseUOW.getTestCaseById(id);
-
-            if (testCase != null) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getTestCaseBean(testCase)).build();
+            Optional<TestCase> testCase = testCaseUOW.getTestCaseById(id);
+            if (testCase.isPresent()) {
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestCaseBean(testCase.get())).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
                         setMessage("Unable to find the requested TestCase by id : '" + id + "'").build()).build();

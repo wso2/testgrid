@@ -18,20 +18,21 @@
 package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.DeploymentPatternTestFailureStat;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.DeploymentPatternRepository;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 
-
 /**
- * This class defines the Unit of work related to a {@link Product}.
+ * This class defines the Unit of work related to a {@link DeploymentPattern}.
  *
  * @since 1.0.0
  */
@@ -40,7 +41,7 @@ public class DeploymentPatternUOW {
     private final DeploymentPatternRepository deploymentPatternRepository;
 
     /**
-     * Constructs an instance of {@link DeploymentPatternUOW} to manager use cases related to product test plan.
+     * Constructs an instance of {@link DeploymentPatternUOW} to manager use cases related to test cases.
      */
     public DeploymentPatternUOW() {
         EntityManager entityManager = EntityManagerHelper.getEntityManager();
@@ -87,5 +88,47 @@ public class DeploymentPatternUOW {
         deploymentPattern.setName(name);
         deploymentPattern.setProduct(product);
         return deploymentPatternRepository.persist(deploymentPattern);
+    }
+
+    /**
+     * Returns the {@link DeploymentPattern} instance for the given id.
+     *
+     * @param id primary key of the deployment pattern
+     * @return matching {@link DeploymentPattern} instance
+     * @throws TestGridDAOException thrown when error on retrieving results
+     */
+    public Optional<DeploymentPattern> getDeploymentPatternById(String id) throws TestGridDAOException {
+        DeploymentPattern deploymentPattern = deploymentPatternRepository.findByPrimaryKey(id);
+        if (deploymentPattern == null) {
+            return Optional.empty();
+        }
+        return Optional.of(deploymentPattern);
+    }
+
+    /**
+     * Returns a List of {@link DeploymentPattern}.
+     *
+     * @return a List of {@link DeploymentPattern} for the given product name and product version
+     */
+    public List<DeploymentPattern> getDeploymentPatterns() throws TestGridDAOException {
+        return deploymentPatternRepository.findAll();
+    }
+
+    /**
+     * Returns a list of distinct {@link DeploymentPattern} instances for the given product id and date.
+     *
+     * @param productId associated product-id
+     * @param date test ran before date
+     * @return matching distinct {@link DeploymentPattern} instances
+     * @throws TestGridDAOException thrown when error on retrieving results
+     */
+    public List<DeploymentPattern> getDeploymentPatternsByProductAndDate(String productId, Timestamp date)
+            throws TestGridDAOException {
+        return deploymentPatternRepository.findByProductAndDate(productId, date);
+    }
+
+    public List<DeploymentPatternTestFailureStat> getFailedTestCounts(String productId, Timestamp date) throws
+            TestGridDAOException {
+        return deploymentPatternRepository.findFailedTestCounts(productId, date);
     }
 }

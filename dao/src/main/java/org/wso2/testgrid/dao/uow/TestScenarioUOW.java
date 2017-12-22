@@ -24,6 +24,7 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.TestScenarioRepository;
 
 import java.util.List;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /**
@@ -61,8 +62,12 @@ public class TestScenarioUOW {
      * @return matching {@link TestScenario} instance
      * @throws TestGridDAOException thrown when error on retrieving results
      */
-    public TestScenario getTestScenarioById(String id) throws TestGridDAOException {
-        return testScenarioRepository.findByPrimaryKey(id);
+    public Optional<TestScenario> getTestScenarioById(String id) throws TestGridDAOException {
+        TestScenario testScenario = testScenarioRepository.findByPrimaryKey(id);
+        if (testScenario == null) {
+            return Optional.empty();
+        }
+        return Optional.of(testScenario);
     }
 
     /**

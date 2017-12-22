@@ -28,6 +28,7 @@ import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.util.List;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -37,7 +38,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * REST service implementation of ProductTestPlan.
+ * REST service implementation of Test-Scenarios.
  */
 
 @Path("/test-scenarios")
@@ -46,19 +47,28 @@ public class TestScenarioService {
     private static final Logger logger = LoggerFactory.getLogger(TestScenarioService.class);
 
     /**
-     * This has the implementation of the REST API for fetching all the TestScenarioss available in a TestPlan.
+     * This has the implementation of the REST API for fetching all the TestScenarios ran for a given infrastructure.
      *
      * @return A list of available TestScenarios.
      */
     @GET
-    public Response getTestScenariosForTestPlan(@QueryParam("test-plan-id") String testPlanId) {
+    public Response getTestScenariosForTestPlan(@QueryParam("test-plan-id") String testPlanId,
+                                                @QueryParam("requireTestCaseInfo") boolean requireTestCaseInfo) {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
-            TestPlan testPlan = testPlanUOW.getTestPlanById(testPlanId);
-            List<org.wso2.testgrid.common.TestScenario> testScenarios = testPlan.getTestScenarios();
-            return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios)).build();
+            Optional<TestPlan> testPlan = testPlanUOW.getTestPlanById(testPlanId);
+
+            if (testPlan.isPresent()) {
+                List<org.wso2.testgrid.common.TestScenario> testScenarios = testPlan.get().getTestScenarios();
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBeans(testScenarios,
+                        requireTestCaseInfo)).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
+                        setMessage("Unable to find the requested TestScenarios for the TestPlan id : '" +
+                                testPlanId + "'").build()).build();
+            }
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestPlans.";
+            String msg = "Error occurred while fetching the TestScenarios for the TestPlan : '" + testPlanId + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
@@ -75,10 +85,11 @@ public class TestScenarioService {
     public Response getTestScenario(@PathParam("id") String id) {
         try {
             TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
-            TestScenario testScenario = testScenarioUOW.getTestScenarioById(id);
+            Optional<TestScenario> testScenario = testScenarioUOW.getTestScenarioById(id);
 
-            if (testScenario != null) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBean(testScenario)).build();
+            if (testScenario.isPresent()) {
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestScenarioBean(testScenario.get(),
+                        true)).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
                         setMessage("Unable to find the requested TestScenario by id : '" + id + "'").build()).build();

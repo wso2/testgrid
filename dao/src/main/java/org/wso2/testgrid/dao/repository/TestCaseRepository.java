@@ -19,14 +19,12 @@ package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.TestCase;
-import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 /**
  * Repository class for {@link org.wso2.testgrid.common.TestCase} table.
