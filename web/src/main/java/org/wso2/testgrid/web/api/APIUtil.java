@@ -100,7 +100,7 @@ class APIUtil {
                                                              List<DeploymentPatternTestFailureStat> stats) {
         List<DeploymentPattern> deploymentPatterns1 = new ArrayList<>();
         //Convert List to a Map
-        Map<String, Integer> failureStats = new HashMap<>();
+        Map<String, Long> failureStats = new HashMap<>();
         for (DeploymentPatternTestFailureStat stat : stats) {
             failureStats.put(stat.getDeploymentPatternId() , stat.getFailureCount());
         }
