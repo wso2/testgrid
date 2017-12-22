@@ -201,6 +201,6 @@ public class ProductService {
         Date date = new Date(status.getTestExecutionTime().getTime());
         return new StringBuilder().append(status.getId() + DELIMITER).append(status.getName() + DELIMITER).
                 append(status.getVersion() + DELIMITER).append(status.getChannel() + DELIMITER).
-                append(new SimpleDateFormat("dd-MM-yyyy").format(date)).toString();
+                append(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(date)).toString();
     }
 }

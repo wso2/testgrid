@@ -60,7 +60,7 @@ public class TestPlanService {
                                            String deploymentPatternId, @QueryParam("date") String date,
                                            @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
         try {
-            DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             Date parsedDate = null;
             try {
                 parsedDate = dateFormat.parse(date);

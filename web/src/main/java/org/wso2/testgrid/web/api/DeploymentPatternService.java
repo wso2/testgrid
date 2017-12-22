@@ -110,7 +110,7 @@ public class DeploymentPatternService {
     public Response getDeploymentPatternsWithTestInfo(@QueryParam("productId") String productId,
                                                       @QueryParam("date") String date) {
         try {
-            DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             Date parsedDate = null;
             try {
                 parsedDate = dateFormat.parse(date);
