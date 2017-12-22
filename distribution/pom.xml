@@ -17,13 +17,11 @@
   ~  under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>testgrid-framework</artifactId>
         <groupId>org.wso2.testgrid</groupId>
-        <version>0.9.0-SNAPSHOT</version>
+        <version>0.9.0-m6</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -51,8 +49,7 @@
                     </goals>
                     <configuration>
                         <tasks>
-                            <copy file="../core/target/org.wso2.testgrid.core-${test.grid.version}-jar-with-dependencies.jar"
-                                  tofile="../distribution/bin/test-grid-${test.grid.version}.jar">
+                            <copy file="../core/target/org.wso2.testgrid.core-${test.grid.version}-jar-with-dependencies.jar" tofile="../distribution/bin/test-grid-${test.grid.version}.jar">
                             </copy>
                         </tasks>
                     </configuration>
