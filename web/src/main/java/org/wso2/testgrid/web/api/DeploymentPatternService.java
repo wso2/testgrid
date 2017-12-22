@@ -27,7 +27,11 @@ import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.GET;
@@ -106,12 +110,21 @@ public class DeploymentPatternService {
     public Response getDeploymentPatternsWithTestInfo(@QueryParam("productId") String productId,
                                                       @QueryParam("date") String date) {
         try {
+            DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            Date parsedDate = null;
+            try {
+                parsedDate = dateFormat.parse(date);
+            } catch (ParseException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(
+                        new ErrorResponse.ErrorResponseBuilder().setMessage("Invalid date format.").build()).build();
+            }
             DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
             List<DeploymentPattern> deploymentPatterns = deploymentPatternUOW.
-                    getDeploymentPatternsByProductAndDate(productId, Timestamp.valueOf(date));
+                    getDeploymentPatternsByProductAndDate(productId, new Timestamp(parsedDate.getTime()));
+
 
             List<DeploymentPatternTestFailureStat> stats = deploymentPatternUOW.getFailedTestCounts(productId,
-                    Timestamp.valueOf(date));
+                    new Timestamp(parsedDate.getTime()));
             return Response.status(Response.Status.OK).entity(APIUtil.getDeploymentPatternBeans(deploymentPatterns,
                     stats)).build();
         } catch (TestGridDAOException e) {

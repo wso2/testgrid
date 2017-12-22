@@ -20,11 +20,13 @@ package org.wso2.testgrid.dao.repository;
 import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.DeploymentPatternTestFailureStat;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -123,15 +125,15 @@ public class DeploymentPatternRepository extends AbstractRepository<DeploymentPa
      */
     public List<DeploymentPattern> findByProductAndDate(String productId, Timestamp date)
             throws TestGridDAOException {
-        String queryStr = "SELECT dp.id, dp.name, dp.product_id FROM deployment_pattern AS dp INNER JOIN testplan " +
-                "AS tp ON dp.id = tp.deployment_pattern_id where tp.created_time <= '" + date + "' AND " +
-                "dp.product_id = '" + productId + "' GROUP BY dp.id;";
+        String queryStr = "SELECT dp.id, dp.name, dp.PRODUCT_id FROM deployment_pattern AS dp INNER JOIN test_plan " +
+                "AS tp ON dp.id = tp.DEPLOYMENTPATTERN_id where tp.created_timestamp <= '" + date + "' AND " +
+                "dp.PRODUCT_id = '" + productId + "' GROUP BY dp.id;";
         try {
             Query query = entityManager.createNativeQuery(queryStr, DeploymentPattern.class);
             return query.getResultList();
         } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query " +
-                    "[", queryStr, "]"), e);
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL" +
+                    " query [", queryStr, "]"), e);
         }
     }
 
@@ -145,16 +147,26 @@ public class DeploymentPatternRepository extends AbstractRepository<DeploymentPa
      */
     public List<DeploymentPatternTestFailureStat> findFailedTestCounts(String productId, Timestamp date)
             throws TestGridDAOException {
-        String queryStr = "SELECT tp.deployment_pattern_id AS deploymentPatternId, COUNT(*) AS failureCount FROM " +
-                "testplan tp WHERE tp.deployment_pattern_id IN (SELECT id from deployment_pattern where product_id = '"
-                + productId + "') AND tp.created_time <= '" + date + "' AND tp.status = 'fail' GROUP BY " +
-                "tp.deployment_pattern_id;";
+        String queryStr = "SELECT tp.DEPLOYMENTPATTERN_id AS deploymentPatternId, COUNT(*) AS failureCount FROM " +
+                "test_plan tp WHERE tp.DEPLOYMENTPATTERN_id IN (SELECT id from deployment_pattern where " +
+                "PRODUCT_id = '" + productId + "') AND tp.created_timestamp <= '" + date + "' AND " +
+                "tp.status = '" + Status.FAIL.name() + "' GROUP BY tp.DEPLOYMENTPATTERN_id;";
         try {
-            Query query = entityManager.createNativeQuery(queryStr, DeploymentPatternTestFailureStat.class);
-            return query.getResultList();
+            Query query = entityManager.createNativeQuery(queryStr);
+            return this.getDeploymentPatternTestFailureStats(query.getResultList());
         } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query " +
-                    "[", queryStr, "]"), e);
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL " +
+                    "query [", queryStr, "]"), e);
         }
+    }
+
+    private List<DeploymentPatternTestFailureStat> getDeploymentPatternTestFailureStats(List<Object[]> results) {
+        List<DeploymentPatternTestFailureStat> deploymentPatternTestFailureStats = new ArrayList<>();
+
+        for (Object []result : results) {
+            deploymentPatternTestFailureStats.add(new DeploymentPatternTestFailureStat((String) result[0],
+                    (Integer) result[1]));
+        }
+        return deploymentPatternTestFailureStats;
     }
 }

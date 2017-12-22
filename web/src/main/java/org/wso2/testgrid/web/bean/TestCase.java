@@ -18,6 +18,9 @@
 
 package org.wso2.testgrid.web.bean;
 
+import java.sql.Timestamp;
+import java.util.Date;
+
 /**
  * Bean class of TestCase object used in APIs.
  */
@@ -26,8 +29,8 @@ public class TestCase {
     private String id;
     private String name;
     private String errorMsg;
-    private long createdTimestamp;
-    private long modifiedTimestamp;
+    private Timestamp createdTimestamp;
+    private Timestamp modifiedTimestamp;
     private boolean isSuccess;
 
     /**
@@ -71,8 +74,11 @@ public class TestCase {
      *
      * @return test-case start timestamp
      */
-    public long getCreatedTimestamp() {
-        return createdTimestamp;
+    public Timestamp getCreatedTimestamp() {
+        if (createdTimestamp != null) {
+            return new Timestamp(createdTimestamp.getTime());
+        }
+        return new Timestamp(new Date().getTime());
     }
 
     /**
@@ -80,8 +86,8 @@ public class TestCase {
      *
      * @param createdTimestamp test-case start timestamp
      */
-    public void setCreatedTimestamp(long createdTimestamp) {
-        this.createdTimestamp = createdTimestamp;
+    public void setCreatedTimestamp(Timestamp createdTimestamp) {
+        this.createdTimestamp = new Timestamp(createdTimestamp.getTime());
     }
 
     /**
@@ -89,8 +95,11 @@ public class TestCase {
      *
      * @return modified test-case timestamp
      */
-    public long getModifiedTimestamp() {
-        return modifiedTimestamp;
+    public Timestamp getModifiedTimestamp() {
+        if (modifiedTimestamp != null) {
+            return new Timestamp(modifiedTimestamp.getTime());
+        }
+        return new Timestamp(new Date().getTime());
     }
 
     /**
@@ -98,8 +107,8 @@ public class TestCase {
      *
      * @param modifiedTimestamp modified test-case timestamp
      */
-    public void setModifiedTimestamp(long modifiedTimestamp) {
-        this.modifiedTimestamp = modifiedTimestamp;
+    public void setModifiedTimestamp(Timestamp modifiedTimestamp) {
+        this.modifiedTimestamp = new Timestamp(modifiedTimestamp.getTime());
     }
 
     /**

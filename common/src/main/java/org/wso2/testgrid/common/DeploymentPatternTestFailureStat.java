@@ -18,18 +18,18 @@
 
 package org.wso2.testgrid.common;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-
 /**
- * Created by harshan on 12/21/17.
+ * This class holds the deployment-patterns with test failure counts.
  */
-@Entity
 public class DeploymentPatternTestFailureStat {
 
-    @Id
     private String deploymentPatternId;
     private Integer failureCount;
+
+    public DeploymentPatternTestFailureStat(String deploymentPatternId, Integer failureCount) {
+        this.deploymentPatternId = deploymentPatternId;
+        this.failureCount = failureCount;
+    }
 
     public String getDeploymentPatternId() {
         return deploymentPatternId;

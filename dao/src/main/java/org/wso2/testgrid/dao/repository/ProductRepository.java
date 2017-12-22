@@ -25,6 +25,7 @@ import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -121,16 +122,27 @@ public class ProductRepository extends AbstractRepository<Product> {
      */
     public List<ProductTestStatus> getProductTestHistory(Timestamp date) throws TestGridDAOException {
         String queryStr = "SELECT p.id, p.name, p.version, p.channel, dp.id AS deploymentPatternId, dp.name AS " +
-                "deploymentPattern, tp.status, tp.created_time AS testExecutionTime FROM product AS p INNER JOIN " +
-                "deployment_pattern AS dp ON p.id = dp.product_id INNER JOIN testplan AS tp ON " +
-                "dp.id = tp.deployment_pattern_id WHERE tp.created_time >= '" + date + "' ORDER BY p.name, " +
-                "p.version, p.channel, tp.created_time DESC;";
+                "deploymentPattern, tp.status, tp.created_timestamp AS testExecutionTime FROM product AS p" +
+                " INNER JOIN deployment_pattern AS dp ON p.id = dp.PRODUCT_id INNER JOIN test_plan AS tp ON " +
+                "dp.id = tp.DEPLOYMENTPATTERN_id WHERE tp.created_timestamp >= '" + date + "' ORDER BY p.name, " +
+                "p.version, p.channel, tp.created_timestamp DESC;";
         try {
-            Query query = entityManager.createNativeQuery(queryStr, ProductTestStatus.class);
-            return query.getResultList();
+            Query query = entityManager.createNativeQuery(queryStr);
+            return this.getProductTestStatuses(query.getResultList());
         } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query " +
-                            "[", queryStr, "]"), e);
+            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL" +
+                    " query [", queryStr, "]"), e);
         }
+    }
+
+    private List<ProductTestStatus> getProductTestStatuses(List<Object[]> results) {
+        List<ProductTestStatus> productTestStatuses = new ArrayList<>();
+
+        for (Object []result : results) {
+            productTestStatuses.add(new ProductTestStatus((String) result[0], (String) result[1], (String) result[2],
+                                                             (String) result[3], (String) result[4],
+                                                        (String) result[5], (String) result[6], (Timestamp) result[7]));
+        }
+        return productTestStatuses;
     }
 }

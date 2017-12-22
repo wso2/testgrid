@@ -82,6 +82,7 @@ class APIUtil {
         DeploymentPattern deploymentPattern1 = new DeploymentPattern();
         deploymentPattern1.setId(deploymentPattern.getId());
         deploymentPattern1.setName(deploymentPattern.getName());
+        deploymentPattern1.setProductId(deploymentPattern.getProduct().getId());
         deploymentPattern1.setTestStatus(status);
         return deploymentPattern1;
     }
@@ -201,8 +202,8 @@ class APIUtil {
         testCase1.setId(testCase.getId());
         testCase1.setName(testCase.getName());
         testCase1.setSuccess(testCase.isSuccess());
-        testCase1.setModifiedTimestamp(testCase.getModifiedTimestamp().getTime());
-        testCase1.setCreatedTimestamp(testCase.getCreatedTimestamp().getTime());
+        testCase1.setModifiedTimestamp(testCase.getModifiedTimestamp());
+        testCase1.setCreatedTimestamp(testCase.getCreatedTimestamp());
         return testCase1;
     }
 

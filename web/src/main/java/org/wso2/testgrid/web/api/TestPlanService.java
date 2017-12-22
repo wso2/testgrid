@@ -26,6 +26,10 @@ import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.GET;
@@ -53,12 +57,20 @@ public class TestPlanService {
      */
     @GET
     public Response getTestPlansForDeploymentPatternAndDate(@QueryParam("deployment-pattern-id")
-                                             String deploymentPatternId, @QueryParam("date") String date,
-                                              @QueryParam("requireTestScenarioInfo") boolean requireTestScenarioInfo) {
+                                           String deploymentPatternId, @QueryParam("date") String date,
+                                           @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
         try {
+            DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            Date parsedDate = null;
+            try {
+                parsedDate = dateFormat.parse(date);
+            } catch (ParseException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(
+                        new ErrorResponse.ErrorResponseBuilder().setMessage("Invalid date format.").build()).build();
+            }
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             List<org.wso2.testgrid.common.TestPlan> testPlans = testPlanUOW.
-                    getTestPlansByDeploymentIdAndDate(deploymentPatternId, Timestamp.valueOf(date));
+                    getTestPlansByDeploymentIdAndDate(deploymentPatternId, new Timestamp(parsedDate.getTime()));
             return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans,
                     requireTestScenarioInfo)).build();
         } catch (TestGridDAOException e) {

@@ -20,18 +20,14 @@ package org.wso2.testgrid.common;
 
 import java.sql.Timestamp;
 import java.util.Date;
-import javax.persistence.Entity;
-import javax.persistence.Id;
 
 /**
  * This represents a model of the Product with its recent test statuses.
  *
  * @since 1.0.0
  */
-@Entity
 public class ProductTestStatus {
 
-    @Id
     private String id;
     private String name;
     private String version;
@@ -40,6 +36,18 @@ public class ProductTestStatus {
     private String deploymentPatternId;
     private String status;
     private Timestamp testExecutionTime;
+
+    public ProductTestStatus(String id, String name, String version, String channel, String deploymentPattern,
+                              String deploymentPatternId, String status, Timestamp testExecutionTime) {
+        this.id = id;
+        this.name = name;
+        this.version = version;
+        this.channel = channel;
+        this.deploymentPattern = deploymentPattern;
+        this.deploymentPatternId = deploymentPatternId;
+        this.status = status;
+        this.testExecutionTime = new Timestamp(testExecutionTime.getTime());
+    }
 
     public String getId() {
         return id;
