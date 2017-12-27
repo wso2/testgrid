@@ -19,6 +19,8 @@
 
 package org.wso2.testgrid.core.command;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
-import org.wso2.testgrid.logging.plugins.ProductTestPlanLookup;
+import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -97,6 +99,11 @@ public class RunTestPlanCommand implements Command {
             aliases = {"-sr"},
             required = true)
     private String scenarioRepoDir = "";
+    @Option(name = "--buildNo",
+            usage = "Build No",
+            aliases = {"-b"},
+            required = true)
+    private String buildNo = "";
 
     @Override
     public void execute() throws CommandExecutionException {
@@ -144,8 +151,8 @@ public class RunTestPlanCommand implements Command {
             testPlan.setDeploymentPattern(deploymentPattern);
             testPlan.setInfraParameters(infrastructure.getInfraParams().toString());
 
-            //Set logger file path
-            setLogFilePath(product, testPlan);
+            //Set the log file path
+            LogFilePathLookup.setLogFilePath(setLogFilePath(product, testPlan));
 
             // Execute test plan
             executeTestPlan(product,  testPlan, infrastructure);
@@ -154,8 +161,7 @@ public class RunTestPlanCommand implements Command {
                     channel, " is not defined in the available channels enum."), e);
         } catch (IOException e) {
             throw new CommandExecutionException("Error while executing test plan " + testPlanLocation, e);
-        }
-
+        }           
     }
 
 
@@ -352,17 +358,27 @@ public class RunTestPlanCommand implements Command {
         }
     }
 
-    private void setLogFilePath(Product product, TestPlan testPlan) {
-        //Set productTestPlanId and testPlanId lookup fields for logging
-        ProductTestPlanLookup.setProductTestDirectory(product.getName() + "_"
-                                                      + product.getVersion() + "_" + product.getChannel());
-        ProductTestPlanLookup.setDeploymentPattern(testPlan.getDeploymentPattern().getName());
-        /*ProductTestPlanLookup
-                .setInfraParams(testPlan.getInfraParams().getOperatingSystem().getName()
-                                     + infrastructure.getInfraParams().getOperatingSystem().getVersion() + "_"
-                                     + infrastructure.getInfraParams().getDatabase().getEngine()
-                                     + infrastructure.getInfraParams().getDatabase().getVersion() + "_"
-                                     + infrastructure.getInfraParams().getJdk());*/
+    /**
+     * Sets the path of the log file.
+     *
+     * @param product product
+     * @param testPlan test plan
+     * @return log file path
+     */
+    private String setLogFilePath(Product product, TestPlan testPlan) {
+        String productDir = StringUtil.concatStrings(product.getName(), "_",
+                product.getVersion(), "_", product.getChannel());
+        JSONArray infraParams = new JSONArray(testPlan.getInfraParameters());
+        StringBuilder logFileDirBuilder = new StringBuilder();
+
+        logFileDirBuilder.append(testPlan.getDeploymentPattern().getName());
+        for (int i = 0; i < infraParams.length(); i++) {
+            JSONObject infraParam = (JSONObject) infraParams.get(i);
+            logFileDirBuilder.append("_");
+            logFileDirBuilder.append(infraParam.keys().next());
+            logFileDirBuilder.append(infraParam.get(infraParam.keys().next()));
+        }
+        return Paths.get(productDir, buildNo, logFileDirBuilder.toString()).toString();
     }
 
     /**
