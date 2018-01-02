@@ -2,7 +2,7 @@
   "name": "testgrid-dashboard",
   "version": "0.1.0",
   "private": true,
-  "homepage" : "http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/testgrid/v0.9/",
+  "homepage": "http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/testgrid/v0.9/",
   "dependencies": {
     "material-ui": "^0.20.0",
     "materialize-css": "^0.100.2",
