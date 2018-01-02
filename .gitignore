@@ -40,13 +40,11 @@ target
 .idea
 
 # dependencies
-/node_modules
-
-# testing
-/coverage
+node_modules/
 
 # production
-/build
+build/
+npm/
 
 # misc
 .DS_Store
