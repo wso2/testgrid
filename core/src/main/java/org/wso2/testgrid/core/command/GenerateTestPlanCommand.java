@@ -21,17 +21,12 @@ import org.apache.commons.io.FileUtils;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.config.ConfigProviderFactory;
-import org.wso2.carbon.config.ConfigurationException;
-import org.wso2.carbon.config.provider.ConfigProvider;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.core.config.InputTestConfig;
-import org.wso2.testgrid.core.config.ProductConfig;
-import org.wso2.testgrid.core.config.ScenarioConfig;
-import org.wso2.testgrid.core.config.TestConfig;
+import org.wso2.testgrid.core.TestConfig;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.yaml.snakeyaml.DumperOptions;
@@ -88,33 +83,38 @@ public class GenerateTestPlanCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
-        // Validate test configuration file name
-        if (StringUtil.isStringNullOrEmpty(testConfigFile) || !testConfigFile.endsWith(YAML_EXTENSION)) {
-            throw new CommandExecutionException(StringUtil.concatStrings("Invalid test configuration ",
-                    testConfigFile));
-        }
+        try {
+            // Validate test configuration file name
+            if (StringUtil.isStringNullOrEmpty(testConfigFile) || !testConfigFile.endsWith(YAML_EXTENSION)) {
+                throw new CommandExecutionException(StringUtil.concatStrings("Invalid test configuration ",
+                        testConfigFile));
+            }
 
-        // Generate test configuration
-        InputTestConfig inputTestConfig = readTestConfig(testConfigFile);
-        List<TestConfig> testConfigs = createTestConfigs(inputTestConfig);
+            // Generate test configuration
+            TestConfig inputTestConfig = FileUtil.readConfigurationFile(testConfigFile, TestConfig.class);
+            List<TestConfig> testConfigs = createSeparateTestConfigs(inputTestConfig);
 
-        // Save test configs to YAML files
-        Yaml yaml = createYamlInstance();
+            // Save test configs to YAML files
+            Yaml yaml = createYamlInstance();
 
-        // Get product or create product for params
-        Product product = createOrReturnProduct(productName, productVersion, channel);
+            // Get product or create product for params
+            Product product = createOrReturnProduct(productName, productVersion, channel);
 
-        // Create directory
-        String infraGenDirectory = createTestPlanGenDirectory(product);
+            // Create directory
+            String infraGenDirectory = createTestPlanGenDirectory(product);
 
-        // Save test configs to file
-        for (int i = 0; i < testConfigs.size(); i++) {
-            TestConfig testConfig = testConfigs.get(i);
-            String fileName = StringUtil.concatStrings(testConfig.getProductConfig().getName(), "-",
-                    testConfig.getProductConfig().getVersion(), "-", testConfig.getProductConfig().getChannel(),
-                    "-", (i + 1), YAML_EXTENSION);
-            String output = yaml.dump(testConfig);
-            saveFile(output, infraGenDirectory, fileName);
+            // Save test configs to file
+            for (int i = 0; i < testConfigs.size(); i++) {
+                TestConfig testConfig = testConfigs.get(i);
+                String fileName = StringUtil.concatStrings(testConfig.getProductName(), "-",
+                        testConfig.getProductVersion(), "-", testConfig.getChannel(),
+                        "-", (i + 1), YAML_EXTENSION);
+                String output = yaml.dump(testConfig);
+                saveFile(output, infraGenDirectory, fileName);
+            }
+        } catch (IOException e) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Error in reading file ", testConfigFile), e);
         }
     }
 
@@ -175,36 +175,31 @@ public class GenerateTestPlanCommand implements Command {
      * @param inputTestConfig input test config to create test config
      * @return created test config
      */
-    private List<TestConfig> createTestConfigs(InputTestConfig inputTestConfig) {
+    private List<TestConfig> createSeparateTestConfigs(TestConfig inputTestConfig) {
 
         List<TestConfig> testConfigs = new ArrayList<>();
 
-        // Scenario config
-        ScenarioConfig scenarioConfig = inputTestConfig.getScenarioConfig();
-
-        // Product
-        ProductConfig productConfig = inputTestConfig.getProduct();
-
         // Deployment patterns
-        String deploymentPatternRepo = inputTestConfig.getDeploymentPatternConfig().getGitRepo();
-        List<String> deploymentNames = inputTestConfig.getDeploymentPatternConfig().getNames();
+        List<String> deploymentNames = inputTestConfig.getDeploymentPatterns();
         for (String deploymentName : deploymentNames) {
             // Infra params
-            List<Map<String, Object>> infraParamsList = inputTestConfig.getInfraParamsList();
-            List<List<Map<String, String>>> infraCombinations = new ArrayList<>();
+            List<Map<String, Object>> infraParamsList = inputTestConfig.getInfraParams();
+            List<Map<String, Object>> infraCombinations = new ArrayList<>();
             for (Map<String, Object> infraParams : infraParamsList) {
                 Map<String, List<String>> groupInfraParams = groupInfraParams(infraParams);
                 infraCombinations.addAll(createInfraCombinations(groupInfraParams));
             }
 
             // Create test config for individual infra combination.
-            for (List<Map<String, String>> infraCombination : infraCombinations) {
+            for (Map<String, Object> infraCombination : infraCombinations) {
                 TestConfig testConfig = new TestConfig();
-                testConfig.setProductConfig(productConfig);
-                testConfig.setDeploymentPattern(deploymentName);
-                testConfig.setDeploymentPatternRepository(deploymentPatternRepo);
-                testConfig.setInfraParams(infraCombination);
-                testConfig.setScenarioConfig(scenarioConfig);
+                testConfig.setProductName(inputTestConfig.getProductName());
+                testConfig.setProductVersion(inputTestConfig.getProductVersion());
+                testConfig.setChannel(inputTestConfig.getChannel());
+                testConfig.setDeploymentPatterns(Collections.singletonList(deploymentName));
+                testConfig.setInfraParams(Collections.singletonList(infraCombination));
+                testConfig.setScenarios(inputTestConfig.getScenarios());
+                testConfig.setInfrastructure(inputTestConfig.getInfrastructure());
 
                 // Add test configs to test config
                 testConfigs.add(testConfig);
@@ -241,8 +236,8 @@ public class GenerateTestPlanCommand implements Command {
      * @param groupedInfraParamsMap grouped infra params
      * @return created infra combinations
      */
-    private List<List<Map<String, String>>> createInfraCombinations(Map<String, List<String>> groupedInfraParamsMap) {
-        List<List<Map<String, String>>> infraCombinations = new ArrayList<>();
+    private List<Map<String, Object>> createInfraCombinations(Map<String, List<String>> groupedInfraParamsMap) {
+        List<Map<String, Object>> infraCombinations = new ArrayList<>();
 
         // Create infra combinations
         for (Map.Entry<String, List<String>> entry : groupedInfraParamsMap.entrySet()) {
@@ -258,47 +253,29 @@ public class GenerateTestPlanCommand implements Command {
      * @param entry             entry to create infra combinations
      * @return created infra combinations
      */
-    private List<List<Map<String, String>>> createInfraCombinationsForEntry(
-            List<List<Map<String, String>>> infraCombinations, Map.Entry<String, List<String>> entry) {
-
-        List<List<Map<String, String>>> newInfraCombinations = new ArrayList<>();
+    private List<Map<String, Object>> createInfraCombinationsForEntry(List<Map<String, Object>> infraCombinations,
+                                                                      Map.Entry<String, List<String>> entry) {
+        List<Map<String, Object>> newInfraCombinations = new ArrayList<>();
 
         // If the infra combinations list is empty simply add the new combination values as entries
         if (infraCombinations.isEmpty()) {
             for (String infraParamValue : entry.getValue()) {
-                List<Map<String, String>> newInfraCombination = new ArrayList<>();
-                newInfraCombination.add(Collections.singletonMap(entry.getKey(), infraParamValue));
+                Map<String, Object> newInfraCombination = new HashMap<>();
+                newInfraCombination.put(entry.getKey(), infraParamValue);
                 newInfraCombinations.add(newInfraCombination);
             }
             return newInfraCombinations;
         }
 
         // If the infra combinations list is not empty, for each entry add the new combination values
-        for (List<Map<String, String>> infraCombination : infraCombinations) {
+        for (Map<String, Object> infraCombination : infraCombinations) {
             for (String infraParamValue : entry.getValue()) {
-                List<Map<String, String>> newInfraCombination = new ArrayList<>(infraCombination);
-                newInfraCombination.add(Collections.singletonMap(entry.getKey(), infraParamValue));
+                Map<String, Object> newInfraCombination = new HashMap<>(infraCombination);
+                newInfraCombination.put(entry.getKey(), infraParamValue);
                 newInfraCombinations.add(newInfraCombination);
             }
         }
         return newInfraCombinations;
-    }
-
-    /**
-     * Returns an instance of {@link InputTestConfig} from the given test configuration YAML.
-     *
-     * @param location location of the test configuration YAML file
-     * @return instance of {@link InputTestConfig} from the given test configuration YAML
-     * @throws CommandExecutionException thrown when error on retrieving instance
-     */
-    private InputTestConfig readTestConfig(String location) throws CommandExecutionException {
-        try {
-            Path testConfigPath = Paths.get(location);
-            ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(testConfigPath, null);
-            return configProvider.getConfigurationObject(InputTestConfig.class);
-        } catch (ConfigurationException e) {
-            throw new CommandExecutionException("Error when initializing carbon config provider.", e);
-        }
     }
 
     /**

@@ -61,11 +61,9 @@ public class AWSProvider implements InfrastructureProvider {
         awsManager.init(infrastructure);
         for (Script script : infrastructure.getScripts()) {
             if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
-                for (Map<String, String> stringStringMap : infrastructure.getInfraParams()) {
-                    stringStringMap.entrySet().forEach(stringStringEntry -> {
-                        script.getScriptParameters().setProperty(stringStringEntry.getKey(),
-                                stringStringEntry.getValue());
-                    });
+                for (Map<String, Object> stringStringMap : infrastructure.getInfraParams()) {
+                    stringStringMap.forEach((key, value) ->
+                            script.getScriptParameters().setProperty(key, (String) value));
                 }
                 return awsManager.createInfrastructure(script, infraRepoDir);
             }

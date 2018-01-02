@@ -22,9 +22,6 @@ package org.wso2.testgrid.core.command;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.config.ConfigProviderFactory;
-import org.wso2.carbon.config.ConfigurationException;
-import org.wso2.carbon.config.provider.ConfigProvider;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Product;
@@ -32,21 +29,19 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.core.TestConfig;
 import org.wso2.testgrid.core.TestPlanExecutor;
-import org.wso2.testgrid.core.config.TestConfig;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.logging.plugins.ProductTestPlanLookup;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -100,7 +95,6 @@ public class RunTestPlanCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
-
         try {
             logger.info("Running the test plan: " + testPlanLocation);
             if (StringUtil.isStringNullOrEmpty(testPlanLocation) || !testPlanLocation.endsWith(YAML_EXTENSION)) {
@@ -129,16 +123,19 @@ public class RunTestPlanCommand implements Command {
                 return;
             }
             // Get test config
-            TestConfig testConfig = readTestConfig(testPlanYAMLFilePath.get());
+            TestConfig testConfig = FileUtil.readConfigurationFile(testPlanYAMLFilePath.get(), TestConfig.class);
 
-            // Delete test config YAML file
-            deleteFile(Paths.get(testPlanYAMLFilePath.get()));
-            Infrastructure infrastructure = getInfrastructure();
+            // Delete test config YAML file. If the directory is empty delete the directory as well.
+            Path testPlanYAMLFilePathLocation = Paths.get(testPlanYAMLFilePath.get());
+            deleteFile(testPlanYAMLFilePathLocation);
+            deleteParentDirectoryIfEmpty(testPlanYAMLFilePathLocation);
+
+            Infrastructure infrastructure = testConfig.getInfrastructure();
             infrastructure.setInfraParams(testConfig.getInfraParams());
             TestPlan testPlan = generateTestPlan(testConfig, scenarioRepoDir, infraRepo);
 
             DeploymentPattern deploymentPattern = new DeploymentPattern();
-            deploymentPattern.setName(testConfig.getDeploymentPattern());
+            deploymentPattern.setName(testConfig.getDeploymentPatterns().get(0));
             deploymentPattern.setProduct(product);
             deploymentPattern = persistDeploymentPattern(deploymentPattern);
             testPlan.setDeploymentPattern(deploymentPattern);
@@ -148,33 +145,12 @@ public class RunTestPlanCommand implements Command {
             setLogFilePath(product, testPlan);
 
             // Execute test plan
-            executeTestPlan(product,  testPlan, infrastructure);
+            executeTestPlan(product, testPlan, infrastructure);
         } catch (IllegalArgumentException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Channel ",
                     channel, " is not defined in the available channels enum."), e);
         } catch (IOException e) {
-            throw new CommandExecutionException("Error while executing test plan " + testPlanLocation, e);
-        }
-
-    }
-
-
-    /**
-     * Returns an instance of {@link TestConfig} from the given test configuration YAML.
-     *
-     * @param location location of the test plan YAML file
-     * @return instance of {@link TestConfig}
-     * @throws CommandExecutionException thrown when error on reading file
-     */
-    private TestConfig readTestConfig(String location) throws CommandExecutionException {
-        try (FileInputStream fileInputStream = new FileInputStream(new File(location))) {
-            return new Yaml().loadAs(fileInputStream, TestConfig.class);
-        } catch (FileNotFoundException e) {
-            throw new CommandExecutionException(StringUtil
-                    .concatStrings("Test plan YAML not found (file: ", location, ")"), e);
-        } catch (IOException e) {
-            throw new CommandExecutionException(StringUtil
-                    .concatStrings("Error in reading file ", location), e);
+            throw new CommandExecutionException("Error in reading file generated config file", e);
         }
     }
 
@@ -220,6 +196,28 @@ public class RunTestPlanCommand implements Command {
     }
 
     /**
+     * Delete parent directory if no files are found inside.
+     *
+     * @param filePath file path of the file
+     * @throws CommandExecutionException thrown when error on deleting the parent directory
+     */
+    private void deleteParentDirectoryIfEmpty(Path filePath) throws CommandExecutionException {
+        Path parentDirectory = filePath.getParent();
+        if (parentDirectory == null) {
+            return;
+        }
+
+        File[] files = parentDirectory.toFile().listFiles();
+        if (files == null) {
+            return;
+        }
+
+        if (files.length == 0) {
+            deleteFile(parentDirectory);
+        }
+    }
+
+    /**
      * Returns the file path of an generated test plan YAML file.
      *
      * @param product product to locate the file path of an generated test plan YAML file
@@ -234,25 +232,6 @@ public class RunTestPlanCommand implements Command {
             return Optional.of(fileList[0].getAbsolutePath());
         }
         return Optional.empty();
-    }
-
-    /**
-     * Returns an instance of {@link Infrastructure} for the given infra file.
-     *
-     * @return instance of {@link Infrastructure} for the given infra file
-     * @throws CommandExecutionException thrown when error on reading infra file
-     */
-    private Infrastructure getInfrastructure() throws CommandExecutionException, IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File infraFile = new File(classLoader.getResource("single-node-infra.yaml").getFile());
-
-        try {
-            ConfigProvider configProvider = ConfigProviderFactory.getConfigProvider(infraFile.toPath(), null);
-            return configProvider.getConfigurationObject(Infrastructure.class);
-        } catch (ConfigurationException e) {
-            throw new CommandExecutionException(StringUtil.concatStrings("Unable to parse TestPlan file '",
-                    infraFile.getAbsolutePath(), "'. Please check the syntax of the file."), e);
-        }
     }
 
     /**
@@ -379,7 +358,7 @@ public class RunTestPlanCommand implements Command {
         testPlan.setInfraRepoDir(infraRepoDir);
         testPlan.setTestRepoDir(testRepoDir);
         List<TestScenario> testScenarios = new ArrayList<>();
-        for (String name : testConfig.getScenarioConfig().getNames()) {
+        for (String name : testConfig.getScenarios()) {
             TestScenario testScenario = new TestScenario();
             testScenario.setName(name);
             testScenario.setTestPlan(testPlan);
