@@ -18,8 +18,6 @@
 
 package org.wso2.testgrid.common;
 
-import org.wso2.carbon.config.annotation.Element;
-
 import java.io.Serializable;
 
 /**
@@ -29,9 +27,7 @@ public class Port implements Serializable {
 
     private static final long serialVersionUID = 2659433983048223712L;
 
-    @Element(description = "defines the port protocol (i.e. https)")
     private String protocol;
-    @Element(description = "defines the number of this port")
     private int portNumber;
 
     public String getProtocol() {

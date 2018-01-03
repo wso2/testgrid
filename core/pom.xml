@@ -94,10 +94,6 @@
             <artifactId>org.wso2.testgrid.reporting</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.config</groupId>
-            <artifactId>org.wso2.carbon.config</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
         </dependency>

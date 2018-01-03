@@ -188,11 +188,6 @@
         <dependencies>
             <!-- Core dependencies -->
             <dependency>
-                <groupId>org.wso2.carbon.config</groupId>
-                <artifactId>org.wso2.carbon.config</artifactId>
-                <version>${carbon.config.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.eclipse.jgit</groupId>
                 <artifactId>org.eclipse.jgit</artifactId>
                 <version>${jgit.version}</version>
@@ -373,6 +368,11 @@
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
 
             <!--Logging dependencies-->
             <dependency>
@@ -402,7 +402,6 @@
         <!-- TestGrid version-->
         <test.grid.version>0.9.0-SNAPSHOT</test.grid.version>
         <!-- Test Grid core dependencies -->
-        <carbon.config.version>2.1.4</carbon.config.version>
         <jgit.version>4.1.1.201511131810-r</jgit.version>
         <!-- TestGrid infrastructure dependencies -->
         <com.aws.version>1.11.219</com.aws.version>
@@ -430,6 +429,7 @@
         <!-- Other dependencies -->
         <awaitility.version>3.0.0</awaitility.version>
         <guava.version>19.0</guava.version>
+        <snakeyaml.version>1.19</snakeyaml.version>
         <!-- Logging dependencies -->
         <slf4j.api.version>1.7.25</slf4j.api.version>
         <log4j.api.version>2.8.2</log4j.api.version>
