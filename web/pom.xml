@@ -85,6 +85,13 @@
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.logging</artifactId>
         </dependency>
+
+        <!-- Jacoco agent -->
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.agent</artifactId>
+            <classifier>runtime</classifier>
+        </dependency>
     </dependencies>
 
     <build>
@@ -94,10 +101,10 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
-                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
                 </plugin>
                 <plugin>
                     <artifactId>maven-war-plugin</artifactId>
