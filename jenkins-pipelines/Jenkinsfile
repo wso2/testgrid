@@ -1,5 +1,4 @@
 pipeline {
-
     agent any
     environment {
         TESTGRID_VERSION = '0.9.0-SNAPSHOT'
@@ -8,20 +7,24 @@ pipeline {
                 'lastSuccessfulBuild/artifact/distribution/target/${TESTGRID_NAME}-${TESTGRID_VERSION}.zip'
 
         PRODUCT="wso2is"
-        VERSION="5.3.0"
-        CHANNEL="public"
+        VERSION="5.4.0"
+        CHANNEL="LTS"
 
-        INFRASTRUCTURE_REPOSITORY='https://github.com/malithie/aws-cloudformation-templates.git'
-        DEPLOYMENT_REPOSITORY='https://github.com/malithie/aws-cloudformation-templates.git'
-        SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/identity-test-integration.git'
+        INFRASTRUCTURE_REPOSITORY='https://github.com/azinneera/cloudformation-is'
+        DEPLOYMENT_REPOSITORY='https://github.com/harshanL/cloudformation-is'
+        SCENARIOS_REPOSITORY='https://github.com/sameerawickramasekara/identity-test-integration.git'
 
         INFRA_LOCATION="aws-cloudformation-templates"
         DEPLOYMENT_LOCATION="aws-cloudformation-templates"
         SCENARIOS_LOCATION="identity-test-integration"
-        // https://github.com/wso2/cloudformation-is
+        INFRA_CONFIGS_LOCATION="${INFRA_LOCATION}/infrastructure-build-plans"
 
-        TESTGRID_HOME = './testgrid-home'
-        JMETER_HOME = './jmeter-home'
+        AWS_ACCESS_KEY_ID=credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY=credentials('AWS_SECRET_ACCESS_KEY')
+        WUM_USERNAME=credentials('WUM_USERNAME')
+        WUM_PASSWORD=credentials('WUM_PASSWORD')
+        PWD=pwd()
+        TESTGRID_HOME='/testgrid/jenkins-home/workspace/wso2is-5.4.0/testgrid-home'
     }
 
     tools {
@@ -31,98 +34,78 @@ pipeline {
     stages {
         stage('Preparation') {
             steps {
-                deleteDir()
-                git url: '${INFRASTRUCTURE_REPOSITORY}',
-                //git ${DEPLOYMENT_REPOSITORY}  //ATM Infra and Deploy code in one repository.
-                git ${SCENARIOS_REPOSITORY}
-                sh 'mkdir testplans/'
+               deleteDir()
+
+                // Clone scenario repo
+                sh "mkdir ${SCENARIOS_LOCATION}"
+                dir("${SCENARIOS_LOCATION}"){
+                    git url: "${SCENARIOS_REPOSITORY}"
+                }
+
+                // Clone infra repo
+                sh "mkdir ${INFRA_LOCATION}"
+                dir("${INFRA_LOCATION}"){
+                    git url:"${INFRASTRUCTURE_REPOSITORY}"
+                }
 
                 sh """
+                echo ${TESTGRID_NAME}
                 curl ${TESTGRID_DIST_URL} -o ${TESTGRID_NAME}.zip
                 unzip ${TESTGRID_NAME}.zip
                 cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
                 """
 
                 sh """
-                java -jar test-grid-${TESTGRID_VERSION}.jar create-product-testplan \
-                    --product ${PRODUCT} --version ${VERSION} --channel ${CHANNEL}
-                """
-
-
-            }
-
-        }
-        stage('TestPlan-01-Ubuntu-JDK7-MySQL_5.7') {
-            steps {
-                echo 'Running Test Plan 01'
-                sh 'mkdir ${TESTGRID_HOME}'
-                sh 'mkdir ${JMETER_HOME}'
-                sh "java -version"
-                sh """
-
-                java -jar test-grid-${TESTGRID_VERSION}.jar run-testplan \
+                cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
+                java -jar test-grid-${TESTGRID_VERSION}.jar generate-test-plan \
                     --product ${PRODUCT} --version ${VERSION} --channel ${CHANNEL} \
-                    --testplan xxx/testplan.yaml \
-                    --infra ${INFRA_LOCATION} \
-                    --deployment ${DEPLOYMENT_LOCATION} \
-                    --scenarios ${SCENARIOS_LOCATION}
+                    -tc ${PWD}/${INFRA_CONFIGS_LOCATION}/single-node-infra.yaml
                 """
             }
         }
 
-        //todo write the testplan.yaml files for each combination
-        stage('TestPlan-02-Ubuntu-JDK8-MySQL_5.7') {
+        stage('TestPlan-01-Infra-1') {
             steps {
-                echo 'Running Test Plan 01'
-                sh 'mkdir ${TESTGRID_HOME}'
-                sh 'mkdir ${JMETER_HOME}'
-                sh "java -version"
-                sh """
+                script {
+                    try {
+                        echo 'Running Test Plan 01'
+                        sh "java -version"
 
-                java -jar test-grid-${TESTGRID_VERSION}.jar run-testplan \
-                    --product ${PRODUCT} --version ${VERSION} --channel ${CHANNEL} \
-                    --testplan xxx/testplan.yaml \
-                    --infra ${INFRA_LOCATION} \
-                    --deployment ${DEPLOYMENT_LOCATION} \
-                    --scegt narios ${SCENARIOS_LOCATION}
-                """
-            }
-        }
-
-        stage('TestPlan-03-Ubuntu-JDK7-Oracle') {
-            steps {
-                echo 'Running Test Plan 01'
-                sh 'mkdir ${TESTGRID_HOME}'
-                sh 'mkdir ${JMETER_HOME}'
-                sh "java -version"
-                sh """
-
-                java -jar test-grid-${TESTGRID_VERSION}.jar run-testplan \
-                    --product ${PRODUCT} --version ${VERSION} --channel ${CHANNEL} \
-                    --testplan xxx/testplan.yaml \
-                    --infra ${INFRA_LOCATION} \
-                    --deployment ${DEPLOYMENT_LOCATION} \
-                    --scenarios ${SCENARIOS_LOCATION}
-                """
-            }
-        }
-
-        stage('TestPlan-04-Ubuntu-JDK8-Oracle') {
-            steps {
-                echo 'Running Test Plan 01'
-                sh 'mkdir ${TESTGRID_HOME}'
-                sh 'mkdir ${JMETER_HOME}'
-                sh "java -version"
-                sh """
-
-                java -jar test-grid-${TESTGRID_VERSION}.jar run-testplan \
-                    --product ${PRODUCT} --version ${VERSION} --channel ${CHANNEL} \
-                    --testplan xxx/testplan.yaml \
-                    --infra ${INFRA_LOCATION} \
-                    --deployment ${DEPLOYMENT_LOCATION} \
-                    --scenarios ${SCENARIOS_LOCATION}
-                """
+                        sh """
+                        cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
+                        java -jar test-grid-${TESTGRID_VERSION}.jar run-testplan \
+                            --product ${PRODUCT} --version ${VERSION} --channel ${CHANNEL} \
+                            -ir ${PWD}/${INFRA_LOCATION}/cloudformation-templates/pattern-1 \
+                            -sr ${PWD}/${SCENARIOS_LOCATION} \
+                            -t ${PWD}/${SCENARIOS_LOCATION}/TestPlans/single-node-testplan.yaml
+                        """
+                        currentBuild.result = 'SUCCESS'
+                    } catch (Exception err) {
+                        currentBuild.result = 'SUCCESS'
+                    }
+                }
+                echo "RESULT: ${currentBuild.result}"
             }
         }
     }
+
+    post {
+        always {
+           sh """
+            cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
+            java -jar test-grid-${TESTGRID_VERSION}.jar generate-report \
+            --product ${PRODUCT} --version ${VERSION} --channel ${CHANNEL} \
+            --groupBy deployment \
+            """
+
+           publishHTML([
+           allowMissing: false,
+           alwaysLinkToLastBuild: true,
+           keepAll: true,
+           reportDir: "${TESTGRID_HOME}",
+           reportFiles: '*.html',
+           reportName: 'HTML Report',
+           reportTitles: ''])
+       }
+   }
 }
