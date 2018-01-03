@@ -83,6 +83,13 @@
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.logging</artifactId>
         </dependency>
+
+        <!-- Jacoco agent -->
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.agent</artifactId>
+            <classifier>runtime</classifier>
+        </dependency>
     </dependencies>
 
     <build>

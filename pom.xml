@@ -43,6 +43,7 @@
         <module>distribution</module>
         <module>web</module>
         <module>logging</module>
+        <module>test/coverage</module>
     </modules>
 
     <scm>
@@ -111,6 +112,59 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
                     <version>${org.codehaus.mojo.version}</version>
+                </plugin>
+
+                <!-- Maven Jacoco plugin -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>prepare-package</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                        <!-- Specify a minimum coverage ratio. If not met the build will fail -->
+                        <execution>
+                            <id>jacoco-check</id>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <rule>
+                                        <element>PACKAGE</element>
+                                        <limits>
+                                            <limit>
+                                                <counter>LINE</counter>
+                                                <value>COVEREDRATIO</value>
+                                                <minimum>0.00</minimum>
+                                            </limit>
+                                        </limits>
+                                    </rule>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- Maven surefire plugin -->
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <inherited>false</inherited>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
+                        </systemPropertyVariables>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -192,6 +246,18 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Plugin dependencies -->
+            <dependency>
+                <groupId>org.jacoco</groupId>
+                <artifactId>org.jacoco.ant</artifactId>
+                <version>${jacoco.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jacoco</groupId>
+                <artifactId>org.jacoco.agent</artifactId>
+                <version>${jacoco.version}</version>
+                <classifier>runtime</classifier>
+            </dependency>
             <!-- Core dependencies -->
             <dependency>
                 <groupId>org.eclipse.jgit</groupId>
@@ -405,6 +471,8 @@
     </dependencyManagement>
 
     <properties>
+        <!-- Plugin versions -->
+        <jacoco.version>0.7.9</jacoco.version>
         <!-- TestGrid version-->
         <test.grid.version>0.9.0-SNAPSHOT</test.grid.version>
         <!-- Test Grid core dependencies -->
