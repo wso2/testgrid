@@ -86,52 +86,20 @@
                                         </taskdef>
                                         <jacoco:report>
                                             <executiondata>
-                                                <fileset dir="../../automation/target">
-                                                    <include name="jacoco.exec"/>
-                                                </fileset>
-                                                <fileset dir="../../common/target">
-                                                    <include name="jacoco.exec"/>
-                                                </fileset>
-                                                <fileset dir="../../core/target">
-                                                    <include name="jacoco.exec"/>
-                                                </fileset>
-                                                <fileset dir="../../dao/target">
-                                                    <include name="jacoco.exec"/>
-                                                </fileset>
-                                                <fileset dir="../../deployment/target">
-                                                    <include name="jacoco.exec"/>
-                                                </fileset>
-                                                <fileset dir="../../infrastructure/target">
-                                                    <include name="jacoco.exec"/>
-                                                </fileset>
-                                                <fileset dir="../../reporting/target">
-                                                    <include name="jacoco.exec"/>
-                                                </fileset>
-                                                <fileset dir="../../web/target">
-                                                    <include name="jacoco.exec"/>
+                                                <fileset dir="../..">
+                                                    <include name="**/target/jacoco.exec"/>
                                                 </fileset>
                                             </executiondata>
                                             <structure name="TestGrid Coverage Report">
                                                 <classfiles>
-                                                    <fileset dir="../../automation/target/classes"/>
-                                                    <fileset dir="../../common/target/classes"/>
-                                                    <fileset dir="../../core/target/classes"/>
-                                                    <fileset dir="../../dao/target/classes"/>
-                                                    <fileset dir="../../deployment/target/classes"/>
-                                                    <fileset
-                                                            dir="../../infrastructure/target/classes"/>
-                                                    <fileset dir="../../reporting/target/classes"/>
-                                                    <fileset dir="../../web/target/classes"/>
+                                                    <fileset dir="../..">
+                                                        <include name="**/target/classes/**"/>
+                                                    </fileset>
                                                 </classfiles>
                                                 <sourcefiles encoding="UTF-8">
-                                                    <fileset dir="../../automation/src"/>
-                                                    <fileset dir="../../common/src"/>
-                                                    <fileset dir="../../core/src"/>
-                                                    <fileset dir="../../dao/src"/>
-                                                    <fileset dir="../../deployment/src"/>
-                                                    <fileset dir="../../infrastructure/src"/>
-                                                    <fileset dir="../../reporting/src"/>
-                                                    <fileset dir="../../web/src"/>
+                                                    <fileset dir="../..">
+                                                        <include name="**/src/**"/>
+                                                    </fileset>
                                                 </sourcefiles>
                                             </structure>
                                             <html destdir="${project.build.directory}/site/jacoco"/>
