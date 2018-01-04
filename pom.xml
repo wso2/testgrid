@@ -108,6 +108,12 @@
                     <version>2.5.5</version>
                 </plugin>
 
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${org.codehaus.mojo.version}</version>
+                </plugin>
+
                 <!-- Maven Jacoco plugin -->
                 <plugin>
                     <groupId>org.jacoco</groupId>
@@ -502,5 +508,7 @@
         <slf4j.api.version>1.7.25</slf4j.api.version>
         <log4j.api.version>2.8.2</log4j.api.version>
         <log4j.core.version>2.8.2</log4j.core.version>
+        <!--Dashboard dependencies-->
+        <org.codehaus.mojo.version>1.3.2</org.codehaus.mojo.version>
     </properties>
 </project>
