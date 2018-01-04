@@ -28,10 +28,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * This Util class holds the common utility methods.
@@ -148,5 +150,15 @@ public final class TestGridUtil {
         String testGridHome = EnvironmentUtil.getSystemVariableValue(TESTGRID_HOME_ENV);
         Path testGridHomePath = Paths.get(testGridHome);
         return testGridHomePath.toAbsolutePath().toString();
+    }
+
+    /**
+     * Returns a UUID specific to the infra parameters.
+     *
+     * @param infraParams infra parameters to get the UUID
+     * @return UUID specific to the infra parameters
+     */
+    public static String getInfraParamUUID(String infraParams) {
+        return UUID.nameUUIDFromBytes(infraParams.getBytes(Charset.defaultCharset())).toString();
     }
 }

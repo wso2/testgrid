@@ -85,6 +85,9 @@ public abstract class AbstractUUIDEntity {
      * @return created timestamp
      */
     public Timestamp getCreatedTimestamp() {
+        if (createdTimestamp == null) {
+            return null;
+        }
         return new Timestamp(createdTimestamp.getTime());
     }
 
@@ -103,6 +106,9 @@ public abstract class AbstractUUIDEntity {
      * @return modified test case timestamp
      */
     public Timestamp getModifiedTimestamp() {
+        if (modifiedTimestamp == null) {
+            return null;
+        }
         return new Timestamp(modifiedTimestamp.getTime());
     }
 

@@ -39,7 +39,7 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
-import org.wso2.testgrid.logging.plugins.ProductTestPlanLookup;
+import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +48,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -130,22 +132,25 @@ public class RunTestPlanCommand implements Command {
             deleteFile(testPlanYAMLFilePathLocation);
             deleteParentDirectoryIfEmpty(testPlanYAMLFilePathLocation);
 
+            // Create infrastructure from config
             Infrastructure infrastructure = testConfig.getInfrastructure();
-            infrastructure.setInfraParams(testConfig.getInfraParams());
-            TestPlan testPlan = generateTestPlan(testConfig, scenarioRepoDir, infraRepo);
+            infrastructure.setInfraParams(testConfig.getInfraParams().get(0));
 
-            DeploymentPattern deploymentPattern = new DeploymentPattern();
-            deploymentPattern.setName(testConfig.getDeploymentPatterns().get(0));
-            deploymentPattern.setProduct(product);
-            deploymentPattern = persistDeploymentPattern(deploymentPattern);
-            testPlan.setDeploymentPattern(deploymentPattern);
-            testPlan.setInfraParameters(infrastructure.getInfraParams().toString());
+            // Create or get deployment pattern
+            DeploymentPattern deploymentPattern = getDeploymentPattern(product,
+                    testConfig.getDeploymentPatterns().get(0));
 
-            //Set logger file path
-            setLogFilePath(product, testPlan);
+            // Generate test plan from config
+            TestPlan testPlan = generateTestPlan(deploymentPattern, testConfig, scenarioRepoDir, infraRepo);
+
+            //Set the log file path
+            LogFilePathLookup.setLogFilePath(deriveLogFilePath(product, testPlan));
+
+            // Product, deployment pattern, test plan and test scenarios should be persisted
+            testPlan = persistTestPlan(testPlan);
 
             // Execute test plan
-            executeTestPlan(product, testPlan, infrastructure);
+            executeTestPlan(testPlan, infrastructure);
         } catch (IllegalArgumentException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Channel ",
                     channel, " is not defined in the available channels enum."), e);
@@ -266,106 +271,126 @@ public class RunTestPlanCommand implements Command {
      * This method triggers the execution of a {@link TestPlan}.
      *
      * @param testPlan test plan to execute
-     * @param product  product associated with the test plan
      * @throws CommandExecutionException thrown when error on executing test plan
      */
-    private void executeTestPlan(Product product, TestPlan testPlan, Infrastructure infrastructure)
+    private void executeTestPlan(TestPlan testPlan, Infrastructure infrastructure)
             throws CommandExecutionException {
         try {
-            // Update product test plan status
-            product = persistProduct(product);
-            DeploymentPattern deploymentPattern = persistDeploymentPattern(testPlan.getDeploymentPattern());
-
-            // Set test scenario status
-            testPlan.getTestScenarios()
-                    .forEach(testScenario -> testScenario.setStatus(Status.PENDING));
-
-            testPlan.setDeploymentPattern(deploymentPattern);
-            testPlan = persistTestPlan(testPlan);
-
-            // Run test plan
             TestPlanExecutor testPlanExecutor = new TestPlanExecutor();
             testPlanExecutor.runTestPlan(testPlan, infrastructure);
-
         } catch (TestPlanExecutorException e) {
             // Product test plan error
             testPlan.setStatus(Status.FAIL);
-            persistProduct(product);
+            persistTestPlan(testPlan);
             throw new CommandExecutionException(
-                    StringUtil.concatStrings("Unable to execute the TestPlan for Product '",
-                            product.getName(), ", version '", product.getVersion(), "'"), e);
+                    StringUtil.concatStrings("Unable to execute the TestPlan ", testPlan), e);
         }
     }
 
     /**
-     * Persist the given product test plan.
+     * Returns the path of the log file.
      *
-     * @param product product test plan to persist
-     * @return persisted product test plan
-     * @throws CommandExecutionException thrown when error on persisting product test plan
+     * @param product  product
+     * @param testPlan test plan
+     * @return log file path
      */
-    private Product persistProduct(Product product) throws CommandExecutionException {
-        try {
-            ProductUOW productUOW = new ProductUOW();
-            return productUOW.persistProduct(product.getName(), product.getVersion(), product.getChannel());
-        } catch (TestGridDAOException e) {
-            throw new CommandExecutionException("Error occurred while persisting product test plan.", e);
-        }
-    }
+    private String deriveLogFilePath(Product product, TestPlan testPlan) {
+        String productDir = StringUtil.concatStrings(product.getName(), "_", product.getVersion()
+                , "_", product.getChannel());
+        String deploymentDir = testPlan.getDeploymentPattern().getName();
+        String infraDir = TestGridUtil.getInfraParamUUID(testPlan.getInfraParameters());
+        int testRunNumber = testPlan.getTestRunNumber();
 
-    /**
-     * Persist the given product test plan.
-     *
-     * @param deploymentPattern product test plan to persist
-     * @return persisted product test plan
-     * @throws CommandExecutionException thrown when error on persisting product test plan
-     */
-    private DeploymentPattern persistDeploymentPattern(DeploymentPattern deploymentPattern) throws
-            CommandExecutionException {
-        try {
-            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
-            return deploymentPatternUOW.persistDeploymentPattern(deploymentPattern.getProduct(),
-                    deploymentPattern.getName());
-        } catch (TestGridDAOException e) {
-            throw new CommandExecutionException("Error occurred while persisting product test plan.", e);
-        }
-    }
-
-    private void setLogFilePath(Product product, TestPlan testPlan) {
-        //Set productTestPlanId and testPlanId lookup fields for logging
-        ProductTestPlanLookup.setProductTestDirectory(product.getName() + "_"
-                                                      + product.getVersion() + "_" + product.getChannel());
-        ProductTestPlanLookup.setDeploymentPattern(testPlan.getDeploymentPattern().getName());
-        /*ProductTestPlanLookup
-                .setInfraParams(testPlan.getInfraParams().getOperatingSystem().getName()
-                                     + infrastructure.getInfraParams().getOperatingSystem().getVersion() + "_"
-                                     + infrastructure.getInfraParams().getDatabase().getEngine()
-                                     + infrastructure.getInfraParams().getDatabase().getVersion() + "_"
-                                     + infrastructure.getInfraParams().getJdk());*/
+        return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber), "test").toString();
     }
 
     /**
      * This method generates TestPlan object model that from the given input parameters.
      *
-     * @param testConfig   testConfig object
-     * @param testRepoDir  test repo directory
-     * @param infraRepoDir infrastructure repo directory
+     * @param deploymentPattern deployment pattern
+     * @param testConfig        testConfig object
+     * @param testRepoDir       test repo directory
+     * @param infraRepoDir      infrastructure repo directory
      * @return TestPlan object model
      */
-    private TestPlan generateTestPlan(TestConfig testConfig, String testRepoDir, String infraRepoDir) {
+    private TestPlan generateTestPlan(DeploymentPattern deploymentPattern, TestConfig testConfig, String testRepoDir,
+                                      String infraRepoDir) {
         TestPlan testPlan = new TestPlan();
         testPlan.setStatus(Status.PENDING);
         testPlan.setInfraRepoDir(infraRepoDir);
         testPlan.setTestRepoDir(testRepoDir);
+        testPlan.setDeploymentPattern(deploymentPattern);
+        testPlan.setInfraParameters(testConfig.getInfraParams().get(0).toString());
+        deploymentPattern.addTestPlan(testPlan);
+
+        // Set test run number
+        int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlan.getInfraParameters());
+        testPlan.setTestRunNumber(latestTestRunNumber + 1);
+
+        // Set test scenarios
         List<TestScenario> testScenarios = new ArrayList<>();
         for (String name : testConfig.getScenarios()) {
             TestScenario testScenario = new TestScenario();
             testScenario.setName(name);
             testScenario.setTestPlan(testPlan);
+            testScenario.setStatus(Status.PENDING);
             testScenarios.add(testScenario);
         }
         testPlan.setTestScenarios(testScenarios);
         return testPlan;
+    }
+
+    /**
+     * Returns the existing deployment pattern for the given name and product or creates a new deployment pattern for
+     * the given deployment pattern name and product.
+     *
+     * @param product               product to get deployment pattern
+     * @param deploymentPatternName deployment pattern name
+     * @return deployment pattern for the given product and deployment pattern name
+     * @throws CommandExecutionException thrown when error on retrieving deployment pattern
+     */
+    private DeploymentPattern getDeploymentPattern(Product product, String deploymentPatternName)
+            throws CommandExecutionException {
+        try {
+            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
+            Optional<DeploymentPattern> optionalDeploymentPattern =
+                    deploymentPatternUOW.getDeploymentPattern(product, deploymentPatternName);
+
+            if (optionalDeploymentPattern.isPresent()) {
+                return optionalDeploymentPattern.get();
+            }
+
+            DeploymentPattern deploymentPattern = new DeploymentPattern();
+            deploymentPattern.setName(deploymentPatternName);
+            deploymentPattern.setProduct(product);
+            return deploymentPattern;
+        } catch (TestGridDAOException e) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Error while retrieving deployment pattern for { product: ", product,
+                            ", deploymentPatternName: ", deploymentPatternName, "}"));
+        }
+    }
+
+    /**
+     * Returns the latest test run number.
+     *
+     * @param deploymentPattern deployment pattern to get the latest test run number
+     * @param infraParams       infrastructure parameters to get the latest test run number
+     * @return latest test run number
+     */
+    private int getLatestTestRunNumber(DeploymentPattern deploymentPattern, String infraParams) {
+        // Get test plans with the same infra param
+        List<TestPlan> testPlans = new ArrayList<>();
+        for (TestPlan testPlan : deploymentPattern.getTestPlans()) {
+            if (testPlan.getInfraParameters().equals(infraParams)) {
+                testPlans.add(testPlan);
+            }
+        }
+
+        // Get the Test Plan with the latest test run number for the given infra combination
+        TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(TestPlan::getTestRunNumber));
+
+        return latestTestPlan.getTestRunNumber();
     }
 }
 
