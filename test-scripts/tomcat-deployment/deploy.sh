@@ -36,7 +36,7 @@ echo -e "[tomcat-servers:vars]\nansible_ssh_private_key_file=./key.pem\n\n[tomca
 # Executing ansible
 echo "Ansible execution started"
 export ANSIBLE_HOST_KEY_CHECKING=False
-ansible-playbook -i ./ansible/hosts ./ansible/site.yml
+ansible-playbook -i ./ansible/hosts ./ansible/site.yaml
 
 # Writing the deployment endpoints to a file
 echo "tomcat_host=http://$endpoint:8080" > $outputFileName

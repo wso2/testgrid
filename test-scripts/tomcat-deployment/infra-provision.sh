@@ -42,9 +42,6 @@ aws cloudformation create-stack --stack-name $stackName --template-body file://.
 # Waiting till the AWS stack is created
 aws cloudformation wait stack-create-complete --stack-name $stackName
 
-
 # Write the public IP of the instance to a file
 # This will only work if you have a single output with the instance IP.
 aws cloudformation describe-stacks --stack-name $stackName | grep -o -P '(?<=OutputValue": ").*(?=")' > $outputFileName
-
-
