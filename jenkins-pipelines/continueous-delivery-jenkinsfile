@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+    environment {
+
+        DEV_USER = 'xxxxx'
+        DEV_HOST = 'xxxxxxx.com'
+        PRE_PROD_USER = 'xxxxx'
+        PRE_PROD_HOST = 'xxxxxx.com'
+        PROD_USER = 'xxxxx'
+        PROD_HOST = 'xxxxxxx.com'
+    }
+
+    stages {
+        stage('Deploy to Dev') {
+            steps {
+                copyArtifacts(projectName: 'testgrid-build');
+                sshagent(['//Add Dev enviromnet key ID']) {
+                    sh """
+                		   scp web/target/*.war ${DEV_USER}@${DEV_HOST}:~/
+
+                	    """
+                }
+
+                sshagent(['//Add Dev enviromnet key ID'']) {
+                    sh """
+                 		   scp distribution/target/*.zip ${DEV_USER}@${DEV_HOST}:~/
+
+                 	      """
+                }
+            }
+
+        }
+
+        stage('Deploy to Prod') {
+            def userInput
+            try {
+                userInput = input(
+                        id: 'Proceed1', message: 'Deploy to Prod environment?', parameters: [
+                        [$class: 'BooleanParameterDefinition', defaultValue: true, description: '', name: 'Please confirm you agree with this']
+                ])
+            } catch (err) { // input false
+                def user = err.getCauses()[0].getUser()
+                userInput = false
+                echo "Aborted by: [${user}]"
+            }
+
+            if (userInput == true) {
+                sshagent(['//ADD Prod Environment Key ID']) {
+                    sh """
+                     scp distribution/target/*.zip ${PROD_USER}@${PROD_HOST}:~/
+
+         	        """
+                }
+                sshagent(['//ADD Prod Environment Key ID']) {
+                    sh """
+          		        scp web/target/*.war ${PROD_USER}@${PROD_HOST}:~/
+          	        """
+                }
+            }
+
+        }
+}
