@@ -19,12 +19,13 @@
 #
 # ----------------------------------------------------------------------------
 
+# This script is responsible for provisioning the infrastructure on AWS
+
 stackName=TGdummy
 keyPairName=tgDummy
 amiId=ami-4524733f
 outputFileName=infra_eps
 
-## This script will create the CF infrastructure
 echo "Infrastructure creation Initiated"
 
 # Create a New Keypair in AWS space and saving it to a .pem file
@@ -35,15 +36,15 @@ echo -e $output > key.pem
 # Changing the permission of the key
 chmod 600 key.pem
 
-# Create the Stack || --parameters ParameterKey=am-id,ParameterValue=ami-08c64c72
+# Create the AWS Stack, here amiID will be parsed as an parameter
 aws cloudformation create-stack --stack-name $stackName --template-body file://./cf-templates/add-instances.yaml --parameters ParameterKey=AMIID,ParameterValue=$amiId
 
-# Waiting till the stack is created
+# Waiting till the AWS stack is created
 aws cloudformation wait stack-create-complete --stack-name $stackName
 
 
 # Write the public IP of the instance to a file
-# This will only work if you have a single output. May not work for other cases
+# This will only work if you have a single output with the instance IP.
 aws cloudformation describe-stacks --stack-name $stackName | grep -o -P '(?<=OutputValue": ").*(?=")' > $outputFileName
 
 

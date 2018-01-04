@@ -19,6 +19,8 @@
 #
 # ----------------------------------------------------------------------------
 
+# This script is responsible for running the test scenarios
+
 # Populate the user.properties file
 
 cat deployment_eps > jmeter/user.properties

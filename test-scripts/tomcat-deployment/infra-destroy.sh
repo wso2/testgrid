@@ -19,6 +19,8 @@
 #
 # ----------------------------------------------------------------------------
 
+# This script is responsible for destroying the AWS instances and other AWS resources created
+
 stackName=TGdummy
 keyPairName=tgDummy
 
