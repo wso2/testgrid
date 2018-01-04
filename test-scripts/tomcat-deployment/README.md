@@ -1,4 +1,4 @@
-Dummy Scripts to Test TG execution
+## Dummy Scripts to Test TG execution
 
 This contains scripts to create infrastructure on AWS, deploy a tomcat server and test with Jmeter. 
 
