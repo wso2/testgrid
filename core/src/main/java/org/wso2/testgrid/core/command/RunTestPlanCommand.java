@@ -40,6 +40,8 @@ import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
+import org.wso2.testgrid.reporting.ReportingException;
+import org.wso2.testgrid.reporting.TestReportEngine;
 
 import java.io.File;
 import java.io.IOException;
@@ -144,18 +146,24 @@ public class RunTestPlanCommand implements Command {
             TestPlan testPlan = generateTestPlan(deploymentPattern, testConfig, scenarioRepoDir, infraRepo);
 
             //Set the log file path
-            LogFilePathLookup.setLogFilePath(deriveLogFilePath(product, testPlan));
+            LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlan));
 
             // Product, deployment pattern, test plan and test scenarios should be persisted
             testPlan = persistTestPlan(testPlan);
 
             // Execute test plan
-            executeTestPlan(testPlan, infrastructure);
+            testPlan = executeTestPlan(testPlan, infrastructure);
+
+            // Generate report for the test plan
+            TestReportEngine testReportEngine = new TestReportEngine();
+            testReportEngine.generateReport(testPlan);
         } catch (IllegalArgumentException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Channel ",
                     channel, " is not defined in the available channels enum."), e);
         } catch (IOException e) {
             throw new CommandExecutionException("Error in reading file generated config file", e);
+        } catch (ReportingException e) {
+            throw new CommandExecutionException("Error in generating report for the test plan.", e);
         }
     }
 
@@ -271,13 +279,14 @@ public class RunTestPlanCommand implements Command {
      * This method triggers the execution of a {@link TestPlan}.
      *
      * @param testPlan test plan to execute
+     * @return executed test plan
      * @throws CommandExecutionException thrown when error on executing test plan
      */
-    private void executeTestPlan(TestPlan testPlan, Infrastructure infrastructure)
+    private TestPlan executeTestPlan(TestPlan testPlan, Infrastructure infrastructure)
             throws CommandExecutionException {
         try {
             TestPlanExecutor testPlanExecutor = new TestPlanExecutor();
-            testPlanExecutor.runTestPlan(testPlan, infrastructure);
+            return testPlanExecutor.runTestPlan(testPlan, infrastructure);
         } catch (TestPlanExecutorException e) {
             // Product test plan error
             testPlan.setStatus(Status.FAIL);
@@ -290,18 +299,12 @@ public class RunTestPlanCommand implements Command {
     /**
      * Returns the path of the log file.
      *
-     * @param product  product
      * @param testPlan test plan
      * @return log file path
      */
-    private String deriveLogFilePath(Product product, TestPlan testPlan) {
-        String productDir = StringUtil.concatStrings(product.getName(), "_", product.getVersion()
-                , "_", product.getChannel());
-        String deploymentDir = testPlan.getDeploymentPattern().getName();
-        String infraDir = TestGridUtil.getInfraParamUUID(testPlan.getInfraParameters());
-        int testRunNumber = testPlan.getTestRunNumber();
-
-        return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber), "test").toString();
+    private String deriveLogFilePath(TestPlan testPlan) {
+        Path testRunArtifactsDir = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
+        return testRunArtifactsDir.resolve("test").toString();
     }
 
     /**

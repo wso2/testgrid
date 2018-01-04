@@ -21,7 +21,10 @@ package org.wso2.testgrid.common.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Host;
+import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 
 import java.io.BufferedReader;
@@ -153,12 +156,31 @@ public final class TestGridUtil {
     }
 
     /**
+     * Returns the directory location where the test run artifacts resides.
+     *
+     * @param testPlan test plan for getting the test run artifacts location
+     * @return path of the test run artifacts
+     */
+    public static Path getTestRunArtifactsDirectory(TestPlan testPlan) {
+        DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
+        Product product = deploymentPattern.getProduct();
+        int testRunNumber = testPlan.getTestRunNumber();
+
+        String productDir = StringUtil.concatStrings(product.getName(), "_", product.getVersion()
+                , "_", product.getChannel());
+        String deploymentDir = deploymentPattern.getName();
+        String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
+
+        return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber));
+    }
+
+    /**
      * Returns a UUID specific to the infra parameters.
      *
      * @param infraParams infra parameters to get the UUID
      * @return UUID specific to the infra parameters
      */
-    public static String getInfraParamUUID(String infraParams) {
+    private static String getInfraParamUUID(String infraParams) {
         return UUID.nameUUIDFromBytes(infraParams.getBytes(Charset.defaultCharset())).toString();
     }
 }

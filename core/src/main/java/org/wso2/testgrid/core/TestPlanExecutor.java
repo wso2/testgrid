@@ -56,9 +56,10 @@ public class TestPlanExecutor {
      * This method executes a given {@link TestPlan}.
      *
      * @param testPlan an instance of {@link TestPlan} in which the tests should be executed
+     * @return executed test plan
      * @throws TestPlanExecutorException thrown when error on executing test plan
      */
-    public void runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
+    public TestPlan runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
         // Deployment preparation.
         testPlan = setupInfrastructure(infrastructure, testPlan);
         testPlan = persistTestPlan(testPlan);
@@ -91,9 +92,8 @@ public class TestPlanExecutor {
                             testPlan.getId(), "'", e));
         }
         testPlan = persistTestPlan(testPlan);
-
-        // Destroy the infrastructure.
         destroyInfrastructure(infrastructure, testPlan);
+        return testPlan;
     }
 
     /**

@@ -26,8 +26,6 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.reporting.model.GroupBy;
 import org.wso2.testgrid.reporting.model.PerAxisHeader;
 import org.wso2.testgrid.reporting.model.PerAxisSummary;
@@ -69,19 +67,53 @@ public class TestReportEngine {
     private static final String HTML_EXTENSION = ".html";
 
     /**
-     * Generates a test report based on the given product name and product version.
+     * Generates a test report for the given test plan.
+     * <p>
+     * This report will be grouped by the test scenario since the report is generated to a single deployment and
+     * infrastructure
      *
-     * @param productName    product name to generate the test plan for
-     * @param productVersion product version to generate the test plan for
-     * @param channel        product test plan channel
-     * @param showSuccess    whether success tests should be show as well
-     * @param groupBy        columns to group by
+     * @param testPlan test plan to generate the report for
      * @throws ReportingException thrown when error on generating test report
      */
-    public void generateReport(String productName, String productVersion, String channel, boolean showSuccess,
-                               String groupBy)
-            throws ReportingException {
-        Product product = getProduct(productName, productVersion, channel);
+    public void generateReport(TestPlan testPlan) throws ReportingException {
+        AxisColumn uniqueAxisColumn = AxisColumn.SCENARIO;
+        DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
+        Product product = deploymentPattern.getProduct();
+
+        // Construct report elements
+        List<ReportElement> reportElements = Collections
+                .unmodifiableList(createReportElementsForTestPlan(testPlan, deploymentPattern, uniqueAxisColumn));
+
+        // Break elements by group by (sorting also handled)
+        List<GroupBy> groupByList = groupReportElementsBy(uniqueAxisColumn, reportElements, false);
+
+        // Create per axis summaries
+        List<PerAxisHeader> perAxisHeaders = createPerAxisHeaders(uniqueAxisColumn, reportElements, false);
+
+        // Generate HTML string
+        Report report = new Report(false, product, groupByList, perAxisHeaders);
+        Map<String, Object> parsedResultMap = new HashMap<>();
+        parsedResultMap.put(REPORT_TEMPLATE_KEY, report);
+        Renderable renderable = RenderableFactory.getRenderable(REPORT_MUSTACHE);
+        String htmlString = renderable.render(REPORT_MUSTACHE, parsedResultMap);
+
+        // Write to HTML file
+        String testRunArtifactsDir = TestGridUtil.getTestRunArtifactsDirectory(testPlan).toString();
+        String fileName = StringUtil.concatStrings("Report", HTML_EXTENSION);
+        String testGridHome = TestGridUtil.getTestGridHomePath();
+        Path reportPath = Paths.get(testGridHome).resolve(testRunArtifactsDir).resolve(fileName);
+        writeHTMLToFile(reportPath, htmlString);
+    }
+
+    /**
+     * Generates a test report based on the given product name and product version.
+     *
+     * @param product     product to generate the report
+     * @param showSuccess whether success tests should be show as well
+     * @param groupBy     columns to group by
+     * @throws ReportingException thrown when error on generating test report
+     */
+    public void generateReport(Product product, boolean showSuccess, String groupBy) throws ReportingException {
         AxisColumn uniqueAxisColumn = getGroupByColumn(groupBy);
 
         // Construct report elements
@@ -105,7 +137,9 @@ public class TestReportEngine {
         String fileName = StringUtil.concatStrings(product.getName(), "-",
                 product.getVersion(), "-", product.getChannel(), "-",
                 product.getCreatedTimestamp(), "-", uniqueAxisColumn, HTML_EXTENSION);
-        writeHTMLToFile(fileName, htmlString);
+        String testGridHome = TestGridUtil.getTestGridHomePath();
+        Path reportPath = Paths.get(testGridHome).resolve(fileName);
+        writeHTMLToFile(reportPath, htmlString);
     }
 
     /**
@@ -564,19 +598,33 @@ public class TestReportEngine {
             // Test plans
             List<TestPlan> testPlans = deploymentPattern.getTestPlans();
             for (TestPlan testPlan : testPlans) {
+                List<ReportElement> reportElementsForTestPlan = createReportElementsForTestPlan(testPlan,
+                        deploymentPattern, groupByAxisColumn);
+                reportElements.addAll(reportElementsForTestPlan);
+            }
+        }
+        return reportElements;
+    }
 
-                // Test scenarios
-                List<TestScenario> testScenarios = testPlan.getTestScenarios();
-                for (TestScenario testScenario : testScenarios) {
+    /**
+     * Create report elements for the given test plan.
+     *
+     * @param testPlan          test plan to create report elements
+     * @param deploymentPattern deployment pattern to create report elements
+     * @param groupByAxisColumn grouped by column
+     * @return created report elements
+     */
+    private List<ReportElement> createReportElementsForTestPlan(
+            TestPlan testPlan, DeploymentPattern deploymentPattern, AxisColumn groupByAxisColumn) {
+        List<ReportElement> reportElements = new ArrayList<>();
 
-                    // Test cases
-                    List<TestCase> testCases = testScenario.getTestCases();
-                    for (TestCase testCase : testCases) {
-                        ReportElement reportElement = createReportElement(deploymentPattern, testPlan, testScenario,
-                                testCase, groupByAxisColumn);
-                        reportElements.add(reportElement);
-                    }
-                }
+        List<TestScenario> testScenarios = testPlan.getTestScenarios();
+        for (TestScenario testScenario : testScenarios) {
+            List<TestCase> testCases = testScenario.getTestCases();
+            for (TestCase testCase : testCases) {
+                ReportElement reportElement = createReportElement(deploymentPattern, testPlan, testScenario,
+                        testCase, groupByAxisColumn);
+                reportElements.add(reportElement);
             }
         }
         return reportElements;
@@ -623,41 +671,13 @@ public class TestReportEngine {
     /**
      * Write the given HTML string to the given file at test grid home.
      *
-     * @param fileName   file name to write
+     * @param filePath   fully qualified file path
      * @param htmlString HTML string to be written to the file
      * @throws ReportingException thrown when error on writing the HTML string to file
      */
-    private void writeHTMLToFile(String fileName, String htmlString) throws ReportingException {
-        String testGridHome = TestGridUtil.getTestGridHomePath();
-        Path reportPath = Paths.get(testGridHome).resolve(fileName);
-
+    private void writeHTMLToFile(Path filePath, String htmlString) throws ReportingException {
         logger.info("Started writing test results to file...");
-        FileUtil.writeToFile(reportPath.toAbsolutePath().toString(), htmlString);
+        FileUtil.writeToFile(filePath.toAbsolutePath().toString(), htmlString);
         logger.info("Finished writing test results to file");
-    }
-
-    /**
-     * Returns an instance of {@link Product} for the given product name and product version.
-     *
-     * @param productName    product name
-     * @param productVersion product version
-     * @param channel        product test plan channel
-     * @return an instance of {@link Product} for the given product name and product version
-     * @throws ReportingException throw when error on obtaining product for the given product name and product version
-     */
-    private Product getProduct(String productName, String productVersion, String channel) throws ReportingException {
-        try {
-            ProductUOW productUOW = new ProductUOW();
-            Product.Channel productChannel = Product.Channel.valueOf(channel);
-            return productUOW.getProduct(productName, productVersion, productChannel)
-                    .orElseThrow(() -> new ReportingException(StringUtil
-                            .concatStrings("No product test plan found for product {product name: ", productName,
-                                    ", product version: ", productVersion, ", channel: ", channel, "}")));
-        } catch (IllegalArgumentException e) {
-            throw new ReportingException(StringUtil.concatStrings("Channel ", channel,
-                    " not found in channels enum."));
-        } catch (TestGridDAOException e) {
-            throw new ReportingException("Error in instantiating DB transaction.", e);
-        }
     }
 }
