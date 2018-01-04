@@ -1,0 +1,10 @@
+---
+# This playbook installs tomcat 8 server and starts
+
+- hosts: tomcat-servers
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+
+  roles:
+    - tomcat

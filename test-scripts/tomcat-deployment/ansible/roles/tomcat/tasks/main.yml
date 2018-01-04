@@ -1,0 +1,11 @@
+---
+- name: Install Tomcat 8
+  apt:
+    name: tomcat8
+    state: present
+
+- name: Start Tomcat
+  service: name=tomcat8 state=started enabled=yes
+
+- name: wait for tomcat to start
+  wait_for: port=8080

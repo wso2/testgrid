@@ -1,0 +1,73 @@
+# ----------------------------------------------------------------------------
+#
+# Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+#
+# WSO2 Inc. licenses this file to you under the Apache License,
+# Version 2.0 (the "License"); you may not use this file except
+# in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+# ----------------------------------------------------------------------------
+AWSTemplateFormatVersion: 2010-09-09
+Description: Instance created to host a Tomcat Server
+
+#############################
+# User inputs
+#############################
+Parameters:
+  AMIID:
+    Description: This is the AMI that will be used
+    Type: String
+    Default: ami-4524733f
+  EC2KeyPair:
+    Description: This is used to ssh to the node.
+    Type: String
+    Default: tgDummy
+  TomCatInstanceType:
+    Description: EC2 instance type of the WSO2 IS Node [t2.micro is the free tier]
+    Type: String
+    Default: t1.micro
+    AllowedValues:
+      - t2.nano
+      - t1.micro
+      - t2.micro
+    ConstraintDescription: must be a valid EC2 instance type
+
+
+################################
+# Create AWS resources
+################################
+Resources:
+  #######################
+  # EC2 Compute instances
+  #######################
+  TGTomCatInstance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      DisableApiTermination: 'false'
+      InstanceInitiatedShutdownBehavior: stop
+      ImageId: !Ref AMIID
+      InstanceType: !Ref TomCatInstanceType
+      KeyName: !Ref EC2KeyPair
+      Monitoring: 'false'
+      Tags:
+        - Key: Name
+          Value: wso2-tg-tomcat
+
+
+#####################################
+# Print details of the created stack
+#####################################
+Outputs:
+  serverHost:
+    Value: !Sub '${TGTomCatInstance.PublicIp}'
+    Description: DNS Name of the Instance
