@@ -86,7 +86,7 @@ public class GenerateTestPlanCommand implements Command {
     public void execute() throws CommandExecutionException {
         try {
             //Set the log file path
-            LogFilePathLookup.setLogFilePath(setLogFilePath(productName, productVersion, channel));
+            LogFilePathLookup.setLogFilePath(deriveLogFilePath(productName, productVersion, channel));
 
             // Validate test configuration file name
             if (StringUtil.isStringNullOrEmpty(testConfigFile) || !testConfigFile.endsWith(YAML_EXTENSION)) {
@@ -332,16 +332,15 @@ public class GenerateTestPlanCommand implements Command {
     }
 
     /**
-     * Sets the path of the log file.
+     * Returns the path of the log file.
      *
-     * @param productName product name
+     * @param productName    product name
      * @param productVersion product version
-     * @param channel channel
+     * @param channel        channel
      * @return log file path
      */
-    private String setLogFilePath(String productName, String productVersion, String channel) {
-        String productDir = StringUtil.concatStrings(productName, "_",
-                productVersion, "_", channel);
+    private String deriveLogFilePath(String productName, String productVersion, String channel) {
+        String productDir = StringUtil.concatStrings(productName, "_", productVersion, "_", channel);
         return Paths.get(productDir, "testgrid").toString();
     }
 }

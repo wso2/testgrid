@@ -35,7 +35,7 @@ public class Infrastructure implements Serializable {
     private ProviderType providerType;
     private InstanceType instanceType;
     private ClusterType clusterType;
-    private List<Map<String, Object>> infraParams;
+    private Map<String, Object> infraParams;
     private Map<String, String> securityProperties;
     private List<Script> scripts;
     private String region;
@@ -118,7 +118,7 @@ public class Infrastructure implements Serializable {
      *
      * @return infrastructure combination
      */
-    public List<Map<String, Object>> getInfraParams() {
+    public Map<String, Object> getInfraParams() {
         return infraParams;
     }
 
@@ -127,7 +127,7 @@ public class Infrastructure implements Serializable {
      *
      * @param infraParams infrastructure combination
      */
-    public void setInfraParams(List<Map<String, Object>> infraParams) {
+    public void setInfraParams(Map<String, Object> infraParams) {
         this.infraParams = infraParams;
     }
 

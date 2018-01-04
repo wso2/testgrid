@@ -199,12 +199,15 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
 
     @Override
     public String toString() {
+        String id = this.getId() != null ? this.getId() : "";
+        String createdTimestamp = this.getCreatedTimestamp() != null ? this.getCreatedTimestamp().toString() : "";
+        String modifiedTimestamp = this.getModifiedTimestamp() != null ? this.getModifiedTimestamp().toString() : "";
         return StringUtil.concatStrings("TestScenario{",
-                "id='", this.getId(), "\'",
+                "id='", id, "\'",
                 ", name='", name, "\'",
                 ", status='", status, "\'",
-                ", createdTimestamp='", this.getCreatedTimestamp(), "\'",
-                ", modifiedTimestamp='", this.getModifiedTimestamp(), "\'",
+                ", createdTimestamp='", createdTimestamp, "\'",
+                ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 ", testPlan='", testPlan, "\'",
                 '}');
     }
