@@ -49,9 +49,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * This runs the test plans for the given parameters.
@@ -298,11 +298,10 @@ public class RunTestPlanCommand implements Command {
         String productDir = StringUtil.concatStrings(product.getName(), "_", product.getVersion()
                 , "_", product.getChannel());
         String deploymentDir = testPlan.getDeploymentPattern().getName();
-        String infraDir = UUID.nameUUIDFromBytes(testPlan.getInfraParameters().getBytes(Charset.defaultCharset()))
-                .toString();
+        String infraDir = TestGridUtil.getInfraParamUUID(testPlan.getInfraParameters());
         int testRunNumber = testPlan.getTestRunNumber();
 
-        return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber)).toString();
+        return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber), "test").toString();
     }
 
     /**
@@ -325,7 +324,7 @@ public class RunTestPlanCommand implements Command {
         deploymentPattern.addTestPlan(testPlan);
 
         // Set test run number
-        int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern);
+        int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlan.getInfraParameters());
         testPlan.setTestRunNumber(latestTestRunNumber + 1);
 
         // Set test scenarios
@@ -376,12 +375,22 @@ public class RunTestPlanCommand implements Command {
      * Returns the latest test run number.
      *
      * @param deploymentPattern deployment pattern to get the latest test run number
+     * @param infraParams       infrastructure parameters to get the latest test run number
      * @return latest test run number
      */
-    private int getLatestTestRunNumber(DeploymentPattern deploymentPattern) {
-        return Collections.max(deploymentPattern.getTestPlans(),
-                (testPlan1, testPlan2) -> Integer.compare(testPlan2.getTestRunNumber(), testPlan1.getTestRunNumber()))
-                .getTestRunNumber();
+    private int getLatestTestRunNumber(DeploymentPattern deploymentPattern, String infraParams) {
+        // Get test plans with the same infra param
+        List<TestPlan> testPlans = new ArrayList<>();
+        for (TestPlan testPlan : deploymentPattern.getTestPlans()) {
+            if (testPlan.getInfraParameters().equals(infraParams)) {
+                testPlans.add(testPlan);
+            }
+        }
+
+        // Get the Test Plan with the latest test run number for the given infra combination
+        TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(TestPlan::getTestRunNumber));
+
+        return latestTestPlan.getTestRunNumber();
     }
 }
 
