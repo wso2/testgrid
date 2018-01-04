@@ -1,37 +1,37 @@
 node {
-stage('Deploy to Dev'){
-copyArtifacts(projectName: 'testgrid-build');
-sshagent(['3a4fb495-3c0a-4d3a-aae9-6a8b7499a018']) {
-sh """
-scp web/target/*.war ubuntu@ec2-34-238-28-168.compute-1.amazonaws.com:~/
-scp distribution/target/*.zip ubuntu@ec2-34-238-28-168.compute-1.amazonaws.com:~/
-"""
-}
-}
+    stage('Deploy to Dev'){
+        copyArtifacts(projectName: 'platform-builds/wso2-test-grid');
+        sshagent(['testgrid-dev-key']) {
+            sh """
+                scp -o StrictHostKeyChecking=no web/target/*.war ${DEV_USER}@${DEV_HOST}:~/
+                scp -o StrictHostKeyChecking=no distribution/target/*.zip ${DEV_USER}@${DEV_HOST}:~/
+                """
+           }
+    }
 
-stage('Deploy to Prod'){
-def userInput
-try {
-userInput = input(
-id: 'Proceed1', message: 'Deploy to Prod environment?', parameters: [
-[$class: 'BooleanParameterDefinition', defaultValue: true, description: '', name: 'Please confirm you agree with this']
-])
-} catch(err) { // input false
-def user = err.getCauses()[0].getUser()
-userInput = false
-echo "Aborted by: [${user}]"
-}
+    stage('Deploy to Prod'){
+        def userInput
+        try {
+            userInput = input(
+                    id: 'Proceed1', message: 'Deploy to Prod environment?', parameters: [
+                    [$class: 'BooleanParameterDefinition', defaultValue: true, description: '', name: 'Please confirm you agree with this']
+            ])
+        } catch(err) { // input false
+            def user = err.getCauses()[0].getUser()
+            userInput = false
+            echo "Aborted by: [${user}]"
+        }
 
-if (userInput == true) {
-sshagent(['3a4fb495-3c0a-4d3a-aae9-6a8b7499a018']) {
-sh """
-scp web/target/*.war ubuntu@ec2-54-82-250-62.compute-1.amazonaws.com:~/
-scp distribution/target/*.zip ubuntu@ec2-54-82-250-62.compute-1.amazonaws.com:~/
-"""
-}
-} else {
-echo "Not proceeding with pre prod"
-}
-}
+        if (userInput == true) {
+            sshagent(['testgrid-prod-key']) {
+                sh """
+                    scp -o StrictHostKeyChecking=no web/target/*.war ${PROD_USER}@${PROD_HOST}:~/
+                    scp -o StrictHostKeyChecking=no distribution/target/*.zip ${PROD_USER}@${PROD_HOST}:~/
+                 """
+            }
+        } else {
+            echo "Not proceeding with pre prod"
+        }
+    }
 
 }
