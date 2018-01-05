@@ -47,7 +47,7 @@ class InfraCombinationView extends Component {
     }
 
     componentDidMount() {
-        var url = "http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/testgrid/v0.9/api/test-plans?deployment-pattern-id="+this.props.active.reducer.currentDeployment.deploymentId+"&date="+this.props.active.reducer.currentProduct.productDate+"&require-test-scenario-info=false";
+        var url = "/testgrid/v0.9/api/test-plans?deployment-pattern-id="+this.props.active.reducer.currentDeployment.deploymentId+"&date="+this.props.active.reducer.currentProduct.productDate+"&require-test-scenario-info=false";
 
         fetch(url, {
             mode: 'cors',
