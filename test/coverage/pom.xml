@@ -16,9 +16,7 @@
   ~  under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
         <artifactId>testgrid-framework</artifactId>
@@ -81,29 +79,28 @@
                                 </goals>
                                 <configuration>
                                     <target xmlns:jacoco="antlib:org.jacoco.ant">
-                                        <taskdef uri="antlib:org.jacoco.ant"
-                                                 resource="org/jacoco/ant/antlib.xml">
-                                            <classpath path="${project.build.directory}"/>
+                                        <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+                                            <classpath path="${project.build.directory}" />
                                         </taskdef>
                                         <jacoco:report>
                                             <executiondata>
                                                 <fileset dir="../..">
-                                                    <include name="**/target/jacoco.exec"/>
+                                                    <include name="**/target/jacoco.exec" />
                                                 </fileset>
                                             </executiondata>
                                             <structure name="TestGrid Coverage Report">
                                                 <classfiles>
                                                     <fileset dir="../..">
-                                                        <include name="**/target/classes/**"/>
+                                                        <include name="**/target/classes/**" />
                                                     </fileset>
                                                 </classfiles>
                                                 <sourcefiles encoding="UTF-8">
                                                     <fileset dir="../..">
-                                                        <include name="**/src/**"/>
+                                                        <include name="**/src/**" />
                                                     </fileset>
                                                 </sourcefiles>
                                             </structure>
-                                            <html destdir="${project.build.directory}/site/jacoco"/>
+                                            <html destdir="${project.build.directory}/site/jacoco" />
                                         </jacoco:report>
                                     </target>
                                 </configuration>

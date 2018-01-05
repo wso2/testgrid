@@ -1,6 +1,6 @@
 node {
     stage('Deploy to Dev'){
-        copyArtifacts(projectName: 'platform-builds/wso2-test-grid');
+        copyArtifacts(projectName: 'testgrid/testgrid');
         sshagent(['testgrid-dev-key']) {
             sh """
                 scp -o StrictHostKeyChecking=no web/target/*.war ${DEV_USER}@${DEV_HOST}:/testgrid/deployment/apache-tomcat-8.5.23/webapps/

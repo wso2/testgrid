@@ -33,6 +33,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.OneToMany;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 /**
  * This represents a model of the Product which includes the name, version and the channel.
@@ -52,7 +53,11 @@ import javax.persistence.Table;
                                    @ColumnResult(name = "testExecutionTime")})}
 )
 @Entity
-@Table(name = Product.PRODUCT_TABLE)
+@Table(
+        name = Product.PRODUCT_TABLE,
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {Product.NAME_COLUMN, Product.VERSION_COLUMN, Product.CHANNEL_COLUMN})
+        })
 public class Product extends AbstractUUIDEntity implements Serializable {
 
     /**
@@ -156,13 +161,16 @@ public class Product extends AbstractUUIDEntity implements Serializable {
 
     @Override
     public String toString() {
+        String id = this.getId() != null ? this.getId() : "";
+        String createdTimestamp = this.getCreatedTimestamp() != null ? this.getCreatedTimestamp().toString() : "";
+        String modifiedTimestamp = this.getModifiedTimestamp() != null ? this.getModifiedTimestamp().toString() : "";
         return StringUtil.concatStrings("Product{",
-                "id='", this.getId(), "\'",
+                "id='", id, "\'",
                 ", name='", name, "\'",
                 ", version='", version, "\'",
                 ", channel='", channel, "\'",
-                ", createdTimestamp='", this.getCreatedTimestamp(), "\'",
-                ", modifiedTimestamp='", this.getModifiedTimestamp(), "\'",
+                ", createdTimestamp='", createdTimestamp, "\'",
+                ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 '}');
     }
 

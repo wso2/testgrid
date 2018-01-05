@@ -24,8 +24,6 @@ import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.infrastructure.aws.AWSManager;
 
-import java.util.Map;
-
 /**
  * This class provides the infrastructure from amazon web services (AWS).
  *
@@ -61,10 +59,8 @@ public class AWSProvider implements InfrastructureProvider {
         awsManager.init(infrastructure);
         for (Script script : infrastructure.getScripts()) {
             if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
-                for (Map<String, Object> stringStringMap : infrastructure.getInfraParams()) {
-                    stringStringMap.forEach((key, value) ->
-                            script.getScriptParameters().setProperty(key, (String) value));
-                }
+                infrastructure.getInfraParams().forEach((key, value) ->
+                        script.getScriptParameters().setProperty(key, (String) value));
                 return awsManager.createInfrastructure(script, infraRepoDir);
             }
         }
