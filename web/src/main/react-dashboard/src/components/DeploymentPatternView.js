@@ -40,7 +40,7 @@ class DeploymentPatternView extends Component {
   }
 
   componentDidMount() {
-    var url = 'http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/testgrid/v0.9/api/deployment-patterns/recent-test-info?productId='
+    var url = '/testgrid/v0.9/api/deployment-patterns/recent-test-info?productId='
     +this.props.active.reducer.currentProduct.productId+'&date='+this.props.active.reducer.currentProduct.productDate;
 
     fetch(url, {
