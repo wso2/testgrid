@@ -316,6 +316,11 @@
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql.driver.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-core</artifactId>
+                <version>${liquibase.version}</version>
+            </dependency>
 
             <!-- Jackson dependencies-->
             <dependency>
@@ -500,6 +505,7 @@
         <mysql.driver.version>6.0.6</mysql.driver.version>
         <javax.persistence.version>2.2.0</javax.persistence.version>
         <jersey.server.version>2.17</jersey.server.version>
+        <liquibase.version>3.5.3</liquibase.version>
         <!-- Other dependencies -->
         <awaitility.version>3.0.0</awaitility.version>
         <guava.version>19.0</guava.version>

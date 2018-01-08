@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~  Copyright (c) 2018, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+  ~
+  ~  WSO2 Inc. licenses this file to you under the Apache License,
+  ~  Version 2.0 (the "License"); you may not use this file except
+  ~  in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing,
+  ~  software distributed under the License is distributed on an
+  ~  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~  KIND, either express or implied.  See the License for the
+  ~  specific language governing permissions and limitations
+  ~  under the License.
+-->
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+    <!-- test_run_number column added to the test plan -->
+    <changeSet author="viduran (generated)" id="1515157608993-1">
+        <addColumn tableName="test_plan">
+            <column name="test_run_number" type="INT(10)"/>
+        </addColumn>
+        <!-- Class which sets the test run numbers -->
+        <customChange class="org.wso2.testgrid.dao.migration.SetTestRunNumberTask"/>
+        <rollback>
+            <dropColumn columnName="test_run_number" tableName="test_plan"/>
+        </rollback>
+    </changeSet>
+    <changeSet author="viduran (generated)" id="1515157608993-2">
+        <dropColumn columnName="log_location" tableName="test_plan"/>
+        <rollback>
+            <addColumn tableName="test_plan">
+                <column name="log_location" type="VARCHAR(255)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
