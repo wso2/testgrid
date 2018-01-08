@@ -18,6 +18,10 @@
 
 package org.wso2.testgrid.common.util;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
@@ -26,6 +30,8 @@ import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.exception.TestGridLoggingException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,7 +41,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 /**
@@ -161,17 +169,23 @@ public final class TestGridUtil {
      * @param testPlan test plan for getting the test run artifacts location
      * @return path of the test run artifacts
      */
-    public static Path getTestRunArtifactsDirectory(TestPlan testPlan) {
-        DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
-        Product product = deploymentPattern.getProduct();
-        int testRunNumber = testPlan.getTestRunNumber();
+    public static Path getTestRunArtifactsDirectory(TestPlan testPlan) throws TestGridLoggingException {
+        try {
+            DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
+            Product product = deploymentPattern.getProduct();
+            int testRunNumber = testPlan.getTestRunNumber();
 
-        String productDir = StringUtil.concatStrings(product.getName(), "_", product.getVersion()
-                , "_", product.getChannel());
-        String deploymentDir = deploymentPattern.getName();
-        String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
+            String productDir = StringUtil.concatStrings(product.getName(), "_", product.getVersion()
+                    , "_", product.getChannel());
+            String deploymentDir = deploymentPattern.getName();
+            String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
 
-        return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber));
+            return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber));
+        } catch (TestGridException e) {
+            throw new TestGridLoggingException(
+                    "Error in getting the test run artifacts directory location " +
+                    "([PRODUCT_NAME_VERSION_CHANNEL]/[DEPLOYMENT_PATTERN_NAME]/[INFRA_PARAM_UUID]/[TEST_RUN_NUMBER]");
+        }
     }
 
     /**
@@ -180,7 +194,27 @@ public final class TestGridUtil {
      * @param infraParams infra parameters to get the UUID
      * @return UUID specific to the infra parameters
      */
-    private static String getInfraParamUUID(String infraParams) {
-        return UUID.nameUUIDFromBytes(infraParams.getBytes(Charset.defaultCharset())).toString();
+    private static String getInfraParamUUID(String infraParams) throws TestGridException {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> sortedMap = new TreeMap<>();
+
+            // Get sorted map from the JSON object string
+            Map<String, Object> infraParamMap = mapper
+                    .readValue(infraParams, new TypeReference<Map<String, String>>() {
+                    });
+
+            // Copy values to the tree map to get the values sorted
+            infraParamMap.forEach(sortedMap::put);
+            String stringToConvertToUUID = sortedMap.toString().toLowerCase(Locale.ENGLISH);
+            return UUID.nameUUIDFromBytes(stringToConvertToUUID.getBytes(Charset.defaultCharset())).toString();
+        } catch (JsonParseException e) {
+            throw new TestGridException(StringUtil.concatStrings("Error in parsing JSON ", infraParams), e);
+        } catch (JsonMappingException e) {
+            throw new TestGridException(StringUtil.concatStrings("Error in mapping JSON ", infraParams), e);
+        } catch (IOException e) {
+            throw new TestGridException(StringUtil.concatStrings("IO Exception when trying to map JSON ",
+                    infraParams), e);
+        }
     }
 }

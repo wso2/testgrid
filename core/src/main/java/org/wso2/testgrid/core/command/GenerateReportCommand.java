@@ -106,12 +106,17 @@ public class GenerateReportCommand implements Command {
             return productUOW.getProduct(productName, productVersion, productChannel)
                     .orElseThrow(() -> new CommandExecutionException(StringUtil
                             .concatStrings("No product test plan found for product {product name: ", productName,
-                                    ", product version: ", productVersion, ", channel: ", channel, "}")));
+                                    ", product version: ", productVersion, ", channel: ", channel,
+                                    "}. This exception should not occur in the test execution flow.")));
         } catch (IllegalArgumentException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Channel ", channel,
-                    " not found in channels enum."));
+                    " not found in channels enum - [ ", Product.Channel.values(), " ]",
+                    "This exception should not occur in the test execution flow."));
         } catch (TestGridDAOException e) {
-            throw new CommandExecutionException("Error in instantiating DB transaction.", e);
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Error in retrieving Product {product name: ", productName,
+                            ", product version: ", productVersion, ", channel: ", channel,
+                            "} from the Database. This exception should not occur in the test execution flow."), e);
         }
     }
 }

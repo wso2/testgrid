@@ -19,6 +19,8 @@
 
 package org.wso2.testgrid.core.command;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.exception.TestGridLoggingException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -149,10 +152,12 @@ public class RunTestPlanCommand implements Command {
             LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlan));
 
             // Product, deployment pattern, test plan and test scenarios should be persisted
+            // Test plan status should be changed to running
+            testPlan.setStatus(Status.RUNNING);
             testPlan = persistTestPlan(testPlan);
 
             // Execute test plan
-            testPlan = executeTestPlan(testPlan, infrastructure);
+            executeTestPlan(testPlan, infrastructure);
 
             // Generate report for the test plan
             TestReportEngine testReportEngine = new TestReportEngine();
@@ -164,6 +169,8 @@ public class RunTestPlanCommand implements Command {
             throw new CommandExecutionException("Error in reading file generated config file", e);
         } catch (ReportingException e) {
             throw new CommandExecutionException("Error in generating report for the test plan.", e);
+        } catch (TestGridLoggingException e) {
+            throw new CommandExecutionException("Error in deriving log file path.", e);
         }
     }
 
@@ -279,18 +286,13 @@ public class RunTestPlanCommand implements Command {
      * This method triggers the execution of a {@link TestPlan}.
      *
      * @param testPlan test plan to execute
-     * @return executed test plan
      * @throws CommandExecutionException thrown when error on executing test plan
      */
-    private TestPlan executeTestPlan(TestPlan testPlan, Infrastructure infrastructure)
-            throws CommandExecutionException {
+    private void executeTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws CommandExecutionException {
         try {
             TestPlanExecutor testPlanExecutor = new TestPlanExecutor();
-            return testPlanExecutor.runTestPlan(testPlan, infrastructure);
+            testPlanExecutor.runTestPlan(testPlan, infrastructure);
         } catch (TestPlanExecutorException e) {
-            // Product test plan error
-            testPlan.setStatus(Status.FAIL);
-            persistTestPlan(testPlan);
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan ", testPlan), e);
         }
@@ -301,8 +303,9 @@ public class RunTestPlanCommand implements Command {
      *
      * @param testPlan test plan
      * @return log file path
+     * @throws TestGridLoggingException thrown when error on deriving log file path
      */
-    private String deriveLogFilePath(TestPlan testPlan) {
+    private String deriveLogFilePath(TestPlan testPlan) throws TestGridLoggingException {
         Path testRunArtifactsDir = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
         return testRunArtifactsDir.resolve("test").toString();
     }
@@ -317,30 +320,37 @@ public class RunTestPlanCommand implements Command {
      * @return TestPlan object model
      */
     private TestPlan generateTestPlan(DeploymentPattern deploymentPattern, TestConfig testConfig, String testRepoDir,
-                                      String infraRepoDir) {
-        TestPlan testPlan = new TestPlan();
-        testPlan.setStatus(Status.PENDING);
-        testPlan.setInfraRepoDir(infraRepoDir);
-        testPlan.setTestRepoDir(testRepoDir);
-        testPlan.setDeploymentPattern(deploymentPattern);
-        testPlan.setInfraParameters(testConfig.getInfraParams().get(0).toString());
-        deploymentPattern.addTestPlan(testPlan);
+                                      String infraRepoDir) throws CommandExecutionException {
+        try {
+            String jsonInfraParams = new ObjectMapper().writeValueAsString(testConfig.getInfraParams().get(0));
+            TestPlan testPlan = new TestPlan();
+            testPlan.setStatus(Status.PENDING);
+            testPlan.setInfraRepoDir(infraRepoDir);
+            testPlan.setTestRepoDir(testRepoDir);
+            testPlan.setDeploymentPattern(deploymentPattern);
+            testPlan.setInfraParameters(jsonInfraParams);
+            deploymentPattern.addTestPlan(testPlan);
 
-        // Set test run number
-        int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlan.getInfraParameters());
-        testPlan.setTestRunNumber(latestTestRunNumber + 1);
+            // Set test run number
+            int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlan.getInfraParameters());
+            testPlan.setTestRunNumber(latestTestRunNumber + 1);
 
-        // Set test scenarios
-        List<TestScenario> testScenarios = new ArrayList<>();
-        for (String name : testConfig.getScenarios()) {
-            TestScenario testScenario = new TestScenario();
-            testScenario.setName(name);
-            testScenario.setTestPlan(testPlan);
-            testScenario.setStatus(Status.PENDING);
-            testScenarios.add(testScenario);
+            // Set test scenarios
+            List<TestScenario> testScenarios = new ArrayList<>();
+            for (String name : testConfig.getScenarios()) {
+                TestScenario testScenario = new TestScenario();
+                testScenario.setName(name);
+                testScenario.setTestPlan(testPlan);
+                testScenario.setStatus(Status.PENDING);
+                testScenarios.add(testScenario);
+            }
+            testPlan.setTestScenarios(testScenarios);
+            return testPlan;
+        } catch (JsonProcessingException e) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Error in preparing a JSON object from the given test plan infra parameters",
+                            testConfig.getInfraParams()), e);
         }
-        testPlan.setTestScenarios(testScenarios);
-        return testPlan;
     }
 
     /**
