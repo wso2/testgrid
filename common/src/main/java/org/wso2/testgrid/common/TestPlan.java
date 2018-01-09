@@ -52,17 +52,14 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      * Column names of the table.
      */
     public static final String STATUS_COLUMN = "status";
-    public static final String LOG_LOCATION_COLUMN = "logLocation";
     public static final String DEPLOYMENT_PATTERN_COLUMN = "deploymentPattern";
+    public static final String TESTRUN_NUMBER_COLUMN = "testRunNumber";
 
     private static final long serialVersionUID = 9208083074380972876L;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private Status status;
-
-    @Column(name = "log_location")
-    private String logLocation;
 
     @Column(name = "infra_parameters")
     private String infraParameters;
@@ -112,24 +109,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      */
     public void setStatus(Status status) {
         this.status = status;
-    }
-
-    /**
-     * Returns the location of the log file
-     *
-     * @return log file location
-     */
-    public String getLogLocation() {
-        return logLocation;
-    }
-
-    /**
-     * Sets the location of the log file.
-     *
-     * @param logLocation log file location
-     */
-    public void setLogLocation(String logLocation) {
-        this.logLocation = logLocation;
     }
 
     /**
@@ -322,7 +301,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
         return StringUtil.concatStrings("TestPlan{",
                 "id='", id, "\'",
                 ", status='", status, "\'",
-                ", logLocation='", logLocation, "\'",
                 ", testRunNumber='", testRunNumber, "\'",
                 ", createdTimestamp='", createdTimestamp, "\'",
                 ", modifiedTimestamp='", modifiedTimestamp, "\'",
