@@ -38,7 +38,7 @@
         </RollingFile>
 
         <Routing name="Routing">
-            <Routes pattern="$${path:key2}">
+            <Routes pattern="${path:key2}">
                 <Route>
                     <RollingFile name="SCENARIO_LOGFILE" fileName="${env:TESTGRID_HOME}/${path:key2}.log"
                                  filePattern="${env:TESTGRID_HOME}/${path:key2}-%d{MM-dd-yyyy}-%i.log">
