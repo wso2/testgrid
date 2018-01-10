@@ -57,6 +57,8 @@ public class CommandHandler extends HelpCommand {
                                      impl = RunTestPlanCommand.class),
                          @SubCommand(name = "generate-report",
                                      impl = GenerateReportCommand.class),
+                         @SubCommand(name = "migrate-database",
+                                     impl = DBMigrationCommand.class),
                          @SubCommand(name = "help",
                                      impl = HelpCommand.class)
                  })
