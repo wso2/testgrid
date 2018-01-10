@@ -58,7 +58,7 @@ public class Utils {
      *
      * @throws IOException
      */
-    public static void initialize() throws IntegrationTestException {
+    public static void initialize() throws IOException, IntegrationTestException {
 
         extractFile(TESTGRID_ZIP_LOCATION, TESTGRID_UNZIP_LOCATION);
         copyDirectories(PROJECT_BASE_DIR + "/src/test/resources", TESTGRID_UNZIP_LOCATION + "/resources");
@@ -69,9 +69,10 @@ public class Utils {
      *
      * @param args generate-test-plan sub-command related arguments e.g : --product
      * @return Integer valu with the execution status, 0 if success
-     * @throws Exception
+     * @throws IntegrationTestException,IOException, {@link InterruptedException}
      */
-    public static int executeGenTestPlan(String[] args) throws Exception {
+    public static int executeGenTestPlan(String[] args)
+            throws InterruptedException, IOException, IntegrationTestException {
 
         //Constructing the execution command for generate test plans
         String cmdCommand[] = { GEN_TEST_PLAN_SUB_COMMAND };
@@ -113,7 +114,7 @@ public class Utils {
      *
      * @param sourceFilePath - zip file need to extract
      * @param extractedDir   - destination path given file to extract
-     * @throws IOException
+     * @throws IntegrationTestException is thrown if a exception occurs while unzipping the file
      */
     private static void extractFile(String sourceFilePath, String extractedDir) throws IntegrationTestException {
         logger.info("Zip location is set to " + sourceFilePath + " || Unzip path is set to " + extractedDir);
@@ -178,7 +179,6 @@ public class Utils {
             } catch (IOException e) {
                 // Ignore error
             }
-
         }
     }
 
@@ -187,16 +187,11 @@ public class Utils {
      *
      * @param sourceDir Source directory to copy
      * @param targetDir Target directory to copy
-     * @throws IOException
+     * @throws IOException is thrown if copying results an error
      */
-    private static void copyDirectories(String sourceDir, String targetDir) throws IntegrationTestException {
-        try {
-            FileUtils.copyDirectory(new File(sourceDir), new File(targetDir));
+    private static void copyDirectories(String sourceDir, String targetDir) throws IOException {
 
-        } catch (IOException e) {
-            logger.error("Error while copying the : " + sourceDir + " to target directory : " + targetDir, e);
-            throw new IntegrationTestException(
-                    "Error while copying the : " + sourceDir + " to target directory : " + targetDir, e);
-        }
+        FileUtils.copyDirectory(new File(sourceDir), new File(targetDir));
+
     }
 }
