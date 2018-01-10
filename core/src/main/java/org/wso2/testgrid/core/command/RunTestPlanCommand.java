@@ -48,7 +48,6 @@ import org.wso2.testgrid.reporting.TestReportEngine;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,14 +64,8 @@ import java.util.Optional;
  */
 public class RunTestPlanCommand implements Command {
 
-    private static final String YAML_EXTENSION = ".yaml";
     private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommand.class);
 
-    @Option(name = "--testplan",
-            usage = "Path to Test plan",
-            aliases = {"-t"},
-            required = true)
-    private String testPlanLocation = "";
     @Option(name = "--product",
             usage = "Product Name",
             aliases = {"-p"},
@@ -103,23 +96,11 @@ public class RunTestPlanCommand implements Command {
     @Override
     public void execute() throws CommandExecutionException {
         try {
-            logger.info("Running the test plan: " + testPlanLocation);
-            if (StringUtil.isStringNullOrEmpty(testPlanLocation) || !testPlanLocation.endsWith(YAML_EXTENSION)) {
-                throw new CommandExecutionException(StringUtil.concatStrings("Invalid test plan location path - ",
-                        testPlanLocation, ". Test plan path location should point to a ", YAML_EXTENSION, " file"));
-            }
-            Path testPlanPath = Paths.get(testPlanLocation);
-            if (!Files.exists(testPlanPath)) {
-                throw new CommandExecutionException(StringUtil.concatStrings("The test plan path does not exist: ",
-                        testPlanPath.toAbsolutePath()));
-            }
             logger.debug(
                     "Input Arguments: \n" +
                     "\tProduct name: " + productName + "\n" +
                     "\tProduct version: " + productVersion + "\n" +
                     "\tChannel" + channel);
-            logger.debug("TestPlan contents : \n" + new String(Files.readAllBytes(testPlanPath),
-                    Charset.forName("UTF-8")));
 
             // Get test plan YAML file path location
             Product product = getProduct(productName, productVersion, channel);
