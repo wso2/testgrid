@@ -52,8 +52,8 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      * Column names of the table.
      */
     public static final String STATUS_COLUMN = "status";
-    public static final String LOG_LOCATION_COLUMN = "logLocation";
     public static final String DEPLOYMENT_PATTERN_COLUMN = "deploymentPattern";
+    public static final String TESTRUN_NUMBER_COLUMN = "testRunNumber";
 
     private static final long serialVersionUID = 9208083074380972876L;
 
@@ -61,11 +61,11 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     @Column(name = "status", nullable = false, length = 50)
     private Status status;
 
-    @Column(name = "log_location")
-    private String logLocation;
-
     @Column(name = "infra_parameters")
     private String infraParameters;
+
+    @Column(name = "test_run_number")
+    private int testRunNumber;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = DeploymentPattern.class,
                fetch = FetchType.LAZY)
@@ -112,24 +112,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns the location of the log file
-     *
-     * @return log file location
-     */
-    public String getLogLocation() {
-        return logLocation;
-    }
-
-    /**
-     * Sets the location of the log file.
-     *
-     * @param logLocation log file location
-     */
-    public void setLogLocation(String logLocation) {
-        this.logLocation = logLocation;
-    }
-
-    /**
      * Returns the infra parameters.
      *
      * @return infra parameters
@@ -163,6 +145,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      */
     public void setDeploymentPattern(DeploymentPattern deploymentPattern) {
         this.deploymentPattern = deploymentPattern;
+    }
+
+    /**
+     * Returns the test run number.
+     *
+     * @return test run number
+     */
+    public int getTestRunNumber() {
+        return testRunNumber;
+    }
+
+    /**
+     * Sets the test run number.
+     *
+     * @param testRunNumber test run number
+     */
+    public void setTestRunNumber(int testRunNumber) {
+        this.testRunNumber = testRunNumber;
     }
 
     /**
@@ -293,6 +293,21 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
         this.deploymentScript = deploymentScript;
     }
 
+    @Override
+    public String toString() {
+        String id = this.getId() != null ? this.getId() : "";
+        String createdTimestamp = this.getCreatedTimestamp() != null ? this.getCreatedTimestamp().toString() : "";
+        String modifiedTimestamp = this.getModifiedTimestamp() != null ? this.getModifiedTimestamp().toString() : "";
+        return StringUtil.concatStrings("TestPlan{",
+                "id='", id, "\'",
+                ", status='", status, "\'",
+                ", testRunNumber='", testRunNumber, "\'",
+                ", createdTimestamp='", createdTimestamp, "\'",
+                ", modifiedTimestamp='", modifiedTimestamp, "\'",
+                ", deploymentPattern='", deploymentPattern, "\'",
+                '}');
+    }
+
     /**
      * This defines the supported deployment automation tools.
      *
@@ -335,17 +350,5 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
         public String toString() {
             return this.deployerType;
         }
-    }
-
-    @Override
-    public String toString() {
-        return StringUtil.concatStrings("TestPlan{",
-                "id='", this.getId(), "\'",
-                ", status='", status, "\'",
-                ", logLocation='", logLocation, "\'",
-                ", createdTimestamp='", this.getCreatedTimestamp(), "\'",
-                ", modifiedTimestamp='", this.getModifiedTimestamp(), "\'",
-                ", deploymentPattern='", deploymentPattern, "\'",
-                '}');
     }
 }

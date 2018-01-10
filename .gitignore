@@ -30,23 +30,11 @@ hs_err_pid*
 # target
 *target*
 
-target
-.classpath
-.settings
-.project
-*.iml
-*.iws
-*.ipr
-.idea
-
-# dependencies
-/node_modules
-
-# testing
-/coverage
-
-# production
-/build
+# webapp dependencies
+node_modules/
+build/
+npm/
+webapp/
 
 # misc
 .DS_Store

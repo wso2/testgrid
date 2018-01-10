@@ -29,6 +29,7 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.TestConfig;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
+import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -84,6 +85,9 @@ public class GenerateTestPlanCommand implements Command {
     @Override
     public void execute() throws CommandExecutionException {
         try {
+            //Set the log file path
+            LogFilePathLookup.setLogFilePath(deriveLogFilePath(productName, productVersion, channel));
+
             // Validate test configuration file name
             if (StringUtil.isStringNullOrEmpty(testConfigFile) || !testConfigFile.endsWith(YAML_EXTENSION)) {
                 throw new CommandExecutionException(StringUtil.concatStrings("Invalid test configuration ",
@@ -325,5 +329,18 @@ public class GenerateTestPlanCommand implements Command {
             logger.info(StringUtil.concatStrings("Removing test directory : ", directory.toAbsolutePath().toString()));
             FileUtils.forceDelete(new File(directory.toString()));
         }
+    }
+
+    /**
+     * Returns the path of the log file.
+     *
+     * @param productName    product name
+     * @param productVersion product version
+     * @param channel        channel
+     * @return log file path
+     */
+    private String deriveLogFilePath(String productName, String productVersion, String channel) {
+        String productDir = StringUtil.concatStrings(productName, "_", productVersion, "_", channel);
+        return Paths.get(productDir, "testgrid").toString();
     }
 }

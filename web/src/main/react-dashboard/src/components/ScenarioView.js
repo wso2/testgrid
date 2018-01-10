@@ -47,7 +47,7 @@ class ScenarioView extends Component {
     }
 
     componentDidMount() {
-        var url = "http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/testgrid/v0.9/api/test-plans/"+this.props.active.reducer.currentInfra.infrastructureId+"?require-test-scenario-info=true";
+        var url = "/testgrid/v0.9/api/test-plans/"+this.props.active.reducer.currentInfra.infrastructureId+"?require-test-scenario-info=true";
 
         fetch(url, {
             mode: 'cors',

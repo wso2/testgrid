@@ -41,7 +41,7 @@ class ProductStatusView extends Component {
   }
 
   componentDidMount() {
-    var url = 'http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/testgrid/v0.9/api/products/test-status?date=2017-12-20'
+    var url = '/testgrid/v0.9/api/products/test-status?date=2017-12-20'
 
     fetch(url, {
       method: "GET",

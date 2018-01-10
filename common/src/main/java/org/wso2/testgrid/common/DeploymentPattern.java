@@ -33,6 +33,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 /**
  * This represents a model of the DeploymentPattern.
@@ -40,13 +41,18 @@ import javax.persistence.Table;
  * @since 1.0.0
  */
 @SqlResultSetMapping(name = "DeploymentPatternTestFailureStatMapping",
-        classes = {
-                @ConstructorResult(targetClass = DeploymentPatternTestFailureStat.class,
-                        columns = {@ColumnResult(name = "deploymentPatternId"), @ColumnResult(name = "failureCount")}
-                )}
+                     classes = {
+                             @ConstructorResult(targetClass = DeploymentPatternTestFailureStat.class,
+                                                columns = {@ColumnResult(name = "deploymentPatternId"),
+                                                           @ColumnResult(name = "failureCount")}
+                             )}
 )
 @Entity
-@Table(name = DeploymentPattern.DEPLOYMENT_PATTERN_TABLE)
+@Table(
+        name = DeploymentPattern.DEPLOYMENT_PATTERN_TABLE,
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {DeploymentPattern.NAME_COLUMN, DeploymentPattern.PRODUCT_COLUMN})
+        })
 public class DeploymentPattern extends AbstractUUIDEntity implements Serializable {
 
     /**
@@ -127,13 +133,25 @@ public class DeploymentPattern extends AbstractUUIDEntity implements Serializabl
         this.testPlans = testPlans;
     }
 
+    /**
+     * Adds a test plan to the test plans list.
+     *
+     * @param testPlan test plan to be added
+     */
+    public void addTestPlan(TestPlan testPlan) {
+        testPlans.add(testPlan);
+    }
+
     @Override
     public String toString() {
+        String id = this.getId() != null ? this.getId() : "";
+        String createdTimestamp = this.getCreatedTimestamp() != null ? this.getCreatedTimestamp().toString() : "";
+        String modifiedTimestamp = this.getModifiedTimestamp() != null ? this.getModifiedTimestamp().toString() : "";
         return StringUtil.concatStrings("DeploymentPattern{",
-                "id='", this.getId(), "\'",
+                "id='", id, "\'",
                 ", name='", name, "\'",
-                ", createdTimestamp='", this.getCreatedTimestamp(), "\'",
-                ", modifiedTimestamp='", this.getModifiedTimestamp(), "\'",
+                ", createdTimestamp='", createdTimestamp, "\'",
+                ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 ", product='", product, "\'",
                 '}');
     }

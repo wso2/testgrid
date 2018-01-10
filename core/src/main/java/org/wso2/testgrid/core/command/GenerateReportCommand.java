@@ -22,8 +22,11 @@ package org.wso2.testgrid.core.command;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.reporting.ReportingException;
 import org.wso2.testgrid.reporting.TestReportEngine;
 
@@ -75,12 +78,45 @@ public class GenerateReportCommand implements Command {
                     "\tProduct version: " + productVersion + "\n" +
                     "\tChannel" + channel);
 
+            Product product = getProduct(productName, productVersion, channel);
             TestReportEngine testReportEngine = new TestReportEngine();
-            testReportEngine.generateReport(productName, productVersion, channel, showSuccess, groupBy);
+            testReportEngine.generateReport(product, showSuccess, groupBy);
         } catch (ReportingException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error occurred when generating test report for { product: ", productName,
                             ", version: ", productVersion, ", channel: ", channel, " }"), e);
+        }
+    }
+
+    /**
+     * Returns an instance of {@link Product} for the given product name and product version.
+     *
+     * @param productName    product name
+     * @param productVersion product version
+     * @param channel        product test plan channel
+     * @return an instance of {@link Product} for the given product name and product version
+     * @throws CommandExecutionException throw when error on obtaining product for the given product name and product
+     *                                   version
+     */
+    private Product getProduct(String productName, String productVersion, String channel)
+            throws CommandExecutionException {
+        try {
+            ProductUOW productUOW = new ProductUOW();
+            Product.Channel productChannel = Product.Channel.valueOf(channel);
+            return productUOW.getProduct(productName, productVersion, productChannel)
+                    .orElseThrow(() -> new CommandExecutionException(StringUtil
+                            .concatStrings("No product test plan found for product {product name: ", productName,
+                                    ", product version: ", productVersion, ", channel: ", channel,
+                                    "}. This exception should not occur in the test execution flow.")));
+        } catch (IllegalArgumentException e) {
+            throw new CommandExecutionException(StringUtil.concatStrings("Channel ", channel,
+                    " not found in channels enum - [ ", Product.Channel.values(), " ]",
+                    "This exception should not occur in the test execution flow."));
+        } catch (TestGridDAOException e) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Error in retrieving Product {product name: ", productName,
+                            ", product version: ", productVersion, ", channel: ", channel,
+                            "} from the Database. This exception should not occur in the test execution flow."), e);
         }
     }
 }

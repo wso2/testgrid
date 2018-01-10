@@ -74,12 +74,12 @@ public class TestScenarioUOW {
      * Checks if there are any failed scenarios pertaining to a test plan.
      *
      * @param testPlan test plan
-     * @return boolean - true if there exists failed scenarios and false otherwise
+     * @return boolean - {@code true} if there exists failed scenarios, {@code false} otherwise
      * @throws TestGridDAOException thrown when error processing native query
      */
-    public boolean isExistsFailedScenarios(TestPlan testPlan) throws TestGridDAOException {
+    public boolean isFailedTestScenariosExist(TestPlan testPlan) throws TestGridDAOException {
         List<Object> resultObject = testScenarioRepository.executeTypedQuery("SELECT * FROM test_scenario "
                 + "WHERE TESTPLAN_id = '" + testPlan.getId() + "' AND status = 'FAIL';");
-        return resultObject.isEmpty();
+        return !resultObject.isEmpty();
     }
 }
