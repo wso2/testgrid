@@ -84,7 +84,8 @@ class TestCaseView extends Component {
                                     <h4>{data.name}</h4></TableRowColumn>
                                 <TableRowColumn><SingleRecord value={data.success} /></TableRowColumn>
                                 <TableRowColumn style={{
-                                    color: 'red', whiteSpace: 'normal',
+                                    color: 'red',
+                                    whiteSpace: 'normal',
                                     wordWrap: 'break-word'
                                 }}>
                                     <h4>{data.errorMsg}</h4></TableRowColumn>
