@@ -32,14 +32,17 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * Executor for shell commands
+ * Executor for shell commands.
+ *
+ * @since 1.0.0
  */
 public class ShellExecutor {
 
     private static Logger logger = LoggerFactory.getLogger(ShellExecutor.class);
 
     /**
-     * StreamGobbler to handle process builder output
+     * StreamGobbler to handle process builder output.
+     *
      */
     private static class StreamGobbler implements Runnable {
         private InputStream inputStream;

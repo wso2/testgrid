@@ -20,7 +20,7 @@
 <suite name="TG-Test-Suite">
     <test name="tests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.testgrid.test.TestPlanGeneration"/>
+            <class name="org.wso2.testgrid.test.PlanGenerationTest"/>
         </classes>
     </test>
 </suite>

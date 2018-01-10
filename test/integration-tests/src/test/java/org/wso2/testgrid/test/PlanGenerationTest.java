@@ -25,14 +25,19 @@ import org.testng.annotations.Test;
 import org.wso2.testgrid.test.base.IntegrationTestBase;
 import org.wso2.testgrid.test.base.Utils;
 
-public class TestPlanGeneration extends IntegrationTestBase {
+/**
+ * This is a integration test class which covers test plan generation.
+ *
+ * @since 1.0
+ */
+public class PlanGenerationTest extends IntegrationTestBase {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestPlanGeneration.class);
+    private static final Logger logger = LoggerFactory.getLogger(PlanGenerationTest.class);
 
     /**
-     * Sample test case to test Test plan generation when a valid YAML is given
+     * Sample test case to test Test plan generation when a valid YAML is given.
      *
-     * @throws Exception
+     * @throws Exception Throws an Exception if a error occurs during test execution
      */
     @Test public void testPlanGenerationTest() throws Exception {
 

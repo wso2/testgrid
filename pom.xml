@@ -33,17 +33,18 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>automation</module>
-        <module>common</module>
-        <module>deployment</module>
-        <module>core</module>
-        <module>infrastructure</module>
-        <module>dao</module>
-        <module>reporting</module>
-        <module>distribution</module>
-        <module>web</module>
-        <module>logging</module>
-        <module>test/coverage</module>
+        <!--<module>automation</module>-->
+        <!--<module>common</module>-->
+        <!--<module>deployment</module>-->
+        <!--<module>core</module>-->
+        <!--<module>infrastructure</module>-->
+        <!--<module>dao</module>-->
+        <!--<module>reporting</module>-->
+        <!--<module>distribution</module>-->
+        <!--<module>web</module>-->
+        <!--<module>logging</module>-->
+        <!--<module>test/coverage</module>-->
+        <module>test/integration-tests</module>
     </modules>
 
     <scm>
@@ -461,6 +462,16 @@
                 <artifactId>org.eclipse.persistence.core</artifactId>
                 <version>${javax.persistence.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-jdk14</artifactId>
+                <version>${slf4j.binding.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -502,5 +513,7 @@
         <slf4j.api.version>1.7.25</slf4j.api.version>
         <log4j.api.version>2.8.2</log4j.api.version>
         <log4j.core.version>2.8.2</log4j.core.version>
+        <slf4j.binding.version>1.7.25</slf4j.binding.version>
+        <commons.io.version>2.5</commons.io.version>
     </properties>
 </project>

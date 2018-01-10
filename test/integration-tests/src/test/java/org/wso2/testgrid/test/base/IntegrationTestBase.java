@@ -24,12 +24,15 @@ import org.testng.annotations.BeforeSuite;
 import java.io.IOException;
 
 /**
- * Base Class for integration tests
+ * Base Class for integration tests.
+ *
+ * @since 1.0
  */
 public class IntegrationTestBase {
 
     /**
-     * Init the environment for integration tests
+     * Init the environment for integration tests.
+     *
      * @throws IOException
      */
     @BeforeSuite public void initEnvironment() throws IntegrationTestException {

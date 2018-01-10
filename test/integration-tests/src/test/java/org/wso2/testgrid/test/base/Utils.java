@@ -32,14 +32,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
- * Contains Util methods for integration tests
+ * Contains Util methods for integration tests.
+ *
+ * @since 1.0
  */
 public class Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
     /**
-     * Unzips the Testgrid distribution and prepare for execution
+     * Unzips the Testgrid distribution and prepare for execution.
      *
      * @throws IOException
      */
@@ -52,6 +54,13 @@ public class Utils {
                 extractLocation + "/resources");
     }
 
+    /**
+     * Executes the generate test plan sub-command.
+     *
+     * @param args generate-test-plan sub-command related arguments e.g : --product
+     * @return Integer valu with the execution status, 0 if success
+     * @throws Exception
+     */
     public static int executeGenTestPlan(String[] args) throws Exception {
 
         //Constructing the execution command for generate test plans
@@ -63,6 +72,13 @@ public class Utils {
 
     }
 
+    /**
+     * Executes the generate test report sub-command.
+     *
+     * @param args generate-test-plan sub-command related arguments e.g : --product
+     * @return Integer valu with the execution status, 0 if success
+     * @throws Exception
+     */
     public static int executeGenReport(String[] args) throws Exception {
         String cmdCommand[] = { Constants.TG_EXECUTE_GEN_REPORT };
         String cmdArgs[] = Stream.concat(Arrays.stream(cmdCommand), Arrays.stream(args)).toArray(String[]::new);
@@ -71,6 +87,11 @@ public class Utils {
         return executor.executeJar(getJarPath(), cmdArgs);
     }
 
+    /**
+     * Construct the executable Jar absolute path and returns the value.
+     *
+     * @return Path of the executable Jar
+     */
     private static String getJarPath() {
         // Generating the actual Jar name with the version
         String jarPath = Constants.TG_EXECUTABLE_LOCATION.replace("*", System.getProperty("project.version"));
@@ -130,7 +151,6 @@ public class Utils {
                 fileoutputstream.close();
                 zipinputstream.closeEntry();
                 zipentry = zipinputstream.getNextEntry();
-
             }
             zipinputstream.close();
         } catch (IOException e) {
@@ -153,16 +173,14 @@ public class Utils {
     }
 
     /**
-     * Copy directories
+     * This method will copy directories and it's contents.
      *
      * @param sourceDir Source directory to copy
      * @param targetDir Target directory to copy
      * @throws IOException
      */
     private static void copyDirectories(String sourceDir, String targetDir) throws IntegrationTestException {
-        //copy source to target using Files Class
         try {
-            //            Files.walkFileTree(Paths.get(sourceDir), Paths.get(targetDir));
             FileUtils.copyDirectory(new File(sourceDir), new File(targetDir));
 
         } catch (IOException e) {
