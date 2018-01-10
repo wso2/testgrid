@@ -56,7 +56,6 @@ public class Utils {
     /**
      * Unzips the Testgrid distribution and prepare for execution.
      *
-     * @throws IOException
      */
     public static void initialize() throws IOException, IntegrationTestException {
 
@@ -68,11 +67,11 @@ public class Utils {
      * Executes the generate test plan sub-command.
      *
      * @param args generate-test-plan sub-command related arguments e.g : --product
-     * @return Integer valu with the execution status, 0 if success
-     * @throws IntegrationTestException,IOException, {@link InterruptedException}
+     * @return Integer value with the execution status, 0 if success
+     * @throws InterruptedException will be thrown at the Jar execution phase
+     * @throws  IOException be thrown at the Jar execution phase
      */
-    public static int executeGenTestPlan(String[] args)
-            throws InterruptedException, IOException, IntegrationTestException {
+    public static int executeGenTestPlan(String[] args) throws InterruptedException, IOException {
 
         //Constructing the execution command for generate test plans
         String cmdCommand[] = { GEN_TEST_PLAN_SUB_COMMAND };
@@ -87,10 +86,11 @@ public class Utils {
      * Executes the generate test report sub-command.
      *
      * @param args generate-test-plan sub-command related arguments e.g : --product
-     * @return Integer valu with the execution status, 0 if success
-     * @throws Exception
+     * @return Integer value with the execution status, 0 if success
+     * @throws InterruptedException will be thrown at the Jar execution phase
+     * @throws  IOException be thrown at the Jar execution phase
      */
-    public static int executeGenReport(String[] args) throws Exception {
+    public static int executeGenReport(String[] args) throws IOException, InterruptedException {
         String cmdCommand[] = { GEN_REPORT_SUB_COMMAND };
         String cmdArgs[] = Stream.concat(Arrays.stream(cmdCommand), Arrays.stream(args)).toArray(String[]::new);
 

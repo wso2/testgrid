@@ -33,9 +33,9 @@ public class IntegrationTestBase {
     /**
      * Init the environment for integration tests.
      *
-     * @throws IOException
+     * @throws
      */
-    @BeforeSuite public void initEnvironment() throws IntegrationTestException {
+    @BeforeSuite public void initEnvironment() throws IOException, IntegrationTestException {
         Utils.initialize();
     }
 

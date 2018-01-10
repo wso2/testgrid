@@ -69,10 +69,8 @@ public class ShellExecutor {
      * @param jarLocation location of the executable Jar
      * @param args        execution arguments
      * @return state of the execution, whether success or fail
-     * @throws IntegrationTestException
      */
-    protected int executeJar(String jarLocation, String[] args)
-            throws IntegrationTestException, IOException, InterruptedException {
+    protected int executeJar(String jarLocation, String[] args) throws IOException, InterruptedException {
 
         Consumer<String> errorConsumer = logger::error;
         String cmdArray[] = { "java", "-jar", jarLocation };
