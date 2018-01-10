@@ -20,6 +20,8 @@ package org.wso2.testgrid.test.base;
 
 /**
  * Represents the custom exceptions class to hold exceptions related to integration test execution.
+ *
+ * @since 1.0
  */
 public class IntegrationTestException extends Exception {
 
