@@ -68,7 +68,7 @@ class App extends Component {
   }
 
   render() {
-    const paperStyle = { margin: '26px 40px 50px ' + this.state.navWidth + 'px' };
+    const paperStyle = { margin: '80px 40px 50px ' + this.state.navWidth + 'px' };
     return (
       <Provider store={store}>
         <PersistGate
@@ -76,7 +76,7 @@ class App extends Component {
           <MuiThemeProvider>
             <div style={{ position: 'absolute', top: '0px', right: '0px', bottom: '0px', left: '0px', backgroundColor: '#EEEEEE' }}>
               <AppBar title=" WSO2 TestGrid " style={{
-                backgroundColor: '#424242',
+                backgroundColor: '#424242',position: 'fixed'
               }}
                 iconElementLeft={<IconButton onClick={this.handleClose}>{this.state.open ? <NavigationBack /> : <NevigationExpand />}</IconButton>}
                 iconElementRight={<FlatButton label="Login" />} > </AppBar>
