@@ -40,9 +40,14 @@ public class ShellExecutor {
 
     private static Logger logger = LoggerFactory.getLogger(ShellExecutor.class);
 
+    // Specifies where the distribution should be unzipped, this is parsed an a system property from pom.xml
+    public static final String TESTGRID_UNZIP_LOCATION = System.getProperty("project.build.directory", ".");
+    public static final String TG_HOME_ENV_NAME = "TESTGRID_HOME";
+
     /**
      * StreamGobbler to handle process builder output.
      *
+     * @since 1.0
      */
     private static class StreamGobbler implements Runnable {
         private InputStream inputStream;
@@ -59,21 +64,22 @@ public class ShellExecutor {
     }
 
     /**
-     * Executed the TG Jar with parsed arguments
+     * Executes the Testgrid Jar with parsed arguments.
+     *
      * @param jarLocation location of the executable Jar
-     * @param args execution arguments
+     * @param args        execution arguments
      * @return state of the execution, whether success or fail
      * @throws IntegrationTestException
      */
-    protected int executeJar(String jarLocation, String[] args) throws IntegrationTestException {
+    protected int executeJar(String jarLocation, String[] args)
+            throws IntegrationTestException, IOException, InterruptedException {
 
         Consumer<String> errorConsumer = logger::error;
         String cmdArray[] = { "java", "-jar", jarLocation };
         String[] cmdArgs = Stream.concat(Arrays.stream(cmdArray), Arrays.stream(args)).toArray(String[]::new);
-        String homeDirectory = System.getProperty(Constants.TG_UNZIP_LOCATION, ".");
         ProcessBuilder builder = new ProcessBuilder();
         // Setting the TESTGRID_HOME environment variable
-        builder.environment().put(Constants.TG_HOME_ENV_NAME, System.getProperty(Constants.TG_UNZIP_LOCATION));
+        builder.environment().put(TG_HOME_ENV_NAME, TESTGRID_UNZIP_LOCATION);
 
         if (getOSName().toLowerCase().startsWith("windows")) {
             // Execute Windows commands
@@ -82,22 +88,13 @@ public class ShellExecutor {
             builder.command(cmdArgs);
         }
 
-        builder.directory(new File(homeDirectory));
+        builder.directory(new File(TESTGRID_UNZIP_LOCATION));
         Process process;
-        int execState;
-        try {
-            process = builder.start();
-            StreamGobbler streamGobbler = new StreamGobbler(process.getErrorStream(), errorConsumer);
-            Executors.newSingleThreadExecutor().submit(streamGobbler);
-            execState = process.waitFor();
-        } catch (InterruptedException e) {
-            logger.error("Interrupted Exception occurred while executing the Testgrid JAR", e);
-            throw new IntegrationTestException("Interrupted Exception occurred while executing the Testgrid JAR", e);
-        } catch (IOException e) {
-            logger.error("IO Exception occurred while executing the Testgrid JAR", e);
-            throw new IntegrationTestException("IO Exception occurred while executing the Testgrid JAR", e);
-        }
-        return execState;
+        process = builder.start();
+        StreamGobbler streamGobbler = new StreamGobbler(process.getErrorStream(), errorConsumer);
+        Executors.newSingleThreadExecutor().submit(streamGobbler);
+
+        return process.waitFor();
     }
 
     /**

@@ -40,7 +40,8 @@ public class IntegrationTestBase {
     }
 
     /**
-     * Cleans the environment after test execution
+     * Cleans the environment after test execution.
+     *
      * @throws IOException
      */
     @AfterSuite public void cleanEnvironment() throws IOException {

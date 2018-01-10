@@ -40,6 +40,19 @@ public class Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
+    // Testgrid Zip location, this is parsed as a system property from pom.xml
+    public static final String TESTGRID_ZIP_LOCATION = System.getProperty("tg.zip", ".");
+    // Specifies where the distribution should be unzipped, this is parsed as a system property from pom.xml
+    public static final String TESTGRID_UNZIP_LOCATION = System.getProperty("project.build.directory", ".");
+    // Base dir of the current project, this is parsed as a system property from pom.xml
+    public static final String PROJECT_BASE_DIR = System.getProperty("basedir");
+    // The location of the executable Jar from the teget directory, the path will be sanitized
+    public static final String TG_EXECUTABLE_LOCATION = "/WSO2-TestGrid-*/test-grid-*.jar";
+
+    // Testgrid execution sub commands
+    public static final String GEN_TEST_PLAN_SUB_COMMAND = "generate-test-plan";
+    public static final String GEN_REPORT_SUB_COMMAND = "generate-report";
+
     /**
      * Unzips the Testgrid distribution and prepare for execution.
      *
@@ -47,11 +60,8 @@ public class Utils {
      */
     public static void initialize() throws IntegrationTestException {
 
-        String zipLocation = System.getProperty(Constants.PROP_TG_ZIP);
-        String extractLocation = System.getProperty(Constants.TG_UNZIP_LOCATION, ".");
-        extractFile(zipLocation, extractLocation);
-        copyDirectories(System.getProperty(Constants.PROP_BASE_DIR) + "/src/test/resources",
-                extractLocation + "/resources");
+        extractFile(TESTGRID_ZIP_LOCATION, TESTGRID_UNZIP_LOCATION);
+        copyDirectories(PROJECT_BASE_DIR + "/src/test/resources", TESTGRID_UNZIP_LOCATION + "/resources");
     }
 
     /**
@@ -64,7 +74,7 @@ public class Utils {
     public static int executeGenTestPlan(String[] args) throws Exception {
 
         //Constructing the execution command for generate test plans
-        String cmdCommand[] = { Constants.TG_EXECUTE_GEN_TEST_PLAN };
+        String cmdCommand[] = { GEN_TEST_PLAN_SUB_COMMAND };
         String cmdArgs[] = Stream.concat(Arrays.stream(cmdCommand), Arrays.stream(args)).toArray(String[]::new);
 
         ShellExecutor executor = new ShellExecutor();
@@ -80,7 +90,7 @@ public class Utils {
      * @throws Exception
      */
     public static int executeGenReport(String[] args) throws Exception {
-        String cmdCommand[] = { Constants.TG_EXECUTE_GEN_REPORT };
+        String cmdCommand[] = { GEN_REPORT_SUB_COMMAND };
         String cmdArgs[] = Stream.concat(Arrays.stream(cmdCommand), Arrays.stream(args)).toArray(String[]::new);
 
         ShellExecutor executor = new ShellExecutor();
@@ -94,8 +104,8 @@ public class Utils {
      */
     private static String getJarPath() {
         // Generating the actual Jar name with the version
-        String jarPath = Constants.TG_EXECUTABLE_LOCATION.replace("*", System.getProperty("project.version"));
-        return System.getProperty(Constants.TG_UNZIP_LOCATION) + jarPath;
+        String jarPath = TG_EXECUTABLE_LOCATION.replace("*", System.getProperty("project.version"));
+        return TESTGRID_UNZIP_LOCATION + jarPath;
     }
 
     /**
