@@ -44,6 +44,7 @@
         <module>web</module>
         <module>logging</module>
         <module>test/coverage</module>
+        <!--<module>test/integration-tests</module>-->
     </modules>
 
     <scm>
@@ -468,6 +469,16 @@
                 <version>${log4j.core.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-jdk14</artifactId>
+                <version>${slf4j.binding.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.core</artifactId>
                 <version>${javax.persistence.version}</version>
@@ -508,10 +519,12 @@
         <guava.version>19.0</guava.version>
         <snakeyaml.version>1.19</snakeyaml.version>
         <com.fasterxml.jackson.version>2.9.3</com.fasterxml.jackson.version>
+        <commons.io.version>2.5</commons.io.version>
         <!-- Logging dependencies -->
         <slf4j.api.version>1.7.25</slf4j.api.version>
         <log4j.api.version>2.8.2</log4j.api.version>
         <log4j.core.version>2.8.2</log4j.core.version>
+        <slf4j.binding.version>1.7.25</slf4j.binding.version>
         <!--Dashboard dependencies-->
         <org.codehaus.mojo.version>1.3.2</org.codehaus.mojo.version>
     </properties>
