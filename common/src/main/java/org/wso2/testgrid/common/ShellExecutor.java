@@ -105,7 +105,6 @@ public class ShellExecutor {
         }
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
         try {
-
             if (workingDirectory != null && workingDirectory.exists()) {
                 processBuilder.directory(workingDirectory);
             }
