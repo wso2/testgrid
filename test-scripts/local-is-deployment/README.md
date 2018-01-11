@@ -15,7 +15,7 @@
 ````
 java -jar test-grid-{VERSION}.jar generate-test-plan --product IS --version 5.4.0 --channel LTS -tc test-config.yaml
 ````
-3. Now Open testgrid/test-scripts/local-is-deployment/DeploymentPatterns/pattern-2/infra-provision.sh and add your WSO2 credentials to download IS distribution.
+3. Now Open testgrid/test-scripts/local-is-deployment/DeploymentPatterns/pattern-2/deploy.sh and add your WSO2 credentials to download IS distribution.
 
 4. Execute the run-testplan command.
 ````

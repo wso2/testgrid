@@ -30,7 +30,7 @@ WSO2_PASSWORD=xxxxxxx
 DEPLOYMENT_EP_FILE_NAME=deployment_eps
 
 echo "Downloading the IS 5.4.0 distribution"
-#curl -k https://product-dist.wso2.com/products/identity-server/5.4.0/wso2is-5.4.0.zip --user $WSO2_USER:$WSO2_PASSWORD -o is.zip
+curl -k https://product-dist.wso2.com/products/identity-server/5.4.0/wso2is-5.4.0.zip --user $WSO2_USER:$WSO2_PASSWORD -o is.zip
 
 echo "unzip the IS distribution"
 unzip -q -o is.zip
