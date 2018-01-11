@@ -98,8 +98,7 @@ public class ShellExecutor {
      * @return boolean for successful/unsuccessful command execution (success == true)
      * @throws CommandExecutionException if an {@link IOException} occurs while executing the command
      */
-    public boolean executeCommand(String command)
-            throws CommandExecutionException, InterruptedException {
+    public boolean executeCommand(String command) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
@@ -126,6 +125,10 @@ public class ShellExecutor {
         } catch (IOException e) {
             throw new CommandExecutionException(
                     "Error occurred while executing the command '" + command + "', " + "from directory '"
+                            + workingDirectory.getName() + "", e);
+        } catch (InterruptedException e) {
+            throw new CommandExecutionException(
+                    "InterruptedException occurred while executing the command '" + command + "', " + "from directory '"
                             + workingDirectory.getName() + "", e);
         }
     }
