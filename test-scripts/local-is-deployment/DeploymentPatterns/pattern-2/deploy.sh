@@ -19,33 +19,40 @@
 #
 # ----------------------------------------------------------------------------
 
-# This script depends on curl and unzip, so make sure it is already installed. 
+# This script depends on curl and unzip, so make sure they are already installed.
 
-echo "This is a Dummy Deployment creation scripts to deploy"
-echo "Here the test infrastructure is your local machine.."
+echo "This is a Dummy Deployment creation scripts to deploy a standalone WSO2 Identity server"
+echo "Here the test infrastructure is your local machine."
 pwd
 #if you do not have a account, please create a account at https://wso2.com/
 WOS2_USER=yasassri@wso2.com
 WSO2_PASSWORD=xxxxxxx
 DEPLOYMENT_EP_FILE_NAME=deployment_eps
 
-echo "Downloading the IS 5.4.0 distribution"
-curl -k https://product-dist.wso2.com/products/identity-server/5.4.0/wso2is-5.4.0.zip --user $WSO2_USER:$WSO2_PASSWORD -o is.zip
+#echo "Downloading the IS 5.4.0 distribution"
+#curl -k https://product-dist.wso2.com/products/identity-server/5.4.0/wso2is-5.4.0.zip --user $WSO2_USER:$WSO2_PASSWORD -o is.zip
 
 echo "unzip the IS distribution"
-unzip -q -o is.zip
+unzip -q -o wso2is-5.4.0.zip
 
 echo -n "Starting the IS server"
 bash ./wso2is-5.4.0/bin/wso2server.sh start
 
 # TO-DO: introduce loop break condition
+x=0;
+retry_count=60;
 echo "Wait for the server start up"
 while ! nc -z localhost 9763; do   
   sleep 2 # wait for 2 second before check again
   echo -n "."
+  if [ $x = $retry_count ]; then
+    echo "Identity server never started."
+        exit 1
+  fi
+x=$((x+1))
 done
 
-echo "Sucessfully started the server!!"
+echo "Successfully started the server!!"
 echo "Generating the deployment_ep file with the endpoints"
 
 echo "https://localhost:9443/carbon" > $DEPLOYMENT_EP_FILE_NAME
@@ -53,5 +60,5 @@ echo "https://localhost:9443/carbon" > $DEPLOYMENT_EP_FILE_NAME
 echo "Updating the user.property file for tests"
 echo "IS_HOST=https://localhost:9443/carbon" > ./Solutions/solution01/src/test/resources/user.properties
 
-echo "Deployment is finish, test execution will commence soon.."
+echo "Deployment has finished, test execution will commence next"
 

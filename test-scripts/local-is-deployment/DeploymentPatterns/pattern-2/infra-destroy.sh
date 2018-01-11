@@ -19,6 +19,7 @@
 #
 # ----------------------------------------------------------------------------
 
-echo "This is a Dummy Infrastructure destroy scripts!!\nStopping and cleaning the IS server"
+echo "This is a Dummy Infrastructure destroy scripts!!"
+echo "Stopping and cleaning the IS server"
 bash ./wso2is-5.4.0/bin/wso2server.sh stop
 rm -rf wso2is-5.4.0
