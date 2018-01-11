@@ -17,7 +17,7 @@
   ~ under the License.
   ~
   -->
-<Configuration>
+<Configuration packages="org.wso2.testgrid.logging" status="INFO">
     <Appenders>
         <Console name="TESTGRID_CONSOLE" target="SYSTEM_OUT">
             <PatternLayout pattern="[%d] %5p {%c} - %m%ex%n"/>
@@ -38,7 +38,7 @@
         </RollingFile>
 
         <Routing name="Routing">
-            <Routes pattern="${path:key2}">
+            <Routes pattern="$${path:key2}">
                 <Route>
                     <RollingFile name="SCENARIO_LOGFILE" fileName="${env:TESTGRID_HOME}/${path:key2}.log"
                                  filePattern="${env:TESTGRID_HOME}/${path:key2}-%d{MM-dd-yyyy}-%i.log">
