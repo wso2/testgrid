@@ -1,7 +1,7 @@
 node {
     stage('Deploy to Dev'){
         copyArtifacts(projectName: 'testgrid/testgrid');
-        sshagent(['testgrid-dev-key']) {
+        sshagent(['testgrid-prod-key']) {
             sh """
                 scp -o StrictHostKeyChecking=no web/target/*.war ${DEV_USER}@${DEV_HOST}:/testgrid/deployment/apache-tomcat-8.5.23/webapps/
                 scp -o StrictHostKeyChecking=no distribution/target/*.zip ${DEV_USER}@${DEV_HOST}:/testgrid/jenkins-home/workspace
