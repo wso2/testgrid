@@ -24,7 +24,11 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
+import org.wso2.testgrid.web.bean.TestPlanRequest;
+import org.wso2.testgrid.web.operation.ConfigXmlGenerator;
+import org.wso2.testgrid.web.operation.PipelineManager;
 
+import java.net.HttpURLConnection;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -32,7 +36,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -105,6 +111,33 @@ public class TestPlanService {
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
+     * This has the implementation of the REST API for creating new TestPlans.
+     *
+     * @return A list of available TestPlans.
+     */
+    @POST
+    @Path("/create")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createTestPlan(TestPlanRequest testPlanRequest) {
+        ConfigXmlGenerator configXmlGenerator = new ConfigXmlGenerator();
+        PipelineManager pipelineManager = new PipelineManager();
+        try {
+            String configXml = configXmlGenerator.getConfigXml(testPlanRequest);
+            return Response.status(Response.Status.OK).
+                    entity(pipelineManager.createNewPipelineJob(configXml, testPlanRequest.getProductName())).build();
+        } catch (Exception e) {
+            String msg = "Error occurred while creating new test plan named : '" +
+                    testPlanRequest.getProductName() + "'";
+            logger.error(msg, e);
+            return Response.serverError().entity(
+                    new ErrorResponse.ErrorResponseBuilder().
+                            setMessage(msg + " " + e).
+                            setDescription(e.toString()).
+                            setCode(HttpURLConnection.HTTP_INTERNAL_ERROR).build()).build();
         }
     }
 }
