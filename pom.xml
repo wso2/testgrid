@@ -285,7 +285,7 @@
             <dependency>
                 <groupId>org.apache.httpcomponents.client5</groupId>
                 <artifactId>httpclient5-fluent</artifactId>
-                <version>5.0-alpha3</version>
+                <version>${apache.httpcomponents.fluent.version}</version>
             </dependency>
 
             <!-- Automation Framework dependencies-->
@@ -408,6 +408,11 @@
                 <version>${version.commons.csv}</version>
             </dependency>
             <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${version.commons.io}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.github.spullara.mustache.java</groupId>
                 <artifactId>compiler</artifactId>
                 <version>${version.mustache.java}</version>
@@ -525,6 +530,8 @@
         <snakeyaml.version>1.19</snakeyaml.version>
         <json.version>20140107</json.version>
         <com.fasterxml.jackson.version>2.9.1</com.fasterxml.jackson.version>
+        <version.commons.io>2.5</version.commons.io>
+        <apache.httpcomponents.fluent.version>5.0-alpha3</apache.httpcomponents.fluent.version>
         <!-- Logging dependencies -->
         <slf4j.api.version>1.7.25</slf4j.api.version>
         <log4j.api.version>2.8.2</log4j.api.version>
