@@ -28,6 +28,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 /**
  * Responsible in executing given shell scripts
@@ -38,9 +41,13 @@ public class ShellExecutor {
 
     private static Logger logger = LoggerFactory.getLogger(ShellExecutor.class);
 
-    private File workingDirectory;
+    private Path workingDirectory;
 
-    public ShellExecutor(File workingDirectory) {
+    public ShellExecutor() {
+        this.workingDirectory = null;
+    }
+
+    public ShellExecutor(Path workingDirectory) {
         this.workingDirectory = workingDirectory;
     }
 
@@ -51,34 +58,16 @@ public class ShellExecutor {
      */
     private static class StreamGobbler implements Runnable {
         private InputStream inputStream;
-        private StringBuilder stringBuilder = new StringBuilder();
+        private Consumer<String> consumer;
 
-        public StreamGobbler(InputStream inputStream) {
+        public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
             this.inputStream = inputStream;
+            this.consumer = consumer;
         }
 
         @Override
         public void run() {
-
-            String line;
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                while ((line = reader.readLine()) != null) {
-                    stringBuilder.append(line);
-                    stringBuilder.append(System.lineSeparator());
-                }
-            } catch (IOException e) {
-                logger.error("Error occurred while generating the output ", e);
-            }
-        }
-
-        /**
-         * Get the value of the output streams.
-         *
-         * @return String value of the {@link StringBuilder}
-         */
-        public String getOutput() {
-            return stringBuilder.toString();
+            new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines().forEach(consumer);
         }
     }
 
@@ -88,7 +77,7 @@ public class ShellExecutor {
      * @return working directory
      */
     public String getWorkingDirectory() {
-        return workingDirectory.getAbsolutePath();
+        return workingDirectory.toString();
     }
 
     /**
@@ -101,34 +90,33 @@ public class ShellExecutor {
     public boolean executeCommand(String command) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
+            logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.toString());
         }
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
         try {
-            if (workingDirectory != null && workingDirectory.exists()) {
-                processBuilder.directory(workingDirectory);
+            if (workingDirectory != null) {
+                File workDirectory = workingDirectory.toFile();
+                if (workDirectory.exists()) {
+                    processBuilder.directory(workDirectory);
+                }
             }
             Process process = processBuilder.start();
 
-            StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream());
-            StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream());
-            outputStreamGobbler.run();
-            errorStreamGobbler.run();
-            int status = process.waitFor();
-            if (status > 0) {
-                logger.error("Execution result : " + errorStreamGobbler.getOutput());
-                return false;
-            }
-            logger.info("Execution result : " + outputStreamGobbler.getOutput());
-            return true;
+            StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), logger::info);
+            StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), logger::error);
+            Executors.newSingleThreadExecutor().submit(outputStreamGobbler);
+            Executors.newSingleThreadExecutor().submit(errorStreamGobbler);
+
+            return process.waitFor() > 0 ? false : true;
+
         } catch (IOException e) {
             throw new CommandExecutionException(
                     "Error occurred while executing the command '" + command + "', " + "from directory '"
-                            + workingDirectory.getName() + "", e);
+                            + workingDirectory.toString() + "", e);
         } catch (InterruptedException e) {
             throw new CommandExecutionException(
                     "InterruptedException occurred while executing the command '" + command + "', " + "from directory '"
-                            + workingDirectory.getName() + "", e);
+                            + workingDirectory.toString() + "", e);
         }
     }
 }
