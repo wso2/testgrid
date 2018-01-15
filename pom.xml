@@ -460,11 +460,6 @@
                 <artifactId>snakeyaml</artifactId>
                 <version>${snakeyaml.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.json</groupId>
-                <artifactId>json</artifactId>
-                <version>${json.version}</version>
-            </dependency>
 
             <!--Logging dependencies-->
             <dependency>
@@ -522,7 +517,6 @@
         <awaitility.version>3.0.0</awaitility.version>
         <guava.version>19.0</guava.version>
         <snakeyaml.version>1.19</snakeyaml.version>
-        <json.version>20140107</json.version>
         <com.fasterxml.jackson.version>2.9.1</com.fasterxml.jackson.version>
         <version.commons.io>2.5</version.commons.io>
         <apache.httpcomponents.fluent.version>5.0-alpha3</apache.httpcomponents.fluent.version>
