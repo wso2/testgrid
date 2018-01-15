@@ -75,7 +75,6 @@ public class PipelineManager {
                     .addHeader("User-Agent", USER_AGENT)
                     .addHeader("Authorization", "Basic " + JENKINS_USER_AUTH_KEY)
                     .execute().returnContent().asString().trim();
-            //JSONObject jsonObject = new JSONObject(response);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readValue(response, JsonNode.class);
         return jsonNode.get("crumb").toString().replace("\"", "");
