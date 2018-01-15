@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.common;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
@@ -67,7 +68,8 @@ public class ShellExecutor {
 
         @Override
         public void run() {
-            new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines().forEach(consumer);
+            new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines()
+                    .forEach(consumer::accept);
         }
     }
 
@@ -87,6 +89,7 @@ public class ShellExecutor {
      * @return boolean for successful/unsuccessful command execution (success == true)
      * @throws CommandExecutionException if an {@link IOException} occurs while executing the command
      */
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public boolean executeCommand(String command) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
