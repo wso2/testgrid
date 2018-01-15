@@ -18,11 +18,12 @@
 
 package org.wso2.testgrid.web.operation;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +61,7 @@ public class PipelineManager {
         } else {
             logger.error("Jenkins server error for creating job " + jobName + " " +
                     response.getCode());
-            throw new Exception("Can not create new job in Jenkins.");
+            throw new Exception("Can not create new job in Jenkins. Received " + response.getCode());
         }
     }
 
@@ -74,8 +75,10 @@ public class PipelineManager {
                     .addHeader("User-Agent", USER_AGENT)
                     .addHeader("Authorization", "Basic " + JENKINS_USER_AUTH_KEY)
                     .execute().returnContent().asString().trim();
-            JSONObject jsonObject = new JSONObject(response);
-            return jsonObject.get("crumb").toString();
+            //JSONObject jsonObject = new JSONObject(response);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readValue(response, JsonNode.class);
+        return jsonNode.get("crumb").toString().replace("\"", "");
     }
 
     /**
@@ -84,6 +87,6 @@ public class PipelineManager {
      * @return URL of the job.
      */
     private String getJobSpecificUrl(String jobName) {
-        return JENKINS_HOME + BLUE_OCEAN_URI + "/" + jobName;
+        return JENKINS_HOME + BLUE_OCEAN_URI + "/" + jobName + "/activity";
     }
 }

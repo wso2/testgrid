@@ -52,15 +52,14 @@ public class ConfigXmlGenerator {
                 {"$deploymentLocation", "\"" + testPlanRequest.getDeployment().getRepository() + "\""},
                 {"$scenariosLocation", "\"" + testPlanRequest.getScenarios().getRepository() + "\""}
         };
-        String configXml = mergeTemplate(template, replacements);
-        return configXml;
+        return mergeTemplate(template, replacements);
     }
 
     /**
      * Receives configuration file of the template job in Jenkins server.
      * @return configuration file of the template job.
      */
-    public String receiveConfigXmlFromJenkins() throws IOException {
+    private String receiveConfigXmlFromJenkins() throws IOException {
         try {
             return Request.Get(JENKINS_HOME + "/job/velocityTemplateFolder/job/velocityTemplateJob/config.xml")
                     .addHeader("User-Agent", USER_AGENT)

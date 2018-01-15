@@ -115,7 +115,7 @@ public class TestPlanService {
     }
 
     /**
-     * This has the impleme
+     * This has the implementation of the REST API for creating a new Test plan.
      * @param testPlanRequest  {@link TestPlanRequest} that includes the repository and other necessary detials
      *                                                to create new test plan.
      * @return A list of available TestPlans.
@@ -128,7 +128,7 @@ public class TestPlanService {
         PipelineManager pipelineManager = new PipelineManager();
         try {
             String configXml = configXmlGenerator.getConfigXml(testPlanRequest);
-            return Response.status(Response.Status.OK).
+            return Response.status(Response.Status.CREATED).
                     entity(pipelineManager.createNewPipelineJob(configXml, testPlanRequest.getProductName())).build();
         } catch (Exception e) {
             String msg = "Error occurred while creating new test plan named : '" +

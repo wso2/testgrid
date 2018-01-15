@@ -25,5 +25,5 @@ public class Constants {
     public static final String JENKINS_HOME = System.getenv("JENKINS_HOME");
     //Base64 encoded basic-auth key of the Jenkins user.
     public static final String JENKINS_USER_AUTH_KEY = System.getenv("JENKINS_USER_AUTH_KEY");
-    public static final String BLUE_OCEAN_URI = "/blue/organization/jenkins";
+    public static final String BLUE_OCEAN_URI = "/blue/organizations/jenkins";
 }
