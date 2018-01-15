@@ -110,16 +110,16 @@ public class ShellExecutor {
             Executors.newSingleThreadExecutor().submit(outputStreamGobbler);
             Executors.newSingleThreadExecutor().submit(errorStreamGobbler);
 
-            return process.waitFor() > 0 ? false : true;
+            return process.waitFor() == 0;
 
         } catch (IOException e) {
             throw new CommandExecutionException(
                     "Error occurred while executing the command '" + command + "', " + "from directory '"
-                            + workingDirectory.toString() + "", e);
+                            + workingDirectory.toString(), e);
         } catch (InterruptedException e) {
             throw new CommandExecutionException(
                     "InterruptedException occurred while executing the command '" + command + "', " + "from directory '"
-                            + workingDirectory.toString() + "", e);
+                            + workingDirectory.toString(), e);
         }
     }
 }
