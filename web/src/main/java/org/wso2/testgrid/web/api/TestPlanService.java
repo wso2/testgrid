@@ -115,8 +115,9 @@ public class TestPlanService {
     }
 
     /**
-     * This has the implementation of the REST API for creating new TestPlans.
-     *
+     * This has the impleme
+     * @param testPlanRequest  {@link TestPlanRequest} that includes the repository and other necessary detials
+     *                                                to create new test plan.
      * @return A list of available TestPlans.
      */
     @POST

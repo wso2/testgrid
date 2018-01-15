@@ -40,6 +40,12 @@ import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
 public class PipelineManager {
     private static final Logger logger = LoggerFactory.getLogger(PipelineManager.class);
 
+    /**
+     * Creates new pipeline job in Jenkins server by calling its REST API.
+     * @param configXml configuration file for the new job.
+     * @param jobName name for the new job.
+     * @return URL to check the status of the new job.
+     */
     public String createNewPipelineJob(String configXml, String jobName) throws Exception {
         HttpResponse response = Request.Post(JENKINS_HOME + "/createItem?name=" + jobName)
                 .addHeader("User-Agent", USER_AGENT)
@@ -72,6 +78,11 @@ public class PipelineManager {
             return jsonObject.get("crumb").toString();
     }
 
+    /**
+     * Generates the URL which can be used to see the status of the job.
+     * @param jobName name of the job.
+     * @return URL of the job.
+     */
     private String getJobSpecificUrl(String jobName) {
         return JENKINS_HOME + BLUE_OCEAN_URI + "/" + jobName;
     }

@@ -34,6 +34,11 @@ import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
  */
 public class ConfigXmlGenerator {
 
+    /**
+     * Returns the configuration file for the testPlanRequest which can be used to create new Jenkins job.
+     * @param testPlanRequest request for creating new test plan.
+     * @return configuration file for Jenkins job.
+     */
     public String getConfigXml(TestPlanRequest testPlanRequest) throws Exception {
         String template = receiveConfigXmlFromJenkins();
         String[][] replacements = {
@@ -51,6 +56,10 @@ public class ConfigXmlGenerator {
         return configXml;
     }
 
+    /**
+     * Receives configuration file of the template job in Jenkins server.
+     * @return configuration file of the template job.
+     */
     public String receiveConfigXmlFromJenkins() throws IOException {
         try {
             return Request.Get(JENKINS_HOME + "/job/velocityTemplateFolder/job/velocityTemplateJob/config.xml")
@@ -62,6 +71,12 @@ public class ConfigXmlGenerator {
         }
     }
 
+    /**
+     * Merge template terms with specific terms of the test plan request.
+     * @param template configuration file of the template job.
+     * @param replacements string 2D array containing terms to be replaced and with what to be replaced
+     * @return configuration file suitable for the new test place request.
+     */
     private String mergeTemplate(String template, String[][] replacements) {
         for (String[] replacement : replacements) {
             template = template.replace(replacement[0], replacement[1]);

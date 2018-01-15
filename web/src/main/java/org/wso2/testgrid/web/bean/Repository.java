@@ -27,18 +27,38 @@ public class Repository {
     private String repository;
     private List<String> inputs;
 
+    /**
+     * Returns the repository URL.
+     *
+     * @return repository URL.
+     */
     public String getRepository() {
         return repository;
     }
 
+    /**
+     * Sets the repository URL
+     *
+     * @param repository URL of the repository.
+     */
     public void setRepository(String repository) {
         this.repository = repository;
     }
 
+    /**
+     * Return the list of inputs relates to the repository.
+     *
+     * @return the list of inputs relates to the repository.
+     */
     public List<String> getInputs() {
         return inputs;
     }
 
+    /**
+     * Sets the list of inputs relates to the repository.
+     *
+     * @param inputs list of inputs related to the repository.
+     */
     public void setInputs(List<String> inputs) {
         this.inputs = inputs;
     }
