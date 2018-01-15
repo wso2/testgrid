@@ -45,7 +45,7 @@ public class ShellExecutor {
     private Path workingDirectory;
 
     public ShellExecutor() {
-        this.workingDirectory = null;
+        this(null);
     }
 
     public ShellExecutor(Path workingDirectory) {
@@ -76,7 +76,7 @@ public class ShellExecutor {
     /**
      * Returns current working directory.
      *
-     * @return working directory
+     * @return relative path of the working directory
      */
     public String getWorkingDirectory() {
         return workingDirectory.toString();
