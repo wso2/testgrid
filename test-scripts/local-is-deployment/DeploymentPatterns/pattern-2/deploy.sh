@@ -25,7 +25,7 @@ echo "This is a Dummy Deployment creation scripts to deploy a standalone WSO2 Id
 echo "Here the test infrastructure is your local machine."
 pwd
 #if you do not have a account, please create a account at https://wso2.com/
-WOS2_USER=yasassri@wso2.com
+WSO2_USER=yasassri@wso2.com
 WSO2_PASSWORD=xxxxxxx
 DEPLOYMENT_EP_FILE_NAME=deployment_eps
 
