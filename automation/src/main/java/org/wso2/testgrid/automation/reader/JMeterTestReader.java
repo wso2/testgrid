@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class JMeterTestReader implements TestReader {
 
     private static final String JMTER_SUFFIX = ".jmx";
-    private static final String JMETER_TEST_PATH = "src" + File.separator + "test" + File.separator + "jmeter";
+    private static final String JMETER_TEST_PATH = "jmeter";
     private static final String SHELL_SUFFIX = ".sh";
     private static final String PRE_STRING = "pre-scenario-steps";
     private static final String POST_STRING = "post-scenario-steps";
