@@ -22,6 +22,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
@@ -29,6 +30,7 @@ import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -131,7 +133,7 @@ public class TestPlanService {
             return Response.status(Response.Status.CREATED).
                     entity(jenkinsPipelineManager.
                             createNewPipelineJob(configXml, testPlanRequest.getTestPlanName())).build();
-        } catch (Exception e) {
+        } catch (TestGridException | IOException e) {
             String msg = "Error occurred while creating new test plan named : '" +
                     testPlanRequest.getTestPlanName() + "'.";
             logger.error(msg, e);
