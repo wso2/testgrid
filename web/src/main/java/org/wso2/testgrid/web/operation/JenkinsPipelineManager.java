@@ -26,20 +26,21 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.web.utils.ConfigurationContext;
 
 import static org.wso2.testgrid.web.utils.Constants.BLUE_OCEAN_URI;
-import static org.wso2.testgrid.web.utils.Constants.JENKINS_HOME;
-import static org.wso2.testgrid.web.utils.Constants.JENKINS_USER_AUTH_KEY;
+import static org.wso2.testgrid.web.utils.Constants.JENKINS_CRUMB_ISSUER_URI;
 
 import java.io.IOException;
 
 import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
 
 /**
- * Implementation of creating pipeline jobs from config.xml files.
+ * Implementation of Jenkins PipelineManager which do functions relates to pipeline jobs in Jenkins using its APIs.
  */
-public class PipelineManager {
-    private static final Logger logger = LoggerFactory.getLogger(PipelineManager.class);
+public class JenkinsPipelineManager {
+    private static final Logger logger = LoggerFactory.getLogger(JenkinsPipelineManager.class);
 
     /**
      * Creates new pipeline job in Jenkins server by calling its REST API.
@@ -47,10 +48,12 @@ public class PipelineManager {
      * @param jobName name for the new job.
      * @return URL to check the status of the new job.
      */
-    public String createNewPipelineJob(String configXml, String jobName) throws Exception {
-        HttpResponse response = Request.Post(JENKINS_HOME + "/createItem?name=" + jobName)
+    public String createNewPipelineJob(String configXml, String jobName) throws TestGridException, IOException {
+        HttpResponse response = Request
+                .Post(ConfigurationContext.getProperty("JENKINS_HOST") + "/createItem?name=" + jobName)
                 .addHeader("User-Agent", USER_AGENT)
-                .addHeader("Authorization", "Basic " + JENKINS_USER_AUTH_KEY)
+                .addHeader("Authorization", "Basic " +
+                        ConfigurationContext.getProperty("JENKINS_USER_AUTH_KEY"))
                 .addHeader("Jenkins-Crumb", getCrumb())
                 .addHeader("Content-Type", "application/xml")
                 .bodyString(configXml, ContentType.DEFAULT_TEXT)
@@ -61,7 +64,7 @@ public class PipelineManager {
         } else {
             logger.error("Jenkins server error for creating job " + jobName + " " +
                     response.getCode());
-            throw new Exception("Can not create new job in Jenkins. Received " + response.getCode());
+            throw new TestGridException("Can not create new job in Jenkins. Received " + response.getCode());
         }
     }
 
@@ -70,14 +73,23 @@ public class PipelineManager {
      *
      * @return Crumb value.
      */
-    private String getCrumb() throws IOException {
-            String response =  Request.Get(JENKINS_HOME + "/crumbIssuer/api/json")
+    private String getCrumb() throws IOException, TestGridException {
+        try {
+            String response = Request.Get(ConfigurationContext.getProperty("JENKINS_HOST") + JENKINS_CRUMB_ISSUER_URI)
                     .addHeader("User-Agent", USER_AGENT)
-                    .addHeader("Authorization", "Basic " + JENKINS_USER_AUTH_KEY)
+                    .addHeader("Authorization", "Basic " +
+                            ConfigurationContext.getProperty("JENKINS_USER_AUTH_KEY"))
                     .execute().returnContent().asString().trim();
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readValue(response, JsonNode.class);
-        return jsonNode.get("crumb").toString().replace("\"", "");
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readValue(response, JsonNode.class);
+            if (!jsonNode.get("crumb").isNull()) {
+                return jsonNode.get("crumb").toString().replace("\"", "");
+            } else {
+                throw new TestGridException("Crumb value is null. Can not continue.");
+            }
+        } catch (IOException e) {
+            throw new IOException("Can not get crumb value from Jenkins " + e.getMessage());
+        }
     }
 
     /**
@@ -85,7 +97,7 @@ public class PipelineManager {
      * @param jobName name of the job.
      * @return URL of the job.
      */
-    private String getJobSpecificUrl(String jobName) {
-        return JENKINS_HOME + BLUE_OCEAN_URI + "/" + jobName + "/activity";
+    private String getJobSpecificUrl(String jobName) throws TestGridException {
+        return ConfigurationContext.getProperty("JENKINS_HOST") + BLUE_OCEAN_URI + "/" + jobName + "/activity";
     }
 }

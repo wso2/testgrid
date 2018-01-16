@@ -22,6 +22,8 @@ import java.util.List;
 
 /**
  * Bean class of Repository object used in TestPlanRequests.
+ * This repository will include all the information and instructions to create an axis of TestGrid's 3-axis concept
+ * (Axes: Infrastructure, Deployment, Scenarios).
  */
 public class Repository {
     private String repository;

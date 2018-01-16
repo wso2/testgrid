@@ -19,30 +19,31 @@
 package org.wso2.testgrid.web.operation;
 
 import org.apache.hc.client5.http.fluent.Request;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
+import org.wso2.testgrid.web.utils.ConfigurationContext;
 
-import static org.wso2.testgrid.web.utils.Constants.JENKINS_HOME;
-import static org.wso2.testgrid.web.utils.Constants.JENKINS_USER_AUTH_KEY;
+import static org.wso2.testgrid.web.utils.Constants.JENKINS_TEMPLATE_JOB_URI;
 
 import java.io.IOException;
 
 import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
 
 /**
- * Class of ConfigXmlGenerator which retrieve an existing config.xml from Jenkins and prepare new config.xml
- * to new job.
+ * Class of JenkinsJobConfigurationProvider which retrieve an existing config.xml from Jenkins and
+ * prepare new config.xml to new job.
  */
-public class ConfigXmlGenerator {
+public class JenkinsJobConfigurationProvider {
 
     /**
      * Returns the configuration file for the testPlanRequest which can be used to create new Jenkins job.
      * @param testPlanRequest request for creating new test plan.
      * @return configuration file for Jenkins job.
      */
-    public String getConfigXml(TestPlanRequest testPlanRequest) throws Exception {
-        String template = receiveConfigXmlFromJenkins();
+    public String getConfiguration(TestPlanRequest testPlanRequest) throws IOException, TestGridException {
+        String template = retrieveConfigXmlFromJenkins();
         String[][] replacements = {
-                {"$productName", testPlanRequest.getProductName()},
+                {"$productName", testPlanRequest.getTestPlanName()},
                 {"$productVersion", "deprecated"}, //Since version and channel is planned to be removed from TestGrid.
                 {"$productChannel", "deprecated"},
                 {"$infrastructureRepo", "\"" + testPlanRequest.getInfrastructure().getRepository() + "\""},
@@ -56,17 +57,18 @@ public class ConfigXmlGenerator {
     }
 
     /**
-     * Receives configuration file of the template job in Jenkins server.
+     * Retrieves configuration file of the template job in Jenkins server.
      * @return configuration file of the template job.
      */
-    private String receiveConfigXmlFromJenkins() throws IOException {
+    private String retrieveConfigXmlFromJenkins() throws IOException, TestGridException {
         try {
-            return Request.Get(JENKINS_HOME + "/job/velocityTemplateFolder/job/velocityTemplateJob/config.xml")
+            return Request.Get(ConfigurationContext.getProperty("JENKINS_HOST") + JENKINS_TEMPLATE_JOB_URI)
                     .addHeader("User-Agent", USER_AGENT)
-                    .addHeader("Authorization", "Basic " + JENKINS_USER_AUTH_KEY)
+                    .addHeader("Authorization", "Basic " +
+                            ConfigurationContext.getProperty("JENKINS_USER_AUTH_KEY"))
                     .execute().returnContent().asString().trim();
         } catch (IOException e) {
-            throw new IOException("Request failed while accessing $url: " + e.toString(), e);
+            throw new IOException("Request failed while accessing Jenkins template job: " + e.toString(), e);
         }
     }
 

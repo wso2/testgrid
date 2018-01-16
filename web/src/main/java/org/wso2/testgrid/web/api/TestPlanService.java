@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.web.api;
 
+import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestPlan;
@@ -25,10 +26,9 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
-import org.wso2.testgrid.web.operation.ConfigXmlGenerator;
-import org.wso2.testgrid.web.operation.PipelineManager;
+import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
+import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 
-import java.net.HttpURLConnection;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -124,21 +124,22 @@ public class TestPlanService {
     @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createTestPlan(TestPlanRequest testPlanRequest) {
-        ConfigXmlGenerator configXmlGenerator = new ConfigXmlGenerator();
-        PipelineManager pipelineManager = new PipelineManager();
+        JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
+        JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
         try {
-            String configXml = configXmlGenerator.getConfigXml(testPlanRequest);
+            String configXml = jenkinsJobConfigurationProvider.getConfiguration(testPlanRequest);
             return Response.status(Response.Status.CREATED).
-                    entity(pipelineManager.createNewPipelineJob(configXml, testPlanRequest.getProductName())).build();
+                    entity(jenkinsPipelineManager.
+                            createNewPipelineJob(configXml, testPlanRequest.getTestPlanName())).build();
         } catch (Exception e) {
             String msg = "Error occurred while creating new test plan named : '" +
-                    testPlanRequest.getProductName() + "'";
+                    testPlanRequest.getTestPlanName() + "'.";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().
-                            setMessage(msg + " " + e).
-                            setDescription(e.toString()).
-                            setCode(HttpURLConnection.HTTP_INTERNAL_ERROR).build()).build();
+                            setMessage(msg).
+                            setCode(HttpStatus.SC_SERVER_ERROR).
+                            setDescription(e.getMessage()).build()).build();
         }
     }
 }

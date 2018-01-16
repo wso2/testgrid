@@ -18,12 +18,11 @@
 
 package org.wso2.testgrid.web.bean;
 
-
 /**
  * Bean class of TestPlanRequest object used in APIs.
  */
 public class TestPlanRequest {
-    private String productName;
+    private String testPlanName;
 
     /**
      * Three repositories to contain URLs and inputs (command-line arguments) of each infrastructure, deployment
@@ -34,21 +33,21 @@ public class TestPlanRequest {
     private Repository scenarios;
 
     /**
-     * Returns the name of the product.
+     * Returns the name of the TestPlan.
      *
-     * @return product name
+     * @return TestPlan name
      */
-    public String getProductName() {
-        return productName;
+    public String getTestPlanName() {
+        return testPlanName;
     }
 
     /**
-     * Sets the name of the product.
+     * Sets the name of the TestPlan.
      *
-     * @param productName name of the product which is testing.
+     * @param testPlanName name of the TestPlan which is testing.
      */
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setTestPlanName(String testPlanName) {
+        this.testPlanName = testPlanName;
     }
 
     /**
