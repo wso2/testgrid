@@ -403,11 +403,6 @@
                 <version>${version.commons.csv}</version>
             </dependency>
             <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>${version.commons.io}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.github.spullara.mustache.java</groupId>
                 <artifactId>compiler</artifactId>
                 <version>${version.mustache.java}</version>
@@ -517,8 +512,7 @@
         <awaitility.version>3.0.0</awaitility.version>
         <guava.version>19.0</guava.version>
         <snakeyaml.version>1.19</snakeyaml.version>
-        <com.fasterxml.jackson.version>2.9.1</com.fasterxml.jackson.version>
-        <version.commons.io>2.5</version.commons.io>
+        <com.fasterxml.jackson.version>2.9.3</com.fasterxml.jackson.version>
         <apache.httpcomponents.fluent.version>5.0-alpha3</apache.httpcomponents.fluent.version>
         <!-- Logging dependencies -->
         <slf4j.api.version>1.7.25</slf4j.api.version>

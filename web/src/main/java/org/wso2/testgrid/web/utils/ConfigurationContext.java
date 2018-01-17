@@ -30,7 +30,7 @@ import java.util.Properties;
  */
 public class ConfigurationContext {
     private static ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    private static InputStream inputStream = classLoader.getResourceAsStream("testGridConfigurations.properties");
+    private static InputStream inputStream = classLoader.getResourceAsStream("testgrid-web-config..properties");
     private static Properties properties = new Properties();
 
     /**
