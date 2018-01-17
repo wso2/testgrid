@@ -132,7 +132,8 @@ public class TestPlanService {
             String configXml = jenkinsJobConfigurationProvider.getConfiguration(testPlanRequest);
             return Response.status(Response.Status.CREATED).
                     entity(jenkinsPipelineManager.
-                            createNewPipelineJob(configXml, testPlanRequest.getTestPlanName())).build();
+                            createNewPipelineJob(configXml, testPlanRequest.getTestPlanName())).
+                    type(MediaType.TEXT_PLAIN).build();
         } catch (TestGridException | IOException e) {
             String msg = "Error occurred while creating new test plan named : '" +
                     testPlanRequest.getTestPlanName() + "'.";
