@@ -23,14 +23,14 @@
             <PatternLayout pattern="[%d] %5p {%c} - %m%ex%n"/>
         </Console>
         <RollingFile name="AUDIT_LOGFILE" fileName="${env:TESTGRID_HOME}/audit.log"
-                     filePattern="${env:TESTGRID_HOME}/audit-%d{MM-dd-yyyy}.log">
+                     filePattern="${env:TESTGRID_HOME}/audit.log">
             <PatternLayout pattern="[%d] %5p %X %m%ex%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
             </Policies>
         </RollingFile>
         <RollingFile name="ERROR_LOGFILE" fileName="${env:TESTGRID_HOME}/errors.log"
-                     filePattern="${env:TESTGRID_HOME}/errors-%d{MM-dd-yyyy}.log">
+                     filePattern="${env:TESTGRID_HOME}/errors.log">
             <PatternLayout pattern="[%d] %5p %X %m%ex%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -41,7 +41,7 @@
             <Routes pattern="$${path:key2}">
                 <Route>
                     <RollingFile name="SCENARIO_LOGFILE" fileName="${env:TESTGRID_HOME}/${path:key2}.log"
-                                 filePattern="${env:TESTGRID_HOME}/${path:key2}-%d{MM-dd-yyyy}-%i.log">
+                                 filePattern="${env:TESTGRID_HOME}/${path:key2}.log">
                         <PatternLayout pattern="[%d] %5p {%c} - %m%ex%n" />
                         <Policies>
                             <SizeBasedTriggeringPolicy size="50 MB" />
