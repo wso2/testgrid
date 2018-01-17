@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import '../App.css';
 import {
     Table,
@@ -29,6 +29,7 @@ import {
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
 import {add_current_infra} from '../actions/testGridActions.js';
+import FlatButton from 'material-ui/FlatButton';
 
 
 class InfraCombinationView extends Component {
@@ -37,7 +38,6 @@ class InfraCombinationView extends Component {
         super(props);
         this.state = {
             hits: []
-               
         }
     }
 
@@ -47,7 +47,7 @@ class InfraCombinationView extends Component {
     }
 
     componentDidMount() {
-        var url = "/testgrid/v0.9/api/test-plans?deployment-pattern-id="+this.props.active.reducer.currentDeployment.deploymentId+"&date="+this.props.active.reducer.currentProduct.productDate+"&require-test-scenario-info=false";
+        var url = "/testgrid/v0.9/api/test-plans?deployment-pattern-id=" + this.props.active.reducer.currentDeployment.deploymentId + "&date=" + this.props.active.reducer.currentProduct.productDate + "&require-test-scenario-info=false";
 
         fetch(url, {
             mode: 'cors',
@@ -58,38 +58,46 @@ class InfraCombinationView extends Component {
         }).then(response => {
             return response.json()
         })
-            .then(data => this.setState({ hits: data }));
+            .then(data => this.setState({hits: data}));
     }
 
     render() {
-        var infraString="";
-        console.log(this.data);
         return (
             <div>
-                <Subheader style={{ fontSize: '20px' }} > <i>{this.props.active.reducer.currentProduct.productName} {this.props.active.reducer.currentProduct.productVersion}  {this.props.active.reducer.currentProduct.productChannel} /  {this.props.active.reducer.currentDeployment.deploymentName} </i> 
+                <Subheader style={{fontSize: '20px'}}>
+                    <i>{this.props.active.reducer.currentProduct.productName} {this.props.active.reducer.currentProduct.productVersion} {this.props.active.reducer.currentProduct.productChannel} / {this.props.active.reducer.currentDeployment.deploymentName} </i>
                 </Subheader>
                 <Table>
                     <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
-                        <TableRow  >
+                        <TableRow>
                             <TableHeaderColumn><h2>Infrastructure</h2></TableHeaderColumn>
                             <TableHeaderColumn><h2>Status</h2></TableHeaderColumn>
-                            <TableHeaderColumn><h2>Logs</h2></TableHeaderColumn>
-                            
+                            <TableHeaderColumn/>
                         </TableRow>
                     </TableHeader>
                     <TableBody displayRowCheckbox={false}>
-                    
+
                         {this.state.hits.map((data, index) => {
-                            
+
 
                             return (<TableRow key={index}>
-                                <TableRowColumn >{data.infraParams}</TableRowColumn>
-                                <TableRowColumn><SingleRecord value={data.status} 
-                                    nevigate={() => this.nevigateToRoute("/testgrid/v0.9/scenarios/infrastructure/" + data.id, {
-                                        infrastructureId: data.id,
-                                        deploymentName: data.infraParams})}
+                                <TableRowColumn>{data.infraParams}</TableRowColumn>
+                                <TableRowColumn><SingleRecord value={data.status}
+                                                              nevigate={() => this.nevigateToRoute("/testgrid/v0.9/scenarios/infrastructure/" + data.id, {
+                                                                  infrastructureId: data.id,
+                                                                  deploymentName: data.infraParams
+                                                              })}
                                 /></TableRowColumn>
-                                <TableRowColumn> Links </TableRowColumn>
+                                <TableRowColumn>
+                                    <FlatButton style={{color: '#0E457C'}}
+                                                onClick={() => this.nevigateToRoute("/testgrid/v0.9/testplans/" + data.id, {
+                                                    testPlanId: data.id,
+                                                    infraParameters: data.infraParams,
+                                                    testPlanStatus: data.status
+                                                })}>
+                                        Artifacts
+                                    </FlatButton>
+                                </TableRowColumn>
                             </TableRow>)
                         })}
                     </TableBody>

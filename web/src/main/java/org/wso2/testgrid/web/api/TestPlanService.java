@@ -21,11 +21,17 @@ package org.wso2.testgrid.web.api;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.ImmutablePair;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.web.WebPluginException;
 import org.wso2.testgrid.web.bean.ErrorResponse;
+import org.wso2.testgrid.web.plugins.AWSArtifactReader;
+import org.wso2.testgrid.web.plugins.ArtifactReadable;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.bean.TestPlanStatus;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
@@ -34,6 +40,8 @@ import org.wso2.testgrid.web.utils.Constants;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -64,6 +72,11 @@ import javax.ws.rs.core.Response;
 public class TestPlanService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
+    private static final String AWS_REGION_NAME = "us-east-1";
+    private static final String AWS_BUCKET_NAME = "jenkins-testrun-artefacts";
+    private static final String AWS_BUCKET_ARTIFACT_DIR = "artifacts";
+    private static final String TESTGRID_LOG_FILE_NAME = "test.log";
+
     JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
     JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
     /**
@@ -74,8 +87,10 @@ public class TestPlanService {
      */
     @GET
     public Response getTestPlansForDeploymentPatternAndDate(@QueryParam("deployment-pattern-id")
-                                           String deploymentPatternId, @QueryParam("date") String date,
-                                           @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
+                                                                    String deploymentPatternId,
+                                                            @QueryParam("date") String date,
+                                                            @QueryParam("require-test-scenario-info")
+                                                                    boolean requireTestScenarioInfo) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             Date parsedDate;
@@ -122,6 +137,60 @@ public class TestPlanService {
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
+     * Returns the log content related to the given test plan.
+     *
+     * @return The requested Test-Plan
+     */
+    @GET
+    @Path("/log/{id}")
+    public Response getLogContent(@PathParam("id") String id, @QueryParam("truncate") boolean truncate) {
+        try {
+            // Get test plan
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            Optional<TestPlan> optionalTestPlan = testPlanUOW.getTestPlanById(id);
+            if (!optionalTestPlan.isPresent()) {
+                String msg = "No test plan found for the given id " + id;
+                logger.error(msg);
+                return Response.serverError()
+                        .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+            }
+
+            String testGridArtifactLocation = TestGridUtil
+                    .getTestRunArtifactsDirectory(optionalTestPlan.get()).toString();
+            String key = Paths
+                    .get(AWS_BUCKET_ARTIFACT_DIR, testGridArtifactLocation, TESTGRID_LOG_FILE_NAME).toString();
+            ArtifactReadable artifactDownloadable = new AWSArtifactReader(AWS_REGION_NAME, AWS_BUCKET_NAME);
+
+            if (truncate) {
+                // The log file will be maximum of 50kb
+                ImmutablePair<Boolean, OutputStream> immutablePair = artifactDownloadable.readArtifact(key, 2);
+                boolean isTruncated = immutablePair.getFirst();
+                OutputStream outputStream = immutablePair.getSecond();
+                return Response.status(Response.Status.OK)
+                        .entity(ImmutablePair.of(isTruncated, outputStream.toString())).build();
+            }
+
+            OutputStream outputStream = artifactDownloadable.readArtifact(key);
+            return Response.status(Response.Status.OK).entity(outputStream.toString()).build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        } catch (TestGridException e) {
+            String msg = "Error occurred when calculating test run artifacts directory.";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        } catch (WebPluginException e) {
+            String msg = "Error occurred when reading the artifact.";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
     }
 

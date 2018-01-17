@@ -398,11 +398,6 @@
                 <version>${test.grid.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-csv</artifactId>
-                <version>${version.commons.csv}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.github.spullara.mustache.java</groupId>
                 <artifactId>compiler</artifactId>
                 <version>${version.mustache.java}</version>
@@ -439,6 +434,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${apache.commons.lang.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${apache.commons.io.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.awaitility</groupId>
@@ -505,7 +505,6 @@
         <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
         <!-- Reporting dependencies -->
-        <version.commons.csv>1.5</version.commons.csv>
         <version.mustache.java>0.9.5</version.mustache.java>
         <!-- Test dependencies -->
         <mockito.all.version>1.10.19</mockito.all.version>
@@ -521,6 +520,7 @@
         <snakeyaml.version>1.19</snakeyaml.version>
         <com.fasterxml.jackson.version>2.8.0</com.fasterxml.jackson.version>
         <apache.httpcomponents.fluent.version>5.0-alpha3</apache.httpcomponents.fluent.version>
+        <apache.commons.io.version>2.6</apache.commons.io.version>
         <!-- Logging dependencies -->
         <slf4j.api.version>1.7.25</slf4j.api.version>
         <log4j.api.version>2.8.2</log4j.api.version>

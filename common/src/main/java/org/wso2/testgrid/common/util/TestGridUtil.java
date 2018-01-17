@@ -31,7 +31,6 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.common.exception.TestGridLoggingException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -168,24 +167,19 @@ public final class TestGridUtil {
      *
      * @param testPlan test plan for getting the test run artifacts location
      * @return path of the test run artifacts
+     * @throws TestGridException thrown when error on calculating test run artifacts directory
      */
-    public static Path getTestRunArtifactsDirectory(TestPlan testPlan) throws TestGridLoggingException {
-        try {
-            DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
-            Product product = deploymentPattern.getProduct();
-            int testRunNumber = testPlan.getTestRunNumber();
+    public static Path getTestRunArtifactsDirectory(TestPlan testPlan) throws TestGridException {
+        DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
+        Product product = deploymentPattern.getProduct();
+        int testRunNumber = testPlan.getTestRunNumber();
 
-            String productDir = StringUtil.concatStrings(product.getName(), "_", product.getVersion()
-                    , "_", product.getChannel());
-            String deploymentDir = deploymentPattern.getName();
-            String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
+        String productDir = StringUtil.concatStrings(product.getName(), "_", product.getVersion()
+                , "_", product.getChannel());
+        String deploymentDir = deploymentPattern.getName();
+        String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
 
-            return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber));
-        } catch (TestGridException e) {
-            throw new TestGridLoggingException(
-                    "Error in getting the test run artifacts directory location " +
-                    "([PRODUCT_NAME_VERSION_CHANNEL]/[DEPLOYMENT_PATTERN_NAME]/[INFRA_PARAM_UUID]/[TEST_RUN_NUMBER]");
-        }
+        return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber));
     }
 
     /**
