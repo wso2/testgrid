@@ -33,20 +33,21 @@
     <version>0.9.0-SNAPSHOT</version>
 
     <dependencies>
+        <!-- TestGrid dependencies -->
         <dependency>
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.common</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.wso2.carbon.config</groupId>
-                    <artifactId>org.wso2.carbon.config</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.dao</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.logging</artifactId>
+        </dependency>
+
+        <!-- Glass fish / jersey dependencies -->
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-server</artifactId>
@@ -77,9 +78,11 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+
+        <!-- Plugin dependencies -->
         <dependency>
-            <groupId>org.wso2.testgrid</groupId>
-            <artifactId>org.wso2.testgrid.logging</artifactId>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
         </dependency>
 
         <!-- Jacoco agent -->
