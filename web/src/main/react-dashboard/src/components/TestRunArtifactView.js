@@ -28,13 +28,23 @@ import Divider from 'material-ui/Divider';
 import AceEditor from 'react-ace';
 import LinearProgress from 'material-ui/LinearProgress';
 import CircularProgress from 'material-ui/CircularProgress';
+import {
+    Table,
+    TableBody,
+    TableHeader,
+    TableHeaderColumn,
+    TableRow,
+    TableRowColumn,
+} from 'material-ui/Table';
 
 class TestRunArtifactView extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            hits: [],
+            testScenarioSummaries: [],
+            scenarioTestCaseEntries: [],
+            testSummaryLoadStatus: "PENDING",
             logContent: "",
             logDownloadStatus: "PENDING",
             logDownloadLink: "",
@@ -43,25 +53,29 @@ class TestRunArtifactView extends Component {
     }
 
     componentDidMount() {
-        const testPlanUrl = '/testgrid/v0.9/api/test-plans/' +
-            this.props.active.reducer.currentInfra.testPlanId +
-            "?require-test-scenario-info=true";
+        const testScenarioSummaryUrl = '/testgrid/v0.9/api/test-plans/test-summary/' +
+            this.props.active.reducer.currentInfra.testPlanId;
         const logTruncatedContentUrl = '/testgrid/v0.9/api/test-plans/log/' +
             this.props.active.reducer.currentInfra.testPlanId + "?truncate=" + true;
         const logAllContentUrl = '/testgrid/v0.9/api/test-plans/log/' +
             this.props.active.reducer.currentInfra.testPlanId + "?truncate=" + false;
 
-        fetch(testPlanUrl, {
+        fetch(testScenarioSummaryUrl, {
             mode: 'cors',
             method: "GET",
             headers: {
                 'Accept': 'application/json'
             }
         }).then(response => {
-            if (response.ok) {
-                return response.json();
+            if (!response.ok) {
+                this.setState({testSummaryLoadStatus: "ERROR"})
             }
-        }).then(data => this.setState({hits: data}));
+            return response.json();
+        }).then(data => this.setState({
+            testScenarioSummaries: data.scenarioSummaries,
+            scenarioTestCaseEntries: data.scenarioTestCaseEntries,
+            testSummaryLoadStatus: "SUCCESS"
+        }));
 
         fetch(logTruncatedContentUrl, {
             mode: 'cors',
@@ -86,6 +100,7 @@ class TestRunArtifactView extends Component {
     render() {
         return (
             <div>
+                {/*Sub header*/}
                 {(() => {
                     switch (this.props.active.reducer.currentInfra.testPlanStatus) {
                         case "FAIL":
@@ -180,6 +195,7 @@ class TestRunArtifactView extends Component {
                         }>
                     </CardHeader>
                     <CardMedia style={{paddingLeft: 30, paddingRight: 30}}>
+                        {/*TestGrid artifacts*/}
                         <List>
                             {(() => {
                                 switch (this.state.isLogDownloadError) {
@@ -223,6 +239,204 @@ class TestRunArtifactView extends Component {
                             })()}
                         </List>
                         <Divider inset={false}/>
+                        {/*Test execution summary*/}
+                        <center><h2>Test execution summary</h2></center>
+                        {(() => {
+                            switch (this.state.testSummaryLoadStatus) {
+                                case "ERROR":
+                                    return <div style={{
+                                        padding: 5,
+                                        color: "#D8000C",
+                                        backgroundColor: "#FFD2D2"
+                                    }}>
+                                        <br/>
+                                        <strong>Oh snap! </strong>
+                                        Error occurred when loading test summaries.
+                                    </div>;
+                                case "SUCCESS":
+                                    return <div>
+                                        <Table>
+                                            <TableHeader displaySelectAll={false}
+                                                         adjustForCheckbox={false}>
+                                                <TableRow>
+                                                    <TableHeaderColumn
+                                                        style={{width: "5%", textAlign: "center"}}/>
+                                                    <TableHeaderColumn>
+                                                        <h2>Scenario</h2>
+                                                    </TableHeaderColumn>
+                                                    <TableHeaderColumn
+                                                        style={{width: "15%", textAlign: "center"}}>
+                                                        <h2>Total Success</h2>
+                                                    </TableHeaderColumn>
+                                                    <TableHeaderColumn
+                                                        style={{width: "15%", textAlign: "center"}}>
+                                                        <h2>Total Failed</h2>
+                                                    </TableHeaderColumn>
+                                                    <TableHeaderColumn
+                                                        style={{width: "15%", textAlign: "center"}}>
+                                                        <h2>Success Percentage</h2>
+                                                    </TableHeaderColumn>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody displayRowCheckbox={false}
+                                                       showRowHover={true}>
+                                                {this.state.testScenarioSummaries.map((data, index) => {
+                                                    return (<TableRow key={index}>
+                                                        <TableRowColumn style={{width: "5%"}}>
+                                                            {(() => {
+                                                                switch (data.scenarioStatus) {
+                                                                    case "SUCCESS":
+                                                                        return <div>
+                                                                            <img width="36"
+                                                                                 height="36"
+                                                                                 src={require('../success.png')}/>
+                                                                        </div>;
+                                                                    case "FAIL":
+                                                                        return <div>
+                                                                            <img width="36"
+                                                                                 height="36"
+                                                                                 src={require('../close.png')}/>
+                                                                        </div>;
+                                                                    case "PENDING":
+                                                                    case "RUNNING":
+                                                                    default:
+                                                                        return <div>
+                                                                            <CircularProgress
+                                                                                size={40}
+                                                                                thickness={8}/>
+                                                                        </div>
+                                                                }
+                                                            })()}
+                                                        </TableRowColumn>
+                                                        <TableRowColumn style={{
+                                                            fontSize: "15px",
+                                                            wordWrap: "break-word",
+                                                            whiteSpace: "wrap"
+                                                        }}>{data.scenarioName}</TableRowColumn>
+                                                        <TableRowColumn
+                                                            style={{
+                                                                width: "15%",
+                                                                textAlign: "center",
+                                                                color: "#189800",
+                                                                fontSize: "20px",
+                                                                wordWrap: "break-word",
+                                                                whiteSpace: "wrap"
+                                                            }}>{data.totalSuccess}</TableRowColumn>
+                                                        <TableRowColumn
+                                                            style={{
+                                                                width: "15%",
+                                                                textAlign: "center",
+                                                                color: "#c12f29",
+                                                                fontSize: "20px",
+                                                                wordWrap: "break-word",
+                                                                whiteSpace: "wrap"
+                                                            }}>{data.totalFail}</TableRowColumn>
+                                                        <TableRowColumn
+                                                            style={{
+                                                                width: "15%",
+                                                                textAlign: "center",
+                                                                fontSize: "20px",
+                                                                wordWrap: "break-word",
+                                                                whiteSpace: "wrap"
+                                                            }}>{parseFloat(data.successPercentage.toFixed(2))}%</TableRowColumn>
+                                                    </TableRow>)
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                        <Divider inset={false}/>
+                                        <br/>
+                                        {/*Detailed Report for failed test cases*/}
+                                        {this.state.scenarioTestCaseEntries.length > 0 ?
+                                            <center>
+                                                <h2>Detailed Report (failed test cases
+                                                    only)</h2>
+                                            </center> : ""}
+                                        {this.state.scenarioTestCaseEntries.map((data, index) => {
+                                            return (
+                                                <div>
+                                                    <center><h3 style={{
+                                                        color: "#e46226"
+                                                    }}>{data.scenarioName}</h3></center>
+                                                    <Table>
+                                                        <TableHeader displaySelectAll={false}
+                                                                     adjustForCheckbox={false}>
+                                                            <TableRow>
+                                                                <TableHeaderColumn
+                                                                    style={{
+                                                                        width: "5%",
+                                                                        textAlign: "center"
+                                                                    }}/>
+                                                                <TableHeaderColumn
+                                                                    style={{
+                                                                        width: "30%"
+                                                                    }}>
+                                                                    <h2>Test Case</h2>
+                                                                </TableHeaderColumn>
+                                                                <TableHeaderColumn
+                                                                    style={{
+                                                                        width: "65%"
+                                                                    }}>
+                                                                    <h2>Failure Message</h2>
+                                                                </TableHeaderColumn>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody displayRowCheckbox={false}
+                                                                   showRowHover={true}>
+                                                            {data.testCaseEntries.map((entry, index) => {
+                                                                return (
+                                                                    <TableRow key={index}>
+                                                                        <TableRowColumn
+                                                                            style={{width: "5%"}}>
+                                                                            {entry.isTestSuccess ?
+                                                                                <img width="36"
+                                                                                     height="36"
+                                                                                     src={require('../success.png')}/>
+                                                                                :
+                                                                                <img width="36"
+                                                                                     height="36"
+                                                                                     src={require('../close.png')}/>}
+                                                                        </TableRowColumn>
+                                                                        <TableRowColumn style={{
+                                                                            fontSize: "15px",
+                                                                            width: "30%",
+                                                                            wordWrap: "break-word",
+                                                                            whiteSpace: "wrap",
+                                                                        }}>{entry.testCase}</TableRowColumn>
+                                                                        <TableRowColumn style={{
+                                                                            fontSize: "15px",
+                                                                            width: "65%",
+                                                                            wordWrap: "break-word",
+                                                                            whiteSpace: "wrap",
+                                                                            paddingTop: 15,
+                                                                            paddingBottom: 15
+                                                                        }}>
+                                                                            {entry.failureMessage}
+                                                                        </TableRowColumn>
+                                                                    </TableRow>
+                                                                )
+                                                            })}
+                                                        </TableBody>
+                                                    </Table>
+                                                    <br/>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>;
+                                case "PENDING":
+                                default:
+                                    return <div>
+                                        <br/>
+                                        <br/>
+                                        <b>Loading test summaries...</b>
+                                        <br/>
+                                        <LinearProgress mode="indeterminate"/>
+                                    </div>;
+                            }
+                        })()}
+                        <Divider inset={false}/>
+                        <br/>
+                        {/*Test log*/}
+                        <center><h2>Test Run Log</h2></center>
                         {(() => {
                             switch (this.state.isLogDownloadError) {
                                 case "ERROR":
@@ -238,7 +452,6 @@ class TestRunArtifactView extends Component {
                                 case "SUCCESS":
                                     return <div>
                                         <code>
-                                            <h3>Log</h3>
                                             <AceEditor
                                                 theme="github"
                                                 ref="log"
