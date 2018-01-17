@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -96,6 +97,8 @@ public class ShellExecutor {
             logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.toString());
         }
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
         try {
             if (workingDirectory != null) {
                 File workDirectory = workingDirectory.toFile();
@@ -107,8 +110,9 @@ public class ShellExecutor {
 
             StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), logger::info);
             StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), logger::error);
-            Executors.newSingleThreadExecutor().submit(outputStreamGobbler);
-            Executors.newSingleThreadExecutor().submit(errorStreamGobbler);
+
+            executor.submit(outputStreamGobbler);
+            executor.submit(errorStreamGobbler);
 
             return process.waitFor() == 0;
 
@@ -120,6 +124,8 @@ public class ShellExecutor {
             throw new CommandExecutionException(
                     "InterruptedException occurred while executing the command '" + command + "', " + "from directory '"
                             + workingDirectory.toString(), e);
+        } finally {
+            executor.shutdownNow();
         }
     }
 }
