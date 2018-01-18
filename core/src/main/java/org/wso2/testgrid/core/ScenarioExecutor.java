@@ -127,7 +127,7 @@ public class ScenarioExecutor {
             List<Test> testList = new ArrayList<>();
 
             if (Files.exists(testLocationPath)) {
-                File file = new File(Paths.get(testLocationPath.toString(), "src", "test").toString());
+                File file = new File(Paths.get(testLocationPath.toString()).toString());
                 String[] testDirectories = file.list((current, name) -> new File(current, name).isDirectory());
                 testDirectories = testDirectories == null ? new String[0] : testDirectories;
 

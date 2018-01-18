@@ -80,9 +80,9 @@ class ProductStatusView extends Component {
             productName: product.name,
           })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastfailed.modifiedTimestamp).fromNow()} </h4>
         </TableRowColumn>
-        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute function not available yet"/> <ReactTooltip /></TableRowColumn>
+        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job"  onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }}/> <ReactTooltip /></TableRowColumn>
         <TableRowColumn ><img src={require('../configure.png')} width="36" height="36" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location = '/job/wso2is-5.4.0/job/01-single-node-deployment-pattern/configure' }} />
+          onClick={() => { window.location = '/job/wso2is5.4.0LTS/configure' }} data-tip="Configure job" />
         </TableRowColumn>
       </TableRow>)
     });

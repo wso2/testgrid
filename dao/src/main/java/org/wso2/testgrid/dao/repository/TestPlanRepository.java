@@ -18,8 +18,6 @@
 package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
-
-
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -38,7 +36,6 @@ import javax.persistence.Query;
  * @since 1.0.0
  */
 public class TestPlanRepository extends AbstractRepository<TestPlan> {
-
 
 
     /**
@@ -144,22 +141,22 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      *
      * @param product A Product object being queried.
      * @return instance of a {@link TestPlan} representing the last failed test plan.
-     * @throws TestGridDAOException when an error occurs while executing the native sql query.
      */
-    public TestPlan getLastFailure(Product product) throws TestGridDAOException {
+    public TestPlan getLastFailure(Product product) {
         String sql = "SELECT  t.* from test_plan t INNER JOIN (SELECT tp.infra_parameters," +
                 "max(tp.modified_timestamp) AS time, dp.name FROM test_plan tp INNER JOIN " +
                 "deployment_pattern dp ON tp.DEPLOYMENTPATTERN_id=dp.id AND tp.status='FAIL' " +
                 "AND  tp.DEPLOYMENTPATTERN_id IN (SELECT id FROM deployment_pattern WHERE " +
                 "PRODUCT_id = ?) GROUP BY tp.infra_parameters,dp.name) as x ON " +
                 "t.infra_parameters=x.infra_parameters AND t.modified_timestamp=x.time ORDER BY time DESC LIMIT 1";
-        try {
-            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class)
-                    .setParameter(1 , product.getId())
-                    .getSingleResult();
-        } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings(" Error occured while executing the SQL " +
-                    "query [", sql, "]"), e);
+
+        List resultList = entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, product.getId())
+                .getResultList();
+        if (!resultList.isEmpty()) {
+            return (TestPlan) resultList.get(0);
+        } else {
+            return null;
         }
     }
 
@@ -168,22 +165,22 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      *
      * @param product the product being queried
      * @return instance of {@link TestPlan} for the last build
-     * @throws TestGridDAOException when an error occurs executing the native query
      */
-    public TestPlan getLastBuild(Product product) throws TestGridDAOException {
+    public TestPlan getLastBuild(Product product) {
         String sql = "select  t.* from test_plan t inner join (select tp.infra_parameters," +
                 "max(tp.modified_timestamp) AS time, dp.name from test_plan tp inner join " +
                 "deployment_pattern dp on tp.DEPLOYMENTPATTERN_id=dp.id and  tp.DEPLOYMENTPATTERN_id " +
                 "in (select id from deployment_pattern where PRODUCT_id=?)" +
                 "group by tp.infra_parameters,dp.name) AS x on t.infra_parameters=x.infra_parameters " +
                 "AND t.modified_timestamp=x.time order by time desc limit 1";
-        try {
-            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class)
-                    .setParameter(1, product.getId())
-                    .getSingleResult();
-        } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings("Error occured while executing SQL " +
-                    "query [ ", sql, " ]"), e);
+
+        List resultList = entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, product.getId())
+                .getResultList();
+        if (!resultList.isEmpty()) {
+            return (TestPlan) resultList.get(0);
+        } else {
+            return null;
         }
     }
 
@@ -193,23 +190,18 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      *
      * @param product the product being queried
      * @return a list of {@link TestPlan}
-     * @throws TestGridDAOException when an error occurs while executing the native query
      */
-    public List<TestPlan> getLatestTestPlans(Product product) throws TestGridDAOException {
+    public List<TestPlan> getLatestTestPlans(Product product) {
         String sql = "select t.* from test_plan t inner join (select tp.infra_parameters," +
                 "max(tp.modified_timestamp) AS time, dp.name from test_plan tp inner join " +
                 "deployment_pattern dp on tp.DEPLOYMENTPATTERN_id=dp.id  and tp.DEPLOYMENTPATTERN_id in " +
                 "(select id from deployment_pattern where PRODUCT_id= ? ) " +
                 "group by tp.infra_parameters,dp.name) as x on t.infra_parameters=x.infra_parameters " +
                 "AND t.modified_timestamp=x.time;";
-        try {
-            return (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
-                    .setParameter(1, product.getId())
-                    .getResultList();
-        } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings("Error occured while " +
-                    "executing SQL query [ ", sql, " ]"), e);
-        }
+
+        return (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, product.getId())
+                .getResultList();
     }
 
     /**
@@ -217,19 +209,20 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      *
      * @param testPlan the TestPlan containing the infrastructure combination
      * @return a {@link TestPlan} representing the last failed build
-     * @throws TestGridDAOException when an error occurs while executing the native query
      */
-    public TestPlan getLastFailure(TestPlan testPlan) throws TestGridDAOException {
+    public TestPlan getLastFailure(TestPlan testPlan) {
         String sql = "select * from test_plan where infra_parameters= ?  AND DEPLOYMENTPATTERN_id=? " +
                 " AND status='FAIL' order by modified_timestamp desc limit 1";
-        try {
-            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class)
-                    .setParameter(1, testPlan.getInfraParameters())
-                    .setParameter(2, testPlan.getDeploymentPattern().getId())
-                    .getSingleResult();
-        } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings("Error occured while " +
-                    "executing SQL query [ ", sql, " ]"), e);
+
+        List resultList = entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, testPlan.getInfraParameters())
+                .setParameter(2, testPlan.getDeploymentPattern().getId())
+                .getResultList();
+
+        if (!resultList.isEmpty()) {
+            return (TestPlan) resultList.get(0);
+        } else {
+            return null;
         }
     }
 }

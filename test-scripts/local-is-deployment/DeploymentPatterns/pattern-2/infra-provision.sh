@@ -20,8 +20,8 @@
 # ----------------------------------------------------------------------------
 
 # This script is responsible for provisioning the infrastructure on AWS
-
 echo "This is a Dummy Infrastructure provisioning scripts, Your local machine will be used. Hence, infra-provision is empty."
 echo "Start executing the deployment script"
 CURRENT_PATH=$(pwd)
-bash $CURRENT_PATH/DeploymentPatterns/pattern-2/deploy.sh
+echo $CURRENT_PATH
+#bash $CURRENT_PATH/DeploymentPatterns/pattern-2/deploy.sh

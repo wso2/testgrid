@@ -49,7 +49,6 @@ import java.nio.file.Paths;
  */
 public class TestPlanExecutor {
 
-    private static final String DEPLOYMENT_DIR = "DeploymentPatterns";
     private static final Logger logger = LoggerFactory.getLogger(TestPlanExecutor.class);
 
     /**
@@ -139,8 +138,8 @@ public class TestPlanExecutor {
             Deployment deployment = InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
                     .createInfrastructure(infrastructure, testPlan.getInfraRepoDir());
             deployment.setName(infrastructure.getName());
-            deployment.setDeploymentScriptsDir(Paths.get(testPlan.getInfraRepoDir(), DEPLOYMENT_DIR,
-                    infrastructure.getName(), infrastructure.getProviderType().name()).toString());
+            deployment.setDeploymentScriptsDir(
+                    Paths.get(testPlan.getInfraRepoDir(), infrastructure.getName()).toString());
             testPlan.setDeployment(deployment);
         } catch (TestGridInfrastructureException e) {
             setTestPlanStatus(testPlan, Status.FAIL);

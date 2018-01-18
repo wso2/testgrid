@@ -309,6 +309,10 @@ public class RunTestPlanCommand implements Command {
             testPlan.setInfraRepoDir(infraRepoDir);
             testPlan.setTestRepoDir(testRepoDir);
             testPlan.setDeploymentPattern(deploymentPattern);
+            // The default provider is set to AWS_CF, if provider is Shell overriding the value
+            if (testConfig.getInfrastructure().getProviderType().equals(Infrastructure.ProviderType.SHELL)) {
+                testPlan.setDeployerType(TestPlan.DeployerType.SHELL);
+            }
             testPlan.setInfraParameters(jsonInfraParams);
             deploymentPattern.addTestPlan(testPlan);
 

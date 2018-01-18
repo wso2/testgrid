@@ -211,7 +211,8 @@ public class Infrastructure implements Serializable {
     public enum ProviderType {
         AWS("AWS"),
         OPENSTACK("OpenStack"),
-        GCP("GCP");
+        GCP("GCP"),
+        SHELL("SHELL");
 
         private final String providerType;
 
@@ -264,7 +265,8 @@ public class Infrastructure implements Serializable {
      */
     public enum InstanceType {
         EC2("EC2"),
-        DOCKER_CONTAINERS("Docker");
+        DOCKER_CONTAINERS("Docker"),
+        UNKNOWN("Unknown");
 
         private final String instanceType;
 

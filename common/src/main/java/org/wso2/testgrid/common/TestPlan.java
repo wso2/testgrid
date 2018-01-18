@@ -333,7 +333,12 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
         /**
          * Defines the chef automation.
          */
-        CHEF("CHEF");
+        CHEF("CHEF"),
+
+        /**
+         * Defines the Shell based deployment
+         */
+        SHELL("SHELL");
 
         private final String deployerType;
 

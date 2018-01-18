@@ -32,9 +32,9 @@ infraParams:
 scenarios:
     -  "solution01"
 infrastructure:
-  providerType: "AWS"
+  providerType: "SHELL"
   clusterType: "None"
-  instanceType: "EC2"
+  instanceType: "UNKNOWN"
   name: "pattern-2"
   securityProperties:
     apiKey: "242424"
@@ -43,6 +43,11 @@ infrastructure:
     - scriptType: "INFRA_CREATE"
       filePath: "infra-provision.sh"
       name: "provision"
+      environmentScriptParameters:
+      scriptParameters:
+    - scriptType: "DEPLOY"
+      filePath: "deploy.sh"
+      name: "deploy"
       environmentScriptParameters:
       scriptParameters:
     - scriptType: "INFRA_DESTROY"

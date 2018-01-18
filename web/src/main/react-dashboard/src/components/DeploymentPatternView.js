@@ -99,7 +99,7 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn ><SingleRecord value={value.lastFailed.status}
                           time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
                         /> </TableRowColumn>
-                        <TableRowColumn> <img  src={require('../play.png')} width="48" height="48" data-tip="Execute function not available yet"/><ReactTooltip /></TableRowColumn>
+                        <TableRowColumn> <img  src={require('../play.png')} width="48" height="48" data-tip="Execute Job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }}/><ReactTooltip /></TableRowColumn>
                       </TableRow>
 
                     )
@@ -114,7 +114,7 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn ><SingleRecord value={value.lastFailed.status}
                            time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
                         /> </TableRowColumn>
-                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute function not available yet"/><ReactTooltip /></TableRowColumn>
+                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job"  onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }}/><ReactTooltip /></TableRowColumn>
                       </TableRow>
                     )
                   }

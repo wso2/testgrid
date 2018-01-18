@@ -86,7 +86,7 @@ public class TestPlanUOW {
      * Returns a list of {@link TestPlan} instances for the given deployment-pattern-id and date.
      *
      * @param deploymentId id of the associated deployment-pattern
-     * @param date created before date
+     * @param date         created before date
      * @return matching {@link TestPlan} instances
      * @throws TestGridDAOException thrown when error on retrieving results
      */
@@ -97,32 +97,32 @@ public class TestPlanUOW {
 
     /**
      * Returns a {@link TestPlan} object representing the last failed build for a product.
+     *
      * @param product the product being queried
      * @return a TestPlan object for last failed build
-     * @throws TestGridDAOException when there is an error querying the data
      */
-    public TestPlan getLastFailure(Product product) throws TestGridDAOException {
+    public TestPlan getLastFailure(Product product) {
         return testPlanRepository.getLastFailure(product);
     }
 
     /**
      * Returns a {@link TestPlan} object representing the last build for a given product.
+     *
      * @param product the product being queried
      * @return a TestPlan object for last build
-     * @throws TestGridDAOException when there is an erorr querying the data
      */
-    public TestPlan getLastBuild(Product product) throws TestGridDAOException {
+    public TestPlan getLastBuild(Product product) {
         return testPlanRepository.getLastBuild(product);
     }
 
     /**
      * Returns a final Status for a product after considering all distinct infrastructure combination
      * statuses.
+     *
      * @param product the product being queried
      * @return a {@link Status} for the product
-     * @throws TestGridDAOException when there is an error querying the data
      */
-    public Status getCurrentStatus(Product product) throws TestGridDAOException {
+    public Status getCurrentStatus(Product product) {
         List<TestPlan> testPlans = testPlanRepository.getLatestTestPlans(product);
         List<TestPlan> succesfulPlans = testPlans.stream().filter(testPlan ->
                 testPlan.getStatus().equals(Status.SUCCESS)
@@ -135,9 +135,8 @@ public class TestPlanUOW {
      *
      * @param product the product being queried
      * @return a list of {@link TestPlan}s for latest builds
-     * @throws TestGridDAOException when there is an error querying the data
      */
-    public List<TestPlan> getLatestTestPlans(Product product) throws TestGridDAOException {
+    public List<TestPlan> getLatestTestPlans(Product product) {
         return testPlanRepository.getLatestTestPlans(product);
     }
 
@@ -146,9 +145,8 @@ public class TestPlanUOW {
      *
      * @param testPlan TestPlan representing a distinct infrastructure combination
      * @return a {@link TestPlan} for the latest failed build
-     * @throws TestGridDAOException when there is an error querying the data
      */
-    public TestPlan getLastFailure(TestPlan testPlan) throws TestGridDAOException {
+    public TestPlan getLastFailure(TestPlan testPlan) {
         return testPlanRepository.getLastFailure(testPlan);
     }
 }
