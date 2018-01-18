@@ -33,8 +33,9 @@ import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 import org.wso2.testgrid.web.utils.Constants;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -159,28 +160,29 @@ public class TestPlanService {
      */
     private void persistAsYamlFile(TestPlanRequest testPlanRequest) throws TestGridException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        String path = Constants.TESTPLANS_DIR + testPlanRequest.getTestPlanName();
+        java.nio.file.Path path = Paths.get(Constants.TESTPLANS_DIR + testPlanRequest.getTestPlanName());
 
-        File directory = new File(path);
-        File yamlFile = new File(path + File.separator + testPlanRequest.getTestPlanName() + ".yml");
-
-        if (!directory.exists()) {
-            if (!directory.mkdir()) {
+        if (!Files.exists(path)) {
+            try {
+                Files.createDirectories(path);
+            } catch (IOException e) {
                 throw new TestGridException("Can not create directory to save YAML file of the test-plan " +
-                        testPlanRequest.getTestPlanName() + ".");
+                        testPlanRequest.getTestPlanName() + ".", e);
             }
         }
 
-        if (!yamlFile.exists()) {
-            try {
-                mapper.writeValue(yamlFile, testPlanRequest);
-            } catch (IOException e) {
-                throw new TestGridException("Error occured when writing YAML file for test-plan " +
-                        testPlanRequest.getTestPlanName() + ".");
+        try {
+            //Add file name to previous path.
+            path = Paths.get(path.toString(), testPlanRequest.getTestPlanName() + ".yaml");
+
+            if (!Files.exists(path)) {
+                Files.write(path, mapper.writeValueAsBytes(testPlanRequest));
+            } else {
+                throw new TestGridException("YAML file already exists for " + testPlanRequest.getTestPlanName() + ".");
             }
-        } else {
-            throw new TestGridException("A YAML file already exists for test-plan " +
-                    testPlanRequest.getTestPlanName() + ".");
+        } catch (IOException e) {
+            throw new TestGridException("Error occurred when writing YAML file for test-plan " +
+                    testPlanRequest.getTestPlanName() + ".", e);
         }
     }
 }
