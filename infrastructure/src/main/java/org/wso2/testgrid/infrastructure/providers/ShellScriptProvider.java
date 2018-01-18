@@ -45,10 +45,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     @Override
     public boolean canHandle(Infrastructure infrastructure) {
-        if (infrastructure.getProviderType().equals(Infrastructure.ProviderType.SHELL)) {
-            return true;
-        }
-        return false;
+        return infrastructure.getProviderType().equals(Infrastructure.ProviderType.SHELL);
     }
 
     @Override
