@@ -82,7 +82,6 @@ public class TestPlanUOW {
         return Optional.of(testPlan);
     }
 
-
     /**
      * Returns a list of {@link TestPlan} instances for the given deployment-pattern-id and date.
      *
@@ -95,7 +94,6 @@ public class TestPlanUOW {
             TestGridDAOException {
         return testPlanRepository.findByDeploymentPatternAndDate(deploymentId, date);
     }
-
 
     /**
      * Returns a {@link TestPlan} object representing the last failed build for a product.
@@ -130,7 +128,6 @@ public class TestPlanUOW {
                 testPlan.getStatus().equals(Status.SUCCESS)
         ).collect(Collectors.toList());
         return succesfulPlans.size() == testPlans.size() ? Status.SUCCESS : Status.FAIL;
-
     }
 
     /**

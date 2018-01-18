@@ -26,8 +26,8 @@ import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
-import org.wso2.testgrid.web.bean.TestPlanStatus;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
+import org.wso2.testgrid.web.bean.TestPlanStatus;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 

@@ -164,7 +164,7 @@ public class TestPlan {
     /**
      * Returns the create timestamp for this test-plan.
      *
-     * @return create timestamp for this -test-plan
+     * @return create timestamp for this test-plan
      */
     public Timestamp getCreatedTimestamp() {
 
@@ -202,5 +202,4 @@ public class TestPlan {
             this.modifiedTimestamp = (Timestamp) modifiedTimestamp.clone();
         }
     }
-
 }

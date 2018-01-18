@@ -135,7 +135,6 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         }
     }
 
-
     /**
      * This method returns the last failed {@link TestPlan} for a given product.
      *
@@ -172,15 +171,12 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 "in (select id from deployment_pattern where PRODUCT_id='" + product.getId() + "')" +
                 "group by tp.infra_parameters,dp.name) AS x on t.infra_parameters=x.infra_parameters " +
                 "AND t.modified_timestamp=x.time order by time desc limit 1";
-
         try {
             return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class).getSingleResult();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error occured while executing SQL " +
                     "query [ ", sql, " ]"), e);
         }
-
-
     }
 
     /**
@@ -198,14 +194,12 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 "(select id from deployment_pattern where PRODUCT_id='" + product.getId() + "') " +
                 "group by tp.infra_parameters,dp.name) as x on t.infra_parameters=x.infra_parameters " +
                 "AND t.modified_timestamp=x.time;";
-
         try {
             return (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class).getResultList();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error occured while " +
                     "executing SQL query [ ", sql, " ]"), e);
         }
-
     }
 
     /**
@@ -226,6 +220,5 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
             throw new TestGridDAOException(StringUtil.concatStrings("Error occured while " +
                     "executing SQL query [ ", sql, " ]"), e);
         }
-
     }
 }
