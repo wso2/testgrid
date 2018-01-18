@@ -266,7 +266,7 @@ public class Infrastructure implements Serializable {
     public enum InstanceType {
         EC2("EC2"),
         DOCKER_CONTAINERS("Docker"),
-        None("None");
+        UNKNOWN("Unknown");
 
         private final String instanceType;
 

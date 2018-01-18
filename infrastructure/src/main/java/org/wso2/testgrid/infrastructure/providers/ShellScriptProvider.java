@@ -69,10 +69,9 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
-            TestGridInfrastructureException {
-        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" ,
-                infrastructure.getName()).toString();
+    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir)
+    throws TestGridInfrastructureException {
+        String testPlanLocation = Paths.get(infraRepoDir, infrastructure.getName()).toString();
 
         logger.info("Destroying test environment...");
         ShellExecutor executor = new ShellExecutor(null);

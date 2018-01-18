@@ -34,7 +34,7 @@ scenarios:
 infrastructure:
   providerType: "SHELL"
   clusterType: "None"
-  instanceType: "None"
+  instanceType: "UNKNOWN"
   name: "pattern-2"
   securityProperties:
     apiKey: "242424"
