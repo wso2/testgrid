@@ -22,15 +22,29 @@ import org.wso2.testgrid.common.exception.TestGridException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
+
+import static org.wso2.testgrid.web.utils.Constants.TESTGRID_HOME;
 
 /**
  * Implementation of configuration context which will contain functions relates with property file.
  * Example: Retrieve property value by property key.
  */
 public class ConfigurationContext {
-    private static ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    private static InputStream inputStream = classLoader.getResourceAsStream("testgrid-web-config.properties");
+    private static Path path = Paths.get(TESTGRID_HOME, "testgrid-web-config.properties");
+    private static InputStream inputStream;
+    private static boolean isFileAccessed;
+    static {
+        try {
+            inputStream = Files.newInputStream(path);
+            isFileAccessed = true;
+        } catch (IOException e) {
+            isFileAccessed = false;
+        }
+    }
     private static Properties properties = new Properties();
 
     /**
@@ -39,6 +53,9 @@ public class ConfigurationContext {
      * @return Property value read from property file.
      */
     public static String getProperty(String property) throws TestGridException {
+        if (!isFileAccessed) {
+            throw new TestGridException("Unable to access property file.");
+        }
         if (inputStream != null) {
             try {
                 properties.load(inputStream);
