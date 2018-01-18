@@ -51,6 +51,11 @@ public class Script implements Serializable {
         INFRA_CREATE("Infra Create"),
 
         /**
+         * Defines the deploy shell script type.
+         */
+        DEPLOY("Deploy"),
+
+        /**
          * Defines the destroy-infra shell script type.
          */
         INFRA_DESTROY("Infra Destroy");

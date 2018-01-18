@@ -45,21 +45,16 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     @Override
     public boolean canHandle(Infrastructure infrastructure) {
-        boolean isScriptsAvailable = true;
-        for (Script script : infrastructure.getScripts()) {
-            if (!Script.ScriptType.INFRA_CREATE.equals(script.getScriptType()) &&
-                !Script.ScriptType.INFRA_DESTROY.equals(script.getScriptType())) {
-                isScriptsAvailable = false;
-            }
+        if (infrastructure.getProviderType().equals(Infrastructure.ProviderType.SHELL)) {
+            return true;
         }
-        return isScriptsAvailable;
+        return false;
     }
 
     @Override
     public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
             TestGridInfrastructureException {
-        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" ,
-                infrastructure.getName()).toString();
+        String testPlanLocation = Paths.get(infraRepoDir, infrastructure.getName()).toString();
 
         logger.info("Executing provisioning scripts...");
         try {
