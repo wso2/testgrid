@@ -23,7 +23,6 @@
 
 echo "This is a Dummy Deployment creation scripts to deploy a standalone WSO2 Identity server"
 echo "Here the test infrastructure is your local machine."
-pwd
 #if you do not have a account, please create a account at https://wso2.com/
 WSO2_USER=yasassri@wso2.com
 WSO2_PASSWORD=xxxxxxx
@@ -38,11 +37,10 @@ unzip -q -o wso2is-5.4.0.zip
 echo -n "Starting the IS server"
 bash ./wso2is-5.4.0/bin/wso2server.sh start
 
-# TO-DO: introduce loop break condition
 x=0;
 retry_count=60;
 echo "Wait for the server start up"
-while ! nc -z localhost 9763; do   
+while ! nc -z localhost 9763; do
   sleep 2 # wait for 2 second before check again
   echo -n "."
   if [ $x = $retry_count ]; then
@@ -57,8 +55,4 @@ echo "Generating the deployment_ep file with the endpoints"
 
 echo "https://localhost:9443/carbon" > $DEPLOYMENT_EP_FILE_NAME
 
-echo "Updating the user.property file for tests"
-echo "IS_HOST=https://localhost:9443/carbon" > ./Solutions/solution01/src/test/resources/user.properties
-
 echo "Deployment has finished, test execution will commence next"
-
