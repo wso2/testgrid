@@ -56,7 +56,8 @@ import javax.ws.rs.core.Response;
 public class TestPlanService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
-
+    JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
+    JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
     /**
      * This has the implementation of the REST API for fetching all the TestPlans for a given deployment-pattern
      * and created before date.
@@ -69,7 +70,7 @@ public class TestPlanService {
                                            @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-            Date parsedDate = null;
+            Date parsedDate;
             try {
                 parsedDate = dateFormat.parse(date);
             } catch (ParseException e) {
@@ -123,11 +124,8 @@ public class TestPlanService {
      * @return A list of available TestPlans.
      */
     @POST
-    @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createTestPlan(TestPlanRequest testPlanRequest) {
-        JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
-        JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
         try {
             String configXml = jenkinsJobConfigurationProvider.getConfiguration(testPlanRequest);
             return Response.status(Response.Status.CREATED).

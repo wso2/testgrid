@@ -26,4 +26,20 @@ public class Constants {
             "/job/templates/job/velocityTemplateJob/config.xml";
     public static final String BLUE_OCEAN_URI = "/blue/organizations/jenkins";
     public static final String JENKINS_CRUMB_ISSUER_URI = "/crumbIssuer/api/json";
+    public static final String CRUMB = "crumb";
+    public static final String JENKINS_HOST = "JENKINS_HOST";
+    public static final String JENKINS_CRUMB_HEADER_NAME = "Jenkins-Crumb";
+    public static final String JENKINS_USER_AUTH_KEY = "JENKINS_USER_AUTH_KEY";
+
+    /* Terms used in Jenkins template job. */
+    public static final String PRODUCT_NAME = "$productName";
+    public static final String PRODUCT_CHANNEL = "$productChannel";
+    public static final String PRODUCT_VERSION = "$productVersion";
+    public static final String INFRASTRUCTURE_REPO = "$infrastructureRepo";
+    public static final String DEPLOYMENT_REPO = "$deploymentRepo";
+    public static final String SCENARIO_REPO = "$scenariosRepo";
+    public static final String INFRA_LOCATION = "$infraLocation";
+    public static final String DEPLOYMENT_LOCATION = "$deploymentLocation";
+    public static final String SCENARIOS_LOCATION = "$scenariosLocation";
+
 }

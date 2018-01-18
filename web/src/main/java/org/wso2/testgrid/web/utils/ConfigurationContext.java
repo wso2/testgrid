@@ -30,7 +30,7 @@ import java.util.Properties;
  */
 public class ConfigurationContext {
     private static ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    private static InputStream inputStream = classLoader.getResourceAsStream("testgrid-web-config..properties");
+    private static InputStream inputStream = classLoader.getResourceAsStream("testgrid-web-config.properties");
     private static Properties properties = new Properties();
 
     /**
@@ -39,11 +39,15 @@ public class ConfigurationContext {
      * @return Property value read from property file.
      */
     public static String getProperty(String property) throws TestGridException {
-        try {
-            properties.load(inputStream);
-            return properties.getProperty(property);
-        } catch (IOException e) {
-            throw new TestGridException("Can not read property " + property + " in property file");
+        if (inputStream != null) {
+            try {
+                properties.load(inputStream);
+                return properties.getProperty(property);
+            } catch (IOException e) {
+                throw new TestGridException("Can not read property " + property + " in property file.");
+            }
+        } else {
+            throw new TestGridException("Can not get property " + property + " .Property file is null.");
         }
     }
 }

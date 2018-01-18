@@ -18,10 +18,14 @@
 
 package org.wso2.testgrid.web.operation;
 
+import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.utils.ConfigurationContext;
+import org.wso2.testgrid.web.utils.Constants;
+
+import javax.ws.rs.core.HttpHeaders;
 
 import static org.wso2.testgrid.web.utils.Constants.JENKINS_TEMPLATE_JOB_URI;
 
@@ -43,15 +47,15 @@ public class JenkinsJobConfigurationProvider {
     public String getConfiguration(TestPlanRequest testPlanRequest) throws IOException, TestGridException {
         String template = retrieveConfigXmlFromJenkins();
         String[][] replacements = {
-                {"$productName", testPlanRequest.getTestPlanName()},
-                {"$productVersion", "deprecated"}, //Since version and channel is planned to be removed from TestGrid.
-                {"$productChannel", "deprecated"},
-                {"$infrastructureRepo", "\"" + testPlanRequest.getInfrastructure().getRepository() + "\""},
-                {"$deploymentRepo", "\"" + testPlanRequest.getDeployment().getRepository() + "\""},
-                {"$scenariosRepo", "\"" + testPlanRequest.getScenarios().getRepository() + "\""},
-                {"$infraLocation", "\"" + testPlanRequest.getInfrastructure().getRepository() + "\""},
-                {"$deploymentLocation", "\"" + testPlanRequest.getDeployment().getRepository() + "\""},
-                {"$scenariosLocation", "\"" + testPlanRequest.getScenarios().getRepository() + "\""}
+                {Constants.PRODUCT_NAME, testPlanRequest.getTestPlanName()},
+                {Constants.PRODUCT_VERSION, "deprecated"}, //Version and channel is planned to be removed from TestGrid.
+                {Constants.PRODUCT_CHANNEL, "deprecated"},
+                {Constants.INFRASTRUCTURE_REPO, "\"" + testPlanRequest.getInfrastructure().getRepository() + "\""},
+                {Constants.DEPLOYMENT_REPO, "\"" + testPlanRequest.getDeployment().getRepository() + "\""},
+                {Constants.SCENARIO_REPO, "\"" + testPlanRequest.getScenarios().getRepository() + "\""},
+                {Constants.INFRA_LOCATION, "\"" + testPlanRequest.getInfrastructure().getRepository() + "\""},
+                {Constants.DEPLOYMENT_LOCATION, "\"" + testPlanRequest.getDeployment().getRepository() + "\""},
+                {Constants.SCENARIOS_LOCATION, "\"" + testPlanRequest.getScenarios().getRepository() + "\""}
         };
         return mergeTemplate(template, replacements);
     }
@@ -62,13 +66,19 @@ public class JenkinsJobConfigurationProvider {
      */
     private String retrieveConfigXmlFromJenkins() throws IOException, TestGridException {
         try {
-            return Request.Get(ConfigurationContext.getProperty("JENKINS_HOST") + JENKINS_TEMPLATE_JOB_URI)
-                    .addHeader("User-Agent", USER_AGENT)
-                    .addHeader("Authorization", "Basic " +
-                            ConfigurationContext.getProperty("JENKINS_USER_AUTH_KEY"))
-                    .execute().returnContent().asString().trim();
+            Content content =  Request.
+                    Get(ConfigurationContext.getProperty(Constants.JENKINS_HOST) + JENKINS_TEMPLATE_JOB_URI)
+                    .addHeader(HttpHeaders.USER_AGENT, USER_AGENT)
+                    .addHeader(HttpHeaders.AUTHORIZATION, "Basic " +
+                            ConfigurationContext.getProperty(Constants.JENKINS_USER_AUTH_KEY))
+                    .execute().returnContent();
+            if (content != null) {
+                return content.asString().trim();
+            } else {
+                throw new TestGridException("Configuration file received for Jenkins template job is null.");
+            }
         } catch (IOException e) {
-            throw new IOException("Request failed while accessing Jenkins template job: " + e.toString(), e);
+            throw new IOException("Request failed while accessing Jenkins template job: " + e.getMessage(), e);
         }
     }
 
