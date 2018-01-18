@@ -45,7 +45,7 @@ public class ShellDeployer implements DeployerService {
 
     @Override
     public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
-        logger.info("Performing the Deployment");
+        logger.info("Performing the Deployment " +deployment.getName());
         ShellExecutor shellExecutor = new ShellExecutor(Paths.get(System.getenv("TESTGRID_HOME")));
         try {
             if (!shellExecutor
