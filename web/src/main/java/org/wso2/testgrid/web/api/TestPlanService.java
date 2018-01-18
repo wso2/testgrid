@@ -18,8 +18,6 @@
 
 package org.wso2.testgrid.web.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +30,11 @@ import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 import org.wso2.testgrid.web.utils.Constants;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
@@ -159,8 +160,7 @@ public class TestPlanService {
      *              3.If the YAML file already exists.
      */
     private void persistAsYamlFile(TestPlanRequest testPlanRequest) throws TestGridException {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        java.nio.file.Path path = Paths.get(Constants.TESTPLANS_DIR + testPlanRequest.getTestPlanName());
+        java.nio.file.Path path = Paths.get(Constants.TESTPLANS_DIR , testPlanRequest.getTestPlanName());
 
         if (!Files.exists(path)) {
             try {
@@ -176,7 +176,11 @@ public class TestPlanService {
             path = Paths.get(path.toString(), testPlanRequest.getTestPlanName() + ".yaml");
 
             if (!Files.exists(path)) {
-                Files.write(path, mapper.writeValueAsBytes(testPlanRequest));
+                DumperOptions options = new DumperOptions();
+                options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+                Yaml yaml = new Yaml(options);
+                String string = yaml.dump(testPlanRequest);
+                Files.write(path, string.getBytes(Charset.defaultCharset()));
             } else {
                 throw new TestGridException("YAML file already exists for " + testPlanRequest.getTestPlanName() + ".");
             }

@@ -338,11 +338,6 @@
                 <artifactId>jackson-annotations</artifactId>
                 <version>${com.fasterxml.jackson.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>${com.fasterxml.jackson.version}</version>
-            </dependency>
 
             <!-- GlassFish dependencies-->
             <dependency>
@@ -524,7 +519,7 @@
         <awaitility.version>3.0.0</awaitility.version>
         <guava.version>19.0</guava.version>
         <snakeyaml.version>1.19</snakeyaml.version>
-        <com.fasterxml.jackson.version>2.9.3</com.fasterxml.jackson.version>
+        <com.fasterxml.jackson.version>2.8.10</com.fasterxml.jackson.version>
         <apache.httpcomponents.fluent.version>5.0-alpha3</apache.httpcomponents.fluent.version>
         <!-- Logging dependencies -->
         <slf4j.api.version>1.7.25</slf4j.api.version>
