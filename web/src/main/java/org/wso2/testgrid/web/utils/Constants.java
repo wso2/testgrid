@@ -42,4 +42,5 @@ public class Constants {
     public static final String DEPLOYMENT_LOCATION = "$deploymentLocation";
     public static final String SCENARIOS_LOCATION = "$scenariosLocation";
 
+    public static final String TESTPLANS_DIR = System.getenv("TESTGRID_HOME") + "/test-plans/";
 }
