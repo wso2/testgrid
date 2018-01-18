@@ -1,3 +1,6 @@
+[![Build Status](https://wso2.org/jenkins/buildStatus/icon?job=testgrid/testgrid)](https://wso2.org/jenkins/job/testgrid/job/testgrid/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 # WSO2 TestGrid
 
 Welcome to main repo of WSO2 TestGrid.

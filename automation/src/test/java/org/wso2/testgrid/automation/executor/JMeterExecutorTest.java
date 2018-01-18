@@ -41,8 +41,8 @@ public class JMeterExecutorTest {
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
 
-        String testPath = Paths.get(resource.getPath(), "SolutionPattern22", "Tests",
-                "src", "test", "jmeter").toAbsolutePath().toString();
+        String testPath = Paths.get(resource.getPath(), "SolutionPattern22", "Tests", "jmeter").toAbsolutePath()
+                .toString();
         String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
 
@@ -65,8 +65,8 @@ public class JMeterExecutorTest {
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
 
-        String testScript = Paths.get(resource.getPath(), "SolutionPattern22", "Tests",
-                "src", "test", "jmeter", "mock.jmx").toAbsolutePath().toString();
+        String testScript = Paths.get(resource.getPath(), "SolutionPattern22", "Tests", "jmeter", "mock.jmx")
+                .toAbsolutePath().toString();
 
         String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
@@ -111,8 +111,9 @@ public class JMeterExecutorTest {
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
 
-        String testScript = Paths.get(resource.getPath(), "SolutionPattern22", "Tests", "JMeter", "solution22",
-                "src", "test", "jmeter", "nofile.jmx").toAbsolutePath().toString();
+        String testScript = Paths
+                .get(resource.getPath(), "SolutionPattern22", "Tests", "JMeter", "solution22", "jmeter", "nofile.jmx")
+                .toAbsolutePath().toString();
 
         String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
@@ -130,10 +131,12 @@ public class JMeterExecutorTest {
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
 
-        String testScript = Paths.get(resource.getPath(), "SolutionPattern22", "Tests", "JMeter", "solution22",
-                "src", "test", "jmeter").toAbsolutePath().toString();
+        String testScript = Paths
+                .get(resource.getPath(), "SolutionPattern22", "Tests", "JMeter", "solution22", "jmeter")
+                .toAbsolutePath().toString();
 
-        String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
+        String testLocation = Paths
+                .get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
         TestExecutor testExecutor = new JMeterExecutor();
         testExecutor.init(testLocation, "solution22", null);
