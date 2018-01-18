@@ -27,6 +27,7 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
+import org.wso2.testgrid.web.bean.TestPlanStatus;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 import org.wso2.testgrid.web.utils.Constants;
@@ -41,6 +42,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +57,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * REST service implementation of TestPlan
+ * REST service implementation of TestPlan.
  */
 @Path("/test-plans")
 @Produces(MediaType.APPLICATION_JSON)
@@ -124,9 +126,35 @@ public class TestPlanService {
     }
 
     /**
+     * This method returns the latest {@link TestPlan}s for a given product
+     * that contains the build details for distinct infrastructure combinations.
+     *
+     * @param productId the productId attribute for the product being queried
+     * @return list of {@link TestPlanStatus} as a JSON response.
+     */
+    @GET
+    @Path("/product/{productId}")
+    public Response getTestplans(@PathParam("productId") String productId) {
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        org.wso2.testgrid.common.Product product = new org.wso2.testgrid.common.Product();
+        product.setId(productId);
+        List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
+        List<TestPlanStatus> plans = new ArrayList<>();
+        for (TestPlan testPlan : testPlans) {
+            TestPlan lastFailure = testPlanUOW.getLastFailure(testPlan);
+            TestPlanStatus testPlanStatus = new TestPlanStatus();
+            testPlanStatus.setLastBuild(APIUtil.getTestPlanBean(testPlan, false));
+            testPlanStatus.setLastFailure(APIUtil.getTestPlanBean(lastFailure, false));
+            plans.add(testPlanStatus);
+        }
+        return Response.status(Response.Status.OK).entity(plans).build();
+    }
+
+    /**
      * This has the implementation of the REST API for creating a new Test plan.
-     * @param testPlanRequest  {@link TestPlanRequest} that includes the repository and other necessary detials
-     *                                                to create new test plan.
+     *
+     * @param testPlanRequest {@link TestPlanRequest} that includes the repository and other necessary detials
+     *                        to create new test plan.
      * @return A list of available TestPlans.
      */
     @POST
@@ -153,14 +181,15 @@ public class TestPlanService {
 
     /**
      * Save the {@link TestPlanRequest} object as a YAML file.
+     *
      * @param testPlanRequest TestPlanRequest needs to be saved.
      * @throws TestGridException thrown when error occurred;
-     *              1.If file directory (which is not existing) can not be created.
-     *              2.If IOException occured while writing YAML file.
-     *              3.If the YAML file already exists.
+     *                           1.If file directory (which is not existing) can not be created.
+     *                           2.If IOException occured while writing YAML file.
+     *                           3.If the YAML file already exists.
      */
     private void persistAsYamlFile(TestPlanRequest testPlanRequest) throws TestGridException {
-        java.nio.file.Path path = Paths.get(Constants.TESTPLANS_DIR , testPlanRequest.getTestPlanName());
+        java.nio.file.Path path = Paths.get(Constants.TESTPLANS_DIR, testPlanRequest.getTestPlanName());
 
         if (!Files.exists(path)) {
             try {

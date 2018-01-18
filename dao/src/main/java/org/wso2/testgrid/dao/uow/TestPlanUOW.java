@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.dao.uow;
 
+import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -25,6 +27,7 @@ import org.wso2.testgrid.dao.repository.TestPlanRepository;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 
 /**
@@ -79,17 +82,71 @@ public class TestPlanUOW {
         return Optional.of(testPlan);
     }
 
-
     /**
      * Returns a list of {@link TestPlan} instances for the given deployment-pattern-id and date.
      *
      * @param deploymentId id of the associated deployment-pattern
-     * @param date created before date
+     * @param date         created before date
      * @return matching {@link TestPlan} instances
      * @throws TestGridDAOException thrown when error on retrieving results
      */
     public List<TestPlan> getTestPlansByDeploymentIdAndDate(String deploymentId, Timestamp date) throws
             TestGridDAOException {
         return testPlanRepository.findByDeploymentPatternAndDate(deploymentId, date);
+    }
+
+    /**
+     * Returns a {@link TestPlan} object representing the last failed build for a product.
+     *
+     * @param product the product being queried
+     * @return a TestPlan object for last failed build
+     */
+    public TestPlan getLastFailure(Product product) {
+        return testPlanRepository.getLastFailure(product);
+    }
+
+    /**
+     * Returns a {@link TestPlan} object representing the last build for a given product.
+     *
+     * @param product the product being queried
+     * @return a TestPlan object for last build
+     */
+    public TestPlan getLastBuild(Product product) {
+        return testPlanRepository.getLastBuild(product);
+    }
+
+    /**
+     * Returns a final Status for a product after considering all distinct infrastructure combination
+     * statuses.
+     *
+     * @param product the product being queried
+     * @return a {@link Status} for the product
+     */
+    public Status getCurrentStatus(Product product) {
+        List<TestPlan> testPlans = testPlanRepository.getLatestTestPlans(product);
+        List<TestPlan> succesfulPlans = testPlans.stream().filter(testPlan ->
+                testPlan.getStatus().equals(Status.SUCCESS)
+        ).collect(Collectors.toList());
+        return succesfulPlans.size() == testPlans.size() ? Status.SUCCESS : Status.FAIL;
+    }
+
+    /**
+     * Returns a list of latest TestPlans for a given product.
+     *
+     * @param product the product being queried
+     * @return a list of {@link TestPlan}s for latest builds
+     */
+    public List<TestPlan> getLatestTestPlans(Product product) {
+        return testPlanRepository.getLatestTestPlans(product);
+    }
+
+    /**
+     * Returns the latest failed TestPlan for a given infrastructure type.
+     *
+     * @param testPlan TestPlan representing a distinct infrastructure combination
+     * @return a {@link TestPlan} for the latest failed build
+     */
+    public TestPlan getLastFailure(TestPlan testPlan) {
+        return testPlanRepository.getLastFailure(testPlan);
     }
 }

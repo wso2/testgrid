@@ -18,6 +18,7 @@
 package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.SortOrder;
@@ -35,6 +36,7 @@ import javax.persistence.Query;
  * @since 1.0.0
  */
 public class TestPlanRepository extends AbstractRepository<TestPlan> {
+
 
     /**
      * Constructs an instance of the repository class.
@@ -115,7 +117,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * Returns a list of distinct {@link TestPlan} instances for given deploymentId and created before given date.
      *
      * @param deploymentId deployment id of the required TestPlans
-     * @param date created before date
+     * @param date         created before date
      * @return a list of {@link TestPlan} instances for given deploymentId and created after given date
      */
     public List<TestPlan> findByDeploymentPatternAndDate(String deploymentId, Timestamp date) throws
@@ -131,6 +133,96 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL" +
                     " query [", queryStr, "]"), e);
+        }
+    }
+
+    /**
+     * This method returns the last failed {@link TestPlan} for a given product.
+     *
+     * @param product A Product object being queried.
+     * @return instance of a {@link TestPlan} representing the last failed test plan.
+     */
+    public TestPlan getLastFailure(Product product) {
+        String sql = "SELECT  t.* from test_plan t INNER JOIN (SELECT tp.infra_parameters," +
+                "max(tp.modified_timestamp) AS time, dp.name FROM test_plan tp INNER JOIN " +
+                "deployment_pattern dp ON tp.DEPLOYMENTPATTERN_id=dp.id AND tp.status='FAIL' " +
+                "AND  tp.DEPLOYMENTPATTERN_id IN (SELECT id FROM deployment_pattern WHERE " +
+                "PRODUCT_id = ?) GROUP BY tp.infra_parameters,dp.name) as x ON " +
+                "t.infra_parameters=x.infra_parameters AND t.modified_timestamp=x.time ORDER BY time DESC LIMIT 1";
+
+        List resultList = entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, product.getId())
+                .getResultList();
+        if (!resultList.isEmpty()) {
+            return (TestPlan) resultList.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * This method returns the last build TestPlan for a given product.
+     *
+     * @param product the product being queried
+     * @return instance of {@link TestPlan} for the last build
+     */
+    public TestPlan getLastBuild(Product product) {
+        String sql = "select  t.* from test_plan t inner join (select tp.infra_parameters," +
+                "max(tp.modified_timestamp) AS time, dp.name from test_plan tp inner join " +
+                "deployment_pattern dp on tp.DEPLOYMENTPATTERN_id=dp.id and  tp.DEPLOYMENTPATTERN_id " +
+                "in (select id from deployment_pattern where PRODUCT_id=?)" +
+                "group by tp.infra_parameters,dp.name) AS x on t.infra_parameters=x.infra_parameters " +
+                "AND t.modified_timestamp=x.time order by time desc limit 1";
+
+        List resultList = entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, product.getId())
+                .getResultList();
+        if (!resultList.isEmpty()) {
+            return (TestPlan) resultList.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * This method retrives a list of TestPlans for a given product that represent the latest builds for
+     * distinct infra combinations.
+     *
+     * @param product the product being queried
+     * @return a list of {@link TestPlan}
+     */
+    public List<TestPlan> getLatestTestPlans(Product product) {
+        String sql = "select t.* from test_plan t inner join (select tp.infra_parameters," +
+                "max(tp.modified_timestamp) AS time, dp.name from test_plan tp inner join " +
+                "deployment_pattern dp on tp.DEPLOYMENTPATTERN_id=dp.id  and tp.DEPLOYMENTPATTERN_id in " +
+                "(select id from deployment_pattern where PRODUCT_id= ? ) " +
+                "group by tp.infra_parameters,dp.name) as x on t.infra_parameters=x.infra_parameters " +
+                "AND t.modified_timestamp=x.time;";
+
+        return (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, product.getId())
+                .getResultList();
+    }
+
+    /**
+     * This method finds the last failed build for a given infrastructure combination of a TestPlan.
+     *
+     * @param testPlan the TestPlan containing the infrastructure combination
+     * @return a {@link TestPlan} representing the last failed build
+     */
+    public TestPlan getLastFailure(TestPlan testPlan) {
+        String sql = "select * from test_plan where infra_parameters= ?  AND DEPLOYMENTPATTERN_id=? " +
+                " AND status='FAIL' order by modified_timestamp desc limit 1";
+
+        List resultList = entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, testPlan.getInfraParameters())
+                .setParameter(2, testPlan.getDeploymentPattern().getId())
+                .getResultList();
+
+        if (!resultList.isEmpty()) {
+            return (TestPlan) resultList.get(0);
+        } else {
+            return null;
         }
     }
 }

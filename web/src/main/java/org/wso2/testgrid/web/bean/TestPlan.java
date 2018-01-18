@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.web.bean;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -31,6 +32,8 @@ public class TestPlan {
     private String infraParams;
     private List<TestScenario> testScenarios;
     private String logLocation;
+    private Timestamp createdTimestamp;
+    private Timestamp modifiedTimestamp;
 
     /**
      * Returns the id of the test-plan.
@@ -156,5 +159,47 @@ public class TestPlan {
      */
     public void setLogLocation(String logLocation) {
         this.logLocation = logLocation;
+    }
+
+    /**
+     * Returns the create timestamp for this test-plan.
+     *
+     * @return create timestamp for this test-plan
+     */
+    public Timestamp getCreatedTimestamp() {
+
+        return createdTimestamp == null ? null : (Timestamp) createdTimestamp.clone();
+    }
+
+    /**
+     * Sets the created timestamp for this test-plan.
+     *
+     * @param createdTimestamp timestamp value to be set
+     */
+    public void setCreatedTimestamp(Timestamp createdTimestamp) {
+        if (createdTimestamp != null) {
+            this.createdTimestamp = (Timestamp) createdTimestamp.clone();
+        }
+
+    }
+
+    /**
+     * Returns the modified timestamp for this test-plan.
+     *
+     * @return modified timestamp value for this test-plan
+     */
+    public Timestamp getModifiedTimestamp() {
+        return modifiedTimestamp == null ? null : (Timestamp) modifiedTimestamp.clone();
+    }
+
+    /**
+     * Sets the modified timestamp for this test-plan.
+     *
+     * @param modifiedTimestamp timestamp value to be set
+     */
+    public void setModifiedTimestamp(Timestamp modifiedTimestamp) {
+        if (modifiedTimestamp != null) {
+            this.modifiedTimestamp = (Timestamp) modifiedTimestamp.clone();
+        }
     }
 }

@@ -29,11 +29,17 @@ class SingleRecord extends Component {
   render() {
     if (this.props.value === 'SUCCESS' || this.props.value=== true) {
       return (
-        <img src={require('../success.png')} width="36" height="36" onClick={this.props.nevigate} style={{ cursor: 'pointer' }} alt='Succesful' />
+        <div style={{"fontSize": "16px"}}>
+          <img src={require('../success.png')} width="28" height="28" onClick={this.props.nevigate} style={{ cursor: 'pointer' }} alt='Succesful' />
+          <i> {this.props.time}</i>
+        </div>
       )
     } else {
       return (
-        <img src={require('../close.png')} width="36" height="36" onClick={this.props.nevigate} style={{ cursor: 'pointer' }} alt='Failed' />
+        <div style={{"fontSize": "16px",cursor:"pointer"}}>
+        <img src={require('../close.png')} width="28" height="28" onClick={this.props.nevigate} style={{ cursor: 'pointer' }} alt='Failed' />
+        <i> {this.props.time}</i>
+        </div>
       )
     }
   }

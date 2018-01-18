@@ -29,6 +29,8 @@ import {
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
 import { add_current_deployment } from '../actions/testGridActions.js';
+import Moment from 'moment'
+import ReactTooltip from 'react-tooltip'
 
 class DeploymentPatternView extends Component {
 
@@ -40,9 +42,7 @@ class DeploymentPatternView extends Component {
   }
 
   componentDidMount() {
-    var url = '/testgrid/v0.9/api/deployment-patterns/recent-test-info?productId='
-    +this.props.active.reducer.currentProduct.productId+'&date='+this.props.active.reducer.currentProduct.productDate;
-
+     var url = '/testgrid/v0.9/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
     fetch(url, {
       mode: 'cors',
       method: "GET",
@@ -50,46 +50,76 @@ class DeploymentPatternView extends Component {
         'Accept': 'application/json'
       }
     }).then(response => {
-      console.log(response);
-      if(response.ok){
+      if (response.ok) {
         return response.json();
       }
     })
       .then(data => this.setState({ hits: data }));
   }
 
-  nevigateToRoute(route, deployment) {
+  navigateToRoute(route, deployment) {
     this.props.dispatch(add_current_deployment(deployment));
     this.props.history.push(route);
   }
 
+
   render() {
-    console.log(this.state);
+    var x = {};
+    this.state.hits.map((value, index) => {
+      if (x[value.lastBuild.deploymentPattern] == undefined) {
+        x[value.lastBuild.deploymentPattern] = [{ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure }]
+      } else {
+        x[value.lastBuild.deploymentPattern].push({ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure })
+      }
+    })
     return (
       <div>
-        <Subheader style={{ fontSize: '20px' }} > <i> {this.props.active.reducer.currentProduct.productName+" "} 
-           {this.props.active.reducer.currentProduct.productVersion} {this.props.active.reducer.currentProduct.productChannel} </i> </Subheader>
-        <Table>
-          <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
+        <Subheader style={{ fontSize: '20px' }} > <i> {this.props.active.reducer.currentProduct.productName + " "} </i> </Subheader>
+        <Table fixedHeader={false} style={{ tableLayout: 'auto' }}>
+          <TableHeader displaySelectAll={false} adjustForCheckbox={false} >
             <TableRow>
-              <TableHeaderColumn><h2>Deployment</h2></TableHeaderColumn>
-              <TableHeaderColumn><h2>Status</h2></TableHeaderColumn>
+              <TableHeaderColumn ><h2>Deployment Pattern</h2></TableHeaderColumn>
+              <TableHeaderColumn><h2>Infra Combination</h2></TableHeaderColumn>
+              <TableHeaderColumn><h2>Last Build</h2></TableHeaderColumn>
+              <TableHeaderColumn><h2>Last Failure</h2></TableHeaderColumn>
+              <TableHeaderColumn><h2>Execute</h2></TableHeaderColumn>
             </TableRow>
           </TableHeader>
           <TableBody displayRowCheckbox={false}>
-            {this.state.hits.map((data, index) => {
-              return (<TableRow key={index}>
-                <TableRowColumn>
-                  <h4>{data.name}</h4></TableRowColumn>
-                <TableRowColumn><SingleRecord value={data.testStatus}
-                  nevigate={() => this.nevigateToRoute("/testgrid/v0.9/infrastructures/deployment/" + data.id, {
-                    deploymentId: data.id,
-                    deploymentName: data.name,
-                    deploymentDescription: data.description,
-                  })}
+            {Object.keys(x).map((key) => {
+              return (
+                x[key].map((value, index) => {
+                  if (index == 0) {
+                    return (
+                      <TableRow>
+                        <TableRowColumn rowSpan={x[key].length}>{key}</TableRowColumn>
+                        <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>{value.lastBuild.infraParams}</TableRowColumn>
+                        <TableRowColumn ><SingleRecord value={value.lastBuild.status} time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
+                        /> </TableRowColumn>
+                        <TableRowColumn ><SingleRecord value={value.lastFailed.status}
+                          time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
+                        /> </TableRowColumn>
+                        <TableRowColumn> <img  src={require('../play.png')} width="48" height="48" data-tip="Execute Job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }}/><ReactTooltip /></TableRowColumn>
+                      </TableRow>
 
-                /></TableRowColumn>
-              </TableRow>)
+                    )
+                  } else {
+                    return (
+
+                      <TableRow>
+                        <TableRowColumn >{value.lastBuild.infraParams}</TableRowColumn>
+                        <TableRowColumn ><SingleRecord value={value.lastBuild.status}
+                             time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
+                        /> </TableRowColumn>
+                        <TableRowColumn ><SingleRecord value={value.lastFailed.status}
+                           time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
+                        /> </TableRowColumn>
+                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job"  onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }}/><ReactTooltip /></TableRowColumn>
+                      </TableRow>
+                    )
+                  }
+                })
+              )
             })}
           </TableBody>
         </Table>

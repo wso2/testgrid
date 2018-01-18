@@ -21,21 +21,14 @@ package org.wso2.testgrid.web.api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
-import org.wso2.testgrid.common.ProductTestStatus;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
-import org.wso2.testgrid.web.bean.TestStatus;
+import org.wso2.testgrid.web.bean.ProductStatus;
 
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -131,76 +124,35 @@ public class ProductService {
     }
 
     /**
-     * This has the implementation of the REST API for fetching Product info with the test history.
+     * This method returns the list of products that are currently in TestGrid.
+     * <p>
+     * <p> The products are returned as a json response with the last build information and
+     * the last failed build information<p/>
      *
-     * @param date number of dates the history should be given
-     * @return Product list with recent test status.
+     * @return list of products
      */
     @GET
-    @Path("/test-status")
-    public Response getProductsWithRecentTestStatus(@QueryParam("date") String date) {
+    @Path("/product-status")
+    public Response getAllProductStatuses() {
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        ProductUOW productUOW = new ProductUOW();
+        ArrayList<ProductStatus> list = new ArrayList<>();
         try {
-            ProductUOW productUOW = new ProductUOW();
-            //Get the history of all products
-            DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-            Date parsedDate = null;
-            try {
-                parsedDate = dateFormat.parse(date);
-            } catch (ParseException e) {
-                return Response.status(Response.Status.BAD_REQUEST).entity(
-                        new ErrorResponse.ErrorResponseBuilder().setMessage("Invalid date format.").build()).build();
+            for (Product product : productUOW.getProducts()) {
+                ProductStatus status = new ProductStatus();
+                status.setId(product.getId());
+                status.setName(StringUtil.concatStrings(product.getName(), product.getVersion(), product.getChannel()));
+                status.setLastfailed(APIUtil.getTestPlanBean(testPlanUOW.getLastFailure(product), false));
+                status.setLastBuild(APIUtil.getTestPlanBean(testPlanUOW.getLastBuild(product), false));
+                status.setStatus(testPlanUOW.getCurrentStatus(product).toString());
+                list.add(status);
             }
-            List<ProductTestStatus> productTestStatuses = productUOW.
-                    getProductTestHistory(new Timestamp(parsedDate.getTime()));
-
-            ProductTestStatus status;
-            Map<String, String> productStatuses = new HashMap<>();
-            //Iterate through available product information to populate statuses
-            Iterator<ProductTestStatus> itr = productTestStatuses.iterator();
-            while (itr.hasNext()) {
-                status = itr.next();
-                productStatuses.put(this.generateKey(status), status.getStatus());
-            }
-
-            org.wso2.testgrid.web.bean.ProductTestStatus testStatusBean;
-            TestStatus testStatus;
-            Map<String, org.wso2.testgrid.web.bean.ProductTestStatus> products = new HashMap<>();
-            String key, productId, strDate;
-            for (Map.Entry<String, String> entry : productStatuses.entrySet()) {
-                key = entry.getKey();
-
-                testStatusBean = new org.wso2.testgrid.web.bean.ProductTestStatus(key);
-                //Extract the product-id
-                productId = key.substring(0, key.indexOf(DELIMITER));
-                //Extract the test-date
-                strDate = key.substring(key.lastIndexOf(DELIMITER) + 1);
-
-                if (!products.containsKey(productId)) {
-                    products.put(productId, testStatusBean);
-                }
-
-                testStatus = new TestStatus();
-                testStatus.setDate(strDate);
-                testStatus.setStatus(entry.getValue());
-
-                org.wso2.testgrid.web.bean.ProductTestStatus productTestStatus = products.get(productId);
-                productTestStatus.getTestStatuses().add(testStatus);
-                products.put(productId, productTestStatus);
-            }
-
-            return Response.status(Response.Status.OK).entity(products.values()).build();
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the Products with test info.";
+            String msg = "Error occurred while fetching the Product statuses ";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
-    }
-
-    private String generateKey (ProductTestStatus status) {
-        Date date = new Date(status.getTestExecutionTime().getTime());
-        return new StringBuilder().append(status.getId() + DELIMITER).append(status.getName() + DELIMITER).
-                append(status.getVersion() + DELIMITER).append(status.getChannel() + DELIMITER).
-                append(new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(date)).toString();
+        return Response.status(Response.Status.OK).entity(list).build();
     }
 }
