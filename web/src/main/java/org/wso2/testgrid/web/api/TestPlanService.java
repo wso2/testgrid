@@ -18,14 +18,20 @@
 
 package org.wso2.testgrid.web.api;
 
+import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.TestPlanStatus;
+import org.wso2.testgrid.web.bean.TestPlanRequest;
+import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
+import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -34,7 +40,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -50,7 +58,8 @@ import javax.ws.rs.core.Response;
 public class TestPlanService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
-
+    JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
+    JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
     /**
      * This has the implementation of the REST API for fetching all the TestPlans for a given deployment-pattern
      * and created before date.
@@ -59,14 +68,11 @@ public class TestPlanService {
      */
     @GET
     public Response getTestPlansForDeploymentPatternAndDate(@QueryParam("deployment-pattern-id")
-                                                                    String deploymentPatternId,
-                                                            @QueryParam("date")
-                                                                    String date,
-                                                            @QueryParam("require-test-scenario-info")
-                                                                    boolean requireTestScenarioInfo) {
+                                           String deploymentPatternId, @QueryParam("date") String date,
+                                           @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-            Date parsedDate = null;
+            Date parsedDate;
             try {
                 parsedDate = dateFormat.parse(date);
             } catch (ParseException e) {
@@ -143,6 +149,33 @@ public class TestPlanService {
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
+     * This has the implementation of the REST API for creating a new Test plan.
+     * @param testPlanRequest  {@link TestPlanRequest} that includes the repository and other necessary detials
+     *                                                to create new test plan.
+     * @return A list of available TestPlans.
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createTestPlan(TestPlanRequest testPlanRequest) {
+        try {
+            String configXml = jenkinsJobConfigurationProvider.getConfiguration(testPlanRequest);
+            return Response.status(Response.Status.CREATED).
+                    entity(jenkinsPipelineManager.
+                            createNewPipelineJob(configXml, testPlanRequest.getTestPlanName())).
+                    type(MediaType.TEXT_PLAIN).build();
+        } catch (TestGridException | IOException e) {
+            String msg = "Error occurred while creating new test plan named : '" +
+                    testPlanRequest.getTestPlanName() + "'.";
+            logger.error(msg, e);
+            return Response.serverError().entity(
+                    new ErrorResponse.ErrorResponseBuilder().
+                            setMessage(msg).
+                            setCode(HttpStatus.SC_SERVER_ERROR).
+                            setDescription(e.getMessage()).build()).build();
         }
     }
 }
