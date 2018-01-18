@@ -338,6 +338,11 @@
                 <artifactId>jackson-annotations</artifactId>
                 <version>${com.fasterxml.jackson.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
+                <version>${com.fasterxml.jackson.version}</version>
+            </dependency>
 
             <!-- GlassFish dependencies-->
             <dependency>

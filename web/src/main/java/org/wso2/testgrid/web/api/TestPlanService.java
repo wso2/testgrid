@@ -18,6 +18,8 @@
 
 package org.wso2.testgrid.web.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,9 @@ import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
+import org.wso2.testgrid.web.utils.Constants;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -128,10 +132,11 @@ public class TestPlanService {
     public Response createTestPlan(TestPlanRequest testPlanRequest) {
         try {
             String configXml = jenkinsJobConfigurationProvider.getConfiguration(testPlanRequest);
+            String jobSpecificUrl = jenkinsPipelineManager.
+                    createNewPipelineJob(configXml, testPlanRequest.getTestPlanName());
+            persistAsYamlFile(testPlanRequest);
             return Response.status(Response.Status.CREATED).
-                    entity(jenkinsPipelineManager.
-                            createNewPipelineJob(configXml, testPlanRequest.getTestPlanName())).
-                    type(MediaType.TEXT_PLAIN).build();
+                    entity(jobSpecificUrl).type(MediaType.TEXT_PLAIN).build();
         } catch (TestGridException | IOException e) {
             String msg = "Error occurred while creating new test plan named : '" +
                     testPlanRequest.getTestPlanName() + "'.";
@@ -141,6 +146,41 @@ public class TestPlanService {
                             setMessage(msg).
                             setCode(HttpStatus.SC_SERVER_ERROR).
                             setDescription(e.getMessage()).build()).build();
+        }
+    }
+
+    /**
+     * Save the {@link TestPlanRequest} object as a YAML file.
+     * @param testPlanRequest TestPlanRequest needs to be saved.
+     * @throws TestGridException thrown when error occurred;
+     *              1.If file directory (which is not existing) can not be created.
+     *              2.If IOException occured while writing YAML file.
+     *              3.If the YAML file already exists.
+     */
+    private void persistAsYamlFile(TestPlanRequest testPlanRequest) throws TestGridException {
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        String path = Constants.TESTPLANS_DIR + testPlanRequest.getTestPlanName();
+
+        File directory = new File(path);
+        File yamlFile = new File(path + File.separator + testPlanRequest.getTestPlanName() + ".yml");
+
+        if (!directory.exists()) {
+            if (!directory.mkdir()) {
+                throw new TestGridException("Can not create directory to save YAML file of the test-plan " +
+                        testPlanRequest.getTestPlanName() + ".");
+            }
+        }
+
+        if (!yamlFile.exists()) {
+            try {
+                mapper.writeValue(yamlFile, testPlanRequest);
+            } catch (IOException e) {
+                throw new TestGridException("Error occured when writing YAML file for test-plan " +
+                        testPlanRequest.getTestPlanName() + ".");
+            }
+        } else {
+            throw new TestGridException("A YAML file already exists for test-plan " +
+                    testPlanRequest.getTestPlanName() + ".");
         }
     }
 }
