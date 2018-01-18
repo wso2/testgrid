@@ -18,6 +18,7 @@
 package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.SortOrder;
@@ -115,7 +116,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * Returns a list of distinct {@link TestPlan} instances for given deploymentId and created before given date.
      *
      * @param deploymentId deployment id of the required TestPlans
-     * @param date created before date
+     * @param date         created before date
      * @return a list of {@link TestPlan} instances for given deploymentId and created after given date
      */
     public List<TestPlan> findByDeploymentPatternAndDate(String deploymentId, Timestamp date) throws
@@ -132,5 +133,99 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
             throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL" +
                     " query [", queryStr, "]"), e);
         }
+    }
+
+
+    /**
+     * This method returns the last failed {@link TestPlan} for a given product.
+     *
+     * @param product A Product object being queried.
+     * @return instance of a {@link TestPlan} representing the last failed test plan.
+     * @throws TestGridDAOException when an error occurs while executing the native sql query.
+     */
+    public TestPlan getLastFailure(Product product) throws TestGridDAOException {
+        String sql = "SELECT  t.* from test_plan t INNER JOIN (SELECT tp.infra_parameters," +
+                "max(tp.modified_timestamp) AS time, dp.name FROM test_plan tp INNER JOIN " +
+                "deployment_pattern dp ON tp.DEPLOYMENTPATTERN_id=dp.id AND tp.status='FAIL' " +
+                "AND  tp.DEPLOYMENTPATTERN_id IN (SELECT id FROM deployment_pattern WHERE " +
+                "PRODUCT_id='" + product.getId() + "') GROUP BY tp.infra_parameters,dp.name) AS x ON " +
+                "t.infra_parameters=x.infra_parameters AND t.modified_timestamp=x.time ORDER BY time DESC LIMIT 1";
+        try {
+            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class).getSingleResult();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings(" Error occured while executing the SQL " +
+                    "query [", sql, "]"), e);
+        }
+    }
+
+    /**
+     * This method returns the last build TestPlan for a given product.
+     *
+     * @param product the product being queried
+     * @return instance of {@link TestPlan} for the last build
+     * @throws TestGridDAOException when an error occurs executing the native query
+     */
+    public TestPlan getLastBuild(Product product) throws TestGridDAOException {
+        String sql = "select  t.* from test_plan t inner join (select tp.infra_parameters," +
+                "max(tp.modified_timestamp) AS time, dp.name from test_plan tp inner join " +
+                "deployment_pattern dp on tp.DEPLOYMENTPATTERN_id=dp.id and  tp.DEPLOYMENTPATTERN_id " +
+                "in (select id from deployment_pattern where PRODUCT_id='" + product.getId() + "')" +
+                "group by tp.infra_parameters,dp.name) AS x on t.infra_parameters=x.infra_parameters " +
+                "AND t.modified_timestamp=x.time order by time desc limit 1";
+
+        try {
+            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class).getSingleResult();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error occured while executing SQL " +
+                    "query [ ", sql, " ]"), e);
+        }
+
+
+    }
+
+    /**
+     * This method retrives a list of TestPlans for a given product that represent the latest builds for
+     * distinct infra combinations.
+     *
+     * @param product the product being queried
+     * @return a list of {@link TestPlan}
+     * @throws TestGridDAOException when an error occurs while executing the native query
+     */
+    public List<TestPlan> getLatestTestPlans(Product product) throws TestGridDAOException {
+        String sql = "select t.* from test_plan t inner join (select tp.infra_parameters," +
+                "max(tp.modified_timestamp) AS time, dp.name from test_plan tp inner join " +
+                "deployment_pattern dp on tp.DEPLOYMENTPATTERN_id=dp.id  and tp.DEPLOYMENTPATTERN_id in " +
+                "(select id from deployment_pattern where PRODUCT_id='" + product.getId() + "') " +
+                "group by tp.infra_parameters,dp.name) as x on t.infra_parameters=x.infra_parameters " +
+                "AND t.modified_timestamp=x.time;";
+
+        try {
+            return (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class).getResultList();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error occured while " +
+                    "executing SQL query [ ", sql, " ]"), e);
+        }
+
+    }
+
+    /**
+     * This method finds the last failed build for a given infrastructure combination of a TestPlan.
+     *
+     * @param testPlan the TestPlan containing the infrastructure combination
+     * @return a {@link TestPlan} representing the last failed build
+     * @throws TestGridDAOException when an error occurs while executing the native query
+     */
+    public TestPlan getLastFailure(TestPlan testPlan) throws TestGridDAOException {
+        String sql = "select * from test_plan where infra_parameters='" + testPlan.getInfraParameters() +
+                "' AND DEPLOYMENTPATTERN_id='"
+                + testPlan.getDeploymentPattern().getId() + "'" +
+                " AND status='FAIL' order by modified_timestamp desc limit 1";
+        try {
+            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class).getSingleResult();
+        } catch (Exception e) {
+            throw new TestGridDAOException(StringUtil.concatStrings("Error occured while " +
+                    "executing SQL query [ ", sql, " ]"), e);
+        }
+
     }
 }

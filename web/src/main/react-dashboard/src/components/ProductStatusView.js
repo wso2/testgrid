@@ -27,82 +27,78 @@ import {
   TableRowColumn,
 } from 'material-ui/Table';
 import SingleRecord from './SingleRecord.js';
-import {add_current_product} from '../actions/testGridActions.js';
+import { add_current_product } from '../actions/testGridActions.js';
+import Moment from 'moment'
 
 class ProductStatusView extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      hits: [{
-        testStatuses:[]
-      }]
+      hits: []
     };
   }
 
   componentDidMount() {
-    var url = '/testgrid/v0.9/api/products/test-status?date=2017-12-20'
-
+    var url = '/testgrid/v0.9/api/products/product-status'
     fetch(url, {
       method: "GET",
       headers: {
         'Accept': 'application/json'
       }
     }).then(response => {
-    
+
       return response.json();
     })
       .then(data => this.setState({ hits: data }));
   }
 
-  nevigateToRoute(route,product){
-    this.props.dispatch(add_current_product(product) );
+  nevigateToRoute(route, product) {
+    this.props.dispatch(add_current_product(product));
     this.props.history.push(route);
   }
 
-  render() {  
-    console.log(this.state);
-    const dates = this.state.hits[0].testStatuses.map((value,index)=>{
-      return <TableHeaderColumn key={index}>{value.date.split(' ')[0]}</TableHeaderColumn>
-     });
-   
-    const ptp = this.state.hits.map((value, index) => {
+  render() {
+    const products = this.state.hits.map((product, index) => {
       return (<TableRow key={index}>
-        <TableRowColumn><h2>{value.name}</h2></TableRowColumn>
-        <TableRowColumn><h3>{value.version}</h3></TableRowColumn>
-        <TableRowColumn><h3>{value.channel}</h3></TableRowColumn>
-        <TableRowColumn><h3><a href="http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/blue/organizations/jenkins/wso2is-5.4.0%2F01-single-node-deployment-pattern/detail/01-single-node-deployment-pattern/230/pipeline">
-        <img src={require('../log.png')}  width="30" height="30"/></a></h3></TableRowColumn>
-        <TableRowColumn><h3><a href="http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/job/wso2is-5.4.0/job/01-single-node-deployment-pattern/HTML_Report/wso2is-5.4.0-LTS.html">
-        <img src={require('../report.png')}  width="30" height="30"/></a></h3></TableRowColumn>
-        {value.testStatuses.map((data, index2) => {
-          return (<TableRowColumn key={index2} > <SingleRecord value={data.status} 
-          nevigate = {()=>this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + value.id + "/date/" + data.date,{
-            productDate:data.date,
-            productId: value.id ,
-            productName:value.name,
-            productVersion:value.version,
-            productChannel:value.channel,
-          })}
-          /></TableRowColumn>);
-        })}
-      </TableRow>);
-    })
+        <TableRowColumn> <img src={require('../close.png')} width="40" height="40" /></TableRowColumn>
+        <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
+          productId: product.id,
+          productName: product.name,
+        })}><i>{product.name}</i></h2></TableRowColumn>
+        <TableRowColumn> <SingleRecord value={product.status}
+          nevigate={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/", {
+            productId: product.id,
+            productName: product.name,
+          })} time={Moment(product.lastBuild.modifiedTimestamp).fromNow()}
+        /></TableRowColumn>
+        <TableRowColumn>
+          <h4 onClick={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
+            productId: product.id,
+            productName: product.name,
+          })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastfailed.modifiedTimestamp).fromNow()} </h4>
+        </TableRowColumn>
+        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" /></TableRowColumn>
+        <TableRowColumn ><img src={require('../configure.png')} width="36" height="36" style={{ cursor: 'pointer' }}
+          onClick={() => { window.location = 'https://testgrid-live-dev.private.wso2.com/job/wso2is-5.4.0/job/01-single-node-deployment-pattern/configure' }} />
+        </TableRowColumn>
+      </TableRow>)
+    });
 
     return (
-      <Table>
+      <Table >
         <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
           <TableRow>
-            <TableHeaderColumn><h1>Product</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Version</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Channel</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Logs</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Report</h1> </TableHeaderColumn>
-            {dates}
+            <TableHeaderColumn><h1>Status</h1> </TableHeaderColumn>
+            <TableHeaderColumn><h1>Job</h1> </TableHeaderColumn>
+            <TableHeaderColumn><h1>Latest Status</h1> </TableHeaderColumn>
+            <TableHeaderColumn><h1>Last Failure</h1> </TableHeaderColumn>
+            <TableHeaderColumn><h1>Execute</h1> </TableHeaderColumn>
+            <TableHeaderColumn><h1>Configure</h1> </TableHeaderColumn>
           </TableRow>
         </TableHeader>
         <TableBody displayRowCheckbox={false}>
-          {ptp}
+          {products}
         </TableBody>
       </Table>
     )

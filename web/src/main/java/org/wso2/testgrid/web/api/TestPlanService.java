@@ -24,11 +24,13 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
+import org.wso2.testgrid.web.bean.TestPlanStatus;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +43,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * REST service implementation of TestPlan
+ * REST service implementation of TestPlan.
  */
 @Path("/test-plans")
 @Produces(MediaType.APPLICATION_JSON)
@@ -57,8 +59,11 @@ public class TestPlanService {
      */
     @GET
     public Response getTestPlansForDeploymentPatternAndDate(@QueryParam("deployment-pattern-id")
-                                           String deploymentPatternId, @QueryParam("date") String date,
-                                           @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
+                                                                    String deploymentPatternId,
+                                                            @QueryParam("date")
+                                                                    String date,
+                                                            @QueryParam("require-test-scenario-info")
+                                                                    boolean requireTestScenarioInfo) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             Date parsedDate = null;
@@ -102,6 +107,39 @@ public class TestPlanService {
             }
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError().entity(
+                    new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
+     * This method returns the latest {@link TestPlan}s for a given product
+     * that contains the build details for distinct infrastructure combinations.
+     *
+     * @param productId the productId attribute for the product being queried
+     * @return list of {@link TestPlanStatus} as a JSON response.
+     */
+    @GET
+    @Path("/product/{productId}")
+    public Response getTestplans(@PathParam("productId") String productId) {
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        org.wso2.testgrid.common.Product product = new org.wso2.testgrid.common.Product();
+        product.setId(productId);
+
+        try {
+            List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
+            List<TestPlanStatus> plans = new ArrayList<>();
+            for (TestPlan testPlan : testPlans) {
+                TestPlan lastFailure = testPlanUOW.getLastFailure(testPlan);
+                TestPlanStatus testPlanStatus = new TestPlanStatus();
+                testPlanStatus.setLastBuild(APIUtil.getTestPlanBean(testPlan, false));
+                testPlanStatus.setLastFailure(APIUtil.getTestPlanBean(lastFailure, false));
+                plans.add(testPlanStatus);
+            }
+            return Response.status(Response.Status.OK).entity(plans).build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the TestPlans for productId : '" + productId + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();

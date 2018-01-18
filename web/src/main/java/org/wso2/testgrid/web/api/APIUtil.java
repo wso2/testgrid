@@ -117,7 +117,7 @@ class APIUtil {
     }
 
     /**
-     * Util method to convert {@link org.wso2.testgrid.common.TestPlan} instance to a {@link TestPlan} instance
+     * Util method to convert {@link org.wso2.testgrid.common.TestPlan} instance to a {@link TestPlan} instance.
      *
      * @param testPlan {@link org.wso2.testgrid.common.TestPlan} instance to be converted
      * @param requireTestScenarios boolean flag to indicate whether to include test-scenario info
@@ -130,6 +130,8 @@ class APIUtil {
         testPlan1.setDeploymentPatternId(testPlan.getDeploymentPattern().getId());
         testPlan1.setInfraParams(testPlan.getInfraParameters());
         testPlan1.setStatus(testPlan.getStatus().toString());
+        testPlan1.setCreatedTimestamp(testPlan.getCreatedTimestamp());
+        testPlan1.setModifiedTimestamp(testPlan.getModifiedTimestamp());
         if (requireTestScenarios) {
             testPlan1.setTestScenarios(getTestScenarioBeans(testPlan.getTestScenarios(), false));
         }

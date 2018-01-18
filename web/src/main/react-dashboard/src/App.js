@@ -76,17 +76,15 @@ class App extends Component {
           <MuiThemeProvider>
             <div style={{ position: 'absolute', top: '0px', right: '0px', bottom: '0px', left: '0px', backgroundColor: '#EEEEEE' }}>
               <AppBar title=" WSO2 TestGrid " style={{
-                backgroundColor: '#424242',position: 'fixed'
-              }}
-                iconElementLeft={<IconButton onClick={this.handleClose}>{this.state.open ? <NavigationBack /> : <NevigationExpand />}</IconButton>}
-                iconElementRight={<FlatButton label="Login" />} > </AppBar>
+                backgroundColor: '#424242',position: 'fixed'}}
+                iconElementLeft={<IconButton onClick={this.handleClose}>{this.state.open ? <NavigationBack /> : <NevigationExpand />}</IconButton>}> </AppBar>
               <Drawer open={this.state.open} containerStyle={{ 'top': '64px', backgroundColor:'#BDBDBD'}} width={200} >
                 <MenuItem><a href="http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/blue/organizations/jenkins/pipelines/"> TestGrid AdminPortal</a></MenuItem>
               </Drawer>
               <Paper style={paperStyle} zDepth={2}>
                 <Switch>
                   <Route exact path='/testgrid/v0.9/' component={ProductContainer} />
-                  <Route exact path='/testgrid/v0.9/deployments/product/:productId/date/:date' component={DeploymentContainer} />
+                  <Route exact path='/testgrid/v0.9/deployments/product/:productId/' component={DeploymentContainer} />
                   <Route exact path='/testgrid/v0.9/infrastructures/deployment/:deploymentid/' component={InfrastructureContainer} />
                   <Route exact path='/testgrid/v0.9/scenarios/infrastructure/:infraid' component={ScenarioContainer} />
                   <Route exact path='/testgrid/v0.9/testcases/scenario/:scenarioid' component={TestCaseContainer} />
