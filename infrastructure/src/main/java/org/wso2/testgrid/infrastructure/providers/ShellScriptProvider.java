@@ -45,21 +45,13 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     @Override
     public boolean canHandle(Infrastructure infrastructure) {
-        boolean isScriptsAvailable = true;
-        for (Script script : infrastructure.getScripts()) {
-            if (!Script.ScriptType.INFRA_CREATE.equals(script.getScriptType()) &&
-                !Script.ScriptType.INFRA_DESTROY.equals(script.getScriptType())) {
-                isScriptsAvailable = false;
-            }
-        }
-        return isScriptsAvailable;
+        return infrastructure.getProviderType().equals(Infrastructure.ProviderType.SHELL);
     }
 
     @Override
     public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
             TestGridInfrastructureException {
-        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" ,
-                infrastructure.getName()).toString();
+        String testPlanLocation = Paths.get(infraRepoDir, infrastructure.getName()).toString();
 
         logger.info("Executing provisioning scripts...");
         try {
@@ -74,10 +66,9 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
-            TestGridInfrastructureException {
-        String testPlanLocation = Paths.get(infraRepoDir, "DeploymentPatterns" ,
-                infrastructure.getName()).toString();
+    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir)
+    throws TestGridInfrastructureException {
+        String testPlanLocation = Paths.get(infraRepoDir, infrastructure.getName()).toString();
 
         logger.info("Destroying test environment...");
         ShellExecutor executor = new ShellExecutor(null);
