@@ -30,6 +30,7 @@ import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
 import { add_current_deployment } from '../actions/testGridActions.js';
 import Moment from 'moment'
+import ReactTooltip from 'react-tooltip'
 
 class DeploymentPatternView extends Component {
 
@@ -41,7 +42,7 @@ class DeploymentPatternView extends Component {
   }
 
   componentDidMount() {
-    var url = '/testgrid/v0.9/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
+     var url = '/testgrid/v0.9/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
     fetch(url, {
       mode: 'cors',
       method: "GET",
@@ -49,7 +50,6 @@ class DeploymentPatternView extends Component {
         'Accept': 'application/json'
       }
     }).then(response => {
-      console.log(response);
       if (response.ok) {
         return response.json();
       }
@@ -57,14 +57,13 @@ class DeploymentPatternView extends Component {
       .then(data => this.setState({ hits: data }));
   }
 
-  nevigateToRoute(route, deployment) {
+  navigateToRoute(route, deployment) {
     this.props.dispatch(add_current_deployment(deployment));
     this.props.history.push(route);
   }
 
 
   render() {
-    console.log(this.state);
     var x = {};
     this.state.hits.map((value, index) => {
       if (x[value.lastBuild.deploymentPattern] == undefined) {
@@ -95,19 +94,12 @@ class DeploymentPatternView extends Component {
                       <TableRow>
                         <TableRowColumn rowSpan={x[key].length}>{key}</TableRowColumn>
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>{value.lastBuild.infraParams}</TableRowColumn>
-                        <TableRowColumn ><SingleRecord value={value.lastBuild.status}
-                          nevigate={() => this.nevigateToRoute("/testgrid/v0.9/", {
-                            testPlanId: value.lastBuild.id,
-                            testPlanInfra: value.lastBuild.infraParams,
-                          })} time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
+                        <TableRowColumn ><SingleRecord value={value.lastBuild.status} time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
                         /> </TableRowColumn>
                         <TableRowColumn ><SingleRecord value={value.lastFailed.status}
-                          nevigate={() => this.nevigateToRoute("/testgrid/v0.9/", {
-                            testPlanId: value.lastFailed.id,
-                            testPlanInfra: value.lastFailed.infraParams,
-                          })} time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
+                          time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
                         /> </TableRowColumn>
-                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" /></TableRowColumn>
+                        <TableRowColumn> <img  src={require('../play.png')} width="48" height="48" data-tip="Execute function not available yet"/><ReactTooltip /></TableRowColumn>
                       </TableRow>
 
                     )
@@ -117,18 +109,12 @@ class DeploymentPatternView extends Component {
                       <TableRow>
                         <TableRowColumn >{value.lastBuild.infraParams}</TableRowColumn>
                         <TableRowColumn ><SingleRecord value={value.lastBuild.status}
-                          nevigate={() => this.nevigateToRoute("/testgrid/v0.9/", {
-                            testPlanId: value.lastBuild.id,
-                            testPlanInfra: value.lastBuild.infraParams,
-                          })} time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
+                             time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
                         /> </TableRowColumn>
                         <TableRowColumn ><SingleRecord value={value.lastFailed.status}
-                          nevigate={() => this.nevigateToRoute("/testgrid/v0.9/", {
-                            testPlanId: value.lastFailed.id,
-                            testPlanInfra: value.lastFailed.infraParams,
-                          })} time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
+                           time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
                         /> </TableRowColumn>
-                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" /></TableRowColumn>
+                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute function not available yet"/><ReactTooltip /></TableRowColumn>
                       </TableRow>
                     )
                   }

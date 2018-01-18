@@ -18,6 +18,8 @@
 package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
+
+
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -36,6 +38,8 @@ import javax.persistence.Query;
  * @since 1.0.0
  */
 public class TestPlanRepository extends AbstractRepository<TestPlan> {
+
+
 
     /**
      * Constructs an instance of the repository class.
@@ -147,10 +151,12 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 "max(tp.modified_timestamp) AS time, dp.name FROM test_plan tp INNER JOIN " +
                 "deployment_pattern dp ON tp.DEPLOYMENTPATTERN_id=dp.id AND tp.status='FAIL' " +
                 "AND  tp.DEPLOYMENTPATTERN_id IN (SELECT id FROM deployment_pattern WHERE " +
-                "PRODUCT_id='" + product.getId() + "') GROUP BY tp.infra_parameters,dp.name) AS x ON " +
+                "PRODUCT_id = ?) GROUP BY tp.infra_parameters,dp.name) as x ON " +
                 "t.infra_parameters=x.infra_parameters AND t.modified_timestamp=x.time ORDER BY time DESC LIMIT 1";
         try {
-            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class).getSingleResult();
+            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class)
+                    .setParameter(1 , product.getId())
+                    .getSingleResult();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings(" Error occured while executing the SQL " +
                     "query [", sql, "]"), e);
@@ -168,11 +174,13 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         String sql = "select  t.* from test_plan t inner join (select tp.infra_parameters," +
                 "max(tp.modified_timestamp) AS time, dp.name from test_plan tp inner join " +
                 "deployment_pattern dp on tp.DEPLOYMENTPATTERN_id=dp.id and  tp.DEPLOYMENTPATTERN_id " +
-                "in (select id from deployment_pattern where PRODUCT_id='" + product.getId() + "')" +
+                "in (select id from deployment_pattern where PRODUCT_id=?)" +
                 "group by tp.infra_parameters,dp.name) AS x on t.infra_parameters=x.infra_parameters " +
                 "AND t.modified_timestamp=x.time order by time desc limit 1";
         try {
-            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class).getSingleResult();
+            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class)
+                    .setParameter(1, product.getId())
+                    .getSingleResult();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error occured while executing SQL " +
                     "query [ ", sql, " ]"), e);
@@ -191,11 +199,13 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         String sql = "select t.* from test_plan t inner join (select tp.infra_parameters," +
                 "max(tp.modified_timestamp) AS time, dp.name from test_plan tp inner join " +
                 "deployment_pattern dp on tp.DEPLOYMENTPATTERN_id=dp.id  and tp.DEPLOYMENTPATTERN_id in " +
-                "(select id from deployment_pattern where PRODUCT_id='" + product.getId() + "') " +
+                "(select id from deployment_pattern where PRODUCT_id= ? ) " +
                 "group by tp.infra_parameters,dp.name) as x on t.infra_parameters=x.infra_parameters " +
                 "AND t.modified_timestamp=x.time;";
         try {
-            return (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class).getResultList();
+            return (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
+                    .setParameter(1, product.getId())
+                    .getResultList();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error occured while " +
                     "executing SQL query [ ", sql, " ]"), e);
@@ -210,12 +220,13 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * @throws TestGridDAOException when an error occurs while executing the native query
      */
     public TestPlan getLastFailure(TestPlan testPlan) throws TestGridDAOException {
-        String sql = "select * from test_plan where infra_parameters='" + testPlan.getInfraParameters() +
-                "' AND DEPLOYMENTPATTERN_id='"
-                + testPlan.getDeploymentPattern().getId() + "'" +
+        String sql = "select * from test_plan where infra_parameters= ?  AND DEPLOYMENTPATTERN_id=? " +
                 " AND status='FAIL' order by modified_timestamp desc limit 1";
         try {
-            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class).getSingleResult();
+            return (TestPlan) entityManager.createNativeQuery(sql, TestPlan.class)
+                    .setParameter(1, testPlan.getInfraParameters())
+                    .setParameter(2, testPlan.getDeploymentPattern().getId())
+                    .getSingleResult();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error occured while " +
                     "executing SQL query [ ", sql, " ]"), e);

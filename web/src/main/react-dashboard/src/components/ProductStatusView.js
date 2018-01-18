@@ -29,6 +29,7 @@ import {
 import SingleRecord from './SingleRecord.js';
 import { add_current_product } from '../actions/testGridActions.js';
 import Moment from 'moment'
+import ReactTooltip from 'react-tooltip'
 
 class ProductStatusView extends Component {
 
@@ -61,13 +62,14 @@ class ProductStatusView extends Component {
   render() {
     const products = this.state.hits.map((product, index) => {
       return (<TableRow key={index}>
-        <TableRowColumn> <img src={require('../close.png')} width="40" height="40" /></TableRowColumn>
+
+        <TableRowColumn> <SingleRecord value={product.status}/></TableRowColumn>
         <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
           productId: product.id,
           productName: product.name,
         })}><i>{product.name}</i></h2></TableRowColumn>
-        <TableRowColumn> <SingleRecord value={product.status}
-          nevigate={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/", {
+        <TableRowColumn> <SingleRecord value={product.lastBuild.status}
+          nevigate={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/"+ product.id, {
             productId: product.id,
             productName: product.name,
           })} time={Moment(product.lastBuild.modifiedTimestamp).fromNow()}
@@ -78,9 +80,9 @@ class ProductStatusView extends Component {
             productName: product.name,
           })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastfailed.modifiedTimestamp).fromNow()} </h4>
         </TableRowColumn>
-        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" /></TableRowColumn>
+        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute function not available yet"/> <ReactTooltip /></TableRowColumn>
         <TableRowColumn ><img src={require('../configure.png')} width="36" height="36" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location = 'https://testgrid-live-dev.private.wso2.com/job/wso2is-5.4.0/job/01-single-node-deployment-pattern/configure' }} />
+          onClick={() => { window.location = '/job/wso2is-5.4.0/job/01-single-node-deployment-pattern/configure' }} />
         </TableRowColumn>
       </TableRow>)
     });
@@ -91,7 +93,7 @@ class ProductStatusView extends Component {
           <TableRow>
             <TableHeaderColumn><h1>Status</h1> </TableHeaderColumn>
             <TableHeaderColumn><h1>Job</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Latest Status</h1> </TableHeaderColumn>
+            <TableHeaderColumn><h1>Latest Build</h1> </TableHeaderColumn>
             <TableHeaderColumn><h1>Last Failure</h1> </TableHeaderColumn>
             <TableHeaderColumn><h1>Execute</h1> </TableHeaderColumn>
             <TableHeaderColumn><h1>Configure</h1> </TableHeaderColumn>

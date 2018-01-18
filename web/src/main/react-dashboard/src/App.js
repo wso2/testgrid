@@ -79,7 +79,7 @@ class App extends Component {
                 backgroundColor: '#424242',position: 'fixed'}}
                 iconElementLeft={<IconButton onClick={this.handleClose}>{this.state.open ? <NavigationBack /> : <NevigationExpand />}</IconButton>}> </AppBar>
               <Drawer open={this.state.open} containerStyle={{ 'top': '64px', backgroundColor:'#BDBDBD'}} width={200} >
-                <MenuItem><a href="http://ec2-34-238-28-168.compute-1.amazonaws.com:8080/blue/organizations/jenkins/pipelines/"> TestGrid AdminPortal</a></MenuItem>
+                <MenuItem><a href="https://testgrid-live.private.wso2.com/jenkins/blue/organizations/jenkins/wso2is-5.4.0%2F01-single-node-deployment-pattern/"> TestGrid AdminPortal</a></MenuItem>
               </Drawer>
               <Paper style={paperStyle} zDepth={2}>
                 <Switch>
