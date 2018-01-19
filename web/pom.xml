@@ -85,6 +85,12 @@
             <artifactId>aws-java-sdk</artifactId>
         </dependency>
 
+        <!-- Other dependencies -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+
         <!-- Jacoco agent -->
         <dependency>
             <groupId>org.jacoco</groupId>

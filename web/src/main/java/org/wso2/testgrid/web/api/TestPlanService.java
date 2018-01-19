@@ -21,33 +21,30 @@ package org.wso2.testgrid.web.api;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.ImmutablePair;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
-import org.wso2.testgrid.web.WebPluginException;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.ScenarioSummary;
 import org.wso2.testgrid.web.bean.ScenarioTestCaseEntry;
 import org.wso2.testgrid.web.bean.TestCaseEntry;
 import org.wso2.testgrid.web.bean.TestExecutionSummary;
-import org.wso2.testgrid.web.plugins.AWSArtifactReader;
-import org.wso2.testgrid.web.plugins.ArtifactReadable;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.bean.TestPlanStatus;
+import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
+import org.wso2.testgrid.web.plugins.AWSArtifactReader;
+import org.wso2.testgrid.web.plugins.ArtifactReadable;
+import org.wso2.testgrid.web.plugins.ArtifactReaderException;
 import org.wso2.testgrid.web.utils.Constants;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.OutputStream;
-import java.nio.file.Paths;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -60,11 +57,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-<<<<<<< bdd53833aeed45efda50b0f6d9caaafa947f2dbb
-import javax.ws.rs.Consumes;
-=======
 import java.util.stream.Collectors;
->>>>>>> Add test execution summary to artifacts page
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -83,12 +77,11 @@ public class TestPlanService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
     private static final String AWS_REGION_NAME = "us-east-1";
-    private static final String AWS_BUCKET_NAME = "jenkins-testrun-artefacts";
+    private static final String AWS_BUCKET_NAME = "jenkins-testrun-artifacts";
     private static final String AWS_BUCKET_ARTIFACT_DIR = "artifacts";
-    private static final String TESTGRID_LOG_FILE_NAME = "test.log";
+    private JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
+    private JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
 
-    JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
-    JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
     /**
      * This has the implementation of the REST API for fetching all the TestPlans for a given deployment-pattern
      * and created before date.
@@ -96,11 +89,9 @@ public class TestPlanService {
      * @return A list of available TestPlans.
      */
     @GET
-    public Response getTestPlansForDeploymentPatternAndDate(@QueryParam("deployment-pattern-id")
-                                                                    String deploymentPatternId,
-                                                            @QueryParam("date") String date,
-                                                            @QueryParam("require-test-scenario-info")
-                                                                    boolean requireTestScenarioInfo) {
+    public Response getTestPlansForDeploymentPatternAndDate(
+            @QueryParam("deployment-pattern-id") String deploymentPatternId, @QueryParam("date") String date,
+            @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             Date parsedDate;
@@ -173,21 +164,15 @@ public class TestPlanService {
             TestPlan testPlan = optionalTestPlan.get();
 
             String testGridArtifactLocation = TestGridUtil.getTestRunArtifactsDirectory(testPlan).toString();
-            String key = Paths
-                    .get(AWS_BUCKET_ARTIFACT_DIR, testGridArtifactLocation, TESTGRID_LOG_FILE_NAME).toString();
+            String bucketKey = Paths
+                    .get(AWS_BUCKET_ARTIFACT_DIR, testGridArtifactLocation, Constants.TEST_LOG_FILE_NAME).toString();
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(AWS_REGION_NAME, AWS_BUCKET_NAME);
 
-            if (truncate) {
-                // The log file will be maximum of 50kb
-                ImmutablePair<Boolean, OutputStream> immutablePair = artifactDownloadable.readArtifact(key, 2);
-                boolean isTruncated = immutablePair.getFirst();
-                OutputStream outputStream = immutablePair.getSecond();
-                return Response.status(Response.Status.OK)
-                        .entity(ImmutablePair.of(isTruncated, outputStream.toString())).build();
-            }
-
-            OutputStream outputStream = artifactDownloadable.readArtifact(key);
-            return Response.status(Response.Status.OK).entity(outputStream.toString()).build();
+            // If truncated the input stream will be maximum of 200kb
+            TruncatedInputStreamData truncatedInputStreamData = truncate ?
+                                                                artifactDownloadable.readArtifact(bucketKey, 200) :
+                                                                artifactDownloadable.readArtifact(bucketKey);
+            return Response.status(Response.Status.OK).entity(truncatedInputStreamData).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
             logger.error(msg, e);
@@ -198,7 +183,7 @@ public class TestPlanService {
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
-        } catch (WebPluginException e) {
+        } catch (ArtifactReaderException e) {
             String msg = "Error occurred when reading the artifact.";
             logger.error(msg, e);
             return Response.serverError()
@@ -207,7 +192,38 @@ public class TestPlanService {
     }
 
     /**
-<<<<<<< bdd53833aeed45efda50b0f6d9caaafa947f2dbb
+     * Returns the test execution summary related to the given test plan.
+     *
+     * @param id test plan id
+     * @return The requested Test-Plan
+     */
+    @GET
+    @Path("/test-summary/{id}")
+    public Response getTestSummary(@PathParam("id") String id) {
+        try {
+            // Get test plan
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            Optional<TestPlan> optionalTestPlan = testPlanUOW.getTestPlanById(id);
+            if (!optionalTestPlan.isPresent()) {
+                String msg = "No test plan found for the given id " + id;
+                logger.error(msg);
+                return Response.serverError()
+                        .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+            }
+            TestPlan testPlan = optionalTestPlan.get();
+
+            // Get test execution summary
+            TestExecutionSummary testExecutionSummary = getTestExecutionSummary(testPlan);
+            return Response.status(Response.Status.OK).entity(testExecutionSummary).build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
      * This method returns the latest {@link TestPlan}s for a given product
      * that contains the build details for distinct infrastructure combinations.
      *
@@ -251,48 +267,17 @@ public class TestPlanService {
                     entity(jobSpecificUrl).type(MediaType.TEXT_PLAIN).build();
         } catch (TestGridException | IOException e) {
             String msg = "Error occurred while creating new test plan named : '" +
-                    testPlanRequest.getTestPlanName() + "'.";
+                         testPlanRequest.getTestPlanName() + "'.";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().
                             setMessage(msg).
                             setCode(HttpStatus.SC_SERVER_ERROR).
                             setDescription(e.getMessage()).build()).build();
-=======
-     * Returns the test execution summary related to the given test plan.
-     *
-     * @param id test plan id
-     * @return The requested Test-Plan
-     */
-    @GET
-    @Path("/test-summary/{id}")
-    public Response getTestSummary(@PathParam("id") String id) {
-        try {
-            // Get test plan
-            TestPlanUOW testPlanUOW = new TestPlanUOW();
-            Optional<TestPlan> optionalTestPlan = testPlanUOW.getTestPlanById(id);
-            if (!optionalTestPlan.isPresent()) {
-                String msg = "No test plan found for the given id " + id;
-                logger.error(msg);
-                return Response.serverError()
-                        .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
-            }
-            TestPlan testPlan = optionalTestPlan.get();
-
-            // Get test execution summary
-            TestExecutionSummary testExecutionSummary = getTestExecutionSummary(testPlan);
-            return Response.status(Response.Status.OK).entity(testExecutionSummary).build();
-        } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
-            logger.error(msg, e);
-            return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
->>>>>>> Add test execution summary to artifacts page
         }
     }
 
     /**
-<<<<<<< bdd53833aeed45efda50b0f6d9caaafa947f2dbb
      * Save the {@link TestPlanRequest} object as a YAML file.
      *
      * @param testPlanRequest TestPlanRequest needs to be saved.
@@ -309,7 +294,7 @@ public class TestPlanService {
                 Files.createDirectories(path);
             } catch (IOException e) {
                 throw new TestGridException("Can not create directory to save YAML file of the test-plan " +
-                        testPlanRequest.getTestPlanName() + ".", e);
+                                            testPlanRequest.getTestPlanName() + ".", e);
             }
         }
 
@@ -328,9 +313,11 @@ public class TestPlanService {
             }
         } catch (IOException e) {
             throw new TestGridException("Error occurred when writing YAML file for test-plan " +
-                    testPlanRequest.getTestPlanName() + ".", e);
+                                        testPlanRequest.getTestPlanName() + ".", e);
         }
-=======
+    }
+
+    /**
      * Returns the test execution summary for the given test plan.
      *
      * @param testPlan test plan to get the test execution summary for
@@ -362,6 +349,5 @@ public class TestPlanService {
             scenarioTestCaseEntries.add(new ScenarioTestCaseEntry(testScenario.getName(), failedTestCaseEntries));
         }
         return new TestExecutionSummary(scenarioSummaries, scenarioTestCaseEntries);
->>>>>>> Add test execution summary to artifacts page
     }
 }

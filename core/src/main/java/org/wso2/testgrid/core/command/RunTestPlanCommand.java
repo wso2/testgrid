@@ -28,6 +28,7 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
@@ -289,8 +290,8 @@ public class RunTestPlanCommand implements Command {
      */
     private String deriveLogFilePath(TestPlan testPlan) throws TestGridLoggingException {
         try {
-            Path testRunArtifactsDir = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
-            return testRunArtifactsDir.resolve("test").toString();
+            Path testRunDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
+            return testRunDirectory.resolve(TestGridConstants.TEST_LOG_FILE_NAME).toString();
         } catch (TestGridException e) {
             throw new TestGridLoggingException(
                     "Error in getting the test run artifacts directory location " +

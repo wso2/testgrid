@@ -17,14 +17,14 @@
  */
 
 import {connect} from 'react-redux'
-import TestRunArtifactView from '../components/TestRunArtifactView.js'
+import TestRunView from '../components/TestRunView.js'
 
 const mapStateToProps = (state, ownProps) => ({
     active: state
 });
 
-const TestRunArtifactContainer = connect(
+const testRunContainer = connect(
     mapStateToProps
-)(TestRunArtifactView);
+)(TestRunView);
 
-export default TestRunArtifactContainer;
+export default testRunContainer;

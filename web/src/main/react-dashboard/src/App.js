@@ -24,7 +24,7 @@ import InfrastructureContainer from './containers/InfraContainer.js';
 import ScenarioContainer from './containers/ScenarioContainer.js';
 import TestCaseContainer from './containers/TestCaseContainer.js';
 import DeploymentContainer from './containers/deploymentContainer.js';
-import testRunArtifactContainer from './containers/testRunArtifactContainer.js';
+import testRunContainer from './containers/testRunContainer.js';
 import {
   Route,
   Switch,
@@ -89,7 +89,7 @@ class App extends Component {
                   <Route exact path='/testgrid/v0.9/infrastructures/deployment/:deploymentid/' component={InfrastructureContainer} />
                   <Route exact path='/testgrid/v0.9/scenarios/infrastructure/:infraid' component={ScenarioContainer} />
                   <Route exact path='/testgrid/v0.9/testcases/scenario/:scenarioid' component={TestCaseContainer} />
-                  <Route exact path='/testgrid/v0.9/testplans/:testplanid' component={testRunArtifactContainer}/>
+                  <Route exact path='/testgrid/v0.9/testplans/:testplanid' component={testRunContainer}/>
                 </Switch>
               </ Paper>
             </div>

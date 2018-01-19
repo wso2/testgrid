@@ -50,7 +50,6 @@ class InfraCombinationView extends Component {
         var url = "/testgrid/v0.9/api/test-plans?deployment-pattern-id=" + this.props.active.reducer.currentDeployment.deploymentId + "&date=" + this.props.active.reducer.currentProduct.productDate + "&require-test-scenario-info=false";
 
         fetch(url, {
-            mode: 'cors',
             method: "GET",
             headers: {
                 'Accept': 'application/json'

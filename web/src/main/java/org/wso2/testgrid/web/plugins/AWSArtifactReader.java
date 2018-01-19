@@ -21,15 +21,11 @@ import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import org.wso2.testgrid.common.ImmutablePair;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.web.WebPluginException;
+import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 
 /**
  * This class is responsible for downloading artifacts from AWS.
@@ -51,20 +47,21 @@ public class AWSArtifactReader implements ArtifactReadable {
      *
      * @param region region where the S3 bucket is located
      * @param bucket name of the bucket
-     * @throws WebPluginException thrown if the given parameters are null or empty or if the {@value AWS_ACCESS_KEY}
-     *                            and {@value AWS_SECRET_KEY} environment variable values are not set
+     * @throws ArtifactReaderException thrown if the given parameters are null or empty or if
+     *                                 the {@value AWS_ACCESS_KEY} and {@value AWS_SECRET_KEY} environment variable
+     *                                 values are not set
      */
-    public AWSArtifactReader(String region, String bucket) throws WebPluginException {
+    public AWSArtifactReader(String region, String bucket) throws ArtifactReaderException {
         String awsIdentity = System.getenv(AWS_ACCESS_KEY);
         String awsSecret = System.getenv(AWS_SECRET_KEY);
         if (StringUtil.isStringNullOrEmpty(awsIdentity) || StringUtil.isStringNullOrEmpty(awsSecret)) {
-            throw new WebPluginException("AWS Credentials must be set as environment variables");
+            throw new ArtifactReaderException("AWS Credentials must be set as environment variables");
         }
         if (StringUtil.isStringNullOrEmpty(region)) {
-            throw new WebPluginException("AWS S3 bucket region is null or empty");
+            throw new ArtifactReaderException("AWS S3 bucket region is null or empty");
         }
         if (StringUtil.isStringNullOrEmpty(bucket)) {
-            throw new WebPluginException("AWS S3 bucket name is null or empty");
+            throw new ArtifactReaderException("AWS S3 bucket name is null or empty");
         }
         amazonS3 = AmazonS3ClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
@@ -74,41 +71,21 @@ public class AWSArtifactReader implements ArtifactReadable {
     }
 
     @Override
-    public OutputStream readArtifact(String key) throws WebPluginException {
-        try (S3Object s3Object = amazonS3.getObject(bucketName, key);
-             S3ObjectInputStream s3ObjectInputStream = s3Object.getObjectContent()) {
-            OutputStream outputStream = new ByteArrayOutputStream();
-            byte[] readBuf = new byte[1024]; // 1 kilobyte
-            int readLen;
-            while ((readLen = s3ObjectInputStream.read(readBuf)) > 0) {
-                outputStream.write(readBuf, 0, readLen);
-            }
-            return outputStream;
-        } catch (FileNotFoundException e) {
-            throw new WebPluginException(StringUtil.concatStrings(key, " not found in AWS S3 bucket."), e);
-        } catch (IOException e) {
-            throw new WebPluginException("Error in closing streams via auto closable.", e);
-        }
+    public TruncatedInputStreamData readArtifact(String key) throws ArtifactReaderException {
+        return readArtifact(key, 0);
     }
 
     @Override
-    public ImmutablePair<Boolean, OutputStream> readArtifact(String key, int kiloByteLimit) throws
-            WebPluginException {
-        try (S3Object s3Object = amazonS3.getObject(bucketName, key);
-             S3ObjectInputStream s3ObjectInputStream = s3Object.getObjectContent()) {
-            OutputStream outputStream = new ByteArrayOutputStream();
-            byte[] readBuf = new byte[1024]; // 1 kilobyte
-            int readLen;
-            int kiloByteCount = 0;
-            while ((kiloByteCount <= kiloByteLimit) && (readLen = s3ObjectInputStream.read(readBuf)) > 0) {
-                outputStream.write(readBuf, 0, readLen);
-                kiloByteCount++;
-            }
-            return ImmutablePair.of(s3ObjectInputStream.read(readBuf) > 0, outputStream);
-        } catch (FileNotFoundException e) {
-            throw new WebPluginException(StringUtil.concatStrings(key, " not found in AWS S3 bucket."), e);
+    public TruncatedInputStreamData readArtifact(String key, int kiloByteLimit) throws ArtifactReaderException {
+        try {
+            S3Object s3Object = amazonS3.getObject(bucketName, key);
+            InputStream inputStream = s3Object.getObjectContent();
+            // If the KB limit is less than 1, do not truncate since no content is an obsolete state
+            return kiloByteLimit < 1 ?
+                   new TruncatedInputStreamData(inputStream) :
+                   new TruncatedInputStreamData(inputStream, kiloByteLimit);
         } catch (IOException e) {
-            throw new WebPluginException("Error in closing streams via auto closable.", e);
+            throw new ArtifactReaderException("Error on reading artifact from AWS S3.", e);
         }
     }
 }

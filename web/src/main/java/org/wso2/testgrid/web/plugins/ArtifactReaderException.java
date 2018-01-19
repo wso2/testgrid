@@ -15,14 +15,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.testgrid.web;
+package org.wso2.testgrid.web.plugins;
 
 /**
- * Custom exception class to throw all web application plugin exceptions.
+ * Custom exception class to throw all exceptions related to {@link ArtifactReadable}.
  *
  * @since 1.0.0
  */
-public class WebPluginException extends Exception {
+public class ArtifactReaderException extends Exception {
 
     private static final long serialVersionUID = -5419760246059351499L;
 
@@ -30,7 +30,7 @@ public class WebPluginException extends Exception {
      * Constructs a new exception with {@code null} as its detail message. The cause is not initialized, and may
      * subsequently be initialized by a call to {@link #initCause(Throwable)}.
      */
-    public WebPluginException() {
+    public ArtifactReaderException() {
         super();
     }
 
@@ -40,7 +40,7 @@ public class WebPluginException extends Exception {
      *
      * @param message the detail message of the exception
      */
-    public WebPluginException(String message) {
+    public ArtifactReaderException(String message) {
         super(message);
     }
 
@@ -50,7 +50,7 @@ public class WebPluginException extends Exception {
      *
      * @param cause the cause of the exception
      */
-    public WebPluginException(Throwable cause) {
+    public ArtifactReaderException(Throwable cause) {
         super(cause);
     }
 
@@ -60,7 +60,7 @@ public class WebPluginException extends Exception {
      * @param message the detail message of the exception
      * @param cause   the cause of the exception
      */
-    public WebPluginException(String message, Throwable cause) {
+    public ArtifactReaderException(String message, Throwable cause) {
         super(message, cause);
     }
 }

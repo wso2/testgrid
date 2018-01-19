@@ -17,10 +17,7 @@
  */
 package org.wso2.testgrid.web.plugins;
 
-import org.wso2.testgrid.common.ImmutablePair;
-import org.wso2.testgrid.web.WebPluginException;
-
-import java.io.OutputStream;
+import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
 
 /**
  * The interface defines the contract for reading artifacts.
@@ -30,22 +27,23 @@ import java.io.OutputStream;
 public interface ArtifactReadable {
 
     /**
-     * Read the artifacts for the given key and return an output stream.
+     * Read the artifacts for the given key and return an input stream.
      *
      * @param key key of the artifact to download
-     * @return OutputStream containing the content of the artifact
-     * @throws WebPluginException thrown when error on downloading artifacts
+     * @return {@link TruncatedInputStreamData} containing input stream of the artifact and whether the input stream is
+     * truncated or not
+     * @throws ArtifactReaderException thrown when error on downloading artifacts
      */
-    OutputStream readArtifact(String key) throws WebPluginException;
+    TruncatedInputStreamData readArtifact(String key) throws ArtifactReaderException;
 
     /**
-     * Read the artifacts for the given key and return an output stream.
+     * Read the artifacts for the given key and return an input stream.
      *
      * @param key           key of the artifact to download
      * @param kiloByteLimit maximum number of kilo bytes to read
-     * @return ImmutablePair<Boolean ,   OutputStream> containing the content of the artifact along with whether the
-     * artifact bytes are truncated or not
-     * @throws WebPluginException thrown when error on downloading artifacts
+     * @return {@link TruncatedInputStreamData} containing input stream of the artifact and whether the input stream is
+     * truncated or not
+     * @throws ArtifactReaderException thrown when error on downloading artifacts
      */
-    ImmutablePair<Boolean, OutputStream> readArtifact(String key, int kiloByteLimit) throws WebPluginException;
+    TruncatedInputStreamData readArtifact(String key, int kiloByteLimit) throws ArtifactReaderException;
 }
