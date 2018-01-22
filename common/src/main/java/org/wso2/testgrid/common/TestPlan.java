@@ -88,6 +88,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private String infraRepoDir;
 
     @Transient
+    private String deploymentRepoDir;
+
+    @Transient
     private Script infrastructureScript;
 
     @Transient
@@ -253,6 +256,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
      */
     public void setInfraRepoDir(String infraRepoDir) {
         this.infraRepoDir = infraRepoDir;
+    }
+
+    /**
+     * Returns the path of the deployment repository
+     *
+     * @return the path of the test plans' infrastructure artifacts
+     */
+    public String getDeploymentRepoDir() {
+        return deploymentRepoDir;
+    }
+
+    /**
+     * Sets the path of the deployment repository, which contains deploy.sh.
+     *
+     * @param deploymentRepoDir the path of the deployment repository
+     */
+    public void setDeploymentRepoDir(String deploymentRepoDir) {
+        this.deploymentRepoDir = deploymentRepoDir;
     }
 
     /**

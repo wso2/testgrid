@@ -87,6 +87,11 @@ public class RunTestPlanCommand implements Command {
             aliases = {"-ir"},
             required = true)
     private String infraRepo = "";
+    @Option(name = "--deploymentRepo",
+            usage = "Location of the deployment scripts. ",
+            aliases = {"-dr"},
+            required = true)
+    private String deploymentRepo = "";
     @Option(name = "--scenarioRepo",
             usage = "scenario repo directory. Assume this location is the test-grid-is-resources",
             aliases = {"-sr"},
@@ -127,7 +132,8 @@ public class RunTestPlanCommand implements Command {
                     testConfig.getDeploymentPatterns().get(0));
 
             // Generate test plan from config
-            TestPlan testPlan = generateTestPlan(deploymentPattern, testConfig, scenarioRepoDir, infraRepo);
+            TestPlan testPlan = generateTestPlan(deploymentPattern, testConfig, scenarioRepoDir, infraRepo,
+                    deploymentRepo);
 
             //Set the log file path
             LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlan));
@@ -301,13 +307,14 @@ public class RunTestPlanCommand implements Command {
      * @return TestPlan object model
      */
     private TestPlan generateTestPlan(DeploymentPattern deploymentPattern, TestConfig testConfig, String testRepoDir,
-                                      String infraRepoDir) throws CommandExecutionException {
+                                      String infraRepoDir, String deploymentRepo) throws CommandExecutionException {
         try {
             String jsonInfraParams = new ObjectMapper().writeValueAsString(testConfig.getInfraParams().get(0));
             TestPlan testPlan = new TestPlan();
             testPlan.setStatus(Status.PENDING);
             testPlan.setInfraRepoDir(infraRepoDir);
             testPlan.setTestRepoDir(testRepoDir);
+            testPlan.setDeploymentRepoDir(deploymentRepo);
             testPlan.setDeploymentPattern(deploymentPattern);
             // The default provider is set to AWS_CF, if provider is Shell overriding the value
             if (testConfig.getInfrastructure().getProviderType().equals(Infrastructure.ProviderType.SHELL)) {
