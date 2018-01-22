@@ -24,4 +24,3 @@ echo "This is a Dummy Infrastructure provisioning scripts, Your local machine wi
 echo "Start executing the deployment script"
 CURRENT_PATH=$(pwd)
 echo $CURRENT_PATH
-#bash $CURRENT_PATH/DeploymentPatterns/pattern-2/deploy.sh

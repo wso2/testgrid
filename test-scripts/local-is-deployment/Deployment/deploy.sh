@@ -32,23 +32,23 @@ DEPLOYMENT_EP_FILE_NAME=deployment_eps
 #curl -k https://product-dist.wso2.com/products/identity-server/5.4.0/wso2is-5.4.0.zip --user $WSO2_USER:$WSO2_PASSWORD -o is.zip
 
 echo "unzip the IS distribution"
-#unzip -q -o wso2is-5.4.0.zip
-#
-#echo -n "Starting the IS server"
-#bash ./wso2is-5.4.0/bin/wso2server.sh start
-#
-#x=0;
-#retry_count=60;
-#echo "Wait for the server start up"
-#while ! nc -z localhost 9763; do
-#  sleep 2 # wait for 2 second before check again
-#  echo -n "."
-#  if [ $x = $retry_count ]; then
-#    echo "Identity server never started."
-#        exit 1
-#  fi
-#x=$((x+1))
-#done
+unzip -q -o wso2is-5.4.0.zip
+
+echo -n "Starting the IS server"
+bash ./wso2is-5.4.0/bin/wso2server.sh start
+
+x=0;
+retry_count=60;
+echo "Wait for the server start up"
+while ! nc -z localhost 9763; do
+  sleep 2 # wait for 2 second before check again
+  echo -n "."
+  if [ $x = $retry_count ]; then
+    echo "Identity server never started."
+        exit 1
+  fi
+x=$((x+1))
+done
 
 echo "Successfully started the server!!"
 echo "Generating the deployment_ep file with the endpoints"
