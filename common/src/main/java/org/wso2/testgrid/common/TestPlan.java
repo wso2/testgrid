@@ -259,7 +259,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     }
 
     /**
-     * Returns the path of the deployment repository
+     * Returns the path of the deployment repository.
      *
      * @return the path of the test plans' infrastructure artifacts
      */
