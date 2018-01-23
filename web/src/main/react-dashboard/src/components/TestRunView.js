@@ -73,16 +73,13 @@ class TestRunView extends Component {
         'Accept': 'application/json'
       }
     }).then(response => {
-      if (!response.ok) {
-        this.setState({
-          testSummaryLoadStatus: "ERROR"
-        })
-      }
+      this.setState({
+        testSummaryLoadStatus: response.ok ? "SUCCESS" : "ERROR"
+      });
       return response.json();
     }).then(data => this.setState({
       testScenarioSummaries: data.scenarioSummaries,
-      scenarioTestCaseEntries: data.scenarioTestCaseEntries,
-      testSummaryLoadStatus: "SUCCESS"
+      scenarioTestCaseEntries: data.scenarioTestCaseEntries
     }));
 
     fetch(logTruncatedContentUrl, {
@@ -91,15 +88,12 @@ class TestRunView extends Component {
         'Accept': 'application/json'
       }
     }).then(response => {
-      if (!response.ok) {
-        this.setState({
-          logDownloadStatus: "ERROR"
-        })
-      }
+      this.setState({
+        logDownloadStatus: response.ok ? "SUCCESS" : "ERROR"
+      });
       return response.json();
     }).then(data =>
       this.setState({
-        logDownloadStatus: "SUCCESS",
         logContent: data.inputStreamContent,
         logDownloadLink: logAllContentUrl,
         isLogTruncated: data.truncated,
@@ -112,7 +106,7 @@ class TestRunView extends Component {
       <i> {this.props.active.reducer.currentProduct.productName}
         {this.props.active.reducer.currentProduct.productVersion}
         {this.props.active.reducer.currentProduct.productChannel} /
-        {this.props.active.reducer.currentDeployment.deploymentName} /
+        {this.props.active.reducer.currentDeployment.deploymentPatternName} /
         {this.props.active.reducer.currentInfra.infraParameters}</i>
     </td>);
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
@@ -478,9 +472,9 @@ class TestRunView extends Component {
                                 'Accept': 'application/json'
                               }
                             }).then(response => {
-                              if (!response.ok) {
-                                this.setState({logDownloadStatus: "ERROR"})
-                              }
+                              this.setState({
+                                logDownloadStatus: response.ok ? "SUCCESS" : "ERROR"
+                              });
                               return response;
                             }).then(data => data.json().then(json =>
                               this.setState({
