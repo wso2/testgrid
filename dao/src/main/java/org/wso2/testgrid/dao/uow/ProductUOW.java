@@ -51,37 +51,19 @@ public class ProductUOW {
      * Returns an instance of {@link Product} for the given product name and product version.
      *
      * @param name    product name
-     * @param version product version
-     * @param channel product channel
      * @return an instance of {@link Product} for the given product name and product version
      */
-    public Optional<Product> getProduct(String name, String version, Product.Channel channel)
+    public Optional<Product> getProduct(String name)
             throws TestGridDAOException {
         // Search criteria parameters
         Map<String, Object> params = new HashMap<>();
         params.put(Product.NAME_COLUMN, name);
-        params.put(Product.VERSION_COLUMN, version);
-        params.put(Product.CHANNEL_COLUMN, channel);
 
         List<Product> products = productRepository.findByFields(params);
         if (products.isEmpty()) {
             return Optional.empty();
         }
         return Optional.of(products.get(0));
-    }
-
-    /**
-     * Returns an instance of {@link Product} for the given product id.
-     *
-     * @param id product id
-     * @return an instance of {@link Product} for the given id
-     */
-    public Optional<Product> getProduct(String id) throws TestGridDAOException {
-        Product product = productRepository.findByPrimaryKey(id);
-        if (product == null) {
-            return Optional.empty();
-        }
-        return Optional.of(product);
     }
 
     /**
@@ -97,13 +79,11 @@ public class ProductUOW {
      * This method persists a {@link Product} instance to the database.
      *
      * @param name    product name
-     * @param version product version
-     * @param channel product channel
      * @return persisted {@link Product} instance
      * @throws TestGridDAOException thrown when error on persisting the object
      */
-    public Product persistProduct(String name, String version, Product.Channel channel) throws TestGridDAOException {
-        Optional<Product> optionalProduct = getProduct(name, version, channel);
+    public Product persistProduct(String name) throws TestGridDAOException {
+        Optional<Product> optionalProduct = getProduct(name);
         if (optionalProduct.isPresent()) {
             return optionalProduct.get();
         }
@@ -111,8 +91,6 @@ public class ProductUOW {
         // Create a new product and persist if the product doesn't exist already.
         Product product = new Product();
         product.setName(name);
-        product.setVersion(version);
-        product.setChannel(channel);
         return productRepository.persist(product);
     }
 

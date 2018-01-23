@@ -73,15 +73,6 @@ public class RunTestPlanCommand implements Command {
             aliases = {"-p"},
             required = true)
     private String productName = "";
-    @Option(name = "--version",
-            usage = "product version",
-            aliases = {"-v"},
-            required = true)
-    private String productVersion = "";
-    @Option(name = "--channel",
-            usage = "product channel",
-            aliases = {"-c"})
-    private String channel = "LTS";
     @Option(name = "--infraRepo",
             usage = "Location of Infra plans. "
                     + "Under this location, there should be a Infrastructure/ folder."
@@ -103,14 +94,10 @@ public class RunTestPlanCommand implements Command {
     @Override
     public void execute() throws CommandExecutionException {
         try {
-            logger.debug(
-                    "Input Arguments: \n" +
-                    "\tProduct name: " + productName + "\n" +
-                    "\tProduct version: " + productVersion + "\n" +
-                    "\tChannel" + channel);
+            logger.debug("Input Arguments: \n" + "\tProduct name: " + productName);
 
             // Get test plan YAML file path location
-            Product product = getProduct(productName, productVersion, channel);
+            Product product = getProduct(productName);
             Optional<String> testPlanYAMLFilePath = getTestPlanGenFilePath(product);
             if (!testPlanYAMLFilePath.isPresent()) {
                 logger.info(StringUtil.concatStrings("No test plan YAML files found for the given product - ",
@@ -151,9 +138,6 @@ public class RunTestPlanCommand implements Command {
             // Generate report for the test plan
             TestReportEngine testReportEngine = new TestReportEngine();
             testReportEngine.generateReport(testPlan);
-        } catch (IllegalArgumentException e) {
-            throw new CommandExecutionException(StringUtil.concatStrings("Channel ",
-                    channel, " is not defined in the available channels enum."), e);
         } catch (IOException e) {
             throw new CommandExecutionException("Error in reading file generated config file", e);
         } catch (ReportingException e) {
@@ -167,23 +151,15 @@ public class RunTestPlanCommand implements Command {
      * Returns the product for the given parameters.
      *
      * @param productName    product name
-     * @param productVersion product version
-     * @param channel        product test plan channel
      * @return an instance of {@link Product} for the given parameters
      * @throws CommandExecutionException thrown when error on retrieving product
      */
-    private Product getProduct(String productName, String productVersion, String channel)
+    private Product getProduct(String productName)
             throws CommandExecutionException {
         try {
             ProductUOW productUOW = new ProductUOW();
-            Product.Channel productChannel = Product.Channel.valueOf(channel);
-            return productUOW.getProduct(productName, productVersion, productChannel)
-                    .orElseThrow(() -> new CommandExecutionException(StringUtil
-                            .concatStrings("Product not found for {product name: ", productName,
-                                    ", product version: ", productVersion, ", channel: ", channel, "}")));
-        } catch (IllegalArgumentException e) {
-            throw new CommandExecutionException(StringUtil.concatStrings("Channel ", channel,
-                    " not found in channels enum."));
+            return productUOW.getProduct(productName).orElseThrow(() -> new CommandExecutionException(
+                    StringUtil.concatStrings("Product not found for {product name: ", productName, "}")));
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred when initialising DB transaction.", e);
         }

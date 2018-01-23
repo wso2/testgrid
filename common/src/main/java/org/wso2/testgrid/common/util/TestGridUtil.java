@@ -174,8 +174,7 @@ public final class TestGridUtil {
         Product product = deploymentPattern.getProduct();
         int testRunNumber = testPlan.getTestRunNumber();
 
-        String productDir = StringUtil.concatStrings(product.getName(), "_", product.getVersion()
-                , "_", product.getChannel());
+        String productDir = StringUtil.concatStrings(product.getName());
         String deploymentDir = deploymentPattern.getName();
         String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
 

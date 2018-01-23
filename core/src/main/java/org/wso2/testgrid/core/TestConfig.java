@@ -18,7 +18,6 @@
 package org.wso2.testgrid.core;
 
 import org.wso2.testgrid.common.Infrastructure;
-import org.wso2.testgrid.common.Product;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +31,6 @@ import java.util.Map;
 public class TestConfig {
 
     private String productName;
-    private String productVersion;
-    private Product.Channel channel;
     private List<String> deploymentPatterns;
     private List<Map<String, Object>> infraParams = new ArrayList<>();
     private List<String> scenarios;
@@ -55,42 +52,6 @@ public class TestConfig {
      */
     public void setProductName(String productName) {
         this.productName = productName;
-    }
-
-    /**
-     * Returns the product version.
-     *
-     * @return product version
-     */
-    public String getProductVersion() {
-        return productVersion;
-    }
-
-    /**
-     * Sets the product version.
-     *
-     * @param productVersion product version
-     */
-    public void setProductVersion(String productVersion) {
-        this.productVersion = productVersion;
-    }
-
-    /**
-     * Returns the channel of the product test plan.
-     *
-     * @return product test plan channel
-     */
-    public Product.Channel getChannel() {
-        return channel;
-    }
-
-    /**
-     * Sets the channel of the product test plan.
-     *
-     * @param channel product test plan channel
-     */
-    public void setChannel(Product.Channel channel) {
-        this.channel = channel;
     }
 
     /**

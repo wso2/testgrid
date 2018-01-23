@@ -30,19 +30,15 @@ public class ProductTestStatus {
 
     private String id;
     private String name;
-    private String version;
-    private String channel;
     private String deploymentPattern;
     private String deploymentPatternId;
     private String status;
     private Timestamp testExecutionTime;
 
-    public ProductTestStatus(String id, String name, String version, String channel, String deploymentPattern,
-                              String deploymentPatternId, String status, Timestamp testExecutionTime) {
+    public ProductTestStatus(String id, String name, String deploymentPattern, String deploymentPatternId,
+                             String status, Timestamp testExecutionTime) {
         this.id = id;
         this.name = name;
-        this.version = version;
-        this.channel = channel;
         this.deploymentPattern = deploymentPattern;
         this.deploymentPatternId = deploymentPatternId;
         this.status = status;
@@ -63,22 +59,6 @@ public class ProductTestStatus {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getChannel() {
-        return channel;
-    }
-
-    public void setChannel(String channel) {
-        this.channel = channel;
     }
 
     public String getDeploymentPattern() {

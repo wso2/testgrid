@@ -45,18 +45,6 @@ public class GenerateReportCommand implements Command {
             required = true)
     private String productName = "";
 
-    @Option(name = "--version",
-            usage = "product version",
-            aliases = {"-v"},
-            required = true)
-    private String productVersion = "";
-
-    @Option(name = "--channel",
-            usage = "product channel",
-            aliases = {"-c"}
-    )
-    private String channel = "LTS";
-
     @Option(name = "--showSuccess",
             usage = "Show success tests",
             aliases = {"--showSuccess"})
@@ -74,17 +62,14 @@ public class GenerateReportCommand implements Command {
             logger.info("Generating test result report...");
             logger.info(
                     "Input Arguments: \n" +
-                    "\tProduct name: " + productName + "\n" +
-                    "\tProduct version: " + productVersion + "\n" +
-                    "\tChannel" + channel);
+                    "\tProduct name: " + productName);
 
-            Product product = getProduct(productName, productVersion, channel);
+            Product product = getProduct(productName);
             TestReportEngine testReportEngine = new TestReportEngine();
             testReportEngine.generateReport(product, showSuccess, groupBy);
         } catch (ReportingException e) {
             throw new CommandExecutionException(StringUtil
-                    .concatStrings("Error occurred when generating test report for { product: ", productName,
-                            ", version: ", productVersion, ", channel: ", channel, " }"), e);
+                    .concatStrings("Error occurred when generating test report for { product: ", productName, " }"), e);
         }
     }
 
@@ -92,30 +77,22 @@ public class GenerateReportCommand implements Command {
      * Returns an instance of {@link Product} for the given product name and product version.
      *
      * @param productName    product name
-     * @param productVersion product version
-     * @param channel        product test plan channel
      * @return an instance of {@link Product} for the given product name and product version
      * @throws CommandExecutionException throw when error on obtaining product for the given product name and product
      *                                   version
      */
-    private Product getProduct(String productName, String productVersion, String channel)
+    private Product getProduct(String productName)
             throws CommandExecutionException {
         try {
             ProductUOW productUOW = new ProductUOW();
-            Product.Channel productChannel = Product.Channel.valueOf(channel);
-            return productUOW.getProduct(productName, productVersion, productChannel)
+            return productUOW.getProduct(productName)
                     .orElseThrow(() -> new CommandExecutionException(StringUtil
                             .concatStrings("No product test plan found for product {product name: ", productName,
-                                    ", product version: ", productVersion, ", channel: ", channel,
+                                    ", product version: ",
                                     "}. This exception should not occur in the test execution flow.")));
-        } catch (IllegalArgumentException e) {
-            throw new CommandExecutionException(StringUtil.concatStrings("Channel ", channel,
-                    " not found in channels enum - [ ", Product.Channel.values(), " ]",
-                    "This exception should not occur in the test execution flow."));
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error in retrieving Product {product name: ", productName,
-                            ", product version: ", productVersion, ", channel: ", channel,
                             "} from the Database. This exception should not occur in the test execution flow."), e);
         }
     }

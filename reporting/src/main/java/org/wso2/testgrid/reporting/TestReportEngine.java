@@ -140,9 +140,9 @@ public class TestReportEngine {
         String htmlString = renderable.render(REPORT_MUSTACHE, parsedResultMap);
 
         // Write to HTML file
-        String fileName = StringUtil.concatStrings(product.getName(), "-",
-                product.getVersion(), "-", product.getChannel(), "-",
-                product.getCreatedTimestamp(), "-", uniqueAxisColumn, HTML_EXTENSION);
+        String fileName = StringUtil
+                .concatStrings(product.getName(), "-", product.getCreatedTimestamp(), "-", uniqueAxisColumn,
+                        HTML_EXTENSION);
         String testGridHome = TestGridUtil.getTestGridHomePath();
         Path reportPath = Paths.get(testGridHome).resolve(fileName);
         writeHTMLToFile(reportPath, htmlString);

@@ -40,8 +40,6 @@ public class Report {
 
     private final boolean isShowSuccess;
     private final String productName;
-    private final String productVersion;
-    private final String channel;
     private final String parsedGroupByListString;
     private final String perSummaryString;
 
@@ -56,8 +54,6 @@ public class Report {
                   List<PerAxisHeader> perSummaryList) throws ReportingException {
         this.isShowSuccess = isShowSuccess;
         this.productName = product.getName();
-        this.productVersion = product.getVersion();
-        this.channel = product.getChannel().toString();
 
         // Render per infra summary
         Map<String, Object> perSummariesMap = new HashMap<>();
@@ -88,24 +84,6 @@ public class Report {
      */
     public String getProductName() {
         return productName;
-    }
-
-    /**
-     * Returns the product version.
-     *
-     * @return product version
-     */
-    public String getProductVersion() {
-        return productVersion;
-    }
-
-    /**
-     * Returns the product channel.
-     *
-     * @return product channel
-     */
-    public String getChannel() {
-        return channel;
     }
 
     /**
