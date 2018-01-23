@@ -102,14 +102,10 @@ pipeline {
               s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"jenkins-testrun-artifacts", path:"artifacts/")
             }
 
-            publishHTML([
-            allowMissing: false,
-            alwaysLinkToLastBuild: true,
-            keepAll: true,
-            reportDir: "${TESTGRID_HOME}",
-            reportFiles: '*.html',
-            reportName: 'HTML Report',
-            reportTitles: ''])
+            // Delete logs and reports after upload
+            dir("${TESTGRID_HOME}/${PRODUCT}") {
+                deleteDir()
+            }
        }
    }
 }
