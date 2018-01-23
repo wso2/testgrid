@@ -132,8 +132,8 @@ public class RunTestPlanCommand implements Command {
                     testConfig.getDeploymentPatterns().get(0));
 
             // Generate test plan from config
-            TestPlan testPlan = generateTestPlan(deploymentPattern, testConfig, scenarioRepoDir, infraRepo,
-                    deploymentRepo);
+            TestPlan testPlan = generateTestPlan(deploymentPattern, testConfig, infraRepo, deploymentRepo,
+                    scenarioRepoDir);
 
             //Set the log file path
             LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlan));
@@ -302,12 +302,13 @@ public class RunTestPlanCommand implements Command {
      *
      * @param deploymentPattern deployment pattern
      * @param testConfig        testConfig object
-     * @param testRepoDir       test repo directory
      * @param infraRepoDir      infrastructure repo directory
+     * @param deploymentRepo    deployment script directory
+     * @param testRepoDir       test repo directory
      * @return TestPlan object model
      */
-    private TestPlan generateTestPlan(DeploymentPattern deploymentPattern, TestConfig testConfig, String testRepoDir,
-                                      String infraRepoDir, String deploymentRepo) throws CommandExecutionException {
+    private TestPlan generateTestPlan(DeploymentPattern deploymentPattern, TestConfig testConfig, String infraRepoDir,
+                                      String deploymentRepo, String testRepoDir) throws CommandExecutionException {
         try {
             String jsonInfraParams = new ObjectMapper().writeValueAsString(testConfig.getInfraParams().get(0));
             TestPlan testPlan = new TestPlan();
