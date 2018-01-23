@@ -138,8 +138,7 @@ public class TestPlanExecutor {
             Deployment deployment = InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
                     .createInfrastructure(infrastructure, testPlan.getInfraRepoDir());
             deployment.setName(infrastructure.getName());
-            deployment.setDeploymentScriptsDir(
-                    Paths.get(testPlan.getInfraRepoDir(), infrastructure.getName()).toString());
+            deployment.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepoDir()).toString());
             testPlan.setDeployment(deployment);
         } catch (TestGridInfrastructureException e) {
             setTestPlanStatus(testPlan, Status.FAIL);

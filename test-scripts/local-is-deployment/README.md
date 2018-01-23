@@ -19,4 +19,4 @@ java -jar test-grid-{VERSION}.jar generate-test-plan --product IS --version 5.4.
 
 4. Execute the run-testplan command.
 ````
-java -jar test-grid-{VERSION}.jar run-testplan -p IS -v 5.4.0 -c LTS -ir ./DeploymentPatterns -sr ./Solutions````
+java -jar test-grid-{VERSION}.jar run-testplan -p IS -v 5.4.0 -c LTS -ir ./Infrastructure -sr ./Solutions -dr ./Deployment````

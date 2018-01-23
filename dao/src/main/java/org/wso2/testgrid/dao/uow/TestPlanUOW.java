@@ -61,6 +61,7 @@ public class TestPlanUOW {
             persisted.setDeployment(testPlan.getDeployment());
             persisted.setTestRepoDir(testPlan.getTestRepoDir());
             persisted.setInfraRepoDir(testPlan.getInfraRepoDir());
+            persisted.setDeploymentRepoDir(testPlan.getDeploymentRepoDir());
             persisted.setInfrastructureScript(testPlan.getInfrastructureScript());
             persisted.setDeploymentScript(testPlan.getDeploymentScript());
         }

@@ -89,6 +89,11 @@ public class RunTestPlanCommand implements Command {
             aliases = {"-ir"},
             required = true)
     private String infraRepo = "";
+    @Option(name = "--deploymentRepo",
+            usage = "Location of the deployment scripts. ",
+            aliases = {"-dr"},
+            required = true)
+    private String deploymentRepo = "";
     @Option(name = "--scenarioRepo",
             usage = "scenario repo directory. Assume this location is the test-grid-is-resources",
             aliases = {"-sr"},
@@ -129,7 +134,8 @@ public class RunTestPlanCommand implements Command {
                     testConfig.getDeploymentPatterns().get(0));
 
             // Generate test plan from config
-            TestPlan testPlan = generateTestPlan(deploymentPattern, testConfig, scenarioRepoDir, infraRepo);
+            TestPlan testPlan = generateTestPlan(deploymentPattern, testConfig, infraRepo, deploymentRepo,
+                    scenarioRepoDir);
 
             //Set the log file path
             LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlan));
@@ -304,18 +310,20 @@ public class RunTestPlanCommand implements Command {
      *
      * @param deploymentPattern deployment pattern
      * @param testConfig        testConfig object
-     * @param testRepoDir       test repo directory
      * @param infraRepoDir      infrastructure repo directory
+     * @param deploymentRepo    deployment script directory
+     * @param testRepoDir       test repo directory
      * @return TestPlan object model
      */
-    private TestPlan generateTestPlan(DeploymentPattern deploymentPattern, TestConfig testConfig, String testRepoDir,
-                                      String infraRepoDir) throws CommandExecutionException {
+    private TestPlan generateTestPlan(DeploymentPattern deploymentPattern, TestConfig testConfig, String infraRepoDir,
+                                      String deploymentRepo, String testRepoDir) throws CommandExecutionException {
         try {
             String jsonInfraParams = new ObjectMapper().writeValueAsString(testConfig.getInfraParams().get(0));
             TestPlan testPlan = new TestPlan();
             testPlan.setStatus(Status.PENDING);
             testPlan.setInfraRepoDir(infraRepoDir);
             testPlan.setTestRepoDir(testRepoDir);
+            testPlan.setDeploymentRepoDir(deploymentRepo);
             testPlan.setDeploymentPattern(deploymentPattern);
             // The default provider is set to AWS_CF, if provider is Shell overriding the value
             if (testConfig.getInfrastructure().getProviderType().equals(Infrastructure.ProviderType.SHELL)) {
