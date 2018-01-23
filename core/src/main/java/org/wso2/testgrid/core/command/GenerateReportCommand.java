@@ -31,7 +31,7 @@ import org.wso2.testgrid.reporting.ReportingException;
 import org.wso2.testgrid.reporting.TestReportEngine;
 
 /**
- * This generates a cumulative test report that consists of all test plans for a given product, version and channel.
+ * This generates a cumulative test report that consists of all test plans for a given product.
  *
  * @since 1.0.0
  */
