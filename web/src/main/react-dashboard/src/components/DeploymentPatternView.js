@@ -97,7 +97,7 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn>
                           <FlatButton style={{color: '#0E457C'}}
                                       onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastBuild.id, {
-                                        deploymentName: key
+                                        deploymentPatternName: key
                                       }, {
                                         testPlanId: value.lastBuild.id,
                                         infraParameters: value.lastBuild.infraParams,
@@ -110,7 +110,7 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn>
                           <FlatButton style={{color: '#0E457C'}}
                                       onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastFailed.id, {
-                                        deploymentName: key
+                                        deploymentPatternName: key
                                       }, {
                                         testPlanId: value.lastFailed.id,
                                         infraParameters: value.lastFailed.infraParams,

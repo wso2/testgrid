@@ -106,7 +106,7 @@ class TestRunView extends Component {
       <i> {this.props.active.reducer.currentProduct.productName}
         {this.props.active.reducer.currentProduct.productVersion}
         {this.props.active.reducer.currentProduct.productChannel} /
-        {this.props.active.reducer.currentDeployment.deploymentName} /
+        {this.props.active.reducer.currentDeployment.deploymentPatternName} /
         {this.props.active.reducer.currentInfra.infraParameters}</i>
     </td>);
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
