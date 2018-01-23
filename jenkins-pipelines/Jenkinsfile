@@ -98,14 +98,20 @@ pipeline {
             --groupBy deployment \
             """
 
-           publishHTML([
-           allowMissing: false,
-           alwaysLinkToLastBuild: true,
-           keepAll: true,
-           reportDir: "${TESTGRID_HOME}",
-           reportFiles: '*.html',
-           reportName: 'HTML Report',
-           reportTitles: ''])
+            // Archive artifacts
+            withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
+              // Upload artifacts to S3
+              s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"jenkins-testrun-artifacts", path:"artifacts/")
+            }
+
+            publishHTML([
+            allowMissing: false,
+            alwaysLinkToLastBuild: true,
+            keepAll: true,
+            reportDir: "${TESTGRID_HOME}",
+            reportFiles: '*.html',
+            reportName: 'HTML Report',
+            reportTitles: ''])
        }
    }
 }
