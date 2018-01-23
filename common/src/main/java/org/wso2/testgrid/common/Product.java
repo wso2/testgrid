@@ -34,7 +34,8 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 /**
- * This represents a model of the Product which includes the name, version and the channel.
+ * This represents a model of the Product.
+ * <p>
  * All the test-configs will be mapped to a product based on the configuration.
  * <p>
  * A single product will have multiple deployment patterns

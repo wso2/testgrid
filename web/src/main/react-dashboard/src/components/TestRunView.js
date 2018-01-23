@@ -110,6 +110,7 @@ class TestRunView extends Component {
         {this.props.active.reducer.currentInfra.infraParameters}</i>
     </td>);
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
+    let isFailedTestsTitleAdded = false;
 
     return (
       <div>
@@ -349,76 +350,82 @@ class TestRunView extends Component {
                     <br/>
                     {divider}
                     {/*Detailed Report for failed test cases*/}
-                    {this.state.scenarioTestCaseEntries.length > 0 ? <h2>Failed Tests</h2> : ""}
                     {this.state.scenarioTestCaseEntries.map((data, index) => {
-                      return (
-                        <div>
-                          <h2 style={{
-                            color: "#e46226"
-                          }}>{data.scenarioName}</h2>
-                          <Table>
-                            <TableHeader displaySelectAll={false}
-                                         adjustForCheckbox={false}>
-                              <TableRow>
-                                <TableHeaderColumn
-                                  style={{
-                                    width: "5%",
-                                    textAlign: "center"
-                                  }}/>
-                                <TableHeaderColumn
-                                  style={{
-                                    width: "30%"
-                                  }}>
-                                  <h2>Test Case</h2>
-                                </TableHeaderColumn>
-                                <TableHeaderColumn
-                                  style={{
-                                    width: "65%"
-                                  }}>
-                                  <h2>Failure Message</h2>
-                                </TableHeaderColumn>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody displayRowCheckbox={false}
-                                       showRowHover={true}>
-                              {data.testCaseEntries.map((entry, index) => {
-                                return (
-                                  <TableRow key={index}>
-                                    <TableRowColumn
-                                      style={{width: "5%"}}>
-                                      {entry.isTestSuccess ?
-                                        <img width="36"
-                                             height="36"
-                                             src={require('../success.png')}/>
-                                        :
-                                        <img width="36"
-                                             height="36"
-                                             src={require('../close.png')}/>}
-                                    </TableRowColumn>
-                                    <TableRowColumn style={{
-                                      fontSize: "15px",
-                                      width: "30%",
-                                      wordWrap: "break-word",
-                                      whiteSpace: "wrap",
-                                    }}>{entry.testCase}</TableRowColumn>
-                                    <TableRowColumn style={{
-                                      fontSize: "15px",
-                                      width: "65%",
-                                      wordWrap: "break-word",
-                                      whiteSpace: "wrap",
-                                      paddingTop: 15,
-                                      paddingBottom: 15
+                      if (data.testCaseEntries.length > 0) {
+                        const failedTestTitleContent = isFailedTestsTitleAdded ?
+                          "" : <h2>Failed Tests</h2>;
+                        isFailedTestsTitleAdded = true;
+                        return (
+                          <div>
+                            {failedTestTitleContent}
+                            <h2 style={{
+                              color: "#e46226"
+                            }}>{data.scenarioName}</h2>
+                            <Table>
+                              <TableHeader displaySelectAll={false}
+                                           adjustForCheckbox={false}>
+                                <TableRow>
+                                  <TableHeaderColumn
+                                    style={{
+                                      width: "5%",
+                                      textAlign: "center"
+                                    }}/>
+                                  <TableHeaderColumn
+                                    style={{
+                                      width: "30%"
                                     }}>
-                                      {entry.failureMessage}
-                                    </TableRowColumn>
-                                  </TableRow>
-                                )
-                              })}
-                            </TableBody>
-                          </Table>
-                          <br/>
-                        </div>
-                      )
+                                    <h2>Test Case</h2>
+                                  </TableHeaderColumn>
+                                  <TableHeaderColumn
+                                    style={{
+                                      width: "65%"
+                                    }}>
+                                    <h2>Failure Message</h2>
+                                  </TableHeaderColumn>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody displayRowCheckbox={false}
+                                         showRowHover={true}>
+                                {data.testCaseEntries.map((entry, index) => {
+                                  return (
+                                    <TableRow key={index}>
+                                      <TableRowColumn
+                                        style={{width: "5%"}}>
+                                        {entry.isTestSuccess ?
+                                          <img width="36"
+                                               height="36"
+                                               src={require('../success.png')}/>
+                                          :
+                                          <img width="36"
+                                               height="36"
+                                               src={require('../close.png')}/>}
+                                      </TableRowColumn>
+                                      <TableRowColumn style={{
+                                        fontSize: "15px",
+                                        width: "30%",
+                                        wordWrap: "break-word",
+                                        whiteSpace: "wrap",
+                                      }}>{entry.testCase}</TableRowColumn>
+                                      <TableRowColumn style={{
+                                        fontSize: "15px",
+                                        width: "65%",
+                                        wordWrap: "break-word",
+                                        whiteSpace: "wrap",
+                                        paddingTop: 15,
+                                        paddingBottom: 15
+                                      }}>
+                                        {entry.failureMessage}
+                                      </TableRowColumn>
+                                    </TableRow>
+                                  )
+                                })}
+                              </TableBody>
+                            </Table>
+                            <br/>
+                          </div>)
+                      } else {
+                        return ("")
+                      }
                     })}
                   </div>;
                 case "PENDING":

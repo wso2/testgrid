@@ -34,7 +34,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -47,7 +46,6 @@ import javax.ws.rs.core.Response;
 public class ProductService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
-    private static final String DELIMITER = "_";
 
     /**
      * This has the implementation of the REST API for fetching all the Products.
@@ -62,35 +60,6 @@ public class ProductService {
                     build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the Products.";
-            logger.error(msg, e);
-            return Response.serverError().entity(
-                    new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
-        }
-    }
-
-    /**
-     * This has the implementation of the REST API for fetching a Product by name, version and channel.
-     *
-     * @return the matching Product for the given name, version and channel.
-     */
-    @GET
-    @Path("/search")
-    public Response getProduct(@QueryParam("name") String name, @QueryParam("version") String version,
-                               @QueryParam("channel") String channel) {
-        try {
-            ProductUOW productUOW = new ProductUOW();
-            Optional<Product> product = productUOW.getProduct(name);
-            if (product.isPresent()) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getProductBean(product.get())).
-                        build();
-            } else {
-                return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
-                        setMessage("Unable to find the requested Product by name: '" + name + "', " +
-                                "version: '" + version + "', channel: '" + channel + "'").build()).build();
-            }
-        } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the Product by name: '" + name + "', " + "version: '" +
-                    version + "', channel: '" + channel + "'";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
