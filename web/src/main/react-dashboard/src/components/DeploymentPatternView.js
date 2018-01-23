@@ -31,6 +31,7 @@ import SingleRecord from './SingleRecord.js';
 import { add_current_deployment } from '../actions/testGridActions.js';
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip'
+import FlatButton from 'material-ui/FlatButton';
 
 class DeploymentPatternView extends Component {
 
@@ -44,7 +45,6 @@ class DeploymentPatternView extends Component {
   componentDidMount() {
      var url = '/testgrid/v0.9/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
     fetch(url, {
-      mode: 'cors',
       method: "GET",
       headers: {
         'Accept': 'application/json'
@@ -94,11 +94,29 @@ class DeploymentPatternView extends Component {
                       <TableRow>
                         <TableRowColumn rowSpan={x[key].length}>{key}</TableRowColumn>
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>{value.lastBuild.infraParams}</TableRowColumn>
-                        <TableRowColumn ><SingleRecord value={value.lastBuild.status} time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
-                        /> </TableRowColumn>
-                        <TableRowColumn ><SingleRecord value={value.lastFailed.status}
-                          time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
-                        /> </TableRowColumn>
+                        <TableRowColumn>
+                          <FlatButton style={{color: '#0E457C'}}
+                                      onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastBuild.id, {
+                                        testPlanId: value.lastBuild.id,
+                                        infraParameters: value.lastBuild.infraParams,
+                                        testPlanStatus: value.lastBuild.status
+                                      })}>
+                            <SingleRecord value={value.lastBuild.status}
+                                          time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}/>
+                          </FlatButton>
+                        </TableRowColumn>
+                        <TableRowColumn>
+                          <FlatButton style={{color: '#0E457C'}}
+                                      onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastFailed.id, {
+                                        testPlanId: value.lastFailed.id,
+                                        infraParameters: value.lastFailed.infraParams,
+                                        testPlanStatus: value.lastFailed.status
+                                      })}>
+                            <SingleRecord value={value.lastFailed.status}
+                                          time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
+                            />
+                          </FlatButton>
+                        </TableRowColumn>
                         <TableRowColumn> <img  src={require('../play.png')} width="48" height="48" data-tip="Execute Job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }}/><ReactTooltip /></TableRowColumn>
                       </TableRow>
 

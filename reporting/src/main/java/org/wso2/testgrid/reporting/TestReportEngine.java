@@ -24,7 +24,7 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.exception.TestGridLoggingException;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.reporting.model.GroupBy;
@@ -105,7 +105,7 @@ public class TestReportEngine {
             String testGridHome = TestGridUtil.getTestGridHomePath();
             Path reportPath = Paths.get(testGridHome).resolve(testRunArtifactsDir).resolve(fileName);
             writeHTMLToFile(reportPath, htmlString);
-        } catch (TestGridLoggingException e) {
+        } catch (TestGridException e) {
             throw new ReportingException("Logs related to test report generation will not be created since an error " +
                                          "occurred in deriving log file path.", e);
         }

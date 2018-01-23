@@ -18,10 +18,12 @@
 
 package org.wso2.testgrid.web.utils;
 
+import org.wso2.testgrid.common.TestGridConstants;
+
 /**
  * This class will handle all the constants in the web-app.
  */
-public class Constants {
+public class Constants extends TestGridConstants {
     public static final String JENKINS_TEMPLATE_JOB_URI =
             "/job/templates/job/velocityTemplateJob/config.xml";
     public static final String BLUE_OCEAN_URI = "/blue/organizations/jenkins";

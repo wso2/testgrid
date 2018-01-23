@@ -48,7 +48,6 @@ class TestCaseView extends Component {
         var url = '/testgrid/v0.9/api/test-scenarios/'+this.props.active.reducer.currentScenario.scenarioId;
 
         fetch(url, {
-            mode: 'cors',
             method: "GET",
             headers: {
                 'Accept': 'application/json'

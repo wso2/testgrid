@@ -21,15 +21,26 @@ package org.wso2.testgrid.web.api;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
+import org.wso2.testgrid.web.bean.ScenarioSummary;
+import org.wso2.testgrid.web.bean.ScenarioTestCaseEntry;
+import org.wso2.testgrid.web.bean.TestCaseEntry;
+import org.wso2.testgrid.web.bean.TestExecutionSummary;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.bean.TestPlanStatus;
+import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
+import org.wso2.testgrid.web.plugins.AWSArtifactReader;
+import org.wso2.testgrid.web.plugins.ArtifactReadable;
+import org.wso2.testgrid.web.plugins.ArtifactReaderException;
 import org.wso2.testgrid.web.utils.Constants;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -46,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -64,8 +76,12 @@ import javax.ws.rs.core.Response;
 public class TestPlanService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
-    JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
-    JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
+    private static final String AWS_REGION_NAME = "us-east-1";
+    private static final String AWS_BUCKET_NAME = "jenkins-testrun-artifacts";
+    private static final String AWS_BUCKET_ARTIFACT_DIR = "artifacts";
+    private JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
+    private JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
+
     /**
      * This has the implementation of the REST API for fetching all the TestPlans for a given deployment-pattern
      * and created before date.
@@ -73,9 +89,9 @@ public class TestPlanService {
      * @return A list of available TestPlans.
      */
     @GET
-    public Response getTestPlansForDeploymentPatternAndDate(@QueryParam("deployment-pattern-id")
-                                           String deploymentPatternId, @QueryParam("date") String date,
-                                           @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
+    public Response getTestPlansForDeploymentPatternAndDate(
+            @QueryParam("deployment-pattern-id") String deploymentPatternId, @QueryParam("date") String date,
+            @QueryParam("require-test-scenario-info") boolean requireTestScenarioInfo) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             Date parsedDate;
@@ -126,6 +142,88 @@ public class TestPlanService {
     }
 
     /**
+     * Returns the log content related to the given test plan.
+     *
+     * @param id       test plan id to get the specific log
+     * @param truncate whether the log file should be truncated or not
+     * @return The requested Test-Plan
+     */
+    @GET
+    @Path("/log/{id}")
+    public Response getLogContent(@PathParam("id") String id, @QueryParam("truncate") boolean truncate) {
+        try {
+            // Get test plan
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            Optional<TestPlan> optionalTestPlan = testPlanUOW.getTestPlanById(id);
+            if (!optionalTestPlan.isPresent()) {
+                String msg = "No test plan found for the given id " + id;
+                logger.error(msg);
+                return Response.serverError()
+                        .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+            }
+            TestPlan testPlan = optionalTestPlan.get();
+
+            String testGridArtifactLocation = TestGridUtil.getTestRunArtifactsDirectory(testPlan).toString();
+            String bucketKey = Paths
+                    .get(AWS_BUCKET_ARTIFACT_DIR, testGridArtifactLocation, Constants.TEST_LOG_FILE_NAME).toString();
+            ArtifactReadable artifactDownloadable = new AWSArtifactReader(AWS_REGION_NAME, AWS_BUCKET_NAME);
+
+            // If truncated the input stream will be maximum of 200kb
+            TruncatedInputStreamData truncatedInputStreamData = truncate ?
+                                                                artifactDownloadable.readArtifact(bucketKey, 200) :
+                                                                artifactDownloadable.readArtifact(bucketKey);
+            return Response.status(Response.Status.OK).entity(truncatedInputStreamData).build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        } catch (TestGridException e) {
+            String msg = "Error occurred when calculating test run artifacts directory.";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        } catch (ArtifactReaderException e) {
+            String msg = "Error occurred when reading the artifact.";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
+     * Returns the test execution summary related to the given test plan.
+     *
+     * @param id test plan id
+     * @return The requested Test-Plan
+     */
+    @GET
+    @Path("/test-summary/{id}")
+    public Response getTestSummary(@PathParam("id") String id) {
+        try {
+            // Get test plan
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            Optional<TestPlan> optionalTestPlan = testPlanUOW.getTestPlanById(id);
+            if (!optionalTestPlan.isPresent()) {
+                String msg = "No test plan found for the given id " + id;
+                logger.error(msg);
+                return Response.serverError()
+                        .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+            }
+            TestPlan testPlan = optionalTestPlan.get();
+
+            // Get test execution summary
+            TestExecutionSummary testExecutionSummary = getTestExecutionSummary(testPlan);
+            return Response.status(Response.Status.OK).entity(testExecutionSummary).build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
      * This method returns the latest {@link TestPlan}s for a given product
      * that contains the build details for distinct infrastructure combinations.
      *
@@ -169,7 +267,7 @@ public class TestPlanService {
                     entity(jobSpecificUrl).type(MediaType.TEXT_PLAIN).build();
         } catch (TestGridException | IOException e) {
             String msg = "Error occurred while creating new test plan named : '" +
-                    testPlanRequest.getTestPlanName() + "'.";
+                         testPlanRequest.getTestPlanName() + "'.";
             logger.error(msg, e);
             return Response.serverError().entity(
                     new ErrorResponse.ErrorResponseBuilder().
@@ -196,7 +294,7 @@ public class TestPlanService {
                 Files.createDirectories(path);
             } catch (IOException e) {
                 throw new TestGridException("Can not create directory to save YAML file of the test-plan " +
-                        testPlanRequest.getTestPlanName() + ".", e);
+                                            testPlanRequest.getTestPlanName() + ".", e);
             }
         }
 
@@ -215,7 +313,41 @@ public class TestPlanService {
             }
         } catch (IOException e) {
             throw new TestGridException("Error occurred when writing YAML file for test-plan " +
-                    testPlanRequest.getTestPlanName() + ".", e);
+                                        testPlanRequest.getTestPlanName() + ".", e);
         }
+    }
+
+    /**
+     * Returns the test execution summary for the given test plan.
+     *
+     * @param testPlan test plan to get the test execution summary for
+     * @return test execution summary
+     */
+    private TestExecutionSummary getTestExecutionSummary(TestPlan testPlan) {
+        List<TestScenario> testScenarios = testPlan.getTestScenarios();
+
+        // Gather scenario summaries
+        List<ScenarioSummary> scenarioSummaries = new ArrayList<>();
+        List<ScenarioTestCaseEntry> scenarioTestCaseEntries = new ArrayList<>();
+        for (TestScenario testScenario : testScenarios) {
+            List<TestCase> testCases = new ArrayList<>(testScenario.getTestCases());
+
+            // Create scenario summary
+            long totalSuccess = testCases.stream().filter(TestCase::isSuccess).count();
+            long totalFailed = testCases.stream().filter(testCase -> !testCase.isSuccess()).count();
+            ScenarioSummary scenarioSummary = new ScenarioSummary(testScenario.getName(), totalSuccess, totalFailed,
+                    testScenario.getStatus());
+            scenarioSummaries.add(scenarioSummary);
+
+            // Create test case entries for failed tests
+            List<TestCaseEntry> failedTestCaseEntries = testCases.stream()
+                    .filter(testCase -> !testCase.isSuccess())
+                    .map(testCase -> new TestCaseEntry(testCase.getName(), testCase.getFailureMessage(),
+                            testCase.isSuccess())
+                    )
+                    .collect(Collectors.toList());
+            scenarioTestCaseEntries.add(new ScenarioTestCaseEntry(testScenario.getName(), failedTestCaseEntries));
+        }
+        return new TestExecutionSummary(scenarioSummaries, scenarioTestCaseEntries);
     }
 }

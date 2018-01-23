@@ -50,7 +50,6 @@ class ScenarioView extends Component {
         var url = "/testgrid/v0.9/api/test-plans/"+this.props.active.reducer.currentInfra.infrastructureId+"?require-test-scenario-info=true";
 
         fetch(url, {
-            mode: 'cors',
             method: "GET",
             headers: {
                 'Accept': 'application/json'
