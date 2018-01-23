@@ -88,7 +88,6 @@ public class GenerateReportCommand implements Command {
             return productUOW.getProduct(productName)
                     .orElseThrow(() -> new CommandExecutionException(StringUtil
                             .concatStrings("No product test plan found for product {product name: ", productName,
-                                    ", product version: ",
                                     "}. This exception should not occur in the test execution flow.")));
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException(StringUtil
