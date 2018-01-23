@@ -176,17 +176,17 @@ public class TestPlanService {
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
             logger.error(msg, e);
-            return Response.serverError()
+            return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         } catch (TestGridException e) {
             String msg = "Error occurred when calculating test run artifacts directory.";
             logger.error(msg, e);
-            return Response.serverError()
+            return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         } catch (ArtifactReaderException e) {
             String msg = "Error occurred when reading the artifact.";
             logger.error(msg, e);
-            return Response.serverError()
+            return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
     }
