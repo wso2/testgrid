@@ -16,8 +16,6 @@
 
 # TestGrid Test Configuration Parameters
 productName: "IS"
-productVersion: "5.4.0"
-channel: "LTS"
 deploymentPatterns:
     -  "pattern-2"
 infraParams:
