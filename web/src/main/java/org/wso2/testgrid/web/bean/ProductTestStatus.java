@@ -27,16 +27,12 @@ import java.util.List;
 public class ProductTestStatus {
     private String id;
     private String name;
-    private String version;
-    private String channel;
     private List<TestStatus> testStatuses;
 
     public ProductTestStatus(String key) {
         String properties[] = key.split("_");
         this.id = properties[0];
         this.name = properties[1];
-        this.version = properties[2];
-        this.channel = properties[3];
         this.testStatuses = new ArrayList<>();
     }
 
@@ -74,42 +70,6 @@ public class ProductTestStatus {
      */
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * Returns the version of the product.
-     *
-     * @return version of the product
-     */
-    public String getVersion() {
-        return version;
-    }
-
-    /**
-     * Sets the version of the product.
-     *
-     * @param version product-version
-     */
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    /**
-     * Returns the channel of the product.
-     *
-     * @return channel of the product
-     */
-    public String getChannel() {
-        return channel;
-    }
-
-    /**
-     * Sets the channel of the product.
-     *
-     * @param channel product-channel
-     */
-    public void setChannel(String channel) {
-        this.channel = channel;
     }
 
     /**

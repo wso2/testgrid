@@ -65,17 +65,6 @@ public class GenerateTestPlanCommand implements Command {
             required = true)
     private String productName = "";
 
-    @Option(name = "--version",
-            usage = "Product Version",
-            aliases = {"-v"},
-            required = true)
-    private String productVersion = "";
-
-    @Option(name = "--channel",
-            usage = "Product Channel",
-            aliases = {"-c"})
-    private String channel = "LTS";
-
     @Option(name = "--testConfig",
             usage = "Test Configuration File",
             aliases = {"-tc"},
@@ -86,7 +75,7 @@ public class GenerateTestPlanCommand implements Command {
     public void execute() throws CommandExecutionException {
         try {
             //Set the log file path
-            LogFilePathLookup.setLogFilePath(deriveLogFilePath(productName, productVersion, channel));
+            LogFilePathLookup.setLogFilePath(deriveLogFilePath(productName));
 
             // Validate test configuration file name
             if (StringUtil.isStringNullOrEmpty(testConfigFile) || !testConfigFile.endsWith(YAML_EXTENSION)) {
@@ -102,7 +91,7 @@ public class GenerateTestPlanCommand implements Command {
             Yaml yaml = createYamlInstance();
 
             // Get product or create product for params
-            Product product = createOrReturnProduct(productName, productVersion, channel);
+            Product product = createOrReturnProduct(productName);
 
             // Create directory
             String infraGenDirectory = createTestPlanGenDirectory(product);
@@ -110,9 +99,8 @@ public class GenerateTestPlanCommand implements Command {
             // Save test configs to file
             for (int i = 0; i < testConfigs.size(); i++) {
                 TestConfig testConfig = testConfigs.get(i);
-                String fileName = StringUtil.concatStrings(testConfig.getProductName(), "-",
-                        testConfig.getProductVersion(), "-", testConfig.getChannel(),
-                        "-", (i + 1), YAML_EXTENSION);
+                String fileName = StringUtil
+                        .concatStrings(testConfig.getProductName(), "-", (i + 1), YAML_EXTENSION);
                 String output = yaml.dump(testConfig);
                 saveFile(output, infraGenDirectory, fileName);
             }
@@ -126,20 +114,15 @@ public class GenerateTestPlanCommand implements Command {
      * Creates or returns the product for the given params.
      *
      * @param productName    product name
-     * @param productVersion product version
-     * @param channel        product channel
      * @return product for the given params
      * @throws CommandExecutionException thrown when errors on database transaction
      */
-    private Product createOrReturnProduct(String productName, String productVersion, String channel)
-            throws CommandExecutionException {
+    private Product createOrReturnProduct(String productName) throws CommandExecutionException {
         try {
-            Product.Channel productChannel = Product.Channel.valueOf(channel);
             ProductUOW productUOW = new ProductUOW();
-            return productUOW.persistProduct(productName, productVersion, productChannel);
+            return productUOW.persistProduct(productName);
         } catch (TestGridDAOException e) {
-            throw new CommandExecutionException(StringUtil
-                    .concatStrings("Error on proceeding with database transaction."), e);
+            throw new CommandExecutionException("Error on proceeding with database transaction.", e);
         }
     }
 
@@ -198,8 +181,6 @@ public class GenerateTestPlanCommand implements Command {
             for (Map<String, Object> infraCombination : infraCombinations) {
                 TestConfig testConfig = new TestConfig();
                 testConfig.setProductName(inputTestConfig.getProductName());
-                testConfig.setProductVersion(inputTestConfig.getProductVersion());
-                testConfig.setChannel(inputTestConfig.getChannel());
                 testConfig.setDeploymentPatterns(Collections.singletonList(deploymentName));
                 testConfig.setInfraParams(Collections.singletonList(infraCombination));
                 testConfig.setScenarios(inputTestConfig.getScenarios());
@@ -335,12 +316,10 @@ public class GenerateTestPlanCommand implements Command {
      * Returns the path of the log file.
      *
      * @param productName    product name
-     * @param productVersion product version
-     * @param channel        channel
      * @return log file path
      */
-    private String deriveLogFilePath(String productName, String productVersion, String channel) {
-        String productDir = StringUtil.concatStrings(productName, "_", productVersion, "_", channel);
+    private String deriveLogFilePath(String productName) {
+        String productDir = StringUtil.concatStrings(productName);
         return Paths.get(productDir, "testgrid").toString();
     }
 }

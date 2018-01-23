@@ -48,8 +48,6 @@ class APIUtil {
         Product productBean = new Product();
         productBean.setId(product.getId());
         productBean.setName(product.getName());
-        productBean.setVersion(product.getVersion());
-        productBean.setChannel(product.getChannel().name());
         return productBean;
     }
 

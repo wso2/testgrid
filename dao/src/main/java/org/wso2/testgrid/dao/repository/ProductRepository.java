@@ -121,11 +121,11 @@ public class ProductRepository extends AbstractRepository<Product> {
      * @return result list after executing the query
      */
     public List<ProductTestStatus> getProductTestHistory(Timestamp date) throws TestGridDAOException {
-        String queryStr = "SELECT p.id, p.name, p.version, p.channel, dp.id AS deploymentPatternId, dp.name AS " +
+        String queryStr = "SELECT p.id, p.name, dp.id AS deploymentPatternId, dp.name AS " +
                 "deploymentPattern, tp.status, tp.created_timestamp AS testExecutionTime FROM product AS p" +
                 " INNER JOIN deployment_pattern AS dp ON p.id = dp.PRODUCT_id INNER JOIN test_plan AS tp ON " +
                 "dp.id = tp.DEPLOYMENTPATTERN_id WHERE tp.created_timestamp >= '" + date + "' ORDER BY p.name, " +
-                "p.version, p.channel, tp.created_timestamp DESC;";
+                "tp.created_timestamp DESC;";
         try {
             Query query = entityManager.createNativeQuery(queryStr);
             return this.getProductTestStatuses(query.getResultList());
@@ -139,9 +139,8 @@ public class ProductRepository extends AbstractRepository<Product> {
         List<ProductTestStatus> productTestStatuses = new ArrayList<>();
 
         for (Object []result : results) {
-            productTestStatuses.add(new ProductTestStatus((String) result[0], (String) result[1], (String) result[2],
-                                                             (String) result[3], (String) result[4],
-                                                        (String) result[5], (String) result[6], (Timestamp) result[7]));
+            productTestStatuses.add(new ProductTestStatus((String) result[0], (String) result[1], (String) result[3],
+                                                        (String) result[2], (String) result[4], (Timestamp) result[5]));
         }
         return productTestStatuses;
     }

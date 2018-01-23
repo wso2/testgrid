@@ -79,7 +79,7 @@ public class ProductService {
                                @QueryParam("channel") String channel) {
         try {
             ProductUOW productUOW = new ProductUOW();
-            Optional<Product> product = productUOW.getProduct(name, version, Product.Channel.valueOf(channel));
+            Optional<Product> product = productUOW.getProduct(name);
             if (product.isPresent()) {
                 return Response.status(Response.Status.OK).entity(APIUtil.getProductBean(product.get())).
                         build();
@@ -141,7 +141,7 @@ public class ProductService {
             for (Product product : productUOW.getProducts()) {
                 ProductStatus status = new ProductStatus();
                 status.setId(product.getId());
-                status.setName(StringUtil.concatStrings(product.getName(), product.getVersion(), product.getChannel()));
+                status.setName(StringUtil.concatStrings(product.getName()));
                 status.setLastfailed(APIUtil.getTestPlanBean(testPlanUOW.getLastFailure(product), false));
                 status.setLastBuild(APIUtil.getTestPlanBean(testPlanUOW.getLastBuild(product), false));
                 status.setStatus(testPlanUOW.getCurrentStatus(product).toString());
