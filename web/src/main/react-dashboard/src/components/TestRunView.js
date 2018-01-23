@@ -334,7 +334,13 @@ class TestRunView extends Component {
                                 fontSize: "20px",
                                 wordWrap: "break-word",
                                 whiteSpace: "wrap"
-                              }}>{parseFloat(data.successPercentage.toFixed(2))}%</TableRowColumn>
+                              }}>
+                              {
+                                isNaN(data.successPercentage) ?
+                                  "0.0" :
+                                  parseFloat(data.successPercentage).toFixed(2)
+                              }%
+                            </TableRowColumn>
                           </TableRow>)
                         })}
                       </TableBody>
