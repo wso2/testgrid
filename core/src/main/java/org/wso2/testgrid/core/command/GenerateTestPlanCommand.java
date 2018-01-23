@@ -122,8 +122,7 @@ public class GenerateTestPlanCommand implements Command {
             ProductUOW productUOW = new ProductUOW();
             return productUOW.persistProduct(productName);
         } catch (TestGridDAOException e) {
-            throw new CommandExecutionException(
-                    StringUtil.concatStrings("Error on proceeding with database transaction."), e);
+            throw new CommandExecutionException("Error on proceeding with database transaction.", e);
         }
     }
 
