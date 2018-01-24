@@ -28,7 +28,7 @@ import {
 } from 'material-ui/Table';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
-import {add_current_deployment, add_current_infra} from '../actions/testGridActions.js';
+import { add_current_deployment, add_current_infra } from '../actions/testGridActions.js';
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
@@ -43,7 +43,7 @@ class DeploymentPatternView extends Component {
   }
 
   componentDidMount() {
-     var url = '/testgrid/v0.9/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
+      var url = '/testgrid/v0.9/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
     fetch(url, {
       method: "GET",
       headers: {
@@ -95,33 +95,43 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn rowSpan={x[key].length}>{key}</TableRowColumn>
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>{value.lastBuild.infraParams}</TableRowColumn>
                         <TableRowColumn>
-                          <FlatButton style={{color: '#0E457C'}}
-                                      onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastBuild.id, {
-                                        deploymentPatternName: key
-                                      }, {
-                                        testPlanId: value.lastBuild.id,
-                                        infraParameters: value.lastBuild.infraParams,
-                                        testPlanStatus: value.lastBuild.status
-                                      })}>
+                          <FlatButton style={{ color: '#0E457C' }}
+                            onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastBuild.id, {
+                              deploymentPatternName: key
+                            }, {
+                                testPlanId: value.lastBuild.id,
+                                infraParameters: value.lastBuild.infraParams,
+                                testPlanStatus: value.lastBuild.status
+                              })}>
                             <SingleRecord value={value.lastBuild.status}
-                                          time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}/>
+                              time={value.lastBuild.modifiedTimestamp} />
                           </FlatButton>
                         </TableRowColumn>
                         <TableRowColumn>
-                          <FlatButton style={{color: '#0E457C'}}
-                                      onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastFailed.id, {
-                                        deploymentPatternName: key
-                                      }, {
-                                        testPlanId: value.lastFailed.id,
-                                        infraParameters: value.lastFailed.infraParams,
-                                        testPlanStatus: value.lastFailed.status
-                                      })}>
-                            <SingleRecord value={value.lastFailed.status}
-                                          time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
-                            />
-                          </FlatButton>
+                          {(() => {
+                            if (value.lastFailed.modifiedTimestamp) {
+                              return (
+                                <FlatButton style={{ color: '#0E457C' }}
+                                  onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastFailed.id, {
+                                    deploymentPatternName: key
+                                  }, {
+                                      testPlanId: value.lastFailed.id,
+                                      infraParameters: value.lastFailed.infraParams,
+                                      testPlanStatus: value.lastFailed.status
+                                    })}>
+                                  <SingleRecord value={value.lastFailed.status}
+                                    time={value.lastFailed.modifiedTimestamp}
+                                  />
+                                </FlatButton>
+                              );
+                            } else {
+                              return (
+                                <FlatButton>No failed builds yet!</FlatButton>
+                              )
+                            }
+                          })()}
                         </TableRowColumn>
-                        <TableRowColumn> <img  src={require('../play.png')} width="48" height="48" data-tip="Execute Job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }}/><ReactTooltip /></TableRowColumn>
+                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /><ReactTooltip /></TableRowColumn>
                       </TableRow>
 
                     )
@@ -131,12 +141,12 @@ class DeploymentPatternView extends Component {
                       <TableRow>
                         <TableRowColumn >{value.lastBuild.infraParams}</TableRowColumn>
                         <TableRowColumn ><SingleRecord value={value.lastBuild.status}
-                             time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
+                          time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
                         /> </TableRowColumn>
                         <TableRowColumn ><SingleRecord value={value.lastFailed.status}
-                           time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
+                          time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
                         /> </TableRowColumn>
-                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job"  onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }}/><ReactTooltip /></TableRowColumn>
+                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /><ReactTooltip /></TableRowColumn>
                       </TableRow>
                     )
                   }

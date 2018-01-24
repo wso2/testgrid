@@ -46,8 +46,10 @@ class APIUtil {
      */
     static Product getProductBean(org.wso2.testgrid.common.Product product) {
         Product productBean = new Product();
-        productBean.setId(product.getId());
-        productBean.setName(product.getName());
+        if (product != null) {
+            productBean.setId(product.getId());
+            productBean.setName(product.getName());
+        }
         return productBean;
     }
 
@@ -72,16 +74,18 @@ class APIUtil {
      * {@link DeploymentPattern} instance.
      *
      * @param deploymentPattern {@link org.wso2.testgrid.common.DeploymentPattern} instance to be converted
-     * @param status Status of the last test execution
+     * @param status            Status of the last test execution
      * @return {@link DeploymentPattern} instance with necessary information
      */
     static DeploymentPattern getDeploymentPatternBean(org.wso2.testgrid.common.DeploymentPattern deploymentPattern,
                                                       String status) {
         DeploymentPattern deploymentPattern1 = new DeploymentPattern();
-        deploymentPattern1.setId(deploymentPattern.getId());
-        deploymentPattern1.setName(deploymentPattern.getName());
-        deploymentPattern1.setProductId(deploymentPattern.getProduct().getId());
-        deploymentPattern1.setTestStatus(status);
+        if (deploymentPattern != null) {
+            deploymentPattern1.setId(deploymentPattern.getId());
+            deploymentPattern1.setName(deploymentPattern.getName());
+            deploymentPattern1.setProductId(deploymentPattern.getProduct().getId());
+            deploymentPattern1.setTestStatus(status);
+        }
         return deploymentPattern1;
     }
 
@@ -90,7 +94,7 @@ class APIUtil {
      * {@link DeploymentPattern} instances.
      *
      * @param deploymentPatterns list of {@link org.wso2.testgrid.common.DeploymentPattern} instances to be converted
-     * @param stats list of {@link DeploymentPatternTestFailureStat} instances including test-stats
+     * @param stats              list of {@link DeploymentPatternTestFailureStat} instances including test-stats
      * @return List of {@link DeploymentPattern} instances with necessary information
      */
     static List<DeploymentPattern> getDeploymentPatternBeans(List<org.wso2.testgrid.common.DeploymentPattern>
@@ -100,7 +104,7 @@ class APIUtil {
         //Convert List to a Map
         Map<String, Long> failureStats = new HashMap<>();
         for (DeploymentPatternTestFailureStat stat : stats) {
-            failureStats.put(stat.getDeploymentPatternId() , stat.getFailureCount());
+            failureStats.put(stat.getDeploymentPatternId(), stat.getFailureCount());
         }
 
         for (org.wso2.testgrid.common.DeploymentPattern deploymentPattern : deploymentPatterns) {
@@ -117,21 +121,23 @@ class APIUtil {
     /**
      * Util method to convert {@link org.wso2.testgrid.common.TestPlan} instance to a {@link TestPlan} instance.
      *
-     * @param testPlan {@link org.wso2.testgrid.common.TestPlan} instance to be converted
+     * @param testPlan             {@link org.wso2.testgrid.common.TestPlan} instance to be converted
      * @param requireTestScenarios boolean flag to indicate whether to include test-scenario info
      * @return {@link TestPlan} instance  with necessary information
      */
     static TestPlan getTestPlanBean(org.wso2.testgrid.common.TestPlan testPlan, boolean requireTestScenarios) {
         TestPlan testPlan1 = new TestPlan();
-        testPlan1.setId(testPlan.getId());
-        testPlan1.setDeploymentPattern(testPlan.getDeploymentPattern().getName());
-        testPlan1.setDeploymentPatternId(testPlan.getDeploymentPattern().getId());
-        testPlan1.setInfraParams(testPlan.getInfraParameters());
-        testPlan1.setStatus(testPlan.getStatus().toString());
-        testPlan1.setCreatedTimestamp(testPlan.getCreatedTimestamp());
-        testPlan1.setModifiedTimestamp(testPlan.getModifiedTimestamp());
-        if (requireTestScenarios) {
-            testPlan1.setTestScenarios(getTestScenarioBeans(testPlan.getTestScenarios(), false));
+        if (testPlan != null) {
+            testPlan1.setId(testPlan.getId());
+            testPlan1.setDeploymentPattern(testPlan.getDeploymentPattern().getName());
+            testPlan1.setDeploymentPatternId(testPlan.getDeploymentPattern().getId());
+            testPlan1.setInfraParams(testPlan.getInfraParameters());
+            testPlan1.setStatus(testPlan.getStatus().toString());
+            testPlan1.setCreatedTimestamp(testPlan.getCreatedTimestamp());
+            testPlan1.setModifiedTimestamp(testPlan.getModifiedTimestamp());
+            if (requireTestScenarios) {
+                testPlan1.setTestScenarios(getTestScenarioBeans(testPlan.getTestScenarios(), false));
+            }
         }
         return testPlan1;
     }
@@ -140,7 +146,7 @@ class APIUtil {
      * Util method to convert list of {@link org.wso2.testgrid.common.TestPlan} instances to a list of {@link TestPlan}
      * instances.
      *
-     * @param testPlans list of {@link org.wso2.testgrid.common.TestPlan} instances to be converted
+     * @param testPlans            list of {@link org.wso2.testgrid.common.TestPlan} instances to be converted
      * @param requireTestScenarios boolean flag to indicate whether to include test-scenario info
      * @return List of {@link TestPlan} instances with necessary information
      */
@@ -157,18 +163,20 @@ class APIUtil {
     /**
      * Util method to convert {@link org.wso2.testgrid.common.TestScenario} instance to a {@link TestScenario} instance.
      *
-     * @param testScenario {@link org.wso2.testgrid.common.TestScenario} instance to be converted
+     * @param testScenario     {@link org.wso2.testgrid.common.TestScenario} instance to be converted
      * @param requireTestCases boolean flag to indicate whether to include test-case info
      * @return {@link TestScenario} instance with necessary information
      */
     static TestScenario getTestScenarioBean(org.wso2.testgrid.common.TestScenario testScenario,
                                             boolean requireTestCases) {
         TestScenario testScenario1 = new TestScenario();
-        testScenario1.setId(testScenario.getId());
-        testScenario1.setName(testScenario.getName());
-        testScenario1.setStatus(testScenario.getStatus().toString());
-        if (requireTestCases) {
-            testScenario1.setTestCases(getTestCaseBeans(testScenario.getTestCases()));
+        if (testScenario != null) {
+            testScenario1.setId(testScenario.getId());
+            testScenario1.setName(testScenario.getName());
+            testScenario1.setStatus(testScenario.getStatus().toString());
+            if (requireTestCases) {
+                testScenario1.setTestCases(getTestCaseBeans(testScenario.getTestCases()));
+            }
         }
         return testScenario1;
     }
@@ -177,7 +185,7 @@ class APIUtil {
      * Util method to convert list of {@link org.wso2.testgrid.common.TestScenario} instances to a list of
      * {@link Product} instances.
      *
-     * @param testScenarios list of {@link org.wso2.testgrid.common.TestScenario} instances to be converted
+     * @param testScenarios    list of {@link org.wso2.testgrid.common.TestScenario} instances to be converted
      * @param requireTestCases boolean flag to indicate whether to include test-case info
      * @return List of {@link TestScenario} instances with necessary information
      */
@@ -199,12 +207,14 @@ class APIUtil {
      */
     static TestCase getTestCaseBean(org.wso2.testgrid.common.TestCase testCase) {
         TestCase testCase1 = new TestCase();
-        testCase1.setId(testCase.getId());
-        testCase1.setName(testCase.getName());
-        testCase1.setSuccess(testCase.isSuccess());
-        testCase1.setModifiedTimestamp(testCase.getModifiedTimestamp());
-        testCase1.setCreatedTimestamp(testCase.getCreatedTimestamp());
-        testCase1.setErrorMsg(testCase.getFailureMessage());
+        if (testCase != null) {
+            testCase1.setId(testCase.getId());
+            testCase1.setName(testCase.getName());
+            testCase1.setSuccess(testCase.isSuccess());
+            testCase1.setModifiedTimestamp(testCase.getModifiedTimestamp());
+            testCase1.setCreatedTimestamp(testCase.getCreatedTimestamp());
+            testCase1.setErrorMsg(testCase.getFailureMessage());
+        }
         return testCase1;
     }
 
