@@ -28,10 +28,12 @@ class SingleRecord extends Component {
     if (this.props.value === 'SUCCESS' || this.props.value === true) {
       return (
         <div style={{ "fontSize": "16px" }}>
-          <img src={require('../success.png')} width="28" height="28" onClick={this.props.nevigate} style={{ cursor: 'pointer' }} alt='Succesful' />
-
-          {(()=>{
-            if(this.props.time){
+          <img src={require('../success.png')} width="28" height="28" 
+          onClick={this.props.nevigate} 
+          style={{ cursor: 'pointer' }} 
+          alt='Succesful' />
+          {(() => {
+            if (this.props.time) {
               return (<i> {Moment(this.props.time).fromNow()}</i>);
             }
           })()}
@@ -40,9 +42,12 @@ class SingleRecord extends Component {
     } else {
       return (
         <div style={{ "fontSize": "16px", cursor: "pointer" }}>
-          <img src={require('../close.png')} width="28" height="28" onClick={this.props.nevigate} style={{ cursor: 'pointer' }} alt='Failed' />
-          {(()=>{
-            if(this.props.time){
+          <img src={require('../close.png')} 
+          width="28" height="28" 
+          onClick={this.props.nevigate} 
+          style={{ cursor: 'pointer' }} alt='Failed' />
+          {(() => {
+            if (this.props.time) {
               return (<i> {Moment(this.props.time).fromNow()}</i>);
             }
           })()}

@@ -43,7 +43,7 @@ class DeploymentPatternView extends Component {
   }
 
   componentDidMount() {
-      var url = '/testgrid/v0.9/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
+    var url = '/testgrid/v0.9/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
     fetch(url, {
       method: "GET",
       headers: {
@@ -112,13 +112,14 @@ class DeploymentPatternView extends Component {
                             if (value.lastFailed.modifiedTimestamp) {
                               return (
                                 <FlatButton style={{ color: '#0E457C' }}
-                                  onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastFailed.id, {
-                                    deploymentPatternName: key
-                                  }, {
+                                  onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastFailed.id,
+                                    { deploymentPatternName: key },
+                                    {
                                       testPlanId: value.lastFailed.id,
                                       infraParameters: value.lastFailed.infraParams,
                                       testPlanStatus: value.lastFailed.status
-                                    })}>
+                                    }
+                                    )}>
                                   <SingleRecord value={value.lastFailed.status}
                                     time={value.lastFailed.modifiedTimestamp}
                                   />
@@ -133,11 +134,9 @@ class DeploymentPatternView extends Component {
                         </TableRowColumn>
                         <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /><ReactTooltip /></TableRowColumn>
                       </TableRow>
-
                     )
                   } else {
                     return (
-
                       <TableRow>
                         <TableRowColumn >{value.lastBuild.infraParams}</TableRowColumn>
                         <TableRowColumn ><SingleRecord value={value.lastBuild.status}

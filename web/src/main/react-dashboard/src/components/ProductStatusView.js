@@ -69,7 +69,6 @@ class ProductStatusView extends Component {
           productName: product.name,
         })}><i>{product.name}</i></h2></TableRowColumn>
         <TableRowColumn>
-
           {(() => {
             if (product.lastBuild.modifiedTimestamp) {
               return (
@@ -97,8 +96,6 @@ class ProductStatusView extends Component {
               return (<h4> No failed builds yet!</h4>)
             }
           })()}
-
-
         </TableRowColumn>
         <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /> <ReactTooltip /></TableRowColumn>
         <TableRowColumn ><img src={require('../configure.png')} width="36" height="36" style={{ cursor: 'pointer' }}
