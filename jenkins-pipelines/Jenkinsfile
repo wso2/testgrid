@@ -77,12 +77,10 @@ pipeline {
                             -dr ${PWD}/${INFRA_LOCATION}/cloudformation-templates/pattern-1 \
                             -sr ${PWD}/${SCENARIOS_LOCATION}
                         """
-                        currentBuild.result = 'SUCCESS'
                     } catch (Exception err) {
-                        currentBuild.result = 'SUCCESS'
+                        currentBuild.result = 'FAILURE'
                     }
                 }
-                echo "RESULT: ${currentBuild.result}"
             }
         }
     }
