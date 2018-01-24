@@ -23,8 +23,6 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
-import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.command.CommandHandler;
 
 /**
@@ -43,15 +41,11 @@ public class Main {
             CmdLineParser parser = new CmdLineParser(commandHandler);
             parser.parseArgument(args);
 
-            // Validate test grid home
-            String testGridHome = TestGridUtil.getTestGridHomePath();
-            if (!StringUtil.isStringNullOrEmpty(testGridHome)) {
-                commandHandler.execute();
-            }
+            commandHandler.execute();
         } catch (CmdLineException e) {
-            logger.error("Error in parsing command line arguments.", e);
+            logger.error("Error while parsing command line arguments.", e);
         } catch (CommandExecutionException e) {
-            logger.error("Error in executing command.", e);
+            logger.error("Error while executing command.", e);
         }
     }
 }
