@@ -17,6 +17,7 @@
 */
 package org.wso2.testgrid.deployment.deployers;
 
+import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeployerService;
@@ -47,17 +48,22 @@ public class AWSDeployer implements DeployerService {
     @Override
     public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
         //wait for server startup
-        logger.info("Deploying the pattern..");
-        DeploymentValidator validator = new DeploymentValidator();
-        logger.info("Waiting for server startup..");
-        for (Host host : deployment.getHosts()) {
-            try {
-                new URL(host.getIp());
-            } catch (MalformedURLException e) {
-                continue;
+        try {
+            logger.info("Deploying the pattern..");
+            DeploymentValidator validator = new DeploymentValidator();
+            logger.info("Waiting for server startup..");
+            for (Host host : deployment.getHosts()) {
+                try {
+                    new URL(host.getIp());
+                } catch (MalformedURLException e) {
+                    continue;
+                }
+                validator.waitForDeployment(host.getIp(), 60, TimeUnit.MINUTES, 15, TimeUnit.SECONDS);
             }
-            validator.waitForDeployment(host.getIp(), 60, TimeUnit.MINUTES, 15, TimeUnit.SECONDS);
+        } catch (ConditionTimeoutException ex) {
+            throw new TestGridDeployerException("Time out while waiting for deployment", ex);
         }
+
         return deployment;
     }
 }

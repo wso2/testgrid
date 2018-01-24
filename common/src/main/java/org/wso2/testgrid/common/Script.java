@@ -72,7 +72,7 @@ public class Script implements Serializable {
     }
 
     public Properties getScriptParameters() {
-        return scriptParameters;
+        return scriptParameters != null ? scriptParameters : new Properties();
     }
 
     public void setScriptParameters(Properties scriptParameters) {
