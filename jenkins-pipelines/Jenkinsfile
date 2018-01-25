@@ -24,7 +24,7 @@ pipeline {
         PWD=pwd()
         TESTGRID_HOME='/testgrid/jenkins-home/workspace/wso2is-5.4.0/testgrid-home'
 
-        MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6-sources.jar'
+        MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
     }
 
     tools {
@@ -48,8 +48,6 @@ pipeline {
                     git url:"${INFRASTRUCTURE_REPOSITORY}"
                 }
 
-                // curl ${TESTGRID_DIST_URL} -o ${TESTGRID_NAME}.zip
-                // cp /testgrid/jenkins-home/workspace/${TESTGRID_NAME}-${TESTGRID_VERSION}.zip .
                 sh """
                 echo ${TESTGRID_NAME}
                 curl ${TESTGRID_DIST_URL} -o ${TESTGRID_NAME}-${TESTGRID_VERSION}.zip
@@ -84,6 +82,7 @@ pipeline {
                         """
                     } catch (Exception err) {
                         echo "Error : ${err}"
+                        currentBuild.result = 'FAILURE'
                     }
                 }
             }
