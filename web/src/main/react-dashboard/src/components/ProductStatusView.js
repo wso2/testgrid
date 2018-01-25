@@ -63,24 +63,41 @@ class ProductStatusView extends Component {
     const products = this.state.hits.map((product, index) => {
       return (<TableRow key={index}>
 
-        <TableRowColumn> <SingleRecord value={product.status}/></TableRowColumn>
+        <TableRowColumn> <SingleRecord value={product.status} /> </TableRowColumn>
         <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
           productId: product.id,
           productName: product.name,
         })}><i>{product.name}</i></h2></TableRowColumn>
-        <TableRowColumn> <SingleRecord value={product.lastBuild.status}
-          nevigate={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/"+ product.id, {
-            productId: product.id,
-            productName: product.name,
-          })} time={Moment(product.lastBuild.modifiedTimestamp).fromNow()}
-        /></TableRowColumn>
         <TableRowColumn>
-          <h4 onClick={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
-            productId: product.id,
-            productName: product.name,
-          })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastfailed.modifiedTimestamp).fromNow()} </h4>
+          {(() => {
+            if (product.lastBuild.modifiedTimestamp) {
+              return (
+                <SingleRecord value={product.lastBuild.status}
+                  nevigate={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
+                    productId: product.id,
+                    productName: product.name,
+                  })} time={product.lastBuild.modifiedTimestamp}
+                />)
+            } else {
+              return (<h4> No builds yet!</h4>);
+            }
+          })()}
         </TableRowColumn>
-        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job"  onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }}/> <ReactTooltip /></TableRowColumn>
+        <TableRowColumn>
+          {(() => {
+            if (product.lastfailed.modifiedTimestamp) {
+              return (
+                <h4 onClick={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
+                  productId: product.id,
+                  productName: product.name,
+                })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastBuild.modifiedTimestamp).fromNow()}</h4>
+              );
+            } else {
+              return (<h4> No failed builds yet!</h4>)
+            }
+          })()}
+        </TableRowColumn>
+        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /> <ReactTooltip /></TableRowColumn>
         <TableRowColumn ><img src={require('../configure.png')} width="36" height="36" style={{ cursor: 'pointer' }}
           onClick={() => { window.location = '/job/wso2is5.4.0LTS/configure' }} data-tip="Configure job" />
         </TableRowColumn>

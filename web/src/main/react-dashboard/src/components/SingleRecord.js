@@ -17,6 +17,7 @@
  */
 
 import React, { Component } from 'react';
+import Moment from 'moment'
 
 class SingleRecord extends Component {
   constructor(props) {
@@ -24,18 +25,32 @@ class SingleRecord extends Component {
   }
 
   render() {
-    if (this.props.value === 'SUCCESS' || this.props.value=== true) {
+    if (this.props.value === 'SUCCESS' || this.props.value === true) {
       return (
-        <div style={{"fontSize": "16px"}}>
-          <img src={require('../success.png')} width="28" height="28" onClick={this.props.nevigate} style={{ cursor: 'pointer' }} alt='Succesful' />
-          <i> {this.props.time}</i>
+        <div style={{ "fontSize": "16px" }}>
+          <img src={require('../success.png')} width="28" height="28" 
+          onClick={this.props.nevigate} 
+          style={{ cursor: 'pointer' }} 
+          alt='Succesful' />
+          {(() => {
+            if (this.props.time) {
+              return (<i> {Moment(this.props.time).fromNow()}</i>);
+            }
+          })()}
         </div>
       )
     } else {
       return (
-        <div style={{"fontSize": "16px",cursor:"pointer"}}>
-        <img src={require('../close.png')} width="28" height="28" onClick={this.props.nevigate} style={{ cursor: 'pointer' }} alt='Failed' />
-        <i> {this.props.time}</i>
+        <div style={{ "fontSize": "16px", cursor: "pointer" }}>
+          <img src={require('../close.png')} 
+          width="28" height="28" 
+          onClick={this.props.nevigate} 
+          style={{ cursor: 'pointer' }} alt='Failed' />
+          {(() => {
+            if (this.props.time) {
+              return (<i> {Moment(this.props.time).fromNow()}</i>);
+            }
+          })()}
         </div>
       )
     }
