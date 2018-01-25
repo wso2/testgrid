@@ -71,8 +71,18 @@ public class Script implements Serializable {
         }
     }
 
+    /**
+     * Get parameters that needs to be passed to the script.
+     *
+     * @return script parameters
+     */
     public Properties getScriptParameters() {
-        return scriptParameters;
+        if (scriptParameters != null) {
+            return scriptParameters;
+        } else {
+            scriptParameters = new Properties();
+            return scriptParameters;
+        }
     }
 
     public void setScriptParameters(Properties scriptParameters) {
@@ -85,7 +95,12 @@ public class Script implements Serializable {
      * @return script parameters
      */
     public Properties getEnvironmentScriptParameters() {
-        return environmentScriptParameters != null ? environmentScriptParameters : new Properties();
+        if (environmentScriptParameters != null) {
+            return environmentScriptParameters;
+        } else {
+            environmentScriptParameters = new Properties();
+            return environmentScriptParameters;
+        }
     }
 
     /**

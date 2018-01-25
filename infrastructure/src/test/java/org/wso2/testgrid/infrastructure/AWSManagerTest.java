@@ -30,6 +30,10 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
+import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters;
+import com.amazonaws.waiters.Waiter;
+import com.amazonaws.waiters.WaiterParameters;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -148,6 +152,12 @@ public class AWSManagerTest extends PowerMockTestCase {
         PowerMockito.mockStatic(AmazonCloudFormationClientBuilder.class);
         PowerMockito.when(AmazonCloudFormationClientBuilder.standard()).thenReturn(cloudFormationClientBuilderMock);
 
+        AmazonCloudFormationWaiters waiterMock = Mockito.mock(AmazonCloudFormationWaiters.class);
+        Waiter mock = Mockito.mock(Waiter.class);
+        Mockito.doNothing().when(mock).run(Matchers.any(WaiterParameters.class));
+        Mockito.when(waiterMock.stackCreateComplete()).thenReturn(mock);
+        PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
+
         AWSManager awsManager = new AWSManager(key, secret);
         awsManager.init(infrastructure);
         Deployment dep = awsManager.createInfrastructure(script, resourcePath.getAbsolutePath());
@@ -158,8 +168,7 @@ public class AWSManagerTest extends PowerMockTestCase {
     }
 
     @Test(description = "This test case tests destroying infrastructure given a already built stack name.")
-    public void destroyInfrastructureTest() throws NoSuchFieldException, IllegalAccessException
-            , TestGridInfrastructureException, InterruptedException {
+    public void destroyInfrastructureTest() throws Exception {
         //set environment variables for
         Map<String, String> map = new HashMap<>();
         map.put(key, keyValue);
@@ -194,6 +203,12 @@ public class AWSManagerTest extends PowerMockTestCase {
         Mockito.when(describeStacksResultMock.getStacks()).thenReturn(Collections.singletonList(stack));
         Mockito.when(cloudFormation.describeStacks(Mockito.any(DescribeStacksRequest.class)))
                 .thenReturn(describeStacksResultMock);
+
+        AmazonCloudFormationWaiters waiterMock = Mockito.mock(AmazonCloudFormationWaiters.class);
+        Waiter mock = Mockito.mock(Waiter.class);
+        Mockito.doNothing().when(mock).run(Matchers.any(WaiterParameters.class));
+        Mockito.when(waiterMock.stackDeleteComplete()).thenReturn(mock);
+        PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
 
         AWSManager awsManager = new AWSManager(key, secret);
         awsManager.init(new Infrastructure());

@@ -27,7 +27,10 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
-import com.amazonaws.services.cloudformation.model.StackStatus;
+import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters;
+import com.amazonaws.waiters.Waiter;
+import com.amazonaws.waiters.WaiterParameters;
+import com.amazonaws.waiters.WaiterUnrecoverableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
@@ -118,9 +121,14 @@ public class AWSManager {
             stackRequest.setParameters(getParameters(script));
             stackbuilder.createStack(stackRequest);
             if (logger.isDebugEnabled()) {
-                logger.info("Stack configuration created for name " + cloudFormationName);
+                logger.info(StringUtil.concatStrings("Stack configuration created for name ", cloudFormationName));
             }
-            waitForAWSProcess(stackbuilder, cloudFormationName);
+            logger.info(StringUtil.concatStrings("Waiting for stack : ", cloudFormationName));
+            Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new AmazonCloudFormationWaiters(stackbuilder)
+                    .stackCreateComplete();
+            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
+            logger.info(StringUtil.concatStrings("Stack : ", cloudFormationName, " creation completed !"));
+
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(cloudFormationName);
             DescribeStacksResult describeStacksResult = stackbuilder
@@ -146,62 +154,12 @@ public class AWSManager {
             Deployment deployment = new Deployment();
             deployment.setHosts(hosts);
             return deployment;
-        } catch (InterruptedException e) {
-            throw new TestGridInfrastructureException("Error occured while waiting for " +
-                    "CloudFormation Stack creation", e);
+        } catch (WaiterUnrecoverableException e) {
+            throw new TestGridInfrastructureException(StringUtil.concatStrings("Error while waiting for stack : "
+                    , cloudFormationName, " to complete"), e);
         } catch (IOException e) {
-            throw new TestGridInfrastructureException("Error occured while Reading CloudFormation script", e);
+            throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
         }
-    }
-
-    /**
-     * This method waits for completion of AWS process and generate result depending on
-     * the result code.
-     *
-     * @param stackBuilder AWS CF builder object.
-     * @param stackName    The stack name to perform the waiting upon.
-     * @return true or false depending on the result.
-     * @throws InterruptedException            when an Interrupt occurs while waiting for CF result.
-     * @throws TestGridInfrastructureException when an error occurs while reading the cf template file.
-     */
-    private boolean waitForAWSProcess(AmazonCloudFormation stackBuilder, String stackName) throws InterruptedException,
-            TestGridInfrastructureException {
-        DescribeStacksRequest wait = new DescribeStacksRequest();
-        wait.setStackName(stackName);
-        //the status of the operation
-        boolean completed = false;
-        //result of the operation
-        boolean successful = false;
-        logger.info("Waiting ..");
-        while (!completed) {
-            List<Stack> stacks = stackBuilder.describeStacks(wait).getStacks();
-            if (stacks.isEmpty()) {
-                throw new TestGridInfrastructureException("There is no stack for the name :" + stackName);
-            } else {
-                for (Stack stack : stacks) {
-                    if (StackStatus.CREATE_COMPLETE.toString().equals(stack.getStackStatus()) ||
-                        StackStatus.DELETE_COMPLETE.toString().equals(stack.getStackStatus())) {
-                        completed = true;
-                        successful = true;
-                    } else if (StackStatus.CREATE_FAILED.toString().equals(stack.getStackStatus()) ||
-                               StackStatus.ROLLBACK_FAILED.toString().equals(stack.getStackStatus()) ||
-                               StackStatus.ROLLBACK_COMPLETE.toString().equals(stack.getStackStatus())) {
-                        completed = true;
-                        successful = false;
-                    } else if (StackStatus.CREATE_IN_PROGRESS.toString().equals(stack.getStackStatus()) ||
-                               StackStatus.DELETE_IN_PROGRESS.toString().equals(stack.getStackStatus()) ||
-                               StackStatus.ROLLBACK_IN_PROGRESS.toString().equals(stack.getStackStatus()) ||
-                               StackStatus.REVIEW_IN_PROGRESS.toString().equals(stack.getStackStatus())) {
-                        completed = false;
-                    }
-                }
-            }
-            //if the operation is not complete then wait 5 seconds and check again.
-            if (!completed) {
-                Thread.sleep(15000);
-            }
-        }
-        return successful;
     }
 
     /**
@@ -230,7 +188,16 @@ public class AWSManager {
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(cloudFormationName);
         stackdestroy.deleteStack(deleteStackRequest);
-        return waitForAWSProcess(stackdestroy, cloudFormationName);
+        logger.info(StringUtil.concatStrings("Waiting for stack : ", cloudFormationName, " to delete.."));
+        Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new
+                AmazonCloudFormationWaiters(stackdestroy).stackDeleteComplete();
+        try {
+            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
+        } catch (WaiterUnrecoverableException e) {
+            throw new TestGridInfrastructureException("Error occured while waiting for Stack :"
+                    + cloudFormationName + " deletion !");
+        }
+        return true;
     }
 
     /**

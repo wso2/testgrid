@@ -17,12 +17,14 @@
 */
 package org.wso2.testgrid.deployment.deployers;
 
+import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeployerService;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.deployment.DeploymentValidator;
 
 import java.net.MalformedURLException;
@@ -38,6 +40,10 @@ public class AWSDeployer implements DeployerService {
 
     private static final Logger logger = LoggerFactory.getLogger(AWSDeployer.class);
     private static final String DEPLOYER_NAME = "AWS_CF";
+    private static final int TIMEOUT = 60;
+    private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
+    private static final TimeUnit POLL_UNIT = TimeUnit.SECONDS;
+    private static final int POLL_INTERVAL = 15;
 
     @Override
     public String getDeployerName() {
@@ -47,17 +53,25 @@ public class AWSDeployer implements DeployerService {
     @Override
     public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
         //wait for server startup
-        logger.info("Deploying the pattern..");
-        DeploymentValidator validator = new DeploymentValidator();
-        logger.info("Waiting for server startup..");
-        for (Host host : deployment.getHosts()) {
-            try {
-                new URL(host.getIp());
-            } catch (MalformedURLException e) {
-                continue;
+        try {
+            logger.info(StringUtil.concatStrings("Deploying the pattern.. : ", deployment.getName()));
+            DeploymentValidator validator = new DeploymentValidator();
+            logger.info("Waiting for server startup..");
+            for (Host host : deployment.getHosts()) {
+                try {
+                    new URL(host.getIp());
+                } catch (MalformedURLException e) {
+                    logger.error(StringUtil.concatStrings("Output Value : ", host.getIp(), " is Not a Valid URL, " +
+                            "hence skipping to next value.."));
+                    continue;
+                }
+                validator.waitForDeployment(host.getIp(), TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
             }
-            validator.waitForDeployment(host.getIp(), 60, TimeUnit.MINUTES, 15, TimeUnit.SECONDS);
+        } catch (ConditionTimeoutException ex) {
+            throw new TestGridDeployerException(StringUtil.concatStrings("Timeout occurred while waiting for pattern : "
+                    , deployment.getName(), "Timeout value : ", TIMEOUT, TIMEOUT_UNIT.toString()), ex);
         }
+
         return deployment;
     }
 }
