@@ -3,14 +3,14 @@ pipeline {
     environment {
         TESTGRID_VERSION = '0.9.0-SNAPSHOT'
         TESTGRID_NAME = 'WSO2-TestGrid'
-        TESTGRID_DIST_URL = 'https://wso2.org/jenkins/job/platform-builds/job/wso2-test-grid/' +
+        TESTGRID_DIST_URL = 'https://wso2.org/jenkins/job/testgrid/job/testgrid/' +
                 'lastSuccessfulBuild/artifact/distribution/target/${TESTGRID_NAME}-${TESTGRID_VERSION}.zip'
 
         PRODUCT="wso2is-5.4.0-LTS"
 
         INFRASTRUCTURE_REPOSITORY='https://github.com/azinneera/cloudformation-is'
         DEPLOYMENT_REPOSITORY='https://github.com/harshanL/cloudformation-is'
-        SCENARIOS_REPOSITORY='https://github.com/sameerawickramasekara/identity-test-integration.git'
+        SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/identity-test-integration.git'
 
         INFRA_LOCATION="aws-cloudformation-templates"
         DEPLOYMENT_LOCATION="aws-cloudformation-templates"
@@ -23,6 +23,8 @@ pipeline {
         WUM_PASSWORD=credentials('WUM_PASSWORD')
         PWD=pwd()
         TESTGRID_HOME='/testgrid/jenkins-home/workspace/wso2is-5.4.0/testgrid-home'
+
+        MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6-sources.jar'
     }
 
     tools {
@@ -32,7 +34,7 @@ pipeline {
     stages {
         stage('Preparation') {
             steps {
-               deleteDir()
+              deleteDir()
 
                 // Clone scenario repo
                 sh "mkdir ${SCENARIOS_LOCATION}"
@@ -46,16 +48,19 @@ pipeline {
                     git url:"${INFRASTRUCTURE_REPOSITORY}"
                 }
 
+                // curl ${TESTGRID_DIST_URL} -o ${TESTGRID_NAME}.zip
+                // cp /testgrid/jenkins-home/workspace/${TESTGRID_NAME}-${TESTGRID_VERSION}.zip .
                 sh """
                 echo ${TESTGRID_NAME}
-                curl ${TESTGRID_DIST_URL} -o ${TESTGRID_NAME}.zip
-                unzip ${TESTGRID_NAME}.zip
+                curl ${TESTGRID_DIST_URL} -o ${TESTGRID_NAME}-${TESTGRID_VERSION}.zip
+                unzip ${TESTGRID_NAME}-${TESTGRID_VERSION}.zip
                 cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
+                curl -o ./lib/mysql.jar $MYSQL_DRIVER_LOCATION
                 """
 
                 sh """
                 cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
-                java -jar test-grid-${TESTGRID_VERSION}.jar generate-test-plan \
+                ./testgrid generate-test-plan \
                     --product ${PRODUCT} \
                     -tc ${PWD}/${INFRA_CONFIGS_LOCATION}/single-node-infra.yaml
                 """
@@ -71,15 +76,15 @@ pipeline {
 
                         sh """
                         cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
-                        java -jar test-grid-${TESTGRID_VERSION}.jar run-testplan \
+                        ./testgrid run-testplan \
                             --product ${PRODUCT} \
                             -ir ${PWD}/${INFRA_LOCATION}/cloudformation-templates/pattern-1 \
                             -dr ${PWD}/${INFRA_LOCATION}/cloudformation-templates/pattern-1 \
                             -sr ${PWD}/${SCENARIOS_LOCATION}
                         """
-                        currentBuild.result = 'SUCCESS'
+                        // currentBuild.result = 'SUCCESS'
                     } catch (Exception err) {
-                        currentBuild.result = 'SUCCESS'
+                        echo "Error : ${err}"
                     }
                 }
                 echo "RESULT: ${currentBuild.result}"
@@ -91,9 +96,9 @@ pipeline {
         always {
            sh """
             cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
-            java -jar test-grid-${TESTGRID_VERSION}.jar generate-report \
+            ./testgrid generate-report \
             --product ${PRODUCT} \
-            --groupBy deployment \
+            --groupBy scenario
             """
 
             // Archive artifacts
@@ -102,7 +107,7 @@ pipeline {
               s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"jenkins-testrun-artifacts", path:"artifacts/")
             }
 
-            // Delete logs and reports after upload
+            // Delete logs and reports after upload          
             dir("${TESTGRID_HOME}/${PRODUCT}") {
                 deleteDir()
             }

@@ -10,13 +10,62 @@
     <fileSets>
         <fileSet>
             <directory>${project.basedir}/bin</directory>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory>.</outputDirectory>
         </fileSet>
     </fileSets>
     <files>
         <file>
-            <source>bin/testgrid.sh</source>
+            <source>bin/testgrid</source>
             <fileMode>0755</fileMode>
         </file>
+        <file>
+            <source>../LICENSE</source>
+            <outputDirectory>.</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
+            <source>../CHANGE_LOG.md</source>
+            <outputDirectory>.</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
+            <source>../README.md</source>
+            <outputDirectory>.</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
+            <source>../web/target/testgrid#v${version}.war</source>
+            <outputDirectory>./web-app</outputDirectory>
+        </file>
     </files>
+
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <useProjectArtifact>false</useProjectArtifact>
+            <includes>
+                <include>org.wso2.testgrid:org.wso2.testgrid.core:jar</include>
+                <include>org.wso2.testgrid:org.wso2.testgrid.dao:jar</include>
+                <include>org.wso2.testgrid:org.wso2.testgrid.common:jar</include>
+                <include>org.wso2.testgrid:org.wso2.testgrid.infrastruture:jar</include>
+                <include>org.wso2.testgrid:org.wso2.testgrid.deployment:jar</include>
+                <include>org.wso2.testgrid:org.wso2.testgrid.automation:jar</include>
+                <include>org.wso2.testgrid:org.wso2.testgrid.reporting:jar</include>
+                <include>org.wso2.testgrid:org.wso2.testgrid.logging:jar</include>
+            </includes>
+            <unpack>false</unpack>
+        </dependencySet>
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <outputDirectory>lib</outputDirectory>
+            <unpack>false</unpack>
+            <excludes>
+                <exclude>${project.groupId}:*</exclude>
+            </excludes>
+        </dependencySet>
+    </dependencySets>
 </assembly>
