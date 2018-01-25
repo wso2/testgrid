@@ -24,7 +24,6 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.reporting.model.GroupBy;
@@ -36,6 +35,7 @@ import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
 import org.wso2.testgrid.reporting.util.FileUtil;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -66,50 +66,6 @@ public class TestReportEngine {
     private static final String REPORT_MUSTACHE = "report.mustache";
     private static final String REPORT_TEMPLATE_KEY = "parsedReport";
     private static final String HTML_EXTENSION = ".html";
-
-    /**
-     * Generates a test report for the given test plan.
-     * <p>
-     * This report will be grouped by the test scenario since the report is generated to a single deployment and
-     * infrastructure
-     *
-     * @param testPlan test plan to generate the report for
-     * @throws ReportingException thrown when error on generating test report
-     */
-    public void generateReport(TestPlan testPlan) throws ReportingException {
-        try {
-            AxisColumn uniqueAxisColumn = AxisColumn.SCENARIO;
-            DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
-            Product product = deploymentPattern.getProduct();
-
-            // Construct report elements
-            List<ReportElement> reportElements = Collections
-                    .unmodifiableList(createReportElementsForTestPlan(testPlan, deploymentPattern, uniqueAxisColumn));
-
-            // Break elements by group by (sorting also handled)
-            List<GroupBy> groupByList = groupReportElementsBy(uniqueAxisColumn, reportElements, false);
-
-            // Create per axis summaries
-            List<PerAxisHeader> perAxisHeaders = createPerAxisHeaders(uniqueAxisColumn, reportElements, false);
-
-            // Generate HTML string
-            Report report = new Report(false, product, groupByList, perAxisHeaders);
-            Map<String, Object> parsedResultMap = new HashMap<>();
-            parsedResultMap.put(REPORT_TEMPLATE_KEY, report);
-            Renderable renderable = RenderableFactory.getRenderable(REPORT_MUSTACHE);
-            String htmlString = renderable.render(REPORT_MUSTACHE, parsedResultMap);
-
-            // Write to HTML file
-            String testRunArtifactsDir = TestGridUtil.getTestRunArtifactsDirectory(testPlan).toString();
-            String fileName = StringUtil.concatStrings("Report", HTML_EXTENSION);
-            String testGridHome = TestGridUtil.getTestGridHomePath();
-            Path reportPath = Paths.get(testGridHome).resolve(testRunArtifactsDir).resolve(fileName);
-            writeHTMLToFile(reportPath, htmlString);
-        } catch (TestGridException e) {
-            throw new ReportingException("Logs related to test report generation will not be created since an error " +
-                                         "occurred in deriving log file path.", e);
-        }
-    }
 
     /**
      * Generates a test report based on the given product name and product version.
@@ -143,9 +99,13 @@ public class TestReportEngine {
         String fileName = StringUtil
                 .concatStrings(product.getName(), "-", product.getCreatedTimestamp(), "-", uniqueAxisColumn,
                         HTML_EXTENSION);
-        String testGridHome = TestGridUtil.getTestGridHomePath();
-        Path reportPath = Paths.get(testGridHome).resolve(fileName);
-        writeHTMLToFile(reportPath, htmlString);
+        try {
+            String testGridHome = TestGridUtil.getTestGridHomePath();
+            Path reportPath = Paths.get(testGridHome).resolve(product.getName()).resolve(fileName);
+            writeHTMLToFile(reportPath, htmlString);
+        } catch (IOException e) {
+            throw new ReportingException("Error while persisting HTML report at " + fileName, e);
+        }
     }
 
     /**

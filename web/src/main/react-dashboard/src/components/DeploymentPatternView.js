@@ -28,7 +28,7 @@ import {
 } from 'material-ui/Table';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
-import { add_current_deployment } from '../actions/testGridActions.js';
+import {add_current_deployment, add_current_infra} from '../actions/testGridActions.js';
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
@@ -57,11 +57,11 @@ class DeploymentPatternView extends Component {
       .then(data => this.setState({ hits: data }));
   }
 
-  navigateToRoute(route, deployment) {
+  navigateToRoute(route, deployment, testPlan) {
     this.props.dispatch(add_current_deployment(deployment));
+    this.props.dispatch(add_current_infra(testPlan));
     this.props.history.push(route);
   }
-
 
   render() {
     var x = {};
@@ -97,6 +97,8 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn>
                           <FlatButton style={{color: '#0E457C'}}
                                       onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastBuild.id, {
+                                        deploymentPatternName: key
+                                      }, {
                                         testPlanId: value.lastBuild.id,
                                         infraParameters: value.lastBuild.infraParams,
                                         testPlanStatus: value.lastBuild.status
@@ -108,6 +110,8 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn>
                           <FlatButton style={{color: '#0E457C'}}
                                       onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastFailed.id, {
+                                        deploymentPatternName: key
+                                      }, {
                                         testPlanId: value.lastFailed.id,
                                         infraParameters: value.lastFailed.infraParams,
                                         testPlanStatus: value.lastFailed.status

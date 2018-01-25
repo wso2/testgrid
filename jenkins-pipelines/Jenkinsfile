@@ -63,7 +63,6 @@ pipeline {
                 ./testgrid generate-test-plan \
                     --product ${PRODUCT} \
                     -tc ${PWD}/${INFRA_CONFIGS_LOCATION}/single-node-infra.yaml
-                echo \$?
                 """
             }
         }
@@ -82,7 +81,6 @@ pipeline {
                             -ir ${PWD}/${INFRA_LOCATION}/cloudformation-templates/pattern-1 \
                             -dr ${PWD}/${INFRA_LOCATION}/cloudformation-templates/pattern-1 \
                             -sr ${PWD}/${SCENARIOS_LOCATION}
-                        echo \$?
                         """
                         // currentBuild.result = 'SUCCESS'
                     } catch (Exception err) {
@@ -101,16 +99,15 @@ pipeline {
             ./testgrid generate-report \
             --product ${PRODUCT} \
             --groupBy scenario
-            echo \$?
             """
 
-           // Archive artifacts
-           withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
-             // Upload artifacts to S3
-             s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"jenkins-testrun-artifacts", path:"artifacts/")
-           }
+            // Archive artifacts
+            withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
+              // Upload artifacts to S3
+              s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"jenkins-testrun-artifacts", path:"artifacts/")
+            }
 
-           // Delete logs and reports after upload
+            // Delete logs and reports after upload          
             dir("${TESTGRID_HOME}/${PRODUCT}") {
                 deleteDir()
             }
