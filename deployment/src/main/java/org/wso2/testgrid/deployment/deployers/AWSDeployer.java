@@ -61,6 +61,8 @@ public class AWSDeployer implements DeployerService {
                 try {
                     new URL(host.getIp());
                 } catch (MalformedURLException e) {
+                    logger.error(StringUtil.concatStrings("Output Value : ", host.getIp(), " is Not a Valid URL, " +
+                            "hence skipping to next value.."));
                     continue;
                 }
                 validator.waitForDeployment(host.getIp(), TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
