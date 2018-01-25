@@ -62,6 +62,7 @@ class App extends Component {
 
   constructor(props) {
     super(props);
+    this.baseURL = "/testgrid/dashboard"
     this.state = {
       open: true,
       navWidth: 240
@@ -84,12 +85,12 @@ class App extends Component {
               </Drawer>
               <Paper style={paperStyle} zDepth={2}>
                 <Switch>
-                  <Route exact path='/testgrid/v0.9/' component={ProductContainer} />
-                  <Route exact path='/testgrid/v0.9/deployments/product/:productId/' component={DeploymentContainer} />
-                  <Route exact path='/testgrid/v0.9/infrastructures/deployment/:deploymentid/' component={InfrastructureContainer} />
-                  <Route exact path='/testgrid/v0.9/scenarios/infrastructure/:infraid' component={ScenarioContainer} />
-                  <Route exact path='/testgrid/v0.9/testcases/scenario/:scenarioid' component={TestCaseContainer} />
-                  <Route exact path='/testgrid/v0.9/testplans/:testplanid' component={testRunContainer}/>
+                  <Route exact path = {this.baseURL + '/'} component={ProductContainer} />
+                  <Route exact path = {this.baseURL + '/deployments/product/:productId/'} component={DeploymentContainer} />
+                  <Route exact path = {this.baseURL + '/infrastructures/deployment/:deploymentid/'} component={InfrastructureContainer} />
+                  <Route exact path = {this.baseURL + '/scenarios/infrastructure/:infraid'} component={ScenarioContainer} />
+                  <Route exact path = {this.baseURL + '/testcases/scenario/:scenarioid'} component={TestCaseContainer} />
+                  <Route exact path = {this.baseURL + '/testplans/:testplanid'} component={testRunContainer}/>
                 </Switch>
               </ Paper>
             </div>

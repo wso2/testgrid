@@ -36,6 +36,7 @@ class InfraCombinationView extends Component {
 
     constructor(props) {
         super(props);
+        this.baseURL = "/testgrid/dashboard" ;
         this.state = {
             hits: []
         }
@@ -47,7 +48,7 @@ class InfraCombinationView extends Component {
     }
 
     componentDidMount() {
-        var url = "/testgrid/v0.9/api/test-plans?deployment-pattern-id=" + this.props.active.reducer.currentDeployment.deploymentId + "&date=" + this.props.active.reducer.currentProduct.productDate + "&require-test-scenario-info=false";
+        var url = this.baseURL + "/api/test-plans?deployment-pattern-id=" + this.props.active.reducer.currentDeployment.deploymentId + "&date=" + this.props.active.reducer.currentProduct.productDate + "&require-test-scenario-info=false";
 
         fetch(url, {
             method: "GET",

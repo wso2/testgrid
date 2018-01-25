@@ -190,7 +190,7 @@
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
-                    <warName>testgrid#v${version}</warName>
+                    <warName>testgrid#dashboard##v${version}</warName>
                 </configuration>
             </plugin>
         </plugins>

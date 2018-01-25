@@ -47,6 +47,7 @@ class TestRunView extends Component {
 
   constructor(props) {
     super(props);
+    this.baseURL = "/testgrid/dashboard";
     this.state = {
       testScenarioSummaries: [],
       scenarioTestCaseEntries: [],
@@ -60,11 +61,11 @@ class TestRunView extends Component {
   }
 
   componentDidMount() {
-    const testScenarioSummaryUrl = '/testgrid/v0.9/api/test-plans/test-summary/' +
+    const testScenarioSummaryUrl = this.baseURL + '/api/test-plans/test-summary/' +
       this.props.active.reducer.currentInfra.testPlanId;
-    const logTruncatedContentUrl = '/testgrid/v0.9/api/test-plans/log/' +
+    const logTruncatedContentUrl = this.baseURL + '/api/test-plans/log/' +
       this.props.active.reducer.currentInfra.testPlanId + "?truncate=" + true;
-    const logAllContentUrl = '/testgrid/v0.9/api/test-plans/log/' +
+    const logAllContentUrl = this.baseURL + '/api/test-plans/log/' +
       this.props.active.reducer.currentInfra.testPlanId + "?truncate=" + false;
 
     fetch(testScenarioSummaryUrl, {

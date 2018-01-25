@@ -2,7 +2,7 @@
   "name": "testgrid-dashboard",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/testgrid/v0.9/",
+  "homepage": "/testgrid/dashboard",
   "dependencies": {
     "downloadjs": "^1.4.7",
     "material-ui": "^0.20.0",

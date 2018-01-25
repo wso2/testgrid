@@ -35,13 +35,14 @@ class ProductStatusView extends Component {
 
   constructor(props) {
     super(props);
+    this.baseURL = "/testgrid/dashboard"
     this.state = {
       hits: []
     };
   }
 
   componentDidMount() {
-    var url = '/testgrid/v0.9/api/products/product-status'
+    var url = this.baseURL + '/api/products/product-status'
     fetch(url, {
       method: "GET",
       headers: {
@@ -64,7 +65,7 @@ class ProductStatusView extends Component {
       return (<TableRow key={index}>
 
         <TableRowColumn> <SingleRecord value={product.status} /> </TableRowColumn>
-        <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
+        <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute( this.baseURL + "/deployments/product/" + product.id, {
           productId: product.id,
           productName: product.name,
         })}><i>{product.name}</i></h2></TableRowColumn>
@@ -73,7 +74,7 @@ class ProductStatusView extends Component {
             if (product.lastBuild.modifiedTimestamp) {
               return (
                 <SingleRecord value={product.lastBuild.status}
-                  nevigate={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
+                  nevigate={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
                     productId: product.id,
                     productName: product.name,
                   })} time={product.lastBuild.modifiedTimestamp}
@@ -87,7 +88,7 @@ class ProductStatusView extends Component {
           {(() => {
             if (product.lastfailed.modifiedTimestamp) {
               return (
-                <h4 onClick={() => this.nevigateToRoute("/testgrid/v0.9/deployments/product/" + product.id, {
+                <h4 onClick={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
                   productId: product.id,
                   productName: product.name,
                 })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastBuild.modifiedTimestamp).fromNow()}</h4>
