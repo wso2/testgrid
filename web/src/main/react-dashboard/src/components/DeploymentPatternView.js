@@ -37,13 +37,14 @@ class DeploymentPatternView extends Component {
 
   constructor(props) {
     super(props)
+    this.baseURL = "/testgrid/v0.9";
     this.state = {
       hits: []
     };
   }
 
   componentDidMount() {
-    var url = '/testgrid/v0.9/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
+    var url = this.baseURL + '/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
     fetch(url, {
       method: "GET",
       headers: {
@@ -96,7 +97,7 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>{value.lastBuild.infraParams}</TableRowColumn>
                         <TableRowColumn>
                           <FlatButton style={{ color: '#0E457C' }}
-                            onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastBuild.id, {
+                            onClick={() => this.navigateToRoute( this.baseUR + "/testplans/" + value.lastBuild.id, {
                               deploymentPatternName: key
                             }, {
                                 testPlanId: value.lastBuild.id,
@@ -112,7 +113,7 @@ class DeploymentPatternView extends Component {
                             if (value.lastFailed.modifiedTimestamp) {
                               return (
                                 <FlatButton style={{ color: '#0E457C' }}
-                                  onClick={() => this.navigateToRoute("/testgrid/v0.9/testplans/" + value.lastFailed.id,
+                                  onClick={() => this.navigateToRoute( this.baseURL + "/testplans/" + value.lastFailed.id,
                                     { deploymentPatternName: key },
                                     {
                                       testPlanId: value.lastFailed.id,

@@ -79,14 +79,14 @@ class APIUtil {
      */
     static DeploymentPattern getDeploymentPatternBean(org.wso2.testgrid.common.DeploymentPattern deploymentPattern,
                                                       String status) {
-        DeploymentPattern deploymentPattern1 = new DeploymentPattern();
+        DeploymentPattern deploymentPatternBean = new DeploymentPattern();
         if (deploymentPattern != null) {
-            deploymentPattern1.setId(deploymentPattern.getId());
-            deploymentPattern1.setName(deploymentPattern.getName());
-            deploymentPattern1.setProductId(deploymentPattern.getProduct().getId());
-            deploymentPattern1.setTestStatus(status);
+            deploymentPatternBean.setId(deploymentPattern.getId());
+            deploymentPatternBean.setName(deploymentPattern.getName());
+            deploymentPatternBean.setProductId(deploymentPattern.getProduct().getId());
+            deploymentPatternBean.setTestStatus(status);
         }
-        return deploymentPattern1;
+        return deploymentPatternBean;
     }
 
     /**
@@ -100,7 +100,7 @@ class APIUtil {
     static List<DeploymentPattern> getDeploymentPatternBeans(List<org.wso2.testgrid.common.DeploymentPattern>
                                                                      deploymentPatterns,
                                                              List<DeploymentPatternTestFailureStat> stats) {
-        List<DeploymentPattern> deploymentPatterns1 = new ArrayList<>();
+        List<DeploymentPattern> deploymentPatternsBean = new ArrayList<>();
         //Convert List to a Map
         Map<String, Long> failureStats = new HashMap<>();
         for (DeploymentPatternTestFailureStat stat : stats) {
@@ -110,12 +110,12 @@ class APIUtil {
         for (org.wso2.testgrid.common.DeploymentPattern deploymentPattern : deploymentPatterns) {
 
             if (failureStats.containsKey(deploymentPattern.getId())) {
-                deploymentPatterns1.add(getDeploymentPatternBean(deploymentPattern, FAILURE_STATUS));
+                deploymentPatternsBean.add(getDeploymentPatternBean(deploymentPattern, FAILURE_STATUS));
             } else {
-                deploymentPatterns1.add(getDeploymentPatternBean(deploymentPattern, SUCCESS_STATUS));
+                deploymentPatternsBean.add(getDeploymentPatternBean(deploymentPattern, SUCCESS_STATUS));
             }
         }
-        return deploymentPatterns1;
+        return deploymentPatternsBean;
     }
 
     /**
@@ -126,20 +126,20 @@ class APIUtil {
      * @return {@link TestPlan} instance  with necessary information
      */
     static TestPlan getTestPlanBean(org.wso2.testgrid.common.TestPlan testPlan, boolean requireTestScenarios) {
-        TestPlan testPlan1 = new TestPlan();
+        TestPlan testPlanBean = new TestPlan();
         if (testPlan != null) {
-            testPlan1.setId(testPlan.getId());
-            testPlan1.setDeploymentPattern(testPlan.getDeploymentPattern().getName());
-            testPlan1.setDeploymentPatternId(testPlan.getDeploymentPattern().getId());
-            testPlan1.setInfraParams(testPlan.getInfraParameters());
-            testPlan1.setStatus(testPlan.getStatus().toString());
-            testPlan1.setCreatedTimestamp(testPlan.getCreatedTimestamp());
-            testPlan1.setModifiedTimestamp(testPlan.getModifiedTimestamp());
+            testPlanBean.setId(testPlan.getId());
+            testPlanBean.setDeploymentPattern(testPlan.getDeploymentPattern().getName());
+            testPlanBean.setDeploymentPatternId(testPlan.getDeploymentPattern().getId());
+            testPlanBean.setInfraParams(testPlan.getInfraParameters());
+            testPlanBean.setStatus(testPlan.getStatus().toString());
+            testPlanBean.setCreatedTimestamp(testPlan.getCreatedTimestamp());
+            testPlanBean.setModifiedTimestamp(testPlan.getModifiedTimestamp());
             if (requireTestScenarios) {
-                testPlan1.setTestScenarios(getTestScenarioBeans(testPlan.getTestScenarios(), false));
+                testPlanBean.setTestScenarios(getTestScenarioBeans(testPlan.getTestScenarios(), false));
             }
         }
-        return testPlan1;
+        return testPlanBean;
     }
 
     /**
@@ -169,16 +169,16 @@ class APIUtil {
      */
     static TestScenario getTestScenarioBean(org.wso2.testgrid.common.TestScenario testScenario,
                                             boolean requireTestCases) {
-        TestScenario testScenario1 = new TestScenario();
+        TestScenario testScenarioBean = new TestScenario();
         if (testScenario != null) {
-            testScenario1.setId(testScenario.getId());
-            testScenario1.setName(testScenario.getName());
-            testScenario1.setStatus(testScenario.getStatus().toString());
+            testScenarioBean.setId(testScenario.getId());
+            testScenarioBean.setName(testScenario.getName());
+            testScenarioBean.setStatus(testScenario.getStatus().toString());
             if (requireTestCases) {
-                testScenario1.setTestCases(getTestCaseBeans(testScenario.getTestCases()));
+                testScenarioBean.setTestCases(getTestCaseBeans(testScenario.getTestCases()));
             }
         }
-        return testScenario1;
+        return testScenarioBean;
     }
 
     /**
@@ -191,12 +191,12 @@ class APIUtil {
      */
     static List<TestScenario> getTestScenarioBeans(List<org.wso2.testgrid.common.TestScenario> testScenarios,
                                                    boolean requireTestCases) {
-        List<TestScenario> testScenarios1 = new ArrayList<>();
+        List<TestScenario> testScenariosBean = new ArrayList<>();
 
         for (org.wso2.testgrid.common.TestScenario testScenario : testScenarios) {
-            testScenarios1.add(getTestScenarioBean(testScenario, requireTestCases));
+            testScenariosBean.add(getTestScenarioBean(testScenario, requireTestCases));
         }
-        return testScenarios1;
+        return testScenariosBean;
     }
 
     /**
@@ -206,16 +206,16 @@ class APIUtil {
      * @return {@link TestCase} instance with necessary information
      */
     static TestCase getTestCaseBean(org.wso2.testgrid.common.TestCase testCase) {
-        TestCase testCase1 = new TestCase();
+        TestCase testCaseBean = new TestCase();
         if (testCase != null) {
-            testCase1.setId(testCase.getId());
-            testCase1.setName(testCase.getName());
-            testCase1.setSuccess(testCase.isSuccess());
-            testCase1.setModifiedTimestamp(testCase.getModifiedTimestamp());
-            testCase1.setCreatedTimestamp(testCase.getCreatedTimestamp());
-            testCase1.setErrorMsg(testCase.getFailureMessage());
+            testCaseBean.setId(testCase.getId());
+            testCaseBean.setName(testCase.getName());
+            testCaseBean.setSuccess(testCase.isSuccess());
+            testCaseBean.setModifiedTimestamp(testCase.getModifiedTimestamp());
+            testCaseBean.setCreatedTimestamp(testCase.getCreatedTimestamp());
+            testCaseBean.setErrorMsg(testCase.getFailureMessage());
         }
-        return testCase1;
+        return testCaseBean;
     }
 
     /**
@@ -226,11 +226,11 @@ class APIUtil {
      * @return List of {@link TestCase} instances with necessary information
      */
     static List<TestCase> getTestCaseBeans(List<org.wso2.testgrid.common.TestCase> testCases) {
-        List<TestCase> testCases1 = new ArrayList<>();
+        List<TestCase> testCasesBean = new ArrayList<>();
 
         for (org.wso2.testgrid.common.TestCase testCase : testCases) {
-            testCases1.add(getTestCaseBean(testCase));
+            testCasesBean.add(getTestCaseBean(testCase));
         }
-        return testCases1;
+        return testCasesBean;
     }
 }
