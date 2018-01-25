@@ -277,6 +277,34 @@ public class TestPlanService {
         }
     }
 
+    @GET
+    @Path("/history/{testPlanId}")
+    public Response getTestPlanHistory(@PathParam("testPlanId") String testPlanId) {
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        try {
+            Optional<TestPlan> planOptional = testPlanUOW.getTestPlanById(testPlanId);
+            if (planOptional.isPresent()) {
+                TestPlan testPlan = planOptional.get();
+                List<TestPlan> history = testPlanUOW.getTestPlanHistory(testPlan);
+                List<org.wso2.testgrid.web.bean.TestPlan> testPlanBeans = APIUtil.getTestPlanBeans(history, false);
+                return Response.status(Response.Status.OK).entity(testPlanBeans).build();
+
+            } else {
+                String msg = "No test plan found for the given id " + testPlanId;
+                logger.error(msg);
+                return Response.serverError()
+                        .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+            }
+
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while retrieving history for TestPlan : " + testPlanId;
+            logger.error(msg);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+
+    }
+
     /**
      * Save the {@link TestPlanRequest} object as a YAML file.
      *
@@ -313,7 +341,7 @@ public class TestPlanService {
             }
         } catch (IOException e) {
             throw new TestGridException("Error occurred when writing YAML file for test-plan " +
-                                        testPlanRequest.getTestPlanName() + ".", e);
+                    testPlanRequest.getTestPlanName() + ".", e);
         }
     }
 

@@ -150,4 +150,8 @@ public class TestPlanUOW {
     public TestPlan getLastFailure(TestPlan testPlan) {
         return testPlanRepository.getLastFailure(testPlan);
     }
+
+    public List<TestPlan> getTestPlanHistory(TestPlan testPlan) {
+        return testPlanRepository.getTestPlanHistory(testPlan);
+    }
 }
