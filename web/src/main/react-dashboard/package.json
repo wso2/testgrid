@@ -15,6 +15,7 @@
     "react-router-dom": "^4.2.2",
     "react-scripts": "1.0.17",
     "react-tooltip": "^3.4.0",
+    "react-websocket": "^2.0.0",
     "redux": "^3.7.2",
     "redux-persist": "^5.4.0"
   },
