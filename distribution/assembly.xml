@@ -37,7 +37,7 @@
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../web/target/testgrid#v${version}.war</source>
+            <source>../web/target/testgrid#dashboard##v${version}.war</source>
             <outputDirectory>./web-app</outputDirectory>
         </file>
     </files>
