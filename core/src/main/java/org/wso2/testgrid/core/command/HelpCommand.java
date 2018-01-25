@@ -43,8 +43,8 @@ public class HelpCommand implements Command {
                 "usage: generate-report -p PRODUCT_NAME --groupBy GROUPING_COLUMN", ls,
                 "usage: help", ls,
                 "example: /testgrid generate-test-plan -p wso2is-5.3.0-LTS -tc test-config.yaml", ls,
-                "example: ./testgrid run-testplan -p wso2is-5.3.0-LTS -ir ./Infrastructure" +
-                "  -dr ./Deployment -sr ./Solutions", ls);
+                "example: ./testgrid run-testplan -p wso2is-5.3.0-LTS -ir ./Infrastructure " +
+                "-dr ./Deployment -sr ./Solutions", ls);
         logger.info(usageBuilder);
     }
 
