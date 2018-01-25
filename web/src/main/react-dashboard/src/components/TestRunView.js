@@ -37,6 +37,8 @@ import {
   TableRowColumn,
 } from 'material-ui/Table';
 import Download from 'downloadjs'
+import Websocket from 'react-websocket';
+import Snackbar from 'material-ui/Snackbar';
 
 /**
  * View responsible for displaying test run log and summary information.
@@ -54,9 +56,9 @@ class TestRunView extends Component {
       testSummaryLoadStatus: "PENDING",
       logContent: "",
       logDownloadStatus: "PENDING",
-      logDownloadLink: "",
       isLogTruncated: false,
-      inputStreamSize: ""
+      inputStreamSize: "",
+      showLogDownloadErrorDialog: false
     };
   }
 
@@ -65,8 +67,6 @@ class TestRunView extends Component {
       this.props.active.reducer.currentInfra.testPlanId;
     const logTruncatedContentUrl = this.baseURL + '/api/test-plans/log/' +
       this.props.active.reducer.currentInfra.testPlanId + "?truncate=" + true;
-    const logAllContentUrl = this.baseURL + '/api/test-plans/log/' +
-      this.props.active.reducer.currentInfra.testPlanId + "?truncate=" + false;
 
     fetch(testScenarioSummaryUrl, {
       method: "GET",
@@ -83,23 +83,35 @@ class TestRunView extends Component {
       scenarioTestCaseEntries: data.scenarioTestCaseEntries
     }));
 
-    fetch(logTruncatedContentUrl, {
-      method: "GET",
-      headers: {
-        'Accept': 'application/json'
-      }
-    }).then(response => {
-      this.setState({
-        logDownloadStatus: response.ok ? "SUCCESS" : "ERROR"
-      });
-      return response.json();
-    }).then(data =>
-      this.setState({
-        logContent: data.inputStreamContent,
-        logDownloadLink: logAllContentUrl,
-        isLogTruncated: data.truncated,
-        inputStreamSize: data.completeInputStreamSize
-      }));
+    if (this.props.active.reducer.currentInfra.testPlanStatus === "FAILS" ||
+      this.props.active.reducer.currentInfra.testPlanStatus === "SUCCESS") {
+      fetch(logTruncatedContentUrl, {
+        method: "GET",
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).then(response => {
+        this.setState({
+          logDownloadStatus: response.ok ? "SUCCESS" : "ERROR"
+        });
+        return response.json();
+      }).then(data =>
+        this.setState({
+          logContent: data.inputStreamContent,
+          isLogTruncated: data.truncated,
+          inputStreamSize: data.completeInputStreamSize
+        }));
+    }
+  }
+
+  handleLogDownloadErrorDialogClose = () => {
+    this.setState({
+      showLogDownloadErrorDialog: false,
+    });
+  };
+
+  handleLiveLogData(data) {
+    this.setState({logContent: this.state.logContent + data});
   }
 
   render() {
@@ -111,6 +123,8 @@ class TestRunView extends Component {
         {this.props.active.reducer.currentInfra.infraParameters}</i>
     </td>);
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
+    const logAllContentUrl = this.baseURL + '/api/test-plans/log/' +
+      this.props.active.reducer.currentInfra.testPlanId + "?truncate=" + false;
     let isFailedTestsTitleAdded = false;
 
     return (
@@ -186,55 +200,45 @@ class TestRunView extends Component {
           <CardMedia>
             {/*TestGrid generated contents*/}
             <List>
-              {(() => {
-                switch (this.state.logDownloadStatus) {
-                  case "ERROR":
-                    return <div style={{
-                      padding: 5,
-                      color: "#D8000C",
-                      backgroundColor: "#FFD2D2"
-                    }}>
-                      <br/>
-                      <strong>Oh snap! </strong>
-                      Error occurred when downloading the log file content.
-                    </div>;
-                  case "SUCCESS":
-                    return <ListItem disabled={true}
-                                     leftAvatar={
-                                       <Avatar
-                                         src={require('../log.png')}
-                                         size={50}
-                                         style={{
-                                           borderRadius: 0,
-                                           backgroundColor: "#ffffff"
-                                         }}/>
-                                     }>
-                      <FlatButton label="Download Test Run Log"
-                                  onClick={() => (fetch(this.state.logDownloadLink, {
-                                    method: "GET",
-                                    headers: {
-                                      'Accept': 'application/json'
-                                    }
-                                  }).then(response => {
-                                    return response.json();
-                                  }).then(data => {
-                                      Download(data.inputStreamContent, "test-run.log", "plain/text");
-                                    }
-                                  ))}
-                      />
-                    </ListItem>;
-                  case "PENDING":
-                  default:
-                    return <div>
-                      <br/>
-                      <br/>
-                      <b>Loading test log...</b>
-                      <br/>
-                      <LinearProgress
-                        mode="indeterminate"/>
-                    </div>;
-                }
-              })()}
+              <ListItem disabled={true}
+                        leftAvatar={
+                          <Avatar
+                            src={require('../log.png')}
+                            size={50}
+                            style={{
+                              borderRadius: 0,
+                              backgroundColor: "#ffffff"
+                            }}/>
+                        }>
+                <FlatButton label="Download Test Run Log"
+                            onClick={() => (fetch(logAllContentUrl, {
+                              method: "GET",
+                              headers: {
+                                'Accept': 'application/json'
+                              }
+                            }).then(response => {
+                              this.setState({
+                                showLogDownloadErrorDialog: !response.ok
+                              });
+                              return response.json();
+                            }).then(data => {
+                                if (!this.state.showLogDownloadErrorDialog) {
+                                  Download(data.inputStreamContent, "test-run.log", "plain/text");
+                                }
+                              }
+                            ))}
+                />
+                <Snackbar
+                  open={this.state.showLogDownloadErrorDialog}
+                  message="Error on downloading log file..."
+                  autoHideDuration={4000}
+                  onRequestClose={this.handleLogDownloadErrorDialogClose}
+                  contentStyle={{
+                    fontWeight: 600,
+                    fontSize: "15px"
+                  }}
+                />
+              </ListItem>
             </List>
             {divider}
             {/*Scenario execution summary*/}
@@ -444,80 +448,112 @@ class TestRunView extends Component {
             <br/>
             {/*Test log*/}
             <h2>Test Run Log</h2>
+            {/*Display log from file system*/}
             {(() => {
-              switch (this.state.logDownloadStatus) {
-                case "ERROR":
-                  return <div style={{
-                    padding: 5,
-                    color: "#D8000C",
-                    backgroundColor: "#FFD2D2"
-                  }}>
-                    <br/>
-                    <strong>Oh snap! </strong>
-                    Error occurred when downloading the log file content.
-                  </div>;
-                case "SUCCESS":
-                  return <div>
-                    <code>
-                      <AceEditor
-                        theme="github"
-                        ref="log"
-                        fontSize={16}
-                        showGutter={true}
-                        highlightActiveLine={true}
-                        value={this.state.logContent}
-                        wrapEnabled={true}
-                        readOnly={true}
-                        setOptions={{
-                          showLineNumbers: true,
-                          maxLines: Infinity
-                        }}
-                        style={{
-                          width: this.props.containerWidth
-                        }}/>
-                    </code>
-                    {this.state.isLogTruncated ?
-                      <div>
-                        <center>
-                          <FlatButton
-                            onClick={() => (fetch(this.state.logDownloadLink, {
-                              method: "GET",
-                              headers: {
-                                'Accept': 'application/json'
-                              }
-                            }).then(response => {
-                              this.setState({
-                                logDownloadStatus: response.ok ? "SUCCESS" : "ERROR"
-                              });
-                              return response;
-                            }).then(data => data.json().then(json =>
-                              this.setState({
-                                logDownloadStatus: "SUCCESS",
-                                logContent: json.inputStreamContent,
-                                isLogTruncated: false
-                              }),
-                            )))}
-                            label={"See More (" + this.state.inputStreamSize + ")"}
-                            labelStyle={{
-                              fontSize: '20px',
-                              fontWeight: 600
-                            }}
-                            style={{
-                              color: '#0E457C'
-                            }}/>
-                        </center>
-                      </div>
-                      : ""}
-                  </div>;
+              switch (this.props.active.reducer.currentInfra.testPlanStatus) {
                 case "PENDING":
-                default:
-                  return <div>
-                    <br/>
-                    <br/>
-                    <b>Loading test log...</b>
-                    <br/>
-                    <LinearProgress mode="indeterminate"/>
-                  </div>;
+                case "RUNNING":
+                  return (<div>
+                    <Websocket
+                      url={'wss://' + window.location.hostname + this.baseURL + '/live-log/' +
+                      this.props.active.reducer.currentInfra.testPlanId}
+                      onMessage={data => {
+                        this.handleLiveLogData(data)
+                      }}/>
+                    <AceEditor
+                      theme="github"
+                      ref="log"
+                      fontSize={16}
+                      showGutter={true}
+                      highlightActiveLine={true}
+                      value={this.state.logContent}
+                      wrapEnabled={true}
+                      readOnly={true}
+                      setOptions={{
+                        showLineNumbers: true,
+                        maxLines: Infinity
+                      }}
+                      style={{
+                        width: this.props.containerWidth
+                      }}/>
+                    <center><CircularProgress size={40} thickness={8}/></center>
+                  </div>);
+                case "FAIL":
+                case "SUCCESS":
+                default: {
+                  // Display Log from S3
+                  switch (this.state.logDownloadStatus) {
+                    case "ERROR":
+                      return <div style={{
+                        padding: 5,
+                        color: "#D8000C",
+                        backgroundColor: "#FFD2D2"
+                      }}>
+                        <br/>
+                        <strong>Oh snap! </strong>
+                        Error occurred when downloading the log file content.
+                      </div>;
+                    case "SUCCESS":
+                      return <div>
+                        <AceEditor
+                          theme="github"
+                          ref="log"
+                          fontSize={16}
+                          showGutter={true}
+                          highlightActiveLine={true}
+                          value={this.state.logContent}
+                          wrapEnabled={true}
+                          readOnly={true}
+                          setOptions={{
+                            showLineNumbers: true,
+                            maxLines: Infinity
+                          }}
+                          style={{
+                            width: this.props.containerWidth
+                          }}/>
+                        {this.state.isLogTruncated ?
+                          <div>
+                            <center>
+                              <FlatButton
+                                onClick={() => (fetch(logAllContentUrl, {
+                                  method: "GET",
+                                  headers: {
+                                    'Accept': 'application/json'
+                                  }
+                                }).then(response => {
+                                  this.setState({
+                                    logDownloadStatus: response.ok ? "SUCCESS" : "ERROR"
+                                  });
+                                  return response;
+                                }).then(data => data.json().then(json =>
+                                  this.setState({
+                                    logContent: json.inputStreamContent,
+                                    isLogTruncated: false
+                                  }),
+                                )))}
+                                label={"See More (" + this.state.inputStreamSize + ")"}
+                                labelStyle={{
+                                  fontSize: '20px',
+                                  fontWeight: 600
+                                }}
+                                style={{
+                                  color: '#0E457C'
+                                }}/>
+                            </center>
+                          </div>
+                          : ""}
+                      </div>;
+                    case "PENDING":
+                    default:
+                      return <div>
+                        <br/>
+                        <br/>
+                        <b>Loading test log...</b>
+                        <br/>
+                        <LinearProgress mode="indeterminate"/>
+                      </div>;
+                  }
+                }
               }
             })()}
           </CardMedia>
