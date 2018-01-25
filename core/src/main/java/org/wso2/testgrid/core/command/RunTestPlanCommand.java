@@ -200,7 +200,7 @@ public class RunTestPlanCommand implements Command {
      * @param product product to locate the file path of an generated test plan YAML file
      * @return file path of an generated test plan YAML file
      */
-    private Optional<String> getTestPlanGenFilePath(Product product) {
+    private Optional<String> getTestPlanGenFilePath(Product product) throws IOException {
         Path directory = getTestPlanGenLocation(product);
 
         // Get a infra file from directory
@@ -217,7 +217,7 @@ public class RunTestPlanCommand implements Command {
      * @param product product for location directory
      * @return path for the generated test plan YAML files directory
      */
-    private Path getTestPlanGenLocation(Product product) {
+    private Path getTestPlanGenLocation(Product product) throws IOException {
         String directoryName = product.getId();
         String testGridHome = TestGridUtil.getTestGridHomePath();
         return Paths.get(testGridHome, directoryName).toAbsolutePath();

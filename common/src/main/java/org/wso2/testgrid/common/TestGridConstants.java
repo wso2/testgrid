@@ -17,6 +17,9 @@
  */
 package org.wso2.testgrid.common;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * Class to maintain constants across modules.
  *
@@ -26,4 +29,6 @@ public class TestGridConstants {
 
     // Logging constants
     public static final String TEST_LOG_FILE_NAME = "test-run.log";
+
+    public static final Path DEFAULT_TESTGRID_HOME = Paths.get(System.getProperty("user.home"), ".testgrid");
 }
