@@ -24,6 +24,7 @@ import org.wso2.testgrid.common.DeployerService;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.deployment.DeploymentValidator;
 
 import java.net.MalformedURLException;
@@ -39,6 +40,10 @@ public class AWSDeployer implements DeployerService {
 
     private static final Logger logger = LoggerFactory.getLogger(AWSDeployer.class);
     private static final String DEPLOYER_NAME = "AWS_CF";
+    private static final int TIMEOUT = 60;
+    private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
+    private static final TimeUnit POLL_UNIT = TimeUnit.SECONDS;
+    private static final int POLL_INTERVAL = 15;
 
     @Override
     public String getDeployerName() {
@@ -49,7 +54,7 @@ public class AWSDeployer implements DeployerService {
     public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
         //wait for server startup
         try {
-            logger.info("Deploying the pattern..");
+            logger.info(StringUtil.concatStrings("Deploying the pattern.. : ", deployment.getName()));
             DeploymentValidator validator = new DeploymentValidator();
             logger.info("Waiting for server startup..");
             for (Host host : deployment.getHosts()) {
@@ -58,10 +63,11 @@ public class AWSDeployer implements DeployerService {
                 } catch (MalformedURLException e) {
                     continue;
                 }
-                validator.waitForDeployment(host.getIp(), 60, TimeUnit.MINUTES, 15, TimeUnit.SECONDS);
+                validator.waitForDeployment(host.getIp(), TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
             }
         } catch (ConditionTimeoutException ex) {
-            throw new TestGridDeployerException("Time out while waiting for deployment", ex);
+            throw new TestGridDeployerException(StringUtil.concatStrings("Timeout occurred while waiting for pattern : "
+                    , deployment.getName(), "Timeout value : ", TIMEOUT, TIMEOUT_UNIT.toString()), ex);
         }
 
         return deployment;

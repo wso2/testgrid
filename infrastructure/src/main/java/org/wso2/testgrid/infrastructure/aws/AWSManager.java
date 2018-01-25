@@ -127,7 +127,7 @@ public class AWSManager {
             Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new AmazonCloudFormationWaiters(stackbuilder)
                     .stackCreateComplete();
             describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
-            logger.info(StringUtil.concatStrings("Stack : ", cloudFormationName, " creation complete!"));
+            logger.info(StringUtil.concatStrings("Stack : ", cloudFormationName, " creation completed !"));
 
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(cloudFormationName);
@@ -156,9 +156,9 @@ public class AWSManager {
             return deployment;
         } catch (WaiterUnrecoverableException e) {
             throw new TestGridInfrastructureException(StringUtil.concatStrings("Error while waiting for stack : "
-                    , cloudFormationName, "to complete"), e);
+                    , cloudFormationName, " to complete"), e);
         } catch (IOException e) {
-            throw new TestGridInfrastructureException("Error occured while Reading CloudFormation script", e);
+            throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
         }
     }
 
