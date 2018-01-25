@@ -33,25 +33,24 @@ public class HelpCommand implements Command {
 
     private static final Logger logger = LoggerFactory.getLogger(HelpCommand.class);
 
-    @Override
-    public void execute() throws CommandExecutionException {
+    @Override public void execute() throws CommandExecutionException {
         String ls = System.lineSeparator();
-        String usageBuilder = StringUtil.concatStrings(ls,
-                "usage: generate-test-plan -p PRODUCT_NAME -tc TEST_CONFIG_FILE", ls,
-                "usage: run-testplan -p PRODUCT_NAME -ir " +
-                "INFRA_REPO_PATH  -dr DEPLOYMENT_REPO_PATH -sr SCENARIO_REPO_PATH", ls,
-                "usage: generate-report -p PRODUCT_NAME --groupBy GROUPING_COLUMN", ls,
-                "usage: help", ls,
-                "example: /testgrid generate-test-plan -p wso2is-5.3.0-LTS -tc test-config.yaml", ls,
-                "example: ./testgrid run-testplan -p wso2is-5.3.0-LTS -ir ./Infrastructure  -dr ./Deployment -sr ./Solutions", ls);
+        String usageBuilder = StringUtil
+                .concatStrings(ls, "usage: generate-test-plan -p PRODUCT_NAME -tc TEST_CONFIG_FILE", ls,
+                        "usage: run-testplan -p PRODUCT_NAME -ir ", ls,
+                        "INFRA_REPO_PATH  -dr DEPLOYMENT_REPO_PATH -sr SCENARIO_REPO_PATH", ls,
+                        "usage: generate-report -p PRODUCT_NAME --groupBy GROUPING_COLUMN", ls,
+                        "usage: help", ls,
+                        "example: /testgrid generate-test-plan -p wso2is-5.3.0-LTS -tc test-config.yaml", ls,
+                        "example: ./testgrid run-testplan -p wso2is-5.3.0-LTS", ls,
+                        " -ir ./Infrastructure  -dr ./Deployment -sr ./Solutions", ls);
         logger.info(usageBuilder);
     }
 
     /**
      * fixing args4j issue of showing the class id in the help output.
      */
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return "";
     }
 }
