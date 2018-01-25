@@ -37,7 +37,7 @@ class DeploymentPatternView extends Component {
 
   constructor(props) {
     super(props)
-    this.baseURL = "/testgrid/v0.9";
+    this.baseURL = "/testgrid/dashboard";
     this.state = {
       hits: []
     };
@@ -97,7 +97,7 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>{value.lastBuild.infraParams}</TableRowColumn>
                         <TableRowColumn>
                           <FlatButton style={{ color: '#0E457C' }}
-                            onClick={() => this.navigateToRoute( this.baseUR + "/testplans/" + value.lastBuild.id, {
+                            onClick={() => this.navigateToRoute( this.baseURL + "/testplans/" + value.lastBuild.id, {
                               deploymentPatternName: key
                             }, {
                                 testPlanId: value.lastBuild.id,
