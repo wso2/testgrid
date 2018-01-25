@@ -37,15 +37,13 @@ public class HelpCommand implements Command {
     public void execute() throws CommandExecutionException {
         String ls = System.lineSeparator();
         String usageBuilder = StringUtil.concatStrings(ls,
-                "usage: create-product-testplan -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL", ls,
-                "usage: run-testplan -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL -t TESTPLAN_PATH -ir " +
-                "INFRA_REPO_PATH -sr SCENARIO_REPO_PATH", ls,
-                "usage: generate-infrastructure-plan -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL -i " +
-                "INFRASTRUCTURE_CONFIG_YAML_PATH", ls,
-                "usage: generate-report -p PRODUCT_NAME -v PRODUCT_VERSION -c CHANNEL", ls,
+                "usage: generate-test-plan -p PRODUCT_NAME -tc TEST_CONFIG_FILE", ls,
+                "usage: run-testplan -p PRODUCT_NAME -ir " +
+                "INFRA_REPO_PATH  -dr DEPLOYMENT_REPO_PATH -sr SCENARIO_REPO_PATH", ls,
+                "usage: generate-report -p PRODUCT_NAME --groupBy GROUPING_COLUMN", ls,
                 "usage: help", ls,
-                "example: sh testgrid.sh create-product-testplan -p wso2is -v 5.3.0 -c LTS", ls,
-                "example: sh testgrid.sh run-testplan -p wso2is -v 5.3.0 -c LTS -t ./my-testplan.yaml", ls);
+                "example: /testgrid generate-test-plan -p wso2is-5.3.0-LTS -tc test-config.yaml", ls,
+                "example: ./testgrid run-testplan -p wso2is-5.3.0-LTS -ir ./Infrastructure  -dr ./Deployment -sr ./Solutions", ls);
         logger.info(usageBuilder);
     }
 
