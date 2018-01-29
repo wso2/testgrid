@@ -38,8 +38,8 @@ echo " \ \  /\  / / (___ | |  | | ) |    | | ___  ___| |_| |  __ _ __ _  __| |"
 echo "  \ \/  \/ / \___ \| |  | |/ /     | |/ _ \/ __| __| | |_ |  __| |/ _  |"
 echo "   \  /\  /  ____) | |__| / /_     | |  __/\__ \ |_| |__| | |  | | (_| |"
 echo "    \/  \/  |_____/ \____/____|    |_|\___||___/\__|\_____|_|  |_|\____|"
-echo ""                                                                         
-                                                                         
+echo ""
+
 BASE_DIR=$PWD
 cygwin=false;
 darwin=false;
@@ -139,13 +139,19 @@ else
 fi
 
 # ----- Process the input command ----------------------------------------------
-
+args=""
 for c in "$@"
 do
     if [ "$c" = "--debug" ] || [ "$c" = "-debug" ] || [ "$c" = "debug" ]; then
           CMD="--debug"
     elif [ "$CMD" = "--debug" ] && [ -z "$PORT" ]; then
           PORT=$c
+    else
+        if [ "args" = "" ]; then
+            args="$c"
+        else
+          args="$args $c"
+        fi
     fi
 done
 
@@ -182,4 +188,4 @@ $JAVACMD \
 	-Djava.security.egd=file:/dev/./urandom \
 	-Dfile.encoding=UTF8 \
 	-Dlog4j.configurationFile=$TESTGRID_DISTRIBUTION/log4j2.xml \
-	org.wso2.testgrid.core.Main "$@"
+	org.wso2.testgrid.core.Main $args
