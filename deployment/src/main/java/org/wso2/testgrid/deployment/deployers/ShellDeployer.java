@@ -24,7 +24,9 @@ import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
@@ -46,14 +48,16 @@ public class ShellDeployer implements DeployerService {
     @Override
     public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
         logger.info("Performing the Deployment " + deployment.getName());
-        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(System.getenv("TESTGRID_HOME")));
         try {
+        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
             if (!shellExecutor
                     .executeCommand("bash " + Paths.get(deployment.getDeploymentScriptsDir(), DEPLOY_SCRIPT_NAME))) {
                 throw new TestGridDeployerException("Error occurred while executing the deploy script");
             }
         } catch (CommandExecutionException e) {
             throw new TestGridDeployerException(e);
+        } catch (IOException e) {
+            throw new TestGridDeployerException("Error occurred while retrieving the Testgrid_home ", e);
         }
 
         return new Deployment();
