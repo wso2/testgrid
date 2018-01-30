@@ -70,8 +70,11 @@ public class InfrastructureParameterRepository extends AbstractRepository<Infras
     /**
      * Query the database according to the {@link Specification} and return the result-set as the U type.
      *
+     * Most of the time, U will be {@link InfrastructureParameter}. You may also have any field within
+     * {@link InfrastructureParameter} as U as well.
+     *
      * @param spec specification that a given query need to adhere to.
-     * @return instance of an {@link U} matching the given primary key
+     * @return List of {@link U}s.
      * @throws TestGridDAOException thrown when an error occurred while querying.
      */
     public <U> List<U> find(Specification<InfrastructureParameter, U> spec, Class<U> clazz) throws

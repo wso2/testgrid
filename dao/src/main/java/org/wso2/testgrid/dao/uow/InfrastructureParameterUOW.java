@@ -101,12 +101,11 @@ public class InfrastructureParameterUOW {
         //create sets of ValueSets by infrastructure type
         Set<InfrastructureValueSet> infrastructureParameterSets = new HashSet<>();
         for (Type type : types) {
-            List<InfrastructureParameter> infrastructureParameters = infraParamRepository.find((root, query, cb) -> {
-                //                query.select(root.get("type")).distinct(true);
-                return cb.and(
-                        cb.equal(root.get(INFRASTRUCTURE_PARAMETER_TYPE_METAMODEL_NAME), type),
-                        cb.isTrue(root.get(INFRASTRUCTURE_PARAMETER_READY_FOR_TESTGRID_METAMODEL_NAME)));
-            }, InfrastructureParameter.class);
+            List<InfrastructureParameter> infrastructureParameters = infraParamRepository
+                    .find((root, query, cb) -> cb.and(
+                            cb.equal(root.get(INFRASTRUCTURE_PARAMETER_TYPE_METAMODEL_NAME), type),
+                            cb.isTrue(root.get(INFRASTRUCTURE_PARAMETER_READY_FOR_TESTGRID_METAMODEL_NAME))),
+                            InfrastructureParameter.class);
 
             InfrastructureValueSet valueSet = new InfrastructureValueSet(type, new TreeSet<>(infrastructureParameters));
             infrastructureParameterSets.add(valueSet);
@@ -117,7 +116,7 @@ public class InfrastructureParameterUOW {
     /**
      * This method persists a {@link InfrastructureParameter} instance to the database.
      *
-     * @param infraParam {@link InfrastructureParameter} to persist.
+     * @param infraParam {@link InfrastructureParameter} to persist
      * @return persisted {@link InfrastructureParameter} instance
      * @throws TestGridDAOException thrown when error on persisting the object
      */

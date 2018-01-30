@@ -92,6 +92,11 @@
 
         <!-- Test dependencies -->
         <dependency>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.logging</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
