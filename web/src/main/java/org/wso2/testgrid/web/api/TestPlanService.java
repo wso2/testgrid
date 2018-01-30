@@ -174,17 +174,17 @@ public class TestPlanService {
                                                                 artifactDownloadable.readArtifact(bucketKey);
             return Response.status(Response.Status.OK).entity(truncatedInputStreamData).build();
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "' " + e;
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         } catch (TestGridException e) {
-            String msg = "Error occurred when calculating test run artifacts directory.";
+            String msg = "Error occurred when calculating test run artifacts directory. " + e;
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         } catch (ArtifactReaderException e) {
-            String msg = "Error occurred when reading the artifact.";
+            String msg = "Error occurred when reading the artifact. " + e;
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();

@@ -17,7 +17,7 @@
  */
 package org.wso2.testgrid.web.plugins;
 
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
+import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
@@ -26,6 +26,10 @@ import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.wso2.testgrid.web.utils.Constants.TESTGRID_HOME;
 
 /**
  * This class is responsible for downloading artifacts from AWS.
@@ -34,37 +38,32 @@ import java.io.InputStream;
  */
 public class AWSArtifactReader implements ArtifactReadable {
 
-    private static final String AWS_ACCESS_KEY = "AWS_ACCESS_KEY_ID";
-    private static final String AWS_SECRET_KEY = "AWS_SECRET_ACCESS_KEY";
     private final AmazonS3 amazonS3;
     private final String bucketName;
 
     /**
      * Creates an instance of {@link AWSArtifactReader} for the given region and bucket name.
      * <p>
-     * Please do note that the {@value AWS_ACCESS_KEY} and {@value AWS_SECRET_KEY} environment values should be set
+     * Please do note that accessKey and secretKey values should be set in a properties file
      * in order to authenticate to the AWS.
      *
      * @param region region where the S3 bucket is located
      * @param bucket name of the bucket
-     * @throws ArtifactReaderException thrown if the given parameters are null or empty or if
-     *                                 the {@value AWS_ACCESS_KEY} and {@value AWS_SECRET_KEY} environment variable
-     *                                 values are not set
+     * @throws ArtifactReaderException thrown if the given parameters are null or empty
      */
     public AWSArtifactReader(String region, String bucket) throws ArtifactReaderException {
-        String awsIdentity = System.getenv(AWS_ACCESS_KEY);
-        String awsSecret = System.getenv(AWS_SECRET_KEY);
-        if (StringUtil.isStringNullOrEmpty(awsIdentity) || StringUtil.isStringNullOrEmpty(awsSecret)) {
-            throw new ArtifactReaderException("AWS Credentials must be set as environment variables");
-        }
         if (StringUtil.isStringNullOrEmpty(region)) {
             throw new ArtifactReaderException("AWS S3 bucket region is null or empty");
         }
         if (StringUtil.isStringNullOrEmpty(bucket)) {
             throw new ArtifactReaderException("AWS S3 bucket name is null or empty");
         }
+        Path configFilePath = Paths.get(TESTGRID_HOME, "testgrid-web-config.properties");
+        if (!configFilePath.toFile().exists()) {
+            throw new ArtifactReaderException("testgrid-web-config.properties file not found");
+        }
         amazonS3 = AmazonS3ClientBuilder.standard()
-                .withCredentials(new EnvironmentVariableCredentialsProvider())
+                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)
                 .build();
         bucketName = bucket;
