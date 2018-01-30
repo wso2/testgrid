@@ -41,6 +41,13 @@ class ProductStatusView extends Component {
     };
   }
 
+  handleError(response){
+    if(!response.ok){
+      throw Error(response.statusText)
+    }
+    return response;
+  }
+
   componentDidMount() {
     var url = this.baseURL + '/api/products/product-status'
     fetch(url, {
@@ -48,8 +55,9 @@ class ProductStatusView extends Component {
       headers: {
         'Accept': 'application/json'
       }
-    }).then(response => {
-
+    })
+    .then(this.handleError)
+    .then(response => {
       return response.json();
     })
       .then(data => this.setState({ hits: data }));
@@ -68,6 +76,7 @@ class ProductStatusView extends Component {
         <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute( this.baseURL + "/deployments/product/" + product.id, {
           productId: product.id,
           productName: product.name,
+          productStatus :product.status
         })}><i>{product.name}</i></h2></TableRowColumn>
         <TableRowColumn>
           {(() => {
@@ -77,6 +86,7 @@ class ProductStatusView extends Component {
                   nevigate={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
                     productId: product.id,
                     productName: product.name,
+                    productStatus :product.status
                   })} time={product.lastBuild.modifiedTimestamp}
                 />)
             } else {
@@ -88,10 +98,11 @@ class ProductStatusView extends Component {
           {(() => {
             if (product.lastfailed.modifiedTimestamp) {
               return (
-                <h4 onClick={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
+                <i onClick={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
                   productId: product.id,
                   productName: product.name,
-                })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastBuild.modifiedTimestamp).fromNow()}</h4>
+                  productStatus :product.status
+                })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastfailed.modifiedTimestamp).fromNow()}</i>
               );
             } else {
               return (<h4> No failed builds yet!</h4>)

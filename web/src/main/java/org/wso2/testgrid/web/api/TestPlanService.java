@@ -277,6 +277,13 @@ public class TestPlanService {
         }
     }
 
+    /**
+     * Returns the testplan history of same infrastructure combination and deployment pattern
+     * as the queried testplan.
+     *
+     * @param testPlanId id of test plan being queried
+     * @return a list of testplans representing the history.
+     */
     @GET
     @Path("/history/{testPlanId}")
     public Response getTestPlanHistory(@PathParam("testPlanId") String testPlanId) {
@@ -288,21 +295,18 @@ public class TestPlanService {
                 List<TestPlan> history = testPlanUOW.getTestPlanHistory(testPlan);
                 List<org.wso2.testgrid.web.bean.TestPlan> testPlanBeans = APIUtil.getTestPlanBeans(history, false);
                 return Response.status(Response.Status.OK).entity(testPlanBeans).build();
-
             } else {
                 String msg = "No test plan found for the given id " + testPlanId;
                 logger.error(msg);
                 return Response.serverError()
                         .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
             }
-
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while retrieving history for TestPlan : " + testPlanId;
             logger.error(msg);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
-
     }
 
     /**

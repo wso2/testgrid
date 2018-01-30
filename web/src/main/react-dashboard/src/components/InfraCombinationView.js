@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import '../App.css';
 import {
     Table,
@@ -28,28 +28,29 @@ import {
 } from 'material-ui/Table';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
-import {add_current_infra} from '../actions/testGridActions.js';
+import { add_current_infra, add_current_deployment } from '../actions/testGridActions.js';
 import FlatButton from 'material-ui/FlatButton';
-
+import Divider from 'material-ui/Divider';
+import Moment from 'moment'
 
 class InfraCombinationView extends Component {
 
     constructor(props) {
         super(props);
-        this.baseURL = "/testgrid/dashboard" ;
+        this.baseURL = "/testgrid/dashboard";
         this.state = {
             hits: []
         }
     }
 
-    nevigateToRoute(route, infra) {
-        this.props.dispatch(add_current_infra(infra));
+    navigateToRoute(route, deployment, testPlan) {
+        this.props.dispatch(add_current_deployment(deployment));
+        this.props.dispatch(add_current_infra(testPlan));
         this.props.history.push(route);
     }
 
     componentDidMount() {
-        var url = this.baseURL + "/api/test-plans?deployment-pattern-id=" + this.props.active.reducer.currentDeployment.deploymentId + "&date=" + this.props.active.reducer.currentProduct.productDate + "&require-test-scenario-info=false";
-
+        var url = this.baseURL + "/api/test-plans/history/" + this.props.active.reducer.currentInfra.testPlanId;
         fetch(url, {
             method: "GET",
             headers: {
@@ -58,48 +59,142 @@ class InfraCombinationView extends Component {
         }).then(response => {
             return response.json()
         })
-            .then(data => this.setState({hits: data}));
+            .then(data => this.setState({ hits: data }));
     }
-
     render() {
         return (
             <div>
-                <Subheader style={{fontSize: '20px'}}>
-                    <i>{this.props.active.reducer.currentProduct.productName} {this.props.active.reducer.currentProduct.productVersion} {this.props.active.reducer.currentProduct.productChannel} / {this.props.active.reducer.currentDeployment.deploymentName} </i>
-                </Subheader>
-                <Table>
+                {(() => {
+                    switch (this.props.active.reducer.currentProduct.productStatus) {
+                        case "FAIL":
+                            return <Subheader style={{
+                                fontSize: '20px',
+                                backgroundColor: "#ffd6d3"
+                            }}>
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td style={{ padding: 5 }}>
+                                                <img
+                                                    src={require('../close.png')}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        height: "50px",
+                                                        width: "50px"
+                                                    }} />
+                                            </td>
+                                            <i>{this.props.active.reducer.currentProduct.productName}  /  
+                                                {this.props.active.reducer.currentDeployment.deploymentPatternName}  <br />
+                                                {this.props.active.reducer.currentInfra.infraParameters}
+                                            </i>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </Subheader>;
+                        case "SUCCESS":
+                            return <Subheader style={{
+                                fontSize: '20px',
+                                backgroundColor: "#cdffba"
+                            }}>
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td style={{ padding: 5 }}>
+                                                <img
+                                                    src={require('../success.png')}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        height: "50px",
+                                                        width: "50px"
+                                                    }} />
+                                            </td>
+                                            <i>{this.props.active.reducer.currentProduct.productName}  /  
+                                                {this.props.active.reducer.currentDeployment.deploymentPatternName}  <br />
+                                                {this.props.active.reducer.currentInfra.infraParameters}
+                                            </i>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </Subheader>;
+                        case "PENDING":
+                        case "RUNNING":
+                        default:
+                            return <Subheader style={{
+                                fontSize: '20px',
+                                backgroundColor: "#FFCC80"
+                            }}>
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td style={{ padding: 5 }}>
+                                                <img
+                                                    src={require('../wait.gif')}
+                                                    style={{
+                                                        verticalAlign: "middle",
+                                                        height: "50px",
+                                                        width: "50px"
+                                                    }} />
+                                            </td>
+                                            <i>{this.props.active.reducer.currentProduct.productName}  / 
+                                                 {this.props.active.reducer.currentDeployment.deploymentPatternName}  <br />
+                                                {this.props.active.reducer.currentInfra.infraParameters}
+                                            </i>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </Subheader>;
+                    }
+                })()}
+                <Divider />
+                <Table fixedHeader={false} style={{ tableLayout: 'auto' }}>
                     <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
                         <TableRow>
-                            <TableHeaderColumn><h2>Infrastructure</h2></TableHeaderColumn>
+                            <TableHeaderColumn><h2>#</h2></TableHeaderColumn>
                             <TableHeaderColumn><h2>Status</h2></TableHeaderColumn>
-                            <TableHeaderColumn/>
+                            <TableHeaderColumn><h2>Date</h2></TableHeaderColumn>
+                            <TableHeaderColumn><h2>Duration</h2></TableHeaderColumn>
                         </TableRow>
                     </TableHeader>
                     <TableBody displayRowCheckbox={false}>
 
-                        {this.state.hits.map((data, index) => {
-
-
-                            return (<TableRow key={index}>
-                                <TableRowColumn>{data.infraParams}</TableRowColumn>
-                                <TableRowColumn><SingleRecord value={data.status}
-                                                              nevigate={() => this.nevigateToRoute("/testgrid/v0.9/scenarios/infrastructure/" + data.id, {
-                                                                  infrastructureId: data.id,
-                                                                  deploymentName: data.infraParams
-                                                              })}
-                                /></TableRowColumn>
-                                <TableRowColumn>
-                                    <FlatButton style={{color: '#0E457C'}}
-                                                onClick={() => this.nevigateToRoute("/testgrid/v0.9/testplans/" + data.id, {
+                        {this.state.hits
+                            .sort((a, b) => b.createdTimestamp - a.createdTimestamp)
+                            .map((data, index) => {
+                                return (<TableRow key={index}>
+                                    <TableRowColumn>{index + 1}</TableRowColumn>
+                                    <TableRowColumn>
+                                        <FlatButton style={{ color: '#0E457C' }}
+                                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/" + data.id, {
+                                                deploymentPatternName: this.props.active.reducer.currentDeployment.deploymentPatternName
+                                            }, {
                                                     testPlanId: data.id,
                                                     infraParameters: data.infraParams,
                                                     testPlanStatus: data.status
                                                 })}>
-                                        Artifacts
-                                    </FlatButton>
-                                </TableRowColumn>
-                            </TableRow>)
-                        })}
+                                            <SingleRecord value={data.status} />
+                                        </FlatButton>
+                                    </TableRowColumn>
+                                    <TableRowColumn>{Moment(data.createdTimestamp).calendar()}</TableRowColumn>
+                                    <TableRowColumn>
+                                        {(() => {
+                                            var start = Moment(data.createdTimestamp);
+                                            var end = Moment(data.modifiedTimestamp);
+                                            var min = end.diff(start, 'minutes');
+                                            var hours = Math.floor(min / 60);
+                                            var minutes = min % 60;
+                                            if (hours > 0) {
+                                                return (
+                                                    <p> <b> {hours} </b>  Hours <b> {minutes} </b> Minutes </p>
+                                                )
+                                            } else {
+                                                return (
+                                                    <p><b> {minutes} </b> Minutes </p>
+                                                )
+                                            }
+                                        })()}
+                                    </TableRowColumn>
+                                </TableRow>)
+                            })}
                     </TableBody>
                 </Table>
             </div>

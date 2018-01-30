@@ -87,7 +87,7 @@ class App extends Component {
                 <Switch>
                   <Route exact path = {this.baseURL + '/'} component={ProductContainer} />
                   <Route exact path = {this.baseURL + '/deployments/product/:productId/'} component={DeploymentContainer} />
-                  <Route exact path = {this.baseURL + '/infrastructures/deployment/:deploymentid/'} component={InfrastructureContainer} />
+                  <Route exact path = {this.baseURL + '/testplans/history/:testplanid'} component={InfrastructureContainer} />
                   <Route exact path = {this.baseURL + '/scenarios/infrastructure/:infraid'} component={ScenarioContainer} />
                   <Route exact path = {this.baseURL + '/testcases/scenario/:scenarioid'} component={TestCaseContainer} />
                   <Route exact path = {this.baseURL + '/testplans/:testplanid'} component={testRunContainer}/>

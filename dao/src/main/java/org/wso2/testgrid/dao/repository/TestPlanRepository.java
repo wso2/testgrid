@@ -237,7 +237,6 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         String sql = " select t.* from test_plan t inner join deployment_pattern dp inner " +
                 "join product p on p.id=dp.PRODUCT_id and dp.id=t.DEPLOYMENTPATTERN_id " +
                 "where t.infra_parameters=? AND dp.id=? AND p.id=?";
-
         return entityManager.createNativeQuery(sql, TestPlan.class)
                 .setParameter(1, testPlan.getInfraParameters())
                 .setParameter(2, testPlan.getDeploymentPattern().getId())
