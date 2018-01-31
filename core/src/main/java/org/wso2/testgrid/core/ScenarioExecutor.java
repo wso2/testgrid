@@ -73,11 +73,6 @@ public class ScenarioExecutor {
             String testLocation = Paths.get(homeDir, testScenario.getName()).toAbsolutePath().toString();
             List<Test> tests = getTests(testScenario, testLocation);
 
-            // If the scenario directory doesn't have any JMeter scripts throw an Error
-            if (tests.isEmpty()) {
-                throw new ScenarioExecutorException("Scenario directory doesn't exist " + testScenario);
-            }
-
             for (Test test : tests) {
                 logger.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
                 test.execute(testLocation, deployment);
@@ -144,7 +139,9 @@ public class ScenarioExecutor {
                     }
                 }
             } else {
-                throw new ScenarioExecutorException("Scenario directory doesn't exist " + testLocationPath);
+                throw new ScenarioExecutorException(
+                        "Scenario directory doesn't exist for the path : " + testLocationPath + " Scenario name : "
+                        + testScenario.getName());
             }
             return testList;
         } catch (TestAutomationException e) {
