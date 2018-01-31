@@ -24,8 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class is used to retrieve test configuration values given by the user.
- *
+ * This class is used to retrieve test plan for a given test run.
  * @since 1.0.0
  */
 public class TestConfig {

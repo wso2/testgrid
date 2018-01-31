@@ -23,12 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
+import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.TestConfig;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
+import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
 import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -43,11 +46,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Responsible for generating the infrastructure plan and persisting them in the file system.
@@ -83,22 +86,18 @@ public class GenerateTestPlanCommand implements Command {
                         testConfigFile));
             }
 
-            // Generate test configuration
+            // Generate test plans
             TestConfig inputTestConfig = FileUtil.readConfigurationFile(testConfigFile, TestConfig.class);
-            List<TestConfig> testConfigs = createSeparateTestConfigs(inputTestConfig);
+            Set<InfrastructureCombination> combinations = new InfrastructureCombinationsProvider().getCombinations();
+            List<TestConfig> testPlans = generateTestPlans(combinations, inputTestConfig);
 
-            // Save test configs to YAML files
-            Yaml yaml = createYamlInstance();
-
-            // Get product or create product for params
             Product product = createOrReturnProduct(productName);
-
-            // Create directory
             String infraGenDirectory = createTestPlanGenDirectory(product);
 
-            // Save test configs to file
-            for (int i = 0; i < testConfigs.size(); i++) {
-                TestConfig testConfig = testConfigs.get(i);
+            // Save test plans to file-system
+            Yaml yaml = createYamlInstance();
+            for (int i = 0; i < testPlans.size(); i++) {
+                TestConfig testConfig = testPlans.get(i);
                 String fileName = StringUtil
                         .concatStrings(testConfig.getProductName(), "-", (i + 1), YAML_EXTENSION);
                 String output = yaml.dump(testConfig);
@@ -107,6 +106,8 @@ public class GenerateTestPlanCommand implements Command {
         } catch (IOException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error in reading file ", testConfigFile), e);
+        } catch (TestGridDAOException e) {
+            throw new CommandExecutionException("Error while reading value-sets from the database.", e);
         }
     }
 
@@ -156,111 +157,35 @@ public class GenerateTestPlanCommand implements Command {
         }
     }
 
-    /**
-     * Creates and returns a test config for the given input test config.
-     *
-     * @param inputTestConfig input test config to create test config
-     * @return created test config
-     */
-    private List<TestConfig> createSeparateTestConfigs(TestConfig inputTestConfig) {
+    private List<TestConfig> generateTestPlans(Set<InfrastructureCombination> combinations,
+            TestConfig inputTestConfig) {
+        List<TestConfig> testConfigurations = new ArrayList<>();
+        List<String> deploymentPatterns = inputTestConfig.getDeploymentPatterns();
 
-        List<TestConfig> testConfigs = new ArrayList<>();
-
-        // Deployment patterns
-        List<String> deploymentNames = inputTestConfig.getDeploymentPatterns();
-        for (String deploymentName : deploymentNames) {
-            // Infra params
-            List<Map<String, Object>> infraParamsList = inputTestConfig.getInfraParams();
-            List<Map<String, Object>> infraCombinations = new ArrayList<>();
-            for (Map<String, Object> infraParams : infraParamsList) {
-                Map<String, List<String>> groupInfraParams = groupInfraParams(infraParams);
-                infraCombinations.addAll(createInfraCombinations(groupInfraParams));
-            }
-
-            // Create test config for individual infra combination.
-            for (Map<String, Object> infraCombination : infraCombinations) {
+        for (String deploymentPattern : deploymentPatterns) {
+            for (InfrastructureCombination combination : combinations) {
                 TestConfig testConfig = new TestConfig();
                 testConfig.setProductName(inputTestConfig.getProductName());
-                testConfig.setDeploymentPatterns(Collections.singletonList(deploymentName));
-                testConfig.setInfraParams(Collections.singletonList(infraCombination));
+                testConfig.setDeploymentPatterns(Collections.singletonList(deploymentPattern));
+                List<Map<String, Object>> configAwareInfraCombination = toConfigAwareInfrastructureCombination(
+                        combination.getParameters());
+                testConfig.setInfraParams(configAwareInfraCombination);
                 testConfig.setScenarios(inputTestConfig.getScenarios());
                 testConfig.setInfrastructure(inputTestConfig.getInfrastructure());
+                testConfigurations.add(testConfig);
 
-                // Add test configs to test config
-                testConfigs.add(testConfig);
             }
         }
-        return testConfigs;
+        return testConfigurations;
     }
 
-    /**
-     * Group infra parameters according to the key.
-     *
-     * @param infraParams infra parameters list
-     * @return grouped infra parameters
-     */
-    @SuppressWarnings("unchecked")
-    private Map<String, List<String>> groupInfraParams(Map<String, Object> infraParams) {
-        Map<String, List<String>> groupedInfraParamsMap = new HashMap<>();
-        for (Map.Entry<String, Object> infraParamEntry : infraParams.entrySet()) {
-            if (infraParamEntry.getValue() instanceof String) {
-                groupedInfraParamsMap.put(infraParamEntry.getKey(),
-                        Collections.singletonList((String) infraParamEntry.getValue()));
-            } else if (infraParamEntry.getValue() instanceof Collection) {
-                // If the infra value is a collection of strings
-                List<String> infraValuesList = (List<String>) infraParamEntry.getValue();
-                groupedInfraParamsMap.put(infraParamEntry.getKey(), infraValuesList);
-            }
-        }
-        return groupedInfraParamsMap;
-    }
-
-    /**
-     * Creates and returns infra combinations for the grouped infra params.
-     *
-     * @param groupedInfraParamsMap grouped infra params
-     * @return created infra combinations
-     */
-    private List<Map<String, Object>> createInfraCombinations(Map<String, List<String>> groupedInfraParamsMap) {
-        List<Map<String, Object>> infraCombinations = new ArrayList<>();
-
-        // Create infra combinations
-        for (Map.Entry<String, List<String>> entry : groupedInfraParamsMap.entrySet()) {
-            infraCombinations = createInfraCombinationsForEntry(infraCombinations, entry);
-        }
-        return infraCombinations;
-    }
-
-    /**
-     * Creates and returns infra combinations for a single infra param entry.
-     *
-     * @param infraCombinations current infra combinations
-     * @param entry             entry to create infra combinations
-     * @return created infra combinations
-     */
-    private List<Map<String, Object>> createInfraCombinationsForEntry(List<Map<String, Object>> infraCombinations,
-                                                                      Map.Entry<String, List<String>> entry) {
-        List<Map<String, Object>> newInfraCombinations = new ArrayList<>();
-
-        // If the infra combinations list is empty simply add the new combination values as entries
-        if (infraCombinations.isEmpty()) {
-            for (String infraParamValue : entry.getValue()) {
-                Map<String, Object> newInfraCombination = new HashMap<>();
-                newInfraCombination.put(entry.getKey(), infraParamValue);
-                newInfraCombinations.add(newInfraCombination);
-            }
-            return newInfraCombinations;
+    private List<Map<String, Object>> toConfigAwareInfrastructureCombination(Set<InfrastructureParameter> parameters) {
+        Map<String, Object> configAwareInfrastructureCombination = new HashMap<>(parameters.size());
+        for (InfrastructureParameter parameter : parameters) {
+            configAwareInfrastructureCombination.put(parameter.getType().toString(), parameter.getName());
         }
 
-        // If the infra combinations list is not empty, for each entry add the new combination values
-        for (Map<String, Object> infraCombination : infraCombinations) {
-            for (String infraParamValue : entry.getValue()) {
-                Map<String, Object> newInfraCombination = new HashMap<>(infraCombination);
-                newInfraCombination.put(entry.getKey(), infraParamValue);
-                newInfraCombinations.add(newInfraCombination);
-            }
-        }
-        return newInfraCombinations;
+        return Collections.singletonList(configAwareInfrastructureCombination);
     }
 
     /**
