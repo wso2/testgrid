@@ -22,14 +22,13 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static org.wso2.testgrid.web.utils.Constants.TESTGRID_HOME;
 
 /**
  * This class is responsible for downloading artifacts from AWS.
@@ -51,14 +50,14 @@ public class AWSArtifactReader implements ArtifactReadable {
      * @param bucket name of the bucket
      * @throws ArtifactReaderException thrown if the given parameters are null or empty
      */
-    public AWSArtifactReader(String region, String bucket) throws ArtifactReaderException {
+    public AWSArtifactReader(String region, String bucket) throws ArtifactReaderException, IOException {
         if (StringUtil.isStringNullOrEmpty(region)) {
             throw new ArtifactReaderException("AWS S3 bucket region is null or empty");
         }
         if (StringUtil.isStringNullOrEmpty(bucket)) {
             throw new ArtifactReaderException("AWS S3 bucket name is null or empty");
         }
-        Path configFilePath = Paths.get(TESTGRID_HOME, "testgrid-web-config.properties");
+        Path configFilePath = Paths.get(TestGridUtil.getTestGridHomePath(), "testgrid-web-config.properties");
         if (!configFilePath.toFile().exists()) {
             throw new ArtifactReaderException("testgrid-web-config.properties file not found");
         }
