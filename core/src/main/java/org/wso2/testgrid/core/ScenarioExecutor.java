@@ -74,7 +74,7 @@ public class ScenarioExecutor {
             List<Test> tests = getTests(testScenario, testLocation);
 
             if (tests.isEmpty()) {
-                logger.warn("Couldn't find any Jmeter scripts for the scenario " + testScenario + " At location "
+                logger.warn("Couldn't find any tests for the scenario " + testScenario + " At location "
                             + testLocation);
             }
 
