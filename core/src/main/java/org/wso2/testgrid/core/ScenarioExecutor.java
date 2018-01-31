@@ -73,6 +73,11 @@ public class ScenarioExecutor {
             String testLocation = Paths.get(homeDir, testScenario.getName()).toAbsolutePath().toString();
             List<Test> tests = getTests(testScenario, testLocation);
 
+            if (tests.isEmpty()) {
+                logger.warn("Couldn't find any Jmeter scripts for the scenario " + testScenario + " At location "
+                            + testLocation);
+            }
+
             for (Test test : tests) {
                 logger.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
                 test.execute(testLocation, deployment);
