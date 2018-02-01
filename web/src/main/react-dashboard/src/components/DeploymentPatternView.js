@@ -231,7 +231,7 @@ class DeploymentPatternView extends Component {
                           })()}
                         </TableRowColumn>
                         <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job"
-                          onClick={() => { window.location = '/job/'+ product.name +'/build' }} /><ReactTooltip /></TableRowColumn>
+                          onClick={() => { window.location = '/job/'+ this.props.active.reducer.currentProduct.productName +'/build' }} /><ReactTooltip /></TableRowColumn>
                       </TableRow>
                     )
                   } else {
@@ -289,7 +289,7 @@ class DeploymentPatternView extends Component {
                           })()}
                         </TableRowColumn>
                         <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job"
-                          onClick={() => { window.location = '/job/'+ product.name +'/build' }} /><ReactTooltip /></TableRowColumn>
+                          onClick={() => { window.location = '/job/'+ this.props.active.reducer.currentProduct.productName +'/build' }} /><ReactTooltip /></TableRowColumn>
                       </TableRow>
                     )
                   }
