@@ -17,7 +17,8 @@
  */
 
 import React, { Component } from 'react';
-import Moment from 'moment'
+import Moment from 'moment';
+import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
 
 class SingleRecord extends Component {
   constructor(props) {
@@ -25,13 +26,13 @@ class SingleRecord extends Component {
   }
 
   render() {
-    if (this.props.value === 'SUCCESS' || this.props.value === true) {
+    if (this.props.value === SUCCESS || this.props.value === true) {
       return (
         <div style={{ "fontSize": "16px" }}>
-          <img src={require('../success.png')} width="28" height="28" 
-          onClick={this.props.nevigate} 
-          style={{ cursor: 'pointer' }} 
-          alt='Succesful' />
+          <img src={require('../success.png')} width="28" height="28"
+            onClick={this.props.nevigate}
+            style={{ cursor: 'pointer' }}
+            alt='Succesful' />
           {(() => {
             if (this.props.time) {
               return (<i> {Moment(this.props.time).fromNow()}</i>);
@@ -39,13 +40,28 @@ class SingleRecord extends Component {
           })()}
         </div>
       )
-    } else {
+    } else if (this.props.value === PENDING || this.props.value === RUNNING) {
+      return (
+        <div style={{ "fontSize": "16px" }}>
+        <img src={require('../wait.gif')} width="30" height="30"
+          onClick={this.props.nevigate}
+          style={{ cursor: 'pointer' }}
+          alt='Succesful' />
+        {(() => {
+          if (this.props.time) {
+            return (<i> {Moment(this.props.time).fromNow()}</i>);
+          }
+        })()}
+      </div>
+      )
+    }
+    else {
       return (
         <div style={{ "fontSize": "16px", cursor: "pointer" }}>
-          <img src={require('../close.png')} 
-          width="28" height="28" 
-          onClick={this.props.nevigate} 
-          style={{ cursor: 'pointer' }} alt='Failed' />
+          <img src={require('../close.png')}
+            width="28" height="28"
+            onClick={this.props.nevigate}
+            style={{ cursor: 'pointer' }} alt='Failed' />
           {(() => {
             if (this.props.time) {
               return (<i> {Moment(this.props.time).fromNow()}</i>);

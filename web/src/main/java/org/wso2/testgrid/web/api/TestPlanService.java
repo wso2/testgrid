@@ -174,20 +174,29 @@ public class TestPlanService {
                                                                 artifactDownloadable.readArtifact(bucketKey);
             return Response.status(Response.Status.OK).entity(truncatedInputStreamData).build();
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "' ";
             logger.error(msg, e);
             return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
         } catch (TestGridException e) {
             String msg = "Error occurred when calculating test run artifacts directory.";
             logger.error(msg, e);
             return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
         } catch (ArtifactReaderException e) {
             String msg = "Error occurred when reading the artifact.";
             logger.error(msg, e);
             return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (IOException e) {
+            String msg = "Error occurred when retrieving TESTGRID_HOME.";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
         }
     }
 
@@ -278,6 +287,38 @@ public class TestPlanService {
     }
 
     /**
+     * Returns the testplan history of same infrastructure combination and deployment pattern
+     * as the queried testplan.
+     *
+     * @param testPlanId id of test plan being queried
+     * @return a list of testplans representing the history.
+     */
+    @GET
+    @Path("/history/{testPlanId}")
+    public Response getTestPlanHistory(@PathParam("testPlanId") String testPlanId) {
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        try {
+            Optional<TestPlan> planOptional = testPlanUOW.getTestPlanById(testPlanId);
+            if (planOptional.isPresent()) {
+                TestPlan testPlan = planOptional.get();
+                List<TestPlan> history = testPlanUOW.getTestPlanHistory(testPlan);
+                List<org.wso2.testgrid.web.bean.TestPlan> testPlanBeans = APIUtil.getTestPlanBeans(history, false);
+                return Response.status(Response.Status.OK).entity(testPlanBeans).build();
+            } else {
+                String msg = "No test plan found for the given id " + testPlanId;
+                logger.error(msg);
+                return Response.serverError()
+                        .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+            }
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while retrieving history for TestPlan : " + testPlanId;
+            logger.error(msg);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
      * Save the {@link TestPlanRequest} object as a YAML file.
      *
      * @param testPlanRequest TestPlanRequest needs to be saved.
@@ -313,7 +354,7 @@ public class TestPlanService {
             }
         } catch (IOException e) {
             throw new TestGridException("Error occurred when writing YAML file for test-plan " +
-                                        testPlanRequest.getTestPlanName() + ".", e);
+                    testPlanRequest.getTestPlanName() + ".", e);
         }
     }
 

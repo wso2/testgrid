@@ -29,7 +29,8 @@ import {
 import SingleRecord from './SingleRecord.js';
 import { add_current_product } from '../actions/testGridActions.js';
 import Moment from 'moment'
-import ReactTooltip from 'react-tooltip'
+import ReactTooltip from 'react-tooltip';
+import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
 
 class ProductStatusView extends Component {
 
@@ -41,6 +42,13 @@ class ProductStatusView extends Component {
     };
   }
 
+  handleError(response){
+    if(!response.ok){
+      throw Error(response.statusText)
+    }
+    return response;
+  }
+
   componentDidMount() {
     var url = this.baseURL + '/api/products/product-status'
     fetch(url, {
@@ -48,11 +56,11 @@ class ProductStatusView extends Component {
       headers: {
         'Accept': 'application/json'
       }
-    }).then(response => {
-
-      return response.json();
     })
-      .then(data => this.setState({ hits: data }));
+    .then(this.handleError)
+    .then(response => {return response.json()})
+    .then(data => this.setState({ hits: data }))
+    .catch(error => console.error(error));
   }
 
   nevigateToRoute(route, product) {
@@ -68,6 +76,7 @@ class ProductStatusView extends Component {
         <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute( this.baseURL + "/deployments/product/" + product.id, {
           productId: product.id,
           productName: product.name,
+          productStatus :product.status
         })}><i>{product.name}</i></h2></TableRowColumn>
         <TableRowColumn>
           {(() => {
@@ -77,6 +86,7 @@ class ProductStatusView extends Component {
                   nevigate={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
                     productId: product.id,
                     productName: product.name,
+                    productStatus :product.status
                   })} time={product.lastBuild.modifiedTimestamp}
                 />)
             } else {
@@ -88,19 +98,21 @@ class ProductStatusView extends Component {
           {(() => {
             if (product.lastfailed.modifiedTimestamp) {
               return (
-                <h4 onClick={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
+                <i onClick={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
                   productId: product.id,
                   productName: product.name,
-                })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastBuild.modifiedTimestamp).fromNow()}</h4>
+                  productStatus :product.status
+                })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastfailed.modifiedTimestamp).fromNow()}</i>
               );
             } else {
               return (<h4> No failed builds yet!</h4>)
             }
           })()}
         </TableRowColumn>
-        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /> <ReactTooltip /></TableRowColumn>
+        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" 
+        onClick={() => { window.location = '/job/'+ product.name +'/build' }} /> <ReactTooltip /></TableRowColumn>
         <TableRowColumn ><img src={require('../configure.png')} width="36" height="36" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location = '/job/wso2is5.4.0LTS/configure' }} data-tip="Configure job" />
+          onClick={() => { window.location = '/job/'+ product.name +'/configure' }} data-tip="Configure job" />
         </TableRowColumn>
       </TableRow>)
     });

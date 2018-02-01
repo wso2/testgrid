@@ -225,4 +225,22 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
             return null;
         }
     }
+
+    /**
+     * This method returns all the test plans that belongs to same infrastructure set,same deployment pattern
+     * and same product.
+     *
+     * @param testPlan testPlan being queried
+     * @return a List of {@link TestPlan} representing the history of that test plan
+     */
+    public List<TestPlan> getTestPlanHistory(TestPlan testPlan) {
+        String sql = " select t.* from test_plan t inner join deployment_pattern dp inner " +
+                "join product p on p.id=dp.PRODUCT_id and dp.id=t.DEPLOYMENTPATTERN_id " +
+                "where t.infra_parameters=? AND dp.id=? AND p.id=?";
+        return entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, testPlan.getInfraParameters())
+                .setParameter(2, testPlan.getDeploymentPattern().getId())
+                .setParameter(3, testPlan.getDeploymentPattern().getProduct().getId())
+                .getResultList();
+    }
 }
