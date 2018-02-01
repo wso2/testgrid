@@ -174,20 +174,29 @@ public class TestPlanService {
                                                                 artifactDownloadable.readArtifact(bucketKey);
             return Response.status(Response.Status.OK).entity(truncatedInputStreamData).build();
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "' ";
             logger.error(msg, e);
             return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
         } catch (TestGridException e) {
             String msg = "Error occurred when calculating test run artifacts directory.";
             logger.error(msg, e);
             return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
         } catch (ArtifactReaderException e) {
             String msg = "Error occurred when reading the artifact.";
             logger.error(msg, e);
             return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (IOException e) {
+            String msg = "Error occurred when retrieving TESTGRID_HOME.";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
         }
     }
 
