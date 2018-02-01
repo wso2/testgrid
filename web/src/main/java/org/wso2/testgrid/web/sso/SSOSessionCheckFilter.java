@@ -18,6 +18,9 @@
 
 package org.wso2.testgrid.web.sso;
 
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.web.utils.ConfigurationContext;
+
 import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -38,14 +41,17 @@ public class SSOSessionCheckFilter implements Filter {
     public void init(FilterConfig filterConfig) throws ServletException {
     }
 
+    /**
+     * Check each request's path and do check for SESSION if the path has to be secured.
+     * Otherwise allowed
+     */
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
-
         String path = ((HttpServletRequest) servletRequest).getRequestURI();
         if (path.startsWith("/testgrid/dashboard/login") ||
                 path.startsWith("/testgrid/dashboard/static") ||
-                path.startsWith("/testgrid/dashboard/api/acs")) {
+                path.startsWith("/testgrid/dashboard/api")) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             HttpServletRequest request = (HttpServletRequest) servletRequest;
@@ -60,7 +66,11 @@ public class SSOSessionCheckFilter implements Filter {
             }
             if (!foundCookie || cookies == null) {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-                httpResponse.sendRedirect("/testgrid/dashboard/login");
+                try {
+                    httpResponse.sendRedirect(ConfigurationContext.getProperty("SSO_LOGIN_URL"));
+                } catch (TestGridException e) {
+                    throw new ServletException("Error when reading property SSO_LOGIN_URL");
+                }
                 return;
             }
             filterChain.doFilter(servletRequest, servletResponse);
