@@ -30,7 +30,7 @@ import org.apache.logging.log4j.core.lookup.StrLookup;
  */
 @Plugin(name = "path", category = StrLookup.CATEGORY)
 public class LogFilePathLookup implements StrLookup {
-    private static String logFilePath = "testgrid";
+    private static String logFilePath = "testgrid.log";
 
     @Override
     public String lookup(String key) {

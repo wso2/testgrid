@@ -133,7 +133,8 @@ fi
 
 # if TESTGRID_HOME is not set we're not happy
 if [ -z "$TESTGRID_HOME" ]; then
-  echo "TESTGRID_HOME is not set, system will setup a default location"
+  TESTGRID_HOME="$HOME/.testgrid/"
+  echo "TESTGRID_HOME is not set, using the default location : $TESTGRID_HOME"
 else
   echo "Testgrid Home is set to : " $TESTGRID_HOME
 fi
@@ -179,7 +180,6 @@ fi
 export CLASSPATH=$TESTGRID_DISTRIBUTION/lib/*
 
 # ----- Execute The Requested Command -----------------------------------------
-
 $JAVACMD \
 	-Xms256m -Xmx1024m \
 	-XX:+HeapDumpOnOutOfMemoryError \
@@ -187,5 +187,6 @@ $JAVACMD \
 	$JAVA_OPTS \
 	-Djava.security.egd=file:/dev/./urandom \
 	-Dfile.encoding=UTF8 \
+	-Dtestgrid.home=$TESTGRID_HOME \
 	-Dlog4j.configurationFile=$TESTGRID_DISTRIBUTION/log4j2.xml \
 	org.wso2.testgrid.core.Main $args
