@@ -28,6 +28,7 @@ import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
@@ -47,6 +48,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 import static org.wso2.testgrid.common.TestGridConstants.DEFAULT_TESTGRID_HOME;
+import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY;
 
 /**
  * This Util class holds the common utility methods.
@@ -56,7 +58,6 @@ import static org.wso2.testgrid.common.TestGridConstants.DEFAULT_TESTGRID_HOME;
 public final class TestGridUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(TestGridUtil.class);
-    private static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
 
     /**
      * Executes a command.
@@ -160,9 +161,12 @@ public final class TestGridUtil {
      * @return test grid home path
      */
     public static String getTestGridHomePath() throws IOException {
-        String testGridHome = EnvironmentUtil.getSystemVariableValue(TESTGRID_HOME_ENV);
+        String testGridHome = EnvironmentUtil.getSystemVariableValue(TestGridConstants.TESTGRID_HOME_ENV);
+        if (testGridHome == null || testGridHome.isEmpty()) {
+            testGridHome = EnvironmentUtil.getSystemVariableValue(TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY);
+        }
         Path testGridHomePath;
-        if (testGridHome == null) {
+        if (testGridHome == null || testGridHome.isEmpty()) {
             logger.warn("TESTGRID_HOME environment variable not set. Defaulting to ~/.testgrid.");
             testGridHomePath = DEFAULT_TESTGRID_HOME;
         } else {
@@ -173,8 +177,20 @@ public final class TestGridUtil {
         if (!Files.exists(testGridHomePath)) {
             Files.createDirectories(testGridHomePath.toAbsolutePath());
         }
+        testGridHome = testGridHomePath.toString();
+        System.setProperty(TESTGRID_HOME_SYSTEM_PROPERTY, testGridHome);
 
-        return testGridHomePath.toString();
+        return testGridHome;
+    }
+
+    /**
+     * Returns the directory location where the test-plans are stored.
+     *
+     * @return path of the test plans directory
+     * @throws IOException thrown when error on calculating test plan artifacts directory
+     */
+    public static Path getTestPlanDirectory() throws IOException {
+        return Paths.get(getTestGridHomePath(), "test-plans");
     }
 
     /**

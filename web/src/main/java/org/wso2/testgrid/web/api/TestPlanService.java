@@ -286,8 +286,8 @@ public class TestPlanService {
      *                           2.If IOException occured while writing YAML file.
      *                           3.If the YAML file already exists.
      */
-    private void persistAsYamlFile(TestPlanRequest testPlanRequest) throws TestGridException {
-        java.nio.file.Path path = Paths.get(Constants.TESTPLANS_DIR, testPlanRequest.getTestPlanName());
+    private void persistAsYamlFile(TestPlanRequest testPlanRequest) throws TestGridException, IOException {
+        java.nio.file.Path path = TestGridUtil.getTestPlanDirectory().resolve(testPlanRequest.getTestPlanName());
 
         if (!Files.exists(path)) {
             try {

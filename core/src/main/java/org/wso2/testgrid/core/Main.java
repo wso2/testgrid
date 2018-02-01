@@ -23,7 +23,10 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.command.CommandHandler;
+
+import java.io.IOException;
 
 /**
  * This is the Main class of TestGrid which initiates the Test execution process for a particular project.
@@ -40,12 +43,16 @@ public class Main {
             CommandHandler commandHandler = new CommandHandler();
             CmdLineParser parser = new CmdLineParser(commandHandler);
             parser.parseArgument(args);
+            String testGridHome = TestGridUtil.getTestGridHomePath();
+            logger.info("TestGrid Home\t: " + testGridHome);
 
             commandHandler.execute();
         } catch (CmdLineException e) {
             logger.error("Error while parsing command line arguments.", e);
         } catch (CommandExecutionException e) {
             logger.error("Error while executing command.", e);
+        } catch (IOException e) {
+            logger.error("Error while creating $TESTGRID_HOME env variable.");
         }
     }
 }
