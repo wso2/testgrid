@@ -17,7 +17,8 @@
  */
 
 import React, { Component } from 'react';
-import Moment from 'moment'
+import Moment from 'moment';
+import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
 
 class SingleRecord extends Component {
   constructor(props) {
@@ -25,7 +26,7 @@ class SingleRecord extends Component {
   }
 
   render() {
-    if (this.props.value === 'SUCCESS' || this.props.value === true) {
+    if (this.props.value === SUCCESS || this.props.value === true) {
       return (
         <div style={{ "fontSize": "16px" }}>
           <img src={require('../success.png')} width="28" height="28"
@@ -39,7 +40,7 @@ class SingleRecord extends Component {
           })()}
         </div>
       )
-    } else if (this.props.value === 'PENDING' || this.props.value ==='RUNNING') {
+    } else if (this.props.value === PENDING || this.props.value === RUNNING) {
       return (
         <div style={{ "fontSize": "16px" }}>
         <img src={require('../wait.gif')} width="30" height="30"

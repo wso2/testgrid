@@ -128,11 +128,9 @@ public class TestPlanUOW {
         List<TestPlan> succesfulPlans = testPlans.stream().filter(testPlan ->
                 testPlan.getStatus().equals(Status.SUCCESS)
         ).collect(Collectors.toList());
+        boolean running = testPlans.stream().anyMatch(testPlan -> Status.RUNNING.equals(testPlan.getStatus()));
         //check if there are pending test_plans
-        List<TestPlan> pendingPlans = testPlans.stream().filter(testPlan ->
-                testPlan.getStatus().equals(Status.RUNNING)
-        ).collect(Collectors.toList());
-        if (!pendingPlans.isEmpty()) {
+        if (running) {
             return Status.RUNNING;
         } else {
             return succesfulPlans.size() == testPlans.size() ? Status.SUCCESS : Status.FAIL;

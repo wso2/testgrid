@@ -32,6 +32,7 @@ import { add_current_deployment, add_current_infra } from '../actions/testGridAc
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
+import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
 
 class DeploymentPatternView extends Component {
 
@@ -58,13 +59,10 @@ class DeploymentPatternView extends Component {
         'Accept': 'application/json'
       }
     })
-      .then(this.handleError)
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        }
-      })
-      .then(data => this.setState({ hits: data }));
+    .then(this.handleError)
+    .then(response => { return response.json()})
+    .then(data => this.setState({ hits: data }))
+    .catch(error => console.error(error));
   }
 
   navigateToRoute(route, deployment, testPlan) {
@@ -74,19 +72,25 @@ class DeploymentPatternView extends Component {
   }
 
   render() {
-    var x = {};
+    const FAIL = "FAIL";
+    const ERROR = "ERROR";
+    const SUCCESS = "SUCCESS";
+    const RUNNING = "RUNNING";
+    const PENDING = "PENDING";
+
+    var groupByDeployment = {};
     this.state.hits.map((value, index) => {
-      if (x[value.lastBuild.deploymentPattern] == undefined) {
-        x[value.lastBuild.deploymentPattern] = [{ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure }]
+      if (groupByDeployment[value.lastBuild.deploymentPattern] == undefined) {
+        groupByDeployment[value.lastBuild.deploymentPattern] = [{ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure }]
       } else {
-        x[value.lastBuild.deploymentPattern].push({ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure })
+        groupByDeployment[value.lastBuild.deploymentPattern].push({ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure })
       }
     })
     return (
       <div>
         {(() => {
           switch (this.props.active.reducer.currentProduct.productStatus) {
-            case "FAIL":
+            case FAIL:
               return <Subheader style={{
                 fontSize: '20px',
                 backgroundColor: "#ffd6d3"
@@ -108,7 +112,7 @@ class DeploymentPatternView extends Component {
                   </tbody>
                 </table>
               </Subheader>;
-            case "SUCCESS":
+            case SUCCESS :
               return <Subheader style={{
                 fontSize: '20px',
                 backgroundColor: "#cdffba"
@@ -130,8 +134,8 @@ class DeploymentPatternView extends Component {
                   </tbody>
                 </table>
               </Subheader>;
-            case "PENDING":
-            case "RUNNING":
+            case PENDING:
+            case RUNNING:
             default:
               return <Subheader style={{
                 fontSize: '20px',
@@ -167,15 +171,15 @@ class DeploymentPatternView extends Component {
             </TableRow>
           </TableHeader>
           <TableBody displayRowCheckbox={false}>
-            {Object.keys(x).map((key) => {
+            {Object.keys(groupByDeployment).map((key) => {
               return (
-                x[key].map((value, index) => {
+                groupByDeployment[key].map((value, index) => {
                   if (index == 0) {
                     return (
                       <TableRow>
-                        <TableRowColumn rowSpan={x[key].length}>{key}</TableRowColumn>
+                        <TableRowColumn rowSpan={groupByDeployment[key].length}>{key}</TableRowColumn>
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
-                          <FlatButton style={{ color: '#0E457C' }} data-tip="View History !"
+                          <FlatButton style={{ color: '#0E457C' }} data-tip="View History"
                             onClick={() => this.navigateToRoute(this.baseURL + "/testplans/history/"
                               + value.lastBuild.id, {
                                 deploymentPatternName: key
@@ -227,14 +231,14 @@ class DeploymentPatternView extends Component {
                           })()}
                         </TableRowColumn>
                         <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job"
-                          onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /><ReactTooltip /></TableRowColumn>
+                          onClick={() => { window.location = '/job/'+ product.name +'/build' }} /><ReactTooltip /></TableRowColumn>
                       </TableRow>
                     )
                   } else {
                     return (
                       <TableRow>
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
-                          <FlatButton style={{ color: '#0E457C' }} data-tip="View History !"
+                          <FlatButton style={{ color: '#0E457C' }} data-tip="View History"
                             onClick={() => this.navigateToRoute(this.baseURL + "/testplans/history/" + value.lastBuild.id, {
                               deploymentPatternName: key
                             }, {
@@ -285,7 +289,7 @@ class DeploymentPatternView extends Component {
                           })()}
                         </TableRowColumn>
                         <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job"
-                          onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /><ReactTooltip /></TableRowColumn>
+                          onClick={() => { window.location = '/job/'+ product.name +'/build' }} /><ReactTooltip /></TableRowColumn>
                       </TableRow>
                     )
                   }

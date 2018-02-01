@@ -31,7 +31,8 @@ import SingleRecord from './SingleRecord.js';
 import { add_current_infra, add_current_deployment } from '../actions/testGridActions.js';
 import FlatButton from 'material-ui/FlatButton';
 import Divider from 'material-ui/Divider';
-import Moment from 'moment'
+import Moment from 'moment';
+import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
 
 class InfraCombinationView extends Component {
 
@@ -41,6 +42,13 @@ class InfraCombinationView extends Component {
         this.state = {
             hits: []
         }
+    }
+
+    handleError(response) {
+        if (!response.ok) {
+          throw Error(response.statusText)
+        }
+        return response;
     }
 
     navigateToRoute(route, deployment, testPlan) {
@@ -56,17 +64,18 @@ class InfraCombinationView extends Component {
             headers: {
                 'Accept': 'application/json'
             }
-        }).then(response => {
-            return response.json()
         })
-            .then(data => this.setState({ hits: data }));
+        .then(this.handleError)
+        .then(response => { return response.json()} )
+        .then(data => this.setState({ hits: data }))
+        .catch(error => console.error(error));
     }
     render() {
         return (
             <div>
                 {(() => {
                     switch (this.props.active.reducer.currentProduct.productStatus) {
-                        case "FAIL":
+                        case FAIL:
                             return <Subheader style={{
                                 fontSize: '20px',
                                 backgroundColor: "#ffd6d3"
@@ -91,7 +100,7 @@ class InfraCombinationView extends Component {
                                     </tbody>
                                 </table>
                             </Subheader>;
-                        case "SUCCESS":
+                        case SUCCESS:
                             return <Subheader style={{
                                 fontSize: '20px',
                                 backgroundColor: "#cdffba"
@@ -116,8 +125,8 @@ class InfraCombinationView extends Component {
                                     </tbody>
                                 </table>
                             </Subheader>;
-                        case "PENDING":
-                        case "RUNNING":
+                        case PENDING:
+                        case RUNNING:
                         default:
                             return <Subheader style={{
                                 fontSize: '20px',

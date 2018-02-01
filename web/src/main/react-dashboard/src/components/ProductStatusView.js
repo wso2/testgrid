@@ -29,7 +29,8 @@ import {
 import SingleRecord from './SingleRecord.js';
 import { add_current_product } from '../actions/testGridActions.js';
 import Moment from 'moment'
-import ReactTooltip from 'react-tooltip'
+import ReactTooltip from 'react-tooltip';
+import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
 
 class ProductStatusView extends Component {
 
@@ -57,10 +58,9 @@ class ProductStatusView extends Component {
       }
     })
     .then(this.handleError)
-    .then(response => {
-      return response.json();
-    })
-      .then(data => this.setState({ hits: data }));
+    .then(response => {return response.json()})
+    .then(data => this.setState({ hits: data }))
+    .catch(error => console.error(error));
   }
 
   nevigateToRoute(route, product) {
@@ -109,9 +109,10 @@ class ProductStatusView extends Component {
             }
           })()}
         </TableRowColumn>
-        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /> <ReactTooltip /></TableRowColumn>
+        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" 
+        onClick={() => { window.location = '/job/'+ product.name +'/build' }} /> <ReactTooltip /></TableRowColumn>
         <TableRowColumn ><img src={require('../configure.png')} width="36" height="36" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location = '/job/wso2is5.4.0LTS/configure' }} data-tip="Configure job" />
+          onClick={() => { window.location = '/job/'+ product.name +'/configure' }} data-tip="Configure job" />
         </TableRowColumn>
       </TableRow>)
     });

@@ -39,6 +39,8 @@ import {
 import Download from 'downloadjs'
 import Websocket from 'react-websocket';
 import Snackbar from 'material-ui/Snackbar';
+import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
+
 
 /**
  * View responsible for displaying test run log and summary information.
@@ -53,9 +55,9 @@ class TestRunView extends Component {
     this.state = {
       testScenarioSummaries: [],
       scenarioTestCaseEntries: [],
-      testSummaryLoadStatus: "PENDING",
+      testSummaryLoadStatus: PENDING,
       logContent: "",
-      logDownloadStatus: "PENDING",
+      logDownloadStatus: PENDING,
       isLogTruncated: false,
       inputStreamSize: "",
       showLogDownloadErrorDialog: false
@@ -75,7 +77,7 @@ class TestRunView extends Component {
       }
     }).then(response => {
       this.setState({
-        testSummaryLoadStatus: response.ok ? "SUCCESS" : "ERROR"
+        testSummaryLoadStatus: response.ok ? SUCCESS : ERROR
       });
       return response.json();
     }).then(data => this.setState({
@@ -83,8 +85,8 @@ class TestRunView extends Component {
       scenarioTestCaseEntries: data.scenarioTestCaseEntries
     }));
 
-    if (this.props.active.reducer.currentInfra.testPlanStatus === "FAIL" ||
-      this.props.active.reducer.currentInfra.testPlanStatus === "SUCCESS") {
+    if (this.props.active.reducer.currentInfra.testPlanStatus === FAIL ||
+      this.props.active.reducer.currentInfra.testPlanStatus === SUCCESS) {
       fetch(logTruncatedContentUrl, {
         method: "GET",
         headers: {
@@ -92,7 +94,7 @@ class TestRunView extends Component {
         }
       }).then(response => {
         this.setState({
-          logDownloadStatus: response.ok ? "SUCCESS" : "ERROR"
+          logDownloadStatus: response.ok ? SUCCESS : ERROR
         });
         return response.json();
       }).then(data =>
@@ -132,7 +134,7 @@ class TestRunView extends Component {
         {/*Sub header*/}
         {(() => {
           switch (this.props.active.reducer.currentInfra.testPlanStatus) {
-            case "FAIL":
+            case FAIL:
               return <Subheader style={{
                 fontSize: '20px',
                 backgroundColor: "#ffd6d3"
@@ -154,7 +156,7 @@ class TestRunView extends Component {
                   </tbody>
                 </table>
               </Subheader>;
-            case "SUCCESS":
+            case SUCCESS:
               return <Subheader style={{
                 fontSize: '20px',
                 backgroundColor: "#cdffba"
@@ -176,8 +178,8 @@ class TestRunView extends Component {
                   </tbody>
                 </table>
               </Subheader>;
-            case "PENDING":
-            case "RUNNING":
+            case PENDING:
+            case RUNNING:
             default:
               return <Subheader style={{
                 fontSize: '20px',
@@ -245,7 +247,7 @@ class TestRunView extends Component {
             <h2>Scenario execution summary</h2>
             {(() => {
               switch (this.state.testSummaryLoadStatus) {
-                case "ERROR":
+                case ERROR:
                   return <div style={{
                     padding: 5,
                     color: "#D8000C",
@@ -255,7 +257,7 @@ class TestRunView extends Component {
                     <strong>Oh snap! </strong>
                     Error occurred when loading test summaries.
                   </div>;
-                case "SUCCESS":
+                case SUCCESS:
                   return <div>
                     <Table>
                       <TableHeader displaySelectAll={false}
@@ -287,19 +289,19 @@ class TestRunView extends Component {
                             <TableRowColumn style={{ width: "5%" }}>
                               {(() => {
                                 switch (data.scenarioStatus) {
-                                  case "SUCCESS":
+                                  case SUCCESS:
                                     return <div>
                                       <img width="36"
                                         height="36"
                                         src={require('../success.png')} />
                                     </div>;
-                                  case "FAIL":
+                                  case FAIL:
                                     return <div>
                                       <img width="36"
                                         height="36"
                                         src={require('../close.png')} />
                                     </div>;
-                                  case "PENDING":
+                                  case PENDING:
                                   case "RUNNING":
                                   default:
                                     return <div>
@@ -434,7 +436,7 @@ class TestRunView extends Component {
                       }
                     })}
                   </div>;
-                case "PENDING":
+                case PENDING:
                 default:
                   return <div>
                     <br />
@@ -452,7 +454,7 @@ class TestRunView extends Component {
             {/*Display log from file system*/}
             {(() => {
               switch (this.props.active.reducer.currentInfra.testPlanStatus) {
-                case "PENDING":
+                case PENDING:
                 case "RUNNING":
                   return (<div>
                     <Websocket
@@ -479,12 +481,12 @@ class TestRunView extends Component {
                       }} />
                     <center><CircularProgress size={40} thickness={8} /></center>
                   </div>);
-                case "FAIL":
-                case "SUCCESS":
+                case FAIL:
+                case SUCCESS:
                 default: {
                   // Display Log from S3
                   switch (this.state.logDownloadStatus) {
-                    case "ERROR":
+                    case ERROR:
                       return <div style={{
                         padding: 5,
                         color: "#D8000C",
@@ -494,7 +496,7 @@ class TestRunView extends Component {
                         <strong>Oh snap! </strong>
                         Error occurred when downloading the log file content.
                       </div>;
-                    case "SUCCESS":
+                    case SUCCESS:
                       return <div>
                         <AceEditor
                           theme="github"
@@ -523,7 +525,7 @@ class TestRunView extends Component {
                                   }
                                 }).then(response => {
                                   this.setState({
-                                    logDownloadStatus: response.ok ? "SUCCESS" : "ERROR"
+                                    logDownloadStatus: response.ok ? SUCCESS : ERROR
                                   });
                                   return response;
                                 }).then(data => data.json().then(json =>
@@ -544,7 +546,7 @@ class TestRunView extends Component {
                           </div>
                           : ""}
                       </div>;
-                    case "PENDING":
+                    case PENDING:
                     default:
                       return <div>
                         <br />
