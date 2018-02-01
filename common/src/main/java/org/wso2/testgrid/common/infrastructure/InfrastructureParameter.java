@@ -200,6 +200,7 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
      */
     public enum Type {
         OPERATING_SYSTEM("operating_system"),
+        DATABASE("database"),
         DBEngine("DBEngine"),
         DBEngineVersion("DBEngineVersion"),
         JDK("JDK");
