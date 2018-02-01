@@ -61,8 +61,10 @@
         <Logger name="AUDIT_LOG" level="info" additivity="false">
             <AppenderRef ref="AUDIT_LOGFILE"/>
         </Logger>
-        <Logger name="org.eclipse.persistence" level="debug" additivity="false">
+        <Logger name="org.eclipse.persistence" level="warn" additivity="false">
             <AppenderRef ref="TESTGRID_CONSOLE"/>
+        </Logger>
+        <Logger name="org.eclipse.persistence" level="info" additivity="false">
             <AppenderRef ref="Routing"/>
         </Logger>
     </Loggers>
