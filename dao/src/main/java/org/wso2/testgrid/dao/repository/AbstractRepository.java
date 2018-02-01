@@ -32,6 +32,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 /**
@@ -122,19 +123,16 @@ abstract class AbstractRepository<T> {
         try {
             // From table name criteria
             CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-            CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityClass);
+            CriteriaQuery criteriaQuery = criteriaBuilder.createQuery();
             Root<T> root = criteriaQuery.from(entityClass);
             criteriaQuery.select(root);
+            List<Predicate> predicates = new ArrayList<>();
 
-            // Where criteria
-            ParameterExpression<Object> parameterExpression = criteriaBuilder.parameter(Object.class);
-            // In case if params are empty the query can be still valid
+            // Parameters for And criteria
+            params.forEach((key, value) -> predicates.add(criteriaBuilder.equal(root.get(key), value)));
+            //Where criteria
+            criteriaQuery.where(criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()])));
             TypedQuery<T> query = entityManager.createQuery(criteriaQuery);
-            for (Map.Entry<String, Object> entry : params.entrySet()) {
-                criteriaQuery.where(criteriaBuilder.equal(root.get(entry.getKey()), parameterExpression));
-                query = entityManager.createQuery(criteriaQuery);
-                query.setParameter(parameterExpression, entry.getValue());
-            }
             return query.getResultList();
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil
