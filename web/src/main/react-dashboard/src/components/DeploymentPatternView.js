@@ -32,6 +32,7 @@ import { add_current_deployment, add_current_infra } from '../actions/testGridAc
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
+import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
 
 class DeploymentPatternView extends Component {
 
@@ -43,6 +44,13 @@ class DeploymentPatternView extends Component {
     };
   }
 
+  handleError(response) {
+    if (!response.ok) {
+      throw Error(response.statusText)
+    }
+    return response;
+  }
+
   componentDidMount() {
     var url = this.baseURL + '/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
     fetch(url, {
@@ -50,12 +58,11 @@ class DeploymentPatternView extends Component {
       headers: {
         'Accept': 'application/json'
       }
-    }).then(response => {
-      if (response.ok) {
-        return response.json();
-      }
     })
-      .then(data => this.setState({ hits: data }));
+    .then(this.handleError)
+    .then(response => { return response.json()})
+    .then(data => this.setState({ hits: data }))
+    .catch(error => console.error(error));
   }
 
   navigateToRoute(route, deployment, testPlan) {
@@ -65,17 +72,94 @@ class DeploymentPatternView extends Component {
   }
 
   render() {
-    var x = {};
+    const FAIL = "FAIL";
+    const ERROR = "ERROR";
+    const SUCCESS = "SUCCESS";
+    const RUNNING = "RUNNING";
+    const PENDING = "PENDING";
+
+    var groupByDeployment = {};
     this.state.hits.map((value, index) => {
-      if (x[value.lastBuild.deploymentPattern] == undefined) {
-        x[value.lastBuild.deploymentPattern] = [{ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure }]
+      if (groupByDeployment[value.lastBuild.deploymentPattern] == undefined) {
+        groupByDeployment[value.lastBuild.deploymentPattern] = [{ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure }]
       } else {
-        x[value.lastBuild.deploymentPattern].push({ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure })
+        groupByDeployment[value.lastBuild.deploymentPattern].push({ 'lastBuild': value.lastBuild, 'lastFailed': value.lastFailure })
       }
     })
     return (
       <div>
-        <Subheader style={{ fontSize: '20px' }} > <i> {this.props.active.reducer.currentProduct.productName + " "} </i> </Subheader>
+        {(() => {
+          switch (this.props.active.reducer.currentProduct.productStatus) {
+            case FAIL:
+              return <Subheader style={{
+                fontSize: '20px',
+                backgroundColor: "#ffd6d3"
+              }}>
+                <table>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: 5 }}>
+                        <img
+                          src={require('../close.png')}
+                          style={{
+                            verticalAlign: "middle",
+                            height: "50px",
+                            width: "50px"
+                          }} />
+                      </td>
+                      <i> {this.props.active.reducer.currentProduct.productName + " "} </i>
+                    </tr>
+                  </tbody>
+                </table>
+              </Subheader>;
+            case SUCCESS :
+              return <Subheader style={{
+                fontSize: '20px',
+                backgroundColor: "#cdffba"
+              }}>
+                <table>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: 5 }}>
+                        <img
+                          src={require('../success.png')}
+                          style={{
+                            verticalAlign: "middle",
+                            height: "50px",
+                            width: "50px"
+                          }} />
+                      </td>
+                      <i> {this.props.active.reducer.currentProduct.productName + " "} </i>
+                    </tr>
+                  </tbody>
+                </table>
+              </Subheader>;
+            case PENDING:
+            case RUNNING:
+            default:
+              return <Subheader style={{
+                fontSize: '20px',
+                backgroundColor: "#FFCC80"
+              }}>
+                <table>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: 5 }}>
+                        <img
+                          src={require('../wait.gif')}
+                          style={{
+                            verticalAlign: "middle",
+                            height: "50px",
+                            width: "50px"
+                          }} />
+                      </td>
+                      <i> {this.props.active.reducer.currentProduct.productName + " "} </i>
+                    </tr>
+                  </tbody>
+                </table>
+              </Subheader>;
+          }
+        })()}
         <Table fixedHeader={false} style={{ tableLayout: 'auto' }}>
           <TableHeader displaySelectAll={false} adjustForCheckbox={false} >
             <TableRow>
@@ -87,17 +171,30 @@ class DeploymentPatternView extends Component {
             </TableRow>
           </TableHeader>
           <TableBody displayRowCheckbox={false}>
-            {Object.keys(x).map((key) => {
+            {Object.keys(groupByDeployment).map((key) => {
               return (
-                x[key].map((value, index) => {
+                groupByDeployment[key].map((value, index) => {
                   if (index == 0) {
                     return (
                       <TableRow>
-                        <TableRowColumn rowSpan={x[key].length}>{key}</TableRowColumn>
-                        <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>{value.lastBuild.infraParams}</TableRowColumn>
+                        <TableRowColumn rowSpan={groupByDeployment[key].length}>{key}</TableRowColumn>
+                        <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
+                          <FlatButton style={{ color: '#0E457C' }} data-tip="View History"
+                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/history/"
+                              + value.lastBuild.id, {
+                                deploymentPatternName: key
+                              }, {
+                                testPlanId: value.lastBuild.id,
+                                infraParameters: value.lastBuild.infraParams,
+                                testPlanStatus: value.lastBuild.status
+                              })}>
+                            {value.lastBuild.infraParams}
+                          </FlatButton>
+                          <ReactTooltip />
+                        </TableRowColumn>
                         <TableRowColumn>
                           <FlatButton style={{ color: '#0E457C' }}
-                            onClick={() => this.navigateToRoute( this.baseURL + "/testplans/" + value.lastBuild.id, {
+                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/" + value.lastBuild.id, {
                               deploymentPatternName: key
                             }, {
                                 testPlanId: value.lastBuild.id,
@@ -113,14 +210,14 @@ class DeploymentPatternView extends Component {
                             if (value.lastFailed.modifiedTimestamp) {
                               return (
                                 <FlatButton style={{ color: '#0E457C' }}
-                                  onClick={() => this.navigateToRoute( this.baseURL + "/testplans/" + value.lastFailed.id,
-                                    { deploymentPatternName: key },
+                                  onClick={() => this.navigateToRoute(this.baseURL + "/testplans/"
+                                    + value.lastFailed.id, { deploymentPatternName: key },
                                     {
                                       testPlanId: value.lastFailed.id,
                                       infraParameters: value.lastFailed.infraParams,
                                       testPlanStatus: value.lastFailed.status
                                     }
-                                    )}>
+                                  )}>
                                   <SingleRecord value={value.lastFailed.status}
                                     time={value.lastFailed.modifiedTimestamp}
                                   />
@@ -133,20 +230,66 @@ class DeploymentPatternView extends Component {
                             }
                           })()}
                         </TableRowColumn>
-                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /><ReactTooltip /></TableRowColumn>
+                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job"
+                          onClick={() => { window.location = '/job/'+ product.name +'/build' }} /><ReactTooltip /></TableRowColumn>
                       </TableRow>
                     )
                   } else {
                     return (
                       <TableRow>
-                        <TableRowColumn >{value.lastBuild.infraParams}</TableRowColumn>
-                        <TableRowColumn ><SingleRecord value={value.lastBuild.status}
-                          time={Moment(value.lastBuild.modifiedTimestamp).fromNow()}
-                        /> </TableRowColumn>
-                        <TableRowColumn ><SingleRecord value={value.lastFailed.status}
-                          time={Moment(value.lastFailed.modifiedTimestamp).fromNow()}
-                        /> </TableRowColumn>
-                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job" onClick={() => { window.location = '/job/wso2is5.4.0LTS/build' }} /><ReactTooltip /></TableRowColumn>
+                        <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
+                          <FlatButton style={{ color: '#0E457C' }} data-tip="View History"
+                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/history/" + value.lastBuild.id, {
+                              deploymentPatternName: key
+                            }, {
+                                testPlanId: value.lastBuild.id,
+                                infraParameters: value.lastBuild.infraParams,
+                                testPlanStatus: value.lastBuild.status
+                              })}>
+                            {value.lastBuild.infraParams}
+                          </FlatButton>
+                          <ReactTooltip />
+                        </TableRowColumn>
+                        <TableRowColumn>
+                          <FlatButton style={{ color: '#0E457C' }}
+                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/" + value.lastBuild.id, {
+                              deploymentPatternName: key
+                            }, {
+                                testPlanId: value.lastBuild.id,
+                                infraParameters: value.lastBuild.infraParams,
+                                testPlanStatus: value.lastBuild.status
+                              })}>
+                            <SingleRecord value={value.lastBuild.status}
+                              time={value.lastBuild.modifiedTimestamp} />
+                          </FlatButton>
+                        </TableRowColumn>
+                        <TableRowColumn>
+                          {(() => {
+                            if (value.lastFailed.modifiedTimestamp) {
+                              return (
+                                <FlatButton style={{ color: '#0E457C' }}
+                                  onClick={() => this.navigateToRoute(this.baseURL + "/testplans/" + value.lastFailed.id,
+                                    { deploymentPatternName: key },
+                                    {
+                                      testPlanId: value.lastFailed.id,
+                                      infraParameters: value.lastFailed.infraParams,
+                                      testPlanStatus: value.lastFailed.status
+                                    }
+                                  )}>
+                                  <SingleRecord value={value.lastFailed.status}
+                                    time={value.lastFailed.modifiedTimestamp}
+                                  />
+                                </FlatButton>
+                              );
+                            } else {
+                              return (
+                                <FlatButton>No failed builds yet!</FlatButton>
+                              )
+                            }
+                          })()}
+                        </TableRowColumn>
+                        <TableRowColumn> <img src={require('../play.png')} width="48" height="48" data-tip="Execute Job"
+                          onClick={() => { window.location = '/job/'+ product.name +'/build' }} /><ReactTooltip /></TableRowColumn>
                       </TableRow>
                     )
                   }

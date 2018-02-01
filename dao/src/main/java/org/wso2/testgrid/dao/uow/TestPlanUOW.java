@@ -128,7 +128,13 @@ public class TestPlanUOW {
         List<TestPlan> succesfulPlans = testPlans.stream().filter(testPlan ->
                 testPlan.getStatus().equals(Status.SUCCESS)
         ).collect(Collectors.toList());
-        return succesfulPlans.size() == testPlans.size() ? Status.SUCCESS : Status.FAIL;
+        boolean running = testPlans.stream().anyMatch(testPlan -> Status.RUNNING.equals(testPlan.getStatus()));
+        //check if there are pending test_plans
+        if (running) {
+            return Status.RUNNING;
+        } else {
+            return succesfulPlans.size() == testPlans.size() ? Status.SUCCESS : Status.FAIL;
+        }
     }
 
     /**
@@ -149,5 +155,17 @@ public class TestPlanUOW {
      */
     public TestPlan getLastFailure(TestPlan testPlan) {
         return testPlanRepository.getLastFailure(testPlan);
+    }
+
+    /**
+     * Returns the test plans history for a give type of infrastructure combination and deployment
+     * pattern.
+     *
+     * @param testPlan a {@link TestPlan} object containing the infra combination and deployment
+     *                 pattern
+     * @return a List of TestPlans corresponding to the query
+     */
+    public List<TestPlan> getTestPlanHistory(TestPlan testPlan) {
+        return testPlanRepository.getTestPlanHistory(testPlan);
     }
 }
