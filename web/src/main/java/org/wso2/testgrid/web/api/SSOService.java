@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.web.api;
 
+import org.wso2.testgrid.web.utils.Constants;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -43,7 +45,7 @@ public class SSOService {
     @POST
     public Response createSession() {
         request.getSession();
-        return Response.status(Response.Status.FOUND).header(HttpHeaders.LOCATION, "/testgrid/dashboard").
+        return Response.status(Response.Status.FOUND).header(HttpHeaders.LOCATION, Constants.WEBAPP_CONTEXT).
                 type(MediaType.TEXT_PLAIN).build();
     }
 }

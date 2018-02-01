@@ -32,6 +32,7 @@ public class Constants extends TestGridConstants {
     public static final String JENKINS_HOST = "JENKINS_HOST";
     public static final String JENKINS_CRUMB_HEADER_NAME = "Jenkins-Crumb";
     public static final String JENKINS_USER_AUTH_KEY = "JENKINS_USER_AUTH_KEY";
+    public static final String WEBAPP_CONTEXT = "/testgrid/dashboard";
 
     /* Terms used in Jenkins template job. */
     public static final String PRODUCT_NAME = "$productName";
