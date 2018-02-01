@@ -51,6 +51,28 @@
         <servlet-name>jersey-servlet</servlet-name>
         <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
+
+    <filter>
+        <filter-name>SSOAgentTestgridFilter</filter-name>
+        <filter-class>org.wso2.testgrid.web.sso.TestgridSSOAgentFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SSOAgentTestgridFilter</filter-name>
+        <url-pattern>/samlsso</url-pattern>
+    </filter-mapping>
+    <filter>
+        <filter-name>SSOSessionCheckFilter</filter-name>
+        <filter-class>org.wso2.testgrid.web.sso.SSOSessionCheckFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SSOSessionCheckFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <listener>
+        <listener-class>org.wso2.testgrid.web.sso.SSOContextEventListener</listener-class>
+    </listener>
+
     <error-page>
         <error-code>404</error-code>
         <location>/index.html</location>
