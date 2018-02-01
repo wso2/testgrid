@@ -73,6 +73,11 @@ public class ScenarioExecutor {
             String testLocation = Paths.get(homeDir, testScenario.getName()).toAbsolutePath().toString();
             List<Test> tests = getTests(testScenario, testLocation);
 
+            if (tests.isEmpty()) {
+                logger.warn("Couldn't find any tests for the scenario " + testScenario + " At location "
+                            + testLocation);
+            }
+
             for (Test test : tests) {
                 logger.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
                 test.execute(testLocation, deployment);
@@ -138,6 +143,10 @@ public class ScenarioExecutor {
                         testList.addAll(tests);
                     }
                 }
+            } else {
+                throw new ScenarioExecutorException(
+                        "Scenario directory doesn't exist for the path : " + testLocationPath + " Scenario name : "
+                        + testScenario.getName());
             }
             return testList;
         } catch (TestAutomationException e) {
