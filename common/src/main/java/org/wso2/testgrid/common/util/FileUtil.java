@@ -38,9 +38,8 @@ public class FileUtil {
      * @throws IOException thrown when no file is found in the given location or when error on closing file input stream
      */
     public static <T> T readConfigurationFile(String location, Class<T> type) throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(new File(location));
-        T configuration = new Yaml().loadAs(fileInputStream, type);
-        fileInputStream.close();
-        return configuration;
+        try (FileInputStream fileInputStream = new FileInputStream(new File(location))) {
+            return new Yaml().loadAs(fileInputStream, type);
+        }
     }
 }
