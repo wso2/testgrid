@@ -240,6 +240,8 @@ config-change-sets:
       - scenario20
 ```
 
+More information on how these automation scripts are run in test grid and how you can test them locally can be found in the [solution-test-toolkit docs](https://github.com/wso2-incubator/solution-test-toolkit).
+
 In summary, we discussed execution scripts and metadata configuration files here.
 Following chart describes everything under one place:
 
