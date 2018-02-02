@@ -1,6 +1,8 @@
-# Infrastructure / Deployment / and Scenarios Repository Structure
+# Infrastructure / Deployment / and Scenarios Repository Structure - External consumers' view
 
-Testgrid test-run workflow can be summarized into following three steps:
+This document describes the external consumer's view of the above mentioned repositories. Testgrid is one such consumer.
+
+Overall, the testgrid test-run consists of three steps:
 
 1. [Provisioning infrastructure](#provisioning-infrastructure) (infra-provision.sh)
 2. [Deployment of products](#deploying-products) (deploy.sh)
@@ -156,7 +158,7 @@ The entrypoint for scenario repos is **run-scenarios.sh** script along with
 
 ### Scripts
 #### init.sh
-This script will be run before all the scenario tests.
+This script will run before all the scenario tests.
 This is intended to do a set of common tasks (such as tenant creation) that is
 applicable for all scenarios.
 
@@ -174,7 +176,7 @@ This script will do the following:
 
 
 #### cleanup.sh
-This is last script that will be run after the execution of all scenario tests.
+This is last script that will run after the execution of all scenario tests.
 This can be used to delete the tenants created, remove any populated databases etc.
 
 ### WSO2Scenariosfile
