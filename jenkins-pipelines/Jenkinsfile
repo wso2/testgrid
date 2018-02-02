@@ -5,8 +5,9 @@ pipeline {
         TESTGRID_NAME = 'WSO2-TestGrid'
         TESTGRID_DIST_URL = 'https://wso2.org/jenkins/job/testgrid/job/testgrid/' +
                 'lastSuccessfulBuild/artifact/distribution/target/${TESTGRID_NAME}-${TESTGRID_VERSION}.zip'
+        TESTGRID_DIST_LOCATION = '/testgrid/jenkins-home/workspace/'
 
-        PRODUCT="wso2is-5.4.0-LTS"
+        PRODUCT="wso2is-5.4.1-LTS"
 
         INFRASTRUCTURE_REPOSITORY='https://github.com/azinneera/cloudformation-is'
         DEPLOYMENT_REPOSITORY='https://github.com/harshanL/cloudformation-is'
@@ -22,7 +23,7 @@ pipeline {
         WUM_USERNAME=credentials('WUM_USERNAME')
         WUM_PASSWORD=credentials('WUM_PASSWORD')
         PWD=pwd()
-        TESTGRID_HOME='/testgrid/jenkins-home/workspace/wso2is-5.4.0/testgrid-home'
+        TESTGRID_HOME='/testgrid/jenkins-home/workspace/wso2is-5.4.1/testgrid-home'
 
         MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
 
@@ -54,16 +55,16 @@ pipeline {
 
                 sh """
                 echo ${TESTGRID_NAME}
-                curl ${TESTGRID_DIST_URL} -o ${TESTGRID_NAME}-${TESTGRID_VERSION}.zip
-                unzip ${TESTGRID_NAME}-${TESTGRID_VERSION}.zip
-                cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
+
+                unzip ${TESTGRID_DIST_LOCATION}/${TESTGRID_NAME}.zip
+                cd ${TESTGRID_NAME}
                 curl -o ./lib/mysql.jar $MYSQL_DRIVER_LOCATION
                 curl -o ./lib/selenium-java.jar $SELENIUM_JAR
                 curl -o ./lib/html-unit-driver.jar $HTML_UNIT_DRIVER
                 """
 
                 sh """
-                cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
+                cd ${TESTGRID_NAME}
                 ./testgrid generate-test-plan \
                     --product ${PRODUCT} \
                     -tc ${PWD}/${INFRA_CONFIGS_LOCATION}/single-node-infra.yaml
@@ -79,7 +80,7 @@ pipeline {
                         sh "java -version"
 
                         sh """
-                        cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
+                        cd ${TESTGRID_NAME}
                         ./testgrid run-testplan \
                             --product ${PRODUCT} \
                             -ir ${PWD}/${INFRA_LOCATION}/cloudformation-templates/pattern-1 \
@@ -91,6 +92,7 @@ pipeline {
                         currentBuild.result = 'FAILURE'
                     }
                 }
+                echo "RESULT: ${currentBuild.result}"
             }
         }
     }
@@ -98,7 +100,7 @@ pipeline {
     post {
         always {
            sh """
-            cd ${TESTGRID_NAME}-${TESTGRID_VERSION}
+            cd ${TESTGRID_NAME}
             ./testgrid generate-report \
             --product ${PRODUCT} \
             --groupBy scenario
@@ -110,10 +112,10 @@ pipeline {
               s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"jenkins-testrun-artifacts", path:"artifacts/")
             }
 
-            // Delete logs and reports after upload          
+            // Delete logs and reports after upload
             dir("${TESTGRID_HOME}/${PRODUCT}") {
                 deleteDir()
             }
        }
-   }
+  }
 }

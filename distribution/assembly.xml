@@ -37,6 +37,12 @@
             <fileMode>644</fileMode>
         </file>
         <file>
+            <source>../version.md</source>
+            <outputDirectory>.</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
             <source>../web/target/testgrid#dashboard##v${version}.war</source>
             <outputDirectory>./web-app</outputDirectory>
         </file>
