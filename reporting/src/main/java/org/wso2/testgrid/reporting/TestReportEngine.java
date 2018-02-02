@@ -642,8 +642,7 @@ public class TestReportEngine {
      * @throws ReportingException thrown when error on writing the HTML string to file
      */
     private void writeHTMLToFile(Path filePath, String htmlString) throws ReportingException {
-        logger.info("Started writing test results to file...");
+        logger.info("Writing test results to file: " + filePath.toString());
         FileUtil.writeToFile(filePath.toAbsolutePath().toString(), htmlString);
-        logger.info("Finished writing test results to file");
     }
 }
