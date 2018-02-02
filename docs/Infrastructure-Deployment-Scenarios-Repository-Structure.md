@@ -155,7 +155,7 @@ The entrypoint for scenario repos is **run-scenarios.sh** script along with
 **WSO2Scenariosfile** that contain a list of metadata about this repository.
 
 ### Scripts
-#### base-setup.sh
+#### init.sh
 This script will be run before all the scenario tests.
 This is intended to do a set of common tasks (such as tenant creation) that is
 applicable for all scenarios.
@@ -168,9 +168,9 @@ This script will invoke the **`base-setup.sh`**, and then
 There will be one run-scenario.sh file for each scenario.
 This script will do the following:
 
-1. Invoke any pre- processing shell scripts
-2. Invoke jmeter/testng/... scripts
-3. Invoke post- processing shell scripts.
+1. Invoke any pre- processing shell scripts (`0X-pre-scenario-steps.sh`)
+2. Invoke jmeter/testng/... scripts (`0X-<script-name>.jmx`)
+3. Invoke post- processing shell scripts. (`0X-post-scenario-steps.sh`)
 
 
 #### cleanup.sh
