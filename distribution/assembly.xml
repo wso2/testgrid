@@ -7,7 +7,6 @@
     <formats>
         <format>zip</format>
     </formats>
-    <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
             <directory>${project.basedir}/bin</directory>
@@ -33,6 +32,12 @@
         </file>
         <file>
             <source>../README.md</source>
+            <outputDirectory>.</outputDirectory>
+            <filtered>true</filtered>
+            <fileMode>644</fileMode>
+        </file>
+        <file>
+            <source>../version.md</source>
             <outputDirectory>.</outputDirectory>
             <filtered>true</filtered>
             <fileMode>644</fileMode>
