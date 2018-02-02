@@ -237,6 +237,9 @@ config-change-sets:
     excluded-from:
       - scenario20
 ```
+#### Deploy Config Value Sets:
+There will be different config value sets which have been identified as prerequisites for the one or more scenarios. These product level config changes and required artifacts are stored under config-sets directory in the integration-tests repository. Inside the each config directories there are steps mentioned as in shell scripts to deploy configs. 
+TG will generate an archive for each config directory and copy it to all the server instances and extract it and then run the entrypoint(shell script file: TBD) which is in the archived directory. 
 
 In summary, we discussed execution scripts and metadata configuration files here.
 Following chart describes everything under one place:
