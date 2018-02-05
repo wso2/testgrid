@@ -1,5 +1,6 @@
 node {
     stage('Deploy to Dev'){
+        deleteDir()
         copyArtifacts(projectName: 'testgrid/testgrid');
         sshagent(['testgrid-dev-key']) {
             sh """
