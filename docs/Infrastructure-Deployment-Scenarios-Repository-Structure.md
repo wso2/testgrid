@@ -204,6 +204,7 @@ scenarios:
   - name: scenario<string>
     dir: scenario<string>
   - ...
+scenariosDir: <string>    <-- (optional)
 config-change-sets:
   - name: config<string>
     description: config<string>
@@ -220,6 +221,8 @@ config-change-sets:
 NOTE: 'applies-to' and 'excluded-from' are mutually exclusive.
 If neither are specified, all scenarios will be run for that config changeset
 
+'scenarios' and 'scenariosDir' are mutually exclusive. You can either list all
+scenarios one-by-one or point to the directory that contains all the scenarios.
 
 Example WSO2Scenariofile:
 ```yaml
