@@ -80,7 +80,7 @@ public class JMeterResultCollector extends ResultCollector {
             testCase.setTestScenario(testScenario);
             testCase.setSuccess(result.isSuccessful());
             testCase.setFailureMessage(failureMessage);
-            testCases.add(testCase);
+            testScenario.addTestCase(testCase);
             jmeterResultLogger.info(StringUtil.concatStrings("Test case :", result.getSampleLabel(),
                     " failed for scenario: ", testScenario.getName(), "\n", failureMessage, "\", \"Sampler Data\": \"",
                     result.getSamplerData().replaceAll("\"", "\\\""), "\"}"));
