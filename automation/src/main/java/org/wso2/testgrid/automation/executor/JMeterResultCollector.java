@@ -61,7 +61,7 @@ public class JMeterResultCollector extends ResultCollector {
             SampleResult result = sampleEvent.getResult();
             String samplerData = result.getSamplerData();
 
-            if (samplerData.length() > 5000) {
+            if (samplerData.length() > FAILURE_MESSAGE_LIMIT) {
                 samplerData = result.getSamplerData().substring(0, FAILURE_MESSAGE_LIMIT)  + "\n log truncated...";
             }
             String failureMessage = result.isSuccessful() ? "" :
