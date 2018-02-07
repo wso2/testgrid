@@ -45,4 +45,9 @@ public class Constants extends TestGridConstants {
     public static final String DEPLOYMENT_LOCATION = "$deploymentLocation";
     public static final String SCENARIOS_LOCATION = "$scenariosLocation";
 
+    /* Constants relates to SSO configurations. */
+    public static final String SESSION_COOKIE = "JSESSIONID";
+    public static final String LOGIN_URI = "/testgrid/dashboard/login";
+    public static final String STATIC_DATA_URI = "/testgrid/dashboard/static";
+    public static final String BACKEND_APIS_URI = "/testgrid/dashboard/api";
 }

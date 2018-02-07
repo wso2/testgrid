@@ -22,9 +22,12 @@ import org.wso2.carbon.identity.sso.agent.SSOAgentException;
 import org.wso2.carbon.identity.sso.agent.bean.SSOAgentConfig;
 import org.wso2.carbon.identity.sso.agent.saml.SSOAgentX509Credential;
 import org.wso2.carbon.identity.sso.agent.saml.SSOAgentX509KeyStoreCredential;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,17 +44,20 @@ public class SSOContextEventListener implements ServletContextListener {
     private static Properties properties = new Properties();
 
     /**
-     * Fetch relevant details from the property files and JKS file.
+     * Fetch relevant details from the property file and JKS file.
      */
     public void contextInitialized(ServletContextEvent servletContextEvent) {
 
         try {
-            if (servletContextEvent.getServletContext().getContextPath().contains("testgrid")) {
-                properties.load(servletContextEvent.getServletContext().
-                        getResourceAsStream("/WEB-INF/classes/testgrid-sso.properties"));
-            }
-            InputStream keyStoreInputStream = servletContextEvent.getServletContext().
-                    getResourceAsStream("/WEB-INF/classes/wso2carbon.jks");
+            java.nio.file.Path ssoPropertyFilePath = Paths.
+                    get(TestGridUtil.getTestGridHomePath(), "SSO", "testgrid-sso.properties");
+            properties.load(Files.newInputStream(ssoPropertyFilePath));
+
+            InputStream keyStoreInputStream;
+                java.nio.file.Path configPath = Paths.
+                        get(TestGridUtil.getTestGridHomePath(), "SSO", "wso2carbon.jks");
+                keyStoreInputStream = Files.newInputStream(configPath);
+
             SSOAgentX509Credential credential =
                     new SSOAgentX509KeyStoreCredential(keyStoreInputStream,
                             properties.getProperty("KeyStorePassword").toCharArray(),

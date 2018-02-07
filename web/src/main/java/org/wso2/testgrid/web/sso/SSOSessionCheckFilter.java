@@ -20,6 +20,7 @@ package org.wso2.testgrid.web.sso;
 
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.web.utils.ConfigurationContext;
+import org.wso2.testgrid.web.utils.Constants;
 
 import java.io.IOException;
 import javax.servlet.Filter;
@@ -49,9 +50,9 @@ public class SSOSessionCheckFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
         String path = ((HttpServletRequest) servletRequest).getRequestURI();
-        if (path.startsWith("/testgrid/dashboard/login") ||
-                path.startsWith("/testgrid/dashboard/static") ||
-                path.startsWith("/testgrid/dashboard/api")) {
+        if (path.startsWith(Constants.LOGIN_URI) ||
+                path.startsWith(Constants.STATIC_DATA_URI) ||
+                path.startsWith(Constants.BACKEND_APIS_URI)) {    //Until backend APIs authentication is provided.
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             HttpServletRequest request = (HttpServletRequest) servletRequest;
@@ -59,12 +60,12 @@ public class SSOSessionCheckFilter implements Filter {
             Boolean foundCookie = false;
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
-                    if (cookie.getName().equals("JSESSIONID")) {
+                    if (cookie.getName().equals(Constants.SESSION_COOKIE)) {
                         foundCookie = true;
                     }
                 }
             }
-            if (!foundCookie || cookies == null) {
+            if (!foundCookie) {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
                 try {
                     httpResponse.sendRedirect(ConfigurationContext.getProperty("SSO_LOGIN_URL"));
