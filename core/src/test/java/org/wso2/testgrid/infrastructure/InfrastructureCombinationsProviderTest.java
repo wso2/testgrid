@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
@@ -60,12 +61,12 @@ public class InfrastructureCombinationsProviderTest {
     @Test
     public void testGetCombinations() throws Exception {
         Set<InfrastructureValueSet> valueSets = new HashSet<>();
-        InfrastructureValueSet osValueSet = new InfrastructureValueSet(InfrastructureParameter.Type.OPERATING_SYSTEM,
-                createInfrastructureParameterSet(InfrastructureParameter.Type.OPERATING_SYSTEM, 2));
-        InfrastructureValueSet dbValueSet = new InfrastructureValueSet(InfrastructureParameter.Type.DATABASE,
-                createInfrastructureParameterSet(InfrastructureParameter.Type.DATABASE, 1));
-        InfrastructureValueSet jdkValueSet = new InfrastructureValueSet(InfrastructureParameter.Type.JDK,
-                createInfrastructureParameterSet(InfrastructureParameter.Type.JDK, 1));
+        InfrastructureValueSet osValueSet = new InfrastructureValueSet(DefaultInfrastructureTypes.OPERATING_SYSTEM,
+                createInfrastructureParameterSet(DefaultInfrastructureTypes.OPERATING_SYSTEM, 2));
+        InfrastructureValueSet dbValueSet = new InfrastructureValueSet(DefaultInfrastructureTypes.DATABASE,
+                createInfrastructureParameterSet(DefaultInfrastructureTypes.DATABASE, 1));
+        InfrastructureValueSet jdkValueSet = new InfrastructureValueSet(DefaultInfrastructureTypes.JDK,
+                createInfrastructureParameterSet(DefaultInfrastructureTypes.JDK, 1));
         valueSets.add(osValueSet);
         valueSets.add(dbValueSet);
         valueSets.add(jdkValueSet);
@@ -81,8 +82,8 @@ public class InfrastructureCombinationsProviderTest {
 
         List<String> operatingSystems = new ArrayList<String>() {
             {
-                add(InfrastructureParameter.Type.OPERATING_SYSTEM.toString() + 1);
-                add(InfrastructureParameter.Type.OPERATING_SYSTEM.toString() + 2);
+                add(DefaultInfrastructureTypes.OPERATING_SYSTEM + 1);
+                add(DefaultInfrastructureTypes.OPERATING_SYSTEM + 2);
             }
         };
 
@@ -90,11 +91,11 @@ public class InfrastructureCombinationsProviderTest {
             //check os
             boolean osExists = combination.getParameters().removeIf(param ->
                     param.getName().equals(operatingSystems.get(0)) &&
-                            param.getType().equals(InfrastructureParameter.Type.OPERATING_SYSTEM));
+                            param.getType().equals(DefaultInfrastructureTypes.OPERATING_SYSTEM));
             if (!osExists && operatingSystems.size() == 2) {
                 osExists = combination.getParameters().removeIf(param ->
                         param.getName().equals(operatingSystems.get(1)) &&
-                                param.getType().equals(InfrastructureParameter.Type.OPERATING_SYSTEM));
+                                param.getType().equals(DefaultInfrastructureTypes.OPERATING_SYSTEM));
                 Assert.assertTrue(osExists, StringUtil.concatStrings(operatingSystems.get(0), " nor ",
                         operatingSystems.get(1), " does not exist in the combination: ", combination));
                 operatingSystems.remove(1);
@@ -108,13 +109,13 @@ public class InfrastructureCombinationsProviderTest {
             //check db
             boolean dbExists = combination.getParameters().removeIf(param ->
                     param.getName().equals(dbValueSet.getValues().iterator().next().getName()) &&
-                            param.getType().equals(InfrastructureParameter.Type.DATABASE));
+                            param.getType().equals(DefaultInfrastructureTypes.DATABASE));
             Assert.assertTrue(dbExists, "DB does not exist in the combination: " + combination);
 
             //check jdk
             boolean jdkExists = combination.getParameters().removeIf(param ->
                     param.getName().equals(jdkValueSet.getValues().iterator().next().getName()) &&
-                            param.getType().equals(InfrastructureParameter.Type.JDK));
+                            param.getType().equals(DefaultInfrastructureTypes.JDK));
             Assert.assertTrue(jdkExists, "JDK does not exist in the combination: " + combination);
 
             Assert.assertEquals(combination.getParameters().size(), 0);
@@ -122,15 +123,13 @@ public class InfrastructureCombinationsProviderTest {
 
     }
 
-    private Set<InfrastructureParameter> createInfrastructureParameterSet(InfrastructureParameter.Type type,
-            int count) {
+    private Set<InfrastructureParameter> createInfrastructureParameterSet(String type, int count) {
         Set<InfrastructureParameter> params = new TreeSet<>();
         Properties properties = new Properties();
         properties.setProperty("ami_id", "ami123");
         properties.setProperty("elastic_ip_id", "eip123");
         for (int i = 1; i <= count; i++) {
-            InfrastructureParameter param = new InfrastructureParameter(type.toString() + i, type, properties
-                    .toString(), true);
+            InfrastructureParameter param = new InfrastructureParameter(type + i, type, properties.toString(), true);
             params.add(param);
         }
 

@@ -39,7 +39,6 @@ import static org.wso2.testgrid.common.infrastructure.InfrastructureParameter
         .INFRASTRUCTURE_PARAMETER_READY_FOR_TESTGRID_METAMODEL_NAME;
 import static org.wso2.testgrid.common.infrastructure.InfrastructureParameter
         .INFRASTRUCTURE_PARAMETER_TYPE_METAMODEL_NAME;
-import static org.wso2.testgrid.common.infrastructure.InfrastructureParameter.Type;
 
 /**
  * This class defines the Unit of work related to a {@link InfrastructureParameter}.
@@ -89,18 +88,18 @@ public class InfrastructureParameterUOW {
     /**
      *
      * @return a set of {@link InfrastructureValueSet} instances. Each set item contains a
-     * {@link InfrastructureValueSet} of a given {@link Type}.
+     * {@link InfrastructureValueSet} of a given type.
      */
     public Set<InfrastructureValueSet> getValueSet() throws TestGridDAOException {
-        List<InfrastructureParameter.Type> types = infraParamRepository
+        List<String> types = infraParamRepository
                 .find(((root, query, cb) -> {
                     query.select(root.get(INFRASTRUCTURE_PARAMETER_TYPE_METAMODEL_NAME)).distinct(true);
                     return cb.isTrue(root.get(INFRASTRUCTURE_PARAMETER_READY_FOR_TESTGRID_METAMODEL_NAME));
-                }), Type.class);
+                }), String.class);
 
         //create sets of ValueSets by infrastructure type
         Set<InfrastructureValueSet> infrastructureParameterSets = new HashSet<>();
-        for (Type type : types) {
+        for (String type : types) {
             List<InfrastructureParameter> infrastructureParameters = infraParamRepository
                     .find((root, query, cb) -> cb.and(
                             cb.equal(root.get(INFRASTRUCTURE_PARAMETER_TYPE_METAMODEL_NAME), type),
