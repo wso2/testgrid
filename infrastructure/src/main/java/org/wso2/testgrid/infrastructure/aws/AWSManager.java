@@ -21,6 +21,7 @@ import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
+import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
@@ -121,7 +122,10 @@ public class AWSManager {
                     script.getFilePath())), StandardCharsets.UTF_8);
             stackRequest.setTemplateBody(file);
             stackRequest.setParameters(getParameters(script));
-            stackbuilder.createStack(stackRequest);
+
+            logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", cloudFormationName,
+                    "' in region '", this.infra.getRegion(), "'. Script : ", script.getFilePath()));
+            CreateStackResult stack = stackbuilder.createStack(stackRequest);
             if (logger.isDebugEnabled()) {
                 logger.info(StringUtil.concatStrings("Stack configuration created for name ", cloudFormationName));
             }
@@ -129,10 +133,11 @@ public class AWSManager {
             Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new AmazonCloudFormationWaiters(stackbuilder)
                     .stackCreateComplete();
             describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
-            logger.info(StringUtil.concatStrings("Stack : ", cloudFormationName, " creation completed !"));
+            logger.info(StringUtil.concatStrings("Stack : ", cloudFormationName, ", with ID : ", stack.getStackId(),
+                    " creation completed !"));
 
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
-            describeStacksRequest.setStackName(cloudFormationName);
+            describeStacksRequest.setStackName(stack.getStackId());
             DescribeStacksResult describeStacksResult = stackbuilder
                     .describeStacks(describeStacksRequest);
             List<Host> hosts = new ArrayList<>();
