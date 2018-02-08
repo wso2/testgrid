@@ -47,25 +47,10 @@ public class TestCaseUOW {
     /**
      * Persists the {@link TestCase} instance for the given params.
      *
-     * @param testName        name of the test case
-     * @param testScenario    {@link TestScenario} instance associated with test case
-     * @param isSuccess       status of the TestCase
-     * @param responseMessage response message of the test case
+     * @param testCase        test case to persist
      * @throws TestGridDAOException thrown when error on persisting
      */
-    public TestCase persistTestCase(String testName, TestScenario testScenario, boolean isSuccess,
-                                    String responseMessage) throws TestGridDAOException {
-        // Create test case instance
-        TestCase testCase = new TestCase();
-        testCase.setName(testName);
-        testCase.setSuccess(isSuccess);
-        testCase.setTestScenario(testScenario);
-        testCase.setFailureMessage(responseMessage);
-
-        // Set test scenario -> test case link
-        testScenario.addTestCase(testCase);
-
-        // Persist test case
+    public TestCase persistTestCase(TestCase testCase) throws TestGridDAOException {
         return testCaseRepository.persist(testCase);
     }
 

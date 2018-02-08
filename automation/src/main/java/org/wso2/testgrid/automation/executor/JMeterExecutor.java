@@ -20,7 +20,6 @@ package org.wso2.testgrid.automation.executor;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jmeter.engine.StandardJMeterEngine;
-import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.util.JMeterUtils;
@@ -31,8 +30,11 @@ import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Port;
+import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestCaseUOW;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -92,7 +94,7 @@ public class JMeterExecutor extends TestExecutor {
             throw new TestAutomationException(StringUtil.concatStrings("Script file ", script, " cannot be located."));
         }
 
-        ResultCollector resultCollector = new JMeterResultCollector(summariser, testScenario);
+        JMeterResultCollector resultCollector = new JMeterResultCollector(summariser, testScenario);
 
         if (testPlanTree.getArray().length == 0) {
             throw new TestAutomationException("JMeter test plan is empty.");
@@ -103,6 +105,18 @@ public class JMeterExecutor extends TestExecutor {
         jMeterEngine.configure(testPlanTree);
         jMeterEngine.run();
         jMeterEngine.exit();
+
+        //Persist all test cases for scenario
+        TestCaseUOW testCaseUOW = new TestCaseUOW();
+        for (TestCase testCase: resultCollector.getTestCases()) {
+            try {
+                testCaseUOW.persistTestCase(testCase);
+            } catch (TestGridDAOException e) {
+                throw new TestAutomationException(StringUtil.concatStrings("Error while persisting test case ",
+                        testCase.getName(), "of scenario ", testCase.getTestScenario().getName(), e));
+            }
+        }
+
         //delete temp file
         boolean delete = new File(script).delete();
         if (!delete) {

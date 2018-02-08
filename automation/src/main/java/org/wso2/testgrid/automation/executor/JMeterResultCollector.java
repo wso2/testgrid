@@ -23,10 +23,12 @@ import org.apache.jmeter.samplers.SampleEvent;
 import org.apache.jmeter.samplers.SampleResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.TestCaseUOW;
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * This class is responsible for collecting JMeter test results.
@@ -41,6 +43,7 @@ public class JMeterResultCollector extends ResultCollector {
 
     private TestScenario testScenario;
     private static final int FAILURE_MESSAGE_LIMIT = 5000;
+    private List<TestCase> testCases = new CopyOnWriteArrayList<>();
 
     /**
      * Constructs an instance of {@link JMeterResultCollector}.
@@ -55,8 +58,6 @@ public class JMeterResultCollector extends ResultCollector {
 
     @Override
     public void sampleOccurred(SampleEvent sampleEvent) {
-        try {
-            TestCaseUOW testCaseUOW = new TestCaseUOW();
             super.sampleOccurred(sampleEvent);
             SampleResult result = sampleEvent.getResult();
             String samplerData = result.getSamplerData();
@@ -73,13 +74,27 @@ public class JMeterResultCollector extends ResultCollector {
                                             result.getResponseMessage().replaceAll("\"", "\\\""),
                                             "\", \"Sampler Data\": \"",
                                             samplerData.replaceAll("\"", "\\\""), "\"}");
-            // Persist result to the database
-            testCaseUOW.persistTestCase(result.getSampleLabel(), testScenario, result.isSuccessful(), failureMessage);
+            // Add result to concurrent list
+            TestCase testCase = new TestCase();
+            testCase.setName(result.getSampleLabel());
+            testCase.setTestScenario(testScenario);
+            testCase.setSuccess(result.isSuccessful());
+            testCase.setFailureMessage(failureMessage);
+            testScenario.addTestCase(testCase);
             jmeterResultLogger.info(StringUtil.concatStrings("Test case :", result.getSampleLabel(),
                     " failed for scenario: ", testScenario.getName(), "\n", failureMessage, "\", \"Sampler Data\": \"",
                     result.getSamplerData().replaceAll("\"", "\\\""), "\"}"));
-        } catch (TestGridDAOException e) {
-            throw new RuntimeException(StringUtil.concatStrings("Error occurred when persisting test case."), e);
-        }
+
+    }
+
+    /**
+     * Gets the list of test cases pertaining to the scenario.
+     * The test cases are added to the into the list concurrently once it enters
+     * {@link #sampleOccurred(SampleEvent)} and the test execution is complete.
+     *
+     * @return the concurrent list of test cases
+     */
+    public List<TestCase> getTestCases() {
+        return testCases;
     }
 }
