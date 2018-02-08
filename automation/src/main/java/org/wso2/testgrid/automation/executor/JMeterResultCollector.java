@@ -21,6 +21,8 @@ import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.samplers.SampleEvent;
 import org.apache.jmeter.samplers.SampleResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -33,9 +35,12 @@ import org.wso2.testgrid.dao.uow.TestCaseUOW;
  */
 public class JMeterResultCollector extends ResultCollector {
 
+    private static final Logger jmeterResultLogger = LoggerFactory.getLogger(JMeterResultCollector.class.getName()
+            + ".JMeterResultLogger");
     private static final long serialVersionUID = -5244808712889913949L;
 
     private TestScenario testScenario;
+    private static final int FAILURE_MESSAGE_LIMIT = 5000;
 
     /**
      * Constructs an instance of {@link JMeterResultCollector}.
@@ -54,6 +59,11 @@ public class JMeterResultCollector extends ResultCollector {
             TestCaseUOW testCaseUOW = new TestCaseUOW();
             super.sampleOccurred(sampleEvent);
             SampleResult result = sampleEvent.getResult();
+            String samplerData = result.getSamplerData();
+
+            if (samplerData.length() > FAILURE_MESSAGE_LIMIT) {
+                samplerData = result.getSamplerData().substring(0, FAILURE_MESSAGE_LIMIT)  + "\n log truncated...";
+            }
             String failureMessage = result.isSuccessful() ? "" :
                                     StringUtil.concatStrings("{ \"Response Data\": \"",
                                             result.getResponseDataAsString().replaceAll("\"", "\\\""),
@@ -62,9 +72,12 @@ public class JMeterResultCollector extends ResultCollector {
                                             "\", \"Response Message\": \"",
                                             result.getResponseMessage().replaceAll("\"", "\\\""),
                                             "\", \"Sampler Data\": \"",
-                                            result.getSamplerData().replaceAll("\"", "\\\""), "\"}");
+                                            samplerData.replaceAll("\"", "\\\""), "\"}");
             // Persist result to the database
             testCaseUOW.persistTestCase(result.getSampleLabel(), testScenario, result.isSuccessful(), failureMessage);
+            jmeterResultLogger.info(StringUtil.concatStrings("Test case :", result.getSampleLabel(),
+                    " failed for scenario: ", testScenario.getName(), "\n", failureMessage, "\", \"Sampler Data\": \"",
+                    result.getSamplerData().replaceAll("\"", "\\\""), "\"}"));
         } catch (TestGridDAOException e) {
             throw new RuntimeException(StringUtil.concatStrings("Error occurred when persisting test case."), e);
         }

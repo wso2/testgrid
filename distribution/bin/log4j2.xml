@@ -67,5 +67,8 @@
         <Logger name="org.eclipse.persistence" level="info" additivity="false">
             <AppenderRef ref="Routing"/>
         </Logger>
+        <Logger name="org.wso2.testgrid.automation.executor.JMeterResultCollector.JMeterResultLogger" additivity="false">
+            <AppenderRef ref="Routing" level="info"/>
+        </Logger>
     </Loggers>
 </Configuration>

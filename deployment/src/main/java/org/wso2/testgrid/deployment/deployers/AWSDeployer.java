@@ -56,12 +56,12 @@ public class AWSDeployer implements DeployerService {
         try {
             logger.info(StringUtil.concatStrings("Deploying the pattern.. : ", deployment.getName()));
             DeploymentValidator validator = new DeploymentValidator();
-            logger.info("Waiting for server startup..");
             for (Host host : deployment.getHosts()) {
                 try {
                     new URL(host.getIp());
+                    logger.info("Waiting for server startup on URL : " + host.getIp());
                 } catch (MalformedURLException e) {
-                    logger.error(StringUtil.concatStrings("Output Value : ", host.getIp(), " is Not a Valid URL, " +
+                    logger.debug(StringUtil.concatStrings("Output Value : ", host.getIp(), " is Not a Valid URL, " +
                             "hence skipping to next value.."));
                     continue;
                 }

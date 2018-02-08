@@ -93,7 +93,9 @@ public class AWSManager {
         String awsIdentity = System.getenv(awsKeyVariableName);
         String awsSecret = System.getenv(awsSecretVariableName);
         if (StringUtil.isStringNullOrEmpty(awsIdentity) || StringUtil.isStringNullOrEmpty(awsSecret)) {
-            throw new TestGridInfrastructureException("AWS Credentials must be set as environment variables");
+            throw new TestGridInfrastructureException(StringUtil
+                    .concatStrings("AWS Credentials must be set as environment variables: ", awsIdentity, ", ",
+                            awsSecretVariableName));
         }
     }
 

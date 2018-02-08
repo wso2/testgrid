@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.common.util;
 
+import java.util.Random;
+
 /**
  * Utility class to handle {@link String} related operations.
  *
@@ -46,5 +48,22 @@ public class StringUtil {
             stringBuilder.append(object); // Null is handled by the append method.
         }
         return stringBuilder.toString();
+    }
+
+    /**
+     * Generates a random string with the given character count using the below charset as input:
+     * <i>ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890</i>
+     * @param characterCount number of characters
+     * @return a random string
+     */
+    public static String generateRandomString(int characterCount) {
+        final String saltChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < characterCount) {
+            int index = (int) (rnd.nextFloat() * saltChars.length());
+            salt.append(saltChars.charAt(index));
+        }
+        return salt.toString();
     }
 }

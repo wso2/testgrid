@@ -21,7 +21,7 @@
     <parent>
         <artifactId>testgrid-framework</artifactId>
         <groupId>org.wso2.testgrid</groupId>
-        <version>0.9.0-SNAPSHOT</version>
+        <version>0.9.0-m12-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -50,7 +50,7 @@
                         </goals>
                         <configuration>
                             <appendAssemblyId>false</appendAssemblyId>
-                            <finalName>WSO2-TestGrid-${test.grid.version}</finalName>
+                            <finalName>WSO2-TestGrid</finalName>
                             <descriptors>
                                 <descriptor>assembly.xml</descriptor>
                             </descriptors>

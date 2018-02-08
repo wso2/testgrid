@@ -22,6 +22,7 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
@@ -61,6 +62,7 @@ public class GenerateTestPlanCommand implements Command {
 
     private static final Logger logger = LoggerFactory.getLogger(GenerateTestPlanCommand.class);
     private static final String YAML_EXTENSION = ".yaml";
+    private static final int RANDOMIZED_STR_LENGTH = 6;
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -164,6 +166,8 @@ public class GenerateTestPlanCommand implements Command {
 
         for (String deploymentPattern : deploymentPatterns) {
             for (InfrastructureCombination combination : combinations) {
+                setUniqueScriptName(inputTestConfig.getInfrastructure().getScripts());
+
                 TestConfig testConfig = new TestConfig();
                 testConfig.setProductName(inputTestConfig.getProductName());
                 testConfig.setDeploymentPatterns(Collections.singletonList(deploymentPattern));
@@ -177,6 +181,18 @@ public class GenerateTestPlanCommand implements Command {
             }
         }
         return testConfigurations;
+    }
+
+    /**
+     * We need unique script names because this is referenced as an id
+     * for cloudformation stack name etc.
+     *
+     * @param scripts list of Scripts in a given test-config.
+     */
+    private void setUniqueScriptName(List<Script> scripts) {
+        for (Script script : scripts) {
+            script.setName(script.getName() + '-' + StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH));
+        }
     }
 
     private List<Map<String, Object>> toConfigAwareInfrastructureCombination(Set<InfrastructureParameter> parameters) {
