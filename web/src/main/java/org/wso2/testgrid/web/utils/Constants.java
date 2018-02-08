@@ -32,6 +32,7 @@ public class Constants extends TestGridConstants {
     public static final String JENKINS_HOST = "JENKINS_HOST";
     public static final String JENKINS_CRUMB_HEADER_NAME = "Jenkins-Crumb";
     public static final String JENKINS_USER_AUTH_KEY = "JENKINS_USER_AUTH_KEY";
+    public static final String WEBAPP_CONTEXT = "/testgrid/dashboard";
 
     /* Terms used in Jenkins template job. */
     public static final String PRODUCT_NAME = "$productName";
@@ -44,4 +45,22 @@ public class Constants extends TestGridConstants {
     public static final String DEPLOYMENT_LOCATION = "$deploymentLocation";
     public static final String SCENARIOS_LOCATION = "$scenariosLocation";
 
+    /* Constants relates to SSO configurations. */
+    public static final String LOGIN_URI = WEBAPP_CONTEXT + "/login";
+    public static final String STATIC_DATA_URI = WEBAPP_CONTEXT + "/static";
+    public static final String BACKEND_APIS_URI = WEBAPP_CONTEXT + "/api";
+    public static final String JKS_FILE_NAME = "wso2carbon.jks";
+    public static final String SSO_DIRECTORY = "SSO";
+    public static final String SSO_LOGIN_URL = "SSO_LOGIN_URL";
+
+    public static final String PROPERTYNAME_KEYSTORE_PASSWORD = "KeyStorePassword";
+    public static final String PROPERTYNAME_PRIVATE_KEY_ALIAS = "PrivateKeyAlias";
+    public static final String PROPERTYNAME_PRIVATE_KEY_PASSWORD = "PrivateKeyPassword";
+    public static final String PROPERTYNAME_IDP_PUBLIC_KEY_ALIAS = "IdPPublicCertAlias";
+
+    public static final String SSO_PROPERTY_FILE_NAME = "testgrid-sso.properties";
+    public static final String SAML_BINDING_HTTP_POST = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST";
+    public static final String SAML_BINDING_HTTP_REDIRECT = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect";
+    public static final String HTTP_BINDING_HTTP_POST = "HTTP-POST";
+    public static final String HTTP_BINDING_HTTP_REDIRECT = "HTTP-Redirect";
 }

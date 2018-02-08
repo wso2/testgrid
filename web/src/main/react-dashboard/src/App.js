@@ -25,6 +25,7 @@ import ScenarioContainer from './containers/ScenarioContainer.js';
 import TestCaseContainer from './containers/TestCaseContainer.js';
 import DeploymentContainer from './containers/deploymentContainer.js';
 import testRunContainer from './containers/testRunContainer.js';
+import Login from './components/Login.js'
 import {
   Route,
   Switch,
@@ -85,7 +86,8 @@ class App extends Component {
               </Drawer>
               <Paper style={paperStyle} zDepth={2}>
                 <Switch>
-                  <Route exact path = {this.baseURL + '/'} component={ProductContainer} />
+                  <Route exact path = {this.baseURL + '/login'} component={Login}/>
+                  <Route exact path = {this.baseURL + '/'} component={ProductContainer}/>
                   <Route exact path = {this.baseURL + '/deployments/product/:productId/'} component={DeploymentContainer} />
                   <Route exact path = {this.baseURL + '/testplans/history/:testplanid'} component={InfrastructureContainer} />
                   <Route exact path = {this.baseURL + '/scenarios/infrastructure/:infraid'} component={ScenarioContainer} />
