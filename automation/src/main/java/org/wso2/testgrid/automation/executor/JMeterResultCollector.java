@@ -87,6 +87,13 @@ public class JMeterResultCollector extends ResultCollector {
 
     }
 
+    /**
+     * Gets the list of test cases pertaining to the scenario.
+     * The test cases are added to the into the list concurrently once it enters
+     * {@link #sampleOccurred(SampleEvent)} and the test execution is complete.
+     *
+     * @return the concurrent list of test cases
+     */
     public List<TestCase> getTestCases() {
         return testCases;
     }
