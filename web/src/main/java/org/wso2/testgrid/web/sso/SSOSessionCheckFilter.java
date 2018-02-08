@@ -29,7 +29,6 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -51,20 +50,11 @@ public class SSOSessionCheckFilter implements Filter {
                          FilterChain filterChain) throws IOException, ServletException {
         String path = ((HttpServletRequest) servletRequest).getRequestURI();
         if (isSecuredAPI(path)) {
-            HttpServletRequest request = (HttpServletRequest) servletRequest;
-            Cookie cookies[] = request.getCookies();
-            Boolean isSessionValid = false;
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (cookie.getName().equals(Constants.SESSION_COOKIE)) {
-                        isSessionValid = ((HttpServletRequest) servletRequest).isRequestedSessionIdValid();
-                    }
-                }
-            }
+            Boolean isSessionValid = ((HttpServletRequest) servletRequest).isRequestedSessionIdValid();
             if (!isSessionValid) {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
                 try {
-                    httpResponse.sendRedirect(ConfigurationContext.getProperty("SSO_LOGIN_URL"));
+                    httpResponse.sendRedirect(ConfigurationContext.getProperty(Constants.SSO_LOGIN_URL));
                 } catch (TestGridException e) {
                     throw new ServletException("Error when reading property SSO_LOGIN_URL");
                 }
