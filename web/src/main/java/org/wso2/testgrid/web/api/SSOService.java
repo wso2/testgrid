@@ -68,6 +68,10 @@ public class SSOService {
     @Context
     HttpServletRequest request;
 
+    /**
+      * This has the implementation of the REST API for creating session and send the redirection information .
+      * @return Redirection to dashboard home page.
+     */
     @POST
     public Response createSession(@FormParam("SAMLResponse") String responseMessage) throws TestGridException {
         XMLObject response;
@@ -121,6 +125,11 @@ public class SSOService {
         }
     }
 
+    /**
+     * Read JKS file and return X509Credential of Identity Server.
+     * @return X509Credential of Identity Server.
+     * @throws TestGridException if an error occur while reading JKS file.
+     */
     private SSOAgentX509Credential getX509Credential() throws TestGridException {
         Properties properties = new Properties();
         try {

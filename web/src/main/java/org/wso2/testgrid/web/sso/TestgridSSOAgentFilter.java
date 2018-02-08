@@ -18,13 +18,14 @@
 
 package org.wso2.testgrid.web.sso;
 
-import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.glassfish.jersey.internal.util.Base64;
 import org.wso2.carbon.identity.sso.agent.SSOAgentConstants;
 import org.wso2.carbon.identity.sso.agent.SSOAgentFilter;
 import org.wso2.carbon.identity.sso.agent.bean.SSOAgentConfig;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,7 +86,7 @@ public class TestgridSSOAgentFilter extends SSOAgentFilter {
 
             String authorization = servletRequest.getParameter(USERNAME) + ":" + servletRequest.getParameter(PASSWORD);
             // Base64 encoded username:password value
-            authorization = Base64.encode(authorization.getBytes(CHARACTER_ENCODING));
+            authorization = Arrays.toString(Base64.encode(authorization.getBytes(CHARACTER_ENCODING)));
             String htmlPayload = "<html>\n" +
                     "<body>\n" +
                     "<p>You are now redirected back to " + properties.getProperty("SAML2.IdPURL") + " \n" +
