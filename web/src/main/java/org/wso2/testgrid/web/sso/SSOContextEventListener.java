@@ -35,7 +35,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 /**
- * Implementation of context event listener for fetch SSO related details.
+ * Implementation of context event listener which contains the SSO related details (X509 Credential of TestGrid,
+ * configurations in SSO property file) that will be used when generating SAML request.
  */
 public class SSOContextEventListener implements ServletContextListener {
 
