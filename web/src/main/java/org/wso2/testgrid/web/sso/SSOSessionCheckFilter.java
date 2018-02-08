@@ -50,22 +50,18 @@ public class SSOSessionCheckFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
         String path = ((HttpServletRequest) servletRequest).getRequestURI();
-        if (path.startsWith(Constants.LOGIN_URI) ||
-                path.startsWith(Constants.STATIC_DATA_URI) ||
-                path.startsWith(Constants.BACKEND_APIS_URI)) {    //Until backend APIs authentication is provided.
-            filterChain.doFilter(servletRequest, servletResponse);
-        } else {
+        if (isSecuredAPI(path)) {
             HttpServletRequest request = (HttpServletRequest) servletRequest;
             Cookie cookies[] = request.getCookies();
-            Boolean foundCookie = false;
+            Boolean isSessionValid = false;
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
                     if (cookie.getName().equals(Constants.SESSION_COOKIE)) {
-                        foundCookie = true;
+                        isSessionValid = ((HttpServletRequest) servletRequest).isRequestedSessionIdValid();
                     }
                 }
             }
-            if (!foundCookie) {
+            if (!isSessionValid) {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
                 try {
                     httpResponse.sendRedirect(ConfigurationContext.getProperty("SSO_LOGIN_URL"));
@@ -75,7 +71,20 @@ public class SSOSessionCheckFilter implements Filter {
                 return;
             }
             filterChain.doFilter(servletRequest, servletResponse);
+        } else {
+            filterChain.doFilter(servletRequest, servletResponse);
         }
+    }
+
+    /**
+     * Check if the requested path is a secured API which should be allowed only for logged in users.
+     * @param path Requested URL in String format.
+     * @return whether its a securedAPI or not.
+     */
+    private boolean isSecuredAPI(String path) {
+        return !path.startsWith(Constants.LOGIN_URI) &&
+                !path.startsWith(Constants.STATIC_DATA_URI) &&
+                !path.startsWith(Constants.BACKEND_APIS_URI);
     }
 
     @Override
