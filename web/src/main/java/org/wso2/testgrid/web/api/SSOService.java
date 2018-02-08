@@ -66,7 +66,6 @@ public class SSOService {
      */
     @POST
     public Response createSession(@FormParam("SAMLResponse") String responseMessage) throws TestGridException {
-        //todo logger.info( "ID :"  + System.identityHashCode (this.getClass()));
         XMLObject response;
         org.opensaml.saml2.core.Response saml2Response;
         try {
@@ -120,32 +119,4 @@ public class SSOService {
             throw new TestGridException("Signature validation failed for the incoming SAML2 response.");
         }
     }
-
-//    /**
-//     * Read {@link Constants#JKS_FILE_NAME} JKS file and return X509Credential of Identity Provider.
-//     * @return X509Credential of Identity Server.
-//     * @throws TestGridException if an error occur while reading JKS file.
-//     */
-//    private SSOAgentX509Credential getIdPX509Credential() throws TestGridException {
-//        Properties properties = new Properties();
-//        try {
-//            java.nio.file.Path ssoPropertyFilePath = Paths.
-//                    get(TestGridUtil.getTestGridHomePath(), Constants.SSO_DIRECTORY,
-//                            Constants.SSO_PROPERTY_FILE_NAME);
-//            properties.load(Files.newInputStream(ssoPropertyFilePath));
-//
-//            java.nio.file.Path configPath = Paths.
-//                    get(TestGridUtil.getTestGridHomePath(), Constants.SSO_DIRECTORY, Constants.JKS_FILE_NAME);
-//            InputStream keyStoreInputStream = Files.newInputStream(configPath);
-//            SSOAgentX509Credential credential;
-//            credential = new SSOAgentX509KeyStoreCredential(keyStoreInputStream,
-//                    properties.getProperty(Constants.PROPERTYNAME_KEYSTORE_PASSWORD).toCharArray(),
-//                    ConfigurationContext.getProperty(Constants.PROPERTYNAME_IDP_PUBLIC_KEY_ALIAS),
-//                    properties.getProperty(Constants.PROPERTYNAME_PRIVATE_KEY_ALIAS),
-//                    properties.getProperty(Constants.PROPERTYNAME_PRIVATE_KEY_PASSWORD).toCharArray());
-//            return credential;
-//        } catch (IOException | SSOAgentException e) {
-//            throw new TestGridException("Error occurred while reading JKS file to fetch IdP's credential.", e);
-//        }
-//    }
 }

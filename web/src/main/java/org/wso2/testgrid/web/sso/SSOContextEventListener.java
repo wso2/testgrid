@@ -40,7 +40,9 @@ public class SSOContextEventListener implements ServletContextListener {
     private static Properties properties = new Properties();
 
     /**
-     * Fetch relevant details from the property file and JKS file.
+     * Fetch relevant details from
+     * {@link org.wso2.testgrid.web.utils.Constants#SSO_PROPERTY_FILE_NAME} property file and
+     * {@link org.wso2.testgrid.web.utils.Constants#JKS_FILE_NAME} JKS file.
      */
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         SSOConfigurationReader ssoConfigurationReader = new SSOConfigurationReader();

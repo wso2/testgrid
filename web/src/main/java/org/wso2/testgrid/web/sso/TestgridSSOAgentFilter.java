@@ -96,7 +96,7 @@ public class TestgridSSOAgentFilter extends SSOAgentFilter {
 
     /**
      * This method checks the request's http binding type and prepare response's http binding accordingly which
-     * will include necessary SAML notations as below;
+     * will include necessary SAML notations out of below;
      * {@link Constants#SAML_BINDING_HTTP_POST}
      * {@link Constants#SAML_BINDING_HTTP_REDIRECT}
      *
