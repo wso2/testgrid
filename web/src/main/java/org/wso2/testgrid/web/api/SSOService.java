@@ -93,7 +93,7 @@ public class SSOService {
 
     /**
      * Validates Signature of the SAML Response.
-     * SAMLSignatureProfileValidator & SignatureValidator are used for the validation.
+     * SAMLSignatureProfileValidator and SignatureValidator are used for the validation.
      * Those two provide a low-level verification of the signature.
      *
      * @param signature Signature in SAMLResponse in org.opensaml.xml.XMLObject format
