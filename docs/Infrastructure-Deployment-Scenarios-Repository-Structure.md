@@ -163,7 +163,7 @@ This is intended to do a set of common tasks (such as tenant creation) that is
 applicable for all scenarios.
 
 #### run-scenarios.sh
-This script will invoke the **`base-setup.sh`**, and then
+This script will invoke the **`init.sh`**, and then
 **`run-scenario.sh`** (note the singular form) of each scenario sequentially.
 
 #### run-scenario.sh
@@ -173,7 +173,6 @@ This script will do the following:
 1. Invoke any pre- processing shell scripts (`0X-pre-scenario-steps.sh`)
 2. Invoke jmeter/testng/... scripts (`0X-<script-name>.jmx`)
 3. Invoke post- processing shell scripts. (`0X-post-scenario-steps.sh`)
-
 
 #### cleanup.sh
 This is last script that will run after the execution of all scenario tests.
@@ -244,7 +243,7 @@ config-change-sets:
 ```
 #### Deploy Config Value Sets:
 There will be different config value sets which have been identified as prerequisites for the one or more scenarios. These product level config changes and required artifacts are stored under config-sets directory in the integration-tests repository. Inside the each config directories there are steps mentioned as in shell scripts to deploy configs. 
-TG will generate an archive for each config directory and copy it to all the server instances and extract it and then run the entrypoint(shell script file: TBD) which is in the archived directory. 
+TG will generate an archive for each config directory and copy it to all the server instances and extract it and then run the entrypoint(shell script file: **config.sh**) which is in the archived directory. 
 
 More information on how these automation scripts are run in test grid and how you can test them locally can be found in the [solution-test-toolkit docs](https://github.com/wso2-incubator/solution-test-toolkit).
 
