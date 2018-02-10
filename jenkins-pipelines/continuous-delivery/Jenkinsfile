@@ -12,17 +12,29 @@ node {
 
     stage('Deploy to Prod'){
         def userInput
+        mail (
+            to: "${TEAM_MEMBERS}",
+            subject: "Job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) is waiting for input",
+            body: "Hi team,\nLatest artifacts have been deployed to TestGrid-DEV." +
+                "\nPlease have a round of tests and visit ${env.BUILD_URL} to approve/decline deploying to TestGrid-PROD." +
+                "\nYou have ${TIMEOUT_HOURS} hours left!\n\nThanks!");
         try {
-            userInput = input(
-                    id: 'Proceed1', message: 'Deploy to Prod environment?', parameters: [
-                    [$class: 'BooleanParameterDefinition', defaultValue: true, description: '', name: 'Please confirm you agree with this']
-            ])
+            timeout(time: "${TIMEOUT_HOURS}" as Integer, unit: 'HOURS') {
+                userInput = input (
+                        id: 'Proceed1', message: 'Deploy to Prod environment?', parameters: [
+                        [$class: 'BooleanParameterDefinition', defaultValue: true, description: '', name: 'Please confirm you agree with this.']
+                ])
+            }
         } catch(err) { // input false
-            def user = err.getCauses()[0].getUser()
             userInput = false
-            echo "Aborted by: [${user}]"
+            def user = err.getCauses()[0].getUser()
+            echo ${user.toString}
+            if('SYSTEM' == user.toString()) { // SYSTEM means timeout.
+                echo "Aborted due to time-out."
+            } else {
+                echo "Aborted by: [${user}]"
+            }
         }
-
         if (userInput == true) {
             sshagent(['testgrid-prod-key']) {
                 sh """
