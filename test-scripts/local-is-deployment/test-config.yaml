@@ -15,7 +15,7 @@
 ################################################################################
 
 # TestGrid Test Configuration Parameters
-productName: "wso2is-5.4.0-LTS"
+productName: "wso2is-local-deployment"
 deploymentPatterns:
     -  "pattern-2"
 infraParams:
