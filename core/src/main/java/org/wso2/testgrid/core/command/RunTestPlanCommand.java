@@ -218,9 +218,9 @@ public class RunTestPlanCommand implements Command {
      * @return path for the generated test plan YAML files directory
      */
     private Path getTestPlanGenLocation(Product product) throws IOException {
-        String directoryName = product.getId();
+        String directoryName = product.getName();
         String testGridHome = TestGridUtil.getTestGridHomePath();
-        return Paths.get(testGridHome, directoryName).toAbsolutePath();
+        return Paths.get(testGridHome, directoryName, TestGridConstants.PRODUCT_TEST_PLANS_DIR).toAbsolutePath();
     }
 
     /**
