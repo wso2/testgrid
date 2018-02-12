@@ -21,7 +21,6 @@ package org.wso2.testgrid.web.sso;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.web.api.SSOService;
 import org.wso2.testgrid.web.utils.ConfigurationContext;
 import org.wso2.testgrid.web.utils.Constants;
 
@@ -39,7 +38,7 @@ import javax.servlet.http.HttpServletResponse;
  * This class check whether a session exists for the user and do the needfuls accordingly.
  */
 public class SSOSessionCheckFilter implements Filter {
-    private static final Logger logger = LoggerFactory.getLogger(SSOService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SSOSessionCheckFilter.class);
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
