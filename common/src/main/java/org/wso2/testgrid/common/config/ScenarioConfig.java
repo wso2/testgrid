@@ -14,26 +14,33 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
-package org.wso2.testgrid.common;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+package org.wso2.testgrid.common.config;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
- * Class to maintain constants across modules.
+ * Represent the scenario configuration in the testgrid.yaml file that is
+ * denoted by the {@link TestgridYaml}.
  *
- * @since 1.0.0
  */
-public class TestGridConstants {
+public class ScenarioConfig implements Serializable {
+    private static final long serialVersionUID = 6295205041044769906L;
 
-    // Logging constants
-    public static final String TEST_LOG_FILE_NAME = "test-run.log";
-    public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
-    public static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
-    public static final String TESTGRID_HOME_SYSTEM_PROPERTY = "testgrid.home";
-    public static final Path DEFAULT_TESTGRID_HOME = Paths.get(System.getProperty("user.home"), ".testgrid");
+    private List<String> scenarios;
 
-    public static final String DEFAULT_DEPLOYMENT_PATTERN_NAME = "default";
+    /**
+     *
+     * @return List of test scenarios that need to be run in testgrid.
+     */
+    public List<String> getScenarios() {
+        return scenarios;
+    }
 
+    public void setScenarios(List<String> scenarios) {
+        this.scenarios = scenarios;
+    }
 }

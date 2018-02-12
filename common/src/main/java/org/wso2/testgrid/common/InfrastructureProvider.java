@@ -18,7 +18,7 @@
 
 package org.wso2.testgrid.common;
 
-
+import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 
 /**
@@ -31,36 +31,36 @@ public interface InfrastructureProvider {
      *
      * @return a String indicating the name of the provider.
      */
-     String getProviderName();
+    String getProviderName();
 
     /**
      * This method returns whether the provider can handle the requested infrastructure.
      *
      * @return a boolean indicating whether can handle or not.
      */
-     boolean canHandle(Infrastructure infrastructure);
+    boolean canHandle(InfrastructureConfig infrastructureConfig);
 
     /**
-     * This method creates the necessary infrastructure using the provided configuration.
+     * This method creates the necessary infrastructureConfig using the provided configuration.
      *
-     * @param infrastructure an instance of a Infrastructure which includes the details of the infrastructure
-     *                       that should be created.
-     * @param infraRepoDir location of the cloned repository related to infrastructure.
+     * @param infrastructureConfig an instance of a InfrastructureConfig which includes the details of the
+     *                             infrastructure that should be created.
+     * @param infraRepoDir         location of the cloned repository related to infrastructure.
      * @return Deployment Deployment object including the created host, ip details
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure creation process.
      */
-    Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
+    Deployment createInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
             TestGridInfrastructureException;
 
     /**
      * This method executes commands needed to remove the infrastructure.
      *
-     * @param infrastructure an instance of a Infrastructure in which Infrastructure should be removed.
-     * @param infraRepoDir location of the cloned repository related to infrastructure.
+     * @param infrastructureConfig an instance of a InfrastructureConfig in which Infrastructure should be removed.
+     * @param infraRepoDir         location of the cloned repository related to infrastructure.
      * @return boolean status of the operation
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure destroy process.
      */
-    boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
+    boolean removeInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
             TestGridInfrastructureException;
 
 }

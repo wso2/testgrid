@@ -103,7 +103,7 @@ public class GenerateTestPlanCommand implements Command {
             for (int i = 0; i < testPlans.size(); i++) {
                 TestConfig testConfig = testPlans.get(i);
                 String fileName = StringUtil
-                        .concatStrings(testConfig.getProductName(), "-", (i + 1), YAML_EXTENSION);
+                        .concatStrings(productName, "-", (i + 1), YAML_EXTENSION);
                 String output = yaml.dump(testConfig);
                 saveFile(output, infraGenDirectory, fileName);
             }
@@ -171,7 +171,6 @@ public class GenerateTestPlanCommand implements Command {
                 setUniqueScriptName(inputTestConfig.getInfrastructure().getScripts());
 
                 TestConfig testConfig = new TestConfig();
-                testConfig.setProductName(inputTestConfig.getProductName());
                 testConfig.setDeploymentPatterns(Collections.singletonList(deploymentPattern));
                 List<Map<String, Object>> configAwareInfraCombination = toConfigAwareInfrastructureCombination(
                         combination.getParameters());

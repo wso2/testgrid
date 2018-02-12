@@ -29,29 +29,11 @@ import java.util.Map;
  */
 public class TestConfig {
 
-    private String productName;
+    //TODO: ** Remove productName from all the infra YAML files.
     private List<String> deploymentPatterns;
     private List<Map<String, Object>> infraParams = new ArrayList<>();
     private List<String> scenarios;
     private Infrastructure infrastructure;
-
-    /**
-     * Returns the product name.
-     *
-     * @return product name
-     */
-    public String getProductName() {
-        return productName;
-    }
-
-    /**
-     * Sets the product name.
-     *
-     * @param productName product name
-     */
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
 
     /**
      * Returns the deployment pattern names.
