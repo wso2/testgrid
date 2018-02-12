@@ -198,7 +198,7 @@ public class GenerateTestPlanCommand implements Command {
     private List<Map<String, Object>> toConfigAwareInfrastructureCombination(Set<InfrastructureParameter> parameters) {
         Map<String, Object> configAwareInfrastructureCombination = new HashMap<>(parameters.size());
         for (InfrastructureParameter parameter : parameters) {
-            configAwareInfrastructureCombination.put(parameter.getType().toString(), parameter.getName());
+            configAwareInfrastructureCombination.put(parameter.getType(), parameter.getName());
         }
 
         return Collections.singletonList(configAwareInfrastructureCombination);

@@ -19,7 +19,6 @@
 
 package org.wso2.testgrid.common.infrastructure;
 
-import org.wso2.testgrid.common.infrastructure.InfrastructureParameter.Type;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.util.Optional;
@@ -33,7 +32,7 @@ import java.util.TreeSet;
  * @since 1.0
  */
 public class InfrastructureValueSet {
-    private Type type;
+    private String type;
     private Set<InfrastructureParameter> values = new TreeSet<>();
 
     /**
@@ -44,7 +43,7 @@ public class InfrastructureValueSet {
      * @throws IncompatibleInfrastructureParameterException if the parameter set contains a param with a different
      * type.
      */
-    public InfrastructureValueSet(Type type, Set<InfrastructureParameter> infrastructureParameters) throws
+    public InfrastructureValueSet(String type, Set<InfrastructureParameter> infrastructureParameters) throws
             IncompatibleInfrastructureParameterException {
         this.type = type;
         Optional<InfrastructureParameter> incompatibleParam = infrastructureParameters.stream()
@@ -57,11 +56,11 @@ public class InfrastructureValueSet {
         this.values.addAll(infrastructureParameters);
     }
 
-    public Type getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(String type) {
         this.type = type;
     }
 

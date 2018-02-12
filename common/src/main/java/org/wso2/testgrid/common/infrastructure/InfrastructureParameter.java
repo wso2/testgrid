@@ -22,10 +22,9 @@ package org.wso2.testgrid.common.infrastructure;
 import org.wso2.testgrid.common.AbstractUUIDEntity;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -64,9 +63,8 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
     @Column
     private String name;
 
-    @Enumerated(EnumType.STRING)
     @Column
-    private Type type;
+    private String type;
 
     @Column
     private String properties;
@@ -74,7 +72,7 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
     @Column(name = "ready_for_testgrid")
     private boolean readyForTestGrid;
 
-    public InfrastructureParameter(String name, Type type, String properties, boolean readyForTestGrid) {
+    public InfrastructureParameter(String name, String type, String properties, boolean readyForTestGrid) {
         this.name = name;
         this.type = type;
         this.properties = properties;
@@ -97,11 +95,11 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
         this.name = name;
     }
 
-    public Type getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(String type) {
         this.type = type;
     }
 
@@ -182,7 +180,7 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
 
         return readyForTestGrid == that.readyForTestGrid
                 && name.equals(that.name)
-                && type == that.type
+                && Objects.equals(type, that.type)
                 && (properties != null ? properties.equals(that.properties) : that.properties == null);
     }
 
@@ -193,34 +191,6 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
         result = 31 * result + (properties != null ? properties.hashCode() : 0);
         result = 31 * result + (readyForTestGrid ? 1 : 0);
         return result;
-    }
-
-    /**
-     * Enumeration of the possible infrastructure parameter values.
-     */
-    public enum Type {
-        OPERATING_SYSTEM("operating_system"),
-        DATABASE("database"),
-        DBEngine("DBEngine"),
-        DBEngineVersion("DBEngineVersion"),
-        JDK("JDK");
-
-        private final String name;
-
-        /**
-         * Sets the name of the type.
-         *
-         * @param name type name
-         */
-        Type(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return this.name;
-        }
-
     }
 
 }
