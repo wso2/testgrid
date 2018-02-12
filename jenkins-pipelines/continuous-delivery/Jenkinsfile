@@ -21,7 +21,7 @@ node {
         try {
             timeout(time: 1, unit: 'HOURS') {
                 userInput = input (
-                        id: 'Proceed1', message: 'Deploy to Prod environment?', parameters: [
+                        message: 'Deploy to Prod environment?', parameters: [
                         [$class: 'BooleanParameterDefinition', defaultValue: true, description: '', name: 'Please confirm you agree with this.']
                 ])
             }
