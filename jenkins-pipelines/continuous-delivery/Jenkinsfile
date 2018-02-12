@@ -13,13 +13,13 @@ node {
     stage('Deploy to Prod'){
         def userInput
         mail (
-            to: "${TEAM_MEMBERS}",
+            to: "${TEAM_MEMBERS},builder@wso2.org",
             subject: "Job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) is waiting for input",
             body: "Hi team,\nLatest artifacts have been deployed to TestGrid-DEV." +
-                "\nPlease have a round of tests and visit ${env.BUILD_URL} to approve/decline deploying to TestGrid-PROD." +
-                "\nYou have ${TIMEOUT_HOURS} hours left!\n\nThanks!");
+                "\nPlease do a round of tests and visit ${env.BUILD_URL} to approve/decline deploying to TestGrid-PROD." +
+                "\nYou have 1 hour left!\n\nThanks!");
         try {
-            timeout(time: "${TIMEOUT_HOURS}" as Integer, unit: 'HOURS') {
+            timeout(time: 1, unit: 'HOURS') {
                 userInput = input (
                         id: 'Proceed1', message: 'Deploy to Prod environment?', parameters: [
                         [$class: 'BooleanParameterDefinition', defaultValue: true, description: '', name: 'Please confirm you agree with this.']
