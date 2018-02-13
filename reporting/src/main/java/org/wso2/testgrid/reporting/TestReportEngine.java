@@ -26,6 +26,7 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.model.GroupBy;
 import org.wso2.testgrid.reporting.model.PerAxisHeader;
 import org.wso2.testgrid.reporting.model.PerAxisSummary;
@@ -556,18 +557,12 @@ public class TestReportEngine {
      */
     private List<ReportElement> constructReportElements(Product product, AxisColumn groupByAxisColumn) {
         List<ReportElement> reportElements = new ArrayList<>();
-
-        // Deployment patterns
-        List<DeploymentPattern> deploymentPatterns = product.getDeploymentPatterns();
-        for (DeploymentPattern deploymentPattern : deploymentPatterns) {
-
-            // Test plans
-            List<TestPlan> testPlans = deploymentPattern.getTestPlans();
-            for (TestPlan testPlan : testPlans) {
-                List<ReportElement> reportElementsForTestPlan = createReportElementsForTestPlan(testPlan,
-                        deploymentPattern, groupByAxisColumn);
-                reportElements.addAll(reportElementsForTestPlan);
-            }
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
+        for (TestPlan testPlan : testPlans) {
+            List<ReportElement> reportElementsForTestPlan = createReportElementsForTestPlan(testPlan,
+                    testPlan.getDeploymentPattern(), groupByAxisColumn);
+            reportElements.addAll(reportElementsForTestPlan);
         }
         return reportElements;
     }
