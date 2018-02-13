@@ -29,6 +29,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Paths;
 
 /**
  * This class is responsible for Executing TestNG tests.
@@ -47,7 +48,7 @@ public class TestNgExecutor extends TestExecutor {
 
         TestNG testng = new TestNG();
         testng.setTestJar(jarFilePath);
-        testng.setOutputDirectory(testsLocation + "/Results/TestNG/" + jarName);
+        testng.setOutputDirectory(Paths.get(testsLocation, "Results", "TestNG" + jarName).toString());
         testng.run();
     }
 

@@ -25,6 +25,7 @@ import org.wso2.testgrid.automation.TestEngine;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,29 +51,25 @@ public class JMeterTestReader implements TestReader {
      */
     private List<Test> processTestStructure(File file, TestScenario scenario) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
-        File tests = new File(file.getAbsolutePath() +
-                File.separator + JMETER_TEST_PATH);
+        File tests = new File(Paths.get(file.getAbsolutePath(), JMETER_TEST_PATH).toString());
         if (tests.exists()) {
             List<String> scripts = Arrays.asList(ArrayUtils.nullToEmpty(tests.list()));
             List<String> jmxList = scripts.stream()
                     .filter(x -> x.endsWith(JMTER_SUFFIX))
-                    .map(x -> file.getAbsolutePath() +
-                            File.separator + JMETER_TEST_PATH + File.separator + x)
+                    .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
                     .sorted()
                     .collect(Collectors.toList());
 
             Test test = new Test(scenario.getName(), TestEngine.JMETER, jmxList, scenario);
             scripts.stream()
                     .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(PRE_STRING))
-                    .map(x -> file.getAbsolutePath() +
-                            File.separator + JMETER_TEST_PATH + File.separator + x)
+                    .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
                     .findFirst()
                     .ifPresent(test::setPreScenarioScript);
 
             scripts.stream()
                     .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(POST_STRING))
-                    .map(x -> file.getAbsolutePath() +
-                            File.separator + JMETER_TEST_PATH + File.separator + x)
+                    .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
                     .findFirst()
                     .ifPresent(test::setPostScenarioScript);
             testsList.add(test);
