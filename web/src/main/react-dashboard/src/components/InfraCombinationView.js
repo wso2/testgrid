@@ -61,6 +61,7 @@ class InfraCombinationView extends Component {
         var url = this.baseURL + "/api/test-plans/history/" + this.props.active.reducer.currentInfra.testPlanId;
         fetch(url, {
             method: "GET",
+            credentials: 'same-origin',
             headers: {
                 'Accept': 'application/json'
             }

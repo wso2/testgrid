@@ -18,6 +18,8 @@
 
 package org.wso2.testgrid.web.sso;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.web.utils.ConfigurationContext;
 import org.wso2.testgrid.web.utils.Constants;
@@ -36,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
  * This class check whether a session exists for the user and do the needfuls accordingly.
  */
 public class SSOSessionCheckFilter implements Filter {
+    private static final Logger logger = LoggerFactory.getLogger(SSOSessionCheckFilter.class);
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -48,6 +51,16 @@ public class SSOSessionCheckFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
+        //Skip checking for session if disabled in property file.
+        try {
+            if (ConfigurationContext.getProperty(Constants.PROPERTYNAME_ENABLE_SSO).equals("false")) {
+                filterChain.doFilter(servletRequest, servletResponse);
+            }
+        } catch (TestGridException e) {
+            logger.error("Error occurred while checking if SSO is enabled in Testgrid property file " +
+                    Constants.WEB_PROPERTY_FILE_NAME, e);
+        }
+
         String path = ((HttpServletRequest) servletRequest).getRequestURI();
         if (isSecuredAPI(path)) {
             Boolean isSessionValid = ((HttpServletRequest) servletRequest).isRequestedSessionIdValid();
@@ -74,7 +87,7 @@ public class SSOSessionCheckFilter implements Filter {
     private boolean isSecuredAPI(String path) {
         return !path.startsWith(Constants.LOGIN_URI) &&
                 !path.startsWith(Constants.STATIC_DATA_URI) &&
-                !path.startsWith(Constants.BACKEND_APIS_URI);
+                !path.startsWith(Constants.ACS_URI);
     }
 
     @Override

@@ -53,6 +53,7 @@ class ProductStatusView extends Component {
     var url = this.baseURL + '/api/products/product-status'
     fetch(url, {
       method: "GET",
+      credentials: 'same-origin',
       headers: {
         'Accept': 'application/json'
       }

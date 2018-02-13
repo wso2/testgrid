@@ -55,6 +55,7 @@ class DeploymentPatternView extends Component {
     var url = this.baseURL + '/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
     fetch(url, {
       method: "GET",
+      credentials: 'same-origin',
       headers: {
         'Accept': 'application/json'
       }

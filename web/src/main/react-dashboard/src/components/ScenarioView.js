@@ -51,6 +51,7 @@ class ScenarioView extends Component {
 
         fetch(url, {
             method: "GET",
+            credentials: 'same-origin',
             headers: {
                 'Accept': 'application/json'
             }
