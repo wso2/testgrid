@@ -1,0 +1,61 @@
+################################################################################
+#   Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved
+#
+#   Licensed under the Apache License, Version 2.0 (the \"License\");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an \"AS IS\" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+################################################################################
+
+# TestGrid Test Configuration Parameters
+# TODO use dash as the separator instead of camelCase.
+version: '0.9'
+infrastructureConfig:
+  iacProvider: CLOUDFORMATION
+  infrastructureProvider: SHELL
+  containerOrchestrationEngine: None
+  parameters:
+    - JDK : ORACLE_JDK8
+  provisioners:
+    - name: 01-two-node-deployment
+      description: Provision Infra for a two node IS cluster
+      dir: .
+      scripts:
+        - name: infra-for-local-is-deployment
+          description: Creates infrastructure for a IS node deployment.
+          type: SHELL
+          phase: CREATE
+          file: infra-provision.sh
+          inputParameters:
+        - name: destroy
+          file: infra-destroy.sh
+          type: SHELL
+          phase: DESTROY
+#  inputParameters:
+#    - name : ami_id
+#      type : <list>
+#    - name : sshKey
+#      type : <string>
+scenarioConfig:
+  scenarios:
+    -  "scenario01"
+deploymentConfig:
+  deploymentPatterns:
+    - name: 01-testgrid-tomcat-deployment
+      description: Deploys a Tomcat in AWS
+      dir: .
+#      inputsForInfrastructurefile:
+#          - requiredVMCount: 2
+      scripts:
+        - type: SHELL
+          description: Do a IS two node deployment.
+          file: "deploy.sh"
+          name: "deploy"
+          phase: CREATE

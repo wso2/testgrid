@@ -7,8 +7,8 @@
       <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
         <collectionProp name="Arguments.arguments">
-          <elementProp name="tomcat_host2" elementType="Argument">
-            <stringProp name="Argument.name">tomcat_host2</stringProp>
+          <elementProp name="tomcat_host" elementType="Argument">
+            <stringProp name="Argument.name">tomcat_host</stringProp>
             <stringProp name="Argument.value">http://35.153.166.223:8081</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
