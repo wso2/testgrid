@@ -18,8 +18,8 @@
 package org.wso2.testgrid.common.config;
 
 /**
- * Represents a given test-plan that'll be read to run a
- * given test-run.
+ * Represents a given test-plan that'll be read to orchestrate a
+ * test-run.
  *
  * @since 1.0.0
  */
