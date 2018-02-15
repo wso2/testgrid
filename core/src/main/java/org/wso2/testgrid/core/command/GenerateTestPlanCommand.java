@@ -53,6 +53,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
+
 /**
  * Responsible for generating the infrastructure plan and persisting them in the file system.
  *
@@ -213,31 +215,19 @@ public class GenerateTestPlanCommand implements Command {
      */
     private String createTestPlanGenDirectory(Product product) throws CommandExecutionException {
         try {
-            String directoryName = product.getId();
+            String directoryName = product.getName();
             String testGridHome = TestGridUtil.getTestGridHomePath();
-            Path directory = Paths.get(testGridHome, directoryName).toAbsolutePath();
+            Path directory = Paths.get(testGridHome, directoryName, PRODUCT_TEST_PLANS_DIR).toAbsolutePath();
 
             // if the directory exists, remove it
             removeDirectories(directory);
 
-            logger.info(StringUtil.concatStrings("Creating test directory : ", directory.toString()));
-            Path createdDirectory = createDirectories(directory);
-            logger.info(StringUtil.concatStrings("Directory created : ", createdDirectory.toAbsolutePath().toString()));
-            return createdDirectory.toAbsolutePath().toString();
+            Path createdDirectory = Files.createDirectories(directory).toAbsolutePath();
+            logger.info(StringUtil.concatStrings("Test plans dir: ", createdDirectory.toString()));
+            return createdDirectory.toString();
         } catch (IOException e) {
             throw new CommandExecutionException("Error in creating infra generation directory", e);
         }
-    }
-
-    /**
-     * Creates the given directory structure.
-     *
-     * @param directory directory structure to create
-     * @return created directory structure
-     * @throws IOException thrown when error on creating directory structure
-     */
-    private Path createDirectories(Path directory) throws IOException {
-        return Files.createDirectories(directory.toAbsolutePath());
     }
 
     /**
