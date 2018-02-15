@@ -64,12 +64,12 @@ public class CommandHandler extends HelpCommand {
     @Option(name = "-help",
             usage = "Show help",
             hidden = true,
-            aliases = {"--help", "-h"})
+            aliases = { "--help", "-h" })
     private boolean help = false;
     @Option(name = "--testgrid-release-version",
             usage = "Show version",
             hidden = true,
-            aliases = {"-r"})
+            aliases = { "-r" })
     private boolean version = false;
 
     /**
@@ -103,14 +103,14 @@ public class CommandHandler extends HelpCommand {
 
         if (version) {
             final String ls = System.lineSeparator();
-            String versionBuilder = "WSO2 Deployment Monitor " + getVersion() + ls +
-                                    "Deployment Monitor Home: " +
-                                    System.getProperty("deployment.monitor.home", "<unknown>") + ls +
-                                    "Java version: " + System.getProperty("java.version", "<unknown>") + ls +
-                                    "Java home: " + System.getProperty("java.home", "<unknown>") + ls +
-                                    "OS name: \"" + SystemUtils.OS_NAME +
-                                    "\", version: \"" + SystemUtils.OS_VERSION +
-                                    "\", arch: \"" + SystemUtils.OS_ARCH + ls;
+            String versionBuilder = "WSO2 TestGrid " + getVersion() + ls +
+                    "TestGrid Home: " +
+                    System.getProperty("testgrid.home", "<unknown>") + ls +
+                    "Java version: " + System.getProperty("java.version", "<unknown>") + ls +
+                    "Java home: " + System.getProperty("java.home", "<unknown>") + ls +
+                    "OS name: \"" + SystemUtils.OS_NAME +
+                    "\", version: \"" + SystemUtils.OS_VERSION +
+                    "\", arch: \"" + SystemUtils.OS_ARCH + ls;
 
             log.info(versionBuilder);
             return;
