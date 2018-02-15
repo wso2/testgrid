@@ -21,10 +21,10 @@ package org.wso2.testgrid.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
-import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
 import org.wso2.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
@@ -57,12 +57,13 @@ public class TestPlanExecutor {
      * @param testPlan an instance of {@link TestPlan} in which the tests should be executed
      * @throws TestPlanExecutorException thrown when error on executing test plan
      */
-    public void runTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws TestPlanExecutorException {
+    public void runTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
+            throws TestPlanExecutorException {
         // Deployment preparation.
-        setupInfrastructure(infrastructure, testPlan);
+        setupInfrastructure(infrastructureConfig, testPlan);
 
         // Create and set deployment.
-        Deployment deployment = createDeployment(infrastructure, testPlan);
+        Deployment deployment = createDeployment(infrastructureConfig, testPlan);
         testPlan.setDeployment(deployment);
 
         // Run test scenarios.
@@ -83,36 +84,36 @@ public class TestPlanExecutor {
         } else {
             setTestPlanStatus(testPlan, Status.SUCCESS);
         }
-        destroyInfrastructure(infrastructure, testPlan);
+        destroyInfrastructure(infrastructureConfig, testPlan);
     }
 
     /**
-     * Creates an instance of {@link Deployment} for the given {@link Infrastructure}.
+     * Creates an instance of {@link Deployment} for the given {@link InfrastructureConfig}.
      *
-     * @param infrastructure infrastructure to create the deployment
-     * @param testPlan       test plan
+     * @param infrastructureConfig infrastructure to create the deployment
+     * @param testPlan             test plan
      * @return created {@link Deployment}
      * @throws TestPlanExecutorException thrown when error on creating deployment
      */
-    private Deployment createDeployment(Infrastructure infrastructure, TestPlan testPlan)
+    private Deployment createDeployment(InfrastructureConfig infrastructureConfig, TestPlan testPlan)
             throws TestPlanExecutorException {
         try {
             return DeployerFactory.getDeployerService(testPlan).deploy(testPlan.getDeployment());
         } catch (TestGridDeployerException e) {
             setTestPlanStatus(testPlan, Status.FAIL);
-            destroyInfrastructure(infrastructure, testPlan);
+            destroyInfrastructure(infrastructureConfig, testPlan);
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Exception occurred while running the deployment for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan"), e);
         } catch (DeployerInitializationException e) {
             setTestPlanStatus(testPlan, Status.FAIL);
-            destroyInfrastructure(infrastructure, testPlan);
+            destroyInfrastructure(infrastructureConfig, testPlan);
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Unable to locate a Deployer Service implementation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan '"), e);
         } catch (UnsupportedDeployerException e) {
             setTestPlanStatus(testPlan, Status.FAIL);
-            destroyInfrastructure(infrastructure, testPlan);
+            destroyInfrastructure(infrastructureConfig, testPlan);
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error occurred while running deployment for deployment pattern '",
                             testPlan.getDeploymentPattern(), "' in TestPlan"), e);
@@ -120,24 +121,24 @@ public class TestPlanExecutor {
     }
 
     /**
-     * Sets up infrastructure for the given {@link Infrastructure}.
+     * Sets up infrastructure for the given {@link InfrastructureConfig}.
      *
-     * @param infrastructure infrastructure to set up
-     * @param testPlan       test plan
+     * @param infrastructureConfig infrastructure to set up
+     * @param testPlan             test plan
      * @throws TestPlanExecutorException thrown when error on setting up infrastructure
      */
-    private void setupInfrastructure(Infrastructure infrastructure, TestPlan testPlan)
+    private void setupInfrastructure(InfrastructureConfig infrastructureConfig, TestPlan testPlan)
             throws TestPlanExecutorException {
         try {
-            if (infrastructure == null) {
+            if (infrastructureConfig == null) {
                 setTestPlanStatus(testPlan, Status.FAIL);
                 throw new TestPlanExecutorException(StringUtil
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
             }
-            Deployment deployment = InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
-                    .createInfrastructure(infrastructure, testPlan.getInfraRepoDir());
-            deployment.setName(infrastructure.getName());
+            Deployment deployment = InfrastructureProviderFactory.getInfrastructureProvider(infrastructureConfig)
+                    .createInfrastructure(infrastructureConfig, testPlan.getInfraRepoDir());
+            deployment.setName(infrastructureConfig.getProvisioners().get(0).getName());
             deployment.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepoDir()).toString());
             testPlan.setDeployment(deployment);
         } catch (TestGridInfrastructureException e) {
@@ -154,22 +155,22 @@ public class TestPlanExecutor {
     }
 
     /**
-     * Destroys the given {@link Infrastructure}.
+     * Destroys the given {@link InfrastructureConfig}.
      *
-     * @param infrastructure infrastructure to delete
-     * @param testPlan       test plan
+     * @param infrastructureConfig infrastructure to delete
+     * @param testPlan             test plan
      * @throws TestPlanExecutorException thrown when error on destroying infrastructure
      */
-    private void destroyInfrastructure(Infrastructure infrastructure, TestPlan testPlan)
+    private void destroyInfrastructure(InfrastructureConfig infrastructureConfig, TestPlan testPlan)
             throws TestPlanExecutorException {
         try {
-            if (infrastructure == null || testPlan.getDeployment() == null) {
+            if (infrastructureConfig == null || testPlan.getDeployment() == null) {
                 throw new TestPlanExecutorException(StringUtil
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
             }
-            InfrastructureProviderFactory.getInfrastructureProvider(infrastructure)
-                    .removeInfrastructure(infrastructure, testPlan.getInfraRepoDir());
+            InfrastructureProviderFactory.getInfrastructureProvider(infrastructureConfig)
+                    .removeInfrastructure(infrastructureConfig, testPlan.getInfraRepoDir());
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",

@@ -25,19 +25,19 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeploymentPattern;
-import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
-import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.TestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestGridLoggingException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.core.TestConfig;
 import org.wso2.testgrid.core.TestPlanExecutor;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -68,24 +68,24 @@ public class RunTestPlanCommand implements Command {
 
     @Option(name = "--product",
             usage = "Product Name",
-            aliases = {"-p"},
+            aliases = { "-p" },
             required = true)
     private String productName = "";
     @Option(name = "--infraRepo",
             usage = "Location of Infra plans. "
                     + "Under this location, there should be a Infrastructure/ folder."
                     + "Assume this location is the test-grid-is-resources",
-            aliases = {"-ir"},
+            aliases = { "-ir" },
             required = true)
     private String infraRepo = "";
     @Option(name = "--deploymentRepo",
             usage = "Location of the deployment scripts. ",
-            aliases = {"-dr"},
+            aliases = { "-dr" },
             required = true)
     private String deploymentRepo = "";
     @Option(name = "--scenarioRepo",
             usage = "scenario repo directory. Assume this location is the test-grid-is-resources",
-            aliases = {"-sr"},
+            aliases = { "-sr" },
             required = true)
     private String scenarioRepoDir = "";
 
@@ -102,36 +102,28 @@ public class RunTestPlanCommand implements Command {
                         product));
                 return;
             }
-            // Get test config
-            TestConfig testConfig = FileUtil.readConfigurationFile(testPlanYAMLFilePath.get(), TestConfig.class);
+            TestPlan testPlan = FileUtil.readConfigurationFile(testPlanYAMLFilePath.get(), TestPlan.class);
 
             // Delete test config YAML file. If the directory is empty delete the directory as well.
             Path testPlanYAMLFilePathLocation = Paths.get(testPlanYAMLFilePath.get());
             deleteFile(testPlanYAMLFilePathLocation);
             deleteParentDirectoryIfEmpty(testPlanYAMLFilePathLocation);
 
-            // Create infrastructure from config
-            Infrastructure infrastructure = testConfig.getInfrastructure();
-            infrastructure.setInfraParams(testConfig.getInfraParams().get(0));
-
-            // Create or get deployment pattern
-            DeploymentPattern deploymentPattern = getDeploymentPattern(product,
-                    testConfig.getDeploymentPatterns().get(0));
+            InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
+            DeploymentPattern deploymentPattern = getDeploymentPattern(product, getDeploymentPatternName(testPlan));
 
             // Generate test plan from config
-            TestPlan testPlan = generateTestPlan(deploymentPattern, testConfig, infraRepo, deploymentRepo,
-                    scenarioRepoDir);
+            org.wso2.testgrid.common.TestPlan testPlanEntity = getTestPlanEntity(deploymentPattern, testPlan, infraRepo,
+                    deploymentRepo, scenarioRepoDir);
 
-            //Set the log file path
-            LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlan));
+            LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlanEntity));
 
             // Product, deployment pattern, test plan and test scenarios should be persisted
             // Test plan status should be changed to running
-            testPlan.setStatus(Status.RUNNING);
-            testPlan = persistTestPlan(testPlan);
+            testPlanEntity.setStatus(Status.RUNNING);
+            testPlanEntity = persistTestPlan(testPlanEntity);
 
-            // Execute test plan
-            executeTestPlan(testPlan, infrastructure);
+            executeTestPlan(testPlanEntity, infrastructureConfig);
         } catch (IOException e) {
             throw new CommandExecutionException("Error in reading file generated config file", e);
         } catch (TestGridLoggingException e) {
@@ -140,9 +132,30 @@ public class RunTestPlanCommand implements Command {
     }
 
     /**
+     * Return the deployment pattern name under the DeploymentConfig of a {@link TestPlan}.
+     * If not found, return the provisioner name under Infrastructure.
+     *
+     * @param testPlan the test-plan config
+     * @return the deployment pattern name.
+     */
+    private String getDeploymentPatternName(TestPlan testPlan) {
+        List<DeploymentConfig.DeploymentPattern> deploymentPatterns = testPlan.getDeploymentConfig()
+                .getDeploymentPatterns();
+        if (!deploymentPatterns.isEmpty()) {
+            return deploymentPatterns.get(0).getName();
+        }
+        List<InfrastructureConfig.Provisioner> provisioners = testPlan.getInfrastructureConfig().getProvisioners();
+        if (!provisioners.isEmpty()) {
+            return provisioners.get(0).getName();
+        }
+
+        return TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME;
+    }
+
+    /**
      * Returns the product for the given parameters.
      *
-     * @param productName    product name
+     * @param productName product name
      * @return an instance of {@link Product} for the given parameters
      * @throws CommandExecutionException thrown when error on retrieving product
      */
@@ -230,7 +243,8 @@ public class RunTestPlanCommand implements Command {
      * @return persisted test plan
      * @throws CommandExecutionException thrown when error on product test plan
      */
-    private TestPlan persistTestPlan(TestPlan testPlan) throws CommandExecutionException {
+    private org.wso2.testgrid.common.TestPlan persistTestPlan(org.wso2.testgrid.common.TestPlan testPlan)
+            throws CommandExecutionException {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             return testPlanUOW.persistTestPlan(testPlan);
@@ -240,15 +254,16 @@ public class RunTestPlanCommand implements Command {
     }
 
     /**
-     * This method triggers the execution of a {@link TestPlan}.
+     * This method triggers the execution of a {@link org.wso2.testgrid.common.config.TestPlan}.
      *
      * @param testPlan test plan to execute
      * @throws CommandExecutionException thrown when error on executing test plan
      */
-    private void executeTestPlan(TestPlan testPlan, Infrastructure infrastructure) throws CommandExecutionException {
+    private void executeTestPlan(org.wso2.testgrid.common.TestPlan testPlan, InfrastructureConfig infrastructureConfig)
+            throws CommandExecutionException {
         try {
             TestPlanExecutor testPlanExecutor = new TestPlanExecutor();
-            testPlanExecutor.runTestPlan(testPlan, infrastructure);
+            testPlanExecutor.runTestPlan(testPlan, infrastructureConfig);
         } catch (TestPlanExecutorException e) {
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan ", testPlan), e);
@@ -262,63 +277,68 @@ public class RunTestPlanCommand implements Command {
      * @return log file path
      * @throws TestGridLoggingException thrown when error on deriving log file path
      */
-    private String deriveLogFilePath(TestPlan testPlan) throws TestGridLoggingException {
+    private String deriveLogFilePath(org.wso2.testgrid.common.TestPlan testPlan) throws TestGridLoggingException {
         try {
             Path testRunDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
             return testRunDirectory.resolve(TestGridConstants.TEST_LOG_FILE_NAME).toString();
         } catch (TestGridException e) {
             throw new TestGridLoggingException(
                     "Error in getting the test run artifacts directory location " +
-                    "([PRODUCT_NAME_VERSION_CHANNEL]/[DEPLOYMENT_PATTERN_NAME]/[INFRA_PARAM_UUID]/[TEST_RUN_NUMBER]");
+                            "([PRODUCT_NAME_VERSION_CHANNEL]/[DEPLOYMENT_PATTERN_NAME]/[INFRA_PARAM_UUID"
+                            + "]/[TEST_RUN_NUMBER]");
         }
     }
 
     /**
      * This method generates TestPlan object model that from the given input parameters.
+     * TODO: Refactor this method. It takes five parameters as inputs ATM which is quite unusual.
      *
      * @param deploymentPattern deployment pattern
-     * @param testConfig        testConfig object
+     * @param testPlan          testPlan object
      * @param infraRepoDir      infrastructure repo directory
      * @param deploymentRepo    deployment script directory
      * @param testRepoDir       test repo directory
      * @return TestPlan object model
      */
-    private TestPlan generateTestPlan(DeploymentPattern deploymentPattern, TestConfig testConfig, String infraRepoDir,
-                                      String deploymentRepo, String testRepoDir) throws CommandExecutionException {
+    private org.wso2.testgrid.common.TestPlan getTestPlanEntity(DeploymentPattern deploymentPattern,
+            TestPlan testPlan, String infraRepoDir, String deploymentRepo, String testRepoDir)
+            throws CommandExecutionException {
         try {
-            String jsonInfraParams = new ObjectMapper().writeValueAsString(testConfig.getInfraParams().get(0));
-            TestPlan testPlan = new TestPlan();
-            testPlan.setStatus(Status.PENDING);
-            testPlan.setInfraRepoDir(infraRepoDir);
-            testPlan.setTestRepoDir(testRepoDir);
-            testPlan.setDeploymentRepoDir(deploymentRepo);
-            testPlan.setDeploymentPattern(deploymentPattern);
-            // The default provider is set to AWS_CF, if provider is Shell overriding the value
-            if (testConfig.getInfrastructure().getProviderType().equals(Infrastructure.ProviderType.SHELL)) {
-                testPlan.setDeployerType(TestPlan.DeployerType.SHELL);
+            String jsonInfraParams = new ObjectMapper()
+                    .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
+            org.wso2.testgrid.common.TestPlan testPlanEntity = new org.wso2.testgrid.common.TestPlan();
+            testPlanEntity.setStatus(Status.PENDING);
+            testPlanEntity.setInfraRepoDir(infraRepoDir);
+            testPlanEntity.setTestRepoDir(testRepoDir);
+            testPlanEntity.setDeploymentRepoDir(deploymentRepo);
+            testPlanEntity.setDeploymentPattern(deploymentPattern);
+            // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.
+            if (testPlan.getInfrastructureConfig().getInfrastructureProvider()
+                    == InfrastructureConfig.InfrastructureProvider.SHELL) {
+                testPlanEntity.setDeployerType(org.wso2.testgrid.common.TestPlan.DeployerType.SHELL);
             }
-            testPlan.setInfraParameters(jsonInfraParams);
-            deploymentPattern.addTestPlan(testPlan);
+            testPlanEntity.setInfraParameters(jsonInfraParams);
+            deploymentPattern.addTestPlan(testPlanEntity);
 
             // Set test run number
-            int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlan.getInfraParameters());
-            testPlan.setTestRunNumber(latestTestRunNumber + 1);
+            int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlanEntity.getInfraParameters());
+            testPlanEntity.setTestRunNumber(latestTestRunNumber + 1);
 
             // Set test scenarios
             List<TestScenario> testScenarios = new ArrayList<>();
-            for (String name : testConfig.getScenarios()) {
+            for (String name : testPlan.getScenarioConfig().getScenarios()) {
                 TestScenario testScenario = new TestScenario();
                 testScenario.setName(name);
-                testScenario.setTestPlan(testPlan);
+                testScenario.setTestPlan(testPlanEntity);
                 testScenario.setStatus(Status.PENDING);
                 testScenarios.add(testScenario);
             }
-            testPlan.setTestScenarios(testScenarios);
-            return testPlan;
+            testPlanEntity.setTestScenarios(testScenarios);
+            return testPlanEntity;
         } catch (JsonProcessingException e) {
             throw new CommandExecutionException(StringUtil
-                    .concatStrings("Error in preparing a JSON object from the given test plan infra parameters",
-                            testConfig.getInfraParams()), e);
+                    .concatStrings("Error in preparing a JSON object from the given test plan infra parameters: ",
+                            testPlan.getInfrastructureConfig().getParameters()), e);
         }
     }
 
@@ -362,15 +382,16 @@ public class RunTestPlanCommand implements Command {
      */
     private int getLatestTestRunNumber(DeploymentPattern deploymentPattern, String infraParams) {
         // Get test plans with the same infra param
-        List<TestPlan> testPlans = new ArrayList<>();
-        for (TestPlan testPlan : deploymentPattern.getTestPlans()) {
+        List<org.wso2.testgrid.common.TestPlan> testPlans = new ArrayList<>();
+        for (org.wso2.testgrid.common.TestPlan testPlan : deploymentPattern.getTestPlans()) {
             if (testPlan.getInfraParameters().equals(infraParams)) {
                 testPlans.add(testPlan);
             }
         }
 
         // Get the Test Plan with the latest test run number for the given infra combination
-        TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(TestPlan::getTestRunNumber));
+        org.wso2.testgrid.common.TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(
+                org.wso2.testgrid.common.TestPlan::getTestRunNumber));
 
         return latestTestPlan.getTestRunNumber();
     }
