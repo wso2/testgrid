@@ -60,11 +60,7 @@ public class JMeterResultCollector extends ResultCollector {
     public void sampleOccurred(SampleEvent sampleEvent) {
             super.sampleOccurred(sampleEvent);
             SampleResult result = sampleEvent.getResult();
-            String samplerData = result.getSamplerData();
 
-            if (samplerData.length() > FAILURE_MESSAGE_LIMIT) {
-                samplerData = result.getSamplerData().substring(0, FAILURE_MESSAGE_LIMIT)  + "\n log truncated...";
-            }
             String failureMessage = result.isSuccessful() ? "" :
                                     StringUtil.concatStrings("{ \"Response Data\": \"",
                                             result.getResponseDataAsString().replaceAll("\"", "\\\""),
@@ -73,7 +69,19 @@ public class JMeterResultCollector extends ResultCollector {
                                             "\", \"Response Message\": \"",
                                             result.getResponseMessage().replaceAll("\"", "\\\""),
                                             "\", \"Sampler Data\": \"",
-                                            samplerData.replaceAll("\"", "\\\""), "\"}");
+                                            result.getSamplerData().replaceAll("\"", "\\\""), "\"}");
+
+            //Log the test failure details to test-run.log
+            jmeterResultLogger.info(StringUtil.concatStrings(
+                    "Test case :", result.getSampleLabel(), " failed for scenario: ",
+                    testScenario.getName(), "\n", "Failure Message: ", failureMessage, "\"}"));
+
+            //Truncate the failure message if it exceeds the desired limit
+            if (failureMessage.length() > FAILURE_MESSAGE_LIMIT) {
+                failureMessage = StringUtil.concatStrings(
+                        failureMessage.substring(0, FAILURE_MESSAGE_LIMIT), "\nlog truncated...");
+            }
+
             // Add result to concurrent list
             TestCase testCase = new TestCase();
             testCase.setName(result.getSampleLabel());
@@ -81,10 +89,6 @@ public class JMeterResultCollector extends ResultCollector {
             testCase.setSuccess(result.isSuccessful());
             testCase.setFailureMessage(failureMessage);
             testScenario.addTestCase(testCase);
-            jmeterResultLogger.info(StringUtil.concatStrings("Test case :", result.getSampleLabel(),
-                    " failed for scenario: ", testScenario.getName(), "\n", failureMessage, "\", \"Sampler Data\": \"",
-                    result.getSamplerData().replaceAll("\"", "\\\""), "\"}"));
-
     }
 
     /**
