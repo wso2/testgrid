@@ -18,9 +18,9 @@
 package org.wso2.testgrid.infrastructure.providers;
 
 import org.wso2.testgrid.common.Deployment;
-import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.InfrastructureProvider;
-import org.wso2.testgrid.common.Script;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.infrastructure.aws.AWSManager;
 
@@ -41,26 +41,24 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean canHandle(Infrastructure infrastructure) {
+    public boolean canHandle(InfrastructureConfig infrastructureConfig) {
         //Check if scripts has a cloud formation script.
-        for (Script script : infrastructure.getScripts()) {
-            if (Script.ScriptType.CLOUD_FORMATION.equals(script.getScriptType()) &&
-                    (Infrastructure.ProviderType.AWS.equals(infrastructure.getProviderType()))) {
-                return true;
-            }
-        }
-        return false;
+        boolean isAWS =
+                infrastructureConfig.getInfrastructureProvider() == InfrastructureConfig.InfrastructureProvider.AWS;
+        boolean isCFN = infrastructureConfig.getIacProvider() == InfrastructureConfig.IACProvider.CLOUDFORMATION;
+        return isAWS && isCFN;
+
     }
 
     @Override
-    public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir)
+    public Deployment createInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir)
             throws TestGridInfrastructureException {
         AWSManager awsManager = new AWSManager(AWS_ACCESS_KEY, AWS_SECRET_KEY);
-        awsManager.init(infrastructure);
-        for (Script script : infrastructure.getScripts()) {
-            if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
-                infrastructure.getInfraParams().forEach((key, value) ->
-                        script.getScriptParameters().setProperty(key, (String) value));
+        awsManager.init(infrastructureConfig);
+        for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+            if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
+                infrastructureConfig.getParameters().forEach((key, value) ->
+                        script.getInputParameters().setProperty((String) key, (String) value));
                 return awsManager.createInfrastructure(script, infraRepoDir);
             }
         }
@@ -68,13 +66,13 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir)
+    public boolean removeInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir)
             throws TestGridInfrastructureException {
         AWSManager awsManager = new AWSManager(AWS_ACCESS_KEY, AWS_SECRET_KEY);
-        awsManager.init(infrastructure);
+        awsManager.init(infrastructureConfig);
         try {
-            for (Script script : infrastructure.getScripts()) {
-                if (script.getScriptType().equals(Script.ScriptType.CLOUD_FORMATION)) {
+            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+                if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
                     return awsManager.destroyInfrastructure(script);
                 }
             }

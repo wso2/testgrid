@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.infrastructure;
 
-import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.testgrid.common.exception.UnsupportedProviderException;
 
@@ -35,16 +35,16 @@ public class InfrastructureProviderFactory {
     /**
      * Returns a matching infrastructure provider to create the environment.
      *
-     * @param infrastructure an instance of the Infrastructure object
+     * @param infrastructureConfig an instance of the Infrastructure object
      * @return an instance of matching InfrastructureProvider
      */
-    public static InfrastructureProvider getInfrastructureProvider(Infrastructure infrastructure) throws
+    public static InfrastructureProvider getInfrastructureProvider(InfrastructureConfig infrastructureConfig) throws
             UnsupportedProviderException, InfrastructureProviderInitializationException {
-        String providerName = infrastructure.getProviderType().name();
+        String providerName = infrastructureConfig.getInfrastructureProvider().toString();
 
         for (InfrastructureProvider provider : providers) {
 
-            if (provider.canHandle(infrastructure)) {
+            if (provider.canHandle(infrastructureConfig)) {
                 try {
                     return provider.getClass().newInstance();
                 } catch (InstantiationException e) {

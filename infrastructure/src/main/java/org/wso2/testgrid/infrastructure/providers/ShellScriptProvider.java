@@ -21,10 +21,10 @@ package org.wso2.testgrid.infrastructure.providers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
-import org.wso2.testgrid.common.Infrastructure;
 import org.wso2.testgrid.common.InfrastructureProvider;
-import org.wso2.testgrid.common.Script;
 import org.wso2.testgrid.common.ShellExecutor;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 
@@ -44,12 +44,12 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean canHandle(Infrastructure infrastructure) {
-        return infrastructure.getProviderType().equals(Infrastructure.ProviderType.SHELL);
+    public boolean canHandle(InfrastructureConfig infrastructureConfig) {
+        return infrastructureConfig.getInfrastructureProvider() == InfrastructureConfig.InfrastructureProvider.SHELL;
     }
 
     @Override
-    public Deployment createInfrastructure(Infrastructure infrastructure, String infraRepoDir) throws
+    public Deployment createInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
             TestGridInfrastructureException {
         String testPlanLocation = Paths.get(infraRepoDir).toString();
 
@@ -57,17 +57,18 @@ public class ShellScriptProvider implements InfrastructureProvider {
         try {
             ShellExecutor executor = new ShellExecutor(null);
             executor.executeCommand("bash " + Paths
-                    .get(testPlanLocation, getScriptToExecute(infrastructure, Script.ScriptType.INFRA_CREATE)));
+                    .get(testPlanLocation, getScriptToExecute(infrastructureConfig, Script.Phase.CREATE)));
         } catch (CommandExecutionException e) {
-            throw new TestGridInfrastructureException("Exception occurred while executing the infra-create script " +
-                                                      "for deployment-pattern '" + infrastructure.getName() + "'" , e);
+            throw new TestGridInfrastructureException(String.format(
+                    "Exception occurred while executing the infra-create script for deployment-pattern '%s'",
+                    infrastructureConfig.getProvisioners().get(0).getName()), e);
         }
         return new Deployment();
     }
 
     @Override
-    public boolean removeInfrastructure(Infrastructure infrastructure, String infraRepoDir)
-    throws TestGridInfrastructureException {
+    public boolean removeInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir)
+            throws TestGridInfrastructureException {
         String testPlanLocation = Paths.get(infraRepoDir).toString();
 
         logger.info("Destroying test environment...");
@@ -75,21 +76,21 @@ public class ShellScriptProvider implements InfrastructureProvider {
         try {
 
             if (executor.executeCommand("bash " + Paths
-                    .get(testPlanLocation, getScriptToExecute(infrastructure, Script.ScriptType.INFRA_DESTROY)))) {
+                    .get(testPlanLocation, getScriptToExecute(infrastructureConfig, Script.Phase.DESTROY)))) {
                 return true;
             }
         } catch (CommandExecutionException e) {
             throw new TestGridInfrastructureException(
                     "Exception occurred while executing the infra-destroy script " + "for deployment-pattern '"
-                            + infrastructure.getName() + "'", e);
+                            + infrastructureConfig.getProvisioners().get(0).getName() + "'", e);
         }
         return false;
     }
 
-    private String getScriptToExecute(Infrastructure infrastructure, Script.ScriptType scriptType) {
-        for (Script script : infrastructure.getScripts()) {
-            if (scriptType.equals(script.getScriptType())) {
-                return script.getFilePath();
+    private String getScriptToExecute(InfrastructureConfig infrastructureConfig, Script.Phase phase) {
+        for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+            if (phase == script.getPhase()) {
+                return script.getFile();
             }
         }
         return null;
