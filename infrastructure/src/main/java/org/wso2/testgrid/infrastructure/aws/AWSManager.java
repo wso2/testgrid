@@ -42,6 +42,7 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -117,9 +118,11 @@ public class AWSManager {
 
         CreateStackRequest stackRequest = new CreateStackRequest();
         stackRequest.setStackName(cloudFormationName);
+        CloudFormationScriptPreprocessor cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
         try {
             String file = new String(Files.readAllBytes(Paths.get(infraRepoDir,
                     script.getFilePath())), StandardCharsets.UTF_8);
+            file = cfScriptPreprocessor.process(file);
             stackRequest.setTemplateBody(file);
             stackRequest.setParameters(getParameters(script));
 
