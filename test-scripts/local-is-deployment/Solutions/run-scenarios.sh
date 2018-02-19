@@ -19,4 +19,6 @@
 #
 # ----------------------------------------------------------------------------
 
+set -o xtrace
+
 echo "This is a Dummy Scenario execution scripts"

@@ -21,11 +21,11 @@
 
 # This script depends on curl and unzip, so make sure they are already installed.
 
+set -o xtrace
+
 echo "This is a Dummy Deployment creation scripts to deploy a standalone WSO2 Identity server"
 echo "Here the test infrastructure is your local machine."
 #if you do not have a account, please create a account at https://wso2.com/
-WSO2_USER=yasassri@wso2.com
-WSO2_PASSWORD=xxxxxxx
 DEPLOYMENT_EP_FILE_NAME=deployment_eps
 
 #echo "Downloading the IS 5.4.0 distribution"

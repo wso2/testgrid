@@ -17,6 +17,7 @@
  */
 package org.wso2.testgrid.common;
 
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;

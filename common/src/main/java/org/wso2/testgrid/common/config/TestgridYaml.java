@@ -14,26 +14,22 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
-package org.wso2.testgrid.common;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+package org.wso2.testgrid.common.config;
 
 /**
- * Class to maintain constants across modules.
+ * Represents the object model of testgrid.yaml config
+ * file. Testgrid.yaml describes a given Infrastructure,
+ * Deployment, or Scenario repository.
  *
- * @since 1.0.0
+ * This extends from {@link TestPlan} only for easier
+ * maintenance of code. The configuration syntax between a
+ * testgrid.yaml and its generated test-plans are quite same.
+ * Only difference is that
+ *
  */
-public class TestGridConstants {
-
-    // Logging constants
-    public static final String TEST_LOG_FILE_NAME = "test-run.log";
-    public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
-    public static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
-    public static final String TESTGRID_HOME_SYSTEM_PROPERTY = "testgrid.home";
-    public static final Path DEFAULT_TESTGRID_HOME = Paths.get(System.getProperty("user.home"), ".testgrid");
-
-    public static final String DEFAULT_DEPLOYMENT_PATTERN_NAME = "default";
+public class TestgridYaml extends TestPlan {
 
 }

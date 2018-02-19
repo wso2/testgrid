@@ -23,7 +23,11 @@
 
 # Populate the user.properties file
 
-cat deployment_eps > jmeter/user.properties
+set -o xtrace
 
-cd jmeter
+scriptDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+jmeterDir=${scriptDir}/scenarios/scenario01
+cat deployment_eps > ${jmeterDir}/user.properties
+
+cd ${jmeterDir}
 jmeter -n -t 01-TestTomCat.jmx -p user.properties -l log.jtl

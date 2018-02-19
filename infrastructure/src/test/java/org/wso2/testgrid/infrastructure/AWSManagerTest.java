@@ -30,6 +30,9 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
+import com.amazonaws.services.cloudformation.model.TemplateParameter;
+import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
+import com.amazonaws.services.cloudformation.model.ValidateTemplateResult;
 import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters;
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
@@ -41,8 +44,8 @@ import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.Deployment;
-import org.wso2.testgrid.common.Infrastructure;
-import org.wso2.testgrid.common.Script;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.infrastructure.aws.AWSManager;
 
@@ -71,7 +74,7 @@ public class AWSManagerTest extends PowerMockTestCase {
     private String mockStackName = "MockStack";
 
     @Test(description = "This test case tests creation of AWSManager object when AWS credentials are " +
-                        "set correctly.")
+            "set correctly.")
     public void testManagerCreation() throws Exception {
         //set environment variables for
         Map<String, String> map = new HashMap<>();
@@ -96,7 +99,7 @@ public class AWSManagerTest extends PowerMockTestCase {
     }
 
     @Test(description = "This test case tests infrastructure creation of AWSManager object given the " +
-                        "AWS CF template path.")
+            "AWS CF template path.")
     public void createInfrastructureTest() throws Exception {
         String outputKey = "PublicDNS";
         String outputValue = "TestDNS";
@@ -108,23 +111,25 @@ public class AWSManagerTest extends PowerMockTestCase {
         set(map);
         //create dummy script object
         Script script = new Script();
-        script.setScriptType(Script.ScriptType.CLOUD_FORMATION);
-        script.setFilePath(scriptFile);
+        script.setType(Script.ScriptType.CLOUDFORMATION);
+        script.setFile(scriptFile);
         script.setName(mockStackName);
         Properties scriptParameters = new Properties();
         scriptParameters.setProperty("EC2KeyPair", "test-grid.key");
-        script.setScriptParameters(scriptParameters);
-        //create dummy infrastructure object
-        Properties envScriptParameters = new Properties();
-        envScriptParameters.setProperty("AWSAccessKey", "AWS_KEY");
-        script.setEnvironmentScriptParameters(envScriptParameters);
-        Infrastructure infrastructure = new Infrastructure();
-        infrastructure.setName(patternName);
-        infrastructure.setScripts(Collections.singletonList(script));
+        script.setInputParameters(scriptParameters);
+
+        InfrastructureConfig infrastructureConfig = new InfrastructureConfig();
+        InfrastructureConfig.Provisioner provisioner = new InfrastructureConfig.Provisioner();
+        provisioner.setName(patternName);
+        provisioner.setScripts(Collections.singletonList(script));
+        infrastructureConfig.setProvisioners(Collections.singletonList(provisioner));
+
         File resourcePath = new File("src/test/resources");
         //Stack object with output object
         Stack stack = new Stack();
         stack.setStackName(mockStackName);
+
+        TemplateParameter parameter = new TemplateParameter().withParameterKey("AMI").withParameterKey("abc-1234");
 
         Output output = new Output();
         output.setOutputKey(outputKey);
@@ -136,10 +141,14 @@ public class AWSManagerTest extends PowerMockTestCase {
         //Mocking AWS SDK objects.
         DescribeStacksResult describeStacksResultMock = Mockito.mock(DescribeStacksResult.class);
         Mockito.when(describeStacksResultMock.getStacks()).thenReturn(Collections.singletonList(stack));
+        ValidateTemplateResult validateTemplateResult = Mockito.mock(ValidateTemplateResult.class);
+        Mockito.when(validateTemplateResult.getParameters()).thenReturn(Collections.singletonList(parameter));
 
         AmazonCloudFormationClientBuilder cloudFormationClientBuilderMock = PowerMockito
                 .mock(AmazonCloudFormationClientBuilder.class);
         AmazonCloudFormation cloudFormation = Mockito.mock(AmazonCloudFormation.class);
+        Mockito.when(cloudFormation.validateTemplate(Mockito.any(ValidateTemplateRequest.class)))
+                .thenReturn(Mockito.mock(ValidateTemplateResult.class));
         Mockito.when(cloudFormation.createStack(Mockito.any(CreateStackRequest.class)))
                 .thenReturn(Mockito.mock(CreateStackResult.class));
         Mockito.when(cloudFormation.describeStacks(Mockito.any(DescribeStacksRequest.class)))
@@ -159,7 +168,7 @@ public class AWSManagerTest extends PowerMockTestCase {
         PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
 
         AWSManager awsManager = new AWSManager(key, secret);
-        awsManager.init(infrastructure);
+        awsManager.init(infrastructureConfig);
         Deployment dep = awsManager.createInfrastructure(script, resourcePath.getAbsolutePath());
 
         Assert.assertNotNull(dep);
@@ -176,8 +185,8 @@ public class AWSManagerTest extends PowerMockTestCase {
         set(map);
         //create dummy script object
         Script script = new Script();
-        script.setScriptType(Script.ScriptType.CLOUD_FORMATION);
-        script.setFilePath(scriptFile);
+        script.setType(Script.ScriptType.CLOUDFORMATION);
+        script.setFile(scriptFile);
         script.setName(mockStackName);
 
         AmazonCloudFormationClientBuilder cloudFormationClientBuilderMock = PowerMockito
@@ -211,7 +220,7 @@ public class AWSManagerTest extends PowerMockTestCase {
         PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
 
         AWSManager awsManager = new AWSManager(key, secret);
-        awsManager.init(new Infrastructure());
+        awsManager.init(new InfrastructureConfig());
         awsManager.destroyInfrastructure(script);
     }
 

@@ -49,7 +49,8 @@ public class ShellDeployer implements DeployerService {
     public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
         logger.info("Performing the Deployment " + deployment.getName());
         try {
-        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
+            ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
+            // TODO: DEPLOY_SCRIPT_NAME is hard-coded. We should first find the script name in the DeploymentConfig
             if (!shellExecutor
                     .executeCommand("bash " + Paths.get(deployment.getDeploymentScriptsDir(), DEPLOY_SCRIPT_NAME))) {
                 throw new TestGridDeployerException("Error occurred while executing the deploy script");
