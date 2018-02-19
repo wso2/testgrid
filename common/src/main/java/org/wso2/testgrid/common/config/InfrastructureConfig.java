@@ -28,6 +28,8 @@ import java.util.Properties;
 /**
  * Defines a model object for a InfrastructureConfig.
  *
+ * @see DeploymentConfig
+ *
  * @since 1.0.0
  */
 public class InfrastructureConfig implements Serializable {
@@ -41,7 +43,9 @@ public class InfrastructureConfig implements Serializable {
     private List<Provisioner> provisioners;
 
     /**
-     * Defines the infrastructure provider types.
+     * Defines the infrastructure-as-Code provider types.
+     * This information is useful in case we need to pre-process
+     * the infrastructure scripts before invocation.
      *
      * @since 1.0.0
      */
@@ -63,6 +67,11 @@ public class InfrastructureConfig implements Serializable {
 
     /**
      * Defines the infrastructure provider types.
+     * This configuration is required in order for
+     * testgrid to figure out what information are
+     * needed to access the given cloud-provider.
+     *
+     * For example, AWS requires AWS credentials.
      *
      * @since 1.0.0
      */
@@ -150,8 +159,12 @@ public class InfrastructureConfig implements Serializable {
     }
 
     /**
-     * Provisioner has the same behavior as the {@link DeploymentConfig.DeploymentPattern}.
-     * todo
+     * Describe an infrastructure provisoner located within an infrastructure repository.
+     * A provisioner is responsible for talking to relevant infrastructure providers to
+     * provision an infrastructure.
+     *
+     * The provisioner has the same behavior as the {@link DeploymentConfig.DeploymentPattern}.
+     *
      */
     public static class Provisioner extends DeploymentConfig.DeploymentPattern {
         private static final long serialVersionUID = -3937792864579403430L;

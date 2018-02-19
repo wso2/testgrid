@@ -33,6 +33,7 @@ public class ScenarioConfig implements Serializable {
     private List<String> scenarios;
 
     /**
+     * This method returns the list of scenarios.
      *
      * @return List of test scenarios that need to be run in testgrid.
      */

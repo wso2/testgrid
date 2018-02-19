@@ -26,7 +26,20 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * todo.
+ * This describes a deployment repository.
+ *
+ * A deployment repository contain a set of deployment patterns.
+ * Testgrid need to know what's the deployer technology used, and
+ * how to execute those deploy scripts into a pre-provisioned infrastructure.
+ *
+ * Hence, this class represents the DeploymentConfig element of the testgrid.yaml.
+ * It is one of the top three elements we have:
+ *
+ * <li>
+ *     <ul>1. {@link InfrastructureConfig}</ul>
+ *     <ul>2. {@link DeploymentConfig}</ul>
+ *     <ul>3. {@link ScenarioConfig}</ul>
+ * </li>
  *
  */
 public class DeploymentConfig implements Serializable {
@@ -53,7 +66,10 @@ public class DeploymentConfig implements Serializable {
     }
 
     /**
-     * todo.
+     * Describes a given deployment pattern within a deployment repository.
+     * A deployment pattern config should describe its name, where it is located,
+     * and what scripts are there that can be executed.
+     *
       */
     public static class DeploymentPattern implements Serializable {
         private static final long serialVersionUID = 5484623288608884369L;
@@ -79,6 +95,12 @@ public class DeploymentConfig implements Serializable {
             this.description = description;
         }
 
+        /**
+         * Returns the relative location where the deployment pattern is located
+         * wrt to the Deployment repo directory.
+         *
+         * @return the deployment pattern directory
+         */
         public String getDir() {
             return dir;
         }
