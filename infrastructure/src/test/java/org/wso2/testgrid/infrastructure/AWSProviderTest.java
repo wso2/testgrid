@@ -44,6 +44,7 @@ import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -163,8 +164,11 @@ public class AWSProviderTest extends PowerMockTestCase {
 
         AWSProvider awsProvider = new AWSProvider();
         awsProvider.init();
+        TestPlan testPlan = new TestPlan();
+        testPlan.setInfrastructureConfig(infrastructureConfig);
+        testPlan.setInfraRepoDir(resourcePath.getAbsolutePath());
         InfrastructureProvisionResult provisionResult = awsProvider
-                .provision(infrastructureConfig, resourcePath.getAbsolutePath());
+                .provision(testPlan);
 
         Assert.assertNotNull(provisionResult);
         Assert.assertEquals(provisionResult.getHosts().size(), 3);

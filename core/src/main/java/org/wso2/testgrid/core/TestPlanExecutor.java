@@ -145,7 +145,7 @@ public class TestPlanExecutor {
                     .getInfrastructureProvider(infrastructureConfig);
             infrastructureProvider.init();
             InfrastructureProvisionResult provisionResult = infrastructureProvider
-                    .provision(infrastructureConfig, testPlan.getInfraRepoDir());
+                    .provision(testPlan);
 
             provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
             provisionResult.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepoDir()).toString());
