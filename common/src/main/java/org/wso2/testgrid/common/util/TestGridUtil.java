@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Product;
@@ -94,11 +94,11 @@ public final class TestGridUtil {
                 return true;
             } catch (IOException e) {
                 throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
-                                                    + command + "'", e);
+                        + command + "'", e);
             }
         } catch (IOException e) {
             throw new CommandExecutionException("Error occurred while executing the command '" + command + "', " +
-                                                "from directory '" + workingDirectory.getName() + "", e);
+                    "from directory '" + workingDirectory.getName() + "", e);
         }
     }
 
@@ -106,13 +106,14 @@ public final class TestGridUtil {
      * Executes a command.
      * Used to execute a script with given deployment details as environment variables.
      *
-     * @param command          Command to execute.
-     * @param workingDirectory Directory the command is executed.
-     * @param deployment       Deployment details for environment.
+     * @param command                  Command to execute.
+     * @param workingDirectory         Directory the command is executed.
+     * @param deploymentCreationResult Deployment creation output.
      * @return The output of script execution as a String.
      * @throws CommandExecutionException When there is an error executing the command.
      */
-    public static String executeCommand(String command, File workingDirectory, Deployment deployment)
+    public static String executeCommand(String command, File workingDirectory,
+            DeploymentCreationResult deploymentCreationResult)
             throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
@@ -126,11 +127,9 @@ public final class TestGridUtil {
             if (workingDirectory != null && workingDirectory.exists()) {
                 processBuilder.directory(workingDirectory);
             }
-            if (deployment != null) {
-                Map<String, String> environment = processBuilder.environment();
-                for (Host host : deployment.getHosts()) {
-                    environment.put(host.getLabel(), host.getIp());
-                }
+            Map<String, String> environment = processBuilder.environment();
+            for (Host host : deploymentCreationResult.getHosts()) {
+                environment.put(host.getLabel(), host.getIp());
             }
             process = processBuilder.start();
 
@@ -147,11 +146,11 @@ public final class TestGridUtil {
                 return result;
             } catch (IOException e) {
                 throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
-                                                    + command + "'", e);
+                        + command + "'", e);
             }
         } catch (IOException e) {
             throw new CommandExecutionException("Error occurred while executing the command '" + command + "', " +
-                                                "from directory '" + workingDirectory.getName() + "", e);
+                    "from directory '" + workingDirectory.getName() + "", e);
         }
     }
 

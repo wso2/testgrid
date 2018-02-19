@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 
 import java.io.File;
@@ -41,13 +42,14 @@ public class DeploymentUtil {
      * @return the deployment information ObjectMapper
      * @throws TestGridDeployerException If reading the deployment.json file fails
      */
-    public static Deployment getDeploymentInfo(String testPlanLocation) throws TestGridDeployerException {
+    public static DeploymentCreationResult getDeploymentCreationResult(String testPlanLocation)
+            throws TestGridDeployerException {
 
         ObjectMapper mapper = new ObjectMapper();
         File file = new File(Paths.get(testPlanLocation, DeployerConstants.PRODUCT_IS_DIR,
                 DeployerConstants.DEPLOYMENT_FILE).toString());
         try {
-            return mapper.readValue(file, Deployment.class);
+            return mapper.readValue(file, DeploymentCreationResult.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new TestGridDeployerException("Error occurred while reading the "

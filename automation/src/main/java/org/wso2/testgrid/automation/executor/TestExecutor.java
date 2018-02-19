@@ -19,7 +19,7 @@
 package org.wso2.testgrid.automation.executor;
 
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -36,11 +36,12 @@ public abstract class TestExecutor {
     /**
      * Executes a test based on the given script and the deployment.
      *
-     * @param script     test script
-     * @param deployment deployment to run the test script on
+     * @param script                   test script
+     * @param deploymentCreationResult deployment to run the test script on
      * @throws TestAutomationException thrown when error on executing the given test script
      */
-    public abstract void execute(String script, Deployment deployment) throws TestAutomationException;
+    public abstract void execute(String script, DeploymentCreationResult deploymentCreationResult)
+            throws TestAutomationException;
 
     /**
      * Initialises the test executor.
@@ -60,14 +61,15 @@ public abstract class TestExecutor {
      * <p>
      * <p>Used for test scenarios that have seperate scripts to create or destroy environments</p>
      *
-     * @param script     {@link Path} reference to the script.
-     * @param deployment {@link Deployment} object with current environment details.
+     * @param script                   {@link Path} reference to the script.
+     * @param deploymentCreationResult {@link DeploymentCreationResult} object with current environment details.
      * @return The response of script execution.
      * @throws TestAutomationException Throws exception when there is an error executing the script.
      */
-    public String executeEnvironmentScript(Path script, Deployment deployment) throws TestAutomationException {
+    public String executeEnvironmentScript(Path script, DeploymentCreationResult deploymentCreationResult)
+            throws TestAutomationException {
         try {
-            return TestGridUtil.executeCommand("bash " + script.toString(), null, deployment);
+            return TestGridUtil.executeCommand("bash " + script.toString(), null, deploymentCreationResult);
         } catch (CommandExecutionException e) {
             throw new TestAutomationException("Error executing " + script.toString(), e);
         }

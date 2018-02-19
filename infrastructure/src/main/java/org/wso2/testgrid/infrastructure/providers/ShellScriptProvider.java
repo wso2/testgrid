@@ -20,8 +20,8 @@ package org.wso2.testgrid.infrastructure.providers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
@@ -49,7 +49,13 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public Deployment createInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
+    public void init() throws TestGridInfrastructureException {
+        // empty
+    }
+
+    @Override
+    public InfrastructureProvisionResult provision(InfrastructureConfig infrastructureConfig, String infraRepoDir)
+            throws
             TestGridInfrastructureException {
         String testPlanLocation = Paths.get(infraRepoDir).toString();
 
@@ -60,14 +66,14 @@ public class ShellScriptProvider implements InfrastructureProvider {
                     .get(testPlanLocation, getScriptToExecute(infrastructureConfig, Script.Phase.CREATE)));
         } catch (CommandExecutionException e) {
             throw new TestGridInfrastructureException(String.format(
-                    "Exception occurred while executing the infra-create script for deployment-pattern '%s'",
+                    "Exception occurred while executing the infra-provision script for deployment-pattern '%s'",
                     infrastructureConfig.getProvisioners().get(0).getName()), e);
         }
-        return new Deployment();
+        return new InfrastructureProvisionResult();
     }
 
     @Override
-    public boolean removeInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir)
+    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir)
             throws TestGridInfrastructureException {
         String testPlanLocation = Paths.get(infraRepoDir).toString();
 

@@ -18,8 +18,8 @@
 
 package org.wso2.testgrid.infrastructure.providers;
 
-import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 
@@ -42,13 +42,19 @@ public class OpenStackProvider implements InfrastructureProvider {
     }
 
     @Override
-    public Deployment createInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
+    public void init() throws TestGridInfrastructureException {
+        // empty
+    }
+
+    @Override
+    public InfrastructureProvisionResult provision(InfrastructureConfig infrastructureConfig, String infraRepoDir)
+            throws
             TestGridInfrastructureException {
         return null;
     }
 
     @Override
-    public boolean removeInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
+    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
             TestGridInfrastructureException {
         return false;
     }

@@ -20,7 +20,7 @@ package org.wso2.testgrid.common.exception;
 
 /**
  * This is a custom exception class to throw exceptions when there's an issue in creating instances of
- * DeployerService.
+ * Deployer.
  */
 public class DeployerInitializationException extends Exception {
 

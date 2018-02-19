@@ -23,13 +23,22 @@ package org.wso2.testgrid.common.config;
  * Represents the object model of testgrid.yaml config
  * file. Testgrid.yaml describes a given Infrastructure,
  * Deployment, or Scenario repository.
- *
- * This extends from {@link TestPlan} only for easier
+ * <p>
+ * This extends from {@link org.wso2.testgrid.common.TestPlan} only for easier
  * maintenance of code. The configuration syntax between a
  * testgrid.yaml and its generated test-plans are quite same.
  * Only difference is that
- *
  */
-public class TestgridYaml extends TestPlan {
+public class TestgridYaml extends org.wso2.testgrid.common.TestPlan {
+    private static final long serialVersionUID = -5625001967682926221L;
 
+    private String version;
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
 }
