@@ -56,4 +56,12 @@ public class Host implements Serializable {
     public void setPorts(List<Port> ports) {
         this.ports = ports;
     }
+
+    @Override
+    public String toString() {
+        return "Host{" +
+                "ip='" + ip + '\'' +
+                ", ports=" + ports +
+                '}';
+    }
 }

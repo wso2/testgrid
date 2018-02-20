@@ -42,6 +42,48 @@ public class InfrastructureConfig implements Serializable {
     private Properties parameters = new Properties();
     private List<Provisioner> provisioners;
 
+    public IACProvider getIacProvider() {
+        return iacProvider;
+    }
+
+    public void setIacProvider(IACProvider iacProvider) {
+        this.iacProvider = iacProvider;
+    }
+
+    public InfrastructureProvider getInfrastructureProvider() {
+        return infrastructureProvider;
+    }
+
+    public void setInfrastructureProvider(
+            InfrastructureProvider infrastructureProvider) {
+        this.infrastructureProvider = infrastructureProvider;
+    }
+
+    public ContainerOrchestrationEngine getContainerOrchestrationEngine() {
+        return containerOrchestrationEngine;
+    }
+
+    public void setContainerOrchestrationEngine(
+            ContainerOrchestrationEngine containerOrchestrationEngine) {
+        this.containerOrchestrationEngine = containerOrchestrationEngine;
+    }
+
+    public Properties getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Properties parameters) {
+        this.parameters = parameters;
+    }
+
+    public List<Provisioner> getProvisioners() {
+        return ListUtils.emptyIfNull(provisioners);
+    }
+
+    public void setProvisioners(List<Provisioner> provisioners) {
+        this.provisioners = provisioners;
+    }
+
     /**
      * Defines the infrastructure-as-Code provider types.
      * This information is useful in case we need to pre-process
@@ -114,48 +156,6 @@ public class InfrastructureConfig implements Serializable {
         public String toString() {
             return this.clusterType;
         }
-    }
-
-    public IACProvider getIacProvider() {
-        return iacProvider;
-    }
-
-    public void setIacProvider(IACProvider iacProvider) {
-        this.iacProvider = iacProvider;
-    }
-
-    public InfrastructureProvider getInfrastructureProvider() {
-        return infrastructureProvider;
-    }
-
-    public void setInfrastructureProvider(
-            InfrastructureProvider infrastructureProvider) {
-        this.infrastructureProvider = infrastructureProvider;
-    }
-
-    public ContainerOrchestrationEngine getContainerOrchestrationEngine() {
-        return containerOrchestrationEngine;
-    }
-
-    public void setContainerOrchestrationEngine(
-            ContainerOrchestrationEngine containerOrchestrationEngine) {
-        this.containerOrchestrationEngine = containerOrchestrationEngine;
-    }
-
-    public Properties getParameters() {
-        return parameters;
-    }
-
-    public void setParameters(Properties parameters) {
-        this.parameters = parameters;
-    }
-
-    public List<Provisioner> getProvisioners() {
-        return ListUtils.emptyIfNull(provisioners);
-    }
-
-    public void setProvisioners(List<Provisioner> provisioners) {
-        this.provisioners = provisioners;
     }
 
     /**

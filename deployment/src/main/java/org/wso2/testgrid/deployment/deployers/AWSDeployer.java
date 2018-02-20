@@ -20,9 +20,12 @@ package org.wso2.testgrid.deployment.deployers;
 import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.DeployerService;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.Deployer;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.deployment.DeploymentValidator;
@@ -36,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @since 1.0.0
  */
-public class AWSDeployer implements DeployerService {
+public class AWSDeployer implements Deployer {
 
     private static final Logger logger = LoggerFactory.getLogger(AWSDeployer.class);
     private static final String DEPLOYER_NAME = "AWS_CF";
@@ -51,12 +54,18 @@ public class AWSDeployer implements DeployerService {
     }
 
     @Override
-    public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
+    public DeploymentCreationResult deploy(TestPlan testPlan,
+            InfrastructureProvisionResult infrastructureProvisionResult)
+            throws TestGridDeployerException {
         //wait for server startup
+        DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
+                .getDeploymentPatterns().get(0);
         try {
-            logger.info(StringUtil.concatStrings("Deploying the pattern.. : ", deployment.getName()));
+            logger.info(
+                    StringUtil.concatStrings("Waiting for server start-up.. : ", deploymentPatternConfig.getName()));
+
             DeploymentValidator validator = new DeploymentValidator();
-            for (Host host : deployment.getHosts()) {
+            for (Host host : infrastructureProvisionResult.getHosts()) {
                 try {
                     new URL(host.getIp());
                     logger.info("Waiting for server startup on URL : " + host.getIp());
@@ -69,9 +78,13 @@ public class AWSDeployer implements DeployerService {
             }
         } catch (ConditionTimeoutException ex) {
             throw new TestGridDeployerException(StringUtil.concatStrings("Timeout occurred while waiting for pattern : "
-                    , deployment.getName(), "Timeout value : ", TIMEOUT, TIMEOUT_UNIT.toString()), ex);
+                    , deploymentPatternConfig.getName(), "Timeout value : ", TIMEOUT, TIMEOUT_UNIT.toString()), ex);
         }
 
-        return deployment;
+        DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
+        deploymentCreationResult.setName(deploymentPatternConfig.getName());
+        deploymentCreationResult.setHosts(infrastructureProvisionResult.getHosts());
+        deploymentCreationResult.setDeploymentScriptsDir(infrastructureProvisionResult.getDeploymentScriptsDir());
+        return deploymentCreationResult;
     }
 }

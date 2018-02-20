@@ -33,7 +33,7 @@ public class InfrastructureProviderFactory {
     static ServiceLoader<InfrastructureProvider> providers = ServiceLoader.load(InfrastructureProvider.class);
 
     /**
-     * Returns a matching infrastructure provider to create the environment.
+     * Returns a matching infrastructure provider to provision the environment.
      *
      * @param infrastructureConfig an instance of the Infrastructure object
      * @return an instance of matching InfrastructureProvider

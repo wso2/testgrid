@@ -43,11 +43,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.testgrid.infrastructure.aws.AWSManager;
+import org.wso2.testgrid.infrastructure.providers.AWSProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,49 +56,56 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
- * This class will test functionality of {@link AWSManager}
+ * This class will test functionality of {@link AWSProvider}
  *
  * @since 1.0.0
  */
-@PrepareForTest({AWSManager.class, AmazonCloudFormationClientBuilder.class
-                        , AmazonCloudFormation.class, AwsClientBuilder.class})
-public class AWSManagerTest extends PowerMockTestCase {
+@PrepareForTest({
+                        AWSProvider.class, AmazonCloudFormationClientBuilder.class
+                        , AmazonCloudFormation.class, AwsClientBuilder.class
+                })
+public class AWSProviderTest extends PowerMockTestCase {
 
-    private String key = "AWS_KEY";
-    private String keyValue = "aws_key_value";
-    private String secret = "AWS_SCERET";
-    private String secretValue = "aws_secret_value";
+    private static final String AWS_ACCESS_KEY_ID_VALUE = "aws_key_value";
+    private static final String AWS_SECRET_ACCESS_KEY_VALUE = "aws_secret_value";
+
     private String scriptFile = "template.json";
     private String mockStackName = "MockStack";
 
-    @Test(description = "This test case tests creation of AWSManager object when AWS credentials are " +
+    @Test(description = "This test case tests creation of AWSProvider object when AWS credentials are " +
             "set correctly.")
     public void testManagerCreation() throws Exception {
         //set environment variables for
         Map<String, String> map = new HashMap<>();
-        map.put(key, keyValue);
-        map.put(secret, secretValue);
+        map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
+        map.put(AWSProvider.AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
         set(map);
-        AWSManager awsManager = new AWSManager(key, secret);
-        Assert.assertNotNull(awsManager);
+        AWSProvider awsProvider = new AWSProvider();
+        awsProvider.init();
+        Assert.assertNotNull(awsProvider);
+        unset(map.keySet());
     }
 
     @Test(description = "This test case tests creation of AWS Manager object when AWS credentials are " +
-                        "not set correctly."
-            , expectedExceptions = TestGridInfrastructureException.class)
+            "not set correctly."
+            ,
+          expectedExceptions = TestGridInfrastructureException.class)
     public void testManagerCreationNegativeTests() throws TestGridInfrastructureException, IOException,
             InterruptedException, NoSuchFieldException, IllegalAccessException {
         String secret2 = "AWS_SCERET2";
         Map<String, String> map = new HashMap<>();
-        map.put(key, keyValue);
+        map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
         set(map);
         //invoke without no secret key environment variable set.
-        new AWSManager(key, secret2);
+        AWSProvider awsProvider = new AWSProvider();
+        awsProvider.init();
+        unset(map.keySet());
     }
 
-    @Test(description = "This test case tests infrastructure creation of AWSManager object given the " +
+    @Test(description = "This test case tests infrastructure creation of AWSProvider object given the " +
             "AWS CF template path.")
     public void createInfrastructureTest() throws Exception {
         String outputKey = "PublicDNS";
@@ -106,23 +113,10 @@ public class AWSManagerTest extends PowerMockTestCase {
         String patternName = "single-node";
 
         Map<String, String> map = new HashMap<>();
-        map.put(key, keyValue);
-        map.put(secret, secretValue);
+        map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
+        map.put(AWSProvider.AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
         set(map);
-        //create dummy script object
-        Script script = new Script();
-        script.setType(Script.ScriptType.CLOUDFORMATION);
-        script.setFile(scriptFile);
-        script.setName(mockStackName);
-        Properties scriptParameters = new Properties();
-        scriptParameters.setProperty("EC2KeyPair", "test-grid.key");
-        script.setInputParameters(scriptParameters);
-
-        InfrastructureConfig infrastructureConfig = new InfrastructureConfig();
-        InfrastructureConfig.Provisioner provisioner = new InfrastructureConfig.Provisioner();
-        provisioner.setName(patternName);
-        provisioner.setScripts(Collections.singletonList(script));
-        infrastructureConfig.setProvisioners(Collections.singletonList(provisioner));
+        InfrastructureConfig infrastructureConfig = getDummyInfrastructureConfig(patternName);
 
         File resourcePath = new File("src/test/resources");
         //Stack object with output object
@@ -167,27 +161,46 @@ public class AWSManagerTest extends PowerMockTestCase {
         Mockito.when(waiterMock.stackCreateComplete()).thenReturn(mock);
         PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
 
-        AWSManager awsManager = new AWSManager(key, secret);
-        awsManager.init(infrastructureConfig);
-        Deployment dep = awsManager.createInfrastructure(script, resourcePath.getAbsolutePath());
+        AWSProvider awsProvider = new AWSProvider();
+        awsProvider.init();
+        InfrastructureProvisionResult provisionResult = awsProvider
+                .provision(infrastructureConfig, resourcePath.getAbsolutePath());
 
-        Assert.assertNotNull(dep);
-        Assert.assertEquals(dep.getHosts().size(), 3);
-        Assert.assertEquals(dep.getHosts().get(2).getIp(), outputValue);
+        Assert.assertNotNull(provisionResult);
+        Assert.assertEquals(provisionResult.getHosts().size(), 3);
+        Assert.assertEquals(provisionResult.getHosts().get(2).getIp(), outputValue);
+
+        unset(map.keySet());
     }
 
-    @Test(description = "This test case tests destroying infrastructure given a already built stack name.")
-    public void destroyInfrastructureTest() throws Exception {
-        //set environment variables for
-        Map<String, String> map = new HashMap<>();
-        map.put(key, keyValue);
-        map.put(secret, secretValue);
-        set(map);
+    private InfrastructureConfig getDummyInfrastructureConfig(String patternName) {
         //create dummy script object
         Script script = new Script();
         script.setType(Script.ScriptType.CLOUDFORMATION);
         script.setFile(scriptFile);
         script.setName(mockStackName);
+        Properties scriptParameters = new Properties();
+        scriptParameters.setProperty("EC2KeyPair", "test-grid.key");
+        script.setInputParameters(scriptParameters);
+
+        InfrastructureConfig infrastructureConfig = new InfrastructureConfig();
+        InfrastructureConfig.Provisioner provisioner = new InfrastructureConfig.Provisioner();
+        provisioner.setName(patternName);
+        provisioner.setScripts(Collections.singletonList(script));
+        infrastructureConfig.setProvisioners(Collections.singletonList(provisioner));
+        return infrastructureConfig;
+    }
+
+    @Test(description = "This test case tests destroying infrastructure given a already built stack name.")
+    public void destroyInfrastructureTest() throws Exception {
+        String patternName = "single-node";
+        //set environment variables for
+        Map<String, String> map = new HashMap<>();
+        map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
+        map.put(AWSProvider.AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
+        set(map);
+        InfrastructureConfig dummyInfrastructureConfig = getDummyInfrastructureConfig(patternName);
+        File resourcePath = new File("src/test/resources");
 
         AmazonCloudFormationClientBuilder cloudFormationClientBuilderMock = PowerMockito
                 .mock(AmazonCloudFormationClientBuilder.class);
@@ -219,9 +232,13 @@ public class AWSManagerTest extends PowerMockTestCase {
         Mockito.when(waiterMock.stackDeleteComplete()).thenReturn(mock);
         PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
 
-        AWSManager awsManager = new AWSManager(key, secret);
-        awsManager.init(new InfrastructureConfig());
-        awsManager.destroyInfrastructure(script);
+        AWSProvider awsProvider = new AWSProvider();
+        awsProvider.init();
+        boolean released = awsProvider.release(dummyInfrastructureConfig, resourcePath
+                .getAbsolutePath());
+
+        Assert.assertTrue(released);
+        unset(map.keySet());
     }
 
     /**
@@ -244,4 +261,26 @@ public class AWSManagerTest extends PowerMockTestCase {
             }
         }
     }
+
+    /**
+     * Unset the temporary env variables set via {@link #set(Map)} method.
+     *
+     * @param envToUnset
+     */
+    private void unset(Set<String> envToUnset) throws NoSuchFieldException, IllegalAccessException {
+        Class[] classes = Collections.class.getDeclaredClasses();
+        Map<String, String> env = System.getenv();
+        for (Class cl : classes) {
+            if ("java.util.Collections$UnmodifiableMap".equals(cl.getName())) {
+                Field field = cl.getDeclaredField("m");
+                field.setAccessible(true);
+                Object obj = field.get(env);
+                Map<String, String> map = (Map<String, String>) obj;
+                for (String envKey : envToUnset) {
+                    map.remove(envKey);
+                }
+            }
+        }
+    }
+
 }

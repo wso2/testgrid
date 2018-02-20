@@ -58,12 +58,12 @@ public class TestPlanUOW {
         TestPlan persisted = testPlanRepository.persist(testPlan);
         if (persisted != null) {
             persisted.setDeployerType(testPlan.getDeployerType());
-            persisted.setDeployment(testPlan.getDeployment());
             persisted.setTestRepoDir(testPlan.getTestRepoDir());
             persisted.setInfraRepoDir(testPlan.getInfraRepoDir());
             persisted.setDeploymentRepoDir(testPlan.getDeploymentRepoDir());
-            persisted.setInfrastructureScript(testPlan.getInfrastructureScript());
-            persisted.setDeploymentScript(testPlan.getDeploymentScript());
+            persisted.setInfrastructureConfig(testPlan.getInfrastructureConfig());
+            persisted.setDeploymentConfig(testPlan.getDeploymentConfig());
+            persisted.setScenarioConfig(testPlan.getScenarioConfig());
         }
         return persisted;
     }

@@ -28,10 +28,10 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
-import org.wso2.testgrid.common.config.TestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestGridLoggingException;
@@ -113,7 +113,7 @@ public class RunTestPlanCommand implements Command {
             DeploymentPattern deploymentPattern = getDeploymentPattern(product, getDeploymentPatternName(testPlan));
 
             // Generate test plan from config
-            org.wso2.testgrid.common.TestPlan testPlanEntity = getTestPlanEntity(deploymentPattern, testPlan, infraRepo,
+            TestPlan testPlanEntity = toTestPlanEntity(deploymentPattern, testPlan, infraRepo,
                     deploymentRepo, scenarioRepoDir);
 
             LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlanEntity));
@@ -243,7 +243,7 @@ public class RunTestPlanCommand implements Command {
      * @return persisted test plan
      * @throws CommandExecutionException thrown when error on product test plan
      */
-    private org.wso2.testgrid.common.TestPlan persistTestPlan(org.wso2.testgrid.common.TestPlan testPlan)
+    private TestPlan persistTestPlan(TestPlan testPlan)
             throws CommandExecutionException {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
@@ -254,16 +254,16 @@ public class RunTestPlanCommand implements Command {
     }
 
     /**
-     * This method triggers the execution of a {@link org.wso2.testgrid.common.config.TestPlan}.
+     * This method triggers the execution of a {@link org.wso2.testgrid.common.TestPlan}.
      *
      * @param testPlan test plan to execute
      * @throws CommandExecutionException thrown when error on executing test plan
      */
-    private void executeTestPlan(org.wso2.testgrid.common.TestPlan testPlan, InfrastructureConfig infrastructureConfig)
+    private void executeTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws CommandExecutionException {
         try {
             TestPlanExecutor testPlanExecutor = new TestPlanExecutor();
-            testPlanExecutor.runTestPlan(testPlan, infrastructureConfig);
+            testPlanExecutor.execute(testPlan, infrastructureConfig);
         } catch (TestPlanExecutorException e) {
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan ", testPlan), e);
@@ -277,7 +277,7 @@ public class RunTestPlanCommand implements Command {
      * @return log file path
      * @throws TestGridLoggingException thrown when error on deriving log file path
      */
-    private String deriveLogFilePath(org.wso2.testgrid.common.TestPlan testPlan) throws TestGridLoggingException {
+    private String deriveLogFilePath(TestPlan testPlan) throws TestGridLoggingException {
         try {
             Path testRunDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
             return testRunDirectory.resolve(TestGridConstants.TEST_LOG_FILE_NAME).toString();
@@ -300,22 +300,23 @@ public class RunTestPlanCommand implements Command {
      * @param testRepoDir       test repo directory
      * @return TestPlan object model
      */
-    private org.wso2.testgrid.common.TestPlan getTestPlanEntity(DeploymentPattern deploymentPattern,
+    private TestPlan toTestPlanEntity(DeploymentPattern deploymentPattern,
             TestPlan testPlan, String infraRepoDir, String deploymentRepo, String testRepoDir)
             throws CommandExecutionException {
         try {
             String jsonInfraParams = new ObjectMapper()
                     .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
-            org.wso2.testgrid.common.TestPlan testPlanEntity = new org.wso2.testgrid.common.TestPlan();
+            TestPlan testPlanEntity = testPlan.clone();
             testPlanEntity.setStatus(Status.PENDING);
             testPlanEntity.setInfraRepoDir(infraRepoDir);
             testPlanEntity.setTestRepoDir(testRepoDir);
             testPlanEntity.setDeploymentRepoDir(deploymentRepo);
             testPlanEntity.setDeploymentPattern(deploymentPattern);
+
             // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.
             if (testPlan.getInfrastructureConfig().getInfrastructureProvider()
                     == InfrastructureConfig.InfrastructureProvider.SHELL) {
-                testPlanEntity.setDeployerType(org.wso2.testgrid.common.TestPlan.DeployerType.SHELL);
+                testPlanEntity.setDeployerType(TestPlan.DeployerType.SHELL);
             }
             testPlanEntity.setInfraParameters(jsonInfraParams);
             deploymentPattern.addTestPlan(testPlanEntity);
@@ -382,16 +383,16 @@ public class RunTestPlanCommand implements Command {
      */
     private int getLatestTestRunNumber(DeploymentPattern deploymentPattern, String infraParams) {
         // Get test plans with the same infra param
-        List<org.wso2.testgrid.common.TestPlan> testPlans = new ArrayList<>();
-        for (org.wso2.testgrid.common.TestPlan testPlan : deploymentPattern.getTestPlans()) {
+        List<TestPlan> testPlans = new ArrayList<>();
+        for (TestPlan testPlan : deploymentPattern.getTestPlans()) {
             if (testPlan.getInfraParameters().equals(infraParams)) {
                 testPlans.add(testPlan);
             }
         }
 
         // Get the Test Plan with the latest test run number for the given infra combination
-        org.wso2.testgrid.common.TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(
-                org.wso2.testgrid.common.TestPlan::getTestRunNumber));
+        TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(
+                TestPlan::getTestRunNumber));
 
         return latestTestPlan.getTestRunNumber();
     }

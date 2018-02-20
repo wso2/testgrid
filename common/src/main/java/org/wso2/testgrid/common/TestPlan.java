@@ -17,7 +17,9 @@
  */
 package org.wso2.testgrid.common;
 
-import org.wso2.testgrid.common.config.Script;
+import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
@@ -42,7 +44,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name = TestPlan.TEST_PLAN_TABLE)
-public class TestPlan extends AbstractUUIDEntity implements Serializable {
+public class TestPlan extends AbstractUUIDEntity implements Serializable, Cloneable {
 
     /**
      * TestPlan table name.
@@ -80,7 +82,13 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
     private DeployerType deployerType = DeployerType.AWS_CF;
 
     @Transient
-    private Deployment deployment;
+    private InfrastructureConfig infrastructureConfig = new InfrastructureConfig();
+
+    @Transient
+    private DeploymentConfig deploymentConfig = new DeploymentConfig();
+
+    @Transient
+    private ScenarioConfig scenarioConfig = new ScenarioConfig();
 
     @Transient
     private String testRepoDir;
@@ -90,12 +98,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
 
     @Transient
     private String deploymentRepoDir;
-
-    @Transient
-    private Script infrastructureScript;
-
-    @Transient
-    private Script deploymentScript;
 
     /**
      * Returns the status of the infrastructure.
@@ -205,22 +207,38 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
         this.deployerType = deployerType;
     }
 
-    /**
-     * Returns the deployment information of the test plan.
-     *
-     * @return the deployment information of the test plan
-     */
-    public Deployment getDeployment() {
-        return deployment;
+    public InfrastructureConfig getInfrastructureConfig() {
+        return infrastructureConfig;
+    }
+
+    public void setInfrastructureConfig(InfrastructureConfig infrastructureConfig) {
+        this.infrastructureConfig = infrastructureConfig;
     }
 
     /**
-     * Sets the deployment information of the test plan.
+     * Returns the deployment configuration in the test-plan.
      *
-     * @param deployment the deployment information of the test plan
+     * @return the deployment configuration of the test plan
      */
-    public void setDeployment(Deployment deployment) {
-        this.deployment = deployment;
+    public DeploymentConfig getDeploymentConfig() {
+        return deploymentConfig;
+    }
+
+    /**
+     * Sets the deployment configuration of the test plan.
+     *
+     * @param deploymentConfig the deployment information of the test plan
+     */
+    public void setDeploymentConfig(DeploymentConfig deploymentConfig) {
+        this.deploymentConfig = deploymentConfig;
+    }
+
+    public ScenarioConfig getScenarioConfig() {
+        return scenarioConfig;
+    }
+
+    public void setScenarioConfig(ScenarioConfig scenarioConfig) {
+        this.scenarioConfig = scenarioConfig;
     }
 
     /**
@@ -277,44 +295,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
         this.deploymentRepoDir = deploymentRepoDir;
     }
 
-    /**
-     * Returns the location of additional infrastructure scripts attached with this test plan.
-     *
-     * @return additional infrastructureScript script path
-     */
-    public Script getInfrastructureScript() {
-        return infrastructureScript;
-    }
-
-    /**
-     * Sets an additional infrastructure script path to this test plan to be executed after the general infrastructure
-     * has completed.
-     *
-     * @param infrastructureScript additional infrastructureScript script path
-     */
-    public void setInfrastructureScript(Script infrastructureScript) {
-        this.infrastructureScript = infrastructureScript;
-    }
-
-    /**
-     * Returns the location of additional deployment scripts attached with this test plan.
-     *
-     * @return the location of additional deployment scripts
-     */
-    public Script getDeploymentScript() {
-        return deploymentScript;
-    }
-
-    /**
-     * Sets an additional deployment script path to this test plan to be executed after the general deployment has
-     * completed.
-     *
-     * @param deploymentScript additional deployment script path
-     */
-    public void setDeploymentScript(Script deploymentScript) {
-        this.deploymentScript = deploymentScript;
-    }
-
     @Override
     public String toString() {
         String id = this.getId() != null ? this.getId() : "";
@@ -328,6 +308,31 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable {
                 ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 ", deploymentPattern='", deploymentPattern, "\'",
                 '}');
+    }
+
+    @Override
+    public TestPlan clone() {
+        try {
+            TestPlan testPlan = (TestPlan) super.clone();
+            testPlan.setDeployerType(deployerType);
+            testPlan.setDeploymentConfig(deploymentConfig);
+            testPlan.setDeploymentPattern(deploymentPattern);
+            testPlan.setDeploymentRepoDir(deploymentRepoDir);
+            testPlan.setInfraParameters(infraParameters);
+            testPlan.setInfraRepoDir(infraRepoDir);
+            testPlan.setInfrastructureConfig(infrastructureConfig);
+            testPlan.setScenarioConfig(scenarioConfig);
+            testPlan.setStatus(status);
+            testPlan.setTestRepoDir(testRepoDir);
+            testPlan.setTestRunNumber(testRunNumber);
+            testPlan.setTestScenarios(testScenarios);
+
+            return testPlan;
+        } catch (CloneNotSupportedException e) {
+            throw new TestGridError("Since the super class of this object is java.lang.Object that supports cloning, "
+                    + "this failure condition should never happen unless a serious system error occurred.", e);
+        }
+
     }
 
     /**

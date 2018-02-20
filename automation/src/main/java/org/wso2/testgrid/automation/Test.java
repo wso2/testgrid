@@ -20,7 +20,7 @@ package org.wso2.testgrid.automation;
 
 import org.wso2.testgrid.automation.executor.TestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 
@@ -134,22 +134,23 @@ public class Test {
      * Executes the test for the given test location and deployment.
      *
      * @param testLocation location of the tests
-     * @param deployment   deployment to execute the tests on
+     * @param input        Output of the previous (ie. deployment) build step.
      * @throws TestAutomationException thrown when error on executing tests
      */
-    public TestScenario execute(String testLocation, Deployment deployment) throws TestAutomationException {
+    public TestScenario execute(String testLocation, DeploymentCreationResult input)
+            throws TestAutomationException {
         if (!StringUtil.isStringNullOrEmpty(preScenarioScript)) {
-            String result = testExecutor.executeEnvironmentScript(Paths.get(preScenarioScript), deployment);
+            String result = testExecutor.executeEnvironmentScript(Paths.get(preScenarioScript), input);
             if (result.contains("OK")) {
                 testScenario.setIsPreScriptSuccessful(true);
             }
         }
         testExecutor.init(testLocation, getTestName(), testScenario);
         for (String script : scripts) {
-            testExecutor.execute(script, deployment);
+            testExecutor.execute(script, input);
         }
         if (!StringUtil.isStringNullOrEmpty(postScenarioScript)) {
-            String result = testExecutor.executeEnvironmentScript(Paths.get(postScenarioScript), deployment);
+            String result = testExecutor.executeEnvironmentScript(Paths.get(postScenarioScript), input);
             if (result.contains("OK")) {
                 testScenario.setIsPostScriptSuccessful(true);
             }

@@ -19,9 +19,12 @@ package org.wso2.testgrid.deployment.deployers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.DeployerService;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.Deployer;
+import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
+import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -34,7 +37,7 @@ import java.nio.file.Paths;
  *
  * @since 1.0.0
  */
-public class ShellDeployer implements DeployerService {
+public class ShellDeployer implements Deployer {
 
     private static final Logger logger = LoggerFactory.getLogger(ShellDeployer.class);
     private static final String DEPLOYER_NAME = "SHELL";
@@ -46,13 +49,17 @@ public class ShellDeployer implements DeployerService {
     }
 
     @Override
-    public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
-        logger.info("Performing the Deployment " + deployment.getName());
+    public DeploymentCreationResult deploy(TestPlan testPlan,
+            InfrastructureProvisionResult infrastructureProvisionResult) throws TestGridDeployerException {
+        DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
+                .getDeploymentPatterns().get(0);
+        logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
         try {
             ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
             // TODO: DEPLOY_SCRIPT_NAME is hard-coded. We should first find the script name in the DeploymentConfig
             if (!shellExecutor
-                    .executeCommand("bash " + Paths.get(deployment.getDeploymentScriptsDir(), DEPLOY_SCRIPT_NAME))) {
+                    .executeCommand("bash " + Paths
+                            .get(infrastructureProvisionResult.getDeploymentScriptsDir(), DEPLOY_SCRIPT_NAME))) {
                 throw new TestGridDeployerException("Error occurred while executing the deploy script");
             }
         } catch (CommandExecutionException e) {
@@ -61,6 +68,11 @@ public class ShellDeployer implements DeployerService {
             throw new TestGridDeployerException("Error occurred while retrieving the Testgrid_home ", e);
         }
 
-        return new Deployment();
+        DeploymentCreationResult result = new DeploymentCreationResult();
+        result.setName(deploymentPatternConfig.getName());
+        result.setHosts(infrastructureProvisionResult.getHosts());
+        result.setDeploymentScriptsDir(infrastructureProvisionResult.getDeploymentScriptsDir());
+
+        return result;
     }
 }

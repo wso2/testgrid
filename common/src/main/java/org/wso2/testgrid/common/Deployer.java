@@ -23,7 +23,7 @@ import org.wso2.testgrid.common.exception.TestGridDeployerException;
 /**
  * Interface for the deployment of the artifacts.
  */
-public interface DeployerService {
+public interface Deployer {
 
     /**
      * This method returns the deployer name (Puppet/Ansible/Chef etc).
@@ -35,9 +35,10 @@ public interface DeployerService {
     /**
      * Runs deploy.sh script and deploys artifacts in the provided infrastructure.
      *
-     * @param deployment deployment information of the infrastructure
+     * @param infrastructureProvisionResult infrastructure provisioning output
      * @return Deployment deployment object along with it's matched hosts and ports
      * @throws TestGridDeployerException If an error occurs in the product deployment process.
      */
-    Deployment deploy(Deployment deployment) throws TestGridDeployerException;
+    DeploymentCreationResult deploy(TestPlan testPlan, InfrastructureProvisionResult infrastructureProvisionResult)
+            throws TestGridDeployerException;
 }

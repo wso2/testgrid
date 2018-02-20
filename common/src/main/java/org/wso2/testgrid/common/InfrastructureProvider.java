@@ -41,6 +41,13 @@ public interface InfrastructureProvider {
     boolean canHandle(InfrastructureConfig infrastructureConfig);
 
     /**
+     * This method can be used to initialize the infrastructure provider.
+     * Initialization may include usecases such as the initial log-in into a
+     * cloud provider.
+     */
+    void init() throws TestGridInfrastructureException;
+
+    /**
      * This method creates the necessary infrastructureConfig using the provided configuration.
      *
      * @param infrastructureConfig an instance of a InfrastructureConfig which includes the details of the
@@ -49,7 +56,7 @@ public interface InfrastructureProvider {
      * @return Deployment Deployment object including the created host, ip details
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure creation process.
      */
-    Deployment createInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
+    InfrastructureProvisionResult provision(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
             TestGridInfrastructureException;
 
     /**
@@ -60,7 +67,7 @@ public interface InfrastructureProvider {
      * @return boolean status of the operation
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure destroy process.
      */
-    boolean removeInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
+    boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
             TestGridInfrastructureException;
 
 }

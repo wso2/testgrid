@@ -36,12 +36,60 @@ public class Script implements Serializable {
     private String file;
     private Properties inputParameters = new Properties();
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getFile() {
+        return file;
+    }
+
+    public void setFile(String file) {
+        this.file = file;
+    }
+
+    public Properties getInputParameters() {
+        return inputParameters;
+    }
+
+    public void setInputParameters(Properties inputParameters) {
+        this.inputParameters = inputParameters;
+    }
+
+    public ScriptType getType() {
+        return type;
+    }
+
+    public void setType(ScriptType type) {
+        this.type = type;
+    }
+
+    public Phase getPhase() {
+        return phase;
+    }
+
+    public void setPhase(Phase phase) {
+        this.phase = phase;
+    }
+
     /**
      * This defines the supported executable script types.
      */
     public enum Phase {
         /**
-         * Defines the create-infra shell script type.
+         * Defines the provision-infra shell script type.
          */
         CREATE("Create"),
 
@@ -92,53 +140,5 @@ public class Script implements Serializable {
         public String toString() {
             return this.name;
         }
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getFile() {
-        return file;
-    }
-
-    public void setFile(String file) {
-        this.file = file;
-    }
-
-    public Properties getInputParameters() {
-        return inputParameters;
-    }
-
-    public void setInputParameters(Properties inputParameters) {
-        this.inputParameters = inputParameters;
-    }
-
-    public ScriptType getType() {
-        return type;
-    }
-
-    public void setType(ScriptType type) {
-        this.type = type;
-    }
-
-    public Phase getPhase() {
-        return phase;
-    }
-
-    public void setPhase(Phase phase) {
-        this.phase = phase;
     }
 }

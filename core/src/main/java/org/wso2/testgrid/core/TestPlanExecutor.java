@@ -20,7 +20,9 @@ package org.wso2.testgrid.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
@@ -57,20 +59,20 @@ public class TestPlanExecutor {
      * @param testPlan an instance of {@link TestPlan} in which the tests should be executed
      * @throws TestPlanExecutorException thrown when error on executing test plan
      */
-    public void runTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
+    public void execute(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws TestPlanExecutorException {
-        // Deployment preparation.
-        setupInfrastructure(infrastructureConfig, testPlan);
+        InfrastructureProvisionResult infrastructureProvisionResult = provisionInfrastructure(infrastructureConfig,
+                testPlan);
 
         // Create and set deployment.
-        Deployment deployment = createDeployment(infrastructureConfig, testPlan);
-        testPlan.setDeployment(deployment);
+        DeploymentCreationResult deploymentCreationResult = createDeployment(infrastructureConfig, testPlan,
+                infrastructureProvisionResult);
 
         // Run test scenarios.
         for (TestScenario testScenario : testPlan.getTestScenarios()) {
             try {
                 ScenarioExecutor scenarioExecutor = new ScenarioExecutor();
-                scenarioExecutor.runScenario(testScenario, testPlan.getDeployment(), testPlan);
+                scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
             } catch (ScenarioExecutorException e) {
                 setTestPlanStatus(testPlan, Status.FAIL);
                 logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
@@ -88,17 +90,19 @@ public class TestPlanExecutor {
     }
 
     /**
-     * Creates an instance of {@link Deployment} for the given {@link InfrastructureConfig}.
+     * Creates the deployment in the provisioned infrastructure.
      *
-     * @param infrastructureConfig infrastructure to create the deployment
-     * @param testPlan             test plan
-     * @return created {@link Deployment}
+     * @param infrastructureConfig          infrastructure to create the deployment
+     * @param testPlan                      test plan
+     * @param infrastructureProvisionResult the output of the infrastructure provisioning scripts
+     * @return created {@link DeploymentCreationResult}
      * @throws TestPlanExecutorException thrown when error on creating deployment
      */
-    private Deployment createDeployment(InfrastructureConfig infrastructureConfig, TestPlan testPlan)
+    private DeploymentCreationResult createDeployment(InfrastructureConfig infrastructureConfig, TestPlan testPlan,
+            InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestPlanExecutorException {
         try {
-            return DeployerFactory.getDeployerService(testPlan).deploy(testPlan.getDeployment());
+            return DeployerFactory.getDeployerService(testPlan).deploy(testPlan, infrastructureProvisionResult);
         } catch (TestGridDeployerException e) {
             setTestPlanStatus(testPlan, Status.FAIL);
             destroyInfrastructure(infrastructureConfig, testPlan);
@@ -127,7 +131,8 @@ public class TestPlanExecutor {
      * @param testPlan             test plan
      * @throws TestPlanExecutorException thrown when error on setting up infrastructure
      */
-    private void setupInfrastructure(InfrastructureConfig infrastructureConfig, TestPlan testPlan)
+    private InfrastructureProvisionResult provisionInfrastructure(InfrastructureConfig infrastructureConfig,
+            TestPlan testPlan)
             throws TestPlanExecutorException {
         try {
             if (infrastructureConfig == null) {
@@ -136,11 +141,15 @@ public class TestPlanExecutor {
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
             }
-            Deployment deployment = InfrastructureProviderFactory.getInfrastructureProvider(infrastructureConfig)
-                    .createInfrastructure(infrastructureConfig, testPlan.getInfraRepoDir());
-            deployment.setName(infrastructureConfig.getProvisioners().get(0).getName());
-            deployment.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepoDir()).toString());
-            testPlan.setDeployment(deployment);
+            InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
+                    .getInfrastructureProvider(infrastructureConfig);
+            infrastructureProvider.init();
+            InfrastructureProvisionResult provisionResult = infrastructureProvider
+                    .provision(infrastructureConfig, testPlan.getInfraRepoDir());
+
+            provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
+            provisionResult.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepoDir()).toString());
+            return provisionResult;
         } catch (TestGridInfrastructureException e) {
             setTestPlanStatus(testPlan, Status.FAIL);
             throw new TestPlanExecutorException(StringUtil
@@ -164,13 +173,14 @@ public class TestPlanExecutor {
     private void destroyInfrastructure(InfrastructureConfig infrastructureConfig, TestPlan testPlan)
             throws TestPlanExecutorException {
         try {
-            if (infrastructureConfig == null || testPlan.getDeployment() == null) {
+            //TODO: This condition always evaluates to false as I see. Need to validate.
+            if (infrastructureConfig == null || testPlan.getDeploymentConfig() == null) {
                 throw new TestPlanExecutorException(StringUtil
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
             }
             InfrastructureProviderFactory.getInfrastructureProvider(infrastructureConfig)
-                    .removeInfrastructure(infrastructureConfig, testPlan.getInfraRepoDir());
+                    .release(infrastructureConfig, testPlan.getInfraRepoDir());
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",
