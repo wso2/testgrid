@@ -139,7 +139,7 @@ public class RunTestPlanCommand implements Command {
      * @return the deployment pattern name.
      */
     private String getDeploymentPatternName(TestPlan testPlan) {
-        List<DeploymentConfig.DeploymentPatternConfig> deploymentPatterns = testPlan.getDeploymentConfig()
+        List<DeploymentConfig.DeploymentPattern> deploymentPatterns = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns();
         if (!deploymentPatterns.isEmpty()) {
             return deploymentPatterns.get(0).getName();

@@ -51,7 +51,7 @@ public class ShellDeployer implements Deployer {
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
             InfrastructureProvisionResult infrastructureProvisionResult) throws TestGridDeployerException {
-        DeploymentConfig.DeploymentPatternConfig deploymentPatternConfig = testPlan.getDeploymentConfig()
+        DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
         try {
