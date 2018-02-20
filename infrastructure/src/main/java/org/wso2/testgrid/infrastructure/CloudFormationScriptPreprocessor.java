@@ -57,7 +57,7 @@ public class CloudFormationScriptPreprocessor {
         for (String line : script.split("\\r?\\n")) {
             matcher = pattern.matcher(line);
             if (matcher.find()) {
-                line = matcher.group(2) + ": " + matcher.group(3) +
+                line = matcher.group(1) + matcher.group(2) + ": " + matcher.group(3) +
                         StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH);
             }
             newScript.append(line).append(System.lineSeparator());
