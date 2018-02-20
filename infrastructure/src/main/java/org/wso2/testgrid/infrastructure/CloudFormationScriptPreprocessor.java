@@ -51,13 +51,14 @@ public class CloudFormationScriptPreprocessor {
      */
     private static String appendRandomValue(String key, String script) {
         StringBuilder newScript = new StringBuilder();
-        Pattern pattern = Pattern.compile("(\\s+)" + key + "\\s*:\\s*(.*)");
+        Pattern pattern = Pattern.compile("(\\s+)(" + key + ")\\s*:\\s*(.*)");
         Matcher matcher;
         //Take each line and check for the reg-ex pattern.
         for (String line : script.split("\\r?\\n")) {
             matcher = pattern.matcher(line);
             if (matcher.find()) {
-                line = key + ": " + matcher.group(2) + StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH);
+                line = matcher.group(2) + ": " + matcher.group(3) +
+                        StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH);
             }
             newScript.append(line).append(System.lineSeparator());
         }
