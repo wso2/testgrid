@@ -19,6 +19,7 @@ package org.wso2.testgrid.infrastructure;
 
 import org.wso2.testgrid.common.util.StringUtil;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -51,12 +52,12 @@ public class CloudFormationScriptPreprocessor {
     private static String appendRandomValue(String key, String script) {
         StringBuilder newScript = new StringBuilder();
         Pattern pattern = Pattern.compile("(\\s+)" + key + "\\s*:\\s*(.*)");
+        Matcher matcher;
         //Take each line and check for the reg-ex pattern.
         for (String line : script.split("\\r?\\n")) {
-            if (pattern.matcher(line).find()) {
-                String value = line.split(":")[1];
-                String newValue = value + StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH);
-                line = line.split(":")[0] + ":" + newValue;
+            matcher = pattern.matcher(line);
+            if (matcher.find()) {
+                line = key + ": " + matcher.group(2) + StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH);
             }
             newScript.append(line).append(System.lineSeparator());
         }
