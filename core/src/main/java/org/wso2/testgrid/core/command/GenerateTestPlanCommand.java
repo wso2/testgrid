@@ -134,8 +134,7 @@ public class GenerateTestPlanCommand implements Command {
      */
     private void populateDefaults(TestgridYaml testgridYaml) {
         if (testgridYaml.getDeploymentConfig().getDeploymentPatterns().isEmpty()) {
-            DeploymentConfig.DeploymentPatternConfig deploymentPatternConfig = new DeploymentConfig
-                    .DeploymentPatternConfig();
+            DeploymentConfig.DeploymentPattern deploymentPatternConfig = new DeploymentConfig.DeploymentPattern();
             deploymentPatternConfig.setName(TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME);
             deploymentPatternConfig.setDescription(TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME);
             deploymentPatternConfig.setScripts(Collections.emptyList());
@@ -223,7 +222,7 @@ public class GenerateTestPlanCommand implements Command {
                 .getProvisioners();
 
         for (Provisioner provisioner : provisioners) {
-            Optional<DeploymentConfig.DeploymentPatternConfig> deploymentPattern = getMatchingDeploymentPatternFor(
+            Optional<DeploymentConfig.DeploymentPattern> deploymentPattern = getMatchingDeploymentPatternFor(
                     provisioner, testgridYaml);
             for (InfrastructureCombination combination : infrastructureCombinations) {
                 setUniqueNamesFor(provisioner.getScripts());
@@ -259,16 +258,16 @@ public class GenerateTestPlanCommand implements Command {
      *
      * @param provisioner  the infrastructure provisioner
      * @param testgridYaml the testgrid.yaml config
-     * @return matching {@link DeploymentConfig.DeploymentPatternConfig}. If none found, return any deployment-pattern
+     * @return matching {@link DeploymentConfig.DeploymentPattern}. If none found, return any deployment-pattern
      * available under DeploymentConfig.
      */
-    private Optional<DeploymentConfig.DeploymentPatternConfig> getMatchingDeploymentPatternFor(Provisioner provisioner,
+    private Optional<DeploymentConfig.DeploymentPattern> getMatchingDeploymentPatternFor(Provisioner provisioner,
             TestgridYaml testgridYaml) {
-        List<DeploymentConfig.DeploymentPatternConfig> deploymentPatterns = testgridYaml.getDeploymentConfig()
+        List<DeploymentConfig.DeploymentPattern> deploymentPatterns = testgridYaml.getDeploymentConfig()
                 .getDeploymentPatterns();
-        DeploymentConfig.DeploymentPatternConfig defaultDeploymentPattern = deploymentPatterns.isEmpty() ? null :
+        DeploymentConfig.DeploymentPattern defaultDeploymentPattern = deploymentPatterns.isEmpty() ? null :
                 deploymentPatterns.get(0);
-        Optional<DeploymentConfig.DeploymentPatternConfig> deploymentPattern = deploymentPatterns.stream()
+        Optional<DeploymentConfig.DeploymentPattern> deploymentPattern = deploymentPatterns.stream()
                 .filter(p -> p.getName().equals(provisioner.getName()))
                 .findAny();
         if (!deploymentPattern.isPresent()) {

@@ -58,7 +58,7 @@ public class AWSDeployer implements Deployer {
             InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestGridDeployerException {
         //wait for server startup
-        DeploymentConfig.DeploymentPatternConfig deploymentPatternConfig = testPlan.getDeploymentConfig()
+        DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         try {
             logger.info(
