@@ -28,6 +28,9 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.TemplateParameter;
+import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
+import com.amazonaws.services.cloudformation.model.ValidateTemplateResult;
 import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters;
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
@@ -36,11 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.Host;
-import org.wso2.testgrid.common.Infrastructure;
-import org.wso2.testgrid.common.Script;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.testgrid.common.util.EnvironmentUtil;
-import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 
@@ -50,7 +51,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class is responsible for creating the AWS infrastructure.
@@ -60,29 +62,14 @@ import java.util.Properties;
 public class AWSManager {
 
     private static final Logger logger = LoggerFactory.getLogger(AWSManager.class);
-
-    private Infrastructure infra;
+    private static final String AWS_REGION_PARAMETER = "region";
     private static final String WUM_USERNAME = "WUMUsername";
     private static final String WUM_PASSWORD = "WUMPassword";
     private static final String DB_ENGINE = "DBEngine";
     private static final String DB_ENGINE_VERSION = "DBEngineVersion";
     private static final String JDK = "JDK";
     private static final String IMAGE = "Image";
-
-    private enum AWSRDSEngine {
-        MYSQL("mysql"), ORACLE("oracle-se"), SQL_SERVER("sqlserver-ex"), POSTGRESQL("postgres"),
-        MariaDB("mariadb");
-
-        private final String name;
-
-        AWSRDSEngine(String s) {
-            name = s;
-        }
-
-        public String toString() {
-            return this.name;
-        }
-    }
+    private InfrastructureConfig infrastructureConfig;
 
     /**
      * This constructor creates AWS deployer object and validate AWS related environment variables are present.
@@ -111,9 +98,10 @@ public class AWSManager {
      */
     public Deployment createInfrastructure(Script script, String infraRepoDir) throws TestGridInfrastructureException {
         String cloudFormationName = script.getName();
-        AmazonCloudFormation stackbuilder = AmazonCloudFormationClientBuilder.standard()
+        String region = this.infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER);
+        AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
-                .withRegion(this.infra.getRegion())
+                .withRegion(region)
                 .build();
 
         CreateStackRequest stackRequest = new CreateStackRequest();
@@ -121,19 +109,24 @@ public class AWSManager {
         CloudFormationScriptPreprocessor cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
         try {
             String file = new String(Files.readAllBytes(Paths.get(infraRepoDir,
-                    script.getFilePath())), StandardCharsets.UTF_8);
+                    script.getFile())), StandardCharsets.UTF_8);
             file = cfScriptPreprocessor.process(file);
+            ValidateTemplateRequest validateTemplateRequest = new ValidateTemplateRequest();
+            validateTemplateRequest.withTemplateBody(file);
+            ValidateTemplateResult validationResult = cloudFormation.validateTemplate(validateTemplateRequest);
+            List<TemplateParameter> expectedParameters = validationResult.getParameters();
+
             stackRequest.setTemplateBody(file);
-            stackRequest.setParameters(getParameters(script));
+            stackRequest.setParameters(getParameters(script, expectedParameters));
 
             logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", cloudFormationName,
-                    "' in region '", this.infra.getRegion(), "'. Script : ", script.getFilePath()));
-            CreateStackResult stack = stackbuilder.createStack(stackRequest);
+                    "' in region '", region, "'. Script : ", script.getFile()));
+            CreateStackResult stack = cloudFormation.createStack(stackRequest);
             if (logger.isDebugEnabled()) {
                 logger.info(StringUtil.concatStrings("Stack configuration created for name ", cloudFormationName));
             }
             logger.info(StringUtil.concatStrings("Waiting for stack : ", cloudFormationName));
-            Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new AmazonCloudFormationWaiters(stackbuilder)
+            Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new AmazonCloudFormationWaiters(cloudFormation)
                     .stackCreateComplete();
             describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
             logger.info(StringUtil.concatStrings("Stack : ", cloudFormationName, ", with ID : ", stack.getStackId(),
@@ -141,7 +134,7 @@ public class AWSManager {
 
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(stack.getStackId());
-            DescribeStacksResult describeStacksResult = stackbuilder
+            DescribeStacksResult describeStacksResult = cloudFormation
                     .describeStacks(describeStacksRequest);
             List<Host> hosts = new ArrayList<>();
             Host tomcatHost = new Host();
@@ -175,10 +168,10 @@ public class AWSManager {
     /**
      * Initialize the manager with an infrastructure object.
      *
-     * @param infrastructure infrastructure details.
+     * @param infrastructureConfig infrastructure details.
      */
-    public void init(Infrastructure infrastructure) {
-        this.infra = infrastructure;
+    public void init(InfrastructureConfig infrastructureConfig) {
+        this.infrastructureConfig = infrastructureConfig;
     }
 
     /**
@@ -193,7 +186,7 @@ public class AWSManager {
         String cloudFormationName = script.getName();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new EnvironmentVariableCredentialsProvider())
-                .withRegion(infra.getRegion())
+                .withRegion(infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER))
                 .build();
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(cloudFormationName);
@@ -213,30 +206,43 @@ public class AWSManager {
     /**
      * Reads the parameters for the stack from file.
      *
-     * @param script Script object with script details.
+     * @param script             Script object with script details.
+     * @param expectedParameters
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
-    private List<Parameter> getParameters(Script script)
+    private List<Parameter> getParameters(Script script, List<TemplateParameter> expectedParameters)
             throws IOException, TestGridInfrastructureException {
 
-        Properties scriptParameters = script.getScriptParameters();
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
-        scriptParameters.forEach((key, value) -> {
-            Parameter awsParam = new Parameter().withParameterKey((String) key).withParameterValue((String) value);
-            cfCompatibleParameters.add(awsParam);
+
+        expectedParameters.forEach(expected -> {
+            Optional<Map.Entry<Object, Object>> scriptParameter = script.getInputParameters().entrySet().stream()
+                    .filter(input -> input.getKey().equals(expected
+                            .getParameterKey())).findAny();
+            scriptParameter.ifPresent(theScriptParameter -> {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue((String) theScriptParameter.getValue());
+                cfCompatibleParameters.add(awsParameter);
+            });
+
         });
 
-        script.getEnvironmentScriptParameters().forEach(LambdaExceptionUtils.rethrowBiConsumer((key, value) -> {
-            String envVariable = EnvironmentUtil.getSystemVariableValue((String) value);
-            if (envVariable != null) {
-                Parameter awsParam = new Parameter().withParameterKey((String) key).withParameterValue(envVariable);
-                cfCompatibleParameters.add(awsParam);
-            } else {
-                throw new TestGridInfrastructureException("Environment Variable " + value + " not found !!");
-            }
-        }));
-
         return cfCompatibleParameters;
+    }
+
+    private enum AWSRDSEngine {
+        MYSQL("mysql"), ORACLE("oracle-se"), SQL_SERVER("sqlserver-ex"), POSTGRESQL("postgres"),
+        MariaDB("mariadb");
+
+        private final String name;
+
+        AWSRDSEngine(String s) {
+            name = s;
+        }
+
+        public String toString() {
+            return this.name;
+        }
     }
 }

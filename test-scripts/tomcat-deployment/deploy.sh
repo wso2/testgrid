@@ -23,20 +23,26 @@
 
 # For the deployment script to run infra_eps and key.pem files should exist
 
-infraEPFileName=infra_eps
-outputFileName=deployment_eps
+set -o xtrace
+
+scriptDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+
+infraEPFileName=${scriptDir}/infra_eps
+outputFileName=${scriptDir}/deployment_eps
+ansibleDir=${scriptDir}/ansible
 
 #Extracting the IP of the tomcat server
 endpoint=$(cat $infraEPFileName)
 echo "The Tomcat Endpoint is set to : " $endpoint
 
 # Populate the ansible playbook host file
-echo -e "[tomcat-servers:vars]\nansible_ssh_private_key_file=./key.pem\n\n[tomcat-servers]\n$endpoint" > ansible/hosts
+echo -e "[tomcat-servers:vars]\nansible_ssh_private_key_file=./key.pem\n\n[tomcat-servers]\n$endpoint" \
+> ${ansibleDir}/hosts
 
 # Executing ansible
 echo "Ansible execution started"
 export ANSIBLE_HOST_KEY_CHECKING=False
-ansible-playbook -i ./ansible/hosts ./ansible/site.yaml
+ansible-playbook -i ${ansibleDir}/hosts ${ansibleDir}/site.yaml
 
 # Writing the deployment endpoints to a file
 echo "tomcat_host=http://$endpoint:8080" > $outputFileName

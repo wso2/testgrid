@@ -21,7 +21,9 @@
 
 # This script is responsible for destroying the AWS instances and other AWS resources created
 
-stackName=TGdummy
+set -o xtrace
+
+stackName=testgrid-tomcat-deployment
 keyPairName=tgDummy
 
 echo "Infrastructure Destroy Initiated"

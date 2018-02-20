@@ -19,6 +19,8 @@
 #
 # ----------------------------------------------------------------------------
 
+set -o xtrace
+
 # This script is responsible for provisioning the infrastructure on AWS
 echo "This is a Dummy Infrastructure provisioning scripts, Your local machine will be used. Hence, infra-provision is empty."
 echo "Start executing the deployment script"

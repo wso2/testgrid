@@ -22,14 +22,18 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
-import org.wso2.testgrid.common.Script;
+import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.DeploymentConfig.DeploymentPattern;
+import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
+import org.wso2.testgrid.common.config.Script;
+import org.wso2.testgrid.common.config.TestPlan;
+import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.core.TestConfig;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
@@ -48,10 +52,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
+
+import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
 
 /**
  * Responsible for generating the infrastructure plan and persisting them in the file system.
@@ -66,16 +72,16 @@ public class GenerateTestPlanCommand implements Command {
 
     @Option(name = "--product",
             usage = "Product Name",
-            aliases = {"-p"},
+            aliases = { "-p" },
             required = true)
     private String productName = "";
 
     @Option(name = "--testConfig",
             usage = "Test Configuration File",
-            aliases = {"-tc"},
+            aliases = { "-tc" },
             required = true)
-    private String testConfigFile = "";
-
+    private String testgridYaml = "";
+    
     @Override
     public void execute() throws CommandExecutionException {
         try {
@@ -83,15 +89,16 @@ public class GenerateTestPlanCommand implements Command {
             LogFilePathLookup.setLogFilePath(deriveLogFilePath(productName));
 
             // Validate test configuration file name
-            if (StringUtil.isStringNullOrEmpty(testConfigFile) || !testConfigFile.endsWith(YAML_EXTENSION)) {
+            if (StringUtil.isStringNullOrEmpty(testgridYaml) || !testgridYaml.endsWith(YAML_EXTENSION)) {
                 throw new CommandExecutionException(StringUtil.concatStrings("Invalid test configuration ",
-                        testConfigFile));
+                        testgridYaml));
             }
 
             // Generate test plans
-            TestConfig inputTestConfig = FileUtil.readConfigurationFile(testConfigFile, TestConfig.class);
+            TestgridYaml testgridYaml = FileUtil.readConfigurationFile(this.testgridYaml, TestgridYaml.class);
+            // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
             Set<InfrastructureCombination> combinations = new InfrastructureCombinationsProvider().getCombinations();
-            List<TestConfig> testPlans = generateTestPlans(combinations, inputTestConfig);
+            List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
 
             Product product = createOrReturnProduct(productName);
             String infraGenDirectory = createTestPlanGenDirectory(product);
@@ -99,15 +106,15 @@ public class GenerateTestPlanCommand implements Command {
             // Save test plans to file-system
             Yaml yaml = createYamlInstance();
             for (int i = 0; i < testPlans.size(); i++) {
-                TestConfig testConfig = testPlans.get(i);
+                TestPlan testPlan = testPlans.get(i);
                 String fileName = StringUtil
-                        .concatStrings(testConfig.getProductName(), "-", (i + 1), YAML_EXTENSION);
-                String output = yaml.dump(testConfig);
+                        .concatStrings(productName, "-", (i + 1), YAML_EXTENSION);
+                String output = yaml.dump(testPlan);
                 saveFile(output, infraGenDirectory, fileName);
             }
         } catch (IOException e) {
             throw new CommandExecutionException(StringUtil
-                    .concatStrings("Error in reading file ", testConfigFile), e);
+                    .concatStrings("Error in reading file ", testgridYaml), e);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error while reading value-sets from the database.", e);
         }
@@ -116,7 +123,7 @@ public class GenerateTestPlanCommand implements Command {
     /**
      * Creates or returns the product for the given params.
      *
-     * @param productName    product name
+     * @param productName product name
      * @return product for the given params
      * @throws CommandExecutionException thrown when errors on database transaction
      */
@@ -152,35 +159,84 @@ public class GenerateTestPlanCommand implements Command {
     private void saveFile(String content, String filePath, String fileName) throws CommandExecutionException {
         String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
         try (OutputStream outputStream = new FileOutputStream(fileAbsolutePath);
-             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
             outputStreamWriter.write(content);
         } catch (IOException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Error in writing file ", fileName), e);
         }
     }
 
-    private List<TestConfig> generateTestPlans(Set<InfrastructureCombination> combinations,
-            TestConfig inputTestConfig) {
-        List<TestConfig> testConfigurations = new ArrayList<>();
-        List<String> deploymentPatterns = inputTestConfig.getDeploymentPatterns();
+    /**
+     * Generates a set of {@link org.wso2.testgrid.common.config.TestPlan}s from the {@link TestgridYaml}.
+     * Here, we generate a TestPlan:
+     * for-each Infrastructure-Provisioner/Deployment-Pattern, for-each infrastructure combination.
+     *
+     * @param infrastructureCombinations Set of infrastructure combination from which test-plans will be generated.
+     * @param testgridYaml               The testgrid.yaml configuration file's object model.
+     * @return list of test-plans that instructs how a test-run need to be executed.
+     */
+    private List<TestPlan> generateTestPlans(Set<InfrastructureCombination> infrastructureCombinations,
+            TestgridYaml testgridYaml) {
+        List<TestPlan> testConfigurations = new ArrayList<>();
+        List<Provisioner> provisioners = testgridYaml.getInfrastructureConfig()
+                .getProvisioners();
 
-        for (String deploymentPattern : deploymentPatterns) {
-            for (InfrastructureCombination combination : combinations) {
-                setUniqueScriptName(inputTestConfig.getInfrastructure().getScripts());
+        for (Provisioner provisioner : provisioners) {
+            Optional<DeploymentPattern> deploymentPattern = getMatchingDeploymentPatternFor(provisioner, testgridYaml);
+            for (InfrastructureCombination combination : infrastructureCombinations) {
+                setUniqueNamesFor(provisioner.getScripts());
 
-                TestConfig testConfig = new TestConfig();
-                testConfig.setProductName(inputTestConfig.getProductName());
-                testConfig.setDeploymentPatterns(Collections.singletonList(deploymentPattern));
-                List<Map<String, Object>> configAwareInfraCombination = toConfigAwareInfrastructureCombination(
+                TestPlan testPlan = new TestPlan();
+                testPlan.setVersion(testgridYaml.getVersion());
+                testPlan.setInfrastructureConfig(testgridYaml.getInfrastructureConfig());
+                testPlan.getInfrastructureConfig().setProvisioners(Collections.singletonList(provisioner));
+                deploymentPattern.ifPresent(dp -> {
+                    setUniqueNamesFor(dp.getScripts());
+                    testPlan.setDeploymentConfig(new DeploymentConfig(Collections.singletonList(dp)));
+                });
+                Properties configAwareInfraCombination = toConfigAwareInfrastructureCombination(
                         combination.getParameters());
-                testConfig.setInfraParams(configAwareInfraCombination);
-                testConfig.setScenarios(inputTestConfig.getScenarios());
-                testConfig.setInfrastructure(inputTestConfig.getInfrastructure());
-                testConfigurations.add(testConfig);
+                testPlan.getInfrastructureConfig().setParameters(configAwareInfraCombination);
+                testPlan.setScenarioConfig(testgridYaml.getScenarioConfig());
+                testPlan.setInfrastructureConfig(testgridYaml.getInfrastructureConfig());
+                testConfigurations.add(testPlan);
 
             }
         }
         return testConfigurations;
+    }
+
+    /**
+     * Get matching deployment pattern for the given infrastructure provisioner.
+     * We have superfluously has made a mapping between the infrastructure-provisioner
+     * and the deployment pattern because they are inherently interconnected.
+     * <p>
+     * For example, the cloudformation-is has infra provisioning scripts for each deployment
+     * pattern. After provisioning, the deployment will also have scripts for each deployment
+     * pattern. So, as you see, there's a direct relationship between the infra-provisioners
+     * and deployment patterns.
+     *
+     * @param provisioner  the infrastructure provisioner
+     * @param testgridYaml the testgrid.yaml config
+     * @return matching {@link DeploymentPattern}. If none found, return any deployment-pattern
+     * available under DeploymentConfig.
+     */
+    private Optional<DeploymentPattern> getMatchingDeploymentPatternFor(Provisioner provisioner,
+            TestgridYaml testgridYaml) {
+        List<DeploymentPattern> deploymentPatterns = testgridYaml.getDeploymentConfig()
+                .getDeploymentPatterns();
+        DeploymentPattern defaultDeploymentPattern = deploymentPatterns.isEmpty() ? null :
+                deploymentPatterns.get(0);
+        Optional<DeploymentPattern> deploymentPattern = deploymentPatterns.stream()
+                .filter(p -> p.getName().equals(provisioner.getName()))
+                .findAny();
+        if (!deploymentPattern.isPresent()) {
+            logger.debug("Did not find a matching deployment pattern under DeploymentConfig for the infrastructure "
+                    + "provisioner: " + provisioner.getName() + ". Hence, using the very first deployment pattern "
+                    + "found: " + defaultDeploymentPattern);
+        }
+
+        return Optional.ofNullable(deploymentPattern.orElse(defaultDeploymentPattern));
     }
 
     /**
@@ -189,19 +245,19 @@ public class GenerateTestPlanCommand implements Command {
      *
      * @param scripts list of Scripts in a given test-config.
      */
-    private void setUniqueScriptName(List<Script> scripts) {
+    private void setUniqueNamesFor(List<Script> scripts) {
         for (Script script : scripts) {
             script.setName(script.getName() + '-' + StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH));
         }
     }
 
-    private List<Map<String, Object>> toConfigAwareInfrastructureCombination(Set<InfrastructureParameter> parameters) {
-        Map<String, Object> configAwareInfrastructureCombination = new HashMap<>(parameters.size());
+    private Properties toConfigAwareInfrastructureCombination(Set<InfrastructureParameter> parameters) {
+        Properties configAwareInfrastructureCombination = new Properties();
         for (InfrastructureParameter parameter : parameters) {
-            configAwareInfrastructureCombination.put(parameter.getType(), parameter.getName());
+            configAwareInfrastructureCombination.setProperty(parameter.getType(), parameter.getName());
         }
 
-        return Collections.singletonList(configAwareInfrastructureCombination);
+        return configAwareInfrastructureCombination;
     }
 
     /**
@@ -213,31 +269,19 @@ public class GenerateTestPlanCommand implements Command {
      */
     private String createTestPlanGenDirectory(Product product) throws CommandExecutionException {
         try {
-            String directoryName = product.getId();
+            String directoryName = product.getName();
             String testGridHome = TestGridUtil.getTestGridHomePath();
-            Path directory = Paths.get(testGridHome, directoryName).toAbsolutePath();
+            Path directory = Paths.get(testGridHome, directoryName, PRODUCT_TEST_PLANS_DIR).toAbsolutePath();
 
             // if the directory exists, remove it
             removeDirectories(directory);
 
-            logger.info(StringUtil.concatStrings("Creating test directory : ", directory.toString()));
-            Path createdDirectory = createDirectories(directory);
-            logger.info(StringUtil.concatStrings("Directory created : ", createdDirectory.toAbsolutePath().toString()));
-            return createdDirectory.toAbsolutePath().toString();
+            Path createdDirectory = Files.createDirectories(directory).toAbsolutePath();
+            logger.info(StringUtil.concatStrings("Test plans dir: ", createdDirectory.toString()));
+            return createdDirectory.toString();
         } catch (IOException e) {
             throw new CommandExecutionException("Error in creating infra generation directory", e);
         }
-    }
-
-    /**
-     * Creates the given directory structure.
-     *
-     * @param directory directory structure to create
-     * @return created directory structure
-     * @throws IOException thrown when error on creating directory structure
-     */
-    private Path createDirectories(Path directory) throws IOException {
-        return Files.createDirectories(directory.toAbsolutePath());
     }
 
     /**
@@ -256,7 +300,7 @@ public class GenerateTestPlanCommand implements Command {
     /**
      * Returns the path of the log file.
      *
-     * @param productName    product name
+     * @param productName product name
      * @return log file path
      */
     private String deriveLogFilePath(String productName) {

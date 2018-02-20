@@ -72,6 +72,7 @@ class TestRunView extends Component {
 
     fetch(testScenarioSummaryUrl, {
       method: "GET",
+      credentials: 'same-origin',
       headers: {
         'Accept': 'application/json'
       }
@@ -89,6 +90,7 @@ class TestRunView extends Component {
       this.props.active.reducer.currentInfra.testPlanStatus === SUCCESS) {
       fetch(logTruncatedContentUrl, {
         method: "GET",
+        credentials: 'same-origin',
         headers: {
           'Accept': 'application/json'
         }

@@ -21,12 +21,17 @@
 
 # This script is responsible for provisioning the infrastructure on AWS
 
-stackName=TGdummy
+#set -o xtrace
+
+scriptDir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+
+stackName=testgrid-tomcat-deployment
 keyPairName=tgDummy
 amiId=ami-4524733f
-outputFileName=infra_eps
+outputFileName=${scriptDir}/infra_eps
 
 echo "Infrastructure creation Initiated"
+
 
 # Create a New Keypair in AWS space and saving it to a .pem file
 output=$(aws ec2 create-key-pair --key-name $keyPairName --output json --query 'KeyMaterial' | cut -d '"' -f2)
@@ -37,7 +42,9 @@ echo -e $output > key.pem
 chmod 600 key.pem
 
 # Create the AWS Stack, here amiID will be parsed as an parameter
-aws cloudformation create-stack --stack-name $stackName --template-body file://./cf-templates/add-instances.yaml --parameters ParameterKey=AMIID,ParameterValue=$amiId
+aws cloudformation create-stack --stack-name $stackName \
+--template-body file://${scriptDir}/cf-templates/add-instances.yaml \
+--parameters ParameterKey=AMIID,ParameterValue=$amiId
 
 # Waiting till the AWS stack is created
 aws cloudformation wait stack-create-complete --stack-name $stackName
