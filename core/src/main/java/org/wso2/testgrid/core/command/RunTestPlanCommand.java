@@ -115,9 +115,6 @@ public class RunTestPlanCommand implements Command {
             // Generate test plan from config
             TestPlan testPlanEntity = toTestPlanEntity(deploymentPattern, testPlan, infraRepo,
                     deploymentRepo, scenarioRepoDir);
-            testPlanEntity.setDeploymentConfig(testPlan.getDeploymentConfig());
-            testPlanEntity.setInfrastructureConfig(testPlan.getInfrastructureConfig());
-
             LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlanEntity));
 
             // Product, deployment pattern, test plan and test scenarios should be persisted
