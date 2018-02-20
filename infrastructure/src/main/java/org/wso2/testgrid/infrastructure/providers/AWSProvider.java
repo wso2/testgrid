@@ -17,12 +17,43 @@
  */
 package org.wso2.testgrid.infrastructure.providers;
 
-import org.wso2.testgrid.common.Deployment;
+import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
+import com.amazonaws.services.cloudformation.model.CreateStackRequest;
+import com.amazonaws.services.cloudformation.model.CreateStackResult;
+import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
+import com.amazonaws.services.cloudformation.model.Output;
+import com.amazonaws.services.cloudformation.model.Parameter;
+import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.TemplateParameter;
+import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
+import com.amazonaws.services.cloudformation.model.ValidateTemplateResult;
+import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters;
+import com.amazonaws.waiters.Waiter;
+import com.amazonaws.waiters.WaiterParameters;
+import com.amazonaws.waiters.WaiterUnrecoverableException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.testgrid.infrastructure.aws.AWSManager;
+import org.wso2.testgrid.common.util.StringUtil;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * This class provides the infrastructure from amazon web services (AWS).
@@ -31,9 +62,11 @@ import org.wso2.testgrid.infrastructure.aws.AWSManager;
  */
 public class AWSProvider implements InfrastructureProvider {
 
+    public static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
+    public static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
     private static final String AWS_PROVIDER = "AWS";
-    private static final String AWS_ACCESS_KEY = "AWS_ACCESS_KEY_ID";
-    private static final String AWS_SECRET_KEY = "AWS_SECRET_ACCESS_KEY";
+    private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
+    private static final String AWS_REGION_PARAMETER = "region";
 
     @Override
     public String getProviderName() {
@@ -51,29 +84,45 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     @Override
-    public Deployment createInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir)
+    public void init() throws TestGridInfrastructureException {
+        String awsIdentity = System.getenv(AWS_ACCESS_KEY_ID);
+        String awsSecret = System.getenv(AWS_SECRET_ACCESS_KEY);
+        if (StringUtil.isStringNullOrEmpty(awsIdentity) || StringUtil.isStringNullOrEmpty(awsSecret)) {
+            throw new TestGridInfrastructureException(StringUtil
+                    .concatStrings("AWS Credentials must be set as environment variables: ", AWS_ACCESS_KEY_ID, ", ",
+                            AWS_SECRET_ACCESS_KEY));
+        }
+
+    }
+
+    /**
+     * This method initiates creating infrastructure through CLoudFormation.
+     *
+     * @param infrastructureConfig The infrastructure configuration.
+     * @param infraRepoDir         Path of TestGrid home location in file system as a String.
+     * @return Returns the InfrastructureProvisionResult.
+     * @throws TestGridInfrastructureException When there is an error with CloudFormation script.
+     */
+    @Override
+    public InfrastructureProvisionResult provision(InfrastructureConfig infrastructureConfig, String infraRepoDir)
             throws TestGridInfrastructureException {
-        AWSManager awsManager = new AWSManager(AWS_ACCESS_KEY, AWS_SECRET_KEY);
-        awsManager.init(infrastructureConfig);
         for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
                 infrastructureConfig.getParameters().forEach((key, value) ->
                         script.getInputParameters().setProperty((String) key, (String) value));
-                return awsManager.createInfrastructure(script, infraRepoDir);
+                return doProvision(infrastructureConfig, script.getName(), infraRepoDir);
             }
         }
         throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
     }
 
     @Override
-    public boolean removeInfrastructure(InfrastructureConfig infrastructureConfig, String infraRepoDir)
+    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir)
             throws TestGridInfrastructureException {
-        AWSManager awsManager = new AWSManager(AWS_ACCESS_KEY, AWS_SECRET_KEY);
-        awsManager.init(infrastructureConfig);
         try {
             for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
                 if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
-                    return awsManager.destroyInfrastructure(script);
+                    return doRelease(infrastructureConfig, script.getName());
                 }
             }
             throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
@@ -81,4 +130,141 @@ public class AWSProvider implements InfrastructureProvider {
             throw new TestGridInfrastructureException("Error while waiting for CloudFormation stack to destroy", e);
         }
     }
+
+    private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
+            String stackName, String infraRepoDir) throws TestGridInfrastructureException {
+        String region = infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER);
+        AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
+                .withCredentials(new EnvironmentVariableCredentialsProvider())
+                .withRegion(region)
+                .build();
+
+        CreateStackRequest stackRequest = new CreateStackRequest();
+        stackRequest.setStackName(stackName);
+        try {
+            Script script = infrastructureConfig.getProvisioners().get(0).getScripts().stream()
+                    .filter(s -> s.getName().equals(stackName))
+                    .findAny()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "The script with name '" + stackName + "' does not exist."));
+            String file = new String(Files.readAllBytes(Paths.get(infraRepoDir, script.getFile())),
+                    StandardCharsets.UTF_8);
+
+            ValidateTemplateRequest validateTemplateRequest = new ValidateTemplateRequest();
+            validateTemplateRequest.withTemplateBody(file);
+            ValidateTemplateResult validationResult = cloudFormation.validateTemplate(validateTemplateRequest);
+            List<TemplateParameter> expectedParameters = validationResult.getParameters();
+
+            stackRequest.setTemplateBody(file);
+            stackRequest.setParameters(getParameters(script, expectedParameters));
+
+            logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", stackName,
+                    "' in region '", region, "'. Script : ", script.getFile()));
+            CreateStackResult stack = cloudFormation.createStack(stackRequest);
+            if (logger.isDebugEnabled()) {
+                logger.info(StringUtil.concatStrings("Stack configuration created for name ", stackName));
+            }
+            logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName));
+            Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new AmazonCloudFormationWaiters(cloudFormation)
+                    .stackCreateComplete();
+            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
+            logger.info(StringUtil.concatStrings("Stack : ", stackName, ", with ID : ", stack.getStackId(),
+                    " creation completed !"));
+
+            DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
+            describeStacksRequest.setStackName(stack.getStackId());
+            DescribeStacksResult describeStacksResult = cloudFormation
+                    .describeStacks(describeStacksRequest);
+            List<Host> hosts = new ArrayList<>();
+            Host tomcatHost = new Host();
+            tomcatHost.setLabel("tomcatHost");
+            tomcatHost.setIp("ec2-52-54-230-106.compute-1.amazonaws.com");
+            Host tomcatPort = new Host();
+            tomcatPort.setLabel("tomcatPort");
+            tomcatPort.setIp("8080");
+            hosts.add(tomcatHost);
+            hosts.add(tomcatPort);
+            for (Stack st : describeStacksResult.getStacks()) {
+                for (Output output : st.getOutputs()) {
+                    Host host = new Host();
+                    host.setIp(output.getOutputValue());
+                    host.setLabel(output.getOutputKey());
+                    hosts.add(host);
+                }
+            }
+            logger.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
+            InfrastructureProvisionResult result = new InfrastructureProvisionResult();
+            //added for backward compatibility. todo remove.
+            result.setHosts(hosts);
+            Properties props = new Properties();
+            props.setProperty("HOSTS", hosts.toString());
+            result.setProperties(props);
+
+            return result;
+        } catch (WaiterUnrecoverableException e) {
+            throw new TestGridInfrastructureException(StringUtil.concatStrings("Error while waiting for stack : "
+                    , stackName, " to complete"), e);
+        } catch (IOException e) {
+            throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
+        }
+    }
+
+    /**
+     * This method releases the provisioned AWS infrastructure.
+     *
+     * @param infrastructureConfig The infrastructure configuration.
+     * @param stackName            the cloudformation script name
+     * @return true or false to indicate the result of destroy operation.
+     * @throws TestGridInfrastructureException when AWS error occurs in deletion process.
+     * @throws InterruptedException            when there is an interruption while waiting for the result.
+     */
+    private boolean doRelease(InfrastructureConfig infrastructureConfig, String stackName) throws
+            TestGridInfrastructureException, InterruptedException {
+        AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
+                .withCredentials(new EnvironmentVariableCredentialsProvider())
+                .withRegion(infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER))
+                .build();
+        DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
+        deleteStackRequest.setStackName(stackName);
+        stackdestroy.deleteStack(deleteStackRequest);
+        logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName, " to delete.."));
+        Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new
+                AmazonCloudFormationWaiters(stackdestroy).stackDeleteComplete();
+        try {
+            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
+        } catch (WaiterUnrecoverableException e) {
+            throw new TestGridInfrastructureException("Error occured while waiting for Stack :"
+                    + stackName + " deletion !");
+        }
+        return true;
+    }
+
+    /**
+     * Reads the parameters for the stack from file.
+     *
+     * @param script             Script object with script details.
+     * @param expectedParameters
+     * @return a List of {@link Parameter} objects
+     * @throws IOException When there is an error reading the parameters file.
+     */
+    private List<Parameter> getParameters(Script script, List<TemplateParameter> expectedParameters)
+            throws IOException, TestGridInfrastructureException {
+
+        List<Parameter> cfCompatibleParameters = new ArrayList<>();
+
+        expectedParameters.forEach(expected -> {
+            Optional<Map.Entry<Object, Object>> scriptParameter = script.getInputParameters().entrySet().stream()
+                    .filter(input -> input.getKey().equals(expected
+                            .getParameterKey())).findAny();
+            scriptParameter.ifPresent(theScriptParameter -> {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue((String) theScriptParameter.getValue());
+                cfCompatibleParameters.add(awsParameter);
+            });
+
+        });
+
+        return cfCompatibleParameters;
+    }
+
 }

@@ -27,7 +27,7 @@ import org.apache.jorphan.collections.HashTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Port;
 import org.wso2.testgrid.common.TestScenario;
@@ -59,14 +59,16 @@ public class JMeterExecutor extends TestExecutor {
     private TestScenario testScenario;
 
     @Override
-    public void execute(String script, Deployment deployment) throws TestAutomationException {
+    public void execute(String script, DeploymentCreationResult deploymentCreationResult)
+            throws TestAutomationException {
         StandardJMeterEngine jMeterEngine = new StandardJMeterEngine();
         if (StringUtil.isStringNullOrEmpty(testName) || StringUtil.isStringNullOrEmpty(testLocation)) {
             throw new TestAutomationException(
                     StringUtil.concatStrings("JMeter Executor not initialised properly.", "{ Test Name: ", testName,
                             ", Test Location: ", testLocation, "}"));
         }
-        overrideJMeterConfig(testLocation, deployment); // Override JMeter properties for current deployment.
+        overrideJMeterConfig(testLocation,
+                deploymentCreationResult); // Override JMeter properties for current deployment.
         //TODO change parameter replacing in jmx files to use JMeter properties file.
         try {
             script = replaceProperties(script);
@@ -191,7 +193,7 @@ public class JMeterExecutor extends TestExecutor {
      * @param deployment   deployment details of the current pattern
      */
 
-    private void overrideJMeterConfig(String testLocation, Deployment deployment) {
+    private void overrideJMeterConfig(String testLocation, DeploymentCreationResult deployment) {
         Path path = Paths.get(testLocation, "resources", "user.properties");
         if (!Files.exists(path)) {
             logger.info("JMeter user.properties file not specified - proceeding with JMeter default properties.");

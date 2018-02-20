@@ -17,7 +17,7 @@
 */
 package org.wso2.testgrid.deployment;
 
-import org.wso2.testgrid.common.DeployerService;
+import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
 import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
@@ -25,10 +25,10 @@ import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
 import java.util.ServiceLoader;
 
 /**
- * Returns a DeployerService for the requested deployer type.
+ * Returns a Deployer for the requested deployer type.
  */
 public class DeployerFactory {
-    private static ServiceLoader<DeployerService> providers = ServiceLoader.load(DeployerService.class);
+    private static ServiceLoader<Deployer> providers = ServiceLoader.load(Deployer.class);
 
     /**
      * Return a matching Deployer for deploying artifacts.
@@ -38,14 +38,14 @@ public class DeployerFactory {
      * @throws DeployerInitializationException if instantiation of the requested Deployer fails
      * @throws UnsupportedDeployerException if an unsupported deployerType is provided
      */
-    public static DeployerService getDeployerService(TestPlan testPlan)
+    public static Deployer getDeployerService(TestPlan testPlan)
             throws DeployerInitializationException, UnsupportedDeployerException {
         String deployerType = testPlan.getDeployerType().toString();
 
-        for (DeployerService deployerService : providers) {
-            if (deployerService.getDeployerName().equals(deployerType)) {
+        for (Deployer deployer : providers) {
+            if (deployer.getDeployerName().equals(deployerType)) {
                 try {
-                    return deployerService.getClass().newInstance();
+                    return deployer.getClass().newInstance();
                 } catch (InstantiationException e) {
                         throw new DeployerInitializationException("Exception occurred while instantiating the" +
                                 " DeployerFactory for requested type '" + deployerType + "'", e);

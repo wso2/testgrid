@@ -69,8 +69,7 @@ public class DeploymentConfig implements Serializable {
      * Describes a given deployment pattern within a deployment repository.
      * A deployment pattern config should describe its name, where it is located,
      * and what scripts are there that can be executed.
-     *
-      */
+     */
     public static class DeploymentPattern implements Serializable {
         private static final long serialVersionUID = 5484623288608884369L;
 

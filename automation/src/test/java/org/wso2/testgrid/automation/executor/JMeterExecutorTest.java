@@ -21,7 +21,7 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -82,7 +82,7 @@ public class JMeterExecutorTest {
         try {
             TestExecutor testExecutor = new JMeterExecutor();
             testExecutor.init(testLocation, "solution22", null);
-            testExecutor.execute(scriptPath, new Deployment());
+            testExecutor.execute(scriptPath, new DeploymentCreationResult());
         } catch (TestAutomationException e) {
             Assert.assertEquals(e.getMessage(), exceptionMessage);
             return;
@@ -96,7 +96,7 @@ public class JMeterExecutorTest {
                   "Test Location: null\\}")
     public void testNoInit() throws TestAutomationException {
         TestExecutor testExecutor = new JMeterExecutor();
-        testExecutor.execute("Script", new Deployment());
+        testExecutor.execute("Script", new DeploymentCreationResult());
     }
 
     @Test(description = "Test for testing invalid JMeter files",
@@ -116,7 +116,7 @@ public class JMeterExecutorTest {
                 .toAbsolutePath().toString();
         TestExecutor testExecutor = new JMeterExecutor();
         testExecutor.init(testLocation, "solution22", null);
-        testExecutor.execute(testScript, new Deployment());
+        testExecutor.execute(testScript, new DeploymentCreationResult());
     }
 
     @Test(description = "Test for testing JMeter files as directories",
@@ -137,6 +137,6 @@ public class JMeterExecutorTest {
                 .toAbsolutePath().toString();
         TestExecutor testExecutor = new JMeterExecutor();
         testExecutor.init(testLocation, "solution22", null);
-        testExecutor.execute(testScript, new Deployment());
+        testExecutor.execute(testScript, new DeploymentCreationResult());
     }
 }

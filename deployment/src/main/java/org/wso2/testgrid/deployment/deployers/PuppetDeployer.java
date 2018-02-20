@@ -19,8 +19,10 @@ package org.wso2.testgrid.deployment.deployers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.testgrid.common.DeployerService;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.Deployer;
+import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -37,7 +39,7 @@ import java.util.Properties;
 /**
  * Performs deployment of artifacts using Puppet for running tests.
  */
-public class PuppetDeployer implements DeployerService {
+public class PuppetDeployer implements Deployer {
     private static final Log log = LogFactory.getLog(PuppetDeployer.class);
     private static final String DEPLOYER_NAME = "puppet";
 
@@ -47,8 +49,9 @@ public class PuppetDeployer implements DeployerService {
     }
 
     @Override
-    public Deployment deploy(Deployment deployment) throws TestGridDeployerException {
-        String testPlanLocation = deployment.getDeploymentScriptsDir();
+    public DeploymentCreationResult deploy(TestPlan testPlan,
+            InfrastructureProvisionResult infrastructureProvisionResult) throws TestGridDeployerException {
+        String testPlanLocation = infrastructureProvisionResult.getDeploymentScriptsDir();
 
         //Set read,write and execute permissions to files related to deployment
         try {
@@ -69,7 +72,7 @@ public class PuppetDeployer implements DeployerService {
                                             + DeployerConstants.USERNAME + " "
                                             + DeployerConstants.PASSWORD + " "
                                             + DeployerConstants.DOCKER_EMAIL, file)) {
-                return DeploymentUtil.getDeploymentInfo(testPlanLocation);
+                return DeploymentUtil.getDeploymentCreationResult(testPlanLocation);
             } else {
                 throw new TestGridDeployerException("Error occurred while deploying artifacts");
             }

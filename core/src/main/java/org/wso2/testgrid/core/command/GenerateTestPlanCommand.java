@@ -22,11 +22,11 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.DeploymentConfig;
-import org.wso2.testgrid.common.config.DeploymentConfig.DeploymentPattern;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
 import org.wso2.testgrid.common.config.Script;
-import org.wso2.testgrid.common.config.TestPlan;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
@@ -40,6 +40,10 @@ import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
 import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.introspector.Property;
+import org.yaml.snakeyaml.nodes.NodeTuple;
+import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -81,7 +85,7 @@ public class GenerateTestPlanCommand implements Command {
             aliases = { "-tc" },
             required = true)
     private String testgridYaml = "";
-    
+
     @Override
     public void execute() throws CommandExecutionException {
         try {
@@ -97,6 +101,7 @@ public class GenerateTestPlanCommand implements Command {
             // Generate test plans
             TestgridYaml testgridYaml = FileUtil.readConfigurationFile(this.testgridYaml, TestgridYaml.class);
             // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
+            populateDefaults(testgridYaml);
             Set<InfrastructureCombination> combinations = new InfrastructureCombinationsProvider().getCombinations();
             List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
 
@@ -117,6 +122,25 @@ public class GenerateTestPlanCommand implements Command {
                     .concatStrings("Error in reading file ", testgridYaml), e);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error while reading value-sets from the database.", e);
+        }
+    }
+
+    /**
+     * Populate the defaults into the testgridYaml.
+     * This includes adding a default deployConfig if
+     * the given job does not have a deployment step.
+     *
+     * @param testgridYaml the testgrid configuration in the repos.
+     */
+    private void populateDefaults(TestgridYaml testgridYaml) {
+        if (testgridYaml.getDeploymentConfig().getDeploymentPatterns().isEmpty()) {
+            DeploymentConfig.DeploymentPatternConfig deploymentPatternConfig = new DeploymentConfig
+                    .DeploymentPatternConfig();
+            deploymentPatternConfig.setName(TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME);
+            deploymentPatternConfig.setDescription(TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME);
+            deploymentPatternConfig.setScripts(Collections.emptyList());
+            testgridYaml.getDeploymentConfig()
+                    .setDeploymentPatterns(Collections.singletonList(deploymentPatternConfig));
         }
     }
 
@@ -145,8 +169,25 @@ public class GenerateTestPlanCommand implements Command {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
-        return new Yaml(options);
+        return new Yaml(new NullRepresenter(), options);
     }
+
+    /**
+     * If the value of a given element is null, do not serialize it to disk.
+     *
+     */
+    private static class NullRepresenter extends Representer {
+        @Override
+        protected NodeTuple representJavaBeanProperty(Object javaBean, Property property, Object propertyValue,
+                Tag customTag) {
+            // if value of property is null, ignore it.
+            if (propertyValue == null) {
+                return null;
+            } else {
+                return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
+            }
+        }
+    };
 
     /**
      * Saves the content to a file with the given name in the given file path.
@@ -167,7 +208,7 @@ public class GenerateTestPlanCommand implements Command {
     }
 
     /**
-     * Generates a set of {@link org.wso2.testgrid.common.config.TestPlan}s from the {@link TestgridYaml}.
+     * Generates a set of {@link org.wso2.testgrid.common.TestPlan}s from the {@link TestgridYaml}.
      * Here, we generate a TestPlan:
      * for-each Infrastructure-Provisioner/Deployment-Pattern, for-each infrastructure combination.
      *
@@ -182,12 +223,12 @@ public class GenerateTestPlanCommand implements Command {
                 .getProvisioners();
 
         for (Provisioner provisioner : provisioners) {
-            Optional<DeploymentPattern> deploymentPattern = getMatchingDeploymentPatternFor(provisioner, testgridYaml);
+            Optional<DeploymentConfig.DeploymentPatternConfig> deploymentPattern = getMatchingDeploymentPatternFor(
+                    provisioner, testgridYaml);
             for (InfrastructureCombination combination : infrastructureCombinations) {
                 setUniqueNamesFor(provisioner.getScripts());
 
                 TestPlan testPlan = new TestPlan();
-                testPlan.setVersion(testgridYaml.getVersion());
                 testPlan.setInfrastructureConfig(testgridYaml.getInfrastructureConfig());
                 testPlan.getInfrastructureConfig().setProvisioners(Collections.singletonList(provisioner));
                 deploymentPattern.ifPresent(dp -> {
@@ -218,16 +259,16 @@ public class GenerateTestPlanCommand implements Command {
      *
      * @param provisioner  the infrastructure provisioner
      * @param testgridYaml the testgrid.yaml config
-     * @return matching {@link DeploymentPattern}. If none found, return any deployment-pattern
+     * @return matching {@link DeploymentConfig.DeploymentPatternConfig}. If none found, return any deployment-pattern
      * available under DeploymentConfig.
      */
-    private Optional<DeploymentPattern> getMatchingDeploymentPatternFor(Provisioner provisioner,
+    private Optional<DeploymentConfig.DeploymentPatternConfig> getMatchingDeploymentPatternFor(Provisioner provisioner,
             TestgridYaml testgridYaml) {
-        List<DeploymentPattern> deploymentPatterns = testgridYaml.getDeploymentConfig()
+        List<DeploymentConfig.DeploymentPatternConfig> deploymentPatterns = testgridYaml.getDeploymentConfig()
                 .getDeploymentPatterns();
-        DeploymentPattern defaultDeploymentPattern = deploymentPatterns.isEmpty() ? null :
+        DeploymentConfig.DeploymentPatternConfig defaultDeploymentPattern = deploymentPatterns.isEmpty() ? null :
                 deploymentPatterns.get(0);
-        Optional<DeploymentPattern> deploymentPattern = deploymentPatterns.stream()
+        Optional<DeploymentConfig.DeploymentPatternConfig> deploymentPattern = deploymentPatterns.stream()
                 .filter(p -> p.getName().equals(provisioner.getName()))
                 .findAny();
         if (!deploymentPattern.isPresent()) {

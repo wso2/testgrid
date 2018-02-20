@@ -24,7 +24,7 @@ import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.reader.TestReader;
 import org.wso2.testgrid.automation.reader.TestReaderFactory;
-import org.wso2.testgrid.common.Deployment;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
@@ -55,12 +55,12 @@ public class ScenarioExecutor {
     /**
      * This method executes a given TestScenario.
      *
-     * @param testScenario an instance of TestScenario in which the tests should be executed.
-     * @param deployment   an instance of Deployment in which the tests should be executed against.
-     * @param testPlan     test plan associated with the test scenario
+     * @param testScenario             an instance of TestScenario in which the tests should be executed.
+     * @param deploymentCreationResult the deployment creation output.
+     * @param testPlan                 test plan associated with the test scenario.
      * @throws ScenarioExecutorException If something goes wrong while executing the TestScenario.
      */
-    public void runScenario(TestScenario testScenario, Deployment deployment, TestPlan testPlan)
+    public void execute(TestScenario testScenario, DeploymentCreationResult deploymentCreationResult, TestPlan testPlan)
             throws ScenarioExecutorException {
         try {
             // Run test scenario.
@@ -75,12 +75,12 @@ public class ScenarioExecutor {
 
             if (tests.isEmpty()) {
                 logger.warn("Couldn't find any tests for the scenario " + testScenario + " At location "
-                            + testLocation);
+                        + testLocation);
             }
 
             for (Test test : tests) {
                 logger.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
-                test.execute(testLocation, deployment);
+                test.execute(testLocation, deploymentCreationResult);
                 logger.info("---------------------------------------");
             }
 
@@ -146,7 +146,7 @@ public class ScenarioExecutor {
             } else {
                 throw new ScenarioExecutorException(
                         "Scenario directory doesn't exist for the path : " + testLocationPath + " Scenario name : "
-                        + testScenario.getName());
+                                + testScenario.getName());
             }
             return testList;
         } catch (TestAutomationException e) {
