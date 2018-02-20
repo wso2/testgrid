@@ -44,6 +44,7 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -67,6 +68,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String AWS_PROVIDER = "AWS";
     private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
     private static final String AWS_REGION_PARAMETER = "region";
+    private CloudFormationScriptPreprocessor cfScriptPreprocessor;
 
     @Override
     public String getProviderName() {
@@ -92,7 +94,7 @@ public class AWSProvider implements InfrastructureProvider {
                     .concatStrings("AWS Credentials must be set as environment variables: ", AWS_ACCESS_KEY_ID, ", ",
                             AWS_SECRET_ACCESS_KEY));
         }
-
+        cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
     }
 
     /**
@@ -149,7 +151,7 @@ public class AWSProvider implements InfrastructureProvider {
                             "The script with name '" + stackName + "' does not exist."));
             String file = new String(Files.readAllBytes(Paths.get(infraRepoDir, script.getFile())),
                     StandardCharsets.UTF_8);
-
+            file = cfScriptPreprocessor.process(file);
             ValidateTemplateRequest validateTemplateRequest = new ValidateTemplateRequest();
             validateTemplateRequest.withTemplateBody(file);
             ValidateTemplateResult validationResult = cloudFormation.validateTemplate(validateTemplateRequest);
