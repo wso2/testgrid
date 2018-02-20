@@ -70,7 +70,7 @@ public class AWSManager {
     private static final String JDK = "JDK";
     private static final String IMAGE = "Image";
     private InfrastructureConfig infrastructureConfig;
-
+    private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     /**
      * This constructor creates AWS deployer object and validate AWS related environment variables are present.
      *
@@ -86,6 +86,7 @@ public class AWSManager {
                     .concatStrings("AWS Credentials must be set as environment variables: ", awsIdentity, ", ",
                             awsSecretVariableName));
         }
+        cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
     }
 
     /**
@@ -106,7 +107,6 @@ public class AWSManager {
 
         CreateStackRequest stackRequest = new CreateStackRequest();
         stackRequest.setStackName(cloudFormationName);
-        CloudFormationScriptPreprocessor cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
         try {
             String file = new String(Files.readAllBytes(Paths.get(infraRepoDir,
                     script.getFile())), StandardCharsets.UTF_8);

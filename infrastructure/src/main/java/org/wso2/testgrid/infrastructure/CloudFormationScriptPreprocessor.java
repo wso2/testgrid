@@ -50,7 +50,7 @@ public class CloudFormationScriptPreprocessor {
      */
     private static String appendRandomValue(String key, String script) {
         StringBuilder newScript = new StringBuilder();
-        Pattern pattern = Pattern.compile("\\b(" + key + ":)");
+        Pattern pattern = Pattern.compile("(\\s+)" + key + "\\s*:\\s*(.*)");
         //Take each line and check for the reg-ex pattern.
         for (String line : script.split("\\r?\\n")) {
             if (pattern.matcher(line).find()) {
