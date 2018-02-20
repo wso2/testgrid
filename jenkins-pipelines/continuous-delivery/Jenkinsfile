@@ -1,4 +1,4 @@
-node {
+node('COMPONENT_ECS') {
     stage('Deploy to Dev'){
         deleteDir()
         copyArtifacts(projectName: 'testgrid/testgrid');
@@ -8,6 +8,18 @@ node {
                 scp -o StrictHostKeyChecking=no distribution/target/*.zip ${DEV_USER}@${DEV_HOST}:/testgrid/jenkins-home/workspace/WSO2-TestGrid.zip
                 """
            }
+    }
+
+    stage('Deploy to OpenStack Slave'){
+        node('OSLK01'){
+            deleteDir()
+            copyArtifacts(projectName: 'testgrid/testgrid');
+            sshagent(['testgrid-openstack-dev-key']) {
+                sh """
+                    scp -o StrictHostKeyChecking=no distribution/target/*.zip ${OS_SLAVE_USER}@${OS_SLAVE_HOST}:/testgrid/jenkins-home/workspace/WSO2-TestGrid.zip
+                    """
+               }
+        }
     }
 
     stage('Deploy to Prod'){
