@@ -17,34 +17,50 @@
  */
 package org.wso2.testgrid.infrastructure;
 
-import java.util.Random;
+import org.wso2.testgrid.common.util.StringUtil;
+
 import java.util.regex.Pattern;
 
 /**
- * //todo
+ * This class is responsible to do necessary pre-processing steps to CloudFormation script.
  */
 public class CloudFormationScriptPreprocessor {
+
+    private static final int RANDOMIZED_STR_LENGTH = 6;
+    private static final String NAME_ELEMENT_KEY = "Name";
+    private static final String DB_INSTANCE_IDENTIFIER_KEY = "DBInstanceIdentifier";
+
+    /**
+     * This method includes each pre-processing steps the script has to go through.
+     * @param script CloudFormation script
+     * @return Pre-processed CloudFormation script
+     */
     public String process(String script) {
-        StringBuilder newScript = new StringBuilder();
-
-        Pattern patternToFindName = Pattern.compile("\\b(Name:)");
-        Pattern patternToFindIdentifier = Pattern.compile("\\b(DBInstanceIdentifier:)");
-
-        for (String line : script.split("\\r?\\n")) {
-            if (patternToFindIdentifier.matcher(line).find() || patternToFindName.matcher(line).find()) {
-                String value = line.split(":")[1];
-                String newValue = value + getRandomValue();
-                line = line.split(":")[0] + ":" + newValue;
-            }
-            newScript.append(line).append("\n");
-        }
-        return newScript.toString();
+        script = appendRandomValue(NAME_ELEMENT_KEY, script);
+        script = appendRandomValue(DB_INSTANCE_IDENTIFIER_KEY, script);
+        return script;
     }
 
-    private String getRandomValue() {
-        Random rand = new Random();
-        int n = rand.nextInt(10000) + 1;
-        return String.valueOf(n);
+    /**
+     * This method appends a random string to the value of the element.
+     * @param key Key of the element where the random string should be appended to its value.
+     * @param script CF script
+     * @return New CF script with random values appended for the requested element (This can be multiple places if the
+     * element exists in multiple places in the script.
+     */
+    private static String appendRandomValue(String key, String script) {
+        StringBuilder newScript = new StringBuilder();
+        Pattern pattern = Pattern.compile("\\b(" + key + ":)");
+        //Take each line and check for the reg-ex pattern.
+        for (String line : script.split("\\r?\\n")) {
+            if (pattern.matcher(line).find()) {
+                String value = line.split(":")[1];
+                String newValue = value + StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH);
+                line = line.split(":")[0] + ":" + newValue;
+            }
+            newScript.append(line).append(System.lineSeparator());
+        }
+        return newScript.toString();
     }
 }
 
