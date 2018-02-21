@@ -64,17 +64,11 @@ public class ShellDeployer implements Deployer {
             String infraArtifact = StringUtil
                     .concatStrings(infrastructureProvisionResult.getResultLocation(),
                             File.separator, "k8s.properties");
-            StringBuilder builder = new StringBuilder();
-            builder.append("$(cat ").append(infraArtifact).append(") ");
-
-            deployment.getInputParameters().forEach((o, o2) -> {
-                builder.append(o2).append(" ");
-            });
-
+            String parameterString = TestGridUtil.getParameterString(infraArtifact , deployment.getInputParameters());
             ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
             if (!shellExecutor
                     .executeCommand("bash " + Paths.get(infrastructureProvisionResult
-                            .getDeploymentScriptsDir(), deployment.getFile()) + " " + builder.toString())) {
+                            .getDeploymentScriptsDir(), deployment.getFile()) + " " + parameterString)) {
                 throw new TestGridDeployerException("Error occurred while executing the deploy script");
             }
         } catch (CommandExecutionException e) {
@@ -103,6 +97,13 @@ public class ShellDeployer implements Deployer {
         for (Script script : deploymentConfig.getDeploymentPatterns().get(0).getScripts()) {
             if (scriptPhase.equals(script.getPhase())) {
                 return script;
+            }
+        }
+        if (Script.Phase.CREATE.equals(scriptPhase)) {
+            for (Script script : deploymentConfig.getDeploymentPatterns().get(0).getScripts()) {
+                if (script.getPhase() == null) {
+                    return script;
+                }
             }
         }
         throw new TestGridDeployerException("The Script list Provided doesn't containt a " + scriptPhase.toString() +

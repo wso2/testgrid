@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 
 /**
  * This class creates the infrastructure for running tests.
@@ -44,6 +45,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(ShellScriptProvider.class);
     private static final String SHELL_SCRIPT_PROVIDER = "Shell Executor";
+    private static final String OUTPUT_DIR = "output-dir";
 
     @Override
     public String getProviderName() {
@@ -68,17 +70,14 @@ public class ShellScriptProvider implements InfrastructureProvider {
         logger.info("Executing provisioning scripts...");
         try {
             Path artifactsDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
-            StringBuilder builder = new StringBuilder();
             Script createScript = getScriptToExecute(infrastructureConfig, Script.Phase.CREATE);
-            createScript.getInputParameters().forEach((o, o2) -> {
-                builder.append(o2).append(" ");
-            });
-            builder.append("-o=").append(StringUtil.concatStrings(TestGridUtil.getTestGridHomePath(), File.separator,
-                    artifactsDirectory.toString()));
+            Properties inputParameters = createScript.getInputParameters();
+            inputParameters.setProperty(OUTPUT_DIR, StringUtil.concatStrings(TestGridUtil.getTestGridHomePath()
+                    , File.separator, artifactsDirectory.toString()));
+            String parameterString = TestGridUtil.getParameterString(null, inputParameters);
             ShellExecutor executor = new ShellExecutor(null);
             executor.executeCommand("bash " + Paths
-                    .get(testPlanLocation, createScript.getFile()) + " " + builder.toString());
-
+                    .get(testPlanLocation, createScript.getFile()) + " " + parameterString);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             result.setResultLocation(StringUtil.concatStrings(TestGridUtil.getTestGridHomePath(), File.separator,
                     artifactsDirectory.toString()));
@@ -133,6 +132,13 @@ public class ShellScriptProvider implements InfrastructureProvider {
         for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
             if (scriptPhase.equals(script.getPhase())) {
                 return script;
+            }
+        }
+        if (Script.Phase.CREATE.equals(scriptPhase)) {
+            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+                if (script.getPhase() == null) {
+                    return script;
+                }
             }
         }
         throw new TestGridInfrastructureException("The Script list Provided doesn't containt a "
