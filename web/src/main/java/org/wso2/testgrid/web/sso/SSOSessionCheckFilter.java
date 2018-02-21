@@ -21,7 +21,7 @@ package org.wso2.testgrid.web.sso;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.web.utils.ConfigurationContext;
+import org.wso2.testgrid.common.util.ConfigurationContext;
 import org.wso2.testgrid.web.utils.Constants;
 
 import java.io.IOException;

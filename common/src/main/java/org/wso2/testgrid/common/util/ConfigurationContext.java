@@ -16,10 +16,9 @@
  * under the License.
  */
 
-package org.wso2.testgrid.web.utils;
+package org.wso2.testgrid.common.util;
 
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +36,7 @@ public class ConfigurationContext {
     private static boolean isFileAccessed;
     static {
         try {
-            Path configPath = Paths.get(TestGridUtil.getTestGridHomePath(), "testgrid-web-config.properties");
+            Path configPath = Paths.get(TestGridUtil.getTestGridHomePath(), "testgrid-config.properties");
             inputStream = Files.newInputStream(configPath);
             isFileAccessed = true;
         } catch (IOException e) {

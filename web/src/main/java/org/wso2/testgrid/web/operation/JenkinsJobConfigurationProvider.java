@@ -21,8 +21,8 @@ package org.wso2.testgrid.web.operation;
 import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.ConfigurationContext;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
-import org.wso2.testgrid.web.utils.ConfigurationContext;
 import org.wso2.testgrid.web.utils.Constants;
 
 import javax.ws.rs.core.HttpHeaders;
