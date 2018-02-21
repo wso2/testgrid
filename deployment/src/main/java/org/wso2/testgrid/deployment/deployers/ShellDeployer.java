@@ -25,10 +25,13 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -41,7 +44,6 @@ public class ShellDeployer implements Deployer {
 
     private static final Logger logger = LoggerFactory.getLogger(ShellDeployer.class);
     private static final String DEPLOYER_NAME = "SHELL";
-    private static final String DEPLOY_SCRIPT_NAME = "deploy.sh";
 
     @Override
     public String getDeployerName() {
@@ -50,16 +52,23 @@ public class ShellDeployer implements Deployer {
 
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-            InfrastructureProvisionResult infrastructureProvisionResult) throws TestGridDeployerException {
+                                           InfrastructureProvisionResult infrastructureProvisionResult)
+            throws TestGridDeployerException {
+
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
         try {
+            Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
+            logger.info("Performing the Deployment " + deployment.getName());
+            String infraArtifact = StringUtil
+                    .concatStrings(infrastructureProvisionResult.getResultLocation(),
+                            File.separator, "k8s.properties");
+            String parameterString = TestGridUtil.getParameterString(infraArtifact , deployment.getInputParameters());
             ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
-            // TODO: DEPLOY_SCRIPT_NAME is hard-coded. We should first find the script name in the DeploymentConfig
             if (!shellExecutor
-                    .executeCommand("bash " + Paths
-                            .get(infrastructureProvisionResult.getDeploymentScriptsDir(), DEPLOY_SCRIPT_NAME))) {
+                    .executeCommand("bash " + Paths.get(infrastructureProvisionResult
+                            .getDeploymentScriptsDir(), deployment.getFile()) + " " + parameterString)) {
                 throw new TestGridDeployerException("Error occurred while executing the deploy script");
             }
         } catch (CommandExecutionException e) {
@@ -67,12 +76,37 @@ public class ShellDeployer implements Deployer {
         } catch (IOException e) {
             throw new TestGridDeployerException("Error occurred while retrieving the Testgrid_home ", e);
         }
-
         DeploymentCreationResult result = new DeploymentCreationResult();
         result.setName(deploymentPatternConfig.getName());
         result.setHosts(infrastructureProvisionResult.getHosts());
         result.setDeploymentScriptsDir(infrastructureProvisionResult.getDeploymentScriptsDir());
-
         return result;
+    }
+
+    /**
+     * This method returns the script matching the correct script phase.
+     *
+     * @param deploymentConfig {@link DeploymentConfig} object with current deployment configurations
+     * @param scriptPhase {@link Script.Phase} enum value for required script
+     * @return the matching script from deployment configuration
+     * @throws TestGridDeployerException if there is no matching script for phase defined
+     */
+    private Script getScriptToExecute(DeploymentConfig deploymentConfig, Script.Phase scriptPhase)
+            throws TestGridDeployerException {
+
+        for (Script script : deploymentConfig.getDeploymentPatterns().get(0).getScripts()) {
+            if (scriptPhase.equals(script.getPhase())) {
+                return script;
+            }
+        }
+        if (Script.Phase.CREATE.equals(scriptPhase)) {
+            for (Script script : deploymentConfig.getDeploymentPatterns().get(0).getScripts()) {
+                if (script.getPhase() == null) {
+                    return script;
+                }
+            }
+        }
+        throw new TestGridDeployerException("The Script list Provided doesn't containt a " + scriptPhase.toString() +
+                "Type script to succesfully complete the execution!");
     }
 }

@@ -23,12 +23,20 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 
 /**
  * This class creates the infrastructure for running tests.
@@ -37,6 +45,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(ShellScriptProvider.class);
     private static final String SHELL_SCRIPT_PROVIDER = "Shell Executor";
+    private static final String OUTPUT_DIR = "output-dir";
 
     @Override
     public String getProviderName() {
@@ -54,22 +63,38 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public InfrastructureProvisionResult provision(InfrastructureConfig infrastructureConfig, String infraRepoDir)
-            throws
-            TestGridInfrastructureException {
-        String testPlanLocation = Paths.get(infraRepoDir).toString();
-
+    public InfrastructureProvisionResult provision(TestPlan testPlan)
+            throws TestGridInfrastructureException {
+        String testPlanLocation = Paths.get(testPlan.getInfraRepoDir()).toString();
+        InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
         logger.info("Executing provisioning scripts...");
         try {
+            Path artifactsDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
+            Script createScript = getScriptToExecute(infrastructureConfig, Script.Phase.CREATE);
+            Properties inputParameters = createScript.getInputParameters();
+            inputParameters.setProperty(OUTPUT_DIR, StringUtil.concatStrings(TestGridUtil.getTestGridHomePath()
+                    , File.separator, artifactsDirectory.toString()));
+            String parameterString = TestGridUtil.getParameterString(null, inputParameters);
             ShellExecutor executor = new ShellExecutor(null);
             executor.executeCommand("bash " + Paths
-                    .get(testPlanLocation, getScriptToExecute(infrastructureConfig, Script.Phase.CREATE)));
+                    .get(testPlanLocation, createScript.getFile()) + " " + parameterString);
+            InfrastructureProvisionResult result = new InfrastructureProvisionResult();
+            result.setResultLocation(StringUtil.concatStrings(TestGridUtil.getTestGridHomePath(), File.separator,
+                    artifactsDirectory.toString()));
+            return result;
+
         } catch (CommandExecutionException e) {
             throw new TestGridInfrastructureException(String.format(
                     "Exception occurred while executing the infra-provision script for deployment-pattern '%s'",
                     infrastructureConfig.getProvisioners().get(0).getName()), e);
+        } catch (TestGridException e) {
+            throw new TestGridInfrastructureException(
+                    "Exception occurred while executing the infra-create script " +
+                            "when generating Test run artifact directory ", e);
+        } catch (IOException e) {
+            throw new TestGridInfrastructureException("Exception occurred while reading the TestGrid home path", e);
         }
-        return new InfrastructureProvisionResult();
+
     }
 
     @Override
@@ -82,7 +107,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         try {
 
             if (executor.executeCommand("bash " + Paths
-                    .get(testPlanLocation, getScriptToExecute(infrastructureConfig, Script.Phase.DESTROY)))) {
+                    .get(testPlanLocation, getScriptToExecute(infrastructureConfig, Script.Phase.DESTROY).getFile()))) {
                 return true;
             }
         } catch (CommandExecutionException e) {
@@ -93,12 +118,30 @@ public class ShellScriptProvider implements InfrastructureProvider {
         return false;
     }
 
-    private String getScriptToExecute(InfrastructureConfig infrastructureConfig, Script.Phase phase) {
+    /**
+     * This method returns the script matching the correct script phase.
+     *
+     * @param infrastructureConfig {@link InfrastructureConfig} object with current infrastructure configurations
+     * @param scriptPhase {@link Script.Phase} enum value for required script
+     * @return the matching script from deployment configuration
+     * @throws TestGridInfrastructureException if there is no matching script for phase defined
+     */
+    private Script getScriptToExecute(InfrastructureConfig infrastructureConfig, Script.Phase scriptPhase)
+            throws TestGridInfrastructureException {
+
         for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
-            if (phase == script.getPhase()) {
-                return script.getFile();
+            if (scriptPhase.equals(script.getPhase())) {
+                return script;
             }
         }
-        return null;
+        if (Script.Phase.CREATE.equals(scriptPhase)) {
+            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+                if (script.getPhase() == null) {
+                    return script;
+                }
+            }
+        }
+        throw new TestGridInfrastructureException("The Script list Provided doesn't containt a "
+                + scriptPhase.toString() + "Type script to succesfully complete the execution!");
     }
 }

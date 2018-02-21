@@ -44,6 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -239,5 +240,22 @@ public final class TestGridUtil {
             throw new TestGridException(StringUtil.concatStrings("IO Exception when trying to map JSON ",
                     infraParams), e);
         }
+    }
+
+    /**
+     * This method builds and returns the parameter string from given properties
+     *
+     * @param properties {@link Properties} with required paramters as key value pairs
+     * @return the String representation of input paramters
+     */
+    public static String getParameterString(String fileInput, Properties properties) {
+        StringBuilder parameterBuilder = new StringBuilder();
+        properties.forEach((key, value) -> {
+            parameterBuilder.append("--").append(key).append("=").append(value).append(" ");
+        });
+        if (fileInput != null) {
+            parameterBuilder.append("$(cat ").append(fileInput).append(") ");
+        }
+        return parameterBuilder.toString();
     }
 }

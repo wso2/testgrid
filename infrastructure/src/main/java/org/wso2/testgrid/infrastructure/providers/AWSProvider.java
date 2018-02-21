@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -100,19 +101,19 @@ public class AWSProvider implements InfrastructureProvider {
     /**
      * This method initiates creating infrastructure through CLoudFormation.
      *
-     * @param infrastructureConfig The infrastructure configuration.
-     * @param infraRepoDir         Path of TestGrid home location in file system as a String.
+     * @param testPlan {@link TestPlan} with current test run specifications
      * @return Returns the InfrastructureProvisionResult.
      * @throws TestGridInfrastructureException When there is an error with CloudFormation script.
      */
     @Override
-    public InfrastructureProvisionResult provision(InfrastructureConfig infrastructureConfig, String infraRepoDir)
+    public InfrastructureProvisionResult provision(TestPlan testPlan)
             throws TestGridInfrastructureException {
+        InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
         for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
                 infrastructureConfig.getParameters().forEach((key, value) ->
                         script.getInputParameters().setProperty((String) key, (String) value));
-                return doProvision(infrastructureConfig, script.getName(), infraRepoDir);
+                return doProvision(infrastructureConfig, script.getName(), testPlan.getInfraRepoDir());
             }
         }
         throw new TestGridInfrastructureException("No CloudFormation Script found in script list");

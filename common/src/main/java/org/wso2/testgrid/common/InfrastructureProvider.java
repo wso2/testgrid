@@ -50,13 +50,11 @@ public interface InfrastructureProvider {
     /**
      * This method creates the necessary infrastructureConfig using the provided configuration.
      *
-     * @param infrastructureConfig an instance of a InfrastructureConfig which includes the details of the
-     *                             infrastructure that should be created.
-     * @param infraRepoDir         location of the cloned repository related to infrastructure.
+     * @param testPlan {@link TestPlan} with current test run specifications
      * @return Deployment Deployment object including the created host, ip details
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure creation process.
      */
-    InfrastructureProvisionResult provision(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
+    InfrastructureProvisionResult provision(TestPlan testPlan) throws
             TestGridInfrastructureException;
 
     /**
