@@ -19,9 +19,8 @@ package org.wso2.testgrid.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.ConfigurationContext;
-import org.wso2.testgrid.dao.utils.Constants;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -116,8 +115,10 @@ public class EntityManagerHelper {
                         //Override properties taken from persistence.xml
                         entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName, persistenceMap);
                     } else {
-                        logger.warn("One or more database properties in testgrid-config.properties are null. " +
-                                "Using default properties in persistence.xml");
+                        logger.warn(StringUtil.concatStrings(
+                                "One or more database properties:{",
+                                Constants.DB_URL, ", ", Constants.DB_USER, ", ", Constants.DB_USER_PASS,
+                                "}  in testgrid-config.properties are null. Using default properties in persistence.xml"));
                         entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
                     }
                     entityManagerFactoryMap.put(persistenceUnitName, entityManagerFactory);

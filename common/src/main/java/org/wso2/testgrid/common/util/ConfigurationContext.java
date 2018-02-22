@@ -20,6 +20,7 @@ package org.wso2.testgrid.common.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.TestGridConstants;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +38,7 @@ public class ConfigurationContext {
     private static Optional<ConfigurationContext> configurationContext;
     private static boolean initialized = false;
     private static Properties properties;
-    public static final Logger logger = LoggerFactory.getLogger(ConfigurationContext.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConfigurationContext.class);
 
     /**
      * Retrieve property from the property file.
@@ -54,10 +55,11 @@ public class ConfigurationContext {
     private ConfigurationContext() {
         properties = new Properties();
         try {
-            Path configPath = Paths.get(TestGridUtil.getTestGridHomePath(), "config.properties");
+            Path configPath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_CONFIG_FILE);
             InputStream inputStream = Files.newInputStream(configPath);
             properties.load(inputStream);
             initialized = true;
+            inputStream.close();
         } catch (IOException e) {
             logger.error("Error occurred while trying to read config.properties", e);
         }
