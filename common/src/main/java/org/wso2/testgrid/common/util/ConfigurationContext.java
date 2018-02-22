@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -35,10 +34,21 @@ import java.util.Properties;
  * Example: Retrieve property value by property key.
  */
 public class ConfigurationContext {
-    private static Optional<ConfigurationContext> configurationContext;
-    private static boolean initialized = false;
-    private static Properties properties;
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationContext.class);
+    private static Properties properties;
+
+    static {
+        try {
+            properties = new Properties();
+            Path configPath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_CONFIG_FILE);
+            try (InputStream inputStream = Files.newInputStream(configPath)) {
+                properties.load(inputStream);
+            }
+        } catch (IOException e) {
+            logger.error(StringUtil.concatStrings(
+                    "Error while trying to read ", TestGridConstants.TESTGRID_CONFIG_FILE));
+        }
+    }
 
     /**
      * Retrieve property from the property file.
@@ -47,35 +57,5 @@ public class ConfigurationContext {
      */
     public static String getProperty(String property) {
         return properties.getProperty(property);
-    }
-
-    /**
-     * Construct nullable singleton Configuration Context.
-     */
-    private ConfigurationContext() {
-        properties = new Properties();
-        try {
-            Path configPath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_CONFIG_FILE);
-            InputStream inputStream = Files.newInputStream(configPath);
-            properties.load(inputStream);
-            initialized = true;
-            inputStream.close();
-        } catch (IOException e) {
-            logger.error("Error occurred while trying to read config.properties", e);
-        }
-    }
-
-    /**
-     * Get singleton configuration context.
-     * On creation, return an Optional.empty if file access failed
-     *
-     * @return configurationContext containing properties
-     */
-    public static Optional<ConfigurationContext> getInstance() {
-        if (!initialized) {
-            configurationContext = Optional.of(new ConfigurationContext());
-            return initialized ? configurationContext : Optional.empty();
-        }
-        return configurationContext;
     }
 }
