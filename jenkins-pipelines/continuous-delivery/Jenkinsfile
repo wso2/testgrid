@@ -1,4 +1,4 @@
-node {
+node('COMPONENT_ECS') {
     stage('Deploy to Dev'){
         deleteDir()
         copyArtifacts(projectName: 'testgrid/testgrid');
