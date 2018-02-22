@@ -20,9 +20,9 @@ package org.wso2.testgrid.web.sso;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.ConfigurationProperties;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.util.ConfigurationContext;
+import org.wso2.testgrid.common.util.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.web.utils.Constants;
 
@@ -54,9 +54,9 @@ public class SSOSessionCheckFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
         //Skip checking for session if disabled in property file.
-        String isSsoEnabled = ConfigurationContext.getProperty(ConfigurationProperties.ENABLE_SSO.toString());
+        String isSsoEnabled = ConfigurationContext.getProperty(ConfigurationProperties.ENABLE_SSO);
         if (isSsoEnabled != null) {
-            if (ConfigurationContext.getProperty(ConfigurationProperties.ENABLE_SSO.toString()).equals("false")) {
+            if (ConfigurationContext.getProperty(ConfigurationProperties.ENABLE_SSO).equals("false")) {
                 filterChain.doFilter(servletRequest, servletResponse);
             }
         } else {
@@ -69,7 +69,7 @@ public class SSOSessionCheckFilter implements Filter {
             Boolean isSessionValid = ((HttpServletRequest) servletRequest).isRequestedSessionIdValid();
             if (!isSessionValid) {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-                String ssoLoginUrl = ConfigurationContext.getProperty(ConfigurationProperties.SSO_LOGIN_URL.toString());
+                String ssoLoginUrl = ConfigurationContext.getProperty(ConfigurationProperties.SSO_LOGIN_URL);
                 if (ssoLoginUrl != null) {
                     httpResponse.sendRedirect(ssoLoginUrl);
                 } else {

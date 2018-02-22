@@ -55,7 +55,64 @@ public class ConfigurationContext {
      * @param property Property key as in the property file.
      * @return Property value read from property file.
      */
-    public static String getProperty(String property) {
-        return properties.getProperty(property);
+    public static String getProperty(Enum property) {
+        return properties.getProperty(property.toString());
+    }
+
+    /**
+     * Defines the testgrid configuration properties.
+     */
+    public enum ConfigurationProperties {
+
+        /**
+         * Database URL propertyName
+         */
+        DB_URL("DB_URL"),
+
+        /**
+         * Database user propertyName
+         */
+        DB_USER("DB_USER"),
+
+        /**
+         * Property for assword of database user
+         */
+        DB_USER_PASS("DB_USER_PASS"),
+
+        /**
+         * Jenkins host propertyName
+         */
+        JENKINS_HOST("JENKINS_HOST"),
+
+        /**
+         * Property for Jenkins user authorization key
+         */
+        JENKINS_USER_AUTH_KEY("JENKINS_USER_AUTH_KEY"),
+
+        /**
+         * SSO login URL propertyName
+         */
+        SSO_LOGIN_URL("SSO_LOGIN_URL"),
+
+        /**
+         * Property to check if SSO is enabled
+         */
+        ENABLE_SSO("ENABLE_SSO");
+
+        private String propertyName;
+
+        /**
+         * Sets the name of the property.
+         *
+         * @param propertyName name of the property
+         */
+        ConfigurationProperties(String propertyName) {
+            this.propertyName = propertyName;
+        }
+
+        @Override
+        public String toString() {
+            return this.propertyName;
+        }
     }
 }

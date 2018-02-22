@@ -19,9 +19,9 @@ package org.wso2.testgrid.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.ConfigurationProperties;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.util.ConfigurationContext;
+import org.wso2.testgrid.common.util.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.util.HashMap;
@@ -101,9 +101,9 @@ public class EntityManagerHelper {
         EntityManagerFactory entityManagerFactory = entityManagerFactoryMap.get(persistenceUnitName);
         if (entityManagerFactory == null) {
 
-            String dbUrl = ConfigurationContext.getProperty(ConfigurationProperties.DB_URL.toString());
-            String dbUser = ConfigurationContext.getProperty(ConfigurationProperties.DB_USER.toString());
-            String dbUserPass = ConfigurationContext.getProperty(ConfigurationProperties.DB_USER_PASS.toString());
+            String dbUrl = ConfigurationContext.getProperty(ConfigurationProperties.DB_URL);
+            String dbUser = ConfigurationContext.getProperty(ConfigurationProperties.DB_USER);
+            String dbUserPass = ConfigurationContext.getProperty(ConfigurationProperties.DB_USER_PASS);
 
             if (dbUrl != null && dbUser != null && dbUserPass != null) {
                 //Override properties taken from persistence.xml

@@ -26,9 +26,9 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.ConfigurationContext;
+import org.wso2.testgrid.common.util.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.web.utils.Constants;
 
@@ -52,10 +52,10 @@ public class JenkinsPipelineManager {
     public String createNewPipelineJob(String configXml, String jobName) throws TestGridException, IOException {
         Response response = Request
                 .Post(ConfigurationContext.getProperty(
-                        ConfigurationProperties.JENKINS_HOST.toString()) + "/createItem?name=" + jobName)
+                        ConfigurationProperties.JENKINS_HOST) + "/createItem?name=" + jobName)
                 .addHeader(HttpHeaders.USER_AGENT, USER_AGENT)
                 .addHeader(HttpHeaders.AUTHORIZATION, "Basic " +
-                        ConfigurationContext.getProperty(ConfigurationProperties.JENKINS_USER_AUTH_KEY.toString()))
+                        ConfigurationContext.getProperty(ConfigurationProperties.JENKINS_USER_AUTH_KEY))
                 .addHeader(Constants.JENKINS_CRUMB_HEADER_NAME, getCrumb())
                 .addHeader(HttpHeaders.CONTENT_TYPE, "application/xml")
                 .bodyString(configXml, ContentType.APPLICATION_XML)
@@ -80,10 +80,10 @@ public class JenkinsPipelineManager {
         try {
             String response = Request
                     .Get(ConfigurationContext.getProperty(
-                            ConfigurationProperties.JENKINS_HOST.toString()) + Constants.JENKINS_CRUMB_ISSUER_URI)
+                            ConfigurationProperties.JENKINS_HOST) + Constants.JENKINS_CRUMB_ISSUER_URI)
                     .addHeader(HttpHeaders.USER_AGENT, USER_AGENT)
                     .addHeader(HttpHeaders.AUTHORIZATION, "Basic " +
-                            ConfigurationContext.getProperty(ConfigurationProperties.JENKINS_USER_AUTH_KEY.toString()))
+                            ConfigurationContext.getProperty(ConfigurationProperties.JENKINS_USER_AUTH_KEY))
                     .execute().returnContent().asString().trim();
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readValue(response, JsonNode.class);
@@ -104,7 +104,7 @@ public class JenkinsPipelineManager {
      */
     private String buildJobSpecificUrl(String jobName) throws TestGridException {
         return StringUtil.concatStrings(
-                ConfigurationContext.getProperty(ConfigurationProperties.JENKINS_HOST.toString()),
+                ConfigurationContext.getProperty(ConfigurationProperties.JENKINS_HOST),
                 Constants.BLUE_OCEAN_URI, "/", jobName, "/activity");
     }
 }
