@@ -18,13 +18,15 @@
 
 package org.wso2.testgrid.common.util;
 
-import org.wso2.testgrid.common.exception.TestGridException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -32,37 +34,46 @@ import java.util.Properties;
  * Example: Retrieve property value by property key.
  */
 public class ConfigurationContext {
-    private static InputStream inputStream;
-    private static boolean isFileAccessed;
-    static {
-        try {
-            Path configPath = Paths.get(TestGridUtil.getTestGridHomePath(), "testgrid-config.properties");
-            inputStream = Files.newInputStream(configPath);
-            isFileAccessed = true;
-        } catch (IOException e) {
-            isFileAccessed = false;
-        }
-    }
-    private static Properties properties = new Properties();
+    private static Optional<ConfigurationContext> configurationContext;
+    private static boolean initialized = false;
+    private static Properties properties;
+    public static final Logger logger = LoggerFactory.getLogger(ConfigurationContext.class);
 
     /**
      * Retrieve property from the property file.
      * @param property Property key as in the property file.
      * @return Property value read from property file.
      */
-    public static String getProperty(String property) throws TestGridException {
-        if (!isFileAccessed) {
-            throw new TestGridException("Unable to access property file.");
+    public static String getProperty(String property) {
+        return properties.getProperty(property);
+    }
+
+    /**
+     * Construct nullable singleton Configuration Context.
+     */
+    private ConfigurationContext() {
+        properties = new Properties();
+        try {
+            Path configPath = Paths.get(TestGridUtil.getTestGridHomePath(), "config.properties");
+            InputStream inputStream = Files.newInputStream(configPath);
+            properties.load(inputStream);
+            initialized = true;
+        } catch (IOException e) {
+            logger.error("Error occurred while trying to read config.properties", e);
         }
-        if (inputStream != null) {
-            try {
-                properties.load(inputStream);
-                return properties.getProperty(property);
-            } catch (IOException e) {
-                throw new TestGridException("Can not read property " + property + " in property file.");
-            }
-        } else {
-            throw new TestGridException("Can not get property " + property + " .Property file is null.");
+    }
+
+    /**
+     * Get singleton configuration context.
+     * On creation, return an Optional.empty if file access failed
+     *
+     * @return configurationContext containing properties
+     */
+    public static Optional<ConfigurationContext> getInstance() {
+        if (!initialized) {
+            configurationContext = Optional.of(new ConfigurationContext());
+            return initialized ? configurationContext : Optional.empty();
         }
+        return configurationContext;
     }
 }

@@ -25,6 +25,7 @@ import org.wso2.testgrid.dao.utils.Constants;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.FlushModeType;
@@ -99,30 +100,28 @@ public class EntityManagerHelper {
         Map<String, String> persistenceMap = new HashMap<String, String>();
         EntityManagerFactory entityManagerFactory = entityManagerFactoryMap.get(persistenceUnitName);
         if (entityManagerFactory == null) {
-            try {
-                //Get database info from testgrid-config.properties
-                String dbUrl = ConfigurationContext.getProperty(Constants.DB_URL);
-                String dbUser = ConfigurationContext.getProperty(Constants.DB_USER);
-                String dbUserPass = ConfigurationContext.getProperty(Constants.DB_USER_PASS);
 
-                persistenceMap.put("javax.persistence.jdbc.url", dbUrl);
-                persistenceMap.put("javax.persistence.jdbc.user", dbUser);
-                persistenceMap.put("javax.persistence.jdbc.password", dbUserPass);
-                if (dbUrl != null && dbUser != null && dbUserPass != null) {
-                    //Override properties taken from persistence.xml
-                    entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName, persistenceMap);
-                } else {
-                    logger.warn("One or more database properties in testgrid-config.properties are null. " +
-                            "Using default properties in persistence.xml");
+                ConfigurationContext.getInstance();
+                //Get database info from testgrid-config.properties
+                if (!ConfigurationContext.getInstance().equals(Optional.empty())) {
+                    String dbUrl = ConfigurationContext.getProperty(Constants.DB_URL);
+                    String dbUser = ConfigurationContext.getProperty(Constants.DB_USER);
+                    String dbUserPass = ConfigurationContext.getProperty(Constants.DB_USER_PASS);
+
+                    persistenceMap.put("javax.persistence.jdbc.url", dbUrl);
+                    persistenceMap.put("javax.persistence.jdbc.user", dbUser);
+                    persistenceMap.put("javax.persistence.jdbc.password", dbUserPass);
+
+                    if (dbUrl != null && dbUser != null && dbUserPass != null) {
+                        //Override properties taken from persistence.xml
+                        entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName, persistenceMap);
+                    } else {
+                        logger.warn("One or more database properties in testgrid-config.properties are null. " +
+                                "Using default properties in persistence.xml");
+                        entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
+                    }
+                    entityManagerFactoryMap.put(persistenceUnitName, entityManagerFactory);
                 }
-            } catch (TestGridException e) {
-                    logger.warn(
-                            "Unable to read database properties. Using default properties in persistence.xml", e);
-            }
-            if (entityManagerFactory == null) {
-                entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
-                entityManagerFactoryMap.put(persistenceUnitName, entityManagerFactory);
-            }
         }
         return entityManagerFactory;
     }
