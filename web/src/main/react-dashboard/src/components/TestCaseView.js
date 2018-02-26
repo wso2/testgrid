@@ -52,7 +52,7 @@ class TestCaseView extends Component {
     }
 
     componentDidMount() {
-        var url = '/testgrid/v0.9/api/test-scenarios/'+this.props.active.reducer.currentScenario.scenarioId;
+        var url = '/testgrid/v0.9/api/test-scenarios/' + this.props.active.reducer.currentScenario.scenarioId;
 
         fetch(url, {
             method: "GET",
