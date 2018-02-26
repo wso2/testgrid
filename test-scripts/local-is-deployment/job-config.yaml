@@ -1,0 +1,5 @@
+relativePaths: true
+infrastructureRepository: ./Infrastructure
+deploymentRepository: ./Deployment
+scenarioTestsRepository: ./Solutions
+testgridYamlLocation: ./testgrid.yaml
