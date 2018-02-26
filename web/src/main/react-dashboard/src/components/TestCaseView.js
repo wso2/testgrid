@@ -28,7 +28,7 @@ import {
 } from 'material-ui/Table';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
-
+import {TESTGRID_CONTEXT} from '../constants.js';
 
 class TestCaseView extends Component {
 
@@ -45,7 +45,7 @@ class TestCaseView extends Component {
     }
 
     componentDidMount() {
-        var url = '/testgrid/v0.9/api/test-scenarios/'+this.props.active.reducer.currentScenario.scenarioId;
+        var url = TESTGRID_CONTEXT + '/api/test-scenarios/'+this.props.active.reducer.currentScenario.scenarioId;
 
         fetch(url, {
             method: "GET",

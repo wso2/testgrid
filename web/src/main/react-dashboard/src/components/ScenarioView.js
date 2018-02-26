@@ -29,6 +29,7 @@ import {
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
 import { add_current_scenario } from '../actions/testGridActions.js';
+import {TESTGRID_CONTEXT} from '../constants.js';
 
 class ScenarioView extends Component {
 
@@ -47,7 +48,7 @@ class ScenarioView extends Component {
     }
 
     componentDidMount() {
-        var url = "/testgrid/v0.9/api/test-plans/"+this.props.active.reducer.currentInfra.infrastructureId+"?require-test-scenario-info=true";
+        var url = TESTGRID_CONTEXT + "/api/test-plans/"+this.props.active.reducer.currentInfra.infrastructureId+"?require-test-scenario-info=true";
 
         fetch(url, {
             method: "GET",
@@ -85,7 +86,7 @@ class ScenarioView extends Component {
                                 <h4>{data.description}</h4></TableRowColumn>
                             <TableRowColumn>
                                 <SingleRecord value={data.status}
-                                    nevigate={() => this.nevigateToRoute("/testgrid/v0.9/testcases/scenario/" + data.id, {
+                                    nevigate={() => this.nevigateToRoute(TESTGRID_CONTEXT + "/testcases/scenario/" + data.id, {
                                         scenarioId: data.id,
                                         scenarioName: data.name,
                                     })} />
