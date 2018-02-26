@@ -39,7 +39,7 @@ import {
 import Download from 'downloadjs'
 import Websocket from 'react-websocket';
 import Snackbar from 'material-ui/Snackbar';
-import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
 
 
 /**
@@ -76,7 +76,9 @@ class TestRunView extends Component {
       headers: {
         'Accept': 'application/json'
       }
-    }).then(response => {
+    })
+    .then(this.handleError)
+    .then(response => {
       this.setState({
         testSummaryLoadStatus: response.ok ? SUCCESS : ERROR
       });
@@ -94,7 +96,9 @@ class TestRunView extends Component {
         headers: {
           'Accept': 'application/json'
         }
-      }).then(response => {
+      })
+      .then(this.handleError)
+      .then(response => {
         this.setState({
           logDownloadStatus: response.ok ? SUCCESS : ERROR
         });
@@ -116,6 +120,13 @@ class TestRunView extends Component {
 
   handleLiveLogData(data) {
     this.setState({ logContent: this.state.logContent + data });
+  }
+
+  handleError(response) {
+      if (response.status.toString() === HTTP_UNAUTHORIZED) {
+          window.location.replace(LOGIN_URI);
+          return response;
+      }
   }
 
   render() {
@@ -220,7 +231,9 @@ class TestRunView extends Component {
                     headers: {
                       'Accept': 'application/json'
                     }
-                  }).then(response => {
+                  })
+                  .then(this.handleError)
+                  .then(response => {
                     this.setState({
                       showLogDownloadErrorDialog: !response.ok
                     });
@@ -525,7 +538,8 @@ class TestRunView extends Component {
                                   headers: {
                                     'Accept': 'application/json'
                                   }
-                                }).then(response => {
+                                }).then(this.handleError)
+                                  .then(response => {
                                   this.setState({
                                     logDownloadStatus: response.ok ? SUCCESS : ERROR
                                   });

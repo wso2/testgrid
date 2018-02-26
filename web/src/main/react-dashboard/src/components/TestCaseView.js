@@ -28,7 +28,7 @@ import {
 } from 'material-ui/Table';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
-
+import {HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
 
 class TestCaseView extends Component {
 
@@ -44,6 +44,13 @@ class TestCaseView extends Component {
 
     }
 
+    handleError(response) {
+        if (response.status.toString() === HTTP_UNAUTHORIZED) {
+            window.location.replace(LOGIN_URI);
+            return response;
+        }
+    }
+
     componentDidMount() {
         var url = '/testgrid/v0.9/api/test-scenarios/'+this.props.active.reducer.currentScenario.scenarioId;
 
@@ -53,13 +60,14 @@ class TestCaseView extends Component {
             headers: {
                 'Accept': 'application/json'
             }
-        }).then(response => {
+        })
+        .then(this.handleError)
+        .then(response => {
             return response.json();
         })
             .then(data => this.setState({ hits: data }));
 
     }
-
 
     render() {
         return (
