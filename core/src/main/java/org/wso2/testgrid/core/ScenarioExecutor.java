@@ -64,7 +64,7 @@ public class ScenarioExecutor {
             throws ScenarioExecutorException {
         try {
             // Run test scenario.
-            String homeDir = testPlan.getTestRepoDir();
+            String homeDir = testPlan.getScenarioTestsRepository();
             testScenario.setTestPlan(testPlan);
             testScenario.setStatus(Status.RUNNING);
             testScenario = persistTestScenario(testScenario);

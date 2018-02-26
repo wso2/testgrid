@@ -23,7 +23,7 @@ import org.wso2.testgrid.common.util.StringUtil;
 
 /**
  * Describes the job configuration of a given product.
- *
+ * <p>
  * This is a flat, yaml configuration that lists
  * all the repositories and other inputs such as the
  * location of credentials.properties.
@@ -54,7 +54,6 @@ public class JobConfigFile {
     // aliases of scenarioTestsRepository
     private String scenariosTestRepository;
     private String scenarioTestRepository;
-
 
     public String getInfrastructureRepository() {
         return infrastructureRepository;
@@ -129,13 +128,13 @@ public class JobConfigFile {
     /**
      * The relative paths mentioned in the {@link JobConfigFile} are resolved
      * wrt to the working directory.
-     *
+     * <p>
      * It is optional to set this property. If not set, the paths are resolved
      * from the location of the --file input of GenerateTestPlanCommand.
-     *
+     * <p>
      * In the Jenkins context, this should be resolved to the workspace of the
      * particular jenkins job's build.
-     *
+     * <p>
      * In future, this location will be changed to the workspace of the given test-run
      * inside the TESTGRID_HOME.
      *
