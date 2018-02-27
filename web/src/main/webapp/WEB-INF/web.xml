@@ -72,11 +72,13 @@
     <listener>
         <listener-class>org.wso2.testgrid.web.sso.SSOContextEventListener</listener-class>
     </listener>
-
     <error-page>
         <error-code>404</error-code>
         <location>/index.html</location>
     </error-page>
 
-
+    <!-- Uncomment the following to customize session time-out-->
+    <!--<session-config>-->
+        <!--<session-timeout>60</session-timeout>-->
+    <!--</session-config>-->
 </web-app>

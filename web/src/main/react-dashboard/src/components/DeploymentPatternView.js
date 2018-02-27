@@ -28,11 +28,11 @@ import {
 } from 'material-ui/Table';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
-import { add_current_deployment, add_current_infra } from '../actions/testGridActions.js';
+import {add_current_deployment, add_current_infra} from '../actions/testGridActions.js';
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
-import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
 
 class DeploymentPatternView extends Component {
 
@@ -45,10 +45,12 @@ class DeploymentPatternView extends Component {
   }
 
   handleError(response) {
-    if (!response.ok) {
-      throw Error(response.statusText)
-    }
-    return response;
+      if (response.status.toString() === HTTP_UNAUTHORIZED) {
+          window.location.replace(LOGIN_URI);
+      } else if(!response.ok){
+          throw Error(response.statusText)
+      }
+      return response;
   }
 
   componentDidMount() {

@@ -71,7 +71,12 @@ public class SSOSessionCheckFilter implements Filter {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
                 String ssoLoginUrl = ConfigurationContext.getProperty(ConfigurationProperties.SSO_LOGIN_URL);
                 if (ssoLoginUrl != null) {
-                    httpResponse.sendRedirect(ssoLoginUrl);
+                    //If the request is for a backend API, Status Code 401 is sent.
+                    if (path.startsWith(Constants.BACKEND_API_URI)) {
+                        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    } else {
+                        httpResponse.sendRedirect(ssoLoginUrl);
+                    }
                 } else {
                     throw new ServletException(
                     StringUtil.concatStrings(ConfigurationProperties.SSO_LOGIN_URL.toString(),
