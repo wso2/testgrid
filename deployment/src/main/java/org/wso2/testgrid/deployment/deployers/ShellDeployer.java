@@ -67,6 +67,7 @@ public class ShellDeployer implements Deployer {
             String parameterString = TestGridUtil.getParameterString(infraArtifact , deployment.getInputParameters());
             ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
             if (!shellExecutor
+            //TODO: Remove the usages of InfrastructureProvisionResult#getDeploymentScriptsDir.
                     .executeCommand("bash " + Paths.get(infrastructureProvisionResult
                             .getDeploymentScriptsDir(), deployment.getFile()) + " " + parameterString)) {
                 throw new TestGridDeployerException("Error occurred while executing the deploy script");
@@ -79,7 +80,6 @@ public class ShellDeployer implements Deployer {
         DeploymentCreationResult result = new DeploymentCreationResult();
         result.setName(deploymentPatternConfig.getName());
         result.setHosts(infrastructureProvisionResult.getHosts());
-        result.setDeploymentScriptsDir(infrastructureProvisionResult.getDeploymentScriptsDir());
         return result;
     }
 

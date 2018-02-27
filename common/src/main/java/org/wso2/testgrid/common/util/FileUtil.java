@@ -30,6 +30,8 @@ import java.io.IOException;
  */
 public class FileUtil {
 
+    public static final String YAML_EXTENSION = ".yaml";
+
     /**
      * Returns an instance of the specified type from the given configuration YAML.
      *
@@ -37,7 +39,11 @@ public class FileUtil {
      * @return instance of the specified type from the given configuration YAML
      * @throws IOException thrown when no file is found in the given location or when error on closing file input stream
      */
-    public static <T> T readConfigurationFile(String location, Class<T> type) throws IOException {
+    public static <T> T readYamlFile(String location, Class<T> type) throws IOException {
+        if (StringUtil.isStringNullOrEmpty(location) || !location.endsWith(YAML_EXTENSION)) {
+            throw new IllegalArgumentException(StringUtil.concatStrings("Invalid configuration file: ", location));
+        }
+
         try (FileInputStream fileInputStream = new FileInputStream(new File(location))) {
             return new Yaml().loadAs(fileInputStream, type);
         }

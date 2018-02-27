@@ -34,7 +34,6 @@ public class DeploymentCreationResult implements Serializable {
 
     private String name;
     private List<Host> hosts = Collections.emptyList();
-    private String deploymentScriptsDir;
 
     public String getName() {
         return name;
@@ -52,11 +51,4 @@ public class DeploymentCreationResult implements Serializable {
         this.hosts = hosts;
     }
 
-    public String getDeploymentScriptsDir() {
-        return deploymentScriptsDir;
-    }
-
-    public void setDeploymentScriptsDir(String deploymentScriptsDir) {
-        this.deploymentScriptsDir = deploymentScriptsDir;
-    }
 }
