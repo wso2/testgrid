@@ -6,13 +6,21 @@ To setup a Jenkins slave on OpenStack follow the steps below.
 2. Replace the following in the setup-slave.sh with the appropriate.
     - Server IP/Hostname of Jenkins master instance
 
-      `<server-ip-or-hostname>`
+      `server-ip-or-hostname`
 
     - Jenkins Master URL
 
-      `<jenkins-master-url>`
+      `jenkins-master-url`
 
-3. Go to Manage Jenkins > Manage Nodes > `<openstack-node-name>`
+3. Execute setup-slave.sh
+
+    `./setup-slave.sh`
+    
+    To retry specific number of times use the parameter -r when executing the script
+    
+     `./setup-slave.sh -r 3`
+
+4. Go to Manage Jenkins > Manage Nodes > `<openstack-node-name>`
 
     Copy the command given to launch the slave in headless mode and run on the slave machine with `nohup` as shown below.
 
