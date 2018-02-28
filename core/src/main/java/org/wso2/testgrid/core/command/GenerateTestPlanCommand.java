@@ -18,6 +18,7 @@
 package org.wso2.testgrid.core.command;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +27,11 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
+import org.wso2.testgrid.common.config.JobConfigFile;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.util.FileUtil;
@@ -71,8 +74,8 @@ import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
 public class GenerateTestPlanCommand implements Command {
 
     private static final Logger logger = LoggerFactory.getLogger(GenerateTestPlanCommand.class);
-    private static final String YAML_EXTENSION = ".yaml";
     private static final int RANDOMIZED_STR_LENGTH = 6;
+    private static final int MAXIMUM_TEST_PLANS_TO_PRINT = 5;
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -80,11 +83,51 @@ public class GenerateTestPlanCommand implements Command {
             required = true)
     private String productName = "";
 
+    @Option(name = "--file",
+            usage = "Provide the path to Testgrid configuration file.",
+            aliases = { "-f" })
+    private String jobConfigFile = "";
+
+    @Option(name = "--workingDir",
+            usage = "Provide the path to Testgrid configuration file.",
+            aliases = { "-wd" })
+    private String workingDir = "";
+
+    /**
+     * This is @{@link Deprecated} in favor of '--file'
+     */
     @Option(name = "--testConfig",
             usage = "Test Configuration File",
-            aliases = { "-tc" },
-            required = true)
-    private String testgridYaml = "";
+            aliases = { "-tc" })
+    private String testgridYamlLocation = "";
+
+    private InfrastructureCombinationsProvider infrastructureCombinationsProvider;
+
+    private ProductUOW productUOW;
+
+    public GenerateTestPlanCommand() {
+        this.infrastructureCombinationsProvider = new InfrastructureCombinationsProvider();
+        this.productUOW = new ProductUOW();
+    }
+
+    /**
+     * This is created with default access modifier specifically for the purpose
+     * of unit tests.
+     *
+     * @param productName          product name
+     * @param jobConfigFile        path to job-config.yaml
+     * @param workingDir           working dir
+     * @param combinationsProvider infrastructure Combinations Provider
+     * @param productUOW           the ProductUOW
+     */
+    GenerateTestPlanCommand(String productName, String jobConfigFile, String workingDir,
+            InfrastructureCombinationsProvider combinationsProvider, ProductUOW productUOW) {
+        this.productName = productName;
+        this.jobConfigFile = jobConfigFile;
+        this.workingDir = workingDir;
+        this.infrastructureCombinationsProvider = combinationsProvider;
+        this.productUOW = productUOW;
+    }
 
     @Override
     public void execute() throws CommandExecutionException {
@@ -92,36 +135,201 @@ public class GenerateTestPlanCommand implements Command {
             //Set the log file path
             LogFilePathLookup.setLogFilePath(deriveLogFilePath(productName));
 
-            // Validate test configuration file name
-            if (StringUtil.isStringNullOrEmpty(testgridYaml) || !testgridYaml.endsWith(YAML_EXTENSION)) {
-                throw new CommandExecutionException(StringUtil.concatStrings("Invalid test configuration ",
-                        testgridYaml));
+            if (!StringUtil.isStringNullOrEmpty(testgridYamlLocation)) {
+                logger.warn("--testConfig / -tc is deprecated. Use --file instead.");
+                String testgridYamlContent = new String(Files.readAllBytes(Paths.get(this.testgridYamlLocation)),
+                        StandardCharsets.UTF_8);
+                TestgridYaml testgridYaml = new Yaml().loadAs(testgridYamlContent, TestgridYaml.class);
+                processTestgridYaml(testgridYaml);
+                return;
             }
 
-            // Generate test plans
-            TestgridYaml testgridYaml = FileUtil.readConfigurationFile(this.testgridYaml, TestgridYaml.class);
-            // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
-            populateDefaults(testgridYaml);
-            Set<InfrastructureCombination> combinations = new InfrastructureCombinationsProvider().getCombinations();
-            List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
-
-            Product product = createOrReturnProduct(productName);
-            String infraGenDirectory = createTestPlanGenDirectory(product);
-
-            // Save test plans to file-system
-            Yaml yaml = createYamlInstance();
-            for (int i = 0; i < testPlans.size(); i++) {
-                TestPlan testPlan = testPlans.get(i);
-                String fileName = StringUtil
-                        .concatStrings(productName, "-", (i + 1), YAML_EXTENSION);
-                String output = yaml.dump(testPlan);
-                saveFile(output, infraGenDirectory, fileName);
+            if (StringUtils.isNotEmpty(jobConfigFile)) {
+                processTestgridConfiguration(jobConfigFile, workingDir);
+                return;
             }
+
+            throw new TestGridRuntimeException("Mandatory testplan configuration input parameter: '--file' not found.");
         } catch (IOException e) {
             throw new CommandExecutionException(StringUtil
-                    .concatStrings("Error in reading file ", testgridYaml), e);
+                    .concatStrings("Error in reading file ", testgridYamlLocation), e);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error while reading value-sets from the database.", e);
+        }
+    }
+
+    private void processTestgridConfiguration(String jobConfigFilePath, String workingDir)
+            throws IOException, CommandExecutionException, TestGridDAOException {
+        JobConfigFile jobConfigFile = FileUtil.readYamlFile(jobConfigFilePath, JobConfigFile.class);
+        if (!StringUtil.isStringNullOrEmpty(workingDir)) {
+            jobConfigFile.setWorkingDir(workingDir);
+        } else if (StringUtil.isStringNullOrEmpty(jobConfigFile.getWorkingDir())) {
+            Path parent = Paths.get(jobConfigFilePath).toAbsolutePath().getParent();
+            if (parent != null) {
+                jobConfigFile.setWorkingDir(parent.toString());
+            } else {
+                throw new TestGridRuntimeException(
+                        "Could not determine the directory location of the input for --file : " + jobConfigFilePath);
+            }
+        }
+        resolvePaths(jobConfigFile);
+        this.testgridYamlLocation = jobConfigFile.getTestgridYamlLocation();
+        TestgridYaml testgridYaml = buildTestgridYamlContent(jobConfigFile);
+        processTestgridYaml(testgridYaml);
+    }
+
+    private void processTestgridYaml(TestgridYaml testgridYaml)
+            throws CommandExecutionException, IOException, TestGridDAOException {
+        // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
+        populateDefaults(testgridYaml);
+        Set<InfrastructureCombination> combinations = infrastructureCombinationsProvider.getCombinations();
+        List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
+
+        Product product = createOrReturnProduct(productName);
+        String infraGenDirectory = createTestPlanGenDirectory(product);
+
+        // Save test plans to file-system
+        Yaml yaml = createYamlInstance();
+        // print paths to test plans if total is less than 5
+        boolean printTestPlanPaths = testPlans.size() <= MAXIMUM_TEST_PLANS_TO_PRINT;
+        StringBuilder testPlanPaths = new StringBuilder();
+        if (printTestPlanPaths) {
+            testPlanPaths.append("Generated test-plans: ").append(System.lineSeparator());
+        } else {
+            logger.info(StringUtil.concatStrings("Test plans dir: ", infraGenDirectory));
+        }
+        for (int i = 0; i < testPlans.size(); i++) {
+            TestPlan testPlan = testPlans.get(i);
+            String fileName = String
+                    .format("%s-%02d%s", TestGridConstants.TEST_PLAN_YAML_PREFIX, (i + 1), FileUtil.YAML_EXTENSION);
+            String output = yaml.dump(testPlan);
+            saveFile(output, infraGenDirectory, fileName);
+            if (printTestPlanPaths) {
+                testPlanPaths.append(Paths.get(infraGenDirectory, fileName)).append(System.lineSeparator());
+            }
+        }
+        if (printTestPlanPaths) {
+            logger.info(testPlanPaths.substring(0, testPlanPaths.length() - 1));
+        }
+    }
+
+    /**
+     * This method will resolve the relative paths in the job-config.yaml
+     * to absolute paths by taking into account factors such as the workingDir.
+     *
+     * @param jobConfigFile The job-config.yaml bean
+     */
+    private void resolvePaths(JobConfigFile jobConfigFile) {
+        String parent = jobConfigFile.getWorkingDir();
+        if (jobConfigFile.isRelativePaths() || parent != null) {
+            //infra
+            Path repoPath = Paths.get(parent, jobConfigFile.getInfrastructureRepository());
+            jobConfigFile.setInfrastructureRepository(resolvePath(repoPath, jobConfigFile));
+            //deploy
+            repoPath = Paths.get(parent, jobConfigFile.getDeploymentRepository());
+            jobConfigFile.setDeploymentRepository(resolvePath(repoPath, jobConfigFile));
+            //scenarios
+            repoPath = Paths.get(parent, jobConfigFile.getScenarioTestsRepository());
+            jobConfigFile.setScenarioTestsRepository(resolvePath(repoPath, jobConfigFile));
+
+            if (jobConfigFile.getTestgridYamlLocation() != null) {
+                //testgrid.yaml
+                repoPath = Paths.get(parent, jobConfigFile.getTestgridYamlLocation());
+                jobConfigFile.setTestgridYamlLocation(resolvePath(repoPath, jobConfigFile));
+            } else {
+                logger.debug("testgrid.yaml file location is not configured in job-config.yaml. " + jobConfigFile);
+            }
+        }
+
+    }
+
+    /**
+     * This method resolves the absolute path to a path mentioned in
+     * the iobConfigYaml.
+     *
+     * @param path          The path to resolve
+     * @param jobConfigFile the job-config.yaml bean
+     * @return the resolved path
+     * @throws TestGridRuntimeException if the resolved path does not exist.
+     */
+    private String resolvePath(Path path, JobConfigFile jobConfigFile) {
+        path = path.toAbsolutePath().normalize();
+        if (!Files.exists(path)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("JobConfigFile: " + jobConfigFile);
+            }
+            throw new TestGridRuntimeException("Path '" + path.toString() + "' does not exist.");
+        }
+        return path.toString();
+    }
+
+    /**
+     * Build the testgrid.yaml bean by reading the testgrid.yaml portions
+     * in each infra/deployment/scenario repositories. The paths to repos
+     * are read from the {@link JobConfigFile}.
+     *
+     * @param jobConfigFile the job-config.yaml bean
+     * @return the built testgrid.yaml bean
+     */
+    private TestgridYaml buildTestgridYamlContent(JobConfigFile jobConfigFile) {
+        String infraRepositoryLocation = jobConfigFile.getInfrastructureRepository();
+        String deployRepositoryLocation = jobConfigFile.getDeploymentRepository();
+        String scenarioTestsRepositoryLocation = jobConfigFile.getScenarioTestsRepository();
+
+        StringBuilder testgridYamlBuilder = new StringBuilder();
+        String ls = System.lineSeparator();
+        testgridYamlBuilder
+                .append(getTestgridYamlFor(Paths.get(infraRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
+                .append(ls);
+        testgridYamlBuilder
+                .append(getTestgridYamlFor(Paths.get(deployRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
+                .append(ls);
+        testgridYamlBuilder
+                .append(getTestgridYamlFor(Paths.get(scenarioTestsRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
+                .append(ls);
+
+        String testgridYamlContent = testgridYamlBuilder.toString().trim();
+        if (testgridYamlContent.isEmpty()) {
+            testgridYamlContent = getTestgridYamlFor(Paths.get(testgridYamlLocation)).trim();
+        }
+
+        if (testgridYamlContent.isEmpty()) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("job-config.yaml content: " + jobConfigFile.toString());
+            }
+            throw new TestGridRuntimeException("Could not find testgrid.yaml content. It is either empty or the path "
+                    + "could not be resolved via the job-config.yaml at: " + this.jobConfigFile);
+        }
+
+        TestgridYaml testgridYaml = new Yaml().loadAs(testgridYamlContent, TestgridYaml.class);
+        testgridYaml.setInfrastructureRepository(jobConfigFile.getInfrastructureRepository());
+        testgridYaml.setDeploymentRepository(jobConfigFile.getDeploymentRepository());
+        testgridYaml.setScenarioTestsRepository(jobConfigFile.getScenarioTestsRepository());
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("The testgrid.yaml content for this product build: " + testgridYamlContent);
+        }
+        return testgridYaml;
+    }
+
+    /**
+     * Returns the testgrid.yaml sub-content inside the given repository location.
+     *
+     * @param testgridYamlFile the path to the testgrid.yaml file
+     * @return get the content of the testgrid.yaml.
+     */
+    private String getTestgridYamlFor(Path testgridYamlFile) {
+        try {
+            if (Files.exists(testgridYamlFile)) {
+                return new String(Files.readAllBytes(testgridYamlFile), StandardCharsets.UTF_8);
+            } else {
+                logger.warn(String.format("A testgrid.yaml is not found in %s. Skipping the configuration.",
+                        testgridYamlFile.toString()));
+                return "";
+            }
+        } catch (IOException e) {
+            throw new TestGridRuntimeException(
+                    "Error while reading testgrid.yaml under " + testgridYamlFile.toString(), e);
         }
     }
 
@@ -152,7 +360,6 @@ public class GenerateTestPlanCommand implements Command {
      */
     private Product createOrReturnProduct(String productName) throws CommandExecutionException {
         try {
-            ProductUOW productUOW = new ProductUOW();
             return productUOW.persistProduct(productName);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error on proceeding with database transaction.", e);
@@ -160,7 +367,8 @@ public class GenerateTestPlanCommand implements Command {
     }
 
     /**
-     * Creates and returns a {@link Yaml} instance.
+     * Creates and returns a {@link Yaml} instance that
+     * does not include null values when dumping a yaml object.
      *
      * @return {@link Yaml} instance
      */
@@ -170,23 +378,6 @@ public class GenerateTestPlanCommand implements Command {
         options.setPrettyFlow(true);
         return new Yaml(new NullRepresenter(), options);
     }
-
-    /**
-     * If the value of a given element is null, do not serialize it to disk.
-     *
-     */
-    private static class NullRepresenter extends Representer {
-        @Override
-        protected NodeTuple representJavaBeanProperty(Object javaBean, Property property, Object propertyValue,
-                Tag customTag) {
-            // if value of property is null, ignore it.
-            if (propertyValue == null) {
-                return null;
-            } else {
-                return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
-            }
-        }
-    };
 
     /**
      * Saves the content to a file with the given name in the given file path.
@@ -239,8 +430,11 @@ public class GenerateTestPlanCommand implements Command {
                 testPlan.getInfrastructureConfig().setParameters(configAwareInfraCombination);
                 testPlan.setScenarioConfig(testgridYaml.getScenarioConfig());
                 testPlan.setInfrastructureConfig(testgridYaml.getInfrastructureConfig());
-                testConfigurations.add(testPlan);
 
+                testPlan.setInfrastructureRepository(testgridYaml.getInfrastructureRepository());
+                testPlan.setDeploymentRepository(testgridYaml.getDeploymentRepository());
+                testPlan.setScenarioTestsRepository(testgridYaml.getScenarioTestsRepository());
+                testConfigurations.add(testPlan);
             }
         }
         return testConfigurations;
@@ -317,7 +511,6 @@ public class GenerateTestPlanCommand implements Command {
             removeDirectories(directory);
 
             Path createdDirectory = Files.createDirectories(directory).toAbsolutePath();
-            logger.info(StringUtil.concatStrings("Test plans dir: ", createdDirectory.toString()));
             return createdDirectory.toString();
         } catch (IOException e) {
             throw new CommandExecutionException("Error in creating infra generation directory", e);
@@ -346,5 +539,21 @@ public class GenerateTestPlanCommand implements Command {
     private String deriveLogFilePath(String productName) {
         String productDir = StringUtil.concatStrings(productName);
         return Paths.get(productDir, "testgrid").toString();
+    }
+
+    /**
+     * If the value of a given element is null, do not serialize it to disk.
+     */
+    private static class NullRepresenter extends Representer {
+        @Override
+        protected NodeTuple representJavaBeanProperty(Object javaBean, Property property, Object propertyValue,
+                Tag customTag) {
+            // if value of property is null, ignore it.
+            if (propertyValue == null) {
+                return null;
+            } else {
+                return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
+            }
+        }
     }
 }

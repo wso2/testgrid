@@ -113,7 +113,7 @@ public class AWSProvider implements InfrastructureProvider {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
                 infrastructureConfig.getParameters().forEach((key, value) ->
                         script.getInputParameters().setProperty((String) key, (String) value));
-                return doProvision(infrastructureConfig, script.getName(), testPlan.getInfraRepoDir());
+                return doProvision(infrastructureConfig, script.getName(), testPlan.getInfrastructureRepository());
             }
         }
         throw new TestGridInfrastructureException("No CloudFormation Script found in script list");

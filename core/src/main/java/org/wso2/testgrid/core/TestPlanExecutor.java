@@ -132,8 +132,7 @@ public class TestPlanExecutor {
      * @throws TestPlanExecutorException thrown when error on setting up infrastructure
      */
     private InfrastructureProvisionResult provisionInfrastructure(InfrastructureConfig infrastructureConfig,
-            TestPlan testPlan)
-            throws TestPlanExecutorException {
+            TestPlan testPlan) throws TestPlanExecutorException {
         try {
             if (infrastructureConfig == null) {
                 setTestPlanStatus(testPlan, Status.FAIL);
@@ -148,7 +147,8 @@ public class TestPlanExecutor {
                     .provision(testPlan);
 
             provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
-            provisionResult.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepoDir()).toString());
+            //TODO: remove. deploymentScriptsDir is deprecated now in favor of DeploymentConfig.
+            provisionResult.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepository()).toString());
             return provisionResult;
         } catch (TestGridInfrastructureException e) {
             setTestPlanStatus(testPlan, Status.FAIL);
@@ -161,6 +161,8 @@ public class TestPlanExecutor {
                     .concatStrings("No Infrastructure Provider implementation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan"), e);
         }
+        // We also need to catch the Exception here since we need to catch and handle all exceptions within this method.
+        // This is required to do gracefully close any opened resources. Created wso2/testgrid#515 to track.
     }
 
     /**
@@ -180,7 +182,7 @@ public class TestPlanExecutor {
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
             }
             InfrastructureProviderFactory.getInfrastructureProvider(infrastructureConfig)
-                    .release(infrastructureConfig, testPlan.getInfraRepoDir());
+                    .release(infrastructureConfig, testPlan.getInfrastructureRepository());
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",

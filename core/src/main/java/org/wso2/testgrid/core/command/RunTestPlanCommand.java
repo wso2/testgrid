@@ -48,6 +48,7 @@ import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -71,23 +72,12 @@ public class RunTestPlanCommand implements Command {
             aliases = { "-p" },
             required = true)
     private String productName = "";
-    @Option(name = "--infraRepo",
-            usage = "Location of Infra plans. "
-                    + "Under this location, there should be a Infrastructure/ folder."
-                    + "Assume this location is the test-grid-is-resources",
-            aliases = { "-ir" },
+
+    @Option(name = "--file",
+            usage = "Test plan configuration",
+            aliases = { "-f" },
             required = true)
-    private String infraRepo = "";
-    @Option(name = "--deploymentRepo",
-            usage = "Location of the deployment scripts. ",
-            aliases = { "-dr" },
-            required = true)
-    private String deploymentRepo = "";
-    @Option(name = "--scenarioRepo",
-            usage = "scenario repo directory. Assume this location is the test-grid-is-resources",
-            aliases = { "-sr" },
-            required = true)
-    private String scenarioRepoDir = "";
+    private String testPlanConfigLocation = "";
 
     @Override
     public void execute() throws CommandExecutionException {
@@ -96,13 +86,14 @@ public class RunTestPlanCommand implements Command {
 
             // Get test plan YAML file path location
             Product product = getProduct(productName);
-            Optional<String> testPlanYAMLFilePath = getTestPlanGenFilePath(product);
+            Optional<String> testPlanYAMLFilePath = getTestPlanYamlAbsoluteLocation(product, testPlanConfigLocation);
             if (!testPlanYAMLFilePath.isPresent()) {
+                // todo we need to update the database about this condition before returning blindly.
                 logger.info(StringUtil.concatStrings("No test plan YAML files found for the given product - ",
                         product));
                 return;
             }
-            TestPlan testPlan = FileUtil.readConfigurationFile(testPlanYAMLFilePath.get(), TestPlan.class);
+            TestPlan testPlan = FileUtil.readYamlFile(testPlanYAMLFilePath.get(), TestPlan.class);
 
             // Delete test config YAML file. If the directory is empty delete the directory as well.
             Path testPlanYAMLFilePathLocation = Paths.get(testPlanYAMLFilePath.get());
@@ -113,8 +104,7 @@ public class RunTestPlanCommand implements Command {
             DeploymentPattern deploymentPattern = getDeploymentPattern(product, getDeploymentPatternName(testPlan));
 
             // Generate test plan from config
-            TestPlan testPlanEntity = toTestPlanEntity(deploymentPattern, testPlan, infraRepo,
-                    deploymentRepo, scenarioRepoDir);
+            TestPlan testPlanEntity = toTestPlanEntity(deploymentPattern, testPlan);
             LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlanEntity));
 
             // Product, deployment pattern, test plan and test scenarios should be persisted
@@ -177,7 +167,13 @@ public class RunTestPlanCommand implements Command {
      */
     private void deleteFile(Path filePath) throws CommandExecutionException {
         try {
-            Files.deleteIfExists(filePath);
+            if (Files.exists(filePath)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug(String.format("Deleting file: %s that has content: %s", filePath,
+                            new String(Files.readAllBytes(filePath), StandardCharsets.UTF_8)));
+                }
+                Files.deleteIfExists(filePath);
+            }
         } catch (IOException e) {
             throw new CommandExecutionException(StringUtil.concatStrings("Error in deleting file ",
                     filePath.toAbsolutePath()), e);
@@ -212,14 +208,19 @@ public class RunTestPlanCommand implements Command {
      * @param product product to locate the file path of an generated test plan YAML file
      * @return file path of an generated test plan YAML file
      */
-    private Optional<String> getTestPlanGenFilePath(Product product) throws IOException {
-        Path directory = getTestPlanGenLocation(product);
+    private Optional<String> getTestPlanYamlAbsoluteLocation(Product product, String testPlanConfigLocation)
+            throws IOException {
 
-        // Get a infra file from directory
-        File[] fileList = directory.toFile().listFiles();
-        if (fileList != null && fileList.length > 0) {
-            return Optional.of(fileList[0].getAbsolutePath());
+        Path testPlanConfigPath = Paths.get(testPlanConfigLocation);
+        if (!Files.exists(testPlanConfigPath)) {
+            // testPlanConfigLocation is a relative path. So, resolve it relative to the $PRODUCT/test-plans dir.
+            testPlanConfigPath = getTestPlanGenLocation(product).resolve(testPlanConfigLocation);
         }
+
+        if (Files.exists(testPlanConfigPath)) {
+            return Optional.of(testPlanConfigPath.toAbsolutePath().toString());
+        }
+
         return Optional.empty();
     }
 
@@ -290,26 +291,18 @@ public class RunTestPlanCommand implements Command {
 
     /**
      * This method generates TestPlan object model that from the given input parameters.
-     * TODO: Refactor this method. It takes five parameters as inputs ATM which is quite unusual.
      *
      * @param deploymentPattern deployment pattern
      * @param testPlan          testPlan object
-     * @param infraRepoDir      infrastructure repo directory
-     * @param deploymentRepo    deployment script directory
-     * @param testRepoDir       test repo directory
      * @return TestPlan object model
      */
-    private TestPlan toTestPlanEntity(DeploymentPattern deploymentPattern,
-            TestPlan testPlan, String infraRepoDir, String deploymentRepo, String testRepoDir)
+    private TestPlan toTestPlanEntity(DeploymentPattern deploymentPattern, TestPlan testPlan)
             throws CommandExecutionException {
         try {
             String jsonInfraParams = new ObjectMapper()
                     .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
             TestPlan testPlanEntity = testPlan.clone();
             testPlanEntity.setStatus(Status.PENDING);
-            testPlanEntity.setInfraRepoDir(infraRepoDir);
-            testPlanEntity.setTestRepoDir(testRepoDir);
-            testPlanEntity.setDeploymentRepoDir(deploymentRepo);
             testPlanEntity.setDeploymentPattern(deploymentPattern);
 
             // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.

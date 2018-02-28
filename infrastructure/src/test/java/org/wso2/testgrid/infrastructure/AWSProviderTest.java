@@ -166,7 +166,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         awsProvider.init();
         TestPlan testPlan = new TestPlan();
         testPlan.setInfrastructureConfig(infrastructureConfig);
-        testPlan.setInfraRepoDir(resourcePath.getAbsolutePath());
+        testPlan.setInfrastructureRepository(resourcePath.getAbsolutePath());
         InfrastructureProvisionResult provisionResult = awsProvider
                 .provision(testPlan);
 

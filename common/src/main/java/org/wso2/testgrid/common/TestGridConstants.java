@@ -27,7 +27,9 @@ import java.nio.file.Paths;
  */
 public class TestGridConstants {
 
-    // Logging constants
+    public static final String TESTGRID_YAML = "testgrid.yaml";
+    public static final String TEST_PLAN_YAML_PREFIX = "test-plan";
+
     public static final String TEST_LOG_FILE_NAME = "test-run.log";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
     public static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";

@@ -1,3 +1,2 @@
-org.wso2.testgrid.deployment.deployers.PuppetDeployer
 org.wso2.testgrid.deployment.deployers.AWSDeployer
 org.wso2.testgrid.deployment.deployers.ShellDeployer

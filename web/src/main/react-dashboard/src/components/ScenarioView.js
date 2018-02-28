@@ -28,8 +28,8 @@ import {
 } from 'material-ui/Table';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
-import { add_current_scenario } from '../actions/testGridActions.js';
-import {TESTGRID_CONTEXT} from '../constants.js';
+import {add_current_scenario} from '../actions/testGridActions.js';
+import {TESTGRID_CONTEXT, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
 
 class ScenarioView extends Component {
 
@@ -47,6 +47,13 @@ class ScenarioView extends Component {
         this.props.history.push(route);
     }
 
+    handleError(response) {
+        if (response.status.toString() === HTTP_UNAUTHORIZED) {
+            window.location.replace(LOGIN_URI);
+            return response;
+        }
+    }
+
     componentDidMount() {
         var url = TESTGRID_CONTEXT + "/api/test-plans/"+this.props.active.reducer.currentInfra.infrastructureId+"?require-test-scenario-info=true";
 
@@ -56,12 +63,13 @@ class ScenarioView extends Component {
             headers: {
                 'Accept': 'application/json'
             }
-        }).then(response => {
+        })
+        .then(this.handleError)
+        .then(response => {
             return response.json()
         })
             .then(data => this.setState({ hits: data }));
     }
-
 
     render() {
         console.log(this.props);

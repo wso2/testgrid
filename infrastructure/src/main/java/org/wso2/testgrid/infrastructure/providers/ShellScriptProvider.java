@@ -65,7 +65,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
     @Override
     public InfrastructureProvisionResult provision(TestPlan testPlan)
             throws TestGridInfrastructureException {
-        String testPlanLocation = Paths.get(testPlan.getInfraRepoDir()).toString();
+        String testPlanLocation = Paths.get(testPlan.getInfrastructureRepository()).toString();
         InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
         logger.info("Executing provisioning scripts...");
         try {
