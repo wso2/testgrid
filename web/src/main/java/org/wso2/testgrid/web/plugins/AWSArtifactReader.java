@@ -21,6 +21,7 @@ import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
@@ -57,9 +58,10 @@ public class AWSArtifactReader implements ArtifactReadable {
         if (StringUtil.isStringNullOrEmpty(bucket)) {
             throw new ArtifactReaderException("AWS S3 bucket name is null or empty");
         }
-        Path configFilePath = Paths.get(TestGridUtil.getTestGridHomePath(), "testgrid-web-config.properties");
+        Path configFilePath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_CONFIG_FILE);
         if (!configFilePath.toFile().exists()) {
-            throw new ArtifactReaderException("testgrid-web-config.properties file not found");
+            throw new ArtifactReaderException(StringUtil.concatStrings(TestGridConstants.TESTGRID_CONFIG_FILE,
+                    " file not found in ", TestGridUtil.getTestGridHomePath()));
         }
         amazonS3 = AmazonS3ClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
