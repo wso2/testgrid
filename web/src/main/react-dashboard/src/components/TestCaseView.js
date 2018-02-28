@@ -28,20 +28,17 @@ import {
 } from 'material-ui/Table';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
-import {HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
+import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
 
 class TestCaseView extends Component {
 
     constructor(props) {
         super(props);
-
         this.state = {
             hits: {
                 testCases: []
             }
-
         }
-
     }
 
     handleError(response) {
@@ -49,10 +46,11 @@ class TestCaseView extends Component {
             window.location.replace(LOGIN_URI);
             return response;
         }
+        return response;
     }
 
     componentDidMount() {
-        var url = '/testgrid/v0.9/api/test-scenarios/' + this.props.active.reducer.currentScenario.scenarioId;
+        var url = TESTGRID_CONTEXT + '/api/test-scenarios/'+this.props.active.reducer.currentScenario.scenarioId;
 
         fetch(url, {
             method: "GET",

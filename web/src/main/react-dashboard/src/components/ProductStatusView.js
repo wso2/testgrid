@@ -30,13 +30,12 @@ import SingleRecord from './SingleRecord.js';
 import {add_current_product} from '../actions/testGridActions.js';
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
 
 class ProductStatusView extends Component {
 
   constructor(props) {
     super(props);
-    this.baseURL = "/testgrid/dashboard"
     this.state = {
       hits: []
     };
@@ -52,7 +51,7 @@ class ProductStatusView extends Component {
   }
 
   componentDidMount() {
-    var url = this.baseURL + '/api/products/product-status'
+    var url = TESTGRID_CONTEXT + '/api/products/product-status'
     fetch(url, {
       method: "GET",
       credentials: 'same-origin',
@@ -76,7 +75,7 @@ class ProductStatusView extends Component {
       return (<TableRow key={index}>
 
         <TableRowColumn> <SingleRecord value={product.status} /> </TableRowColumn>
-        <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute( this.baseURL + "/deployments/product/" + product.id, {
+        <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute( TESTGRID_CONTEXT+ "/deployments/product/" + product.id, {
           productId: product.id,
           productName: product.name,
           productStatus :product.status
@@ -86,7 +85,7 @@ class ProductStatusView extends Component {
             if (product.lastBuild.modifiedTimestamp) {
               return (
                 <SingleRecord value={product.lastBuild.status}
-                  nevigate={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
+                  nevigate={() => this.nevigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
                     productId: product.id,
                     productName: product.name,
                     productStatus :product.status
@@ -101,7 +100,7 @@ class ProductStatusView extends Component {
           {(() => {
             if (product.lastfailed.modifiedTimestamp) {
               return (
-                <i onClick={() => this.nevigateToRoute(this.baseURL + "/deployments/product/" + product.id, {
+                <i onClick={() => this.nevigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
                   productId: product.id,
                   productName: product.name,
                   productStatus :product.status
