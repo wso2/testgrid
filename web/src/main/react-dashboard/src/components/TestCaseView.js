@@ -46,6 +46,7 @@ class TestCaseView extends Component {
             window.location.replace(LOGIN_URI);
             return response;
         }
+        return response;
     }
 
     componentDidMount() {
