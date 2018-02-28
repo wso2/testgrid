@@ -20,9 +20,8 @@ package org.wso2.testgrid.web.operation;
 
 import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.common.util.ConfigurationContext;
-import org.wso2.testgrid.common.util.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.utils.Constants;
 
@@ -69,10 +68,10 @@ public class JenkinsJobConfigurationProvider {
         try {
             Content content =  Request.
                     Get(ConfigurationContext.getProperty(
-                            ConfigurationProperties.JENKINS_HOST) + JENKINS_TEMPLATE_JOB_URI)
+                            ConfigurationContext.ConfigurationProperties.JENKINS_HOST) + JENKINS_TEMPLATE_JOB_URI)
                     .addHeader(HttpHeaders.USER_AGENT, USER_AGENT)
-                    .addHeader(HttpHeaders.AUTHORIZATION, "Basic " +
-                            ConfigurationContext.getProperty(ConfigurationProperties.JENKINS_USER_AUTH_KEY))
+                    .addHeader(HttpHeaders.AUTHORIZATION, "Basic " + ConfigurationContext.getProperty(
+                            ConfigurationContext.ConfigurationProperties.JENKINS_USER_AUTH_KEY))
                     .execute().returnContent();
             if (content != null) {
                 return content.asString().trim();

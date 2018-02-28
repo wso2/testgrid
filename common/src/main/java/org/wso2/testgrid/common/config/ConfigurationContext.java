@@ -16,11 +16,13 @@
  * under the License.
  */
 
-package org.wso2.testgrid.common.util;
+package org.wso2.testgrid.common.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
