@@ -42,9 +42,11 @@ import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
+import org.wso2.testgrid.infrastructure.providers.aws.utils.AwsAMIMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -69,6 +71,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
     private static final String AWS_REGION_PARAMETER = "region";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
+    private AwsAMIMapper awsAMIMapper;
 
     @Override
     public String getProviderName() {
@@ -91,10 +94,16 @@ public class AWSProvider implements InfrastructureProvider {
         String awsSecret = System.getenv(AWS_SECRET_ACCESS_KEY);
         if (StringUtil.isStringNullOrEmpty(awsIdentity) || StringUtil.isStringNullOrEmpty(awsSecret)) {
             throw new TestGridInfrastructureException(StringUtil
-                    .concatStrings("AWS Credentials must be set as environment variables: ", AWS_ACCESS_KEY_ID, ", ",
-                            AWS_SECRET_ACCESS_KEY));
+                    .concatStrings("AWS Credentials must be set as environment variables: ", AWS_ACCESS_KEY_ID,
+                            ", ", AWS_SECRET_ACCESS_KEY));
         }
         cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
+        try {
+            awsAMIMapper = new AwsAMIMapper();
+        } catch (IOException e) {
+            throw new TestGridInfrastructureException(StringUtil
+                    .concatStrings("Error occurred when reading configuration property file ", e.getMessage()));
+        }
     }
 
     /**
@@ -108,6 +117,14 @@ public class AWSProvider implements InfrastructureProvider {
     @Override
     public InfrastructureProvisionResult provision(InfrastructureConfig infrastructureConfig, String infraRepoDir)
             throws TestGridInfrastructureException {
+        try {
+            infrastructureConfig = addAMIParameter(infrastructureConfig);
+        } catch (IOException e) {
+            throw new TestGridInfrastructureException(StringUtil.
+                    concatStrings("Error occurred while reading configuration file.", e.getMessage()));
+        } catch (TestGridException e) {
+            throw new TestGridInfrastructureException(e.getMessage(), e);
+        }
         for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
                 infrastructureConfig.getParameters().forEach((key, value) ->
@@ -269,4 +286,10 @@ public class AWSProvider implements InfrastructureProvider {
         return cfCompatibleParameters;
     }
 
+    private InfrastructureConfig addAMIParameter(InfrastructureConfig infrastructureConfig)
+            throws IOException, TestGridException, TestGridInfrastructureException {
+        String amiId = awsAMIMapper.getAMI(infrastructureConfig.getParameters());
+        infrastructureConfig.getParameters().setProperty("AMI", amiId);
+        return infrastructureConfig;
+    }
 }
