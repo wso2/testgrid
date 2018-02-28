@@ -32,13 +32,12 @@ import {add_current_deployment, add_current_infra} from '../actions/testGridActi
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
 
 class DeploymentPatternView extends Component {
 
   constructor(props) {
     super(props)
-    this.baseURL = "/testgrid/dashboard";
     this.state = {
       hits: []
     };
@@ -54,7 +53,7 @@ class DeploymentPatternView extends Component {
   }
 
   componentDidMount() {
-    var url = this.baseURL + '/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
+    var url = TESTGRID_CONTEXT + '/api/test-plans/product/' + this.props.active.reducer.currentProduct.productId;
     fetch(url, {
       method: "GET",
       credentials: 'same-origin',
@@ -183,7 +182,7 @@ class DeploymentPatternView extends Component {
                         <TableRowColumn rowSpan={groupByDeployment[key].length}>{key}</TableRowColumn>
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
                           <FlatButton style={{ color: '#0E457C' }} data-tip="View History"
-                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/history/"
+                            onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/testplans/history/"
                               + value.lastBuild.id, {
                                 deploymentPatternName: key
                               }, {
@@ -197,7 +196,7 @@ class DeploymentPatternView extends Component {
                         </TableRowColumn>
                         <TableRowColumn>
                           <FlatButton style={{ color: '#0E457C' }}
-                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/" + value.lastBuild.id, {
+                            onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/testplans/" + value.lastBuild.id, {
                               deploymentPatternName: key
                             }, {
                                 testPlanId: value.lastBuild.id,
@@ -213,7 +212,7 @@ class DeploymentPatternView extends Component {
                             if (value.lastFailed.modifiedTimestamp) {
                               return (
                                 <FlatButton style={{ color: '#0E457C' }}
-                                  onClick={() => this.navigateToRoute(this.baseURL + "/testplans/"
+                                  onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/testplans/"
                                     + value.lastFailed.id, { deploymentPatternName: key },
                                     {
                                       testPlanId: value.lastFailed.id,
@@ -242,7 +241,7 @@ class DeploymentPatternView extends Component {
                       <TableRow>
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
                           <FlatButton style={{ color: '#0E457C' }} data-tip="View History"
-                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/history/" + value.lastBuild.id, {
+                            onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/testplans/history/" + value.lastBuild.id, {
                               deploymentPatternName: key
                             }, {
                                 testPlanId: value.lastBuild.id,
@@ -255,7 +254,7 @@ class DeploymentPatternView extends Component {
                         </TableRowColumn>
                         <TableRowColumn>
                           <FlatButton style={{ color: '#0E457C' }}
-                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/" + value.lastBuild.id, {
+                            onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/testplans/" + value.lastBuild.id, {
                               deploymentPatternName: key
                             }, {
                                 testPlanId: value.lastBuild.id,
@@ -271,7 +270,7 @@ class DeploymentPatternView extends Component {
                             if (value.lastFailed.modifiedTimestamp) {
                               return (
                                 <FlatButton style={{ color: '#0E457C' }}
-                                  onClick={() => this.navigateToRoute(this.baseURL + "/testplans/" + value.lastFailed.id,
+                                  onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/testplans/" + value.lastFailed.id,
                                     { deploymentPatternName: key },
                                     {
                                       testPlanId: value.lastFailed.id,

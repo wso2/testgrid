@@ -34,14 +34,11 @@ class TestCaseView extends Component {
 
     constructor(props) {
         super(props);
-
         this.state = {
             hits: {
                 testCases: []
             }
-
         }
-
     }
 
     handleError(response) {
