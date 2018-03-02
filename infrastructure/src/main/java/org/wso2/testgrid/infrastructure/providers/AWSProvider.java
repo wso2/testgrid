@@ -113,14 +113,6 @@ public class AWSProvider implements InfrastructureProvider {
     public InfrastructureProvisionResult provision(TestPlan testPlan)
             throws TestGridInfrastructureException {
         InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
-//        try {
-//            infrastructureConfig = addAMIParameter(infrastructureConfig);
-//        } catch (IOException e) {
-//            throw new TestGridInfrastructureException(StringUtil.
-//                    concatStrings("Error occurred while reading configuration file.", e.getMessage()));
-//        } catch (TestGridException e) {
-//            throw new TestGridInfrastructureException(e.getMessage(), e);
-//        }
         for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
                 infrastructureConfig.getParameters().forEach((key, value) ->
@@ -258,7 +250,8 @@ public class AWSProvider implements InfrastructureProvider {
      * Reads the parameters for the stack from file.
      *
      * @param script Script object with script details.
-     * @param expectedParameters
+     * @param expectedParameters Set of parameters expected by CF-script.
+     * @param infrastructureConfig Infrastructure configuration of the test-plan.
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
@@ -268,35 +261,12 @@ public class AWSProvider implements InfrastructureProvider {
 
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
 
-//        expectedParameters.forEach(expected -> {
-//            Optional<Map.Entry<Object, Object>> scriptParameter = script.getInputParameters().entrySet().stream()
-//                    .filter(input -> input.getKey().equals(expected
-//                            .getParameterKey())).findAny();
-//            if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
-//                Parameter awsParameter = null;
-//                try {
-//                    awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
-//                     .withParameterValue(getAMIParameterValue(infrastructureConfig));
-//                } catch (TestGridInfrastructureException e) {
-//                    //todo: throw exception.
-//                    logger.error("Error occurred when getting matched AMI.",e);
-//                }
-//                cfCompatibleParameters.add(awsParameter);
-//            }
-//
-//            scriptParameter.ifPresent(theScriptParameter -> {
-//                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
-//                        withParameterValue((String) theScriptParameter.getValue());
-//                cfCompatibleParameters.add(awsParameter);
-//            });
-//        });
-
         expectedParameters.forEach(LambdaExceptionUtils.rethrowConsumer(expected -> {
             Optional<Map.Entry<Object, Object>> scriptParameter = script.getInputParameters().entrySet().stream()
                     .filter(input -> input.getKey().equals(expected
                             .getParameterKey())).findAny();
             if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
-                Parameter awsParameter = null;
+                Parameter awsParameter;
                     awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
                             .withParameterValue(getAMIParameterValue(infrastructureConfig));
                 cfCompatibleParameters.add(awsParameter);
@@ -314,7 +284,6 @@ public class AWSProvider implements InfrastructureProvider {
 
     private String getAMIParameterValue(InfrastructureConfig infrastructureConfig)
             throws TestGridInfrastructureException {
-        String amiId = awsAMIMapper.getAMIFor(infrastructureConfig.getParameters());
-        return amiId;
+        return awsAMIMapper.getAMIFor(infrastructureConfig.getParameters());
     }
 }
