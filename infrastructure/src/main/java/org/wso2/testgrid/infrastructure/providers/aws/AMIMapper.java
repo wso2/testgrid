@@ -27,37 +27,43 @@ import com.amazonaws.services.ec2.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static org.wso2.testgrid.common.util.StringUtil.getPropertiesAsString;
+
 /**
  * This class provides a mapper to find the matching AMI based on the infrastructure parameters of the test-plan.
  */
-public class AWSAMIMapper {
-    private static final String AWS_REGION_NAME = "us-east-1";
-    private static final Logger logger = LoggerFactory.getLogger(AWSAMIMapper.class);
+public class AMIMapper {
+    private static final Logger logger = LoggerFactory.getLogger(AMIMapper.class);
 
     private final AmazonEC2 amazonEC2;
 
-    public AWSAMIMapper() throws TestGridInfrastructureException {
+    public AMIMapper() throws TestGridInfrastructureException {
         try {
             Path configFilePath = Paths.get(TestGridUtil.getTestGridHomePath(),
                     TestGridConstants.TESTGRID_CONFIG_FILE);
-            if (!configFilePath.toFile().exists()) {
+            if (!Files.exists(configFilePath)) {
                 throw new TestGridInfrastructureException(
-                        "Configuration file not found. Hence can not provide AWS credentials.");
+                        TestGridConstants.TESTGRID_CONFIG_FILE + " file not found." +
+                                " Unable to obtain AWS credentials. Check if the file exists in " +
+                                configFilePath.toFile().toString());
             }
             amazonEC2 = AmazonEC2ClientBuilder.standard()
                     .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                    .withRegion(AWS_REGION_NAME)
+                    .withRegion(ConfigurationContext.getProperty(ConfigurationProperties.AWS_REGION_NAME))
                     .build();
         } catch (IOException e) {
             throw new TestGridInfrastructureException(
@@ -71,43 +77,48 @@ public class AWSAMIMapper {
      * @return AMI-id of the matching AMI
      * @throws TestGridInfrastructureException When can not find a matching AMI
      */
-    public String getAMI(Properties infraParameters) throws TestGridInfrastructureException {
+    public String getAMIFor(Properties infraParameters) throws TestGridInfrastructureException {
         List<Image> amiList = getAMIListFromAWS();
         if (amiList.isEmpty()) {
             throw new TestGridInfrastructureException("List of AMIs is empty. Hence can not find a matching AMI.");
         }
-        //AMIs are containing tags only for the lookup-parameters.
         Properties lookupParameters = filterLookupParameters(infraParameters);
 
-        Boolean isMissingLookupParams;  //False means one or more lookup parameters are missing.
-        String amiId = null;
+        String amiId = findAMIForLookupParams(amiList, lookupParameters);
 
-        //Check for an AMI which contains all (tags) lookupParameters.
+        if (amiId != null) {
+            logger.debug(StringUtil.concatStrings("Found matching AMI. AMI-ID: ", amiId));
+            return amiId;
+        } else {
+            throw new TestGridInfrastructureException("Can not find an AMI match for " +
+            getPropertiesAsString(lookupParameters));
+        }
+    }
+
+    /**
+     * This method finds out matching AMI for the given set of parameters. (The matching AMI should include
+     * all the parameters passed.)
+     * @param amiList List of AMIs.
+     * @param lookupParameters  List of parameters which must map with AMI tags.
+     * @return AMI-ID of the matching AMI.
+     */
+    private String findAMIForLookupParams (List<Image> amiList, Properties lookupParameters) {
+        Boolean isMissingLookupParams;
         for (Image ami : amiList) {
             isMissingLookupParams = false;
 
             for (String parameterName: lookupParameters.stringPropertyNames()) {
-                if (!checkIfParameterContains(
+                if (!checkTagsForParameter(
                         parameterName, lookupParameters.getProperty(parameterName), ami.getTags())) {
                     isMissingLookupParams = true;
-                    break;      //If at least one lookup-parameter is missing in the AMI, no need to continue.
+                    break;
                 }
             }
             if (!isMissingLookupParams) {
-                amiId = ami.getImageId();   //If none of the lookup-parameters are missing, then its the matching AMI!
-                break;
+                return ami.getImageId();
             }
         }
-
-        if (amiId != null) {
-            if (logger.isDebugEnabled()) {
-                logger.info(StringUtil.concatStrings("Found matching AMI. AMI-ID: ", amiId));
-            }
-            return amiId;
-        } else {
-            throw new TestGridInfrastructureException("Can not find an AMI match for " +
-                    lookupParameters.stringPropertyNames());
-        }
+        return null;
     }
 
     /**
@@ -144,7 +155,7 @@ public class AWSAMIMapper {
      * @param tags List of AMI tags
      * @return true if tags contain the parameter, false if not.
      */
-    private boolean checkIfParameterContains(String parameterName, String parameterValue, List<Tag> tags) {
+    private boolean checkTagsForParameter(String parameterName, String parameterValue, List<Tag> tags) {
         for (Tag tag : tags) {
             if (tag.getKey().equals(parameterName) && tag.getValue().equals(parameterValue)) {
                 return true;

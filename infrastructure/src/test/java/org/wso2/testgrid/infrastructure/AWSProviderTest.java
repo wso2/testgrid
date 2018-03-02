@@ -49,7 +49,7 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
-import org.wso2.testgrid.infrastructure.providers.aws.utils.AwsAMIMapper;
+import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -85,8 +85,8 @@ public class AWSProviderTest extends PowerMockTestCase {
         map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
         map.put(AWSProvider.AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
         set(map);
-        AwsAMIMapper awsAMIMapper = Mockito.mock(AwsAMIMapper.class);
-        PowerMockito.whenNew(AwsAMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
+        AMIMapper awsAMIMapper = Mockito.mock(AMIMapper.class);
+        PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
 
         AWSProvider awsProvider = new AWSProvider();
         awsProvider.init();
@@ -147,9 +147,9 @@ public class AWSProviderTest extends PowerMockTestCase {
         AmazonCloudFormationClientBuilder cloudFormationClientBuilderMock = PowerMockito
                 .mock(AmazonCloudFormationClientBuilder.class);
         AmazonCloudFormation cloudFormation = Mockito.mock(AmazonCloudFormation.class);
-        AwsAMIMapper awsAMIMapper = Mockito.mock(AwsAMIMapper.class);
-        PowerMockito.whenNew(AwsAMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
-        Mockito.when(awsAMIMapper.getAMI(Mockito.any()))
+        AMIMapper awsAMIMapper = Mockito.mock(AMIMapper.class);
+        PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
+        Mockito.when(awsAMIMapper.getAMIFor(Mockito.any()))
                 .thenReturn(matchedAmi);
         Mockito.when(cloudFormation.validateTemplate(Mockito.any(ValidateTemplateRequest.class)))
                 .thenReturn(Mockito.mock(ValidateTemplateResult.class));
@@ -223,8 +223,8 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.when(cloudFormationClientBuilderMock
                 .withCredentials(Mockito.any(EnvironmentVariableCredentialsProvider.class)))
                 .thenReturn(cloudFormationClientBuilderMock);
-        AwsAMIMapper awsAMIMapper = Mockito.mock(AwsAMIMapper.class);
-        PowerMockito.whenNew(AwsAMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
+        AMIMapper awsAMIMapper = Mockito.mock(AMIMapper.class);
+        PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
         AmazonCloudFormation cloudFormation = Mockito.mock(AmazonCloudFormation.class);
         PowerMockito.when(cloudFormationClientBuilderMock.build()).thenReturn(cloudFormation);
         PowerMockito.mockStatic(AmazonCloudFormationClientBuilder.class);

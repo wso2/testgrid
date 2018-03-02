@@ -43,8 +43,8 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
@@ -268,21 +268,38 @@ public class AWSProvider implements InfrastructureProvider {
 
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
 
-        expectedParameters.forEach(expected -> {
+//        expectedParameters.forEach(expected -> {
+//            Optional<Map.Entry<Object, Object>> scriptParameter = script.getInputParameters().entrySet().stream()
+//                    .filter(input -> input.getKey().equals(expected
+//                            .getParameterKey())).findAny();
+//            if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
+//                Parameter awsParameter = null;
+//                try {
+//                    awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
+//                     .withParameterValue(getAMIParameterValue(infrastructureConfig));
+//                } catch (TestGridInfrastructureException e) {
+//                    //todo: throw exception.
+//                    logger.error("Error occurred when getting matched AMI.",e);
+//                }
+//                cfCompatibleParameters.add(awsParameter);
+//            }
+//
+//            scriptParameter.ifPresent(theScriptParameter -> {
+//                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+//                        withParameterValue((String) theScriptParameter.getValue());
+//                cfCompatibleParameters.add(awsParameter);
+//            });
+//        });
+
+        expectedParameters.forEach(LambdaExceptionUtils.rethrowConsumer(expected -> {
             Optional<Map.Entry<Object, Object>> scriptParameter = script.getInputParameters().entrySet().stream()
                     .filter(input -> input.getKey().equals(expected
                             .getParameterKey())).findAny();
-            if (!scriptParameter.isPresent()) {
-                if(expected.equals("AMI")) {
-                    try {
-                        Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
-                         .withParameterValue(getAMIParameterValue(infrastructureConfig));
-                        cfCompatibleParameters.add(awsParameter);
-                    } catch (TestGridInfrastructureException e) {
-                        e.printStackTrace();
-                    }
-
-                }
+            if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
+                Parameter awsParameter = null;
+                    awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
+                            .withParameterValue(getAMIParameterValue(infrastructureConfig));
+                cfCompatibleParameters.add(awsParameter);
             }
 
             scriptParameter.ifPresent(theScriptParameter -> {
@@ -290,21 +307,14 @@ public class AWSProvider implements InfrastructureProvider {
                         withParameterValue((String) theScriptParameter.getValue());
                 cfCompatibleParameters.add(awsParameter);
             });
-
-        });
+        }));
 
         return cfCompatibleParameters;
     }
 
-    private String getAMIParameterValue(InfrastructureConfig infrastructureConfig) throws TestGridInfrastructureException {
+    private String getAMIParameterValue(InfrastructureConfig infrastructureConfig)
+            throws TestGridInfrastructureException {
         String amiId = awsAMIMapper.getAMIFor(infrastructureConfig.getParameters());
         return amiId;
-    }
-
-    private InfrastructureConfig addAMIParameter(InfrastructureConfig infrastructureConfig)
-            throws IOException, TestGridException, TestGridInfrastructureException {
-        String amiId = awsAMIMapper.getAMIFor(infrastructureConfig.getParameters());
-        infrastructureConfig.getParameters().setProperty("AMI", amiId);
-        return infrastructureConfig;
     }
 }
