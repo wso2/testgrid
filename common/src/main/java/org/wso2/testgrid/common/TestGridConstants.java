@@ -27,7 +27,9 @@ import java.nio.file.Paths;
  */
 public class TestGridConstants {
 
-    // Logging constants
+    public static final String TESTGRID_YAML = "testgrid.yaml";
+    public static final String TEST_PLAN_YAML_PREFIX = "test-plan";
+
     public static final String TEST_LOG_FILE_NAME = "test-run.log";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
     public static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
@@ -35,5 +37,6 @@ public class TestGridConstants {
     public static final Path DEFAULT_TESTGRID_HOME = Paths.get(System.getProperty("user.home"), ".testgrid");
 
     public static final String DEFAULT_DEPLOYMENT_PATTERN_NAME = "default";
+    public static final String TESTGRID_CONFIG_FILE = "config.properties";
 
 }

@@ -1,0 +1,38 @@
+version: '0.9'
+infrastructureConfig:
+  iacProvider: None
+  infrastructureProvider: SHELL
+  containerOrchestrationEngine: None
+  parameters:
+    JDK : ORACLE_JDK8
+    OS  : Ubuntu_16.04
+  provisioners:
+    - name: 01-dummy-deployment
+      description: Provision Infra for a dummy deployment
+      dir: .
+      scripts:
+        - name: infra-for-dummy-deployment
+          description: Creates infrastructure for a IS node deployment.
+          type: SHELL
+          phase: CREATE
+          file: infra-provision.sh
+          inputParameters:
+#        - name: destroy
+#          file: infra-destroy.sh
+#          type: SHELL
+#          phase: DESTROY
+scenarioConfig:
+  scenarios:
+    -  "solution01"
+deploymentConfig:
+  deploymentPatterns:
+    - name: 01-dummy-deployment
+      description: Deploys a IS node locally
+      dir: .
+      scripts:
+        - type: SHELL
+          description: Do a IS two node deployment.
+          file: "deploy.sh"
+          name: "deploy"
+          phase: CREATE
+          inputParameters:

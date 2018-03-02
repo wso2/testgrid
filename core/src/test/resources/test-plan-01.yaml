@@ -1,0 +1,38 @@
+!!org.wso2.testgrid.common.TestPlan
+deployerType: AWS_CF
+deploymentConfig:
+  deploymentPatterns:
+  - description: Deploys a IS node locally
+    dir: .
+    name: 01-dummy-deployment
+    scripts:
+    - description: Do a IS two node deployment.
+      file: deploy.sh
+      name: deploy-
+      phase: CREATE
+      type: SHELL
+deploymentRepository: ./src/test/resources/workspace/deployment
+infrastructureConfig:
+  containerOrchestrationEngine: None
+  iacProvider: None
+  infrastructureProvider: SHELL
+  parameters:
+    operating_system: ubuntu_16.04
+  provisioners:
+  - description: Provision Infra for a dummy deployment
+    dir: .
+    name: 01-dummy-deployment
+    scripts:
+    - description: Creates infrastructure for a IS node deployment.
+      file: infra-provision.sh
+      name: infra-for-dummy-deployment-
+      phase: CREATE
+      type: SHELL
+infrastructureRepository: ./src/test/resources/workspace/infrastructure
+scenarioConfig:
+  scenarios:
+  - solution01
+scenarioTestsRepository: ./src/test/resources/workspace/scenarioTests
+testRunNumber: 0
+testScenarios: [
+  ]

@@ -40,13 +40,14 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
-import org.wso2.testgrid.infrastructure.providers.aws.utils.AwsAMIMapper;
+import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -71,7 +72,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
     private static final String AWS_REGION_PARAMETER = "region";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
-    private AwsAMIMapper awsAMIMapper;
+    private AMIMapper awsAMIMapper;
 
     @Override
     public String getProviderName() {
@@ -98,38 +99,33 @@ public class AWSProvider implements InfrastructureProvider {
                             ", ", AWS_SECRET_ACCESS_KEY));
         }
         cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
-        try {
-            awsAMIMapper = new AwsAMIMapper();
-        } catch (IOException e) {
-            throw new TestGridInfrastructureException(StringUtil
-                    .concatStrings("Error occurred when reading configuration property file ", e.getMessage()));
-        }
+        awsAMIMapper = new AMIMapper();
     }
 
     /**
      * This method initiates creating infrastructure through CLoudFormation.
      *
-     * @param infrastructureConfig The infrastructure configuration.
-     * @param infraRepoDir         Path of TestGrid home location in file system as a String.
+     * @param testPlan {@link TestPlan} with current test run specifications
      * @return Returns the InfrastructureProvisionResult.
      * @throws TestGridInfrastructureException When there is an error with CloudFormation script.
      */
     @Override
-    public InfrastructureProvisionResult provision(InfrastructureConfig infrastructureConfig, String infraRepoDir)
+    public InfrastructureProvisionResult provision(TestPlan testPlan)
             throws TestGridInfrastructureException {
-        try {
-            infrastructureConfig = addAMIParameter(infrastructureConfig);
-        } catch (IOException e) {
-            throw new TestGridInfrastructureException(StringUtil.
-                    concatStrings("Error occurred while reading configuration file.", e.getMessage()));
-        } catch (TestGridException e) {
-            throw new TestGridInfrastructureException(e.getMessage(), e);
-        }
+        InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
+//        try {
+//            infrastructureConfig = addAMIParameter(infrastructureConfig);
+//        } catch (IOException e) {
+//            throw new TestGridInfrastructureException(StringUtil.
+//                    concatStrings("Error occurred while reading configuration file.", e.getMessage()));
+//        } catch (TestGridException e) {
+//            throw new TestGridInfrastructureException(e.getMessage(), e);
+//        }
         for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
                 infrastructureConfig.getParameters().forEach((key, value) ->
                         script.getInputParameters().setProperty((String) key, (String) value));
-                return doProvision(infrastructureConfig, script.getName(), infraRepoDir);
+                return doProvision(infrastructureConfig, script.getName(), testPlan.getInfrastructureRepository());
             }
         }
         throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
@@ -175,7 +171,7 @@ public class AWSProvider implements InfrastructureProvider {
             List<TemplateParameter> expectedParameters = validationResult.getParameters();
 
             stackRequest.setTemplateBody(file);
-            stackRequest.setParameters(getParameters(script, expectedParameters));
+            stackRequest.setParameters(getParameters(script, expectedParameters, infrastructureConfig));
 
             logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
@@ -261,12 +257,13 @@ public class AWSProvider implements InfrastructureProvider {
     /**
      * Reads the parameters for the stack from file.
      *
-     * @param script             Script object with script details.
+     * @param script Script object with script details.
      * @param expectedParameters
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
-    private List<Parameter> getParameters(Script script, List<TemplateParameter> expectedParameters)
+    private List<Parameter> getParameters(Script script, List<TemplateParameter> expectedParameters,
+                                          InfrastructureConfig infrastructureConfig)
             throws IOException, TestGridInfrastructureException {
 
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
@@ -275,6 +272,19 @@ public class AWSProvider implements InfrastructureProvider {
             Optional<Map.Entry<Object, Object>> scriptParameter = script.getInputParameters().entrySet().stream()
                     .filter(input -> input.getKey().equals(expected
                             .getParameterKey())).findAny();
+            if (!scriptParameter.isPresent()) {
+                if(expected.equals("AMI")) {
+                    try {
+                        Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
+                         .withParameterValue(getAMIParameterValue(infrastructureConfig));
+                        cfCompatibleParameters.add(awsParameter);
+                    } catch (TestGridInfrastructureException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+
             scriptParameter.ifPresent(theScriptParameter -> {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue((String) theScriptParameter.getValue());
@@ -286,9 +296,14 @@ public class AWSProvider implements InfrastructureProvider {
         return cfCompatibleParameters;
     }
 
+    private String getAMIParameterValue(InfrastructureConfig infrastructureConfig) throws TestGridInfrastructureException {
+        String amiId = awsAMIMapper.getAMIFor(infrastructureConfig.getParameters());
+        return amiId;
+    }
+
     private InfrastructureConfig addAMIParameter(InfrastructureConfig infrastructureConfig)
             throws IOException, TestGridException, TestGridInfrastructureException {
-        String amiId = awsAMIMapper.getAMI(infrastructureConfig.getParameters());
+        String amiId = awsAMIMapper.getAMIFor(infrastructureConfig.getParameters());
         infrastructureConfig.getParameters().setProperty("AMI", amiId);
         return infrastructureConfig;
     }

@@ -20,8 +20,10 @@ package org.wso2.testgrid.web.sso;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.web.utils.ConfigurationContext;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.util.ConfigurationContext;
+import org.wso2.testgrid.common.util.ConfigurationContext.ConfigurationProperties;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.web.utils.Constants;
 
 import java.io.IOException;
@@ -52,13 +54,14 @@ public class SSOSessionCheckFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
         //Skip checking for session if disabled in property file.
-        try {
-            if (ConfigurationContext.getProperty(Constants.PROPERTYNAME_ENABLE_SSO).equals("false")) {
+        String isSsoEnabled = ConfigurationContext.getProperty(ConfigurationProperties.ENABLE_SSO);
+        if (isSsoEnabled != null) {
+            if (ConfigurationContext.getProperty(ConfigurationProperties.ENABLE_SSO).equals("false")) {
                 filterChain.doFilter(servletRequest, servletResponse);
             }
-        } catch (TestGridException e) {
-            logger.error("Error occurred while checking if SSO is enabled in Testgrid property file " +
-                    Constants.WEB_PROPERTY_FILE_NAME, e);
+        } else {
+            logger.error(StringUtil.concatStrings(ConfigurationProperties.ENABLE_SSO.toString(),
+                    " is not set in ", TestGridConstants.TESTGRID_CONFIG_FILE));
         }
 
         String path = ((HttpServletRequest) servletRequest).getRequestURI();
@@ -66,10 +69,18 @@ public class SSOSessionCheckFilter implements Filter {
             Boolean isSessionValid = ((HttpServletRequest) servletRequest).isRequestedSessionIdValid();
             if (!isSessionValid) {
                 HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-                try {
-                    httpResponse.sendRedirect(ConfigurationContext.getProperty(Constants.SSO_LOGIN_URL));
-                } catch (TestGridException e) {
-                    throw new ServletException("Error when reading property SSO_LOGIN_URL");
+                String ssoLoginUrl = ConfigurationContext.getProperty(ConfigurationProperties.SSO_LOGIN_URL);
+                if (ssoLoginUrl != null) {
+                    //If the request is for a backend API, Status Code 401 is sent.
+                    if (path.startsWith(Constants.BACKEND_API_URI)) {
+                        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    } else {
+                        httpResponse.sendRedirect(ssoLoginUrl);
+                    }
+                } else {
+                    throw new ServletException(
+                    StringUtil.concatStrings(ConfigurationProperties.SSO_LOGIN_URL.toString(),
+                            " is not set in ", TestGridConstants.TESTGRID_CONFIG_FILE));
                 }
                 return;
             }

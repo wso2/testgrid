@@ -1,0 +1,153 @@
+pipeline {
+    agent {
+        label "openstack-slave"
+    }
+    environment {
+        TESTGRID_VERSION = '0.9.0-SNAPSHOT'
+        TESTGRID_NAME = 'WSO2-TestGrid'
+        TESTGRID_DIST_URL = 'https://wso2.org/jenkins/job/testgrid/job/testgrid/' +
+                'lastSuccessfulBuild/artifact/distribution/target/${TESTGRID_NAME}.zip'
+        TESTGRID_DIST_LOCATION = '/testgrid/jenkins-home/workspace'
+        TESTGRID_HOME='/testgrid/testgrid-home'
+
+        PRODUCT="wso2is-5.4.0-LTS-kubernetes"
+
+        INFRASTRUCTURE_REPOSITORY='https://github.com/sameerawickramasekara/k8s-on-openstack'
+        DEPLOYMENT_REPOSITORY='https://github.com/azinneera/k8s-on-openstack'
+        SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/identity-test-integration.git'
+
+        INFRA_LOCATION="k8s-on-openstack"
+        DEPLOYMENT_LOCATION="k8s-on-openstack/deployment"
+        SCENARIOS_LOCATION="identity-test-integration"
+        TESTGRID_YAML_FILE='is-pattern-1-infra.yaml'
+
+        OS_REGION_NAME="RegionOne"
+        OS_TENANT_ID=credentials("OS_USERNAME")
+        OS_PASSWORD=credentials("OS_PASSWORD")
+        OS_AUTH_URL="http://203.94.95.131:5000/v2.0"
+        OS_USERNAME=credentials("OS_USERNAME")
+        OS_TENANT_NAME=credentials("OS_USERNAME")
+        TESTGRID_BOT_CREDENTIALS=credentials("TESTGRID_BOT_CREDENTIALS")
+
+        PWD=pwd()
+        JOB_CONFIG_YAML = "job-config.yaml"
+        JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
+
+        MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
+        // Jmeter dependencies
+        SELENIUM_JAR='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/selenium-java/3.8.1/selenium-java-3.8.1.jar'
+        HTML_UNIT_DRIVER='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/htmlunit-driver/2.29.0/htmlunit-driver-2.29.0-jar-with-dependencies.jar'
+    }
+
+    tools {
+        jdk 'jdk8'
+    }
+
+    stages {
+        stage('Preparation') {
+            steps {
+
+                echo pwd()
+                deleteDir()
+
+                // Clone scenario repo
+                sh "mkdir ${SCENARIOS_LOCATION}"
+                dir("${SCENARIOS_LOCATION}"){
+                    git url: "${SCENARIOS_REPOSITORY}"
+                }
+
+                // Clone infra repo
+                sh "mkdir ${INFRA_LOCATION}"
+                dir("${INFRA_LOCATION}"){
+                    git url:"${INFRASTRUCTURE_REPOSITORY}"
+                }
+
+                // Clone deployment repo
+                sh "mkdir ${DEPLOYMENT_LOCATION}"
+                dir("${DEPLOYMENT_LOCATION}"){
+                    git branch: 'deployment',
+                            url:"${DEPLOYMENT_REPOSITORY}"
+                }
+
+                sh """
+                echo ${TESTGRID_NAME}
+
+                unzip ${TESTGRID_DIST_LOCATION}/${TESTGRID_NAME}.zip
+                cd ${TESTGRID_NAME}
+                curl -o ./lib/mysql.jar $MYSQL_DRIVER_LOCATION
+                curl -o ./lib/selenium-java.jar $SELENIUM_JAR
+                curl -o ./lib/html-unit-driver.jar $HTML_UNIT_DRIVER
+                """
+
+                sh """
+                echo 'infrastructureRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' > ${JOB_CONFIG_YAML_PATH}
+                echo 'deploymentRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' >> ${JOB_CONFIG_YAML_PATH}
+                echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
+                echo 'testgridYamlLocation: ${TESTGRID_YAML_FILE}' >> ${JOB_CONFIG_YAML_PATH}
+
+                echo The job-config.yaml:
+                cat ${JOB_CONFIG_YAML_PATH}
+                """
+
+                stash name: "${JOB_CONFIG_YAML}", includes : "${JOB_CONFIG_YAML}"
+
+                sh """
+                    cd ${TESTGRID_NAME}
+                    ./testgrid generate-test-plan \
+                        --product ${PRODUCT} \
+                        -tc ${INFRA_CONFIG_FILE}
+                    """
+            }
+        }
+
+        stage('TestPlan-01-Infra-1') {
+            steps {
+                script {
+                    try {
+                        echo 'Running Test Plan 01'
+                        sh "java -version"
+
+                        unstash name: "${JOB_CONFIG_YAML}"
+
+                        sh """
+                            cd ${TESTGRID_NAME}
+                            ./testgrid run-testplan \
+                                --product ${PRODUCT} \
+                                -ir ${PWD}/${INFRA_LOCATION} \
+                                -dr ${PWD}/${INFRA_LOCATION} \
+                                -sr ${PWD}/${SCENARIOS_LOCATION}
+                            """
+                    } catch (Exception err) {
+                        echo "Error : ${err}"
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+                echo "RESULT: ${currentBuild.result}"
+            }
+        }
+    }
+
+    post {
+        always {
+           sh """
+            cd ${TESTGRID_NAME}
+            ./testgrid generate-report \
+            --product ${PRODUCT} \
+            --groupBy scenario
+            """
+
+            // Archive artifacts
+            withAWS(region:'us-east-1', credentials:'TESTGRID_BOT_CREDENTIALS') {
+                // Upload artifacts to S3
+                s3Upload(workingDir:"${TESTGRID_HOME}", bucket:"jenkins-testrun-artifacts", path:"artifacts/audit.log", file: 'audit.log')
+                s3Upload(workingDir:"${TESTGRID_HOME}", bucket:"jenkins-testrun-artifacts", path:"artifacts/testgrid.log", file: 'testgrid.log')
+                s3Upload(workingDir:"${TESTGRID_HOME}", bucket:"jenkins-testrun-artifacts", path:"artifacts/error.log", file: 'error.log')
+            }
+
+            // Delete logs and reports after upload
+            dir("${TESTGRID_HOME}/${PRODUCT}") {
+                deleteDir()
+            }
+       }
+  }
+}

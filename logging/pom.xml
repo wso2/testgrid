@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.testgrid</groupId>
         <artifactId>testgrid-framework</artifactId>
-        <version>0.9.0-m14-SNAPSHOT</version>
+        <version>0.9.0-m15-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

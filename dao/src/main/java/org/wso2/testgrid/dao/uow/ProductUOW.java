@@ -43,7 +43,13 @@ public class ProductUOW {
      * Constructs an instance of {@link ProductUOW} to manager use cases related to product test plan.
      */
     public ProductUOW() {
-        EntityManager entityManager = EntityManagerHelper.getEntityManager();
+        this(EntityManagerHelper.getEntityManager());
+    }
+
+    /**
+     * Constructs an instance of {@link ProductUOW} to manager use cases related to product test plan.
+     */
+    public ProductUOW(EntityManager entityManager) {
         productRepository = new ProductRepository(entityManager);
     }
 

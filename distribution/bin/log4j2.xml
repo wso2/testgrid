@@ -20,7 +20,7 @@
 <Configuration packages="org.wso2.testgrid.logging" status="INFO">
     <Appenders>
         <Console name="TESTGRID_CONSOLE" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%d] %5p {%c} - %m%ex%n"/>
+            <PatternLayout pattern="%highlight{[%d{HH:mm:ss,SSS}] %m%ex%n}{ERROR=red, WARN=yellow}"/>
         </Console>
         <RollingFile name="AUDIT_LOGFILE" fileName="${sys:testgrid.home}/audit.log"
                      filePattern="${sys:testgrid.home}/audit-%d{MM-dd-yyyy}.log">

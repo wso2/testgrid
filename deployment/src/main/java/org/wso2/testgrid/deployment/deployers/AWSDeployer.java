@@ -84,7 +84,6 @@ public class AWSDeployer implements Deployer {
         DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
         deploymentCreationResult.setName(deploymentPatternConfig.getName());
         deploymentCreationResult.setHosts(infrastructureProvisionResult.getHosts());
-        deploymentCreationResult.setDeploymentScriptsDir(infrastructureProvisionResult.getDeploymentScriptsDir());
         return deploymentCreationResult;
     }
 }

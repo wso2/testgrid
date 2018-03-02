@@ -27,10 +27,10 @@ import {
   TableRowColumn,
 } from 'material-ui/Table';
 import SingleRecord from './SingleRecord.js';
-import { add_current_product } from '../actions/testGridActions.js';
+import {add_current_product} from '../actions/testGridActions.js';
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip';
-import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
 
 class ProductStatusView extends Component {
 
@@ -43,7 +43,9 @@ class ProductStatusView extends Component {
   }
 
   handleError(response){
-    if(!response.ok){
+    if (response.status.toString() === HTTP_UNAUTHORIZED) {
+          window.location.replace(LOGIN_URI);
+    } else if(!response.ok){
       throw Error(response.statusText)
     }
     return response;

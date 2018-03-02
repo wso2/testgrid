@@ -17,6 +17,13 @@
  */
 package org.wso2.testgrid.dao;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.util.ConfigurationContext;
+import org.wso2.testgrid.common.util.ConfigurationContext.ConfigurationProperties;
+import org.wso2.testgrid.common.util.StringUtil;
+
 import java.util.HashMap;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -30,7 +37,7 @@ import javax.persistence.Persistence;
  * @since 1.0.0
  */
 public class EntityManagerHelper {
-
+    private static final Logger logger = LoggerFactory.getLogger(EntityManagerHelper.class);
     private static final Map<String, EntityManager> entityManagerMap = new HashMap<>();
     private static final Map<String, EntityManagerFactory> entityManagerFactoryMap = new HashMap<>();
     private static final String TESTGRID_PU_MYSQL = "testgrid_mysql";
@@ -89,9 +96,31 @@ public class EntityManagerHelper {
      * @return entity manager factory with the given persistence unit name
      */
     private static EntityManagerFactory getEntityManagerFactory(String persistenceUnitName) {
+
+        Map<String, String> persistenceMap = new HashMap<String, String>();
         EntityManagerFactory entityManagerFactory = entityManagerFactoryMap.get(persistenceUnitName);
         if (entityManagerFactory == null) {
-            entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
+
+            String dbUrl = ConfigurationContext.getProperty(ConfigurationProperties.DB_URL);
+            String dbUser = ConfigurationContext.getProperty(ConfigurationProperties.DB_USER);
+            String dbUserPass = ConfigurationContext.getProperty(ConfigurationProperties.DB_USER_PASS);
+
+            if (dbUrl != null && dbUser != null && dbUserPass != null) {
+                //Override properties taken from persistence.xml
+                persistenceMap.put("javax.persistence.jdbc.url", dbUrl);
+                persistenceMap.put("javax.persistence.jdbc.user", dbUser);
+                persistenceMap.put("javax.persistence.jdbc.password", dbUserPass);
+                entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName, persistenceMap);
+            } else {
+                logger.warn(StringUtil.concatStrings(
+                        "One or more database properties {",
+                        ConfigurationProperties.DB_URL.toString(), ", ",
+                        ConfigurationProperties.DB_USER.toString(), ", ",
+                        ConfigurationProperties.DB_USER_PASS.toString(),
+                        "} are not set in ", TestGridConstants.TESTGRID_CONFIG_FILE,
+                        ". Using default properties in persistence.xml"));
+                entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
+            }
             entityManagerFactoryMap.put(persistenceUnitName, entityManagerFactory);
         }
         return entityManagerFactory;

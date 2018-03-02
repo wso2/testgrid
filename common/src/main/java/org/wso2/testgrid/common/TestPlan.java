@@ -91,13 +91,13 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private ScenarioConfig scenarioConfig = new ScenarioConfig();
 
     @Transient
-    private String testRepoDir;
+    private String infrastructureRepository;
 
     @Transient
-    private String infraRepoDir;
+    private String deploymentRepository;
 
     @Transient
-    private String deploymentRepoDir;
+    private String scenarioTestsRepository;
 
     /**
      * Returns the status of the infrastructure.
@@ -246,17 +246,17 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      *
      * @return the path of the test plans' test artifacts.
      */
-    public String getTestRepoDir() {
-        return testRepoDir;
+    public String getScenarioTestsRepository() {
+        return scenarioTestsRepository;
     }
 
     /**
      * Sets the path of the test plans' test artifacts.
      *
-     * @param testRepoDir the path of the test plans' test artifacts.
+     * @param scenarioTestsRepository the path of the test plans' test artifacts.
      */
-    public void setTestRepoDir(String testRepoDir) {
-        this.testRepoDir = testRepoDir;
+    public void setScenarioTestsRepository(String scenarioTestsRepository) {
+        this.scenarioTestsRepository = scenarioTestsRepository;
     }
 
     /**
@@ -264,17 +264,17 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      *
      * @return the path of the test plans' infrastructure artifacts
      */
-    public String getInfraRepoDir() {
-        return infraRepoDir;
+    public String getInfrastructureRepository() {
+        return infrastructureRepository;
     }
 
     /**
      * Sets the path of the test plans' infrastructure artifacts.
      *
-     * @param infraRepoDir the path of the test plans' infrastructure artifacts
+     * @param infrastructureRepository the path of the test plans' infrastructure artifacts
      */
-    public void setInfraRepoDir(String infraRepoDir) {
-        this.infraRepoDir = infraRepoDir;
+    public void setInfrastructureRepository(String infrastructureRepository) {
+        this.infrastructureRepository = infrastructureRepository;
     }
 
     /**
@@ -282,17 +282,17 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      *
      * @return the path of the test plans' infrastructure artifacts
      */
-    public String getDeploymentRepoDir() {
-        return deploymentRepoDir;
+    public String getDeploymentRepository() {
+        return deploymentRepository;
     }
 
     /**
      * Sets the path of the deployment repository, which contains deploy.sh.
      *
-     * @param deploymentRepoDir the path of the deployment repository
+     * @param deploymentRepository the path of the deployment repository
      */
-    public void setDeploymentRepoDir(String deploymentRepoDir) {
-        this.deploymentRepoDir = deploymentRepoDir;
+    public void setDeploymentRepository(String deploymentRepository) {
+        this.deploymentRepository = deploymentRepository;
     }
 
     @Override
@@ -307,6 +307,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
                 ", createdTimestamp='", createdTimestamp, "\'",
                 ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 ", deploymentPattern='", deploymentPattern, "\'",
+                ", infrastructureRepository='", infrastructureRepository, '\'',
+                ", deploymentRepository='", deploymentRepository, '\'',
+                ", scenarioTestsRepository='", scenarioTestsRepository, '\'',
                 '}');
     }
 
@@ -317,13 +320,13 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
             testPlan.setDeployerType(deployerType);
             testPlan.setDeploymentConfig(deploymentConfig);
             testPlan.setDeploymentPattern(deploymentPattern);
-            testPlan.setDeploymentRepoDir(deploymentRepoDir);
+            testPlan.setDeploymentRepository(deploymentRepository);
             testPlan.setInfraParameters(infraParameters);
-            testPlan.setInfraRepoDir(infraRepoDir);
+            testPlan.setInfrastructureRepository(infrastructureRepository);
             testPlan.setInfrastructureConfig(infrastructureConfig);
             testPlan.setScenarioConfig(scenarioConfig);
             testPlan.setStatus(status);
-            testPlan.setTestRepoDir(testRepoDir);
+            testPlan.setScenarioTestsRepository(scenarioTestsRepository);
             testPlan.setTestRunNumber(testRunNumber);
             testPlan.setTestScenarios(testScenarios);
 

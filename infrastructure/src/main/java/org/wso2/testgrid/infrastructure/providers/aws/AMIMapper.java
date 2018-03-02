@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.testgrid.infrastructure.providers.aws.utils;
+package org.wso2.testgrid.infrastructure.providers.aws;
 
 import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
@@ -26,6 +26,7 @@ import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -40,22 +41,28 @@ import java.util.Properties;
 /**
  * This class provides a mapper to find the matching AMI based on the infrastructure parameters of the test-plan.
  */
-public class AwsAMIMapper {
+public class AWSAMIMapper {
     private static final String AWS_REGION_NAME = "us-east-1";
-    private static final Logger logger = LoggerFactory.getLogger(AwsAMIMapper.class);
+    private static final Logger logger = LoggerFactory.getLogger(AWSAMIMapper.class);
 
     private final AmazonEC2 amazonEC2;
 
-    public AwsAMIMapper() throws IOException, TestGridInfrastructureException {
-        Path configFilePath = Paths.get(TestGridUtil.getTestGridHomePath(), "config.properties");
-        if (!configFilePath.toFile().exists()) {
+    public AWSAMIMapper() throws TestGridInfrastructureException {
+        try {
+            Path configFilePath = Paths.get(TestGridUtil.getTestGridHomePath(),
+                    TestGridConstants.TESTGRID_CONFIG_FILE);
+            if (!configFilePath.toFile().exists()) {
+                throw new TestGridInfrastructureException(
+                        "Configuration file not found. Hence can not provide AWS credentials.");
+            }
+            amazonEC2 = AmazonEC2ClientBuilder.standard()
+                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                    .withRegion(AWS_REGION_NAME)
+                    .build();
+        } catch (IOException e) {
             throw new TestGridInfrastructureException(
-                    "Configuration file not found. Hence can not provide AWS credentials.");
+                    "Error occurred while getting TestGrid home-path.", e);
         }
-        amazonEC2 = AmazonEC2ClientBuilder.standard()
-                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                .withRegion(AWS_REGION_NAME)
-                .build();
     }
 
     /**

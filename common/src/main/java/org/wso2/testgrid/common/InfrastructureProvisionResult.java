@@ -37,6 +37,15 @@ public class InfrastructureProvisionResult implements Serializable {
     private String name;
     private List<Host> hosts = Collections.emptyList();
     private String deploymentScriptsDir;
+    private String resultLocation;
+
+    public String getResultLocation() {
+        return resultLocation;
+    }
+
+    public void setResultLocation(String resultLocation) {
+        this.resultLocation = resultLocation;
+    }
 
     private Properties properties;
 
