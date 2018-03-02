@@ -21,8 +21,8 @@ package org.wso2.testgrid.web.sso;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridConstants;
-import org.wso2.testgrid.common.util.ConfigurationContext;
-import org.wso2.testgrid.common.util.ConfigurationContext.ConfigurationProperties;
+import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.web.utils.Constants;
 

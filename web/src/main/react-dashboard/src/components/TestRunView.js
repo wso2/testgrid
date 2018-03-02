@@ -39,7 +39,7 @@ import {
 import Download from 'downloadjs'
 import Websocket from 'react-websocket';
 import Snackbar from 'material-ui/Snackbar';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
 
 
 /**
@@ -51,7 +51,6 @@ class TestRunView extends Component {
 
   constructor(props) {
     super(props);
-    this.baseURL = "/testgrid/dashboard";
     this.state = {
       testScenarioSummaries: [],
       scenarioTestCaseEntries: [],
@@ -65,9 +64,9 @@ class TestRunView extends Component {
   }
 
   componentDidMount() {
-    const testScenarioSummaryUrl = this.baseURL + '/api/test-plans/test-summary/' +
+    const testScenarioSummaryUrl = TESTGRID_CONTEXT + '/api/test-plans/test-summary/' +
       this.props.active.reducer.currentInfra.testPlanId;
-    const logTruncatedContentUrl = this.baseURL + '/api/test-plans/log/' +
+    const logTruncatedContentUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
       this.props.active.reducer.currentInfra.testPlanId + "?truncate=" + true;
 
     fetch(testScenarioSummaryUrl, {
@@ -125,8 +124,8 @@ class TestRunView extends Component {
   handleError(response) {
       if (response.status.toString() === HTTP_UNAUTHORIZED) {
           window.location.replace(LOGIN_URI);
-          return response;
       }
+      return response;
   }
 
   render() {
@@ -138,7 +137,7 @@ class TestRunView extends Component {
         {this.props.active.reducer.currentInfra.infraParameters}</i>
     </td>);
     const divider = (<Divider inset={false} style={{ borderBottomWidth: 1 }} />);
-    const logAllContentUrl = this.baseURL + '/api/test-plans/log/' +
+    const logAllContentUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
       this.props.active.reducer.currentInfra.testPlanId + "?truncate=" + false;
     let isFailedTestsTitleAdded = false;
 
@@ -473,7 +472,7 @@ class TestRunView extends Component {
                 case "RUNNING":
                   return (<div>
                     <Websocket
-                      url={'wss://' + window.location.hostname + this.baseURL + '/live-log/' +
+                      url={'wss://' + window.location.hostname + TESTGRID_CONTEXT + '/live-log/' +
                         this.props.active.reducer.currentInfra.testPlanId}
                       onMessage={data => {
                         this.handleLiveLogData(data)

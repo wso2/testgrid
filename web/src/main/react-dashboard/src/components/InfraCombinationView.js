@@ -32,13 +32,12 @@ import {add_current_infra, add_current_deployment} from '../actions/testGridActi
 import FlatButton from 'material-ui/FlatButton';
 import Divider from 'material-ui/Divider';
 import Moment from 'moment';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
 
 class InfraCombinationView extends Component {
 
     constructor(props) {
         super(props);
-        this.baseURL = "/testgrid/dashboard";
         this.state = {
             hits: []
         }
@@ -60,7 +59,7 @@ class InfraCombinationView extends Component {
     }
 
     componentDidMount() {
-        var url = this.baseURL + "/api/test-plans/history/" + this.props.active.reducer.currentInfra.testPlanId;
+        var url = TESTGRID_CONTEXT + "/api/test-plans/history/" + this.props.active.reducer.currentInfra.testPlanId;
         fetch(url, {
             method: "GET",
             credentials: 'same-origin',
@@ -176,7 +175,7 @@ class InfraCombinationView extends Component {
                                     <TableRowColumn>{index + 1}</TableRowColumn>
                                     <TableRowColumn>
                                         <FlatButton style={{ color: '#0E457C' }}
-                                            onClick={() => this.navigateToRoute(this.baseURL + "/testplans/" + data.id, {
+                                            onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/testplans/" + data.id, {
                                                 deploymentPatternName: this.props.active.reducer.currentDeployment.deploymentPatternName
                                             }, {
                                                     testPlanId: data.id,
