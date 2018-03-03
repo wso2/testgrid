@@ -26,9 +26,9 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.testgrid</groupId>
-    <artifactId>testgrid-framework</artifactId>
+    <artifactId>testgrid-parent</artifactId>
     <version>0.9.0-m16-SNAPSHOT</version>
-    <name>WSO2 TestGrid Framework - Aggregator POM</name>
+    <name>WSO2 TestGrid Project - Aggregator POM</name>
     <url>http://wso2.org</url>
     <packaging>pom</packaging>
 
@@ -288,7 +288,7 @@
                 <version>${apache.httpcomponents.fluent.version}</version>
             </dependency>
 
-            <!-- Automation Framework dependencies-->
+            <!-- Automation dependencies-->
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
@@ -547,7 +547,6 @@
         <!-- TestGrid infrastructure dependencies -->
         <com.aws.version>1.11.219</com.aws.version>
         <apache.http.version>4.5.3</apache.http.version>
-        <!-- Automation Framework version-->
         <apache.jmeter.version>3.3</apache.jmeter.version>
         <testng.version>6.11</testng.version>
         <!-- Apache commons dependencies-->
