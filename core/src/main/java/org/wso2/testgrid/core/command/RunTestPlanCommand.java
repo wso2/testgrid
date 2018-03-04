@@ -46,9 +46,7 @@ import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -79,6 +77,23 @@ public class RunTestPlanCommand implements Command {
             required = true)
     private String testPlanConfigLocation = "";
 
+    private ProductUOW productUOW;
+    private DeploymentPatternUOW deploymentPatternUOW;
+    private TestPlanUOW testPlanUOW;
+    private TestPlanExecutor testPlanExecutor;
+
+    public RunTestPlanCommand() {
+        productUOW = new ProductUOW();
+        deploymentPatternUOW = new DeploymentPatternUOW();
+        testPlanUOW = new TestPlanUOW();
+        testPlanExecutor = new TestPlanExecutor();
+    }
+
+    RunTestPlanCommand(String productName, String testPlanConfigLocation) {
+        this.productName = productName;
+        this.testPlanConfigLocation = testPlanConfigLocation;
+    }
+
     @Override
     public void execute() throws CommandExecutionException {
         try {
@@ -94,11 +109,6 @@ public class RunTestPlanCommand implements Command {
                 return;
             }
             TestPlan testPlan = FileUtil.readYamlFile(testPlanYAMLFilePath.get(), TestPlan.class);
-
-            // Delete test config YAML file. If the directory is empty delete the directory as well.
-            Path testPlanYAMLFilePathLocation = Paths.get(testPlanYAMLFilePath.get());
-            deleteFile(testPlanYAMLFilePathLocation);
-            deleteParentDirectoryIfEmpty(testPlanYAMLFilePathLocation);
 
             InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
             DeploymentPattern deploymentPattern = getDeploymentPattern(product, getDeploymentPatternName(testPlan));
@@ -151,54 +161,10 @@ public class RunTestPlanCommand implements Command {
     private Product getProduct(String productName)
             throws CommandExecutionException {
         try {
-            ProductUOW productUOW = new ProductUOW();
             return productUOW.getProduct(productName).orElseThrow(() -> new CommandExecutionException(
                     StringUtil.concatStrings("Product not found for {product name: ", productName, "}")));
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred when initialising DB transaction.", e);
-        }
-    }
-
-    /**
-     * Deletes a file in the given path.
-     *
-     * @param filePath path of the file to be deleted
-     * @throws CommandExecutionException thrown when error on deleting file
-     */
-    private void deleteFile(Path filePath) throws CommandExecutionException {
-        try {
-            if (Files.exists(filePath)) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug(String.format("Deleting file: %s that has content: %s", filePath,
-                            new String(Files.readAllBytes(filePath), StandardCharsets.UTF_8)));
-                }
-                Files.deleteIfExists(filePath);
-            }
-        } catch (IOException e) {
-            throw new CommandExecutionException(StringUtil.concatStrings("Error in deleting file ",
-                    filePath.toAbsolutePath()), e);
-        }
-    }
-
-    /**
-     * Delete parent directory if no files are found inside.
-     *
-     * @param filePath file path of the file
-     * @throws CommandExecutionException thrown when error on deleting the parent directory
-     */
-    private void deleteParentDirectoryIfEmpty(Path filePath) throws CommandExecutionException {
-        Path parentDirectory = filePath.getParent();
-        if (parentDirectory == null) {
-            return;
-        }
-
-        File[] files = parentDirectory.toFile().listFiles();
-        if (files == null) {
-            return;
-        }
-
-        if (files.length == 0) {
-            deleteFile(parentDirectory);
         }
     }
 
@@ -246,7 +212,6 @@ public class RunTestPlanCommand implements Command {
     private TestPlan persistTestPlan(TestPlan testPlan)
             throws CommandExecutionException {
         try {
-            TestPlanUOW testPlanUOW = new TestPlanUOW();
             return testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error occurred while persisting test plan.", e);
@@ -262,7 +227,6 @@ public class RunTestPlanCommand implements Command {
     private void executeTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws CommandExecutionException {
         try {
-            TestPlanExecutor testPlanExecutor = new TestPlanExecutor();
             testPlanExecutor.execute(testPlan, infrastructureConfig);
         } catch (TestPlanExecutorException e) {
             throw new CommandExecutionException(
@@ -347,7 +311,6 @@ public class RunTestPlanCommand implements Command {
     private DeploymentPattern getDeploymentPattern(Product product, String deploymentPatternName)
             throws CommandExecutionException {
         try {
-            DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
             Optional<DeploymentPattern> optionalDeploymentPattern =
                     deploymentPatternUOW.getDeploymentPattern(product, deploymentPatternName);
 

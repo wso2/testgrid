@@ -51,6 +51,18 @@ import java.util.Optional;
 public class ScenarioExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(ScenarioExecutor.class);
+    private final TestScenarioUOW testScenarioUOW;
+    private final TestCaseUOW testCaseUOW;
+
+    public ScenarioExecutor() {
+        testScenarioUOW = new TestScenarioUOW();
+        testCaseUOW = new TestCaseUOW();
+    }
+
+    public ScenarioExecutor(TestScenarioUOW testScenarioUOW, TestCaseUOW testCaseUOW) {
+        this.testScenarioUOW = testScenarioUOW;
+        this.testCaseUOW = testCaseUOW;
+    }
 
     /**
      * This method executes a given TestScenario.
@@ -109,7 +121,6 @@ public class ScenarioExecutor {
      */
     private TestScenario persistTestScenario(TestScenario testScenario) throws ScenarioExecutorException {
         try {
-            TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
             return testScenarioUOW.persistTestScenario(testScenario);
         } catch (TestGridDAOException e) {
             throw new ScenarioExecutorException(StringUtil
@@ -161,7 +172,6 @@ public class ScenarioExecutor {
      * @throws TestGridDAOException thrown when error fetching test cases
      */
     private void setScenarioStatus(TestScenario testScenario) throws TestGridDAOException {
-        TestCaseUOW testCaseUOW = new TestCaseUOW();
         if (!testCaseUOW.isExistsFailedTests(testScenario)) {
             testScenario.setStatus(Status.FAIL);
         } else {

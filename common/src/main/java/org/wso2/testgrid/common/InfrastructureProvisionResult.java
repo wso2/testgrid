@@ -33,11 +33,21 @@ import java.util.Properties;
 public class InfrastructureProvisionResult implements Serializable {
     private static final long serialVersionUID = -4664005636671389654L;
 
-    //TODO: Remove these after getting rid of Deployment class.
+    private boolean success = true;
     private String name;
+    private String resultLocation;
+
+    //TODO: Remove these after getting rid of Deployment class.
     private List<Host> hosts = Collections.emptyList();
     private String deploymentScriptsDir;
-    private String resultLocation;
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
 
     public String getResultLocation() {
         return resultLocation;
