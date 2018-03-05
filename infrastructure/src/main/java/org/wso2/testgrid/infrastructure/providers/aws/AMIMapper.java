@@ -39,6 +39,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 import static org.wso2.testgrid.common.util.StringUtil.getPropertiesAsString;
@@ -84,11 +85,11 @@ public class AMIMapper {
         }
         Properties lookupParameters = filterLookupParameters(infraParameters);
 
-        String amiId = findAMIForLookupParams(amiList, lookupParameters);
+        Optional<String> amiId = findAMIForLookupParams(amiList, lookupParameters);
 
-        if (amiId != null) {
+        if (amiId.isPresent()) {
             logger.debug(StringUtil.concatStrings("Found matching AMI. AMI-ID: ", amiId));
-            return amiId;
+            return amiId.get();
         } else {
             throw new TestGridInfrastructureException("Can not find an AMI match for " +
             getPropertiesAsString(lookupParameters));
@@ -102,7 +103,7 @@ public class AMIMapper {
      * @param lookupParameters  List of parameters which must map with AMI tags.
      * @return AMI-ID of the matching AMI.
      */
-    private String findAMIForLookupParams (List<Image> amiList, Properties lookupParameters) {
+    private Optional<String> findAMIForLookupParams (List<Image> amiList, Properties lookupParameters) {
         Boolean isMissingLookupParams;
         for (Image ami : amiList) {
             isMissingLookupParams = false;
@@ -115,10 +116,10 @@ public class AMIMapper {
                 }
             }
             if (!isMissingLookupParams) {
-                return ami.getImageId();
+                return Optional.of(ami.getImageId());
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**

@@ -167,6 +167,8 @@ public class TestPlanService {
             String testGridArtifactLocation = TestGridUtil.getTestRunArtifactsDirectory(testPlan).toString();
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, testGridArtifactLocation, Constants.TEST_LOG_FILE_NAME).toString();
+            // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
+            // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
                     getProperty(ConfigurationProperties.AWS_REGION_NAME), AWS_BUCKET_NAME);
 

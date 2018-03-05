@@ -73,7 +73,7 @@ public class StringUtil {
     /**
      * Generate a string which include all the properties (key and the value).
      * @param properties Properties
-     * @return
+     * @return List of properties (key and value) as a String
      */
     public static String getPropertiesAsString(Properties properties) {
         if (properties.isEmpty()) {

@@ -72,7 +72,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
     private static final String AWS_REGION_PARAMETER = "region";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
-    private AMIMapper awsAMIMapper;
+    private AMIMapper amiMapper;
 
     @Override
     public String getProviderName() {
@@ -99,7 +99,7 @@ public class AWSProvider implements InfrastructureProvider {
                             ", ", AWS_SECRET_ACCESS_KEY));
         }
         cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
-        awsAMIMapper = new AMIMapper();
+        amiMapper = new AMIMapper();
     }
 
     /**
@@ -284,6 +284,6 @@ public class AWSProvider implements InfrastructureProvider {
 
     private String getAMIParameterValue(InfrastructureConfig infrastructureConfig)
             throws TestGridInfrastructureException {
-        return awsAMIMapper.getAMIFor(infrastructureConfig.getParameters());
+        return amiMapper.getAMIFor(infrastructureConfig.getParameters());
     }
 }
