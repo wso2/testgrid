@@ -210,7 +210,9 @@ public class AWSProvider implements InfrastructureProvider {
             return result;
         } catch (WaiterUnrecoverableException e) {
             throw new TestGridInfrastructureException(StringUtil.concatStrings("Error while waiting for stack : "
-                    , stackName, " to complete"), e);
+                    , stackName, " to complete. One or more resources transitioned into a failure/unexpected state.",
+                    "Stacks may contain duplicated resource names. ",
+                    "Please delete redundant resources/Stacks and try again."), e);
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
         }
