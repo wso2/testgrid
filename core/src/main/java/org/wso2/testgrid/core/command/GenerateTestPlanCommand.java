@@ -221,7 +221,7 @@ public class GenerateTestPlanCommand implements Command {
      */
     private void resolvePaths(JobConfigFile jobConfigFile) {
         String parent = jobConfigFile.getWorkingDir();
-        if (jobConfigFile.isRelativePaths() || parent != null) {
+        if (jobConfigFile.isRelativePaths() && parent != null) {
             //infra
             Path repoPath = Paths.get(parent, jobConfigFile.getInfrastructureRepository());
             jobConfigFile.setInfrastructureRepository(resolvePath(repoPath, jobConfigFile));
