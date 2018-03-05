@@ -49,6 +49,7 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
+import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,6 +85,9 @@ public class AWSProviderTest extends PowerMockTestCase {
         map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
         map.put(AWSProvider.AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
         set(map);
+        AMIMapper awsAMIMapper = Mockito.mock(AMIMapper.class);
+        PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
+
         AWSProvider awsProvider = new AWSProvider();
         awsProvider.init();
         Assert.assertNotNull(awsProvider);
@@ -112,6 +116,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         String outputKey = "PublicDNS";
         String outputValue = "TestDNS";
         String patternName = "single-node";
+        String matchedAmi = "123464";
 
         Map<String, String> map = new HashMap<>();
         map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
@@ -142,6 +147,10 @@ public class AWSProviderTest extends PowerMockTestCase {
         AmazonCloudFormationClientBuilder cloudFormationClientBuilderMock = PowerMockito
                 .mock(AmazonCloudFormationClientBuilder.class);
         AmazonCloudFormation cloudFormation = Mockito.mock(AmazonCloudFormation.class);
+        AMIMapper awsAMIMapper = Mockito.mock(AMIMapper.class);
+        PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
+        Mockito.when(awsAMIMapper.getAMIFor(Mockito.any()))
+                .thenReturn(matchedAmi);
         Mockito.when(cloudFormation.validateTemplate(Mockito.any(ValidateTemplateRequest.class)))
                 .thenReturn(Mockito.mock(ValidateTemplateResult.class));
         Mockito.when(cloudFormation.createStack(Mockito.any(CreateStackRequest.class)))
@@ -198,6 +207,7 @@ public class AWSProviderTest extends PowerMockTestCase {
     @Test(description = "This test case tests destroying infrastructure given a already built stack name.")
     public void destroyInfrastructureTest() throws Exception {
         String patternName = "single-node";
+
         //set environment variables for
         Map<String, String> map = new HashMap<>();
         map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
@@ -213,6 +223,8 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.when(cloudFormationClientBuilderMock
                 .withCredentials(Mockito.any(EnvironmentVariableCredentialsProvider.class)))
                 .thenReturn(cloudFormationClientBuilderMock);
+        AMIMapper awsAMIMapper = Mockito.mock(AMIMapper.class);
+        PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
         AmazonCloudFormation cloudFormation = Mockito.mock(AmazonCloudFormation.class);
         PowerMockito.when(cloudFormationClientBuilderMock.build()).thenReturn(cloudFormation);
         PowerMockito.mockStatic(AmazonCloudFormationClientBuilder.class);

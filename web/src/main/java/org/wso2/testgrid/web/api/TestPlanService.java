@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -76,7 +78,6 @@ import javax.ws.rs.core.Response;
 public class TestPlanService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
-    private static final String AWS_REGION_NAME = "us-east-1";
     private static final String AWS_BUCKET_NAME = "jenkins-testrun-artifacts";
     private static final String AWS_BUCKET_ARTIFACT_DIR = "artifacts";
     private JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
@@ -166,7 +167,10 @@ public class TestPlanService {
             String testGridArtifactLocation = TestGridUtil.getTestRunArtifactsDirectory(testPlan).toString();
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, testGridArtifactLocation, Constants.TEST_LOG_FILE_NAME).toString();
-            ArtifactReadable artifactDownloadable = new AWSArtifactReader(AWS_REGION_NAME, AWS_BUCKET_NAME);
+            // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
+            // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
+            ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
+                    getProperty(ConfigurationProperties.AWS_REGION_NAME), AWS_BUCKET_NAME);
 
             // If truncated the input stream will be maximum of 200kb
             TruncatedInputStreamData truncatedInputStreamData = truncate ?

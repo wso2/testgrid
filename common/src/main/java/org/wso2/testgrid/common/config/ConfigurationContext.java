@@ -99,7 +99,12 @@ public class ConfigurationContext {
         /**
          * Property to check if SSO is enabled
          */
-        ENABLE_SSO("ENABLE_SSO");
+        ENABLE_SSO("ENABLE_SSO"),
+
+        /**
+         * AWS Region of TestGrid deployment
+         */
+        AWS_REGION_NAME("AWS_REGION_NAME");
 
         private String propertyName;
 

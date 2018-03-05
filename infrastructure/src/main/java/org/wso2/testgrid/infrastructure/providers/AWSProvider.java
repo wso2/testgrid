@@ -44,8 +44,10 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
+import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -70,6 +72,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
     private static final String AWS_REGION_PARAMETER = "region";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
+    private AMIMapper amiMapper;
 
     @Override
     public String getProviderName() {
@@ -92,10 +95,11 @@ public class AWSProvider implements InfrastructureProvider {
         String awsSecret = System.getenv(AWS_SECRET_ACCESS_KEY);
         if (StringUtil.isStringNullOrEmpty(awsIdentity) || StringUtil.isStringNullOrEmpty(awsSecret)) {
             throw new TestGridInfrastructureException(StringUtil
-                    .concatStrings("AWS Credentials must be set as environment variables: ", AWS_ACCESS_KEY_ID, ", ",
-                            AWS_SECRET_ACCESS_KEY));
+                    .concatStrings("AWS Credentials must be set as environment variables: ", AWS_ACCESS_KEY_ID,
+                            ", ", AWS_SECRET_ACCESS_KEY));
         }
         cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
+        amiMapper = new AMIMapper();
     }
 
     /**
@@ -159,7 +163,7 @@ public class AWSProvider implements InfrastructureProvider {
             List<TemplateParameter> expectedParameters = validationResult.getParameters();
 
             stackRequest.setTemplateBody(file);
-            stackRequest.setParameters(getParameters(script, expectedParameters));
+            stackRequest.setParameters(getParameters(script, expectedParameters, infrastructureConfig));
 
             logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
@@ -245,29 +249,41 @@ public class AWSProvider implements InfrastructureProvider {
     /**
      * Reads the parameters for the stack from file.
      *
-     * @param script             Script object with script details.
-     * @param expectedParameters
+     * @param script Script object with script details.
+     * @param expectedParameters Set of parameters expected by CF-script.
+     * @param infrastructureConfig Infrastructure configuration of the test-plan.
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
-    private List<Parameter> getParameters(Script script, List<TemplateParameter> expectedParameters)
+    private List<Parameter> getParameters(Script script, List<TemplateParameter> expectedParameters,
+                                          InfrastructureConfig infrastructureConfig)
             throws IOException, TestGridInfrastructureException {
 
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
 
-        expectedParameters.forEach(expected -> {
+        expectedParameters.forEach(LambdaExceptionUtils.rethrowConsumer(expected -> {
             Optional<Map.Entry<Object, Object>> scriptParameter = script.getInputParameters().entrySet().stream()
                     .filter(input -> input.getKey().equals(expected
                             .getParameterKey())).findAny();
+            if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
+                Parameter awsParameter;
+                    awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
+                            .withParameterValue(getAMIParameterValue(infrastructureConfig));
+                cfCompatibleParameters.add(awsParameter);
+            }
+
             scriptParameter.ifPresent(theScriptParameter -> {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue((String) theScriptParameter.getValue());
                 cfCompatibleParameters.add(awsParameter);
             });
-
-        });
+        }));
 
         return cfCompatibleParameters;
     }
 
+    private String getAMIParameterValue(InfrastructureConfig infrastructureConfig)
+            throws TestGridInfrastructureException {
+        return amiMapper.getAMIFor(infrastructureConfig.getParameters());
+    }
 }
