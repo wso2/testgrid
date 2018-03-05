@@ -204,10 +204,9 @@ public class TestPlanExecutor {
                             testPlan.getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
         } catch (Exception e) {
-            // We need to catch the Exception here since we need to catch and handle all exceptions within this method.
-            // This is required to do gracefully close any opened resources. Created wso2/testgrid#515 to track.
+            // Catching the Exception here since we need to catch and gracefully handle all exceptions.
             setTestPlanStatus(testPlan, Status.FAIL);
-            logger.error("Unknown exception while provisioning infrstructure: " + e.getMessage(), e);
+            logger.error("Unknown exception while provisioning the infrastructure: " + e.getMessage(), e);
         }
 
         InfrastructureProvisionResult infrastructureProvisionResult = new InfrastructureProvisionResult();
