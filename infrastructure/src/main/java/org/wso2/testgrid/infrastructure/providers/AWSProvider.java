@@ -138,7 +138,7 @@ public class AWSProvider implements InfrastructureProvider {
         }
     }
 
-    private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
+        private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
             String stackName, String infraRepoDir) throws TestGridInfrastructureException {
         String region = infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER);
         AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()

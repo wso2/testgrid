@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.slf4j.Logger;
@@ -54,13 +55,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @PrepareForTest(StringUtil.class)
+@PowerMockIgnore({"javax.management.*", "javax.script.*"})
 public class GenerateTestPlanCommandTest extends PowerMockTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(GenerateTestPlanCommandTest.class);
     private static final String EXPECTED_TEST_PLAN_PATH = Paths.get("src", "test", "resources", "test-plan-01.yaml")
             .toString();
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
-    private static String actualTestPlanFileLocation;
+    private String actualTestPlanFileLocation;
     @Mock
     private InfrastructureCombinationsProvider infrastructureCombinationsProvider;
     @Mock
@@ -82,7 +84,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "getJobConfigData")
-    public void testResolvePaths(String jobConfigFile, String workingDir) throws Exception {
+    public void testExecute(String jobConfigFile, String workingDir) throws Exception {
         infrastructureCombinationsProvider = mock(InfrastructureCombinationsProvider.class);
         productUOW = mock(ProductUOW.class);
 

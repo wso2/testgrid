@@ -28,6 +28,12 @@ infrastructureConfig:
       name: infra-for-dummy-deployment-
       phase: CREATE
       type: SHELL
+    - file: infra-destroy.sh
+      inputParameters: {
+        }
+      name: destroy-
+      phase: DESTROY
+      type: SHELL
 infrastructureRepository: ./src/test/resources/workspace/infrastructure
 scenarioConfig:
   scenarios:

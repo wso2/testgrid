@@ -17,10 +17,10 @@ infrastructureConfig:
           phase: CREATE
           file: infra-provision.sh
           inputParameters:
-#        - name: destroy
-#          file: infra-destroy.sh
-#          type: SHELL
-#          phase: DESTROY
+        - name: destroy
+          file: infra-destroy.sh
+          type: SHELL
+          phase: DESTROY
 scenarioConfig:
   scenarios:
     -  "solution01"

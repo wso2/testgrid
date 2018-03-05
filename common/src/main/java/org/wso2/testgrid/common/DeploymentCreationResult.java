@@ -32,6 +32,7 @@ import java.util.List;
 public class DeploymentCreationResult implements Serializable {
     private static final long serialVersionUID = 8887064358908392649L;
 
+    private boolean success = true;
     private String name;
     private List<Host> hosts = Collections.emptyList();
 
@@ -41,6 +42,14 @@ public class DeploymentCreationResult implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
     }
 
     public List<Host> getHosts() {

@@ -28,12 +28,15 @@ import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 
 /**
  * This class performs Shell related deployment tasks.
@@ -44,6 +47,7 @@ public class ShellDeployer implements Deployer {
 
     private static final Logger logger = LoggerFactory.getLogger(ShellDeployer.class);
     private static final String DEPLOYER_NAME = "SHELL";
+    public static final String WORKSPACE = "workspace";
 
     @Override
     public String getDeployerName() {
@@ -52,7 +56,7 @@ public class ShellDeployer implements Deployer {
 
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-                                           InfrastructureProvisionResult infrastructureProvisionResult)
+            InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestGridDeployerException {
 
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
@@ -64,10 +68,11 @@ public class ShellDeployer implements Deployer {
             String infraArtifact = StringUtil
                     .concatStrings(infrastructureProvisionResult.getResultLocation(),
                             File.separator, "k8s.properties");
-            String parameterString = TestGridUtil.getParameterString(infraArtifact , deployment.getInputParameters());
+            final Properties inputParameters = getInputParameters(testPlan, deployment);
+            String parameterString = TestGridUtil.getParameterString(infraArtifact, inputParameters);
             ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
             if (!shellExecutor
-            //TODO: Remove the usages of InfrastructureProvisionResult#getDeploymentScriptsDir.
+                    //TODO: Remove the usages of InfrastructureProvisionResult#getDeploymentScriptsDir.
                     .executeCommand("bash " + Paths.get(infrastructureProvisionResult
                             .getDeploymentScriptsDir(), deployment.getFile()) + " " + parameterString)) {
                 throw new TestGridDeployerException("Error occurred while executing the deploy script");
@@ -83,11 +88,26 @@ public class ShellDeployer implements Deployer {
         return result;
     }
 
+    private Properties getInputParameters(TestPlan testPlan, Script deployment) {
+        try {
+            Path artifactsDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
+            final String workspace = StringUtil.concatStrings(TestGridUtil.getTestGridHomePath()
+                    , File.separator, artifactsDirectory.toString());
+            final Properties inputParameters = deployment.getInputParameters();
+            inputParameters.setProperty(WORKSPACE, workspace);
+            return inputParameters;
+        } catch (TestGridException | IOException e) {
+            logger.info("Error while reading input parameters for deployment. Using empty properties. Error: " +
+                    e.getMessage(), e);
+            return new Properties();
+        }
+    }
+
     /**
      * This method returns the script matching the correct script phase.
      *
      * @param deploymentConfig {@link DeploymentConfig} object with current deployment configurations
-     * @param scriptPhase {@link Script.Phase} enum value for required script
+     * @param scriptPhase      {@link Script.Phase} enum value for required script
      * @return the matching script from deployment configuration
      * @throws TestGridDeployerException if there is no matching script for phase defined
      */
