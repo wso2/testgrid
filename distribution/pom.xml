@@ -76,7 +76,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.testgrid</groupId>
-            <artifactId>org.wso2.testgrid.infrastruture</artifactId>
+            <artifactId>org.wso2.testgrid.infrastructure</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.testgrid</groupId>
