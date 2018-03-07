@@ -81,9 +81,13 @@ public class ShellScriptProvider implements InfrastructureProvider {
             inputParameters.setProperty(OUTPUT_DIR, workspace);
             String parameterString = TestGridUtil.getParameterString(null, inputParameters);
             ShellExecutor executor = new ShellExecutor(null);
-            executor.executeCommand("bash " + Paths
-                    .get(testPlanLocation, createScript.getFile()) + " " + parameterString);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
+            if (!executor.executeCommand("bash " + Paths
+                    .get(testPlanLocation, createScript.getFile()) + " " + parameterString)) {
+                throw new TestGridInfrastructureException(
+                        "Error occurred while executing the infra-provision script. " +
+                                "Script returned a non-zero status code.");
+            }
             result.setResultLocation(workspace);
             return result;
 
