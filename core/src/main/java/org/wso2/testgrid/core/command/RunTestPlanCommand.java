@@ -134,7 +134,7 @@ public class RunTestPlanCommand implements Command {
      *
      * @param testPlanConfig an instance of test plan which is generated from the config
      * @param testPlanPersisted an instance of test plan which is persisted in the db
-     * @return an instance of {@link TestPlan} for the given parameters
+     * @return an instance of {@link TestPlan} with merged properties
      */
     private TestPlan mergeTestPlans(TestPlan testPlanConfig, TestPlan testPlanPersisted) {
         testPlanConfig.setInfraParameters(testPlanPersisted.getInfraParameters());

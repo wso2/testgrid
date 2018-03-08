@@ -188,7 +188,7 @@ public class GenerateTestPlanCommand implements Command {
         processTestgridYaml(testgridYaml);
     }
 
-    private void  processTestgridYaml(TestgridYaml testgridYaml)
+    private void processTestgridYaml(TestgridYaml testgridYaml)
             throws CommandExecutionException, IOException, TestGridDAOException {
         // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
         populateDefaults(testgridYaml);
@@ -220,6 +220,7 @@ public class GenerateTestPlanCommand implements Command {
             TestPlan persistedTestPlan = testPlanUOW.persistTestPlan(testPlanEntity);
             testPlan.setId(persistedTestPlan.getId());
             testPlan.setTestRunNumber(persistedTestPlan.getTestRunNumber());
+            //Need to set this as converting to TestPlan entity changes deployerType based on infra provisioner.
             testPlan.setDeployerType(persistedTestPlan.getDeployerType());
 
             String fileName = String
