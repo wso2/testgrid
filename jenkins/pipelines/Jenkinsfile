@@ -1,5 +1,11 @@
 pipeline {
-    agent any
+    agent {
+        node {
+            label ""
+             customWorkspace '/testgrid/testgrid-home/wso2is-5.4.1-LTS'
+        }
+    }
+
     environment {
         TESTGRID_VERSION = '0.9.0-SNAPSHOT'
         TESTGRID_NAME = 'WSO2-TestGrid'
@@ -38,51 +44,55 @@ pipeline {
     stages {
         stage('Preparation') {
             steps {
+                sh "cd ${TESTGRID_HOME}"
+                sh "mkdir -p ${PRODUCT}"
+                sh "cd ${PRODUCT}"
+                //dir("${TESTGRID_HOME}/${PRODUCT}"){
+                    echo pwd()
+                    deleteDir()
 
-                echo pwd()
-                deleteDir()
+                    // Clone scenario repo
+                    sh "mkdir ${SCENARIOS_LOCATION}"
+                    dir("${SCENARIOS_LOCATION}"){
+                        git url: "${SCENARIOS_REPOSITORY}"
+                    }
 
-                // Clone scenario repo
-                sh "mkdir ${SCENARIOS_LOCATION}"
-                dir("${SCENARIOS_LOCATION}"){
-                    git url: "${SCENARIOS_REPOSITORY}"
-                }
+                    // Clone infra repo
+                    sh "mkdir ${INFRA_LOCATION}"
+                    dir("${INFRA_LOCATION}"){
+                        git url:"${INFRASTRUCTURE_REPOSITORY}"
+                    }
 
-                // Clone infra repo
-                sh "mkdir ${INFRA_LOCATION}"
-                dir("${INFRA_LOCATION}"){
-                    git url:"${INFRASTRUCTURE_REPOSITORY}"
-                }
+                    sh """
+                    echo ${TESTGRID_NAME}
 
-                sh """
-                echo ${TESTGRID_NAME}
+                    unzip ${TESTGRID_DIST_LOCATION}/${TESTGRID_NAME}.zip
+                    cd ${TESTGRID_NAME}
+                    curl -o ./lib/mysql.jar $MYSQL_DRIVER_LOCATION
+                    curl -o ./lib/selenium-java.jar $SELENIUM_JAR
+                    curl -o ./lib/html-unit-driver.jar $HTML_UNIT_DRIVER
+                    """
 
-                unzip ${TESTGRID_DIST_LOCATION}/${TESTGRID_NAME}.zip
-                cd ${TESTGRID_NAME}
-                curl -o ./lib/mysql.jar $MYSQL_DRIVER_LOCATION
-                curl -o ./lib/selenium-java.jar $SELENIUM_JAR
-                curl -o ./lib/html-unit-driver.jar $HTML_UNIT_DRIVER
-                """
+                    sh """
+                    echo 'infrastructureRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' > ${JOB_CONFIG_YAML_PATH}
+                    echo 'deploymentRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' >> ${JOB_CONFIG_YAML_PATH}
+                    echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo 'testgridYamlLocation: ${INFRA_CONFIGS_LOCATION}/single-node-infra.yaml' >> ${JOB_CONFIG_YAML_PATH}
 
-                sh """
-                echo 'infrastructureRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' > ${JOB_CONFIG_YAML_PATH}
-                echo 'deploymentRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' >> ${JOB_CONFIG_YAML_PATH}
-                echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
-                echo 'testgridYamlLocation: ${INFRA_CONFIGS_LOCATION}/single-node-infra.yaml' >> ${JOB_CONFIG_YAML_PATH}
+                    echo The job-config.yaml:
+                    cat ${JOB_CONFIG_YAML_PATH}
+                    """
 
-                echo The job-config.yaml:
-                cat ${JOB_CONFIG_YAML_PATH}
-                """
+                    stash name: "${JOB_CONFIG_YAML}", includes : "${JOB_CONFIG_YAML}"
 
-                stash name: "${JOB_CONFIG_YAML}", includes : "${JOB_CONFIG_YAML}"
-
-                sh """
-                cd ${TESTGRID_NAME}
-                ./testgrid generate-test-plan \
-                    --product ${PRODUCT} \
-                    --file ${JOB_CONFIG_YAML_PATH} \
-                    --workingDir ${PWD}
-                """
+                    sh """
+                    cd ${TESTGRID_NAME}
+                    ./testgrid generate-test-plan \
+                        --product ${PRODUCT} \
+                        --file ${JOB_CONFIG_YAML_PATH} \
+                        --workingDir ${PWD}
+                    """
+               // }
             }
         }
 
@@ -128,8 +138,15 @@ pipeline {
 
             // Delete logs and reports after upload
             dir("${TESTGRID_HOME}/${PRODUCT}") {
-                deleteDir()
+                sh """
+                find . -maxdepth 1 -type f \\( -name "*.log" -o -name "*.html" \\) -delete
+                """
             }
-       }
+
+             emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
+
+Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: 'harshan@wso2.com,kasung@wso2.com,asmaj@wso2.com,viduran@wso2.com,sameeraw@wso2.com,pasinduj@wso2.com'
+
+    }
   }
 }
