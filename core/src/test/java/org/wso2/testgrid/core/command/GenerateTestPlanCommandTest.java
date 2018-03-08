@@ -33,13 +33,17 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
 
 import java.nio.charset.StandardCharsets;
@@ -47,8 +51,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Random;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -67,8 +73,14 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
     private InfrastructureCombinationsProvider infrastructureCombinationsProvider;
     @Mock
     private ProductUOW productUOW;
+    @Mock
+    private DeploymentPatternUOW deploymentPatternUOW;
+    @Mock
+    private TestPlanUOW testPlanUOW;
 
     private Product product;
+    private TestPlan testPlan;
+    private DeploymentPattern deploymentPattern;
     
     @BeforeMethod
     public void init() throws Exception {
@@ -79,6 +91,14 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
         int random = new Random().nextInt(100);
         product.setName("wso2-" + random);
 
+        this.testPlan = new TestPlan();
+        testPlan.setId("abc");
+        testPlan.setTestRunNumber(1);
+
+        this.deploymentPattern = new DeploymentPattern();
+        deploymentPattern.setName("default-" + random);
+        deploymentPattern.setProduct(product);
+
         actualTestPlanFileLocation = Paths.get("target", "testgrid-home", product.getName(), "test-plans",
                 "test-plan-01.yaml").toString();
     }
@@ -87,6 +107,8 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
     public void testExecute(String jobConfigFile, String workingDir) throws Exception {
         infrastructureCombinationsProvider = mock(InfrastructureCombinationsProvider.class);
         productUOW = mock(ProductUOW.class);
+        deploymentPatternUOW = mock(DeploymentPatternUOW.class);
+        testPlanUOW = mock(TestPlanUOW.class);
 
         PowerMockito.spy(StringUtil.class);
         when(StringUtil.generateRandomString(anyInt())).thenReturn("");
@@ -98,9 +120,13 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
 
         logger.info("Product : " + product.getName());
         when(productUOW.persistProduct(anyString())).thenReturn(product);
+        when(testPlanUOW.persistTestPlan(any(TestPlan.class))).thenReturn(testPlan);
+        when(deploymentPatternUOW.getDeploymentPattern(any(Product.class), anyString())).
+                thenReturn(Optional.of(deploymentPattern));
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFile, workingDir, infrastructureCombinationsProvider, productUOW);
+                jobConfigFile, workingDir, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
+                testPlanUOW);
         generateTestPlanCommand.execute();
 
         Path actualTestPlanPath = Paths.get(actualTestPlanFileLocation);

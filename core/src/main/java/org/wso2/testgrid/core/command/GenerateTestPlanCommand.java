@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
@@ -38,7 +39,9 @@ import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
 import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 import org.yaml.snakeyaml.DumperOptions;
@@ -104,10 +107,14 @@ public class GenerateTestPlanCommand implements Command {
     private InfrastructureCombinationsProvider infrastructureCombinationsProvider;
 
     private ProductUOW productUOW;
+    private DeploymentPatternUOW deploymentPatternUOW;
+    private TestPlanUOW testPlanUOW;
 
     public GenerateTestPlanCommand() {
         this.infrastructureCombinationsProvider = new InfrastructureCombinationsProvider();
         this.productUOW = new ProductUOW();
+        this.deploymentPatternUOW = new DeploymentPatternUOW();
+        this.testPlanUOW = new TestPlanUOW();
     }
 
     /**
@@ -121,12 +128,15 @@ public class GenerateTestPlanCommand implements Command {
      * @param productUOW           the ProductUOW
      */
     GenerateTestPlanCommand(String productName, String jobConfigFile, String workingDir,
-            InfrastructureCombinationsProvider combinationsProvider, ProductUOW productUOW) {
+            InfrastructureCombinationsProvider combinationsProvider, ProductUOW productUOW,
+                            DeploymentPatternUOW deploymentPatternUOW, TestPlanUOW testPlanUOW) {
         this.productName = productName;
         this.jobConfigFile = jobConfigFile;
         this.workingDir = workingDir;
         this.infrastructureCombinationsProvider = combinationsProvider;
         this.productUOW = productUOW;
+        this.deploymentPatternUOW = deploymentPatternUOW;
+        this.testPlanUOW = testPlanUOW;
     }
 
     @Override
@@ -178,7 +188,7 @@ public class GenerateTestPlanCommand implements Command {
         processTestgridYaml(testgridYaml);
     }
 
-    private void processTestgridYaml(TestgridYaml testgridYaml)
+    private void  processTestgridYaml(TestgridYaml testgridYaml)
             throws CommandExecutionException, IOException, TestGridDAOException {
         // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
         populateDefaults(testgridYaml);
@@ -200,6 +210,18 @@ public class GenerateTestPlanCommand implements Command {
         }
         for (int i = 0; i < testPlans.size(); i++) {
             TestPlan testPlan = testPlans.get(i);
+            DeploymentPattern deploymentPattern = getDeploymentPattern(product,
+                    TestGridUtil.getDeploymentPatternName(testPlan));
+
+            // Generate test plan from config
+            TestPlan testPlanEntity = TestGridUtil.toTestPlanEntity(deploymentPattern, testPlan);
+
+            // Product, deployment pattern, test plan and test scenarios should be persisted
+            TestPlan persistedTestPlan = testPlanUOW.persistTestPlan(testPlanEntity);
+            testPlan.setId(persistedTestPlan.getId());
+            testPlan.setTestRunNumber(persistedTestPlan.getTestRunNumber());
+            testPlan.setDeployerType(persistedTestPlan.getDeployerType());
+
             String fileName = String
                     .format("%s-%02d%s", TestGridConstants.TEST_PLAN_YAML_PREFIX, (i + 1), FileUtil.YAML_EXTENSION);
             String output = yaml.dump(testPlan);
@@ -210,6 +232,36 @@ public class GenerateTestPlanCommand implements Command {
         }
         if (printTestPlanPaths) {
             logger.info(testPlanPaths.substring(0, testPlanPaths.length() - 1));
+        }
+    }
+
+    /**
+     * Returns the existing deployment pattern for the given name and product or creates a new deployment pattern for
+     * the given product and deployment pattern name.
+     *
+     * @param product               product to get deployment pattern
+     * @param deploymentPatternName deployment pattern name
+     * @return deployment pattern for the given product and deployment pattern name
+     * @throws CommandExecutionException thrown when error on retrieving deployment pattern
+     */
+    private DeploymentPattern getDeploymentPattern(Product product, String deploymentPatternName)
+            throws CommandExecutionException {
+        try {
+            Optional<DeploymentPattern> optionalDeploymentPattern =
+                    deploymentPatternUOW.getDeploymentPattern(product, deploymentPatternName);
+
+            if (optionalDeploymentPattern.isPresent()) {
+                return optionalDeploymentPattern.get();
+            }
+
+            DeploymentPattern deploymentPattern = new DeploymentPattern();
+            deploymentPattern.setName(deploymentPatternName);
+            deploymentPattern.setProduct(product);
+            return deploymentPattern;
+        } catch (TestGridDAOException e) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Error while retrieving deployment pattern for { product: ", product,
+                            ", deploymentPatternName: ", deploymentPatternName, "}"));
         }
     }
 
