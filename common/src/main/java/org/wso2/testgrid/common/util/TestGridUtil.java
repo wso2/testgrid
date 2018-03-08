@@ -19,6 +19,7 @@
 package org.wso2.testgrid.common.util;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,8 +29,12 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
 
@@ -42,6 +47,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -243,7 +252,7 @@ public final class TestGridUtil {
     }
 
     /**
-     * This method builds and returns the parameter string from given properties
+     * This method builds and returns the parameter string from given properties.
      *
      * @param properties {@link Properties} with required paramters as key value pairs
      * @return the String representation of input paramters
@@ -257,5 +266,95 @@ public final class TestGridUtil {
             parameterBuilder.append("$(cat ").append(fileInput).append(") ");
         }
         return parameterBuilder.toString();
+    }
+
+    /**
+     * This method generates TestPlan object model that from the given input parameters.
+     *
+     * @param deploymentPattern deployment pattern
+     * @param testPlan          testPlan object
+     * @return TestPlan object model
+     */
+    public static TestPlan toTestPlanEntity(DeploymentPattern deploymentPattern, TestPlan testPlan)
+            throws CommandExecutionException {
+        try {
+            String jsonInfraParams = new ObjectMapper()
+                    .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
+            TestPlan testPlanEntity = testPlan.clone();
+            testPlanEntity.setStatus(Status.PENDING);
+            testPlanEntity.setDeploymentPattern(deploymentPattern);
+
+            // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.
+            if (testPlan.getInfrastructureConfig().getInfrastructureProvider()
+                    == InfrastructureConfig.InfrastructureProvider.SHELL) {
+                testPlanEntity.setDeployerType(TestPlan.DeployerType.SHELL);
+            }
+            testPlanEntity.setInfraParameters(jsonInfraParams);
+            deploymentPattern.addTestPlan(testPlanEntity);
+
+            // Set test run number
+            int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlanEntity.getInfraParameters());
+            testPlanEntity.setTestRunNumber(latestTestRunNumber + 1);
+
+            // Set test scenarios
+            List<TestScenario> testScenarios = new ArrayList<>();
+            for (String name : testPlan.getScenarioConfig().getScenarios()) {
+                TestScenario testScenario = new TestScenario();
+                testScenario.setName(name);
+                testScenario.setTestPlan(testPlanEntity);
+                testScenario.setStatus(Status.PENDING);
+                testScenarios.add(testScenario);
+            }
+            testPlanEntity.setTestScenarios(testScenarios);
+            return testPlanEntity;
+        } catch (JsonProcessingException e) {
+            throw new CommandExecutionException(StringUtil
+                    .concatStrings("Error in preparing a JSON object from the given test plan infra " +
+                                    "parameters: ", testPlan.getInfrastructureConfig().getParameters()), e);
+        }
+    }
+
+    /**
+     * Returns the latest test run number.
+     *
+     * @param deploymentPattern deployment pattern to get the latest test run number
+     * @param infraParams       infrastructure parameters to get the latest test run number
+     * @return latest test run number
+     */
+    private static int getLatestTestRunNumber(DeploymentPattern deploymentPattern, String infraParams) {
+        // Get test plans with the same infra param
+        List<TestPlan> testPlans = new ArrayList<>();
+        for (TestPlan testPlan : deploymentPattern.getTestPlans()) {
+            if (testPlan.getInfraParameters().equals(infraParams)) {
+                testPlans.add(testPlan);
+            }
+        }
+
+        // Get the Test Plan with the latest test run number for the given infra combination
+        TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(
+                TestPlan::getTestRunNumber));
+
+        return latestTestPlan.getTestRunNumber();
+    }
+
+    /**
+     * Return the deployment pattern name under the DeploymentConfig of a {@link TestPlan}.
+     * If not found, return the provisioner name under Infrastructure.
+     *
+     * @param testPlan the test-plan config
+     * @return the deployment pattern name.
+     */
+    public static String getDeploymentPatternName(TestPlan testPlan) {
+        List<DeploymentConfig.DeploymentPattern> deploymentPatterns = testPlan.getDeploymentConfig()
+                .getDeploymentPatterns();
+        if (!deploymentPatterns.isEmpty()) {
+            return deploymentPatterns.get(0).getName();
+        }
+        List<InfrastructureConfig.Provisioner> provisioners = testPlan.getInfrastructureConfig().getProvisioners();
+        if (!provisioners.isEmpty()) {
+            return provisioners.get(0).getName();
+        }
+
+        return TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME;
     }
 }

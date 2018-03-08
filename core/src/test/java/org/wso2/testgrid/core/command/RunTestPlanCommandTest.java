@@ -21,7 +21,6 @@ package org.wso2.testgrid.core.command;
 
 import org.apache.commons.io.FileUtils;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
@@ -43,7 +42,6 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
-import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.ScenarioExecutor;
@@ -81,6 +79,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
             .toString();
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String infraParamsString = "{\"operating_system\":\"ubuntu_16.04\"}";
+    private static final String TESTPLAN_ID = "TP_1";
 
     @InjectMocks
     private RunTestPlanCommand runTestPlanCommand;
@@ -100,6 +99,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
     private TestCaseUOW testCaseUOW;
 
     private Product product;
+    private TestPlan testPlan;
     private DeploymentPattern deploymentPattern;
     private TestPlanExecutor testPlanExecutor;
     private ScenarioExecutor scenarioExecutor;
@@ -121,6 +121,13 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         deploymentPattern.setName("default-" + randomStr);
         deploymentPattern.setProduct(product);
 
+        this.testPlan = new TestPlan();
+        testPlan.setId(TESTPLAN_ID);
+        testPlan.setTestRunNumber(1);
+        testPlan.setDeploymentPattern(deploymentPattern);
+        testPlan.setInfraParameters(infraParamsString);
+        testPlan.setDeployerType(TestPlan.DeployerType.SHELL);
+
         when(testScenarioUOW.persistTestScenario(any(TestScenario.class))).thenAnswer(invocation -> invocation
                 .getArguments()[0]);
         scenarioExecutor = new ScenarioExecutor(testScenarioUOW, testCaseUOW);
@@ -134,7 +141,8 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         doMock();
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFile, workingDir, infrastructureCombinationsProvider, productUOW);
+                jobConfigFile, workingDir, infrastructureCombinationsProvider, productUOW,
+                deploymentPatternUOW, testPlanUOW);
         generateTestPlanCommand.execute();
 
         Path actualTestPlanPath = Paths.get(actualTestPlanFileLocation);
@@ -142,10 +150,6 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
 
         runTestPlanCommand.execute();
 
-        TestPlan testPlan = FileUtil.readYamlFile(actualTestPlanFileLocation, TestPlan.class);
-        testPlan.setDeploymentPattern(deploymentPattern);
-        testPlan.setTestRunNumber(1);
-        testPlan.setInfraParameters(infraParamsString);
         Path testRunDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
         testRunDirectory = Paths.get(TestGridUtil.getTestGridHomePath()).resolve(testRunDirectory);
         assertTrue(Files.exists(testRunDirectory),
@@ -177,11 +181,12 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
                 .thenReturn(Optional.of(deploymentPattern));
 
         doAnswer(invocation -> new TestScenario()).when(testScenarioUOW).persistTestScenario(any(TestScenario.class));
-        when(testPlanUOW.persistTestPlan(Matchers.any(TestPlan.class)))
-                .thenAnswer(invocation -> invocation.getArguments()[0]);
         // we need to further improve this
         when(testScenarioUOW.isFailedTestScenariosExist(anyObject())).thenReturn(false);
         when(testCaseUOW.isExistsFailedTests(anyObject())).thenReturn(false);
+
+        when(testPlanUOW.persistTestPlan(any(TestPlan.class))).thenReturn(testPlan);
+        when(testPlanUOW.getTestPlanById(TESTPLAN_ID)).thenReturn(Optional.of(testPlan));
     }
 
     @AfterMethod

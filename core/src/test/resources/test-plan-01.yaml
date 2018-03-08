@@ -12,6 +12,7 @@ deploymentConfig:
       phase: CREATE
       type: SHELL
 deploymentRepository: ./src/test/resources/workspace/deployment
+id: abc
 infrastructureConfig:
   containerOrchestrationEngine: None
   iacProvider: None
@@ -39,6 +40,6 @@ scenarioConfig:
   scenarios:
   - solution01
 scenarioTestsRepository: ./src/test/resources/workspace/scenarioTests
-testRunNumber: 0
+testRunNumber: 1
 testScenarios: [
   ]

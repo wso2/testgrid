@@ -19,18 +19,13 @@
 
 package org.wso2.testgrid.core.command;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
-import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
@@ -50,10 +45,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -108,47 +99,48 @@ public class RunTestPlanCommand implements Command {
                         product));
                 return;
             }
-            TestPlan testPlan = FileUtil.readYamlFile(testPlanYAMLFilePath.get(), TestPlan.class);
-
-            InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
-            DeploymentPattern deploymentPattern = getDeploymentPattern(product, getDeploymentPatternName(testPlan));
 
             // Generate test plan from config
-            TestPlan testPlanEntity = toTestPlanEntity(deploymentPattern, testPlan);
-            LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlanEntity));
+            TestPlan testPlan = FileUtil.readYamlFile(testPlanYAMLFilePath.get(), TestPlan.class);
+            InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
 
-            // Product, deployment pattern, test plan and test scenarios should be persisted
-            // Test plan status should be changed to running
-            testPlanEntity.setStatus(Status.RUNNING);
-            testPlanEntity = persistTestPlan(testPlanEntity);
+            //Fetch persisted test plan from DB
+            Optional<TestPlan> testPlanEntity = testPlanUOW.getTestPlanById(testPlan.getId());
+            if (testPlanEntity.isPresent()) {
+                //Merge properties from persisted test plan to test plan config
+                testPlan = this.mergeTestPlans(testPlan, testPlanEntity.get());
 
-            executeTestPlan(testPlanEntity, infrastructureConfig);
+                // Test plan status should be changed to running and persisted
+                testPlan.setStatus(Status.RUNNING);
+                persistTestPlan(testPlan);
+
+                LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlan));
+                executeTestPlan(testPlan, infrastructureConfig);
+            } else {
+                throw new CommandExecutionException(StringUtil.concatStrings("Unable to locate persisted " +
+                        "TestPlan instance {TestPlan id: ", testPlan.getId(), "}"));
+            }
         } catch (IOException e) {
             throw new CommandExecutionException("Error in reading file generated config file", e);
         } catch (TestGridLoggingException e) {
             throw new CommandExecutionException("Error in deriving log file path.", e);
+        } catch (TestGridDAOException e) {
+            throw new CommandExecutionException("Error in obtaining persisted TestPlan from database.", e);
         }
     }
 
     /**
-     * Return the deployment pattern name under the DeploymentConfig of a {@link TestPlan}.
-     * If not found, return the provisioner name under Infrastructure.
+     * Copies non existing properties from a persisted test plan to a test plan object generated from the config.
      *
-     * @param testPlan the test-plan config
-     * @return the deployment pattern name.
+     * @param testPlanConfig an instance of test plan which is generated from the config
+     * @param testPlanPersisted an instance of test plan which is persisted in the db
+     * @return an instance of {@link TestPlan} with merged properties
      */
-    private String getDeploymentPatternName(TestPlan testPlan) {
-        List<DeploymentConfig.DeploymentPattern> deploymentPatterns = testPlan.getDeploymentConfig()
-                .getDeploymentPatterns();
-        if (!deploymentPatterns.isEmpty()) {
-            return deploymentPatterns.get(0).getName();
-        }
-        List<InfrastructureConfig.Provisioner> provisioners = testPlan.getInfrastructureConfig().getProvisioners();
-        if (!provisioners.isEmpty()) {
-            return provisioners.get(0).getName();
-        }
-
-        return TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME;
+    private TestPlan mergeTestPlans(TestPlan testPlanConfig, TestPlan testPlanPersisted) {
+        testPlanConfig.setInfraParameters(testPlanPersisted.getInfraParameters());
+        testPlanConfig.setDeploymentPattern(testPlanPersisted.getDeploymentPattern());
+        testPlanConfig.setTestScenarios(testPlanPersisted.getTestScenarios());
+        return testPlanConfig;
     }
 
     /**
@@ -251,105 +243,6 @@ public class RunTestPlanCommand implements Command {
                             "([PRODUCT_NAME_VERSION_CHANNEL]/[DEPLOYMENT_PATTERN_NAME]/[INFRA_PARAM_UUID"
                             + "]/[TEST_RUN_NUMBER]");
         }
-    }
-
-    /**
-     * This method generates TestPlan object model that from the given input parameters.
-     *
-     * @param deploymentPattern deployment pattern
-     * @param testPlan          testPlan object
-     * @return TestPlan object model
-     */
-    private TestPlan toTestPlanEntity(DeploymentPattern deploymentPattern, TestPlan testPlan)
-            throws CommandExecutionException {
-        try {
-            String jsonInfraParams = new ObjectMapper()
-                    .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
-            TestPlan testPlanEntity = testPlan.clone();
-            testPlanEntity.setStatus(Status.PENDING);
-            testPlanEntity.setDeploymentPattern(deploymentPattern);
-
-            // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.
-            if (testPlan.getInfrastructureConfig().getInfrastructureProvider()
-                    == InfrastructureConfig.InfrastructureProvider.SHELL) {
-                testPlanEntity.setDeployerType(TestPlan.DeployerType.SHELL);
-            }
-            testPlanEntity.setInfraParameters(jsonInfraParams);
-            deploymentPattern.addTestPlan(testPlanEntity);
-
-            // Set test run number
-            int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlanEntity.getInfraParameters());
-            testPlanEntity.setTestRunNumber(latestTestRunNumber + 1);
-
-            // Set test scenarios
-            List<TestScenario> testScenarios = new ArrayList<>();
-            for (String name : testPlan.getScenarioConfig().getScenarios()) {
-                TestScenario testScenario = new TestScenario();
-                testScenario.setName(name);
-                testScenario.setTestPlan(testPlanEntity);
-                testScenario.setStatus(Status.PENDING);
-                testScenarios.add(testScenario);
-            }
-            testPlanEntity.setTestScenarios(testScenarios);
-            return testPlanEntity;
-        } catch (JsonProcessingException e) {
-            throw new CommandExecutionException(StringUtil
-                    .concatStrings("Error in preparing a JSON object from the given test plan infra parameters: ",
-                            testPlan.getInfrastructureConfig().getParameters()), e);
-        }
-    }
-
-    /**
-     * Returns the existing deployment pattern for the given name and product or creates a new deployment pattern for
-     * the given deployment pattern name and product.
-     *
-     * @param product               product to get deployment pattern
-     * @param deploymentPatternName deployment pattern name
-     * @return deployment pattern for the given product and deployment pattern name
-     * @throws CommandExecutionException thrown when error on retrieving deployment pattern
-     */
-    private DeploymentPattern getDeploymentPattern(Product product, String deploymentPatternName)
-            throws CommandExecutionException {
-        try {
-            Optional<DeploymentPattern> optionalDeploymentPattern =
-                    deploymentPatternUOW.getDeploymentPattern(product, deploymentPatternName);
-
-            if (optionalDeploymentPattern.isPresent()) {
-                return optionalDeploymentPattern.get();
-            }
-
-            DeploymentPattern deploymentPattern = new DeploymentPattern();
-            deploymentPattern.setName(deploymentPatternName);
-            deploymentPattern.setProduct(product);
-            return deploymentPattern;
-        } catch (TestGridDAOException e) {
-            throw new CommandExecutionException(StringUtil
-                    .concatStrings("Error while retrieving deployment pattern for { product: ", product,
-                            ", deploymentPatternName: ", deploymentPatternName, "}"));
-        }
-    }
-
-    /**
-     * Returns the latest test run number.
-     *
-     * @param deploymentPattern deployment pattern to get the latest test run number
-     * @param infraParams       infrastructure parameters to get the latest test run number
-     * @return latest test run number
-     */
-    private int getLatestTestRunNumber(DeploymentPattern deploymentPattern, String infraParams) {
-        // Get test plans with the same infra param
-        List<TestPlan> testPlans = new ArrayList<>();
-        for (TestPlan testPlan : deploymentPattern.getTestPlans()) {
-            if (testPlan.getInfraParameters().equals(infraParams)) {
-                testPlans.add(testPlan);
-            }
-        }
-
-        // Get the Test Plan with the latest test run number for the given infra combination
-        TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(
-                TestPlan::getTestRunNumber));
-
-        return latestTestPlan.getTestRunNumber();
     }
 }
 
