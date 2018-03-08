@@ -56,7 +56,7 @@
                 <include>org.wso2.testgrid:org.wso2.testgrid.core:jar</include>
                 <include>org.wso2.testgrid:org.wso2.testgrid.dao:jar</include>
                 <include>org.wso2.testgrid:org.wso2.testgrid.common:jar</include>
-                <include>org.wso2.testgrid:org.wso2.testgrid.infrastruture:jar</include>
+                <include>org.wso2.testgrid:org.wso2.testgrid.infrastructure:jar</include>
                 <include>org.wso2.testgrid:org.wso2.testgrid.deployment:jar</include>
                 <include>org.wso2.testgrid:org.wso2.testgrid.automation:jar</include>
                 <include>org.wso2.testgrid:org.wso2.testgrid.reporting:jar</include>
