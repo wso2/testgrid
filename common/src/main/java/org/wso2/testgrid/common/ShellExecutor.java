@@ -91,7 +91,7 @@ public class ShellExecutor {
      * @throws CommandExecutionException if an {@link IOException} occurs while executing the command
      */
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
-    public boolean executeCommand(String command) throws CommandExecutionException {
+    public int executeCommand(String command) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.toString());
@@ -114,7 +114,7 @@ public class ShellExecutor {
             executor.submit(outputStreamGobbler);
             executor.submit(errorStreamGobbler);
 
-            return process.waitFor() == 0;
+            return process.waitFor();
 
         } catch (IOException e) {
             throw new CommandExecutionException(

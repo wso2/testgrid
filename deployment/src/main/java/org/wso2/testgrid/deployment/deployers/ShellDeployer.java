@@ -62,6 +62,7 @@ public class ShellDeployer implements Deployer {
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
+        DeploymentCreationResult result = new DeploymentCreationResult();
         try {
             Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
             logger.info("Performing the Deployment " + deployment.getName());
@@ -71,18 +72,22 @@ public class ShellDeployer implements Deployer {
             final Properties inputParameters = getInputParameters(testPlan, deployment);
             String parameterString = TestGridUtil.getParameterString(infraArtifact, inputParameters);
             ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
-            if (!shellExecutor
+
+            int exitCode = shellExecutor
                     //TODO: Remove the usages of InfrastructureProvisionResult#getDeploymentScriptsDir.
                     .executeCommand("bash " + Paths.get(infrastructureProvisionResult
-                            .getDeploymentScriptsDir(), deployment.getFile()) + " " + parameterString)) {
-                throw new TestGridDeployerException("Error occurred while executing the deploy script");
+                            .getDeploymentScriptsDir(), deployment.getFile()) + " " + parameterString);
+            if (exitCode > 0) {
+                logger.error(StringUtil.concatStrings("Error occurred while executing the deploy-provision script. ",
+                        "Script exited with a status code of " , exitCode));
+                result.setSuccess(false);
             }
         } catch (CommandExecutionException e) {
             throw new TestGridDeployerException(e);
         } catch (IOException e) {
             throw new TestGridDeployerException("Error occurred while retrieving the Testgrid_home ", e);
         }
-        DeploymentCreationResult result = new DeploymentCreationResult();
+
         result.setName(deploymentPatternConfig.getName());
         result.setHosts(infrastructureProvisionResult.getHosts());
         return result;
