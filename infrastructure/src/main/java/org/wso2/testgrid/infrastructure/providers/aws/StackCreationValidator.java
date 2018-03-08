@@ -1,0 +1,133 @@
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package org.wso2.testgrid.infrastructure.providers.aws;
+
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsResult;
+import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
+import com.amazonaws.services.cloudformation.model.StackEvent;
+import com.amazonaws.services.cloudformation.model.StackStatus;
+import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.util.StringUtil;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Validates the Stack creation in AWS.
+ */
+public class StackCreationValidator {
+
+    private static final Logger logger = LoggerFactory.getLogger(StackCreationValidator.class);
+
+    /**
+     * Periodically checks for the status of stack creation until a defined timeout.
+     *
+     * @param timeout         Time to wait upon the desired response.
+     * @param timeoutTimeUnit TimeUnit of timeout value.
+     * @param pollInterval    Time interval to perform polling.
+     * @param pollTimeUnit    TimeUnit of pollInterval.
+     */
+    public void waitForStack(int timeout, TimeUnit timeoutTimeUnit, int pollInterval,
+                                  TimeUnit pollTimeUnit, String stackName, AmazonCloudFormation cloudFormation)
+            throws ConditionTimeoutException {
+        Awaitility.with().pollInterval(pollInterval, pollTimeUnit).await().
+                atMost(timeout, timeoutTimeUnit).until(isStackCreationSuccessful(stackName, cloudFormation));
+    }
+
+    /**
+     * Checks if a defined stack gets to CREATE_COMPLETE state.
+     *
+     * @param stackName Name of the stack to wait
+     * @param cloudFormation Amazon cloud formation
+     * @return true for CREATE_COMPLETE state and false for failed states.
+     */
+    private Callable<Boolean> isStackCreationSuccessful(String stackName, AmazonCloudFormation cloudFormation) {
+        return new AWSCallable(stackName, cloudFormation);
+    }
+
+    /**
+     * Inner class for the callable implementation used by awaitility to determine the
+     * condition of the stack.
+     */
+    private static class AWSCallable implements Callable<Boolean> {
+        private String stackName;
+        private AmazonCloudFormation cloudFormation;
+
+        /**
+         * Constructs the AWSCallable object with stackname and cloudformation.
+         *
+         * @param stackName Name of the stack to wait
+         * @param cloudFormation Amazon cloud formation
+         */
+        AWSCallable(String stackName, AmazonCloudFormation cloudFormation) {
+            this.stackName = stackName;
+            this.cloudFormation = cloudFormation;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
+            //Stack details
+            DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest().withStackName(stackName);
+            DescribeStacksResult describeStacksResult = cloudFormation.describeStacks(describeStacksRequest);
+            for (int i = 0; i < describeStacksResult.getStacks().size(); i++) {
+                StackStatus stackStatus = StackStatus.fromValue(
+                        describeStacksResult.getStacks().get(i).getStackStatus());
+
+                    // Event details of the stack
+                    DescribeStackEventsRequest describeStackEventsRequest = new DescribeStackEventsRequest()
+                            .withStackName(stackName);
+                    DescribeStackEventsResult describeStackEventsResult = cloudFormation.
+                            describeStackEvents(describeStackEventsRequest);
+
+                    //Print a log of the current state of the resources
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (StackEvent stackEvent: describeStackEventsResult.getStackEvents()) {
+                        stringBuilder.append(StringUtil.concatStrings(
+                                "Status: ", stackEvent.getResourceStatus(), ", "));
+                        stringBuilder.append(StringUtil.concatStrings(
+                                "Resource Type: ", stackEvent.getResourceType(), ", "));
+                        stringBuilder.append(StringUtil.concatStrings(
+                                "Logical ID: ", stackEvent.getLogicalResourceId(), ", "));
+                        stringBuilder.append(StringUtil.concatStrings(
+                                "Status Reason: ", stackEvent.getResourceStatusReason()));
+                        stringBuilder.append("\n");
+                    }
+                logger.info(StringUtil.concatStrings("Event Details: \n", stringBuilder.toString()));
+
+                //Determine the steps to execute based on the status of the stack
+                switch (stackStatus) {
+                    case CREATE_COMPLETE:
+                        return true;
+                    case CREATE_IN_PROGRESS:
+                        break;
+                    default:
+                        throw new TestGridInfrastructureException(StringUtil.concatStrings(
+                                "Stack creation transitioned to ", stackStatus.toString(), " state."));
+                }
+            }
+            return false;
+        }
+    }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -35,6 +35,7 @@ import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
 import com.amazonaws.waiters.WaiterUnrecoverableException;
+import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Host;
@@ -48,6 +49,7 @@ import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
+import org.wso2.testgrid.infrastructure.providers.aws.StackCreationValidator;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -58,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class provides the infrastructure from amazon web services (AWS).
@@ -73,6 +76,10 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String AWS_REGION_PARAMETER = "region";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     private AMIMapper amiMapper;
+    private static final int TIMEOUT = 30;
+    private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
+    private static final int POLL_INTERVAL = 1;
+    private static final TimeUnit POLL_UNIT = TimeUnit.MINUTES;
 
     @Override
     public String getProviderName() {
@@ -172,9 +179,14 @@ public class AWSProvider implements InfrastructureProvider {
                 logger.info(StringUtil.concatStrings("Stack configuration created for name ", stackName));
             }
             logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName));
-            Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new AmazonCloudFormationWaiters(cloudFormation)
-                    .stackCreateComplete();
-            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
+            StackCreationValidator stackCreationValidator = new StackCreationValidator();
+            try {
+                stackCreationValidator.waitForStack(
+                        TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT, stackName, cloudFormation);
+            } catch (ConditionTimeoutException e) {
+                throw new TestGridInfrastructureException(
+                        StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
+            }
             logger.info(StringUtil.concatStrings("Stack : ", stackName, ", with ID : ", stack.getStackId(),
                     " creation completed !"));
 
@@ -208,11 +220,7 @@ public class AWSProvider implements InfrastructureProvider {
             result.setProperties(props);
 
             return result;
-        } catch (WaiterUnrecoverableException e) {
-            throw new TestGridInfrastructureException(StringUtil.concatStrings("Error while waiting for stack : "
-                    , stackName, " to complete. One or more resources transitioned into a failure/unexpected state.",
-                    "Stacks may contain duplicated resource names. ",
-                    "Please delete redundant resources/Stacks and try again."), e);
+
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
         }
