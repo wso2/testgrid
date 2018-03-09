@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestPlan;
@@ -31,11 +32,14 @@ import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.deployment.DeploymentUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -89,7 +93,21 @@ public class ShellDeployer implements Deployer {
         }
 
         result.setName(deploymentPatternConfig.getName());
-        result.setHosts(infrastructureProvisionResult.getHosts());
+
+        List<Host> hosts = new ArrayList<>();
+        Host tomcatHost = new Host();
+        tomcatHost.setLabel("tomcatHost");
+        tomcatHost.setIp("ec2-52-54-230-106.compute-1.amazonaws.com");
+        Host tomcatPort = new Host();
+        tomcatPort.setLabel("tomcatPort");
+        tomcatPort.setIp("8080");
+        hosts.add(tomcatHost);
+        hosts.add(tomcatPort);
+
+        DeploymentCreationResult result1 = DeploymentUtil.getDeploymentCreationResult(infrastructureProvisionResult
+                .getDeploymentScriptsDir());
+        hosts.addAll(result1.getHosts());
+        result.setHosts(hosts);
         return result;
     }
 
