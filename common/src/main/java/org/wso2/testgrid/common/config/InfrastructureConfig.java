@@ -20,6 +20,7 @@
 package org.wso2.testgrid.common.config;
 
 import org.apache.commons.collections4.ListUtils;
+import org.wso2.testgrid.common.TestGridError;
 
 import java.io.Serializable;
 import java.util.List;
@@ -32,7 +33,7 @@ import java.util.Properties;
  *
  * @since 1.0.0
  */
-public class InfrastructureConfig implements Serializable {
+public class InfrastructureConfig implements Serializable, Cloneable {
 
     private static final long serialVersionUID = -1660815137752094462L;
 
@@ -168,5 +169,22 @@ public class InfrastructureConfig implements Serializable {
      */
     public static class Provisioner extends DeploymentConfig.DeploymentPattern {
         private static final long serialVersionUID = -3937792864579403430L;
+    }
+
+    @Override
+    public InfrastructureConfig clone() {
+        try {
+            InfrastructureConfig infrastructureConfig = (InfrastructureConfig) super.clone();
+            infrastructureConfig.setProvisioners(provisioners);
+            infrastructureConfig.setParameters(parameters);
+            infrastructureConfig.setContainerOrchestrationEngine(containerOrchestrationEngine);
+            infrastructureConfig.setIacProvider(iacProvider);
+            infrastructureConfig.setInfrastructureProvider(infrastructureProvider);
+
+            return infrastructureConfig;
+        } catch (CloneNotSupportedException e) {
+            throw new TestGridError("Since the super class of this object is java.lang.Object that supports " +
+                    "cloning this failure condition should never happen unless a serious system error occurred.", e);
+        }
     }
 }
