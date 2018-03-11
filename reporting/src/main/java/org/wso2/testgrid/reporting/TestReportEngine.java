@@ -36,7 +36,6 @@ import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
 import org.wso2.testgrid.reporting.util.FileUtil;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -100,13 +99,9 @@ public class TestReportEngine {
         String fileName = StringUtil
                 .concatStrings(product.getName(), "-", product.getCreatedTimestamp(), "-", uniqueAxisColumn,
                         HTML_EXTENSION);
-        try {
-            String testGridHome = TestGridUtil.getTestGridHomePath();
-            Path reportPath = Paths.get(testGridHome).resolve(product.getName()).resolve(fileName);
-            writeHTMLToFile(reportPath, htmlString);
-        } catch (IOException e) {
-            throw new ReportingException("Error while persisting HTML report at " + fileName, e);
-        }
+        String testGridHome = TestGridUtil.getTestGridHomePath();
+        Path reportPath = Paths.get(testGridHome).resolve(product.getName()).resolve(fileName);
+        writeHTMLToFile(reportPath, htmlString);
     }
 
     /**

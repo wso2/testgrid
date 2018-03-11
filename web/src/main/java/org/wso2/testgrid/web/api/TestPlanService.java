@@ -164,7 +164,7 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
 
-            String testGridArtifactLocation = TestGridUtil.getTestRunArtifactsDirectory(testPlan).toString();
+            String testGridArtifactLocation = TestGridUtil.getTestRunWorkspace(testPlan).toString();
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, testGridArtifactLocation, Constants.TEST_LOG_FILE_NAME).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
@@ -196,10 +196,9 @@ public class TestPlanService {
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
                             .setDescription(e.getMessage()).build()).build();
         } catch (IOException e) {
-            String msg = "Error occurred when retrieving TESTGRID_HOME.";
-            logger.error(msg, e);
+            logger.error(e.getMessage(), e);
             return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(e.getMessage())
                             .setDescription(e.getMessage()).build()).build();
         }
     }

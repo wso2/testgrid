@@ -104,7 +104,7 @@ public class ScenarioExecutor {
             persistTestScenario(testScenario);
             throw new ScenarioExecutorException(StringUtil
                     .concatStrings("Exception occurred while running the Tests for Solution Pattern '",
-                            testScenario.getName(), "'"));
+                            testScenario.getName(), "'"), e);
         } catch (TestGridDAOException e) {
             throw new ScenarioExecutorException(StringUtil
                     .concatStrings("Exception occurred while checking for failed test cases for scenario'",
