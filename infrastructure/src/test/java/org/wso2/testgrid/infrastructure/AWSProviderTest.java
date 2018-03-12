@@ -50,6 +50,7 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
+import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.File;
 import java.io.IOException;
@@ -165,11 +166,8 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.mockStatic(AmazonCloudFormationClientBuilder.class);
         PowerMockito.when(AmazonCloudFormationClientBuilder.standard()).thenReturn(cloudFormationClientBuilderMock);
 
-        AmazonCloudFormationWaiters waiterMock = Mockito.mock(AmazonCloudFormationWaiters.class);
-        Waiter mock = Mockito.mock(Waiter.class);
-        Mockito.doNothing().when(mock).run(Matchers.any(WaiterParameters.class));
-        Mockito.when(waiterMock.stackCreateComplete()).thenReturn(mock);
-        PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
+        StackCreationWaiter validatorMock = Mockito.mock(StackCreationWaiter.class);
+        PowerMockito.whenNew(StackCreationWaiter.class).withAnyArguments().thenReturn(validatorMock);
 
         AWSProvider awsProvider = new AWSProvider();
         awsProvider.init();

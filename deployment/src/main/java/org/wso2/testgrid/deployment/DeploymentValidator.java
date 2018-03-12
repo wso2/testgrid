@@ -18,6 +18,7 @@
 package org.wso2.testgrid.deployment;
 
 import org.awaitility.Awaitility;
+import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -28,7 +29,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -47,15 +47,12 @@ public class DeploymentValidator {
      * Wait on the Url response untile the defined timeout.
      *
      * @param url             The URL endpoint of deployment.
-     * @param timeout         Time to wait upon the desired response.
-     * @param timeoutTimeUnit TimeUnit of timeout value.
-     * @param pollInterval    Time interval to perform polling.
-     * @param pollTimeUnit    TimeUnit of pollInterval.
+     * @param timeOutBuilder timeOut object
      */
-    public void waitForDeployment(String url, int timeout, TimeUnit timeoutTimeUnit, int pollInterval,
-                                  TimeUnit pollTimeUnit) {
-        Awaitility.with().pollInterval(pollInterval, pollTimeUnit).await().
-                atMost(timeout, timeoutTimeUnit).until(isDeploymentSuccessful(url));
+    public void waitForDeployment(String url, TimeOutBuilder timeOutBuilder) {
+        Awaitility.with().pollInterval(timeOutBuilder.getPollInterval(), timeOutBuilder.getPollUnit()).await().
+                atMost(timeOutBuilder.getTimeOut(), timeOutBuilder.getTimeOutUnit())
+                .until(isDeploymentSuccessful(url));
     }
 
     /**
