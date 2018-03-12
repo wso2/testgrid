@@ -472,7 +472,7 @@ public class GenerateTestPlanCommand implements Command {
                 setUniqueNamesFor(provisioner.getScripts());
 
                 TestPlan testPlan = new TestPlan();
-                testPlan.setInfrastructureConfig(testgridYaml.getInfrastructureConfig());
+                testPlan.setInfrastructureConfig(testgridYaml.getInfrastructureConfig().clone());
                 testPlan.getInfrastructureConfig().setProvisioners(Collections.singletonList(provisioner));
                 deploymentPattern.ifPresent(dp -> {
                     setUniqueNamesFor(dp.getScripts());
@@ -482,7 +482,6 @@ public class GenerateTestPlanCommand implements Command {
                         combination.getParameters());
                 testPlan.getInfrastructureConfig().setParameters(configAwareInfraCombination);
                 testPlan.setScenarioConfig(testgridYaml.getScenarioConfig());
-                testPlan.setInfrastructureConfig(testgridYaml.getInfrastructureConfig());
 
                 testPlan.setInfrastructureRepository(testgridYaml.getInfrastructureRepository());
                 testPlan.setDeploymentRepository(testgridYaml.getDeploymentRepository());
