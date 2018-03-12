@@ -25,6 +25,7 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -74,7 +75,8 @@ public class AWSDeployer implements Deployer {
                             "hence skipping to next value.."));
                     continue;
                 }
-                validator.waitForDeployment(host.getIp(), TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
+                TimeOutBuilder deploymentTimeOut = new TimeOutBuilder(TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
+                validator.waitForDeployment(host.getIp(), deploymentTimeOut);
             }
         } catch (ConditionTimeoutException ex) {
             throw new TestGridDeployerException(StringUtil.concatStrings("Timeout occurred while waiting for pattern : "

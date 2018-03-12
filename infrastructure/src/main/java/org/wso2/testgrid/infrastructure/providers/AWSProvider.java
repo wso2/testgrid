@@ -42,6 +42,7 @@ import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -181,8 +182,8 @@ public class AWSProvider implements InfrastructureProvider {
             logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName));
             StackCreationWaiter stackCreationValidator = new StackCreationWaiter();
             try {
-                stackCreationValidator.waitForStack(
-                        stackName, cloudFormation, TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
+                TimeOutBuilder stackTimeOut = new TimeOutBuilder(TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
+                stackCreationValidator.waitForStack(stackName, cloudFormation, stackTimeOut);
             } catch (ConditionTimeoutException e) {
                 throw new TestGridInfrastructureException(
                         StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);

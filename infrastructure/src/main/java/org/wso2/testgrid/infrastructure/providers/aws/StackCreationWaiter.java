@@ -28,11 +28,11 @@ import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Validates the Stack creation in AWS.
@@ -46,16 +46,14 @@ public class StackCreationWaiter {
      *
      * @param stackName       Name of the stack
      * @param cloudFormation  AWS cloud formation
-     * @param timeout         Time to wait upon the desired response.
-     * @param timeoutTimeUnit TimeUnit of timeout value.
-     * @param pollInterval    Time interval to perform polling.
-     * @param pollTimeUnit    TimeUnit of pollInterval.
+     * @param timeOutBuilder  TimeOut object
      */
     public void waitForStack(String stackName, AmazonCloudFormation cloudFormation,
-                             int timeout, TimeUnit timeoutTimeUnit, int pollInterval, TimeUnit pollTimeUnit)
+                             TimeOutBuilder timeOutBuilder)
             throws ConditionTimeoutException, TestGridInfrastructureException {
-        Awaitility.with().pollInterval(pollInterval, pollTimeUnit).await().
-                atMost(timeout, timeoutTimeUnit).until(new StackCreationVerifier(stackName, cloudFormation));
+        Awaitility.with().pollInterval(timeOutBuilder.getPollInterval(), timeOutBuilder.getPollUnit()).await().
+                atMost(timeOutBuilder.getTimeOut(), timeOutBuilder.getTimeOutUnit())
+                .until(new StackCreationVerifier(stackName, cloudFormation));
     }
 
     /**
