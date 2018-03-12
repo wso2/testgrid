@@ -37,51 +37,42 @@ import java.util.concurrent.TimeUnit;
 /**
  * Validates the Stack creation in AWS.
  */
-public class StackCreationValidator {
+public class StackCreationWaiter {
 
-    private static final Logger logger = LoggerFactory.getLogger(StackCreationValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(StackCreationWaiter.class);
 
     /**
      * Periodically checks for the status of stack creation until a defined timeout.
      *
+     * @param stackName       Name of the stack
+     * @param cloudFormation  AWS cloud formation
      * @param timeout         Time to wait upon the desired response.
      * @param timeoutTimeUnit TimeUnit of timeout value.
      * @param pollInterval    Time interval to perform polling.
      * @param pollTimeUnit    TimeUnit of pollInterval.
      */
-    public void waitForStack(int timeout, TimeUnit timeoutTimeUnit, int pollInterval,
-                                  TimeUnit pollTimeUnit, String stackName, AmazonCloudFormation cloudFormation)
-            throws ConditionTimeoutException {
+    public void waitForStack(String stackName, AmazonCloudFormation cloudFormation,
+                             int timeout, TimeUnit timeoutTimeUnit, int pollInterval, TimeUnit pollTimeUnit)
+            throws ConditionTimeoutException, TestGridInfrastructureException {
         Awaitility.with().pollInterval(pollInterval, pollTimeUnit).await().
-                atMost(timeout, timeoutTimeUnit).until(isStackCreationSuccessful(stackName, cloudFormation));
-    }
-
-    /**
-     * Checks if a defined stack gets to CREATE_COMPLETE state.
-     *
-     * @param stackName Name of the stack to wait
-     * @param cloudFormation Amazon cloud formation
-     * @return true for CREATE_COMPLETE state and false for failed states.
-     */
-    private Callable<Boolean> isStackCreationSuccessful(String stackName, AmazonCloudFormation cloudFormation) {
-        return new AWSCallable(stackName, cloudFormation);
+                atMost(timeout, timeoutTimeUnit).until(new StackCreationVerifier(stackName, cloudFormation));
     }
 
     /**
      * Inner class for the callable implementation used by awaitility to determine the
      * condition of the stack.
      */
-    private static class AWSCallable implements Callable<Boolean> {
+    private static class StackCreationVerifier implements Callable<Boolean> {
         private String stackName;
         private AmazonCloudFormation cloudFormation;
 
         /**
-         * Constructs the AWSCallable object with stackname and cloudformation.
+         * Constructs the StackCreationVerifier object with stackname and cloudformation.
          *
          * @param stackName Name of the stack to wait
          * @param cloudFormation Amazon cloud formation
          */
-        AWSCallable(String stackName, AmazonCloudFormation cloudFormation) {
+        StackCreationVerifier(String stackName, AmazonCloudFormation cloudFormation) {
             this.stackName = stackName;
             this.cloudFormation = cloudFormation;
         }

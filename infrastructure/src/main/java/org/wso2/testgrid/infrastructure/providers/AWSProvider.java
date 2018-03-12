@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -49,7 +49,7 @@ import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
-import org.wso2.testgrid.infrastructure.providers.aws.StackCreationValidator;
+import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -179,10 +179,10 @@ public class AWSProvider implements InfrastructureProvider {
                 logger.info(StringUtil.concatStrings("Stack configuration created for name ", stackName));
             }
             logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName));
-            StackCreationValidator stackCreationValidator = new StackCreationValidator();
+            StackCreationWaiter stackCreationValidator = new StackCreationWaiter();
             try {
                 stackCreationValidator.waitForStack(
-                        TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT, stackName, cloudFormation);
+                        stackName, cloudFormation, TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
             } catch (ConditionTimeoutException e) {
                 throw new TestGridInfrastructureException(
                         StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
