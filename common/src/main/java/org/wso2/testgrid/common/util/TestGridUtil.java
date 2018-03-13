@@ -357,4 +357,14 @@ public final class TestGridUtil {
 
         return TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME;
     }
+
+    /**
+     * Returns the path of config.properties.
+     *
+     * @return path of <TESTGRID_HOME>/config.properties
+     * @throws IOException for interrupted I/O operations
+     */
+    public static Path getConfigFilePath() throws IOException {
+        return Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_CONFIG_FILE);
+    }
 }

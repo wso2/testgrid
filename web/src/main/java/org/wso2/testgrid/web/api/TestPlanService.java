@@ -196,7 +196,7 @@ public class TestPlanService {
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
                             .setDescription(e.getMessage()).build()).build();
         } catch (IOException e) {
-            String msg = "Error occurred when retrieving TESTGRID_HOME.";
+            String msg = "Error occurred while trying to read AWS credentials.";
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)

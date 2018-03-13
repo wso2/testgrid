@@ -17,7 +17,7 @@
  */
 package org.wso2.testgrid.infrastructure.providers;
 
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
+import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
@@ -48,6 +48,7 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
@@ -55,6 +56,7 @@ import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -146,11 +148,18 @@ public class AWSProvider implements InfrastructureProvider {
         }
     }
 
-        private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
-            String stackName, String infraRepoDir) throws TestGridInfrastructureException {
+    private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
+        String stackName, String infraRepoDir) throws TestGridInfrastructureException {
         String region = infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER);
-        AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
-                .withCredentials(new EnvironmentVariableCredentialsProvider())
+            Path configFilePath;
+            try {
+                configFilePath = TestGridUtil.getConfigFilePath();
+            } catch (IOException e) {
+                throw new TestGridInfrastructureException(StringUtil.concatStrings(
+                        "Error occurred while trying to read AWS credentials.", e));
+            }
+            AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
+                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)
                 .build();
 
@@ -238,8 +247,15 @@ public class AWSProvider implements InfrastructureProvider {
      */
     private boolean doRelease(InfrastructureConfig infrastructureConfig, String stackName) throws
             TestGridInfrastructureException, InterruptedException {
+        Path configFilePath;
+        try {
+            configFilePath = TestGridUtil.getConfigFilePath();
+        } catch (IOException e) {
+            throw new TestGridInfrastructureException(StringUtil.concatStrings(
+                    "Error occurred while trying to read AWS credentials.", e));
+        }
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
-                .withCredentials(new EnvironmentVariableCredentialsProvider())
+                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER))
                 .build();
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
