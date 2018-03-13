@@ -487,7 +487,7 @@
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.core</artifactId>
-                <version>${javax.persistence.version}</version>
+                <version>${eclipse.persistence.core.version}</version>
             </dependency>
             <!--FindBugs dependencies-->
             <dependency>
@@ -561,6 +561,7 @@
         <com.h2database.version>1.4.196</com.h2database.version>
         <!-- DAO dependencies -->
         <javax.persistence.version>2.2.0</javax.persistence.version>
+        <eclipse.persistence.core.version>2.7.1</eclipse.persistence.core.version>
         <jersey.server.version>2.17</jersey.server.version>
         <!-- Web app dependencies -->
         <javax.websocket.version>1.1</javax.websocket.version>
