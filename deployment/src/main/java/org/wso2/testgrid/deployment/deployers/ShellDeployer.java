@@ -66,7 +66,6 @@ public class ShellDeployer implements Deployer {
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
-        DeploymentCreationResult result = new DeploymentCreationResult();
         try {
             Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
             logger.info("Performing the Deployment " + deployment.getName());
@@ -84,14 +83,18 @@ public class ShellDeployer implements Deployer {
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the deploy-provision script. ",
                         "Script exited with a status code of " , exitCode));
+                DeploymentCreationResult result = new DeploymentCreationResult();
+                result.setName(deploymentPatternConfig.getName());
                 result.setSuccess(false);
+                return result;
             }
         } catch (CommandExecutionException e) {
             throw new TestGridDeployerException(e);
         } catch (IOException e) {
             throw new TestGridDeployerException("Error occurred while retrieving the Testgrid_home ", e);
         }
-
+        DeploymentCreationResult result = DeploymentUtil.getDeploymentCreationResult(infrastructureProvisionResult
+                .getDeploymentScriptsDir());
         result.setName(deploymentPatternConfig.getName());
 
         List<Host> hosts = new ArrayList<>();
@@ -104,9 +107,7 @@ public class ShellDeployer implements Deployer {
         hosts.add(tomcatHost);
         hosts.add(tomcatPort);
 
-        DeploymentCreationResult result1 = DeploymentUtil.getDeploymentCreationResult(infrastructureProvisionResult
-                .getDeploymentScriptsDir());
-        hosts.addAll(result1.getHosts());
+        hosts.addAll(result.getHosts());
         result.setHosts(hosts);
         return result;
     }
