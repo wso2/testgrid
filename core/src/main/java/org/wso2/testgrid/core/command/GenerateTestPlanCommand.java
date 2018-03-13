@@ -100,7 +100,7 @@ public class GenerateTestPlanCommand implements Command {
      * This is @{@link Deprecated} in favor of '--file'
      */
     @Option(name = "--testConfig",
-            usage = "Test Configuration File",
+            usage = "Test Configuration File (Deprecated)",
             aliases = { "-tc" })
     private String testgridYamlLocation = "";
 

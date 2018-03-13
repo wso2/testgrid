@@ -31,6 +31,8 @@ import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 import org.wso2.testgrid.common.util.StringUtil;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -76,7 +78,7 @@ public class InfrastructureCombinationsProviderTest {
         logger.info("Generated infrastructure combinations: " + combinations);
         Assert.assertEquals(combinations.size(), 2, "There must be two infrastructure combinations.");
         for (InfrastructureCombination combination : combinations) {
-            Assert.assertEquals(combination.getParameters().size(), 3, "Combination contains more than three "
+            Assert.assertEquals(combination.getParameters().size(), 5, "Combination contains more than three "
                     + "infrastructure parameters: " + combination);
         }
 
@@ -112,6 +114,18 @@ public class InfrastructureCombinationsProviderTest {
                             param.getType().equals(DefaultInfrastructureTypes.DATABASE));
             Assert.assertTrue(dbExists, "DB does not exist in the combination: " + combination);
 
+            //check db property - dbengine
+            boolean dbEngineExists = combination.getParameters().removeIf(param ->
+                    param.getName().equals("mysql") && param.getType().equals("DBEngine"));
+            Assert.assertTrue(dbEngineExists, "DBEngine property of database1 has not got added as a "
+                    + "InfrastructureParameter. The infrastructure combination: " + combination);
+
+            //check db property - dbengineversion
+            boolean dbEngineVersionExists = combination.getParameters().removeIf(param ->
+                    param.getName().equals("5.7") && param.getType().equals("DBEngineVersion"));
+            Assert.assertTrue(dbEngineVersionExists, "DBEngineVersion property of database1 has not got added as a "
+                    + "InfrastructureParameter. The infrastructure combination: " + combination);
+
             //check jdk
             boolean jdkExists = combination.getParameters().removeIf(param ->
                     param.getName().equals(jdkValueSet.getValues().iterator().next().getName()) &&
@@ -123,13 +137,19 @@ public class InfrastructureCombinationsProviderTest {
 
     }
 
-    private Set<InfrastructureParameter> createInfrastructureParameterSet(String type, int count) {
+    private Set<InfrastructureParameter> createInfrastructureParameterSet(String type, int count) throws IOException {
         Set<InfrastructureParameter> params = new TreeSet<>();
-        Properties properties = new Properties();
-        properties.setProperty("ami_id", "ami123");
-        properties.setProperty("elastic_ip_id", "eip123");
+        String propertiesStr = "";
+        if (type.equals(DefaultInfrastructureTypes.DATABASE)) {
+            Properties properties = new Properties();
+            properties.setProperty("DBEngine", "mysql");
+            properties.setProperty("DBEngineVersion", "5.7");
+            StringWriter propWriter = new StringWriter();
+            properties.store(propWriter, "");
+            propertiesStr = propWriter.toString();
+        }
         for (int i = 1; i <= count; i++) {
-            InfrastructureParameter param = new InfrastructureParameter(type + i, type, properties.toString(), true);
+            InfrastructureParameter param = new InfrastructureParameter(type + i, type, propertiesStr, true);
             params.add(param);
         }
 

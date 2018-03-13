@@ -27,10 +27,15 @@ import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This class provides list of infrastructure combinations. Scenario tests
@@ -68,7 +73,11 @@ public class InfrastructureCombinationsProvider {
         if (valueSets.size() == 1) {
             Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
             for (InfrastructureParameter value : valueSets.iterator().next().getValues()) {
-                infrastructureCombinations.add(new InfrastructureCombination(Collections.singleton(value)));
+                Set<InfrastructureParameter> infrastructureParameters = new TreeSet<>();
+                infrastructureParameters.add(value);
+                InfrastructureCombination infraCombination = new InfrastructureCombination(infrastructureParameters);
+                addSubpropertiesAsInfrastructureParameters(infraCombination, value);
+                infrastructureCombinations.add(infraCombination);
             }
             return infrastructureCombinations;
         }
@@ -85,10 +94,41 @@ public class InfrastructureCombinationsProvider {
                 InfrastructureCombination clone = infrastructureCombination.clone();
                 clone.addParameter(value);
                 finalInfrastructureCombinations.add(clone);
+                addSubpropertiesAsInfrastructureParameters(clone, value);
             }
         }
 
         return finalInfrastructureCombinations;
+    }
+
+    /**
+     * todo.
+     */
+    private void addSubpropertiesAsInfrastructureParameters(InfrastructureCombination combination,
+            InfrastructureParameter origInfraParameter) {
+        try {
+            Properties properties = new Properties();
+            properties.load(new StringReader(origInfraParameter.getProperties()));
+
+            for (Map.Entry entry : properties.entrySet()) {
+                String name = (String) entry.getValue();
+                String type = (String) entry.getKey();
+                String regex = "[\\w,-\\.@:]*";
+                if (type.isEmpty() || !type.matches(regex)
+                        || name.isEmpty() || !name.matches(regex)) {
+                    continue;
+                }
+                InfrastructureParameter infraParameter = new InfrastructureParameter();
+                infraParameter.setName(name);
+                infraParameter.setType(type);
+                infraParameter.setReadyForTestGrid(true);
+                infraParameter.setProperties(origInfraParameter.getProperties());
+                combination.addParameter(infraParameter);
+            }
+        } catch (IOException e) {
+            logger.warn(
+                    "Error while loading the infrastructure parameter's properties string for: " + origInfraParameter);
+        }
     }
 
 }

@@ -130,9 +130,8 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
         return "InfrastructureParameter{" +
                 "name='" + name + '\'' +
                 ", type='" + type + '\'' +
-                ", properties='" + properties + '\'' +
                 ", readyForTestGrid=" + readyForTestGrid +
-                '}';
+                "}\n";
     }
 
     @Override
