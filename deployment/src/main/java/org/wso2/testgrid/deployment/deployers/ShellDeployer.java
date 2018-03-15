@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestPlan;
@@ -31,10 +32,13 @@ import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.deployment.DeploymentUtil;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import static org.wso2.testgrid.common.TestGridConstants.WORKSPACE;
@@ -62,7 +66,6 @@ public class ShellDeployer implements Deployer {
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
-        DeploymentCreationResult result = new DeploymentCreationResult();
         try {
             Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
             logger.info("Performing the Deployment " + deployment.getName());
@@ -80,14 +83,30 @@ public class ShellDeployer implements Deployer {
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the deploy-provision script. ",
                         "Script exited with a status code of ", exitCode));
+                DeploymentCreationResult result = new DeploymentCreationResult();
+                result.setName(deploymentPatternConfig.getName());
                 result.setSuccess(false);
+                return result;
             }
         } catch (CommandExecutionException e) {
             throw new TestGridDeployerException(e);
         }
-
+        DeploymentCreationResult result = DeploymentUtil.getDeploymentCreationResult(infrastructureProvisionResult
+                .getDeploymentScriptsDir());
         result.setName(deploymentPatternConfig.getName());
-        result.setHosts(infrastructureProvisionResult.getHosts());
+
+        List<Host> hosts = new ArrayList<>();
+        Host tomcatHost = new Host();
+        tomcatHost.setLabel("tomcatHost");
+        tomcatHost.setIp("ec2-52-54-230-106.compute-1.amazonaws.com");
+        Host tomcatPort = new Host();
+        tomcatPort.setLabel("tomcatPort");
+        tomcatPort.setIp("8080");
+        hosts.add(tomcatHost);
+        hosts.add(tomcatPort);
+
+        hosts.addAll(result.getHosts());
+        result.setHosts(hosts);
         return result;
     }
 

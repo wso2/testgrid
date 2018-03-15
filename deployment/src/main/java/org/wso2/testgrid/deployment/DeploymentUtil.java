@@ -46,8 +46,7 @@ public class DeploymentUtil {
             throws TestGridDeployerException {
 
         ObjectMapper mapper = new ObjectMapper();
-        File file = new File(Paths.get(testPlanLocation, DeployerConstants.PRODUCT_IS_DIR,
-                DeployerConstants.DEPLOYMENT_FILE).toString());
+        File file = new File(Paths.get(testPlanLocation, DeployerConstants.DEPLOYMENT_FILE).toString());
         try {
             return mapper.readValue(file, DeploymentCreationResult.class);
         } catch (IOException e) {

@@ -17,7 +17,7 @@
  */
 package org.wso2.testgrid.infrastructure;
 
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
+import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
@@ -50,6 +50,7 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
+import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.File;
 import java.io.IOException;
@@ -160,16 +161,13 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.when(cloudFormationClientBuilderMock.withRegion(Mockito.anyString()))
                 .thenReturn(cloudFormationClientBuilderMock);
         PowerMockito.when(cloudFormationClientBuilderMock.withCredentials(Mockito.
-                any(EnvironmentVariableCredentialsProvider.class))).thenReturn(cloudFormationClientBuilderMock);
+                any(PropertiesFileCredentialsProvider.class))).thenReturn(cloudFormationClientBuilderMock);
         PowerMockito.when(cloudFormationClientBuilderMock.build()).thenReturn(cloudFormation);
         PowerMockito.mockStatic(AmazonCloudFormationClientBuilder.class);
         PowerMockito.when(AmazonCloudFormationClientBuilder.standard()).thenReturn(cloudFormationClientBuilderMock);
 
-        AmazonCloudFormationWaiters waiterMock = Mockito.mock(AmazonCloudFormationWaiters.class);
-        Waiter mock = Mockito.mock(Waiter.class);
-        Mockito.doNothing().when(mock).run(Matchers.any(WaiterParameters.class));
-        Mockito.when(waiterMock.stackCreateComplete()).thenReturn(mock);
-        PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
+        StackCreationWaiter validatorMock = Mockito.mock(StackCreationWaiter.class);
+        PowerMockito.whenNew(StackCreationWaiter.class).withAnyArguments().thenReturn(validatorMock);
 
         AWSProvider awsProvider = new AWSProvider();
         awsProvider.init();
@@ -221,7 +219,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.when(cloudFormationClientBuilderMock.withRegion(Mockito.anyString()))
                 .thenReturn(cloudFormationClientBuilderMock);
         PowerMockito.when(cloudFormationClientBuilderMock
-                .withCredentials(Mockito.any(EnvironmentVariableCredentialsProvider.class)))
+                .withCredentials(Mockito.any(PropertiesFileCredentialsProvider.class)))
                 .thenReturn(cloudFormationClientBuilderMock);
         AMIMapper awsAMIMapper = Mockito.mock(AMIMapper.class);
         PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);

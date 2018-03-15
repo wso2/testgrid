@@ -17,7 +17,7 @@
  */
 package org.wso2.testgrid.infrastructure.providers;
 
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
+import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
@@ -35,29 +35,37 @@ import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
 import com.amazonaws.waiters.WaiterUnrecoverableException;
+import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TimeOutBuilder;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
+import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class provides the infrastructure from amazon web services (AWS).
@@ -73,6 +81,10 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String AWS_REGION_PARAMETER = "region";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     private AMIMapper amiMapper;
+    private static final int TIMEOUT = 30;
+    private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
+    private static final int POLL_INTERVAL = 1;
+    private static final TimeUnit POLL_UNIT = TimeUnit.MINUTES;
 
     @Override
     public String getProviderName() {
@@ -138,11 +150,18 @@ public class AWSProvider implements InfrastructureProvider {
         }
     }
 
-        private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
-            String stackName, String infraRepoDir) throws TestGridInfrastructureException {
+    private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
+        String stackName, String infraRepoDir) throws TestGridInfrastructureException {
         String region = infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER);
-        AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
-                .withCredentials(new EnvironmentVariableCredentialsProvider())
+            Path configFilePath;
+            try {
+                configFilePath = TestGridUtil.getConfigFilePath();
+            } catch (IOException e) {
+                throw new TestGridInfrastructureException(StringUtil.concatStrings(
+                        "Error occurred while trying to read AWS credentials.", e));
+            }
+            AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
+                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)
                 .build();
 
@@ -172,9 +191,14 @@ public class AWSProvider implements InfrastructureProvider {
                 logger.info(StringUtil.concatStrings("Stack configuration created for name ", stackName));
             }
             logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName));
-            Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new AmazonCloudFormationWaiters(cloudFormation)
-                    .stackCreateComplete();
-            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
+            StackCreationWaiter stackCreationValidator = new StackCreationWaiter();
+            try {
+                TimeOutBuilder stackTimeOut = new TimeOutBuilder(TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
+                stackCreationValidator.waitForStack(stackName, cloudFormation, stackTimeOut);
+            } catch (ConditionTimeoutException e) {
+                throw new TestGridInfrastructureException(
+                        StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
+            }
             logger.info(StringUtil.concatStrings("Stack : ", stackName, ", with ID : ", stack.getStackId(),
                     " creation completed !"));
 
@@ -208,9 +232,7 @@ public class AWSProvider implements InfrastructureProvider {
             result.setProperties(props);
 
             return result;
-        } catch (WaiterUnrecoverableException e) {
-            throw new TestGridInfrastructureException(StringUtil.concatStrings("Error while waiting for stack : "
-                    , stackName, " to complete"), e);
+
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
         }
@@ -227,8 +249,15 @@ public class AWSProvider implements InfrastructureProvider {
      */
     private boolean doRelease(InfrastructureConfig infrastructureConfig, String stackName) throws
             TestGridInfrastructureException, InterruptedException {
+        Path configFilePath;
+        try {
+            configFilePath = TestGridUtil.getConfigFilePath();
+        } catch (IOException e) {
+            throw new TestGridInfrastructureException(StringUtil.concatStrings(
+                    "Error occurred while trying to read AWS credentials.", e));
+        }
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
-                .withCredentials(new EnvironmentVariableCredentialsProvider())
+                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER))
                 .build();
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
@@ -277,6 +306,21 @@ public class AWSProvider implements InfrastructureProvider {
                         withParameterValue((String) theScriptParameter.getValue());
                 cfCompatibleParameters.add(awsParameter);
             });
+
+            //Set WUM credentials
+            if (TestGridConstants.WUM_USERNAME_PROPERTY.equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(ConfigurationContext.getProperty(ConfigurationContext.
+                                ConfigurationProperties.WUM_USERNAME));
+                cfCompatibleParameters.add(awsParameter);
+            }
+
+            if (TestGridConstants.WUM_PASSWORD_PROPERTY.equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(ConfigurationContext.getProperty(ConfigurationContext.
+                                ConfigurationProperties.WUM_PASSWORD));
+                cfCompatibleParameters.add(awsParameter);
+            }
         }));
 
         return cfCompatibleParameters;

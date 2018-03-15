@@ -99,8 +99,8 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
         deploymentPattern.setName("default-" + random);
         deploymentPattern.setProduct(product);
 
-        actualTestPlanFileLocation = Paths.get("target", "testgrid-home", product.getName(), "test-plans",
-                "test-plan-01.yaml").toString();
+        actualTestPlanFileLocation = Paths.get("target", "testgrid-home", TestGridConstants.TESTGRID_JOB_DIR,
+                product.getName(), TestGridConstants.PRODUCT_TEST_PLANS_DIR, "test-plan-01.yaml").toString();
     }
 
     @Test(dataProvider = "getJobConfigData")
@@ -146,8 +146,8 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
 
     @AfterMethod
     public void tearDown() throws Exception {
-        Path testPlanPath = Paths.get(TESTGRID_HOME, product.getName(), TestGridConstants.PRODUCT_TEST_PLANS_DIR,
-                "test-plan-01.yaml");
+        Path testPlanPath = Paths.get(TESTGRID_HOME, TestGridConstants.TESTGRID_JOB_DIR, product.getName(),
+                TestGridConstants.PRODUCT_TEST_PLANS_DIR, "test-plan-01.yaml");
         if (Files.exists(testPlanPath)) {
             FileUtils.forceDelete(testPlanPath.toFile());
         } else {

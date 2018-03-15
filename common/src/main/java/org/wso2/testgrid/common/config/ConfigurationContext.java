@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Properties;
 
 /**
@@ -42,7 +41,7 @@ public class ConfigurationContext {
     static {
         try {
             properties = new Properties();
-            Path configPath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_CONFIG_FILE);
+            Path configPath = TestGridUtil.getConfigFilePath();
             try (InputStream inputStream = Files.newInputStream(configPath)) {
                 properties.load(inputStream);
             }
@@ -104,7 +103,17 @@ public class ConfigurationContext {
         /**
          * AWS Region of TestGrid deployment
          */
-        AWS_REGION_NAME("AWS_REGION_NAME");
+        AWS_REGION_NAME("AWS_REGION_NAME"),
+
+        /**
+         * WUM Username of TestGrid deployment
+         */
+        WUM_USERNAME("WUM_USERNAME"),
+
+        /**
+         * WUM user password of TestGrid deployment
+         */
+        WUM_PASSWORD("WUM_PASSWORD");
 
         private String propertyName;
 

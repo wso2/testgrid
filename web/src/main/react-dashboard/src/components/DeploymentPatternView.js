@@ -137,6 +137,27 @@ class DeploymentPatternView extends Component {
                 </table>
               </Subheader>;
             case PENDING:
+                return <Subheader style={{
+                    fontSize: '20px',
+                    backgroundColor: "#cdffba"
+                }}>
+                  <table>
+                    <tbody>
+                    <tr>
+                      <td style={{ padding: 5 }}>
+                        <img
+                            src={require('../new.png')}
+                            style={{
+                                verticalAlign: "middle",
+                                height: "50px",
+                                width: "50px"
+                            }} />
+                      </td>
+                      <i> {this.props.active.reducer.currentProduct.productName + " "} </i>
+                    </tr>
+                    </tbody>
+                  </table>
+                </Subheader>;
             case RUNNING:
             default:
               return <Subheader style={{
