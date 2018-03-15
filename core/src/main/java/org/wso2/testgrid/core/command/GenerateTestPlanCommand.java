@@ -558,7 +558,8 @@ public class GenerateTestPlanCommand implements Command {
         try {
             String directoryName = product.getName();
             String testGridHome = TestGridUtil.getTestGridHomePath();
-            Path directory = Paths.get(testGridHome, TESTGRID_JOB_DIR, directoryName, PRODUCT_TEST_PLANS_DIR).toAbsolutePath();
+            Path directory = Paths.
+                    get(testGridHome, TESTGRID_JOB_DIR, directoryName, PRODUCT_TEST_PLANS_DIR).toAbsolutePath();
 
             // if the directory exists, remove it
             removeDirectories(directory);
