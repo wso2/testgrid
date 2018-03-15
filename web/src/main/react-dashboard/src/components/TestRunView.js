@@ -317,6 +317,11 @@ class TestRunView extends Component {
                                         src={require('../close.png')} />
                                     </div>;
                                   case PENDING:
+                                      return <div>
+                                        <img width="36"
+                                             height="36"
+                                             src={require('../new.png')} />
+                                      </div>;
                                   case "RUNNING":
                                   default:
                                     return <div>
