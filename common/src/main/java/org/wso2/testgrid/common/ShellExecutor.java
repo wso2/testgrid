@@ -22,6 +22,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,6 +31,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -46,7 +48,8 @@ public class ShellExecutor {
     private Path workingDirectory;
 
     public ShellExecutor() {
-        this(null);
+        //todo: Set this to the test-run workspace
+        this(Paths.get(TestGridUtil.getTestGridHomePath()));
     }
 
     public ShellExecutor(Path workingDirectory) {

@@ -22,6 +22,7 @@ package org.wso2.testgrid.common;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * This is a DTO that contain the output of the
@@ -34,6 +35,7 @@ public class DeploymentCreationResult implements Serializable {
 
     private boolean success = true;
     private String name;
+    private Properties properties = new Properties();
     private List<Host> hosts = Collections.emptyList();
 
     public String getName() {
@@ -50,6 +52,21 @@ public class DeploymentCreationResult implements Serializable {
 
     public void setSuccess(boolean success) {
         this.success = success;
+    }
+
+    public Properties getProperties() {
+        if (properties == null) {
+            return new Properties();
+        }
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
+    public void setProperty(String key, String value) {
+        properties.setProperty(key, value);
     }
 
     public List<Host> getHosts() {

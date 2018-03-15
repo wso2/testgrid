@@ -235,7 +235,7 @@ public class RunTestPlanCommand implements Command {
      */
     private String deriveLogFilePath(TestPlan testPlan) throws TestGridLoggingException {
         try {
-            Path testRunDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
+            Path testRunDirectory = TestGridUtil.getTestRunWorkspace(testPlan);
             return testRunDirectory.resolve(TestGridConstants.TEST_LOG_FILE_NAME).toString();
         } catch (TestGridException e) {
             throw new TestGridLoggingException(

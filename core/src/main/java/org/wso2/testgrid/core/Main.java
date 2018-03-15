@@ -26,8 +26,6 @@ import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.command.CommandHandler;
 
-import java.io.IOException;
-
 /**
  * This is the Main class of TestGrid which initiates the Test execution process for a particular project.
  *
@@ -51,8 +49,6 @@ public class Main {
             logger.error("Error while parsing command line arguments.", e);
         } catch (CommandExecutionException e) {
             logger.error("Error while executing command.", e);
-        } catch (IOException e) {
-            logger.error("Error while creating $TESTGRID_HOME env variable.");
         }
     }
 }

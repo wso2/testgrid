@@ -32,9 +32,6 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
@@ -70,15 +67,13 @@ public class ShellScriptProvider implements InfrastructureProvider {
         InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
         logger.info("Executing provisioning scripts...");
         try {
-            Path artifactsDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
             Script createScript = getScriptToExecute(infrastructureConfig, Script.Phase.CREATE);
             Properties inputParameters = createScript.getInputParameters();
-
-            final String workspace = StringUtil.concatStrings(TestGridUtil.getTestGridHomePath()
-                    , File.separator, artifactsDirectory.toString());
+            final String workspace = TestGridUtil.getTestRunWorkspace(testPlan, false).toString();
             inputParameters.setProperty(WORKSPACE, workspace);
             // TODO: this is deprecated.
             inputParameters.setProperty(OUTPUT_DIR, workspace);
+
             String parameterString = TestGridUtil.getParameterString(null, inputParameters);
             ShellExecutor executor = new ShellExecutor(null);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
@@ -100,8 +95,6 @@ public class ShellScriptProvider implements InfrastructureProvider {
             throw new TestGridInfrastructureException(
                     "Exception occurred while executing the infra-create script " +
                             "when generating Test run artifact directory ", e);
-        } catch (IOException e) {
-            throw new TestGridInfrastructureException("Exception occurred while reading the TestGrid home path", e);
         }
 
     }

@@ -17,11 +17,15 @@
  */
 package org.wso2.testgrid.automation.executor;
 
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -33,6 +37,14 @@ import java.nio.file.Paths;
  * @since 1.0.0
  */
 public class JMeterExecutorTest {
+
+    @Mock
+    TestScenarioUOW testScenarioUOW;
+
+    @BeforeMethod
+    public void init() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @DataProvider(name = "invalidJMeterFiles")
     public Object[][] invalidJMeterFiles() {
@@ -67,7 +79,7 @@ public class JMeterExecutorTest {
 
         String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
-        TestExecutor testExecutor = new JMeterExecutor();
+        TestExecutor testExecutor = new JMeterExecutor(testScenarioUOW);
         testExecutor.init(testLocation, "solution22", null);
         //        testExecutor.execute(testScript, new Deployment());
 
@@ -80,7 +92,7 @@ public class JMeterExecutorTest {
     public void testExecuteInvalidTest(String testLocation, String scriptPath, String exceptionMessage)
             throws URISyntaxException {
         try {
-            TestExecutor testExecutor = new JMeterExecutor();
+            TestExecutor testExecutor = new JMeterExecutor(testScenarioUOW);
             testExecutor.init(testLocation, "solution22", null);
             testExecutor.execute(scriptPath, new DeploymentCreationResult());
         } catch (TestAutomationException e) {
@@ -95,7 +107,7 @@ public class JMeterExecutorTest {
           expectedExceptionsMessageRegExp = "JMeter Executor not initialised properly.\\{ Test Name: null, " +
                   "Test Location: null\\}")
     public void testNoInit() throws TestAutomationException {
-        TestExecutor testExecutor = new JMeterExecutor();
+        TestExecutor testExecutor = new JMeterExecutor(testScenarioUOW);
         testExecutor.execute("Script", new DeploymentCreationResult());
     }
 
@@ -114,7 +126,7 @@ public class JMeterExecutorTest {
 
         String testLocation = Paths.get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
-        TestExecutor testExecutor = new JMeterExecutor();
+        TestExecutor testExecutor = new JMeterExecutor(testScenarioUOW);
         testExecutor.init(testLocation, "solution22", null);
         testExecutor.execute(testScript, new DeploymentCreationResult());
     }
@@ -135,7 +147,7 @@ public class JMeterExecutorTest {
         String testLocation = Paths
                 .get(resource.getPath(), "SolutionPattern22", "Tests")
                 .toAbsolutePath().toString();
-        TestExecutor testExecutor = new JMeterExecutor();
+        TestExecutor testExecutor = new JMeterExecutor(testScenarioUOW);
         testExecutor.init(testLocation, "solution22", null);
         testExecutor.execute(testScript, new DeploymentCreationResult());
     }

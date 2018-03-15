@@ -21,7 +21,6 @@ limitations under the License.
     <test name="executor-test" parallel="false">
         <classes>
             <class name="org.wso2.testgrid.automation.executor.JMeterExecutorTest"/>
-            <class name="org.wso2.testgrid.automation.executor.TestExecutorFactoryTest"/>
         </classes>
     </test>
 </suite>

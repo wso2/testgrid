@@ -169,7 +169,7 @@ public final class TestGridUtil {
      *
      * @return test grid home path
      */
-    public static String getTestGridHomePath() throws IOException {
+    public static String getTestGridHomePath() {
         String testGridHome = EnvironmentUtil.getSystemVariableValue(TestGridConstants.TESTGRID_HOME_ENV);
         if (testGridHome == null || testGridHome.isEmpty()) {
             testGridHome = EnvironmentUtil.getSystemVariableValue(TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY);
@@ -183,8 +183,15 @@ public final class TestGridUtil {
         }
 
         testGridHomePath = testGridHomePath.toAbsolutePath();
-        if (!Files.exists(testGridHomePath)) {
-            Files.createDirectories(testGridHomePath.toAbsolutePath());
+
+        try {
+            if (!Files.exists(testGridHomePath)) {
+                Files.createDirectories(testGridHomePath.toAbsolutePath());
+            }
+        } catch (IOException e) {
+            logger.warn(String.format("Error while creating testgrid.home: %s. Defaulting to: %s", e.getMessage(),
+                    DEFAULT_TESTGRID_HOME));
+            testGridHomePath = DEFAULT_TESTGRID_HOME.toAbsolutePath();
         }
         testGridHome = testGridHomePath.toString();
         System.setProperty(TESTGRID_HOME_SYSTEM_PROPERTY, testGridHome);
@@ -203,13 +210,25 @@ public final class TestGridUtil {
     }
 
     /**
-     * Returns the directory location where the test run artifacts resides.
+     * Returns the directory location where the test run artifacts resides relative to testgrid.home.
      *
      * @param testPlan test plan for getting the test run artifacts location
      * @return path of the test run artifacts
      * @throws TestGridException thrown when error on calculating test run artifacts directory
      */
-    public static Path getTestRunArtifactsDirectory(TestPlan testPlan) throws TestGridException {
+    public static Path getTestRunWorkspace(TestPlan testPlan) throws TestGridException {
+        return getTestRunWorkspace(testPlan, true);
+    }
+
+    /**
+     * Returns the directory location where the test run artifacts resides.
+     *
+     * @param testPlan test plan for getting the test run artifacts location
+     * @param relative Whether the path need to be returned relative to testgrid.home or not.
+     * @return path of the test run artifacts
+     * @throws TestGridException thrown when error on calculating test run artifacts directory
+     */
+    public static Path getTestRunWorkspace(TestPlan testPlan, boolean relative) throws TestGridException {
         DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
         Product product = deploymentPattern.getProduct();
         int testRunNumber = testPlan.getTestRunNumber();
@@ -218,7 +237,12 @@ public final class TestGridUtil {
         String deploymentDir = deploymentPattern.getName();
         String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
 
-        return Paths.get(productDir, deploymentDir, infraDir, String.valueOf(testRunNumber));
+        String dirPrefix = "";
+        if (!relative) {
+            dirPrefix = getTestGridHomePath();
+        }
+
+        return Paths.get(dirPrefix, productDir, deploymentDir, infraDir, String.valueOf(testRunNumber));
     }
 
     /**

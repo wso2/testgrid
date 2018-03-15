@@ -32,6 +32,7 @@ import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Port;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
@@ -44,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -54,9 +56,18 @@ import java.util.Properties;
 public class JMeterExecutor extends TestExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(JMeterExecutor.class);
+    private final TestScenarioUOW testScenarioUOW;
     private String testLocation;
     private String testName;
     private TestScenario testScenario;
+
+    public JMeterExecutor() {
+        testScenarioUOW = new TestScenarioUOW();
+    }
+
+    public JMeterExecutor(TestScenarioUOW testScenarioUOW) {
+        this.testScenarioUOW = testScenarioUOW;
+    }
 
     @Override
     public void execute(String script, DeploymentCreationResult deploymentCreationResult)
@@ -67,7 +78,7 @@ public class JMeterExecutor extends TestExecutor {
                     StringUtil.concatStrings("JMeter Executor not initialised properly.", "{ Test Name: ", testName,
                             ", Test Location: ", testLocation, "}"));
         }
-        overrideJMeterConfig(testLocation,
+        overrideJMeterConfig(script,
                 deploymentCreationResult); // Override JMeter properties for current deployment.
         //TODO change parameter replacing in jmx files to use JMeter properties file.
         try {
@@ -108,7 +119,6 @@ public class JMeterExecutor extends TestExecutor {
         jMeterEngine.exit();
 
         //Persist test scenario
-        TestScenarioUOW testScenarioUOW = new TestScenarioUOW();
         try {
             testScenarioUOW.persistTestScenario(testScenario);
             if (logger.isDebugEnabled()) {
@@ -189,22 +199,33 @@ public class JMeterExecutor extends TestExecutor {
     /**
      * Overrides the JMeter properties with the properties required for the current deployment.
      *
-     * @param testLocation directory location of the tests
-     * @param deployment   deployment details of the current pattern
+     * @param script     jmeter script file path
+     * @param deployment deployment details of the current pattern
      */
 
-    private void overrideJMeterConfig(String testLocation, DeploymentCreationResult deployment) {
+    private void overrideJMeterConfig(String script, DeploymentCreationResult deployment) {
         Path path = Paths.get(testLocation, "resources", "user.properties");
         if (!Files.exists(path)) {
             logger.info("JMeter user.properties file not specified - proceeding with JMeter default properties.");
             return;
         }
         JMeterUtils.loadJMeterProperties(path.toAbsolutePath().toString());
+        for (Map.Entry<Object, Object> entry : deployment.getProperties().entrySet()) {
+            JMeterUtils.setProperty((String) entry.getKey(), (String) entry.getValue());
+        }
+
+        //deprecated
         for (Host host : deployment.getHosts()) {
             JMeterUtils.setProperty(host.getLabel(), host.getIp());
             for (Port port : host.getPorts()) {
                 JMeterUtils.setProperty(port.getProtocol(), String.valueOf(port.getPortNumber()));
             }
+        }
+
+        if (logger.isDebugEnabled()) {
+            String jmeterFile = script.replace(TestGridUtil.getTestGridHomePath(), "");
+            logger.debug(String.format("List of JMeter properties for %s: %s", jmeterFile, JMeterUtils
+                    .getJMeterProperties()));
         }
     }
 

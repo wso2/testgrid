@@ -35,12 +35,13 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.deployment.DeploymentUtil;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
+import static org.wso2.testgrid.common.TestGridConstants.WORKSPACE;
 
 /**
  * This class performs Shell related deployment tasks.
@@ -51,7 +52,6 @@ public class ShellDeployer implements Deployer {
 
     private static final Logger logger = LoggerFactory.getLogger(ShellDeployer.class);
     private static final String DEPLOYER_NAME = "SHELL";
-    public static final String WORKSPACE = "workspace";
 
     @Override
     public String getDeployerName() {
@@ -82,7 +82,7 @@ public class ShellDeployer implements Deployer {
                             .getDeploymentScriptsDir(), deployment.getFile()) + " " + parameterString);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the deploy-provision script. ",
-                        "Script exited with a status code of " , exitCode));
+                        "Script exited with a status code of ", exitCode));
                 DeploymentCreationResult result = new DeploymentCreationResult();
                 result.setName(deploymentPatternConfig.getName());
                 result.setSuccess(false);
@@ -90,8 +90,6 @@ public class ShellDeployer implements Deployer {
             }
         } catch (CommandExecutionException e) {
             throw new TestGridDeployerException(e);
-        } catch (IOException e) {
-            throw new TestGridDeployerException("Error occurred while retrieving the Testgrid_home ", e);
         }
         DeploymentCreationResult result = DeploymentUtil.getDeploymentCreationResult(infrastructureProvisionResult
                 .getDeploymentScriptsDir());
@@ -114,13 +112,11 @@ public class ShellDeployer implements Deployer {
 
     private Properties getInputParameters(TestPlan testPlan, Script deployment) {
         try {
-            Path artifactsDirectory = TestGridUtil.getTestRunArtifactsDirectory(testPlan);
-            final String workspace = StringUtil.concatStrings(TestGridUtil.getTestGridHomePath()
-                    , File.separator, artifactsDirectory.toString());
+            Path workspace = TestGridUtil.getTestRunWorkspace(testPlan, false);
             final Properties inputParameters = deployment.getInputParameters();
-            inputParameters.setProperty(WORKSPACE, workspace);
+            inputParameters.setProperty(WORKSPACE, workspace.toString());
             return inputParameters;
-        } catch (TestGridException | IOException e) {
+        } catch (TestGridException e) {
             logger.info("Error while reading input parameters for deployment. Using empty properties. Error: " +
                     e.getMessage(), e);
             return new Properties();

@@ -32,7 +32,7 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
-import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,16 +50,18 @@ public class AMIMapper {
     private final AmazonEC2 amazonEC2;
 
     public AMIMapper() throws TestGridInfrastructureException {
-        try {
-            Path configFilePath = TestGridUtil.getConfigFilePath();
-            amazonEC2 = AmazonEC2ClientBuilder.standard()
-                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                    .withRegion(ConfigurationContext.getProperty(ConfigurationProperties.AWS_REGION_NAME))
-                    .build();
-        } catch (IOException e) {
+        Path configFilePath = Paths.get(TestGridUtil.getTestGridHomePath(),
+                TestGridConstants.TESTGRID_CONFIG_FILE);
+        if (!Files.exists(configFilePath)) {
             throw new TestGridInfrastructureException(
-                    "Error occurred while trying to read AWS credentials.", e);
+                    TestGridConstants.TESTGRID_CONFIG_FILE + " file not found." +
+                            " Unable to obtain AWS credentials. Check if the file exists in " +
+                            configFilePath.toFile().toString());
         }
+        amazonEC2 = AmazonEC2ClientBuilder.standard()
+                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                .withRegion(ConfigurationContext.getProperty(ConfigurationProperties.AWS_REGION_NAME))
+                .build();
     }
 
     /**
