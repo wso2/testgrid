@@ -21,7 +21,7 @@
     <parent>
         <artifactId>testgrid-parent</artifactId>
         <groupId>org.wso2.testgrid</groupId>
-        <version>0.9.0-m17</version>
+        <version>0.9.0-m18-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
