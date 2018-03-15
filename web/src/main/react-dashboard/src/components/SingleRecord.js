@@ -40,13 +40,13 @@ class SingleRecord extends Component {
           })()}
         </div>
       )
-    } else if (this.props.value === PENDING || this.props.value === RUNNING) {
+    } else if (this.props.value === RUNNING) {
       return (
         <div style={{ "fontSize": "16px" }}>
         <img src={require('../wait.gif')} width="30" height="30"
           onClick={this.props.nevigate}
           style={{ cursor: 'pointer' }}
-          alt='Succesful' />
+          alt='Running' />
         {(() => {
           if (this.props.time) {
             return (<i> {Moment(this.props.time).fromNow()}</i>);
@@ -54,6 +54,20 @@ class SingleRecord extends Component {
         })()}
       </div>
       )
+    } else if (this.props.value === PENDING) {
+        return (
+            <div style={{ "fontSize": "16px" }}>
+              <img src={require('../new.png')} width="30" height="30"
+                   onClick={this.props.nevigate}
+                   style={{ cursor: 'pointer' }}
+                   alt='Pending' />
+                {(() => {
+                    if (this.props.time) {
+                        return (<i> {Moment(this.props.time).fromNow()}</i>);
+                    }
+                })()}
+            </div>
+        )
     }
     else {
       return (
