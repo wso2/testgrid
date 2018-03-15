@@ -26,6 +26,7 @@ import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -34,6 +35,7 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
