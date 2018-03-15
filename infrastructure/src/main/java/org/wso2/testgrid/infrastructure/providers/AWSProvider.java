@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.config.ConfigurationContext;
@@ -307,14 +308,14 @@ public class AWSProvider implements InfrastructureProvider {
             });
 
             //Set WUM credentials
-            if (expected.getParameterKey().equals("WUMUsername")) {
+            if (TestGridConstants.WUM_USERNAME_PROPERTY.equals(expected.getParameterKey())) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(ConfigurationContext.getProperty(ConfigurationContext.
                                 ConfigurationProperties.WUM_USERNAME));
                 cfCompatibleParameters.add(awsParameter);
             }
 
-            if (expected.getParameterKey().equals("WUMPassword")) {
+            if (TestGridConstants.WUM_PASSWORD_PROPERTY.equals(expected.getParameterKey())) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(ConfigurationContext.getProperty(ConfigurationContext.
                                 ConfigurationProperties.WUM_PASSWORD));
