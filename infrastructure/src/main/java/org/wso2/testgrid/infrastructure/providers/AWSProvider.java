@@ -43,6 +43,7 @@ import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TimeOutBuilder;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -304,6 +305,21 @@ public class AWSProvider implements InfrastructureProvider {
                         withParameterValue((String) theScriptParameter.getValue());
                 cfCompatibleParameters.add(awsParameter);
             });
+
+            //Set WUM credentials
+            if (expected.getParameterKey().equals("WUMUsername")) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(ConfigurationContext.getProperty(ConfigurationContext.
+                                ConfigurationProperties.WUM_USERNAME));
+                cfCompatibleParameters.add(awsParameter);
+            }
+
+            if (expected.getParameterKey().equals("WUMPassword")) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(ConfigurationContext.getProperty(ConfigurationContext.
+                                ConfigurationProperties.WUM_PASSWORD));
+                cfCompatibleParameters.add(awsParameter);
+            }
         }));
 
         return cfCompatibleParameters;
