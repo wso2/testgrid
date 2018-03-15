@@ -39,4 +39,7 @@ public class TestGridConstants {
     public static final String DEFAULT_DEPLOYMENT_PATTERN_NAME = "default";
     public static final String TESTGRID_CONFIG_FILE = "config.properties";
 
+    public static final String WUM_USERNAME_PROPERTY = "WUMUsername";
+    public static final String WUM_PASSWORD_PROPERTY = "WUMPassword";
+
 }

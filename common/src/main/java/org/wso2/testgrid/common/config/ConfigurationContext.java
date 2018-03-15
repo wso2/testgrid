@@ -103,7 +103,17 @@ public class ConfigurationContext {
         /**
          * AWS Region of TestGrid deployment
          */
-        AWS_REGION_NAME("AWS_REGION_NAME");
+        AWS_REGION_NAME("AWS_REGION_NAME"),
+
+        /**
+         * WUM Username of TestGrid deployment
+         */
+        WUM_USERNAME("WUM_USERNAME"),
+
+        /**
+         * WUM user password of TestGrid deployment
+         */
+        WUM_PASSWORD("WUM_PASSWORD");
 
         private String propertyName;
 

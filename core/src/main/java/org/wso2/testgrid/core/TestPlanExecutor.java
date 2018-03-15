@@ -184,8 +184,7 @@ public class TestPlanExecutor {
             InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                     .getInfrastructureProvider(infrastructureConfig);
             infrastructureProvider.init();
-            InfrastructureProvisionResult provisionResult = infrastructureProvider
-                    .provision(testPlan);
+            InfrastructureProvisionResult provisionResult = infrastructureProvider.provision(testPlan);
 
             provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
             //TODO: remove. deploymentScriptsDir is deprecated now in favor of DeploymentConfig.
