@@ -109,8 +109,8 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
     public void init() throws Exception {
         final String randomStr = StringUtil.generateRandomString(5);
         String productName = "wso2-" + randomStr;
-        actualTestPlanFileLocation = Paths.get("target", "testgrid-home", productName, "test-plans",
-                "test-plan-01.yaml").toString();
+        actualTestPlanFileLocation = Paths.get("target", "testgrid-home", TestGridConstants.TESTGRID_JOB_DIR,
+                productName, TestGridConstants.PRODUCT_TEST_PLANS_DIR, "test-plan-01.yaml").toString();
         runTestPlanCommand = new RunTestPlanCommand(productName, actualTestPlanFileLocation);
         System.setProperty(TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY, TESTGRID_HOME);
 
@@ -191,8 +191,8 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
 
     @AfterMethod
     public void tearDown() throws Exception {
-        Path testPlanPath = Paths.get(TESTGRID_HOME, product.getName(), TestGridConstants.PRODUCT_TEST_PLANS_DIR,
-                "test-plan-01.yaml");
+        Path testPlanPath = Paths.get(TESTGRID_HOME, TestGridConstants.TESTGRID_JOB_DIR, product.getName(),
+                TestGridConstants.PRODUCT_TEST_PLANS_DIR, "test-plan-01.yaml");
         if (Files.exists(testPlanPath)) {
             FileUtils.forceDelete(testPlanPath.toFile());
         } else {

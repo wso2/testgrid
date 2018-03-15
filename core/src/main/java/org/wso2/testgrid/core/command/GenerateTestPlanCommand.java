@@ -68,6 +68,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
+import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_JOB_DIR;
 
 /**
  * Responsible for generating the infrastructure plan and persisting them in the file system.
@@ -557,7 +558,8 @@ public class GenerateTestPlanCommand implements Command {
         try {
             String directoryName = product.getName();
             String testGridHome = TestGridUtil.getTestGridHomePath();
-            Path directory = Paths.get(testGridHome, directoryName, PRODUCT_TEST_PLANS_DIR).toAbsolutePath();
+            Path directory = Paths.
+                    get(testGridHome, TESTGRID_JOB_DIR, directoryName, PRODUCT_TEST_PLANS_DIR).toAbsolutePath();
 
             // if the directory exists, remove it
             removeDirectories(directory);
