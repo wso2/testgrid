@@ -32,6 +32,7 @@ public class TestGridConstants {
 
     public static final String TEST_LOG_FILE_NAME = "test-run.log";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
+    public static final String TESTGRID_JOB_DIR = "jobs";
     public static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
     public static final String TESTGRID_HOME_SYSTEM_PROPERTY = "testgrid.home";
     public static final Path DEFAULT_TESTGRID_HOME = Paths.get(System.getProperty("user.home"), ".testgrid");
