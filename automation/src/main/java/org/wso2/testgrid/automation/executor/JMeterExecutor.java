@@ -30,6 +30,8 @@ import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Port;
+import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -120,6 +122,18 @@ public class JMeterExecutor extends TestExecutor {
 
         //Persist test scenario
         try {
+            if (testScenario.getTestCases().size() == 0) {
+                testScenario.setStatus(Status.ERROR);
+            } else {
+                for (TestCase testCase : testScenario.getTestCases()) {
+                    if (!testCase.isSuccess()) {
+                        testScenario.setStatus(Status.FAIL);
+                        break;
+                    } else {
+                        testScenario.setStatus(Status.SUCCESS);
+                    }
+                }
+            }
             testScenarioUOW.persistTestScenario(testScenario);
             if (logger.isDebugEnabled()) {
                 logger.debug(StringUtil.concatStrings(
