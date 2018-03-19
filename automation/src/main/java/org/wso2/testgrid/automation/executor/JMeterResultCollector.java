@@ -42,8 +42,6 @@ public class JMeterResultCollector extends ResultCollector {
     private static final long serialVersionUID = -5244808712889913949L;
 
     private TestScenario testScenario;
-    private static final int FAILURE_MESSAGE_LIMIT = 5000;
-    private List<TestCase> testCases = new CopyOnWriteArrayList<>();
 
     /**
      * Constructs an instance of {@link JMeterResultCollector}.
@@ -61,26 +59,30 @@ public class JMeterResultCollector extends ResultCollector {
             super.sampleOccurred(sampleEvent);
             SampleResult result = sampleEvent.getResult();
 
-            String message = result.isSuccessful() ? "" :
-                                    StringUtil.concatStrings("{ \"Response Data\": \"",
-                                            result.getResponseDataAsString().replaceAll("\"", "\\\""),
-                                            "\", \"Status code\": \"",
-                                            result.getResponseCode().replaceAll("\"", "\\\""),
-                                            "\", \"Response Message\": \"",
-                                            result.getResponseMessage().replaceAll("\"", "\\\""),
-                                            "\", \"Sampler Data\": \"",
-                                            result.getSamplerData().replaceAll("\"", "\\\""), "\"}");
+            String message = "";
+            String logMessage = "";
+            if (!result.isSuccessful()) {
+                message = StringUtil.concatStrings("{ \"Status code\": \"",
+                        result.getResponseCode().replaceAll("\"", "\\\""),
+                        "\", \"Response Message\": \"",
+                        result.getResponseMessage().replaceAll("\"", "\\\""),
+                        "\", \"Response Data\": \"",
+                        result.getResponseDataAsString().replaceAll("\"", "\\\""), "\"}");
+
+                logMessage = StringUtil.concatStrings("{ \"Status code\": \"",
+                        result.getResponseCode().replaceAll("\"", "\\\""),
+                        "\", \"Response Message\": \"",
+                        result.getResponseMessage().replaceAll("\"", "\\\""),
+                        "\", \"Response Data\": \"",
+                        result.getResponseDataAsString().replaceAll("\"", "\\\""),
+                        "\", \"Sampler Data\": \"",
+                        result.getSamplerData().replaceAll("\"", "\\\""), "\"}");
+            }
 
             if (!result.isSuccessful()) {
-                //Truncate the failure message if it exceeds the desired limit
-                if (message.length() > FAILURE_MESSAGE_LIMIT) {
-                    message = StringUtil.concatStrings(
-                            message.substring(0, FAILURE_MESSAGE_LIMIT), "\nlog truncated...");
-                }
-
                 jmeterResultLogger.warn(StringUtil.concatStrings(
                         "Test case :", result.getSampleLabel(), " failed for scenario: ",
-                        testScenario.getName(), "\n", "Failure Message: ", message, "\"}"));
+                        testScenario.getName(), "\n", "Failure Message: ", logMessage, "\"}"));
 
             } else {
                 jmeterResultLogger.debug(StringUtil.concatStrings(
@@ -95,16 +97,5 @@ public class JMeterResultCollector extends ResultCollector {
             testCase.setSuccess(result.isSuccessful());
             testCase.setFailureMessage(message);
             testScenario.addTestCase(testCase);
-    }
-
-    /**
-     * Gets the list of test cases pertaining to the scenario.
-     * The test cases are added to the into the list concurrently once it enters
-     * {@link #sampleOccurred(SampleEvent)} and the test execution is complete.
-     *
-     * @return the concurrent list of test cases
-     */
-    public List<TestCase> getTestCases() {
-        return testCases;
     }
 }
