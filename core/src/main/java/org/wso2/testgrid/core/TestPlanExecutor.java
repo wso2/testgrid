@@ -88,7 +88,7 @@ public class TestPlanExecutor {
         if (!deploymentCreationResult.isSuccess()) {
             testPlan.setStatus(Status.ERROR);
             for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                testScenario.setStatus(Status.DIDNT_RUN);
+                testScenario.setStatus(Status.DID_NOT_RUN);
             }
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             testPlanUOW.persistTestPlan(testPlan);

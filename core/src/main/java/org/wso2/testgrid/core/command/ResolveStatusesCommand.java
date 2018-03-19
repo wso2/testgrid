@@ -63,7 +63,7 @@ public class ResolveStatusesCommand implements Command {
             for (TestScenario testScenario : testPlan.getTestScenarios()) {
                 switch (testScenario.getStatus()) {
                     case PENDING:
-                        testScenario.setStatus(Status.DIDNT_RUN);
+                        testScenario.setStatus(Status.DID_NOT_RUN);
                         break;
                     case RUNNING:
                         testScenario.setStatus(Status.ERROR);

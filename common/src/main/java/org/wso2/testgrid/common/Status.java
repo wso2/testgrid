@@ -47,7 +47,7 @@ public enum Status {
     /**
      * Entity execution didn't run.
      */
-    DIDNT_RUN("DIDN'T RUN"),
+    DID_NOT_RUN("DID_NOT_RUN"),
 
     /**
      * Entity execution caused an error.
