@@ -27,9 +27,6 @@ import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * This class is responsible for collecting JMeter test results.
  *
