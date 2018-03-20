@@ -76,7 +76,7 @@ public class TestPlanExecutor {
      * @throws TestPlanExecutorException thrown when error on executing test plan
      */
     public void execute(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
-            throws TestPlanExecutorException {
+            throws TestPlanExecutorException, TestGridDAOException {
         // Provision infrastructure
         InfrastructureProvisionResult infrastructureProvisionResult = provisionInfrastructure(infrastructureConfig,
                 testPlan);
@@ -85,11 +85,24 @@ public class TestPlanExecutor {
         DeploymentCreationResult deploymentCreationResult = createDeployment(infrastructureConfig, testPlan,
                 infrastructureProvisionResult);
 
+        if (!deploymentCreationResult.isSuccess()) {
+            testPlan.setStatus(Status.ERROR);
+            for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                testScenario.setStatus(Status.DID_NOT_RUN);
+            }
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            testPlanUOW.persistTestPlan(testPlan);
+            logger.error(StringUtil.concatStrings(
+                    "Error occurred while performing deployment for test plan", testPlan.getId(),
+                    "Releasing infrastructure..."));
+            releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
+            return;
+        }
         // Run test scenarios.
         runScenarioTests(testPlan, deploymentCreationResult);
 
-        // Test plan completed.
-        setTestPlanStatus(testPlan);
+        // Test plan completed. Persist the testplan status
+        persistTestPlanStatus(testPlan);
 
         //cleanup
         releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
@@ -107,9 +120,9 @@ public class TestPlanExecutor {
                 scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
             } catch (Exception e) {
                 // we need to continue the rest of the tests irrespective of the exception thrown here.
-                setTestPlanStatus(testPlan, Status.FAIL);
+                persistTestPlanStatus(testPlan, Status.ERROR);
                 logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
-                        testScenario.getName(), "' , in TestPlan"), e);
+                        testScenario.getName(), "' in TestPlan\nCaused by "), e);
             }
         }
     }
@@ -136,26 +149,26 @@ public class TestPlanExecutor {
             Deployer deployerService = DeployerFactory.getDeployerService(testPlan);
             return deployerService.deploy(testPlan, infrastructureProvisionResult);
         } catch (TestGridDeployerException e) {
-            setTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanStatus(testPlan, Status.FAIL);
             String msg = StringUtil
                     .concatStrings("Exception occurred while running the deployment for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
         } catch (DeployerInitializationException e) {
-            setTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanStatus(testPlan, Status.FAIL);
             String msg = StringUtil
                     .concatStrings("Unable to locate a Deployer Service implementation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan '");
             logger.error(msg, e);
         } catch (UnsupportedDeployerException e) {
-            setTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanStatus(testPlan, Status.FAIL);
             String msg = StringUtil
                     .concatStrings("Error occurred while running deployment for deployment pattern '",
                             testPlan.getDeploymentPattern(), "' in TestPlan");
             logger.error(msg, e);
         } catch (Exception e) {
             // deployment creation should not interrupt other tasks.
-            setTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanStatus(testPlan, Status.FAIL);
             String msg = StringUtil.concatStrings("Unhandled error occurred hile running deployment for deployment "
                     + "pattern '", testPlan.getDeploymentConfig(), "' in TestPlan");
             logger.error(msg, e);
@@ -176,7 +189,7 @@ public class TestPlanExecutor {
             TestPlan testPlan) {
         try {
             if (infrastructureConfig == null) {
-                setTestPlanStatus(testPlan, Status.FAIL);
+                persistTestPlanStatus(testPlan, Status.FAIL);
                 throw new TestPlanExecutorException(StringUtil
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
@@ -191,20 +204,20 @@ public class TestPlanExecutor {
             provisionResult.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepository()).toString());
             return provisionResult;
         } catch (TestGridInfrastructureException e) {
-            setTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanStatus(testPlan, Status.FAIL);
             String msg = StringUtil
                     .concatStrings("Error on infrastructure creation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
         } catch (InfrastructureProviderInitializationException | UnsupportedProviderException e) {
-            setTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanStatus(testPlan, Status.FAIL);
             String msg = StringUtil
                     .concatStrings("No Infrastructure Provider implementation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
         } catch (Exception e) {
             // Catching the Exception here since we need to catch and gracefully handle all exceptions.
-            setTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanStatus(testPlan, Status.FAIL);
             logger.error("Unknown exception while provisioning the infrastructure: " + e.getMessage(), e);
         }
 
@@ -251,10 +264,22 @@ public class TestPlanExecutor {
      *
      * @param testPlan TestPlan object to persist
      */
-    private void setTestPlanStatus(TestPlan testPlan) {
+    private void persistTestPlanStatus(TestPlan testPlan) {
         try {
-            Status status = isFailedTestScenariosExist(testPlan) ? Status.FAIL : Status.SUCCESS;
-            setTestPlanStatus(testPlan, status);
+            boolean isSuccess = true;
+            for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                if (testScenario.getStatus() != Status.SUCCESS) {
+                    isSuccess = false;
+                    if (testScenario.getStatus() == Status.FAIL) {
+                        testPlan.setStatus(Status.FAIL);
+                        break;
+                    }
+                }
+            }
+            if (isSuccess) {
+                testPlan.setStatus(Status.SUCCESS);
+            }
+            testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             logger.error("Error occurred while persisting the test plan. ", e);
         }
@@ -266,23 +291,12 @@ public class TestPlanExecutor {
      * @param testPlan TestPlan object to persist
      * @param status   the status to set
      */
-    private void setTestPlanStatus(TestPlan testPlan, Status status) {
+    private void persistTestPlanStatus(TestPlan testPlan, Status status) {
         try {
             testPlan.setStatus(status);
             testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             logger.error("Error occurred while persisting the test plan. ", e);
         }
-    }
-
-    /**
-     * Returns whether failed test scenarios exists.
-     *
-     * @param testPlan test plan to check whether failed test scenarios exist
-     * @return {@code true} if failed test scenarios exist, {@code false} otherwise
-     * @throws TestGridDAOException thrown when error on getting status of test scenarios
-     */
-    private boolean isFailedTestScenariosExist(TestPlan testPlan) throws TestGridDAOException {
-        return testScenarioUOW.isFailedTestScenariosExist(testPlan);
     }
 }

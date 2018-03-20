@@ -220,7 +220,7 @@ public class RunTestPlanCommand implements Command {
             throws CommandExecutionException {
         try {
             testPlanExecutor.execute(testPlan, infrastructureConfig);
-        } catch (TestPlanExecutorException e) {
+        } catch (TestPlanExecutorException | TestGridDAOException e) {
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan ", testPlan), e);
         }

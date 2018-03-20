@@ -42,7 +42,22 @@ public enum Status {
     /**
      * Entity execution is running.
      */
-    RUNNING("RUNNING");
+    RUNNING("RUNNING"),
+
+    /**
+     * Entity execution didn't run.
+     */
+    DID_NOT_RUN("DID_NOT_RUN"),
+
+    /**
+     * Entity execution caused an error.
+     */
+    ERROR("ERROR"),
+
+    /**
+     * Entity execution is incomplete.
+     */
+    INCOMPLETE("INCOMPLETE");
 
     private final String status;
 
