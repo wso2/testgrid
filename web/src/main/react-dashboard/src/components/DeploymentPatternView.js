@@ -79,6 +79,8 @@ class DeploymentPatternView extends Component {
     const SUCCESS = "SUCCESS";
     const RUNNING = "RUNNING";
     const PENDING = "PENDING";
+    const INCOMPLETE = "INCOMPLETE";
+    const DID_NOT_RUN = "DID_NOT_RUN";
 
     var groupByDeployment = {};
     this.state.hits.map((value, index) => {
@@ -136,6 +138,72 @@ class DeploymentPatternView extends Component {
                   </tbody>
                 </table>
               </Subheader>;
+              case ERROR :
+                  return <Subheader style={{
+                      fontSize: '20px',
+                      backgroundColor: "#cdffba"
+                  }}>
+                    <table>
+                      <tbody>
+                      <tr>
+                        <td style={{ padding: 5 }}>
+                          <img
+                              src={require('../error.png')}
+                              style={{
+                                  verticalAlign: "middle",
+                                  height: "50px",
+                                  width: "50px"
+                              }} />
+                        </td>
+                        <i> {this.props.active.reducer.currentProduct.productName + " "} </i>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </Subheader>;
+              case INCOMPLETE :
+                  return <Subheader style={{
+                      fontSize: '20px',
+                      backgroundColor: "#cdffba"
+                  }}>
+                    <table>
+                      <tbody>
+                      <tr>
+                        <td style={{ padding: 5 }}>
+                          <img
+                              src={require('../incomplete.png')}
+                              style={{
+                                  verticalAlign: "middle",
+                                  height: "50px",
+                                  width: "50px"
+                              }} />
+                        </td>
+                        <i> {this.props.active.reducer.currentProduct.productName + " "} </i>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </Subheader>;
+              case DID_NOT_RUN :
+                  return <Subheader style={{
+                      fontSize: '20px',
+                      backgroundColor: "#cdffba"
+                  }}>
+                    <table>
+                      <tbody>
+                      <tr>
+                        <td style={{ padding: 5 }}>
+                          <img
+                              src={require('../did_not_run.png')}
+                              style={{
+                                  verticalAlign: "middle",
+                                  height: "50px",
+                                  width: "50px"
+                              }} />
+                        </td>
+                        <i> {this.props.active.reducer.currentProduct.productName + " "} </i>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </Subheader>;
             case PENDING:
                 return <Subheader style={{
                     fontSize: '20px',

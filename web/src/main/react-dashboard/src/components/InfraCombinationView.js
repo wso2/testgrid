@@ -32,8 +32,8 @@ import {add_current_infra, add_current_deployment} from '../actions/testGridActi
 import FlatButton from 'material-ui/FlatButton';
 import Divider from 'material-ui/Divider';
 import Moment from 'moment';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
-
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
+    from '../constants.js';
 class InfraCombinationView extends Component {
 
     constructor(props) {
@@ -138,6 +138,81 @@ class InfraCombinationView extends Component {
                                         <td style={{ padding: 5 }}>
                                             <img
                                                 src={require('../new.png')}
+                                                style={{
+                                                    verticalAlign: "middle",
+                                                    height: "50px",
+                                                    width: "50px"
+                                                }} />
+                                        </td>
+                                        <i>{this.props.active.reducer.currentProduct.productName}  /
+                                            {this.props.active.reducer.currentDeployment.deploymentPatternName}  <br />
+                                            {this.props.active.reducer.currentInfra.infraParameters}
+                                        </i>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </Subheader>;
+                        case DID_NOT_RUN:
+                            return <Subheader style={{
+                                fontSize: '20px',
+                                backgroundColor: "#cdffba"
+                            }}>
+                                <table>
+                                    <tbody>
+                                    <tr>
+                                        <td style={{ padding: 5 }}>
+                                            <img
+                                                src={require('../did_not_run.png')}
+                                                style={{
+                                                    verticalAlign: "middle",
+                                                    height: "50px",
+                                                    width: "50px"
+                                                }} />
+                                        </td>
+                                        <i>{this.props.active.reducer.currentProduct.productName}  /
+                                            {this.props.active.reducer.currentDeployment.deploymentPatternName}  <br />
+                                            {this.props.active.reducer.currentInfra.infraParameters}
+                                        </i>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </Subheader>;
+                        case INCOMPLETE:
+                            return <Subheader style={{
+                                fontSize: '20px',
+                                backgroundColor: "#cdffba"
+                            }}>
+                                <table>
+                                    <tbody>
+                                    <tr>
+                                        <td style={{ padding: 5 }}>
+                                            <img
+                                                src={require('../incomplete.png')}
+                                                style={{
+                                                    verticalAlign: "middle",
+                                                    height: "50px",
+                                                    width: "50px"
+                                                }} />
+                                        </td>
+                                        <i>{this.props.active.reducer.currentProduct.productName}  /
+                                            {this.props.active.reducer.currentDeployment.deploymentPatternName}  <br />
+                                            {this.props.active.reducer.currentInfra.infraParameters}
+                                        </i>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </Subheader>;
+                        case ERROR:
+                            return <Subheader style={{
+                                fontSize: '20px',
+                                backgroundColor: "#cdffba"
+                            }}>
+                                <table>
+                                    <tbody>
+                                    <tr>
+                                        <td style={{ padding: 5 }}>
+                                            <img
+                                                src={require('../error.png')}
                                                 style={{
                                                     verticalAlign: "middle",
                                                     height: "50px",

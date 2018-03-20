@@ -18,7 +18,7 @@
 
 import React, { Component } from 'react';
 import Moment from 'moment';
-import {FAIL,SUCCESS,ERROR,PENDING,RUNNING } from '../constants.js';
+import {FAIL,SUCCESS,ERROR,PENDING,RUNNING,INCOMPLETE,DID_NOT_RUN} from '../constants.js';
 
 class SingleRecord extends Component {
   constructor(props) {
@@ -32,6 +32,7 @@ class SingleRecord extends Component {
           <img src={require('../success.png')} width="28" height="28"
             onClick={this.props.nevigate}
             style={{ cursor: 'pointer' }}
+            title='Successful'
             alt='Succesful' />
           {(() => {
             if (this.props.time) {
@@ -40,12 +41,58 @@ class SingleRecord extends Component {
           })()}
         </div>
       )
+    } else if (this.props.value === INCOMPLETE) {
+        return (
+            <div style={{ "fontSize": "16px" }}>
+                <img src={require('../incomplete.png')} width="30" height="30"
+                     onClick={this.props.nevigate}
+                     style={{ cursor: 'pointer' }}
+                     title='Incomplete'
+                     alt='Incomplete' />
+                {(() => {
+                    if (this.props.time) {
+                        return (<i> {Moment(this.props.time).fromNow()}</i>);
+                    }
+                })()}
+            </div>
+        )
+    } else if (this.props.value === DID_NOT_RUN) {
+        return (
+            <div style={{ "fontSize": "16px" }}>
+                <img src={require('../did_not_run.png')} width="30" height="30"
+                     onClick={this.props.nevigate}
+                     style={{ cursor: 'pointer' }}
+                     title='Did not Run'
+                     alt='Did not Run' />
+                {(() => {
+                    if (this.props.time) {
+                        return (<i> {Moment(this.props.time).fromNow()}</i>);
+                    }
+                })()}
+            </div>
+        )
+    } else if (this.props.value === ERROR) {
+        return (
+            <div style={{ "fontSize": "16px" }}>
+                <img src={require('../error.png')} width="30" height="30"
+                     onClick={this.props.nevigate}
+                     style={{ cursor: 'pointer' }}
+                     title='Error'
+                     alt='Error' />
+                {(() => {
+                    if (this.props.time) {
+                        return (<i> {Moment(this.props.time).fromNow()}</i>);
+                    }
+                })()}
+            </div>
+        )
     } else if (this.props.value === RUNNING) {
       return (
         <div style={{ "fontSize": "16px" }}>
         <img src={require('../wait.gif')} width="30" height="30"
           onClick={this.props.nevigate}
           style={{ cursor: 'pointer' }}
+          title='Running'
           alt='Running' />
         {(() => {
           if (this.props.time) {
