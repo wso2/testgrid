@@ -32,7 +32,7 @@ import {add_current_deployment, add_current_infra} from '../actions/testGridActi
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN} from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
 
 class DeploymentPatternView extends Component {
 
