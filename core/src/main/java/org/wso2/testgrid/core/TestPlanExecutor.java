@@ -90,7 +90,6 @@ public class TestPlanExecutor {
             for (TestScenario testScenario : testPlan.getTestScenarios()) {
                 testScenario.setStatus(Status.DID_NOT_RUN);
             }
-            TestPlanUOW testPlanUOW = new TestPlanUOW();
             testPlanUOW.persistTestPlan(testPlan);
             logger.error(StringUtil.concatStrings(
                     "Error occurred while performing deployment for test plan", testPlan.getId(),
