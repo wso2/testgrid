@@ -39,8 +39,8 @@ import {
 import Download from 'downloadjs'
 import Websocket from 'react-websocket';
 import Snackbar from 'material-ui/Snackbar';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
-
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
+    from '../constants.js';
 
 /**
  * View responsible for displaying test run log and summary information.
@@ -321,6 +321,24 @@ class TestRunView extends Component {
                                         <img width="36"
                                              height="36"
                                              src={require('../new.png')} />
+                                      </div>;
+                                  case INCOMPLETE:
+                                      return <div>
+                                        <img width="36"
+                                             height="36"
+                                             src={require('../incomplete.png')} />
+                                      </div>;
+                                  case DID_NOT_RUN:
+                                      return <div>
+                                        <img width="36"
+                                             height="36"
+                                             src={require('../did_not_run.png')} />
+                                      </div>;
+                                  case ERROR:
+                                      return <div>
+                                        <img width="36"
+                                             height="36"
+                                             src={require('../error.png')} />
                                       </div>;
                                   case "RUNNING":
                                   default:
