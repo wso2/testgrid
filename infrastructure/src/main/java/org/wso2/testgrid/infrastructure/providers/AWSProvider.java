@@ -152,7 +152,9 @@ public class AWSProvider implements InfrastructureProvider {
 
     private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
         String stackName, String infraRepoDir) throws TestGridInfrastructureException {
-        String region = infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER);
+        String region = infrastructureConfig.getProvisioners().get(0)
+                .getScripts().get(0).getInputParameters().getProperty(AWS_REGION_PARAMETER);
+
             Path configFilePath;
             try {
                 configFilePath = TestGridUtil.getConfigFilePath();
@@ -258,7 +260,8 @@ public class AWSProvider implements InfrastructureProvider {
         }
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                .withRegion(infrastructureConfig.getParameters().getProperty(AWS_REGION_PARAMETER))
+                .withRegion(infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
+                        .getInputParameters().getProperty(AWS_REGION_PARAMETER))
                 .build();
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(stackName);
