@@ -146,7 +146,6 @@ public class Script implements Serializable, Cloneable {
 
     @Override
     public Script clone() {
-
         try {
             return (Script) super.clone();
         } catch (CloneNotSupportedException e) {
