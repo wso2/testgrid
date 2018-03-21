@@ -23,6 +23,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.wso2.testgrid.common.TestGridError;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -167,8 +168,23 @@ public class InfrastructureConfig implements Serializable, Cloneable {
      * The provisioner has the same behavior as the {@link DeploymentConfig.DeploymentPattern}.
      *
      */
-    public static class Provisioner extends DeploymentConfig.DeploymentPattern {
+    public static class Provisioner extends DeploymentConfig.DeploymentPattern implements Cloneable {
         private static final long serialVersionUID = -3937792864579403430L;
+
+        @Override
+        public Provisioner clone() {
+            try {
+                Provisioner provisioner =  (Provisioner) super.clone();
+                List<Script> scripts = new ArrayList<>();
+                for (Script script : provisioner.getScripts()) {
+                    scripts.add(script.clone());
+                }
+                provisioner.setScripts(scripts);
+                return provisioner;
+            } catch (CloneNotSupportedException e) {
+                throw new TestGridError("Error occurred while cloning Provisioner object.", e);
+            }
+        }
     }
 
     @Override
