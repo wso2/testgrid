@@ -39,6 +39,7 @@ public class CloudFormationScriptPreprocessor {
 
     /**
      * This method includes each pre-processing steps the script has to go through.
+     *
      * @param script CloudFormation script
      * @return Pre-processed CloudFormation script
      */
@@ -51,6 +52,7 @@ public class CloudFormationScriptPreprocessor {
 
     /**
      * This method appends a random string to the value of the element.
+     *
      * @param key Key of the element where the random string should be appended to its value.
      * @param script CF script
      * @return New CF script with random values appended for the requested element (This can be multiple places if the
@@ -75,6 +77,7 @@ public class CloudFormationScriptPreprocessor {
 
     /**
      * This method removes the elements which contains the key passed.
+     *
      * @param key Key of the element which should be removed.
      * @param script CF script
      * @return New CF script after removing elements for the requested key (This can be multiple places if the
