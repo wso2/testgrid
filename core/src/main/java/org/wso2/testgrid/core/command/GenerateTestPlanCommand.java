@@ -470,11 +470,12 @@ public class GenerateTestPlanCommand implements Command {
             Optional<DeploymentConfig.DeploymentPattern> deploymentPattern = getMatchingDeploymentPatternFor(
                     provisioner, testgridYaml);
             for (InfrastructureCombination combination : infrastructureCombinations) {
-                setUniqueNamesFor(provisioner.getScripts());
+                Provisioner provisioner1 = provisioner.clone();
+                setUniqueNamesFor(provisioner1.getScripts());
 
                 TestPlan testPlan = new TestPlan();
                 testPlan.setInfrastructureConfig(testgridYaml.getInfrastructureConfig().clone());
-                testPlan.getInfrastructureConfig().setProvisioners(Collections.singletonList(provisioner));
+                testPlan.getInfrastructureConfig().setProvisioners(Collections.singletonList(provisioner1));
                 deploymentPattern.ifPresent(dp -> {
                     setUniqueNamesFor(dp.getScripts());
                     testPlan.setDeploymentConfig(new DeploymentConfig(Collections.singletonList(dp)));

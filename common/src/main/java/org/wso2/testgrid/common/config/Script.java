@@ -19,13 +19,15 @@
 
 package org.wso2.testgrid.common.config;
 
+import org.wso2.testgrid.common.TestGridError;
+
 import java.io.Serializable;
 import java.util.Properties;
 
 /**
  * Defines a model object for a provided custom script.
  */
-public class Script implements Serializable {
+public class Script implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 6547552538295691010L;
 
@@ -139,6 +141,15 @@ public class Script implements Serializable {
 
         public String toString() {
             return this.name;
+        }
+    }
+
+    @Override
+    public Script clone() {
+        try {
+            return (Script) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new TestGridError("Error occurred while cloning Script object.", e);
         }
     }
 }
