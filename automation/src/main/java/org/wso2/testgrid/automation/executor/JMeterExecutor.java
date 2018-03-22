@@ -30,12 +30,9 @@ import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Port;
-import org.wso2.testgrid.common.Status;
-import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
 import java.io.BufferedWriter;
@@ -119,30 +116,6 @@ public class JMeterExecutor extends TestExecutor {
         jMeterEngine.configure(testPlanTree);
         jMeterEngine.run();
         jMeterEngine.exit();
-
-        //Persist test scenario
-        try {
-            if (testScenario.getTestCases().size() == 0) {
-                testScenario.setStatus(Status.ERROR);
-            } else {
-                for (TestCase testCase : testScenario.getTestCases()) {
-                    if (!testCase.isSuccess()) {
-                        testScenario.setStatus(Status.FAIL);
-                        break;
-                    } else {
-                        testScenario.setStatus(Status.SUCCESS);
-                    }
-                }
-            }
-            testScenarioUOW.persistTestScenario(testScenario);
-            if (logger.isDebugEnabled()) {
-                logger.debug(StringUtil.concatStrings(
-                        "Persisted test scenario ", testScenario.getName(), " with test cases"));
-            }
-        } catch (TestGridDAOException e) {
-            throw new TestAutomationException(StringUtil.concatStrings(
-                    "Error while persisting test scenario ", testScenario.getName(), e));
-        }
 
         //delete temp file
         boolean delete = new File(script).delete();
