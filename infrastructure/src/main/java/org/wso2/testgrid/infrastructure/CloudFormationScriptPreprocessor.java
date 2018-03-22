@@ -35,6 +35,7 @@ public class CloudFormationScriptPreprocessor {
     private static final String NAME_ELEMENT_KEY = "Name";
     private static final String DB_INSTANCE_IDENTIFIER_KEY = "DBInstanceIdentifier";
     private static final String DELETION_POLICY_KEY = "DeletionPolicy";
+    private static final String DELETION_POLICY_VALUE = "Delete";
     private static final String REGEX_LINE_SPLIT = "\\r?\\n";
 
     /**
@@ -46,7 +47,7 @@ public class CloudFormationScriptPreprocessor {
     public String process(String script) {
         script = appendRandomValue(NAME_ELEMENT_KEY, script);
         script = appendRandomValue(DB_INSTANCE_IDENTIFIER_KEY, script);
-        script = removeElement(DELETION_POLICY_KEY, script);
+        script = modifyElement(DELETION_POLICY_KEY, DELETION_POLICY_VALUE, script);
         return script;
     }
 
@@ -76,14 +77,14 @@ public class CloudFormationScriptPreprocessor {
     }
 
     /**
-     * This method removes the elements which contains the key passed.
+     * This method modifies the elements which contains the key passed.
      *
-     * @param key Key of the element which should be removed.
+     * @param key Key of the element which should be modified.
      * @param script CF script
-     * @return New CF script after removing elements for the requested key (This can be multiple places if the
+     * @return New CF script after modifying elements for the requested key (This can be multiple places if the
      * element exists in multiple places in the script.
      */
-    private static String removeElement(String key, String script) {
+    private static String modifyElement(String key, String value, String script) {
       StringBuilder newScript = new StringBuilder();
       Pattern pattern = Pattern.compile("(\\s+)(" + key + ")\\s*:\\s*(.*)");
       Matcher matcher;
@@ -91,8 +92,8 @@ public class CloudFormationScriptPreprocessor {
       for (String line : script.split(REGEX_LINE_SPLIT)) {
         matcher = pattern.matcher(line);
         if (matcher.find()) {
-          logger.debug("Removing \"" + line + "\" element from CF-Script.");
-          continue;
+          logger.debug(StringUtil.concatStrings("Modifying CF-Script value of ", line, " to ", value));
+          line = matcher.group(1) + matcher.group(2) + ": " + value;
         }
         newScript.append(line).append(System.lineSeparator());
       }
