@@ -25,6 +25,7 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -119,9 +120,14 @@ public class TestPlanExecutor {
                 scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
             } catch (Exception e) {
                 // we need to continue the rest of the tests irrespective of the exception thrown here.
-                persistTestPlanStatus(testPlan, Status.ERROR);
                 logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
                         testScenario.getName(), "' in TestPlan\nCaused by "), e);
+            }
+            try {
+                persistTestScenario(testScenario);
+            } catch (TestPlanExecutorException e) {
+                logger.error(StringUtil.concatStrings(
+                        "Error occurred while persisting test scenario ", testScenario.getName()), e);
             }
         }
     }
@@ -271,7 +277,11 @@ public class TestPlanExecutor {
                     isSuccess = false;
                     if (testScenario.getStatus() == Status.FAIL) {
                         testPlan.setStatus(Status.FAIL);
+                        isSuccess = false;
                         break;
+                    } else if (testScenario.getStatus() == Status.ERROR) {
+                        testPlan.setStatus(Status.ERROR);
+                        isSuccess = false;
                     }
                 }
             }
@@ -296,6 +306,37 @@ public class TestPlanExecutor {
             testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             logger.error("Error occurred while persisting the test plan. ", e);
+        }
+    }
+
+    /**
+     * Persists the test scenario.
+     *
+     * @param testScenario TestScenario object to persist
+     */
+    private void persistTestScenario(TestScenario testScenario) throws TestPlanExecutorException {
+        //Persist test scenario
+        try {
+            if (testScenario.getTestCases().size() == 0) {
+                testScenario.setStatus(Status.ERROR);
+            } else {
+                for (TestCase testCase : testScenario.getTestCases()) {
+                    if (!testCase.isSuccess()) {
+                        testScenario.setStatus(Status.FAIL);
+                        break;
+                    } else {
+                        testScenario.setStatus(Status.SUCCESS);
+                    }
+                }
+            }
+            testScenarioUOW.persistTestScenario(testScenario);
+            if (logger.isDebugEnabled()) {
+                logger.debug(StringUtil.concatStrings(
+                        "Persisted test scenario ", testScenario.getName(), " with test cases"));
+            }
+        } catch (TestGridDAOException e) {
+            throw new TestPlanExecutorException(StringUtil.concatStrings(
+                    "Error while persisting test scenario ", testScenario.getName(), e));
         }
     }
 }

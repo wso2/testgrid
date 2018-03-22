@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Resolves the invalid statuses caused by any failures.
  */
-public class ResolveStatusesCommand implements Command {
+public class FinalizeRunTestplan implements Command {
 
     private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommand.class);
 
@@ -48,7 +48,7 @@ public class ResolveStatusesCommand implements Command {
     private ProductUOW productUOW;
     private TestPlanUOW testPlanUOW;
 
-    public ResolveStatusesCommand() {
+    public FinalizeRunTestplan() {
         productUOW = new ProductUOW();
         testPlanUOW = new TestPlanUOW();
     }
@@ -56,6 +56,7 @@ public class ResolveStatusesCommand implements Command {
     @Override
     public void execute() throws CommandExecutionException {
 
+        logger.info("Finalizing testplans...");
         List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(getProduct(productName));
         boolean isExistsFailedScenarios = false;
         for (TestPlan testPlan : testPlans) {
@@ -80,7 +81,7 @@ public class ResolveStatusesCommand implements Command {
             //Set statuses of testplans
             switch (testPlan.getStatus()) {
                 case PENDING:
-                    testPlan.setStatus(Status.ERROR);
+                    testPlan.setStatus(Status.DID_NOT_RUN);
                     persistTestPlan(testPlan);
                     break;
                 case RUNNING:
