@@ -62,9 +62,7 @@ public class JMeterResultCollector extends ResultCollector {
                 message = StringUtil.concatStrings("{ \"Status code\": \"",
                         result.getResponseCode().replaceAll("\"", "\\\""),
                         "\", \"Response Message\": \"",
-                        result.getResponseMessage().replaceAll("\"", "\\\""),
-                        "\", \"Response Data\": \"",
-                        result.getResponseDataAsString().replaceAll("\"", "\\\""), "\"}");
+                        result.getResponseMessage().replaceAll("\"", "\\\""), "\"}");
 
                 logMessage = StringUtil.concatStrings("{ \"Status code\": \"",
                         result.getResponseCode().replaceAll("\"", "\\\""),
