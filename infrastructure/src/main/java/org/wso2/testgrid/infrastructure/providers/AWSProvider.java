@@ -304,6 +304,13 @@ public class AWSProvider implements InfrastructureProvider {
                 cfCompatibleParameters.add(awsParameter);
             }
 
+            if (!scriptParameter.isPresent() && expected.getParameterKey().equals("OSName")) {
+                Parameter awsParameter;
+                awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
+                        .withParameterValue(getOSParameterValue(infrastructureConfig));
+                cfCompatibleParameters.add(awsParameter);
+            }
+
             scriptParameter.ifPresent(theScriptParameter -> {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue((String) theScriptParameter.getValue());
@@ -332,5 +339,9 @@ public class AWSProvider implements InfrastructureProvider {
     private String getAMIParameterValue(InfrastructureConfig infrastructureConfig)
             throws TestGridInfrastructureException {
         return amiMapper.getAMIFor(infrastructureConfig.getParameters());
+    }
+
+    private String getOSParameterValue(InfrastructureConfig infrastructureConfig) {
+        return infrastructureConfig.getParameters().getProperty("OS");
     }
 }
