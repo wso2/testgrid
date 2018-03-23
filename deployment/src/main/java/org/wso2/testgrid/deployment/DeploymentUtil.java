@@ -22,11 +22,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployment;
 import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.Host;
+import org.wso2.testgrid.common.Port;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This holds the utility methods used by the deployment component.
@@ -38,21 +43,36 @@ public class DeploymentUtil {
     /**
      * Reads the deployment.json file and constructs the deployment object.
      *
-     * @param testPlanLocation location String of the test plan
+     * @param workspace location String of the test plan
      * @return the deployment information ObjectMapper
      * @throws TestGridDeployerException If reading the deployment.json file fails
      */
-    public static DeploymentCreationResult getDeploymentCreationResult(String testPlanLocation)
+    public static DeploymentCreationResult getDeploymentCreationResult(String workspace)
             throws TestGridDeployerException {
-
+        DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
+        List<Host> hosts = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
-        File file = new File(Paths.get(testPlanLocation, DeployerConstants.DEPLOYMENT_FILE).toString());
+        File file = new File(Paths.get(workspace, DeployerConstants.DEPLOYMENT_FILE).toString());
         try {
-            return mapper.readValue(file, DeploymentCreationResult.class);
+            List<Host> hostList = mapper.readValue(file, DeploymentCreationResult.class).getHosts();
+            for (Host host : hostList) {
+                Host serverHost = new Host();
+                serverHost.setIp(host.getIp());
+                serverHost.setLabel("serverHost");
+                for (Port port : host.getPorts()) {
+                    Host serverPort = new Host();
+                    serverPort.setIp(String.valueOf(port.getPortNumber()));
+                    serverPort.setLabel("serverPort");
+                    hosts.add(serverPort);
+                }
+                hosts.add(serverHost);
+            }
+            deploymentCreationResult.setHosts(hosts);
+            return deploymentCreationResult;
         } catch (IOException e) {
             logger.error(e.getMessage());
-            throw new TestGridDeployerException("Error occurred while reading the "
-                    + DeployerConstants.DEPLOYMENT_FILE + " file", e);
+            throw new TestGridDeployerException(StringUtil.concatStrings(
+                    "Error occurred while reading ", file.getAbsolutePath(), e));
         }
     }
 }

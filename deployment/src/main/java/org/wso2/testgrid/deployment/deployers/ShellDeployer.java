@@ -66,13 +66,14 @@ public class ShellDeployer implements Deployer {
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
+        final Properties inputParameters;
         try {
             Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
             logger.info("Performing the Deployment " + deployment.getName());
             String infraArtifact = StringUtil
                     .concatStrings(infrastructureProvisionResult.getResultLocation(),
                             File.separator, "k8s.properties");
-            final Properties inputParameters = getInputParameters(testPlan, deployment);
+            inputParameters = getInputParameters(testPlan, deployment);
             String parameterString = TestGridUtil.getParameterString(infraArtifact, inputParameters);
             ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
 
@@ -91,8 +92,8 @@ public class ShellDeployer implements Deployer {
         } catch (CommandExecutionException e) {
             throw new TestGridDeployerException(e);
         }
-        DeploymentCreationResult result = DeploymentUtil.getDeploymentCreationResult(infrastructureProvisionResult
-                .getDeploymentScriptsDir());
+        DeploymentCreationResult result = DeploymentUtil
+                .getDeploymentCreationResult(inputParameters.getProperty(WORKSPACE));
         result.setName(deploymentPatternConfig.getName());
 
         List<Host> hosts = new ArrayList<>();
