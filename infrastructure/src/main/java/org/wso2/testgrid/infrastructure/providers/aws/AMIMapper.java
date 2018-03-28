@@ -129,7 +129,6 @@ public class AMIMapper {
         //Currently supports OS & JDK only.
         //Make this to read params from a external file once there are multiple parameters.
         amiLookupSupportParameters.add("OS");
-        amiLookupSupportParameters.add("JDK");
 
         for (String supportParam : amiLookupSupportParameters) {
             for (String infraParamType : infraParamList.stringPropertyNames()) {
