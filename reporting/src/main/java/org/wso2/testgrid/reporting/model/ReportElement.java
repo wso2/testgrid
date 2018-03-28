@@ -31,7 +31,7 @@ public class ReportElement {
     private final boolean isGroupByScenario;
     private String deployment;
     private String infraParams;
-    private String scenarioName;
+    private String scenarioDescription;
     private String testCase;
     private String testCaseFailureMessage;
     private boolean isTestSuccess;
@@ -84,21 +84,21 @@ public class ReportElement {
     }
 
     /**
-     * Returns the test scenario name.
+     * Returns the test scenario description.
      *
-     * @return test scenario name
+     * @return test scenario description
      */
-    public String getScenarioName() {
-        return scenarioName;
+    public String getScenarioDescription() {
+        return scenarioDescription;
     }
 
     /**
-     * Sets the test scenario name.
+     * Sets the test scenario description.
      *
-     * @param scenarioName test scenario name
+     * @param scenarioDescription test scenario description
      */
-    public void setScenarioName(String scenarioName) {
-        this.scenarioName = scenarioName;
+    public void setScenarioDescription(String scenarioDescription) {
+        this.scenarioDescription = scenarioDescription;
     }
 
     /**

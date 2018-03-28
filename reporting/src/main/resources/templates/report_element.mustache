@@ -27,10 +27,10 @@
         <!-- Scenario -->
         {{^isGroupByScenario}}
             {{#isTestSuccess}}
-                <td class="successText">{{scenarioName}}</td>
+                <td class="successText">{{scenarioDescription}}</td>
             {{/isTestSuccess}}
             {{^isTestSuccess}}
-                <td class="errorText">{{scenarioName}}</td>
+                <td class="errorText">{{scenarioDescription}}</td>
             {{/isTestSuccess}}
         {{/isGroupByScenario}}
 

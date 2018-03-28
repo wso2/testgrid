@@ -226,7 +226,7 @@ public class TestReportEngine {
      */
     private List<ReportElement> processOverallResultForDeploymentAxis(List<ReportElement> reportElements) {
         List<ReportElement> distinctElements = distinctList(reportElements, ReportElement::getInfraParams,
-                ReportElement::getScenarioName, ReportElement::isTestSuccess);
+                ReportElement::getScenarioDescription, ReportElement::isTestSuccess);
 
         // Fail list
         List<ReportElement> failList = distinctElements.stream()
@@ -245,7 +245,8 @@ public class TestReportEngine {
             for (ReportElement failListReportElement : failList) {
                 if (successListReportElement.getInfraParams()
                             .equals(failListReportElement.getInfraParams()) &&
-                    successListReportElement.getScenarioName().equals(failListReportElement.getScenarioName())) {
+                    successListReportElement.getScenarioDescription()
+                            .equals(failListReportElement.getScenarioDescription())) {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
@@ -269,7 +270,7 @@ public class TestReportEngine {
      */
     private List<ReportElement> processOverallResultForInfrastructureAxis(List<ReportElement> reportElements) {
         List<ReportElement> distinctElements = distinctList(reportElements, ReportElement::getDeployment,
-                ReportElement::getScenarioName, ReportElement::isTestSuccess);
+                ReportElement::getScenarioDescription, ReportElement::isTestSuccess);
 
         // Fail list
         List<ReportElement> failList = distinctElements.stream()
@@ -287,7 +288,8 @@ public class TestReportEngine {
             boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
                 if (successListReportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
-                    successListReportElement.getScenarioName().equals(failListReportElement.getScenarioName())) {
+                    successListReportElement.getScenarioDescription()
+                            .equals(failListReportElement.getScenarioDescription())) {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
@@ -377,7 +379,7 @@ public class TestReportEngine {
      */
     private PerAxisSummary createPerAxisSummary(AxisColumn uniqueAxisColumn, ReportElement reportElement) {
         boolean isTestSuccess = reportElement.isTestSuccess();
-        String scenarioName = reportElement.getScenarioName();
+        String scenarioName = reportElement.getScenarioDescription();
         String deployment = reportElement.getDeployment();
         String infrastructure = reportElement.getInfraParams();
 
@@ -437,7 +439,7 @@ public class TestReportEngine {
                 return reportElements.stream().collect(Collectors.groupingBy(ReportElement::getDeployment));
             case SCENARIO:
             default:
-                return reportElements.stream().collect(Collectors.groupingBy(ReportElement::getScenarioName));
+                return reportElements.stream().collect(Collectors.groupingBy(ReportElement::getScenarioDescription));
         }
     }
 
@@ -513,7 +515,7 @@ public class TestReportEngine {
                 return result;
             }
             // Then by scenario
-            result = re1.getScenarioName().compareToIgnoreCase(re2.getScenarioName());
+            result = re1.getScenarioDescription().compareToIgnoreCase(re2.getScenarioDescription());
             if (result != 0) {
                 return result;
             }
@@ -607,7 +609,7 @@ public class TestReportEngine {
         reportElement.setInfraParams(testPlan.getInfraParameters());
 
         // Test scenario information
-        reportElement.setScenarioName(testScenario.getName());
+        reportElement.setScenarioDescription(testScenario.getDescription());
 
         // Test case can be null if the infra fails.
         if (testCase != null) {

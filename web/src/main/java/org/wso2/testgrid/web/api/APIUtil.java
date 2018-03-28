@@ -173,6 +173,7 @@ class APIUtil {
         if (testScenario != null) {
             testScenarioBean.setId(testScenario.getId());
             testScenarioBean.setName(testScenario.getName());
+            testScenarioBean.setDescription(testScenario.getDescription());
             testScenarioBean.setStatus(testScenario.getStatus().toString());
             if (requireTestCases) {
                 testScenarioBean.setTestCases(getTestCaseBeans(testScenario.getTestCases()));

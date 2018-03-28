@@ -38,7 +38,12 @@ infrastructureConfig:
 infrastructureRepository: ./src/test/resources/workspace/infrastructure
 scenarioConfig:
   scenarios:
-  - solution01
+  - description: Test Scenario
+    dir: scenario01
+    name: scenario01
+    status: PENDING
+    testCases: [
+      ]
 scenarioTestsRepository: ./src/test/resources/workspace/scenarioTests
 testRunNumber: 1
 testScenarios: [
