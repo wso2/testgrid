@@ -49,6 +49,10 @@ import static org.wso2.testgrid.common.util.StringUtil.getPropertiesAsString;
 public class AMIMapper {
     private static final Logger logger = LoggerFactory.getLogger(AMIMapper.class);
 
+    //AMI lookup parameters
+    private static final String AMI_TAG_OS = "OS";
+    private static final String AMI_TAG_OS_VERSION = "OSVersion";
+
     private final AmazonEC2 amazonEC2;
 
     public AMIMapper() throws TestGridInfrastructureException {
@@ -128,7 +132,8 @@ public class AMIMapper {
 
         //Currently supports OS & JDK only.
         //Make this to read params from a external file once there are multiple parameters.
-        amiLookupSupportParameters.add("OS");
+        amiLookupSupportParameters.add(AMI_TAG_OS);
+        amiLookupSupportParameters.add(AMI_TAG_OS_VERSION);
 
         for (String supportParam : amiLookupSupportParameters) {
             for (String infraParamType : infraParamList.stringPropertyNames()) {
