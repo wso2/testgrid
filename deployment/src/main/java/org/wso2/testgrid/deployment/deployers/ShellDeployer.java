@@ -99,7 +99,7 @@ public class ShellDeployer implements Deployer {
         List<Host> hosts = new ArrayList<>();
         Host tomcatHost = new Host();
         tomcatHost.setLabel("tomcatHost");
-        tomcatHost.setIp("ec2-52-54-230-106.compute-1.amazonaws.com");
+        tomcatHost.setIp("ec2-34-204-80-18.compute-1.amazonaws.com");
         Host tomcatPort = new Host();
         tomcatPort.setLabel("tomcatPort");
         tomcatPort.setIp("8080");
