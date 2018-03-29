@@ -55,6 +55,9 @@ public class DeploymentUtil {
         File file = new File(Paths.get(workspace, DeployerConstants.DEPLOYMENT_FILE).toString());
         try {
             List<Host> hostList = mapper.readValue(file, DeploymentCreationResult.class).getHosts();
+            /* JMeter test files has the values for the host and ports as two properties. In order to replace
+             * the values, the serverHost and serverPort has to be set as two different hosts.
+             */
             for (Host host : hostList) {
                 Host serverHost = new Host();
                 serverHost.setIp(host.getIp());
