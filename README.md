@@ -33,3 +33,8 @@ Once we have the TestGrid beta,
 [2] https://docs.wso2.com/display/compatibility/Tested+Operating+Systems+and+JDKs
 
 [3] https://github.com/wso2-incubator/identity-test-integration/blob/master/README.md
+
+
+## Getting Started with WSO2 TestGrid
+
+The [Quick Start Guide](docs/QuickStartGuide.md) contains end-to-end steps on getting started and running WSO2  TestGrid.
