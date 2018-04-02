@@ -321,13 +321,9 @@ public final class TestGridUtil {
             testPlanEntity.setTestRunNumber(latestTestRunNumber + 1);
 
             // Set test scenarios
-            List<TestScenario> testScenarios = new ArrayList<>();
-            for (String name : testPlan.getScenarioConfig().getScenarios()) {
-                TestScenario testScenario = new TestScenario();
-                testScenario.setName(name);
-                testScenario.setTestPlan(testPlanEntity);
+            List<TestScenario> testScenarios = testPlan.getScenarioConfig().getScenarios();
+            for (TestScenario testScenario : testScenarios) {
                 testScenario.setStatus(Status.PENDING);
-                testScenarios.add(testScenario);
             }
             testPlanEntity.setTestScenarios(testScenarios);
             return testPlanEntity;

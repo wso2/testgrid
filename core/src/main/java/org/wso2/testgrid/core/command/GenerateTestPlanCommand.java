@@ -26,6 +26,7 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
 import org.wso2.testgrid.common.config.JobConfigFile;
@@ -227,7 +228,20 @@ public class GenerateTestPlanCommand implements Command {
             String fileName = String
                     .format("%s-%02d%s", TestGridConstants.TEST_PLAN_YAML_PREFIX, (i + 1), FileUtil.YAML_EXTENSION);
             String output = yaml.dump(testPlan);
+
+            //Remove reference ids from yaml
+            output = output.replaceAll("[&,*]id[0-9]+", "");
             saveFile(output, infraGenDirectory, fileName);
+
+            /*
+             * Test plans of test scenarios should be persisted. This is persisted after building the
+             * yaml to avoid adding unnecessary lines to the test-plan file.
+             */
+            for (TestScenario testScenario : persistedTestPlan.getTestScenarios()) {
+                testScenario.setTestPlan(persistedTestPlan);
+            }
+            testPlanUOW.persistTestPlan(persistedTestPlan);
+
             if (printTestPlanPaths) {
                 testPlanPaths.append(Paths.get(infraGenDirectory, fileName)).append(System.lineSeparator());
             }
@@ -335,14 +349,23 @@ public class GenerateTestPlanCommand implements Command {
         testgridYamlBuilder
                 .append(getTestgridYamlFor(Paths.get(infraRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
                 .append(ls);
-        testgridYamlBuilder
-                .append(getTestgridYamlFor(Paths.get(deployRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
-                .append(ls);
-        testgridYamlBuilder
-                .append(getTestgridYamlFor(Paths.get(scenarioTestsRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
-                .append(ls);
-
         String testgridYamlContent = testgridYamlBuilder.toString().trim();
+        if (!testgridYamlContent.isEmpty()) {
+            if (!testgridYamlContent.contains("deploymentConfig")) {
+                testgridYamlBuilder
+                        .append(getTestgridYamlFor(
+                                Paths.get(deployRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
+                        .append(ls);
+            }
+            testgridYamlBuilder
+                    .append(getTestgridYamlFor(
+                            Paths.get(scenarioTestsRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
+                    .append(ls);
+        } else {
+            logger.warn(StringUtil.concatStrings(
+                    TestGridConstants.TESTGRID_YAML, " is missing in ", deployRepositoryLocation));
+        }
+        testgridYamlContent = testgridYamlBuilder.toString().trim();
         if (testgridYamlContent.isEmpty()) {
             testgridYamlContent = getTestgridYamlFor(Paths.get(testgridYamlLocation)).trim();
         }

@@ -379,8 +379,8 @@ public class TestPlanService {
             // Create scenario summary
             long totalSuccess = testCases.stream().filter(TestCase::isSuccess).count();
             long totalFailed = testCases.stream().filter(testCase -> !testCase.isSuccess()).count();
-            ScenarioSummary scenarioSummary = new ScenarioSummary(testScenario.getName(), totalSuccess, totalFailed,
-                    testScenario.getStatus());
+            ScenarioSummary scenarioSummary = new ScenarioSummary(
+                    testScenario.getDescription(), totalSuccess, totalFailed, testScenario.getStatus());
             scenarioSummaries.add(scenarioSummary);
 
             // Create test case entries for failed tests
@@ -390,7 +390,8 @@ public class TestPlanService {
                             testCase.isSuccess())
                     )
                     .collect(Collectors.toList());
-            scenarioTestCaseEntries.add(new ScenarioTestCaseEntry(testScenario.getName(), failedTestCaseEntries));
+            scenarioTestCaseEntries.add(new ScenarioTestCaseEntry(
+                    testScenario.getDescription(), failedTestCaseEntries));
         }
         return new TestExecutionSummary(scenarioSummaries, scenarioTestCaseEntries);
     }

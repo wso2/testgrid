@@ -355,7 +355,7 @@ class TestRunView extends Component {
                               wordWrap: "break-word",
                               whiteSpace: "wrap",
                               textDecoration: "none"
-                            }}> <a href={"#" + data.scenarioName}> {data.scenarioName} </a></TableRowColumn>
+                            }}> <a href={"#" + data.scenarioDescription}> {data.scenarioDescription} </a></TableRowColumn>
                             <TableRowColumn
                               style={{
                                 width: "15%",
@@ -406,7 +406,7 @@ class TestRunView extends Component {
                             {failedTestTitleContent}
                             <h2 style={{
                               color: "#e46226"
-                            }}><a id={data.scenarioName} >{data.scenarioName}</a></h2>
+                            }}><a id={data.scenarioDescription} >{data.scenarioDescription}</a></h2>
                             <Table>
                               <TableHeader displaySelectAll={false}
                                 adjustForCheckbox={false}>

@@ -33,7 +33,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
-
+import javax.persistence.Transient;
 
 /**
  * Defines a model object of TestScenario with required attributes.
@@ -53,6 +53,7 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      * Column names of the table.
      */
     public static final String NAME_COLUMN = "name";
+    public static final String DESCRIPTION_COLUMN = "description";
     public static final String STATUS_COLUMN = "status";
     public static final String PRE_SCRIPT_STATUS_COLUMN = "isPreScriptSuccessful";
     public static final String POST_SCRIPT_STATUS_COLUMN = "isPostScriptSuccessful";
@@ -62,6 +63,9 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "description", nullable = false)
+    private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -80,6 +84,9 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     @OneToMany(mappedBy = "testScenario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestCase> testCases = new ArrayList<>();
 
+    @Transient
+    private String dir;
+
     /**
      * Returns the name of the test scenario.
      *
@@ -96,6 +103,46 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Returns the description of the test scenario.
+     *
+     * @return test scenario description
+     */
+    public String getDescription() {
+
+        return description;
+    }
+
+    /**
+     * Sets the test scenario description.
+     *
+     * @param description test scenario description
+     */
+    public void setDescription(String description) {
+
+        this.description = description;
+    }
+
+    /**
+     * Returns the directory of the test scenario.
+     *
+     * @return test scenario directory
+     */
+    public String getDir() {
+
+        return dir;
+    }
+
+    /**
+     * Sets the test scenario directory.
+     *
+     * @param dir test scenario directory
+     */
+    public void setDir(String dir) {
+
+        this.dir = dir;
     }
 
     /**

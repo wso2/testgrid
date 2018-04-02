@@ -26,7 +26,7 @@ import org.wso2.testgrid.common.Status;
  */
 public class ScenarioSummary {
 
-    private final String scenarioName;
+    private final String scenarioDescription;
     private final long totalSuccess;
     private final long totalFail;
     private final double successPercentage;
@@ -35,13 +35,13 @@ public class ScenarioSummary {
     /**
      * Constructs an instance of a {@link ScenarioSummary}.
      *
-     * @param scenarioName   scenario name
+     * @param scenarioDescription   scenario description
      * @param totalSuccess   total number of success test cases
      * @param totalFail      total number of failed test cases
      * @param scenarioStatus test scenario overall result
      */
-    public ScenarioSummary(String scenarioName, long totalSuccess, long totalFail, Status scenarioStatus) {
-        this.scenarioName = scenarioName;
+    public ScenarioSummary(String scenarioDescription, long totalSuccess, long totalFail, Status scenarioStatus) {
+        this.scenarioDescription = scenarioDescription;
         this.totalSuccess = totalSuccess;
         this.totalFail = totalFail;
         this.successPercentage = (double) totalSuccess / ((double) totalSuccess + (double) totalFail) * 100d;
@@ -49,12 +49,12 @@ public class ScenarioSummary {
     }
 
     /**
-     * Returns the scenario name.
+     * Returns the scenario description.
      *
-     * @return scenario name
+     * @return scenario description
      */
-    public String getScenarioName() {
-        return scenarioName;
+    public String getScenarioDescription() {
+        return scenarioDescription;
     }
 
     /**
@@ -96,7 +96,7 @@ public class ScenarioSummary {
     @Override
     public String toString() {
         return "ScenarioSummary{" +
-               "scenarioName='" + scenarioName + '\'' +
+               "scenarioDescription='" + scenarioDescription + '\'' +
                ", totalSuccess='" + totalSuccess + '\'' +
                ", totalFail='" + totalFail + '\'' +
                ", successPercentage='" + successPercentage + "%\'" +

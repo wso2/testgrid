@@ -22,8 +22,11 @@ infrastructureConfig:
           type: SHELL
           phase: DESTROY
 scenarioConfig:
-  scenarios:
-    -  "solution01"
+    scenarios:
+      -
+        name: scenario01
+        description: 'Test Scenario'
+        dir: scenario01
 deploymentConfig:
   deploymentPatterns:
     - name: 01-dummy-deployment

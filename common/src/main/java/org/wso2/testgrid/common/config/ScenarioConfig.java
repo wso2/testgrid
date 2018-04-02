@@ -19,6 +19,8 @@
 
 package org.wso2.testgrid.common.config;
 
+import org.wso2.testgrid.common.TestScenario;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -30,18 +32,18 @@ import java.util.List;
 public class ScenarioConfig implements Serializable {
     private static final long serialVersionUID = 6295205041044769906L;
 
-    private List<String> scenarios;
+    private List<TestScenario> scenarios;
 
     /**
      * This method returns the list of scenarios.
      *
      * @return List of test scenarios that need to be run in testgrid.
      */
-    public List<String> getScenarios() {
+    public List<TestScenario> getScenarios() {
         return scenarios;
     }
 
-    public void setScenarios(List<String> scenarios) {
+    public void setScenarios(List<TestScenario> scenarios) {
         this.scenarios = scenarios;
     }
 }

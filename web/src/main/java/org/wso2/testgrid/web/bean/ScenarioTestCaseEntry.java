@@ -26,27 +26,27 @@ import java.util.List;
  */
 public class ScenarioTestCaseEntry {
 
-    private final String scenarioName;
+    private final String scenarioDescription;
     private final List<TestCaseEntry> testCaseEntries;
 
     /**
      * Constructs an instance of {@link ScenarioTestCaseEntry}
      *
-     * @param scenarioName    scenario name
+     * @param scenarioDescription    scenario description
      * @param testCaseEntries list of test case entries
      */
-    public ScenarioTestCaseEntry(String scenarioName, List<TestCaseEntry> testCaseEntries) {
-        this.scenarioName = scenarioName;
+    public ScenarioTestCaseEntry(String scenarioDescription, List<TestCaseEntry> testCaseEntries) {
+        this.scenarioDescription = scenarioDescription;
         this.testCaseEntries = testCaseEntries;
     }
 
     /**
-     * Returns the scenario name.
+     * Returns the scenario description.
      *
-     * @return scenario name
+     * @return scenario description
      */
-    public String getScenarioName() {
-        return scenarioName;
+    public String getScenarioDescription() {
+        return scenarioDescription;
     }
 
     /**
