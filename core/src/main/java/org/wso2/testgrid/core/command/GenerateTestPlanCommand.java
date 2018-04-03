@@ -366,7 +366,7 @@ public class GenerateTestPlanCommand implements Command {
                     TestGridConstants.TESTGRID_YAML, " is missing in ", deployRepositoryLocation));
         }
         testgridYamlContent = testgridYamlBuilder.toString().trim();
-        if (testgridYamlContent.isEmpty()) {
+        if (testgridYamlContent.isEmpty() || !testgridYamlContent.contains("scenarioConfig")) {
             testgridYamlContent = getTestgridYamlFor(Paths.get(testgridYamlLocation)).trim();
         }
 
