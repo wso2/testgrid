@@ -47,6 +47,7 @@ import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
 import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
@@ -378,7 +379,12 @@ public class GenerateTestPlanCommand implements Command {
                     + "could not be resolved via the job-config.yaml at: " + this.jobConfigFile);
         }
 
-        TestgridYaml testgridYaml = new Yaml().loadAs(testgridYamlContent, TestgridYaml.class);
+        Representer representer = new Representer();
+
+        // Skip missing properties in testgrid.yaml
+        representer.getPropertyUtils().setSkipMissingProperties(true);
+        TestgridYaml testgridYaml = new Yaml(new Constructor(TestgridYaml.class), representer)
+                .loadAs(testgridYamlContent, TestgridYaml.class);
         testgridYaml.setInfrastructureRepository(jobConfigFile.getInfrastructureRepository());
         testgridYaml.setDeploymentRepository(jobConfigFile.getDeploymentRepository());
         testgridYaml.setScenarioTestsRepository(jobConfigFile.getScenarioTestsRepository());
