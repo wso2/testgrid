@@ -77,12 +77,13 @@ public class ScenarioExecutor {
         try {
             // Run test scenario.
             String homeDir = testPlan.getScenarioTestsRepository();
+            String scenarioDir = testScenario.getDir();
             testScenario.setTestPlan(testPlan);
             testScenario.setStatus(Status.RUNNING);
             testScenario = persistTestScenario(testScenario);
 
             logger.info("Executing Tests for Solution Pattern : " + testScenario.getName());
-            String testLocation = Paths.get(homeDir, testScenario.getName()).toAbsolutePath().toString();
+            String testLocation = Paths.get(homeDir, scenarioDir).toAbsolutePath().toString();
             List<Test> tests = getTests(testScenario, testLocation);
 
             if (tests.isEmpty()) {

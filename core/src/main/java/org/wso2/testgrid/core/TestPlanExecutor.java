@@ -115,7 +115,7 @@ public class TestPlanExecutor {
      * @param deploymentCreationResult the result of the previous build step
      */
     private void runScenarioTests(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
-        for (TestScenario testScenario : testPlan.getTestScenarios()) {
+        for (TestScenario testScenario : testPlan.getScenarioConfig().getScenarios()) {
             try {
                 scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
             } catch (Exception e) {
