@@ -115,7 +115,16 @@ public class TestPlanExecutor {
      * @param deploymentCreationResult the result of the previous build step
      */
     private void runScenarioTests(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
+
+        /* Set dir for scenarios from values matched from test-plan yaml file */
         for (TestScenario testScenario : testPlan.getScenarioConfig().getScenarios()) {
+            for (TestScenario testScenario1 : testPlan.getTestScenarios()) {
+                if (testScenario.getName().equals(testScenario1.getName())) {
+                    testScenario1.setDir(testScenario.getDir());
+                }
+            }
+        }
+        for (TestScenario testScenario : testPlan.getTestScenarios()) {
             try {
                 scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
             } catch (Exception e) {
