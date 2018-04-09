@@ -37,6 +37,7 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
@@ -116,7 +117,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "{}", true);
         InfrastructureCombination comb1 = new InfrastructureCombination(Collections.singleton(param));
-        when(infrastructureCombinationsProvider.getCombinations()).thenReturn(Collections.singleton(comb1));
+        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class))).thenReturn(Collections.singleton(comb1));
 
         logger.info("Product : " + product.getName());
         when(productUOW.persistProduct(anyString())).thenReturn(product);

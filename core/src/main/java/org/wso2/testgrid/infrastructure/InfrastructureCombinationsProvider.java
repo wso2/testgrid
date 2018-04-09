@@ -21,6 +21,7 @@ package org.wso2.testgrid.infrastructure;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
@@ -29,13 +30,9 @@ import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * This class provides list of infrastructure combinations. Scenario tests
@@ -50,12 +47,13 @@ public class InfrastructureCombinationsProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(InfrastructureCombinationsProvider.class);
 
-    public Set<InfrastructureCombination> getCombinations() throws TestGridDAOException {
+    public Set<InfrastructureCombination> getCombinations(TestgridYaml testgridYaml) throws TestGridDAOException {
         Set<InfrastructureValueSet> valueSets = new InfrastructureParameterUOW().getValueSet();
         if (logger.isDebugEnabled()) {
             logger.debug("Retrieved value-set from database: " + valueSets);
         }
-        Set<InfrastructureCombination> infrastructureCombinations = getCombinations(valueSets);
+        Set<InfrastructureCombination> infrastructureCombinations = getCombinations(
+                filterInfrastructures(valueSets, testgridYaml));
         if (logger.isDebugEnabled()) {
             logger.debug("Generated set of infrastructure combinations: " + infrastructureCombinations);
         }
@@ -131,4 +129,31 @@ public class InfrastructureCombinationsProvider {
         }
     }
 
+    private Set<InfrastructureValueSet> filterInfrastructures(Set<InfrastructureValueSet> infrastructures,
+            TestgridYaml testgridYaml) {
+
+        List<String> excludes = testgridYaml.getInfrastructureConfig().getExcludes();
+        List<String> includes = testgridYaml.getInfrastructureConfig().getIncludes();
+        Set<InfrastructureValueSet> selectedInfraValSet = new HashSet<>();
+
+        if (excludes != null && !excludes.isEmpty()) {
+            infrastructures.forEach(infrastructureValueSet -> {
+                Set<InfrastructureParameter> selectedSet = infrastructureValueSet.getValues().stream()
+                        .filter(infrastructureParameter -> !excludes.contains(infrastructureParameter.getName()))
+                        .collect(Collectors.toSet());
+                selectedInfraValSet.add(new InfrastructureValueSet(infrastructureValueSet.getType(), selectedSet));
+            });
+            return selectedInfraValSet;
+        } else if (includes!= null && !includes.isEmpty()) {
+            infrastructures.forEach(infrastructureValueSet -> {
+                Set<InfrastructureParameter> selectedSet = infrastructureValueSet.getValues().stream()
+                        .filter(infrastructureParameter -> includes.contains(infrastructureParameter.getName()))
+                        .collect(Collectors.toSet());
+                selectedInfraValSet.add(new InfrastructureValueSet(infrastructureValueSet.getType(), selectedSet));
+            });
+            return selectedInfraValSet;
+        }
+
+        return infrastructures;
+    }
 }

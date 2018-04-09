@@ -43,6 +43,9 @@ public class InfrastructureConfig implements Serializable, Cloneable {
     private ContainerOrchestrationEngine containerOrchestrationEngine;
     private Properties parameters = new Properties();
     private List<Provisioner> provisioners;
+    private Boolean enableExcluding;
+    private List<String> excludes;
+    private List<String> includes;
 
     public IACProvider getIacProvider() {
         return iacProvider;
@@ -84,6 +87,31 @@ public class InfrastructureConfig implements Serializable, Cloneable {
 
     public void setProvisioners(List<Provisioner> provisioners) {
         this.provisioners = provisioners;
+    }
+
+    public Boolean getEnableExcluding() {
+        return enableExcluding;
+    }
+
+    public void setEnableExcluding(Boolean enableExcluding) {
+        this.enableExcluding = enableExcluding;
+    }
+
+
+    public List<String> getExcludes() {
+        return excludes;
+    }
+
+    public void setExcludes(List<String> excludes) {
+        this.excludes = excludes;
+    }
+
+    public List<String> getIncludes() {
+        return includes;
+    }
+
+    public void setIncludes(List<String> includes) {
+        this.includes = includes;
     }
 
     /**
