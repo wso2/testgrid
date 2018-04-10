@@ -192,7 +192,8 @@ public class AWSProvider implements InfrastructureProvider {
             if (logger.isDebugEnabled()) {
                 logger.info(StringUtil.concatStrings("Stack configuration created for name ", stackName));
             }
-            logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName));
+            logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName,
+                    ", Infrastructure: ", infrastructureConfig.getParameters()));
             StackCreationWaiter stackCreationValidator = new StackCreationWaiter();
             try {
                 TimeOutBuilder stackTimeOut = new TimeOutBuilder(TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
