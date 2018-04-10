@@ -1,41 +1,41 @@
 pipeline {
     agent {
         node {
-            label ""
-             customWorkspace '/testgrid/testgrid-home/jobs/wso2is-5.4.0-LTS'
+                label ""
+                 customWorkspace '/testgrid/testgrid-home/jobs/wso2ei-6.1.1-LTS'
+            }
         }
-    }
-    environment {
-        TESTGRID_VERSION = '0.9.0-SNAPSHOT'
-        TESTGRID_NAME = 'WSO2-TestGrid'
-        TESTGRID_DIST_URL = 'https://wso2.org/jenkins/job/testgrid/job/testgrid/' +
-                'lastSuccessfulBuild/artifact/distribution/target/${TESTGRID_NAME}.zip'
-        TESTGRID_HOME='/testgrid/testgrid-home'
-        TESTGRID_DIST_LOCATION = '${TESTGRID_HOME}/testgrid-dist'
 
-        PRODUCT="wso2is-5.4.0-LTS"
+        environment {
+            TESTGRID_VERSION = '0.9.0-SNAPSHOT'
+            TESTGRID_NAME = 'WSO2-TestGrid'
+            TESTGRID_DIST_URL = 'https://wso2.org/jenkins/job/testgrid/job/testgrid/' +
+                    'lastSuccessfulBuild/artifact/distribution/target/${TESTGRID_NAME}-${TESTGRID_VERSION}.zip'
+            TESTGRID_DIST_LOCATION = '/testgrid/testgrid-home/testgrid-dist/'
+            TESTGRID_HOME='/testgrid/testgrid-home/'
 
-        INFRASTRUCTURE_REPOSITORY='https://github.com/harshanL/cloudformation-is'
-        DEPLOYMENT_REPOSITORY='https://github.com/harshanL/cloudformation-is'
-        SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/identity-test-integration.git'
+            PRODUCT="wso2ei-6.1.1-LTS"
 
-        INFRA_VERSION="5.4.0.1"
-        INFRA_LOCATION="workspace/cloudformation-is-${INFRA_VERSION}"
-        DEPLOYMENT_LOCATION="workspace/cloudformation-is-${INFRA_VERSION}"
-        SCENARIOS_LOCATION="workspace/identity-test-integration"
-        INFRA_CONFIGS_LOCATION="${INFRA_LOCATION}/infrastructure-build-plans"
+            INFRASTRUCTURE_REPOSITORY='https://github.com/azinneera/cloudformation-ei'
+            DEPLOYMENT_REPOSITORY='https://github.com/azinneera/cloudformation-ei'
+            SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/ei-test-integration.git'
 
-        AWS_ACCESS_KEY_ID=credentials('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY=credentials('AWS_SECRET_ACCESS_KEY')
-        PWD=pwd()
-        JOB_CONFIG_YAML = "job-config.yaml"
-        JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
+            INFRA_LOCATION="workspace/aws-cloudformation-templates"
+            DEPLOYMENT_LOCATION="workspace/aws-cloudformation-templates"
+            SCENARIOS_LOCATION="workspace/ei-test-integration"
+            INFRA_CONFIGS_LOCATION="${INFRA_LOCATION}/infrastructure-build-plans"
 
-        MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
-        // Jmeter dependencies
-        SELENIUM_JAR='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/selenium-java/3.8.1/selenium-java-3.8.1.jar'
-        HTML_UNIT_DRIVER='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/htmlunit-driver/2.29.0/htmlunit-driver-2.29.0-jar-with-dependencies.jar'
-    }
+            AWS_ACCESS_KEY_ID=credentials('AWS_ACCESS_KEY_ID')
+            AWS_SECRET_ACCESS_KEY=credentials('AWS_SECRET_ACCESS_KEY')
+            PWD=pwd()
+            JOB_CONFIG_YAML = "job-config.yaml"
+            JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
+
+            MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
+            // Jmeter dependencies
+            SELENIUM_JAR='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/selenium-java/3.8.1/selenium-java-3.8.1.jar'
+            HTML_UNIT_DRIVER='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/htmlunit-driver/2.29.0/htmlunit-driver-2.29.0-jar-with-dependencies.jar'
+        }
 
     tools {
         jdk 'jdk8'
