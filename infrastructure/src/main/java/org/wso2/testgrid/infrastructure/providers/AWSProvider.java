@@ -271,7 +271,8 @@ public class AWSProvider implements InfrastructureProvider {
         Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new
                 AmazonCloudFormationWaiters(stackdestroy).stackDeleteComplete();
         try {
-            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()));
+            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()
+                    .withStackName(stackName)));
         } catch (WaiterUnrecoverableException e) {
             throw new TestGridInfrastructureException("Error occured while waiting for Stack :"
                     + stackName + " deletion !");
