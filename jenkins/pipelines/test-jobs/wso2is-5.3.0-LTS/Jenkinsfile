@@ -1,0 +1,153 @@
+pipeline {
+    agent {
+        node {
+            label ""
+             customWorkspace '/testgrid/testgrid-home/jobs/wso2is-5.3.0-LTS'
+        }
+    }
+    environment {
+        TESTGRID_VERSION = '0.9.0-SNAPSHOT'
+        TESTGRID_NAME = 'WSO2-TestGrid'
+        TESTGRID_DIST_URL = 'https://wso2.org/jenkins/job/testgrid/job/testgrid/' +
+                'lastSuccessfulBuild/artifact/distribution/target/${TESTGRID_NAME}.zip'
+        TESTGRID_HOME='/testgrid/testgrid-home'
+        TESTGRID_DIST_LOCATION = '${TESTGRID_HOME}/testgrid-dist'
+
+        PRODUCT="wso2is-5.3.0-LTS"
+
+        INFRASTRUCTURE_REPOSITORY='https://github.com/azinneera/cloudformation-is'
+        DEPLOYMENT_REPOSITORY='https://github.com/azinneera/cloudformation-is'
+        SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/identity-test-integration.git'
+
+        INFRA_VERSION="5.4.0.1"
+        INFRA_LOCATION="workspace/cloudformation-is-${INFRA_VERSION}"
+        DEPLOYMENT_LOCATION="workspace/cloudformation-is-${INFRA_VERSION}"
+        SCENARIOS_LOCATION="workspace/identity-test-integration"
+        INFRA_CONFIGS_LOCATION="${INFRA_LOCATION}/infrastructure-build-plans"
+
+        AWS_ACCESS_KEY_ID=credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY=credentials('AWS_SECRET_ACCESS_KEY')
+        PWD=pwd()
+        JOB_CONFIG_YAML = "job-config.yaml"
+        JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
+
+        MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
+        // Jmeter dependencies
+        SELENIUM_JAR='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/selenium-java/3.8.1/selenium-java-3.8.1.jar'
+        HTML_UNIT_DRIVER='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/htmlunit-driver/2.29.0/htmlunit-driver-2.29.0-jar-with-dependencies.jar'
+    }
+
+    tools {
+        jdk 'jdk8'
+    }
+
+    stages {
+        stage('Preparation') {
+            steps {
+		        echo "Preparing TestGrid test-environment"
+		        echo pwd()
+                deleteDir()
+                sh "mkdir workspace"
+                // Clone scenario repo
+                sh "mkdir -p ${SCENARIOS_LOCATION}"
+                dir("${SCENARIOS_LOCATION}"){
+                    git url: "${SCENARIOS_REPOSITORY}"
+                }
+
+                // Clone infra repo
+                sh "mkdir -p ${INFRA_LOCATION}"
+                dir("${INFRA_LOCATION}"){
+                    git branch: '5.3.0', url:"${INFRASTRUCTURE_REPOSITORY}"
+                }
+
+                sh """
+                echo ${TESTGRID_NAME}
+		        cd ${TESTGRID_DIST_LOCATION}
+                unzip -o ${TESTGRID_NAME}.zip
+                cd ${TESTGRID_NAME}
+                curl -o ./lib/mysql.jar $MYSQL_DRIVER_LOCATION
+                curl -o ./lib/selenium-java.jar $SELENIUM_JAR
+                curl -o ./lib/html-unit-driver.jar $HTML_UNIT_DRIVER
+                """
+
+                sh """
+                echo 'infrastructureRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' > ${JOB_CONFIG_YAML_PATH}
+                echo 'deploymentRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' >> ${JOB_CONFIG_YAML_PATH}
+                echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
+                echo 'testgridYamlLocation: ${INFRA_CONFIGS_LOCATION}/single-node-infra.yaml' >> ${JOB_CONFIG_YAML_PATH}
+
+                echo The job-config.yaml:
+                cat ${JOB_CONFIG_YAML_PATH}
+                """
+
+                stash name: "${JOB_CONFIG_YAML}", includes : "${JOB_CONFIG_YAML}"
+
+                sh """
+                cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+                ./testgrid generate-test-plan \
+                    --product ${PRODUCT} \
+                    --file ${JOB_CONFIG_YAML_PATH} \
+                    --workingDir ${PWD}
+                """
+            }
+        }
+
+        stage('test-plan-run') {
+            steps {
+                script {
+                    for (f in findFiles(glob: '**/test-plans/*.yaml')) {
+                        try {
+                            echo 'Running Test-Plan'
+                            sh "java -version"
+                            unstash name: "${JOB_CONFIG_YAML}"
+                            sh """
+                            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+                            ./testgrid run-testplan --product ${PRODUCT} \
+                            --file "${TESTGRID_HOME}/jobs/${PRODUCT}/test-plans/${f.name}"
+                            """
+                        } catch (Exception err) {
+                            echo "Error : ${err}"
+                            currentBuild.result = 'FAILURE'
+                        }
+                        echo "RESULT: ${currentBuild.result}"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+
+            sh """
+	    cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+            ./testgrid finalize-run-testplan \
+            --product ${PRODUCT}
+            """
+
+           sh """
+            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+            ./testgrid generate-report \
+            --product ${PRODUCT} \
+            --groupBy scenario
+            """
+
+            // Archive artifacts
+            withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
+              // Upload artifacts to S3
+              s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"jenkins-testrun-artifacts", path:"artifacts/")
+            }
+
+            // Delete logs and reports after upload
+            dir("${TESTGRID_HOME}/${PRODUCT}") {
+                sh """
+                find . -maxdepth 1 -type f \\( -name "*.log" -o -name "*.html" \\) -delete
+                """
+            }
+
+            //emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
+
+            // Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME           - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: 'harshan@wso2.com,kasung@wso2.com,asmaj@wso2.com,viduran@wso2.com,sameeraw@wso2.com,pasinduj@wso2.com'
+       }
+  }
+}
