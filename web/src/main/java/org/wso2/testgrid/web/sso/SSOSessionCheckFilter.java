@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.web.sso;
 
+import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridConstants;
@@ -55,38 +56,36 @@ public class SSOSessionCheckFilter implements Filter {
                          FilterChain filterChain) throws IOException, ServletException {
         //Skip checking for session if disabled in property file.
         String isSsoEnabled = ConfigurationContext.getProperty(ConfigurationProperties.ENABLE_SSO);
+        String ssoLoginUrl = ConfigurationContext.getProperty(ConfigurationProperties.SSO_LOGIN_URL);
+        UrlValidator urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
         if (isSsoEnabled != null) {
-            if (ConfigurationContext.getProperty(ConfigurationProperties.ENABLE_SSO).equals("false")) {
-                filterChain.doFilter(servletRequest, servletResponse);
-            }
-        } else {
-            logger.error(StringUtil.concatStrings(ConfigurationProperties.ENABLE_SSO.toString(),
-                    " is not set in ", TestGridConstants.TESTGRID_CONFIG_FILE));
-        }
-
-        String path = ((HttpServletRequest) servletRequest).getRequestURI();
-        if (isSecuredAPI(path)) {
-            Boolean isSessionValid = ((HttpServletRequest) servletRequest).isRequestedSessionIdValid();
-            if (!isSessionValid) {
-                HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-                String ssoLoginUrl = ConfigurationContext.getProperty(ConfigurationProperties.SSO_LOGIN_URL);
-                if (ssoLoginUrl != null) {
-                    //If the request is for a backend API, Status Code 401 is sent.
-                    if (path.startsWith(Constants.BACKEND_API_URI)) {
-                        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                    } else {
-                        httpResponse.sendRedirect(ssoLoginUrl);
-                    }
-                } else {
+            if (Boolean.valueOf(isSsoEnabled)) {
+                if (ssoLoginUrl == null || !urlValidator.isValid(ssoLoginUrl)) {
                     throw new ServletException(
-                    StringUtil.concatStrings(ConfigurationProperties.SSO_LOGIN_URL.toString(),
-                            " is not set in ", TestGridConstants.TESTGRID_CONFIG_FILE));
+                            StringUtil.concatStrings(ConfigurationProperties.SSO_LOGIN_URL.toString(),
+                                                     " is not set in ", TestGridConstants
+                                                             .TESTGRID_CONFIG_FILE, " or invalid url is set"));
                 }
-                return;
+                String path = ((HttpServletRequest) servletRequest).getRequestURI();
+                if (isSecuredAPI(path)) {
+                    Boolean isSessionValid = ((HttpServletRequest) servletRequest).isRequestedSessionIdValid();
+                    if (!isSessionValid) {
+                        HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
+                        //If the request is for a backend API, Status Code 401 is sent.
+                        if (path.startsWith(Constants.BACKEND_API_URI)) {
+                            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                        } else {
+                            httpResponse.sendRedirect(ssoLoginUrl);
+                        }
+                    }
+                }
             }
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
-            filterChain.doFilter(servletRequest, servletResponse);
+            String errorMsg = StringUtil.concatStrings(ConfigurationProperties.ENABLE_SSO.toString(),
+                                                       " is not set in ", TestGridConstants.TESTGRID_CONFIG_FILE);
+            logger.error(errorMsg);
+            throw new ServletException(errorMsg);
         }
     }
 
