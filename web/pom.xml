@@ -46,6 +46,11 @@
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.logging</artifactId>
         </dependency>
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+        </dependency>
+
 
         <!-- Glass fish / jersey dependencies -->
         <dependency>
