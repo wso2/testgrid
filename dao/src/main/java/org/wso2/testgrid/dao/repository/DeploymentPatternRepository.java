@@ -22,6 +22,7 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.DeploymentPatternTestFailureStat;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
@@ -130,7 +131,9 @@ public class DeploymentPatternRepository extends AbstractRepository<DeploymentPa
                 "dp.PRODUCT_id = '" + productId + "' GROUP BY dp.id;";
         try {
             Query query = entityManager.createNativeQuery(queryStr, DeploymentPattern.class);
-            return query.getResultList();
+            @SuppressWarnings("unchecked")
+            List<DeploymentPattern> resultList = (List<DeploymentPattern>) query.getResultList();
+            return EntityManagerHelper.refreshResultList(entityManager, resultList);
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL" +
                     " query [", queryStr, "]"), e);
@@ -153,7 +156,9 @@ public class DeploymentPatternRepository extends AbstractRepository<DeploymentPa
                 "tp.status = '" + Status.FAIL.name() + "' GROUP BY tp.DEPLOYMENTPATTERN_id;";
         try {
             Query query = entityManager.createNativeQuery(queryStr);
-            return this.getDeploymentPatternTestFailureStats(query.getResultList());
+            @SuppressWarnings("unchecked")
+            List resultList = EntityManagerHelper.refreshResultList(entityManager, query.getResultList());
+            return this.getDeploymentPatternTestFailureStats(resultList);
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL " +
                     "query [", queryStr, "]"), e);
