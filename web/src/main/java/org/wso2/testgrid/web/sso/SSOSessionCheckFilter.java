@@ -62,9 +62,8 @@ public class SSOSessionCheckFilter implements Filter {
             if (Boolean.valueOf(isSsoEnabled)) {
                 if (ssoLoginUrl == null || !urlValidator.isValid(ssoLoginUrl)) {
                     throw new ServletException(
-                            StringUtil.concatStrings(ConfigurationProperties.SSO_LOGIN_URL.toString(),
-                                                     " is not set in ", TestGridConstants
-                                                             .TESTGRID_CONFIG_FILE, " or invalid url is set"));
+                            StringUtil.concatStrings("SSO login url is not set in the ", TestGridConstants
+                                    .TESTGRID_CONFIG_FILE, " or invalid url is set"));
                 }
                 String path = ((HttpServletRequest) servletRequest).getRequestURI();
                 if (isSecuredAPI(path)) {
