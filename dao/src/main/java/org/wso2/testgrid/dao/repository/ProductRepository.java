@@ -21,6 +21,7 @@ import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.ProductTestStatus;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
@@ -128,7 +129,9 @@ public class ProductRepository extends AbstractRepository<Product> {
                 "tp.created_timestamp DESC;";
         try {
             Query query = entityManager.createNativeQuery(queryStr);
-            return this.getProductTestStatuses(query.getResultList());
+            @SuppressWarnings("unchecked")
+            List resultList = EntityManagerHelper.refreshResultList(entityManager, query.getResultList());
+            return this.getProductTestStatuses(resultList);
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL" +
                     " query [", queryStr, "]"), e);

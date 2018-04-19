@@ -251,26 +251,35 @@ class DeploymentPatternView extends Component {
               </Subheader>;
           }
         })()}
-        <Table fixedHeader={false} style={{ tableLayout: 'auto' }}>
+        <Table className='deployment-pattern-view' fixedHeader={false} style={{ tableLayout: 'auto' }}>
           <TableHeader displaySelectAll={false} adjustForCheckbox={false} >
-            <TableRow>
-              <TableHeaderColumn ><h2>Deployment Pattern</h2></TableHeaderColumn>
-              <TableHeaderColumn><h2>Infra Combination</h2></TableHeaderColumn>
-              <TableHeaderColumn><h2>Last Build</h2></TableHeaderColumn>
-              <TableHeaderColumn><h2>Last Failure</h2></TableHeaderColumn>
-              <TableHeaderColumn><h2>Execute</h2></TableHeaderColumn>
+            <TableRow style={{ borderBottom: '0' }}>
+              <TableHeaderColumn rowSpan='2' style={{ textAlign: 'center' }}><h2>Deployment Pattern</h2></TableHeaderColumn>
+              <TableHeaderColumn style={{ textAlign: 'center' }}><h2>Infra Combination</h2></TableHeaderColumn>
+              <TableHeaderColumn rowSpan='2' style={{ textAlign: 'center' }}><h2>Last Build</h2></TableHeaderColumn>
+              <TableHeaderColumn rowSpan='2' style={{ textAlign: 'center' }}><h2>Last Failure</h2></TableHeaderColumn>
+              <TableHeaderColumn rowSpan='2' style={{ textAlign: 'center' }}><h2>Execute</h2></TableHeaderColumn>
+            </TableRow>
+            <TableRow class='infra-param-header' style='border: 0'>
+              <TableRowColumn>
+                <p>OS</p>
+                <p>Database</p>
+                <p>JDK</p>
+              </TableRowColumn>
             </TableRow>
           </TableHeader>
           <TableBody displayRowCheckbox={false}>
             {Object.keys(groupByDeployment).map((key) => {
               return (
                 groupByDeployment[key].map((value, index) => {
+                  var infraParameters = JSON.parse(value.lastBuild.infraParams);
                   if (index == 0) {
                     return (
                       <TableRow>
-                        <TableRowColumn rowSpan={groupByDeployment[key].length}>{key}</TableRowColumn>
+                        <TableRowColumn class='deployment-pattern-name'
+                            rowSpan={groupByDeployment[key].length}>{key}</TableRowColumn>
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
-                          <FlatButton style={{ color: '#0E457C' }} data-tip="View History"
+                          <FlatButton class='view-history' style={{ color: '#0E457C' }} data-tip="View History"
                             onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/testplans/history/"
                               + value.lastBuild.id, {
                                 deploymentPatternName: key
@@ -279,7 +288,15 @@ class DeploymentPatternView extends Component {
                                 infraParameters: value.lastBuild.infraParams,
                                 testPlanStatus: value.lastBuild.status
                               })}>
-                            {value.lastBuild.infraParams}
+                              <p class='infra-param'>
+                                {infraParameters.OS} {infraParameters.OSVersion}
+                              </p>
+                              <p class='infra-param'>
+                                {infraParameters.DBEngine} {infraParameters.DBEngineVersion}
+                              </p>
+                              <p class='infra-param'>
+                                {infraParameters.JDK}
+                              </p>
                           </FlatButton>
                           <ReactTooltip />
                         </TableRowColumn>
@@ -329,7 +346,7 @@ class DeploymentPatternView extends Component {
                     return (
                       <TableRow>
                         <TableRowColumn style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
-                          <FlatButton style={{ color: '#0E457C' }} data-tip="View History"
+                          <FlatButton class='view-history' style={{ color: '#0E457C' }} data-tip="View History"
                             onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/testplans/history/" + value.lastBuild.id, {
                               deploymentPatternName: key
                             }, {
@@ -337,7 +354,15 @@ class DeploymentPatternView extends Component {
                                 infraParameters: value.lastBuild.infraParams,
                                 testPlanStatus: value.lastBuild.status
                               })}>
-                            {value.lastBuild.infraParams}
+                            <p class='infra-param'>
+                              {infraParameters.OS} {infraParameters.OSVersion}
+                            </p>
+                            <p class='infra-param'>
+                              {infraParameters.DBEngine} {infraParameters.DBEngineVersion}
+                            </p>
+                            <p class='infra-param'>
+                              {infraParameters.JDK}
+                            </p>
                           </FlatButton>
                           <ReactTooltip />
                         </TableRowColumn>

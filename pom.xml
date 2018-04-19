@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.testgrid</groupId>
     <artifactId>testgrid-parent</artifactId>
-    <version>0.9.0-m22-SNAPSHOT</version>
+    <version>0.9.0-m23-SNAPSHOT</version>
     <name>WSO2 TestGrid Project - Aggregator POM</name>
     <url>http://wso2.org</url>
     <packaging>pom</packaging>
@@ -534,6 +534,12 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- Apache commons validator-->
+            <dependency>
+                <groupId>commons-validator</groupId>
+                <artifactId>commons-validator</artifactId>
+                <version>${commons.validator.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -541,7 +547,7 @@
         <!-- Plugin versions -->
         <jacoco.version>0.7.9</jacoco.version>
         <!-- TestGrid version-->
-        <test.grid.version>0.9.0-m22-SNAPSHOT</test.grid.version>
+        <test.grid.version>0.9.0-m23-SNAPSHOT</test.grid.version>
         <!-- Test Grid core dependencies -->
         <jgit.version>4.1.1.201511131810-r</jgit.version>
         <!-- TestGrid infrastructure dependencies -->
@@ -585,5 +591,6 @@
         <commons.lang.version>2.6</commons.lang.version>
         <wso2.carbon.identity.agent.sso.version>5.1.3</wso2.carbon.identity.agent.sso.version>
         <org.opensaml.version>2.6.4</org.opensaml.version>
+        <commons.validator.version>1.6</commons.validator.version>
     </properties>
 </project>

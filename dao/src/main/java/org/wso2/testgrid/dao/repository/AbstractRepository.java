@@ -19,6 +19,7 @@ package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
@@ -133,7 +134,7 @@ abstract class AbstractRepository<T> {
             //Where criteria
             criteriaQuery.where(criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()])));
             TypedQuery<T> query = entityManager.createQuery(criteriaQuery);
-            return query.getResultList();
+            return EntityManagerHelper.refreshResultList(entityManager, query.getResultList());
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil
                     .concatStrings("Error when searching for entities with the params: ", params), e);
@@ -159,7 +160,7 @@ abstract class AbstractRepository<T> {
             Root<T> rootEntry = criteriaQuery.from(entityType);
             CriteriaQuery<T> criteriaQueryAll = criteriaQuery.select(rootEntry);
             TypedQuery<T> allQuery = entityManager.createQuery(criteriaQueryAll);
-            return allQuery.getResultList();
+            return EntityManagerHelper.refreshResultList(entityManager, allQuery.getResultList());
         } catch (Exception e) {
             throw new TestGridDAOException("Error occurred when searching for entity.", e);
         }
@@ -203,7 +204,7 @@ abstract class AbstractRepository<T> {
             query = entityManager.createQuery(criteriaQuery);
             query.setParameter(parameterExpression, entry.getValue());
         }
-        return query.getResultList();
+        return EntityManagerHelper.refreshResultList(entityManager, query.getResultList());
     }
 
     /**
@@ -216,7 +217,7 @@ abstract class AbstractRepository<T> {
     List<Object> executeTypedQuery(String nativeQuery) throws TestGridDAOException {
         try {
             Query query = entityManager.createNativeQuery(nativeQuery);
-            return query.getResultList();
+            return EntityManagerHelper.refreshResultList(entityManager, query.getResultList());
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL query [",
                     nativeQuery, "]"), e);

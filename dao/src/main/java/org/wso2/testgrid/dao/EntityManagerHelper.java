@@ -25,6 +25,7 @@ import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationPropert
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -56,7 +57,7 @@ public class EntityManagerHelper {
      *
      * @return thread safe {@link EntityManager}
      */
-    public static EntityManager getEntityManager(String persistenceUnitName) {
+    private static EntityManager getEntityManager(String persistenceUnitName) {
         EntityManager entityManager = entityManagerMap.get(persistenceUnitName);
         if (entityManager == null || !entityManager.isOpen()) {
             EntityManagerFactory entityManagerFactory = getEntityManagerFactory(persistenceUnitName);
@@ -124,5 +125,33 @@ public class EntityManagerHelper {
             entityManagerFactoryMap.put(persistenceUnitName, entityManagerFactory);
         }
         return entityManagerFactory;
+    }
+
+    /**
+     * Returns the refreshed result list.
+     *
+     * @param entityManager Entity Manager object
+     * @param resultList    Result List of query execution
+     * @return List of refreshed results
+     */
+    public static <T> List<T> refreshResultList(EntityManager entityManager, List<T> resultList) {
+        if (!resultList.isEmpty()) {
+            for (T entity : resultList) {
+                entityManager.refresh(entity);
+            }
+        }
+        return resultList;
+    }
+
+    /**
+     * Returns the refreshed result.
+     *
+     * @param entityManager Entity Manager object
+     * @param result        Result of query execution
+     * @return Refreshed result
+     */
+    public static <T> T refreshResult(EntityManager entityManager, T result) {
+        entityManager.refresh(result);
+        return result;
     }
 }

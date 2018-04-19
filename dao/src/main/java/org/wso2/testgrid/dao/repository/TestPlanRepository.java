@@ -21,6 +21,7 @@ import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
@@ -129,7 +130,9 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 "tp.created_timestamp = r.maxtime AND tp.DEPLOYMENTPATTERN_id = r.DEPLOYMENTPATTERN_id;";
         try {
             Query query = entityManager.createNativeQuery(queryStr, TestPlan.class);
-            return query.getResultList();
+            @SuppressWarnings("unchecked")
+            List<TestPlan> resultList = (List<TestPlan>) query.getResultList();
+            return EntityManagerHelper.refreshResultList(entityManager, resultList);
         } catch (Exception e) {
             throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL" +
                     " query [", queryStr, "]"), e);
@@ -154,7 +157,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 .setParameter(1, product.getId())
                 .getResultList();
         if (!resultList.isEmpty()) {
-            return (TestPlan) resultList.get(0);
+            return (TestPlan) EntityManagerHelper.refreshResult(entityManager, resultList.get(0));
         } else {
             return null;
         }
@@ -178,7 +181,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 .setParameter(1, product.getId())
                 .getResultList();
         if (!resultList.isEmpty()) {
-            return (TestPlan) resultList.get(0);
+            return (TestPlan) EntityManagerHelper.refreshResult(entityManager, resultList.get(0));
         } else {
             return null;
         }
@@ -199,9 +202,11 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 "group by tp.infra_parameters,dp.name) as x on t.infra_parameters=x.infra_parameters " +
                 "AND t.modified_timestamp=x.time;";
 
-        return (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
+        @SuppressWarnings("unchecked")
+        List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
                 .setParameter(1, product.getId())
                 .getResultList();
+        return EntityManagerHelper.refreshResultList(entityManager, resultList);
     }
 
     /**
@@ -220,7 +225,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 .getResultList();
 
         if (!resultList.isEmpty()) {
-            return (TestPlan) resultList.get(0);
+            return (TestPlan) EntityManagerHelper.refreshResult(entityManager, resultList.get(0));
         } else {
             return null;
         }
@@ -237,10 +242,13 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         String sql = " select t.* from test_plan t inner join deployment_pattern dp inner " +
                 "join product p on p.id=dp.PRODUCT_id and dp.id=t.DEPLOYMENTPATTERN_id " +
                 "where t.infra_parameters=? AND dp.id=? AND p.id=?";
-        return entityManager.createNativeQuery(sql, TestPlan.class)
+
+        @SuppressWarnings("unchecked")
+        List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
                 .setParameter(1, testPlan.getInfraParameters())
                 .setParameter(2, testPlan.getDeploymentPattern().getId())
                 .setParameter(3, testPlan.getDeploymentPattern().getProduct().getId())
                 .getResultList();
+        return EntityManagerHelper.refreshResultList(entityManager, resultList);
     }
 }
