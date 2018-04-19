@@ -105,6 +105,11 @@
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.logging</artifactId>
         </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>6.0.6</version>
+        </dependency>
 
         <!-- Jacoco agent -->
         <dependency>
