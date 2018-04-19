@@ -309,7 +309,16 @@
                 <artifactId>ApacheJMeter_java</artifactId>
                 <version>${apache.jmeter.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-htmlunit-driver</artifactId>
+                <version>${org.selenium.html.driver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-java</artifactId>
+                <version>${org.selenium.java.version}</version>
+            </dependency>
             <!-- DAO dependencies -->
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
@@ -553,7 +562,9 @@
         <!-- TestGrid infrastructure dependencies -->
         <com.aws.version>1.11.219</com.aws.version>
         <apache.http.version>4.5.3</apache.http.version>
-        <apache.jmeter.version>4.0</apache.jmeter.version>
+        <apache.jmeter.version>3.3</apache.jmeter.version>
+        <org.selenium.java.version>3.8.1</org.selenium.java.version>
+        <org.selenium.html.driver.version>2.52.0</org.selenium.html.driver.version>
         <testng.version>6.11</testng.version>
         <!-- Apache commons dependencies-->
         <apache.commons.lang.version>3.4</apache.commons.lang.version>
@@ -580,8 +591,8 @@
         <apache.commons.collections4.version>4.1</apache.commons.collections4.version>
         <!-- Logging dependencies -->
         <slf4j.api.version>1.7.25</slf4j.api.version>
-        <log4j.api.version>2.9.0</log4j.api.version>
-        <log4j.core.version>2.9.0</log4j.core.version>
+        <log4j.api.version>2.8.2</log4j.api.version>
+        <log4j.core.version>2.8.2</log4j.core.version>
         <!--Dashboard dependencies-->
         <org.codehaus.mojo.version>1.3.2</org.codehaus.mojo.version>
         <!--Findbugs dependencies-->
