@@ -74,7 +74,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({ StringUtil.class, TestExecutorFactory.class })
-@PowerMockIgnore({ "javax.management.*", "javax.script.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.script.*", "org.apache.logging.log4j.*"})
 public class RunTestPlanCommandTest extends PowerMockTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommandTest.class);
