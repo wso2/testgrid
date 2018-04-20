@@ -387,4 +387,14 @@ public final class TestGridUtil {
     public static Path getConfigFilePath() throws IOException {
         return Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_CONFIG_FILE);
     }
+
+    /**
+     * Returns the path of the log file.
+     *
+     * @param productName product name
+     * @return log file path
+     */
+    public static String deriveLogFilePath(String productName, String logFileName) {
+        return Paths.get(productName, TestGridConstants.TESTGRID_LOGS_DIR, logFileName).toString();
+    }
 }

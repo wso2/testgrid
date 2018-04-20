@@ -22,13 +22,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 
 import java.util.List;
 
@@ -55,6 +58,9 @@ public class FinalizeRunTestplan implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
+
+        LogFilePathLookup.setLogFilePath(
+                TestGridUtil.deriveLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
 
         logger.info("Finalizing testplans...");
         List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(getProduct(productName));

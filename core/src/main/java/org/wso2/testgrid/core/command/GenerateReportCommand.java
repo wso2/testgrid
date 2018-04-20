@@ -26,13 +26,12 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 import org.wso2.testgrid.reporting.ReportingException;
 import org.wso2.testgrid.reporting.TestReportEngine;
-
-import java.nio.file.Paths;
 
 /**
  * This generates a cumulative test report that consists of all test plans for a given product.
@@ -66,7 +65,8 @@ public class GenerateReportCommand implements Command {
             logger.info("Generating test result report for " + productName);
 
             Product product = getProduct(productName);
-            LogFilePathLookup.setLogFilePath(deriveLogFilePath(productName));
+            LogFilePathLookup.setLogFilePath(
+                    TestGridUtil.deriveLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
             TestReportEngine testReportEngine = new TestReportEngine();
             testReportEngine.generateReport(product, showSuccess, groupBy);
         } catch (ReportingException e) {
@@ -96,16 +96,5 @@ public class GenerateReportCommand implements Command {
                     .concatStrings("Error in retrieving Product {product name: ", productName,
                             "} from the Database. This exception should not occur in the test execution flow."), e);
         }
-    }
-
-    /**
-     * Returns the path of the log file.
-     *
-     * @param productName product name
-     * @return log file path
-     */
-    private String deriveLogFilePath(String productName) {
-        String productDir = StringUtil.concatStrings(productName);
-        return Paths.get(productDir, TestGridConstants.TEST_LOG_FILE_NAME).toString();
     }
 }

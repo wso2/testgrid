@@ -29,7 +29,6 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.common.exception.TestGridLoggingException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -114,7 +113,13 @@ public class RunTestPlanCommand implements Command {
                 testPlan.setStatus(Status.RUNNING);
                 persistTestPlan(testPlan);
 
-                LogFilePathLookup.setLogFilePath(deriveLogFilePath(testPlan));
+                //Create logging directory
+                Path testRunDirectory = TestGridUtil.getTestRunWorkspace(testPlan);
+                String[] subStrings = testRunDirectory.toString().split(TestGridConstants.FILE_SEPARATOR, 2);
+                String logFileName = subStrings[1].replaceAll(TestGridConstants.FILE_SEPARATOR, "_")
+                        + TestGridConstants.LOG_FILE_EXTENSION;
+                LogFilePathLookup.setLogFilePath(TestGridUtil.deriveLogFilePath(subStrings[0], logFileName));
+
                 executeTestPlan(testPlan, infrastructureConfig);
             } else {
                 throw new CommandExecutionException(StringUtil.concatStrings("Unable to locate persisted " +
@@ -122,10 +127,12 @@ public class RunTestPlanCommand implements Command {
             }
         } catch (IOException e) {
             throw new CommandExecutionException("Error in reading file generated config file", e);
-        } catch (TestGridLoggingException e) {
-            throw new CommandExecutionException("Error in deriving log file path.", e);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error in obtaining persisted TestPlan from database.", e);
+        } catch (TestGridException e) {
+            throw new CommandExecutionException("Error in getting the test run artifacts directory location " +
+                    "([PRODUCT_NAME_VERSION_CHANNEL]/[DEPLOYMENT_PATTERN_NAME]/[INFRA_PARAM_UUID"
+                    + "]/[TEST_RUN_NUMBER]", e);
         }
     }
 
@@ -223,25 +230,6 @@ public class RunTestPlanCommand implements Command {
         } catch (TestPlanExecutorException | TestGridDAOException e) {
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan ", testPlan), e);
-        }
-    }
-
-    /**
-     * Returns the path of the log file.
-     *
-     * @param testPlan test plan
-     * @return log file path
-     * @throws TestGridLoggingException thrown when error on deriving log file path
-     */
-    private String deriveLogFilePath(TestPlan testPlan) throws TestGridLoggingException {
-        try {
-            Path testRunDirectory = TestGridUtil.getTestRunWorkspace(testPlan);
-            return testRunDirectory.resolve(TestGridConstants.TEST_LOG_FILE_NAME).toString();
-        } catch (TestGridException e) {
-            throw new TestGridLoggingException(
-                    "Error in getting the test run artifacts directory location " +
-                            "([PRODUCT_NAME_VERSION_CHANNEL]/[DEPLOYMENT_PATTERN_NAME]/[INFRA_PARAM_UUID"
-                            + "]/[TEST_RUN_NUMBER]");
         }
     }
 }
