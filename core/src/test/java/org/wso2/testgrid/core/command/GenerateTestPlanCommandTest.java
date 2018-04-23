@@ -93,7 +93,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
 
         this.testPlan = new TestPlan();
         testPlan.setId("abc");
-        testPlan.setTestRunNumber(1);
+        testPlan.setBuildNumber(1);
 
         this.deploymentPattern = new DeploymentPattern();
         deploymentPattern.setName("default-" + random);
@@ -125,7 +125,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
                 thenReturn(Optional.of(deploymentPattern));
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFile, workingDir, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
+                jobConfigFile, workingDir, 1, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
                 testPlanUOW);
         generateTestPlanCommand.execute();
 

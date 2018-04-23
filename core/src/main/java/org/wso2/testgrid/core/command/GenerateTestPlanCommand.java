@@ -99,6 +99,11 @@ public class GenerateTestPlanCommand implements Command {
             aliases = { "-wd" })
     private String workingDir = "";
 
+    @Option(name = "--buildNumber",
+            usage = "Provide the Jenkins Build Number.",
+            aliases = { "-bn" })
+    private int buildNo;
+
     /**
      * This is @{@link Deprecated} in favor of '--file'
      */
@@ -130,12 +135,13 @@ public class GenerateTestPlanCommand implements Command {
      * @param combinationsProvider infrastructure Combinations Provider
      * @param productUOW           the ProductUOW
      */
-    GenerateTestPlanCommand(String productName, String jobConfigFile, String workingDir,
+    GenerateTestPlanCommand(String productName, String jobConfigFile, String workingDir, int buildNo,
             InfrastructureCombinationsProvider combinationsProvider, ProductUOW productUOW,
                             DeploymentPatternUOW deploymentPatternUOW, TestPlanUOW testPlanUOW) {
         this.productName = productName;
         this.jobConfigFile = jobConfigFile;
         this.workingDir = workingDir;
+        this.buildNo = buildNo;
         this.infrastructureCombinationsProvider = combinationsProvider;
         this.productUOW = productUOW;
         this.deploymentPatternUOW = deploymentPatternUOW;
@@ -218,12 +224,12 @@ public class GenerateTestPlanCommand implements Command {
                     TestGridUtil.getDeploymentPatternName(testPlan));
 
             // Generate test plan from config
-            TestPlan testPlanEntity = TestGridUtil.toTestPlanEntity(deploymentPattern, testPlan);
+            TestPlan testPlanEntity = TestGridUtil.toTestPlanEntity(deploymentPattern, testPlan, buildNo);
 
             // Product, deployment pattern, test plan and test scenarios should be persisted
             TestPlan persistedTestPlan = testPlanUOW.persistTestPlan(testPlanEntity);
             testPlan.setId(persistedTestPlan.getId());
-            testPlan.setTestRunNumber(persistedTestPlan.getTestRunNumber());
+            testPlan.setBuildNumber(persistedTestPlan.getBuildNumber());
             //Need to set this as converting to TestPlan entity changes deployerType based on infra provisioner.
             testPlan.setDeployerType(persistedTestPlan.getDeployerType());
 
