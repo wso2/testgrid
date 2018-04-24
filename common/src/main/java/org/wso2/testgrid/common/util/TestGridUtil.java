@@ -374,7 +374,7 @@ public final class TestGridUtil {
 
     public static String deriveTestRunLogFileName(TestPlan testPlan) throws TestGridException {
         DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
-        int testRunNumber = testPlan.getTestRunNumber();
+        int testRunNumber = testPlan.getBuildNumber();
         String deploymentDir = deploymentPattern.getName();
         String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
 

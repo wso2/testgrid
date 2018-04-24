@@ -154,18 +154,18 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
-     * Returns the test run number.
+     * Returns the build number.
      *
-     * @return test run number
+     * @return Jenkins build number
      */
     public int getBuildNumber() {
         return buildNumber;
     }
 
     /**
-     * Sets the test run number.
+     * Sets the build number.
      *
-     * @param buildNumber test run number
+     * @param buildNumber Jenkins build number
      */
     public void setBuildNumber(int buildNumber) {
         this.buildNumber = buildNumber;
