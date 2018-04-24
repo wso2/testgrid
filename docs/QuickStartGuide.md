@@ -69,53 +69,52 @@ This provides the required steps in detail on how to run TestGrid.
        E.g: _A sample for IS 5.4.0 with cloudformation is given below._
        
        ```yaml
-    # TestGrid configuration file.
-    version: '0.9'
-    infrastructureConfig:
-      iacProvider: CLOUDFORMATION
-      infrastructureProvider: AWS
-      containerOrchestrationEngine: None
-      parameters:
-        - JDK : ORACLE_JDK8
-      provisioners:
-        - name: 01-two-node-deployment
-          description: Provision Infra for a two node IS cluster
-          dir: cloudformation-templates/pattern-1
-          scripts:
-            - name: infra-for-two-node-deployment
-              description: Creates infrastructure for a IS two node deployment.
-              type: CLOUDFORMATION
-              file: pattern-1-with-puppet-cloudformation.template.yml
-              inputParameters:
-                parseInfrastructureScript: false
-                region: us-east-1
-                DBPassword: "DB_Password"
-                EC2KeyPair: "ec2-key"
-                ALBCertificateARN: "arn:aws:acm:us-east-1:40648900521:certificate/2ab5fegt-5df1-4219-9f7e-91639ff8064e"
-    
-    scenarioConfig:
-        scenarios:
-          -
-            name: scenario02
-            description: 'Multiple login options by service provider'
-            dir: scenario02
-          -
-            name: scenario12
-            description: 'Claim Mapper with Service Provider Travelocity and Identity Provider Facebook and Google'
-            dir: scenario12
-          -
-            name: scenario18
-            description: 'Fine-grained access control for service providers'
-            dir: scenario18
-          -
-            name: scenario21
-            description: 'Enforce users to provide missing required attributes while getting JIT provisioned to the local system'
-            dir: scenario21
-          -
-            name: scenario28
-            description: 'Home realm discovery'
-            dir: scenario28
-
+        # TestGrid configuration file.
+        version: '0.9'
+        infrastructureConfig:
+           iacProvider: CLOUDFORMATION
+           infrastructureProvider: AWS
+           containerOrchestrationEngine: None
+           parameters:
+            - JDK : ORACLE_JDK8
+           provisioners:
+            - name: 01-two-node-deployment
+              description: Provision Infra for a two node IS cluster
+              dir: cloudformation-templates/pattern-1
+              scripts:
+               - name: infra-for-two-node-deployment
+                 description: Creates infrastructure for a IS two node deployment.
+                 type: CLOUDFORMATION
+                 file: pattern-1-with-puppet-cloudformation.template.yml
+                 inputParameters:
+                    parseInfrastructureScript: false
+                    region: us-east-1
+                    DBPassword: "DB_Password"
+                    EC2KeyPair: "ec2-key"
+                    ALBCertificateARN: "arn:aws:acm:us-east-1:40648900521:certificate/2ab5fegt-5df1-4219-9f7e-91639ff8064e"
+        
+        scenarioConfig:
+         scenarios:
+           -
+             name: scenario02
+             description: 'Multiple login options by service provider'
+             dir: scenario02
+           -
+             name: scenario12
+             description: 'Claim Mapper with Service Provider Travelocity and Identity Provider Facebook and Google'
+             dir: scenario12
+           -
+             name: scenario18
+             description: 'Fine-grained access control for service providers'
+             dir: scenario18
+           -
+             name: scenario21
+             description: 'Enforce users to provide missing required attributes while getting JIT provisioned to the local system'
+             dir: scenario21
+           -
+             name: scenario28
+             description: 'Home realm discovery'
+             dir: scenario28         
     ```
 10. Create job-config.yaml in a desired place containing absolute paths to infrastructure, deployment and scenario scripts in above cloned repos. 
 <br>
