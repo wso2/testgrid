@@ -68,6 +68,7 @@ import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_HOME_SYSTEM_PR
 public final class TestGridUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(TestGridUtil.class);
+    private static final String UNDERSCORE = "_";
 
     /**
      * Executes a command.
@@ -386,5 +387,24 @@ public final class TestGridUtil {
      */
     public static Path getConfigFilePath() throws IOException {
         return Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_CONFIG_FILE);
+    }
+
+    /**
+     * Returns the path of the log file.
+     *
+     * @param productName product name
+     * @return log file path
+     */
+    public static String deriveLogFilePath(String productName, String logFileName) {
+        return Paths.get(productName, TestGridConstants.TESTGRID_LOGS_DIR, logFileName).toString();
+    }
+
+    public static String deriveTestRunLogFileName(TestPlan testPlan) throws TestGridException {
+        DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
+        int testRunNumber = testPlan.getTestRunNumber();
+        String deploymentDir = deploymentPattern.getName();
+        String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
+
+        return StringUtil.concatStrings(deploymentDir, UNDERSCORE, infraDir, UNDERSCORE, String.valueOf(testRunNumber));
     }
 }
