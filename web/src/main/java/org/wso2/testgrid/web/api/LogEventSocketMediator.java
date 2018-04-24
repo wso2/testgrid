@@ -19,14 +19,12 @@ package org.wso2.testgrid.web.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
-import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 import org.wso2.testgrid.web.utils.FileWatcher;
 import org.wso2.testgrid.web.utils.FileWatcherException;
 
@@ -133,12 +131,9 @@ public class LogEventSocketMediator {
      */
     private Path getLogFilePath(TestPlan testPlan) throws TestGridException {
         //Create logging directory
-        Path testRunDirectory = TestGridUtil.getTestRunWorkspace(testPlan);
-        String[] subStrings = testRunDirectory.toString().split(TestGridConstants.FILE_SEPARATOR, 2);
-        String logFileName = subStrings[1].replaceAll(TestGridConstants.FILE_SEPARATOR, "_")
-                + TestGridConstants.LOG_FILE_EXTENSION;
-        LogFilePathLookup.setLogFilePath(TestGridUtil.deriveLogFilePath(subStrings[0], logFileName));
-        return Paths.get(TestGridUtil.getTestGridHomePath(), subStrings[0], logFileName);
+        String productName = testPlan.getDeploymentPattern().getProduct().getName();
+        return Paths.get(TestGridUtil.getTestGridHomePath(), productName,
+                TestGridUtil.deriveTestRunLogFileName(testPlan));
     }
 
     /**
