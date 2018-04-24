@@ -56,7 +56,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      */
     public static final String STATUS_COLUMN = "status";
     public static final String DEPLOYMENT_PATTERN_COLUMN = "deploymentPattern";
-    public static final String TESTRUN_NUMBER_COLUMN = "testRunNumber";
+    public static final String BUILD_NUMBER = "buildNumber";
 
     private static final long serialVersionUID = 9208083074380972876L;
 
@@ -67,8 +67,8 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     @Column(name = "infra_parameters")
     private String infraParameters;
 
-    @Column(name = "test_run_number")
-    private int testRunNumber;
+    @Column(name = "build_number")
+    private int buildNumber;
 
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = DeploymentPattern.class,
                fetch = FetchType.LAZY)
@@ -154,21 +154,21 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
-     * Returns the test run number.
+     * Returns the build number.
      *
-     * @return test run number
+     * @return Jenkins build number
      */
-    public int getTestRunNumber() {
-        return testRunNumber;
+    public int getBuildNumber() {
+        return buildNumber;
     }
 
     /**
-     * Sets the test run number.
+     * Sets the build number.
      *
-     * @param testRunNumber test run number
+     * @param buildNumber Jenkins build number
      */
-    public void setTestRunNumber(int testRunNumber) {
-        this.testRunNumber = testRunNumber;
+    public void setBuildNumber(int buildNumber) {
+        this.buildNumber = buildNumber;
     }
 
     /**
@@ -303,7 +303,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
         return StringUtil.concatStrings("TestPlan{",
                 "id='", id, "\'",
                 ", status='", status, "\'",
-                ", testRunNumber='", testRunNumber, "\'",
+                ", buildNumber='", buildNumber, "\'",
                 ", createdTimestamp='", createdTimestamp, "\'",
                 ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 ", deploymentPattern='", deploymentPattern, "\'",
@@ -327,7 +327,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
             testPlan.setScenarioConfig(scenarioConfig);
             testPlan.setStatus(status);
             testPlan.setScenarioTestsRepository(scenarioTestsRepository);
-            testPlan.setTestRunNumber(testRunNumber);
+            testPlan.setBuildNumber(buildNumber);
             testPlan.setTestScenarios(testScenarios);
 
             return testPlan;
