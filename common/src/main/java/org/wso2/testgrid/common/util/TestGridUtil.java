@@ -47,6 +47,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -229,7 +232,7 @@ public final class TestGridUtil {
     public static Path getTestRunWorkspace(TestPlan testPlan, boolean relative) throws TestGridException {
         DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
         Product product = deploymentPattern.getProduct();
-        int buildNumber = testPlan.getBuildNumber();
+        int testRunNumber = testPlan.getTestRunNumber();
 
         String productDir = product.getName();
         String deploymentDir = deploymentPattern.getName();
@@ -240,7 +243,7 @@ public final class TestGridUtil {
             dirPrefix = getTestGridHomePath();
         }
 
-        return Paths.get(dirPrefix, productDir, deploymentDir, infraDir, String.valueOf(buildNumber));
+        return Paths.get(dirPrefix, productDir, deploymentDir, infraDir, String.valueOf(testRunNumber));
     }
 
     /**
@@ -297,7 +300,7 @@ public final class TestGridUtil {
      * @param testPlan          testPlan object
      * @return TestPlan object model
      */
-    public static TestPlan toTestPlanEntity(DeploymentPattern deploymentPattern, TestPlan testPlan, int buildNo)
+    public static TestPlan toTestPlanEntity(DeploymentPattern deploymentPattern, TestPlan testPlan)
             throws CommandExecutionException {
         try {
             String jsonInfraParams = new ObjectMapper()
@@ -314,8 +317,9 @@ public final class TestGridUtil {
             testPlanEntity.setInfraParameters(jsonInfraParams);
             deploymentPattern.addTestPlan(testPlanEntity);
 
-            // Set build number
-            testPlanEntity.setBuildNumber(buildNo);
+            // Set test run number
+            int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlanEntity.getInfraParameters());
+            testPlanEntity.setTestRunNumber(latestTestRunNumber + 1);
 
             // Set test scenarios
             List<TestScenario> testScenarios = testPlan.getScenarioConfig().getScenarios();
@@ -329,6 +333,29 @@ public final class TestGridUtil {
                     .concatStrings("Error in preparing a JSON object from the given test plan infra " +
                                     "parameters: ", testPlan.getInfrastructureConfig().getParameters()), e);
         }
+    }
+
+    /**
+     * Returns the latest test run number.
+     *
+     * @param deploymentPattern deployment pattern to get the latest test run number
+     * @param infraParams       infrastructure parameters to get the latest test run number
+     * @return latest test run number
+     */
+    private static int getLatestTestRunNumber(DeploymentPattern deploymentPattern, String infraParams) {
+        // Get test plans with the same infra param
+        List<TestPlan> testPlans = new ArrayList<>();
+        for (TestPlan testPlan : deploymentPattern.getTestPlans()) {
+            if (testPlan.getInfraParameters().equals(infraParams)) {
+                testPlans.add(testPlan);
+            }
+        }
+
+        // Get the Test Plan with the latest test run number for the given infra combination
+        TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(
+                TestPlan::getTestRunNumber));
+
+        return latestTestPlan.getTestRunNumber();
     }
 
     /**
@@ -374,7 +401,7 @@ public final class TestGridUtil {
 
     public static String deriveTestRunLogFileName(TestPlan testPlan) throws TestGridException {
         DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
-        int testRunNumber = testPlan.getBuildNumber();
+        int testRunNumber = testPlan.getTestRunNumber();
         String deploymentDir = deploymentPattern.getName();
         String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
 
