@@ -126,7 +126,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
 
         this.testPlan = new TestPlan();
         testPlan.setId(TESTPLAN_ID);
-        testPlan.setBuildNumber(1);
+        testPlan.setTestRunNumber(1);
         testPlan.setDeploymentPattern(deploymentPattern);
         testPlan.setInfraParameters(infraParamsString);
         testPlan.setDeployerType(TestPlan.DeployerType.SHELL);
@@ -144,7 +144,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         doMock();
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFile, workingDir, 100, infrastructureCombinationsProvider, productUOW,
+                jobConfigFile, workingDir, infrastructureCombinationsProvider, productUOW,
                 deploymentPatternUOW, testPlanUOW);
         generateTestPlanCommand.execute();
 

@@ -1,5 +1,4 @@
 !!org.wso2.testgrid.common.TestPlan
-buildNumber: 1
 deployerType: AWS_CF
 deploymentConfig:
   deploymentPatterns:
@@ -46,5 +45,6 @@ scenarioConfig:
     testCases: [
       ]
 scenarioTestsRepository: ./src/test/resources/workspace/scenarioTests
+testRunNumber: 1
 testScenarios: [
   ]
