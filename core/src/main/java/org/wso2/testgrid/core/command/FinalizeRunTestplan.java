@@ -20,20 +20,22 @@ package org.wso2.testgrid.core.command;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
-import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Resolves the invalid statuses caused by any failures.
@@ -41,6 +43,8 @@ import java.util.List;
 public class FinalizeRunTestplan implements Command {
 
     private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommand.class);
+    private static final String TIME_UNIT = "HOUR";
+    private static final String TIME_DURATION = "24";
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -48,11 +52,15 @@ public class FinalizeRunTestplan implements Command {
             required = true)
     private String productName = "";
 
-    private ProductUOW productUOW;
+    @Option(name = "--file",
+            usage = "Test Plan File",
+            aliases = { "-f" })
+    private String testPlanYamlFilePath = "";
+
     private TestPlanUOW testPlanUOW;
+    private List<TestPlan> testPlans;
 
     public FinalizeRunTestplan() {
-        productUOW = new ProductUOW();
         testPlanUOW = new TestPlanUOW();
     }
 
@@ -62,8 +70,27 @@ public class FinalizeRunTestplan implements Command {
         LogFilePathLookup.setLogFilePath(
                 TestGridUtil.deriveLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
 
-        logger.info("Finalizing testplans...");
-        List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(getProduct(productName));
+        if (Paths.get(testPlanYamlFilePath).toFile().exists()) {
+            //Read test plan id from test-plan yaml file
+            try {
+                TestPlan testPlan = FileUtil.readYamlFile(testPlanYamlFilePath, TestPlan.class);
+                Optional<TestPlan> testPlanEntity = testPlanUOW.getTestPlanById(testPlan.getId());
+                if (testPlanEntity.isPresent()) {
+                    testPlans = new ArrayList<>();
+                    testPlans.add(testPlanEntity.get());
+                } else {
+                    testPlans = testPlanUOW.getTestPlansOlderThan(TIME_DURATION, TIME_UNIT);
+                }
+            } catch (IOException e) {
+                logger.error("Error occurred while trying to read " + testPlanYamlFilePath);
+            } catch (TestGridDAOException e) {
+                logger.error("Error while fetching test plan from database.");
+            }
+        } else {
+            testPlans = testPlanUOW.getTestPlansOlderThan(TIME_DURATION, TIME_UNIT);
+        }
+
+        logger.info("Finalizing test plan status...");
         boolean isExistsFailedScenarios = false;
         for (TestPlan testPlan : testPlans) {
             //Set statuses of scenarios
@@ -101,23 +128,6 @@ public class FinalizeRunTestplan implements Command {
                 default:
                     break;
             }
-        }
-    }
-
-    /**
-     * Returns the product for the given parameters.
-     *
-     * @param productName product name
-     * @return an instance of {@link Product} for the given parameters
-     * @throws CommandExecutionException thrown when error on retrieving product
-     */
-    private Product getProduct(String productName)
-            throws CommandExecutionException {
-        try {
-            return productUOW.getProduct(productName).orElseThrow(() -> new CommandExecutionException(
-                    StringUtil.concatStrings("Product not found for {product name: ", productName, "}")));
-        } catch (TestGridDAOException e) {
-            throw new CommandExecutionException("Error occurred when initialising DB transaction.", e);
         }
     }
 

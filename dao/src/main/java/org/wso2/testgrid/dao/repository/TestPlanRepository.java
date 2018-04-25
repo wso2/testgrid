@@ -251,4 +251,21 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 .getResultList();
         return EntityManagerHelper.refreshResultList(entityManager, resultList);
     }
+
+    /**
+     * This method returns all the test plans that are older than a specified duration.
+     *
+     * @param duration duration in hours/minutes or any other time unit
+     * @param timeUnit unit of time for duration
+     * @return a List of testplans that are older than the specified time
+     */
+    public List<TestPlan> getTestPlanOlderThan(String duration, String timeUnit) {
+        String sql = StringUtil.concatStrings(
+                "select t.* from test_plan t where t.created_timestamp < NOW() - INTERVAL ",
+                duration , " ", timeUnit, " ", " and t.status = 'PENDING' or t.status = 'RUNNING' ");
+        @SuppressWarnings("unchecked")
+        List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
+                .getResultList();
+        return EntityManagerHelper.refreshResultList(entityManager, resultList);
+    }
 }
