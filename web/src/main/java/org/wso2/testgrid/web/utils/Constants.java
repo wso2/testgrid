@@ -61,4 +61,9 @@ public class Constants extends TestGridConstants {
     public static final String SAML_BINDING_HTTP_REDIRECT = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect";
     public static final String HTTP_BINDING_HTTP_POST = "HTTP-POST";
     public static final String HTTP_BINDING_HTTP_REDIRECT = "HTTP-Redirect";
+
+    public static final String HTML_EXTENSION = ".html";
+    public static final String AWS_BUCKET_ARTIFACT_DIR = "artifacts";
+    public static final String AWS_BUCKET_NAME = "jenkins-testrun-artifacts";
+    public static final String HTTP_FILE_NOT_FOUND = "404";
 }
