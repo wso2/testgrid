@@ -18,7 +18,6 @@
 
 package org.wso2.testgrid.web.api;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,6 @@ import org.wso2.testgrid.web.plugins.ArtifactReaderException;
 import org.wso2.testgrid.web.utils.Constants;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -147,10 +145,13 @@ public class ProductService {
      *
      * @return latest report of querying product
      */
-    @GET @Path("/reports") @Produces("application/html") public Response getProductReport(
-            @QueryParam("product-name") String productName,
-            @DefaultValue("false") @QueryParam("show-success") Boolean showSuccess,
-            @DefaultValue("SCENARIO") @QueryParam("group-by") String groupBy) {
+    @GET
+    @Path("/reports")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getProductReport(
+        @QueryParam("product-name") String productName,
+        @DefaultValue("false") @QueryParam("show-success") Boolean showSuccess,
+        @DefaultValue("SCENARIO") @QueryParam("group-by") String groupBy) {
         try {
             ProductUOW productUOW = new ProductUOW();
             Optional<Product> productInstance = productUOW.getProduct(productName);
@@ -161,11 +162,11 @@ public class ProductService {
                 String fileName = StringUtil
                         .concatStrings(product.getName(), "-", uniqueAxisColumn, Constants.HTML_EXTENSION);
                 String bucketKey = Paths.get(Constants.AWS_BUCKET_ARTIFACT_DIR, productName, fileName).toString();
-                ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
+                ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
                         getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
                         Constants.AWS_BUCKET_NAME);
-                InputStream inputStream = artifactDownloadable.getArtifactStream(bucketKey);
-                Response.ResponseBuilder response = Response.ok(IOUtils.toByteArray(inputStream));
+                Response.ResponseBuilder response = Response
+                        .ok(artifactReadable.getArtifactStream(bucketKey), MediaType.APPLICATION_OCTET_STREAM);
                 response.status(Response.Status.OK);
                 response.type("application/html");
                 response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");

@@ -70,7 +70,7 @@ class ProductStatusView extends Component {
     .catch(error => console.error(error));
   }
 
-  nevigateToRoute(route, product) {
+  navigateToRoute(route, product) {
     this.props.dispatch(add_current_product(product));
     this.props.history.push(route);
   }
@@ -85,11 +85,11 @@ class ProductStatusView extends Component {
             }
         }).then(response => {
                 if (response.status === HTTP_NOT_FOUND) {
-                    let errorMessage = "Unable to locate report in the remote storage, please contact the administrator";
+                    let errorMessage = "Unable to locate report in the remote storage, please contact the administrator.";
                     this.toggle(errorMessage);
                 } else  if (response.status !== HTTP_OK){
                     let errorMessage = "Internal server error. Couldn't download the report at the moment, please " +
-                        "contact the administrator";
+                        "contact the administrator.";
                     this.toggle(errorMessage);
                 }
             }
@@ -100,7 +100,7 @@ class ProductStatusView extends Component {
     const products = this.state.hits.map((product, index) => {
       return (<tr key={index}>
         <td> <SingleRecord value={product.status} /> </td>
-        <th onClick={() => this.nevigateToRoute( TESTGRID_CONTEXT+ "/deployments/product/" + product.id, {
+        <th onClick={() => this.navigateToRoute( TESTGRID_CONTEXT+ "/deployments/product/" + product.id, {
           productId: product.id,
           productName: product.name,
           productStatus :product.status
@@ -112,7 +112,7 @@ class ProductStatusView extends Component {
             if (product.lastBuild.modifiedTimestamp) {
               return (
                 <SingleRecord value={product.lastBuild.status}
-                  nevigate={() => this.nevigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
+                  nevigate={() => this.navigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
                     productId: product.id,
                     productName: product.name,
                     productStatus :product.status
@@ -127,7 +127,7 @@ class ProductStatusView extends Component {
           {(() => {
             if (product.lastfailed.modifiedTimestamp) {
               return (
-                <i onClick={() => this.nevigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
+                <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
                   productId: product.id,
                   productName: product.name,
                   productStatus :product.status
