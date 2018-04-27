@@ -19,7 +19,6 @@ package org.wso2.testgrid.web.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -31,6 +30,7 @@ import org.wso2.testgrid.web.utils.FileWatcherException;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -130,7 +130,10 @@ public class LogEventSocketMediator {
      * @throws TestGridException thrown when error on calculating the log file path
      */
     private Path getLogFilePath(TestPlan testPlan) throws TestGridException {
-        return TestGridUtil.getTestRunWorkspace(testPlan, false).resolve(TestGridConstants.TEST_LOG_FILE_NAME);
+        //Create logging directory
+        String productName = testPlan.getDeploymentPattern().getProduct().getName();
+        return Paths.get(TestGridUtil.getTestGridHomePath(), productName,
+                TestGridUtil.deriveTestRunLogFileName(testPlan));
     }
 
     /**

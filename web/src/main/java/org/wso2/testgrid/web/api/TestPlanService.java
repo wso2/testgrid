@@ -22,6 +22,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestCase;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
@@ -43,7 +44,6 @@ import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 import org.wso2.testgrid.web.plugins.AWSArtifactReader;
 import org.wso2.testgrid.web.plugins.ArtifactReadable;
 import org.wso2.testgrid.web.plugins.ArtifactReaderException;
-import org.wso2.testgrid.web.utils.Constants;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -165,8 +165,12 @@ public class TestPlanService {
             TestPlan testPlan = optionalTestPlan.get();
 
             String testGridArtifactLocation = TestGridUtil.getTestRunWorkspace(testPlan).toString();
+            String[] subStrings = testGridArtifactLocation.split(TestGridConstants.FILE_SEPARATOR, 2);
+            String logFileName = subStrings[1].replaceAll(TestGridConstants.FILE_SEPARATOR, "_")
+                    + TestGridConstants.LOG_FILE_EXTENSION;
+            String logFileDir = Paths.get(subStrings[0], TestGridConstants.TESTGRID_LOGS_DIR).toString();
             String bucketKey = Paths
-                    .get(AWS_BUCKET_ARTIFACT_DIR, testGridArtifactLocation, Constants.TEST_LOG_FILE_NAME).toString();
+                    .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir, logFileName).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
             // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.

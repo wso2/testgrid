@@ -146,7 +146,8 @@ public class GenerateTestPlanCommand implements Command {
     public void execute() throws CommandExecutionException {
         try {
             //Set the log file path
-            LogFilePathLookup.setLogFilePath(deriveLogFilePath(productName));
+            LogFilePathLookup.setLogFilePath(
+                    TestGridUtil.deriveLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
 
             if (!StringUtil.isStringNullOrEmpty(testgridYamlLocation)) {
                 logger.warn("--testConfig / -tc is deprecated. Use --file instead.");
@@ -612,17 +613,6 @@ public class GenerateTestPlanCommand implements Command {
             logger.info(StringUtil.concatStrings("Removing test directory : ", directory.toAbsolutePath().toString()));
             FileUtils.forceDelete(new File(directory.toString()));
         }
-    }
-
-    /**
-     * Returns the path of the log file.
-     *
-     * @param productName product name
-     * @return log file path
-     */
-    private String deriveLogFilePath(String productName) {
-        String productDir = StringUtil.concatStrings(productName);
-        return Paths.get(productDir, "testgrid").toString();
     }
 
     /**

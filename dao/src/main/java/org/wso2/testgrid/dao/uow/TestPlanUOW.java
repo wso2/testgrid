@@ -168,4 +168,14 @@ public class TestPlanUOW {
     public List<TestPlan> getTestPlanHistory(TestPlan testPlan) {
         return testPlanRepository.getTestPlanHistory(testPlan);
     }
+
+    /**
+     * Returns the test plans older than a specified period of time.
+     * This will be used to resolve the statuses of testplans with erroneous statuses.
+     *
+     * @return a List of TestPlans corresponding to the query
+     */
+    public List<TestPlan> getTestPlansOlderThan(String duration, String timeUnit) {
+        return testPlanRepository.getTestPlanOlderThan(duration, timeUnit);
+    }
 }

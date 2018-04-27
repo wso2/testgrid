@@ -72,6 +72,8 @@ import java.util.Set;
                 })
 public class AWSProviderTest extends PowerMockTestCase {
 
+    private static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
+    private static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
     private static final String AWS_ACCESS_KEY_ID_VALUE = "aws_key_value";
     private static final String AWS_SECRET_ACCESS_KEY_VALUE = "aws_secret_value";
 
@@ -83,8 +85,8 @@ public class AWSProviderTest extends PowerMockTestCase {
     public void testManagerCreation() throws Exception {
         //set environment variables for
         Map<String, String> map = new HashMap<>();
-        map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
-        map.put(AWSProvider.AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
+        map.put(AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
+        map.put(AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
         set(map);
         AMIMapper awsAMIMapper = Mockito.mock(AMIMapper.class);
         PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
@@ -103,7 +105,7 @@ public class AWSProviderTest extends PowerMockTestCase {
             InterruptedException, NoSuchFieldException, IllegalAccessException {
         String secret2 = "AWS_SCERET2";
         Map<String, String> map = new HashMap<>();
-        map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
+        map.put(AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
         set(map);
         //invoke without no secret key environment variable set.
         AWSProvider awsProvider = new AWSProvider();
@@ -120,8 +122,8 @@ public class AWSProviderTest extends PowerMockTestCase {
         String matchedAmi = "123464";
 
         Map<String, String> map = new HashMap<>();
-        map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
-        map.put(AWSProvider.AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
+        map.put(AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
+        map.put(AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
         set(map);
         InfrastructureConfig infrastructureConfig = getDummyInfrastructureConfig(patternName);
 
@@ -208,8 +210,8 @@ public class AWSProviderTest extends PowerMockTestCase {
 
         //set environment variables for
         Map<String, String> map = new HashMap<>();
-        map.put(AWSProvider.AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
-        map.put(AWSProvider.AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
+        map.put(AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
+        map.put(AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
         set(map);
         InfrastructureConfig dummyInfrastructureConfig = getDummyInfrastructureConfig(patternName);
         File resourcePath = new File("src/test/resources");

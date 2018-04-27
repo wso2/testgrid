@@ -74,8 +74,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class AWSProvider implements InfrastructureProvider {
 
-    public static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
-    public static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
     private static final String AWS_PROVIDER = "AWS";
     private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
     private static final String AWS_REGION_PARAMETER = "region";
@@ -103,13 +101,6 @@ public class AWSProvider implements InfrastructureProvider {
 
     @Override
     public void init() throws TestGridInfrastructureException {
-        String awsIdentity = System.getenv(AWS_ACCESS_KEY_ID);
-        String awsSecret = System.getenv(AWS_SECRET_ACCESS_KEY);
-        if (StringUtil.isStringNullOrEmpty(awsIdentity) || StringUtil.isStringNullOrEmpty(awsSecret)) {
-            throw new TestGridInfrastructureException(StringUtil
-                    .concatStrings("AWS Credentials must be set as environment variables: ", AWS_ACCESS_KEY_ID,
-                            ", ", AWS_SECRET_ACCESS_KEY));
-        }
         cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
         amiMapper = new AMIMapper();
     }

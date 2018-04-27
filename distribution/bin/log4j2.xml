@@ -22,15 +22,15 @@
         <Console name="TESTGRID_CONSOLE" target="SYSTEM_OUT">
             <PatternLayout pattern="%highlight{[%d{HH:mm:ss,SSS}] %m%ex%n}{ERROR=red, WARN=yellow}"/>
         </Console>
-        <RollingFile name="AUDIT_LOGFILE" fileName="${sys:testgrid.home}/audit.log"
-                     filePattern="${sys:testgrid.home}/audit-%d{MM-dd-yyyy}.log">
+        <RollingFile name="AUDIT_LOGFILE" fileName="${sys:testgrid.home}/logs/audit.log"
+                     filePattern="${sys:testgrid.home}/logs/audit-%d{MM-dd-yyyy}.log">
             <PatternLayout pattern="[%d] %5p %X %m%ex%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
             </Policies>
         </RollingFile>
-        <RollingFile name="ERROR_LOGFILE" fileName="${sys:testgrid.home}/errors.log"
-                     filePattern="${sys:testgrid.home}/errors-%d{MM-dd-yyyy}.log">
+        <RollingFile name="ERROR_LOGFILE" fileName="${sys:testgrid.home}/logs/errors.log"
+                     filePattern="${sys:testgrid.home}/logs/errors-%d{MM-dd-yyyy}.log">
             <PatternLayout pattern="[%d] %5p %X %m%ex%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
