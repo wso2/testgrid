@@ -19,6 +19,8 @@ package org.wso2.testgrid.web.plugins;
 
 import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
 
+import java.io.InputStream;
+
 /**
  * The interface defines the contract for reading artifacts.
  *
@@ -46,4 +48,13 @@ public interface ArtifactReadable {
      * @throws ArtifactReaderException thrown when error on downloading artifacts
      */
     TruncatedInputStreamData readArtifact(String key, int kiloByteLimit) throws ArtifactReaderException;
+
+    /**
+     * Read the artifacts for the given key and return an input stream without truncating.
+     *
+     * @param key           key of the artifact to download
+     * @return {@link InputStream} containing input stream of the artifact
+     */
+    InputStream getArtifactStream(String key);
+
 }
