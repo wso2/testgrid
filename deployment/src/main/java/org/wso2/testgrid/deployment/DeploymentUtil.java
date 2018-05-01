@@ -38,7 +38,7 @@ import java.util.List;
  */
 public class DeploymentUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(Deployment.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeploymentUtil.class);
 
     /**
      * Reads the deployment.json file and constructs the deployment object.
@@ -75,7 +75,7 @@ public class DeploymentUtil {
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new TestGridDeployerException(StringUtil.concatStrings(
-                    "Error occurred while reading ", file.getAbsolutePath(), e));
+                    "Error occurred while reading ", file.getAbsolutePath()), e);
         }
     }
 }
