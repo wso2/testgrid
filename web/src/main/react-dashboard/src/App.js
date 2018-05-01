@@ -43,12 +43,11 @@ import IconButton from 'material-ui/IconButton';
 import NavigationBack from 'material-ui/svg-icons/navigation/chevron-left';
 import NevigationExpand from 'material-ui/svg-icons/navigation/menu';
 import Paper from 'material-ui/Paper';
-import FlatButton from 'material-ui/FlatButton';
 
 const config = {
   key: 'root',
   storage,
-}
+};
 const reducer = persistCombineReducers(config, testGrid);
 const store = createStore(reducer);
 const persistor = persistStore(store);
@@ -56,7 +55,7 @@ const persistor = persistStore(store);
 class App extends Component {
 
   handleClose = () => {
-    var b = !this.state.open
+    var b = !this.state.open;
     var w = b ? 240 : 20;
     this.setState({ open: b, navWidth: w });
   };
@@ -65,13 +64,13 @@ class App extends Component {
     super(props);
     this.baseURL = "/testgrid/dashboard"
     this.state = {
-      open: true,
-      navWidth: 240
+      open: false,
+      navWidth: 20
     }
   }
 
   render() {
-    const paperStyle = { margin: '80px 40px 50px ' + this.state.navWidth + 'px' };
+    const paperStyle = { margin: '80px 20px 50px ' + this.state.navWidth + 'px' };
     return (
       <Provider store={store}>
         <PersistGate

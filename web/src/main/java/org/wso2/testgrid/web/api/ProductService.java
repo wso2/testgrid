@@ -18,22 +18,35 @@
 
 package org.wso2.testgrid.web.api;
 
+import org.apache.velocity.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.reporting.AxisColumn;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.ProductStatus;
+import org.wso2.testgrid.web.plugins.AWSArtifactReader;
+import org.wso2.testgrid.web.plugins.ArtifactReadable;
+import org.wso2.testgrid.web.plugins.ArtifactReaderException;
+import org.wso2.testgrid.web.utils.Constants;
 
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Optional;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -123,5 +136,64 @@ public class ProductService {
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
         return Response.status(Response.Status.OK).entity(list).build();
+    }
+
+    /**
+     * This method is able to get the latest report of a given product from the remote storage and return.
+     * <p>
+     * <p> The report is returned as a html file<p/>
+     *
+     * @return latest report of querying product
+     */
+    @GET
+    @Path("/reports")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getProductReport(
+        @QueryParam("product-name") String productName,
+        @DefaultValue("false") @QueryParam("show-success") Boolean showSuccess,
+        @DefaultValue("SCENARIO") @QueryParam("group-by") String groupBy) {
+        try {
+            ProductUOW productUOW = new ProductUOW();
+            Optional<Product> productInstance = productUOW.getProduct(productName);
+            Product product;
+            if (productInstance.isPresent()) {
+                product = productInstance.get();
+                AxisColumn uniqueAxisColumn = AxisColumn.valueOf(groupBy.toUpperCase(Locale.ENGLISH));
+                String fileName = StringUtil
+                        .concatStrings(product.getName(), "-", uniqueAxisColumn, Constants.HTML_EXTENSION);
+                String bucketKey = Paths.get(Constants.AWS_BUCKET_ARTIFACT_DIR, productName, fileName).toString();
+                ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
+                        Constants.AWS_BUCKET_NAME);
+                Response.ResponseBuilder response = Response
+                        .ok(artifactReadable.getArtifactStream(bucketKey), MediaType.APPLICATION_OCTET_STREAM);
+                response.status(Response.Status.OK);
+                response.type("application/html");
+                response.header("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+                return response.build();
+            }
+            return Response.status(Response.Status.NOT_FOUND).entity("Product not found").build();
+
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the product for product name : '" + productName + "' ";
+            logger.error(msg, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+        } catch (ArtifactReaderException e) {
+            String msg = "Error occurred while creating AWS artifact reader.";
+            logger.error(msg, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+        } catch (IOException e) {
+            String msg = "Error occurred while accessing configurations.";
+            logger.error(msg, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+        } catch (ResourceNotFoundException e) {
+            String msg = "Error occurred while getting the report.";
+            logger.error(msg, e);
+            return Response.status(Response.Status.NOT_FOUND).entity(msg).build();
+        } catch (TestGridRuntimeException e) {
+            String msg = "Error occurred while accessing the remote storage";
+            logger.error(msg, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+        }
     }
 }

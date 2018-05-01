@@ -17,13 +17,18 @@
  */
 package org.wso2.testgrid.web.plugins;
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
+import org.apache.velocity.exception.ResourceNotFoundException;
+import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
+import org.wso2.testgrid.web.utils.Constants;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,6 +85,21 @@ public class AWSArtifactReader implements ArtifactReadable {
                    new TruncatedInputStreamData(inputStream, kiloByteLimit);
         } catch (IOException e) {
             throw new ArtifactReaderException("Error on reading artifact from AWS S3.", e);
+        }
+    }
+
+    @Override public InputStream getArtifactStream(String key) {
+        try {
+            S3Object s3Object = amazonS3.getObject(bucketName, key);
+            return s3Object.getObjectContent();
+        } catch (AmazonServiceException e) {
+            if (Constants.HTTP_FILE_NOT_FOUND.equals(String.valueOf(e.getStatusCode()))) {
+                throw new ResourceNotFoundException("File not found in the remote storage");
+            } else {
+                throw new TestGridRuntimeException("Error occured in Amazon service", e);
+            }
+        } catch (SdkClientException e) {
+            throw new TestGridRuntimeException("Error occured in SDK client", e);
         }
     }
 }

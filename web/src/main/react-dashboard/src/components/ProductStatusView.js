@@ -18,27 +18,25 @@
 
 import React, { Component } from 'react';
 import '../App.css';
-import {
-  Table,
-  TableBody,
-  TableHeader,
-  TableHeaderColumn,
-  TableRow,
-  TableRowColumn,
-} from 'material-ui/Table';
 import SingleRecord from './SingleRecord.js';
 import {add_current_product} from '../actions/testGridActions.js';
 import Moment from 'moment'
 import ReactTooltip from 'react-tooltip';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
+import {HTTP_OK, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
+import { Button, Table, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 class ProductStatusView extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      hits: []
+      hits: [],
+        modal: false,
+        errorMassage : ""
     };
+
+      this.toggle = this.toggle.bind(this);
+
   }
 
   handleError(response){
@@ -50,8 +48,15 @@ class ProductStatusView extends Component {
     return response;
   }
 
+    toggle(Message) {
+        this.setState({
+            modal: !this.state.modal,
+            errorMassage : Message
+        });
+    }
+
   componentDidMount() {
-    var url = TESTGRID_CONTEXT + '/api/products/product-status'
+    var url = TESTGRID_CONTEXT + '/api/products/product-status';
     fetch(url, {
       method: "GET",
       credentials: 'same-origin',
@@ -65,76 +70,114 @@ class ProductStatusView extends Component {
     .catch(error => console.error(error));
   }
 
-  nevigateToRoute(route, product) {
+  navigateToRoute(route, product) {
     this.props.dispatch(add_current_product(product));
     this.props.history.push(route);
   }
 
+    downloadReport(productName) {
+        let url = TESTGRID_CONTEXT + '/api/products/reports?product-name=' + productName;
+        fetch(url, {
+            method: "GET",
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/html'
+            }
+        }).then(response => {
+                if (response.status === HTTP_NOT_FOUND) {
+                    let errorMessage = "Unable to locate report in the remote storage, please contact the administrator.";
+                    this.toggle(errorMessage);
+                } else  if (response.status !== HTTP_OK){
+                    let errorMessage = "Internal server error. Couldn't download the report at the moment, please " +
+                        "contact the administrator.";
+                    this.toggle(errorMessage);
+                }
+            }
+        ).catch(error => console.error(error));
+    }
+
   render() {
     const products = this.state.hits.map((product, index) => {
-      return (<TableRow key={index}>
-
-        <TableRowColumn> <SingleRecord value={product.status} /> </TableRowColumn>
-        <TableRowColumn ><h2 style={{ cursor: 'pointer' }} onClick={() => this.nevigateToRoute( TESTGRID_CONTEXT+ "/deployments/product/" + product.id, {
+      return (<tr key={index}>
+        <td> <SingleRecord value={product.status} /> </td>
+        <th onClick={() => this.navigateToRoute( TESTGRID_CONTEXT+ "/deployments/product/" + product.id, {
           productId: product.id,
           productName: product.name,
           productStatus :product.status
-        })}><i>{product.name}</i></h2></TableRowColumn>
-        <TableRowColumn>
+        })} scope="row">
+        <i style={{ cursor: 'pointer' }}>{product.name}</i>
+        </th>
+        <td style={{ fontSize: '16px' }}>
           {(() => {
             if (product.lastBuild.modifiedTimestamp) {
               return (
                 <SingleRecord value={product.lastBuild.status}
-                  nevigate={() => this.nevigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
+                  nevigate={() => this.navigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
                     productId: product.id,
                     productName: product.name,
                     productStatus :product.status
                   })} time={product.lastBuild.modifiedTimestamp}
                 />)
             } else {
-              return (<h4> No builds yet!</h4>);
+              return ("No builds yet!");
             }
           })()}
-        </TableRowColumn>
-        <TableRowColumn>
+        </td>
+        <td style={{ fontSize: '16px' }}>
           {(() => {
             if (product.lastfailed.modifiedTimestamp) {
               return (
-                <i onClick={() => this.nevigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
+                <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
                   productId: product.id,
                   productName: product.name,
                   productStatus :product.status
-                })} style={{ cursor: 'pointer', textDecoration: 'underline' }} >{Moment(product.lastfailed.modifiedTimestamp).fromNow()}</i>
+                })} style={{ cursor: 'pointer' }}>
+                {Moment(product.lastfailed.modifiedTimestamp).fromNow()}</i>
               );
             } else {
-              return (<h4> No failed builds yet!</h4>)
+              return ("No failed builds yet!")
             }
           })()}
-        </TableRowColumn>
-        <TableRowColumn> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" 
-        onClick={() => { window.location = '/job/'+ product.name +'/build' }} /> <ReactTooltip /></TableRowColumn>
-        <TableRowColumn ><img src={require('../configure.png')} width="36" height="36" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location = '/job/'+ product.name +'/configure' }} data-tip="Configure job" />
-        </TableRowColumn>
-      </TableRow>)
+        </td>
+        <td> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" onClick={() => { window
+        .location = '/job/'+
+        product.name +'/build' }} /> <ReactTooltip /></td>
+        <td ><img src={require('../configure.png')} width="36" height="36" onClick={() => { window.location = '/job/'+
+        product.name +'/configure' }} data-tip="Configure job" style={{ cursor: 'pointer' }}/>
+        </td>
+        <td ><Button color="success" onClick={this.downloadReport.bind(this, product.name)}>Download</Button>
+        </td>
+      </tr>)
     });
 
     return (
-      <Table >
-        <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
-          <TableRow>
-            <TableHeaderColumn><h1>Status</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Job</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Latest Build</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Last Failure</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Execute</h1> </TableHeaderColumn>
-            <TableHeaderColumn><h1>Configure</h1> </TableHeaderColumn>
-          </TableRow>
-        </TableHeader>
-        <TableBody displayRowCheckbox={false}>
-          {products}
-        </TableBody>
-      </Table>
+        <div>
+            <Table responsive>
+                <thead displaySelectAll={false} adjustForCheckbox={false}>
+                <tr>
+                    <th>Status</th>
+                    <th>Job</th>
+                    <th>Latest Build</th>
+                    <th>Last Failure</th>
+                    <th>Execute</th>
+                    <th>Configure</th>
+                    <th>Report</th>
+                </tr>
+                </thead>
+                <tbody displayRowCheckbox={false}>
+                {products}
+                </tbody>
+            </Table>
+            <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className} centered={true}>
+                <ModalHeader toggle={()=>this.toggle("")}>Error</ModalHeader>
+                <ModalBody>
+                    {this.state.errorMassage}
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="danger" onClick={()=>this.toggle("")}>OK</Button>{' '}
+                </ModalFooter>
+            </Modal>
+        </div>
     )
   }
 }
