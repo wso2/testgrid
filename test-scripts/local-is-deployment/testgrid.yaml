@@ -40,7 +40,9 @@ infrastructureConfig:
           phase: DESTROY
 scenarioConfig:
   scenarios:
-    -  "solution01"
+    - name: 'Test scenario 01'
+      description: 'Test scenario 01'
+      dir: scenario01
 deploymentConfig:
   deploymentPatterns:
     - name: 01-local-is-deployment
