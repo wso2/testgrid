@@ -33,6 +33,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
+import java.util.UUID;
+import javax.websocket.CloseReason;
 
 /**
  * Agent bootstrap class
@@ -40,27 +42,38 @@ import java.util.Properties;
 public class AgentApplication implements OperationResponseListner {
 
     private static final Logger logger = LoggerFactory.getLogger(AgentApplication.class);
-    private static final String AGENT_PROP_FILE = File.pathSeparator + "opt" + File.pathSeparator + "testgrid" +
-            File.pathSeparator + "agent-config.properties";
+    private static final String AGENT_PROP_FILE = File.separator + "opt" + File.separator + "testgrid" +
+            File.separator + "agent-config.properties";
 
     private ClientEndpoint clientEndPoint;
 
     public static void main(String args[]) {
         new AgentApplication().startService();
+        while (true) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
     }
 
-    private synchronized void startService() {
-        String wsEndpoint = "ws://localhost:8080/remote-session/agent/";
-        String agentId = "6718f976-7150-316d-9ec6-db29b7a2675f:wso2-is-node-1";
+    private void startService() {
+        String wsEndpoint = "ws://localhost:8080/remote-session/v0.9/agent/";
+        String agentId = "orphan:" + UUID.randomUUID().toString();
 
         Properties prop = new Properties();
         InputStream input = null;
         try {
             if (new File(AGENT_PROP_FILE).exists()) {
+                logger.info("Loading configurations from: " + AGENT_PROP_FILE);
                 input = new FileInputStream(AGENT_PROP_FILE);
                 prop.load(input);
                 wsEndpoint = prop.getProperty("wsEndpoint");
-                agentId = prop.getProperty("test-plan-id") + ":" + prop.getProperty("node-id");
+                agentId = prop.getProperty("testPlanId") + ":" + prop.getProperty("nodeId");
+            } else {
+                logger.info("Using default configurations.");
             }
         } catch (IOException ex) {
             logger.error("Error occurred when reading prop file: " + ex.getMessage(), ex);
@@ -75,32 +88,38 @@ public class AgentApplication implements OperationResponseListner {
         }
 
         try {
-            // open websocket
+            // open web socket
             clientEndPoint = new ClientEndpoint(new URI(wsEndpoint + agentId));
 
-            // add listener
-            clientEndPoint.addMessageHandler(message -> {
-                logger.info("Operation received: " + message);
-                OperationRequest operationRequest = new Gson().fromJson(message, OperationRequest.class);
-                OperationExecutor operationExecutor = new OperationExecutor(AgentApplication.this);
-                operationExecutor.executeOperation(operationRequest);
+            clientEndPoint.addClientHandler(new ClientEndpoint.ClientHandler() {
+                @Override
+                public void handleMessage(String message) {
+                    logger.info("Operation received: " + message);
+                    OperationRequest operationRequest = new Gson().fromJson(message, OperationRequest.class);
+                    OperationExecutor operationExecutor = new OperationExecutor(AgentApplication.this);
+                    operationExecutor.executeOperation(operationRequest);
+                }
+
+                @Override
+                public void handleClose(CloseReason reason) {
+                    if (CloseReason.CloseCodes.GOING_AWAY != reason.getCloseCode()) {
+                        logger.warn("Client disconnected. Retrying to connect.");
+                        clientEndPoint.connectClient();
+                    }
+                }
             });
 
-            while (true) {
-                try {
-                    this.wait(1000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
+            clientEndPoint.connectClient();
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> clientEndPoint.closeConnection(
+                    new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Client terminated"))));
         } catch (URISyntaxException e) {
             logger.error("URISyntaxException exception: " + e.getMessage(), e);
         }
     }
 
     @Override
-    public synchronized void sendResponse(OperationResponse response) {
+    public void sendResponse(OperationResponse response) {
         // send message to websocket
         if (logger.isDebugEnabled()) {
             logger.debug("Sending message: " + response.toJSON());

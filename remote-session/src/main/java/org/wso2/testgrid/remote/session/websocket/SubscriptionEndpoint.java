@@ -33,44 +33,57 @@ public class SubscriptionEndpoint {
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionEndpoint.class);
 
     /**
+     * Web socket onOpen use when client connect to web socket url
+     *
+     * @param session  - Web socket Session
+     * @param clientId - client Identifier
+     */
+    public void onOpen(Session session, String clientId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Web Socket open from client with RemoteSession id: " + session.getId() +
+                    " client id: " + clientId);
+        }
+    }
+
+    /**
      * Web socket onMessage - When client sends a message
      *
-     * @param session - Registered  session.
-     * @param message - String Message which needs to send to peer
-     * @param agentId - agent Identifier
+     * @param session  - Registered  session.
+     * @param message  - String Message which needs to send to peer
+     * @param clientId - client Identifier
      */
-    public void onMessage(Session session, String message, String agentId) {
+    public void onMessage(Session session, String message, String clientId) {
         if (logger.isDebugEnabled()) {
             logger.debug("Received message from client for RemoteSession id: " + session.getId() +
-                    " agent id: " + agentId);
+                    " client id: " + clientId);
         }
     }
 
     /**
      * Web socket onMessage use When client sends a message
      *
-     * @param session - Registered  session.
-     * @param agentId - agent Identifier
-     * @param message - Byte Message which needs to send to peer
+     * @param session  - Registered  session.
+     * @param clientId - client Identifier
+     * @param message  - Byte Message which needs to send to peer
      */
-    public void onMessage(Session session, byte[] message, String agentId) {
+    public void onMessage(Session session, byte[] message, String clientId) {
         if (logger.isDebugEnabled()) {
             logger.debug("Received message from client for RemoteSession id: " + session.getId() +
-                    " agent id: " + agentId);
+                    " client id: " + clientId);
         }
     }
 
     /**
      * Web socket onClose use to handle  socket connection close
      *
-     * @param session - Registered  session.
-     * @param agentId - agent Identifier
-     * @param reason  - Status code for web-socket close.
+     * @param session  - Registered  session.
+     * @param clientId - client Identifier
+     * @param reason   - Status code for web-socket close.
      */
-    public void onClose(Session session, CloseReason reason, String agentId) {
+    public void onClose(Session session, CloseReason reason, String clientId) {
         if (logger.isDebugEnabled()) {
-            logger.debug("websocket closed due to " + reason.getReasonPhrase() + ", for session ID:" +
-                    session.getId() + ", for request URI - " + session.getRequestURI() + " agent  id: " + agentId);
+            logger.debug("Web Socket closed due to " + reason.getReasonPhrase() + ", for session ID:" +
+                    session.getId() + ", for request URI - " + session.getRequestURI() + " client  id: " + clientId);
         }
     }
 
@@ -79,18 +92,17 @@ public class SubscriptionEndpoint {
      *
      * @param session   - Registered  session.
      * @param throwable - Web socket exception
-     * @param agentId   - agent Identifier
+     * @param clientId  - client Identifier
      */
-    public void onError(Session session, Throwable throwable, String agentId) {
-
+    public void onError(Session session, Throwable throwable, String clientId) {
         if (throwable instanceof IOException) {
             if (logger.isDebugEnabled()) {
-                logger.error("Error occurred in session ID: " + session.getId() + "agent id: " + agentId +
+                logger.error("Error occurred in session ID: " + session.getId() + "client id: " + clientId +
                         ", for request URI - " + session.getRequestURI() +
                         ", " + throwable.getMessage(), throwable);
             }
         } else {
-            logger.error("Error occurred in session ID: " + session.getId() + " agent id: " + agentId +
+            logger.error("Error occurred in session ID: " + session.getId() + " client id: " + clientId +
                     ", for request URI - " + session.getRequestURI() + ", " + throwable.getMessage(), throwable);
         }
         try {

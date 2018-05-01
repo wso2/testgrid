@@ -80,6 +80,6 @@
     </dependencies>
 
     <build>
-        <finalName>remote-session</finalName>
+        <finalName>remote-session#v0.9</finalName>
     </build>
 </project>

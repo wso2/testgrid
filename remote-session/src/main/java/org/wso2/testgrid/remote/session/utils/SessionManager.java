@@ -20,7 +20,9 @@ package org.wso2.testgrid.remote.session.utils;
 
 import org.wso2.testgrid.remote.session.beans.OperationResponse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.websocket.Session;
 
@@ -54,6 +56,10 @@ public class SessionManager {
 
     public Session getAgentSession(String agentId) {
         return agentSessions.get(agentId);
+    }
+
+    public List<String> getAgentIds() {
+        return new ArrayList<>(agentSessions.keySet());
     }
 
     public synchronized void addOperationResponse(OperationResponse operationResponse) {

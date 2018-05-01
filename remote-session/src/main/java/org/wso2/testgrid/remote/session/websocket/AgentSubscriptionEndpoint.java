@@ -19,8 +19,6 @@
 package org.wso2.testgrid.remote.session.websocket;
 
 import com.google.gson.Gson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.remote.session.beans.OperationResponse;
 import org.wso2.testgrid.remote.session.utils.HttpSessionConfigurator;
 import org.wso2.testgrid.remote.session.utils.SessionManager;
@@ -40,8 +38,6 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/agent/{agentId}", configurator = HttpSessionConfigurator.class)
 public class AgentSubscriptionEndpoint extends SubscriptionEndpoint {
 
-    private static final Logger logger = LoggerFactory.getLogger(AgentSubscriptionEndpoint.class);
-
     /**
      * Web socket onOpen use when agent connect to web socket url
      *
@@ -50,6 +46,7 @@ public class AgentSubscriptionEndpoint extends SubscriptionEndpoint {
      */
     @OnOpen
     public void onOpen(Session session, @PathParam("agentId") String agentId) {
+        super.onOpen(session, agentId);
         SessionManager.getInstance().createAgentSession(agentId, session);
     }
 

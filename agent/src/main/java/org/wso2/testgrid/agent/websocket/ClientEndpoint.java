@@ -21,7 +21,10 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -36,14 +39,37 @@ public class ClientEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientEndpoint.class);
     private Session userSession = null;
-    private MessageHandler messageHandler;
+    private ClientHandler clientHandler;
+    private URI endpointURI;
+    private int retryAttempt = 0;
+    private boolean clientConnected = false;
 
     public ClientEndpoint(URI endpointURI) {
+        this.endpointURI = endpointURI;
+    }
+
+    public void connectClient() {
         try {
             ClientManager client = ClientManager.createClient();
             client.connectToServer(this, endpointURI);
+            retryAttempt = 0;
+            clientConnected = true;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            clientConnected = false;
+            int delay = 5000;
+            if (++retryAttempt > 3) {
+                delay *= 3;
+            } else {
+                delay *= retryAttempt;
+            }
+            logger.warn("Failed to connect with Web Socket endpoint. " + e.getMessage());
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    logger.warn("Retrying to connect with Web Socket endpoint. Attempt: " + retryAttempt);
+                    connectClient();
+                }
+            }, delay);
         }
     }
 
@@ -66,8 +92,12 @@ public class ClientEndpoint {
      */
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
-        logger.info("closing websocket. reason: " + reason.getReasonPhrase());
+        logger.info("closing web socket session: '" + userSession.getId() + "'. Reason: " + reason.getReasonPhrase());
         this.userSession = null;
+        if (this.clientHandler != null && clientConnected) {
+            clientConnected = false;
+            this.clientHandler.handleClose(reason);
+        }
     }
 
     /**
@@ -77,18 +107,18 @@ public class ClientEndpoint {
      */
     @OnMessage
     public void onMessage(String message) {
-        if (this.messageHandler != null) {
-            this.messageHandler.handleMessage(message);
+        if (this.clientHandler != null) {
+            this.clientHandler.handleMessage(message);
         }
     }
 
     /**
-     * register message handler
+     * register client callback handler
      *
-     * @param msgHandler the messageHandler which is going to add.
+     * @param clientHandler the clientHandler which is going to add.
      */
-    public void addMessageHandler(MessageHandler msgHandler) {
-        this.messageHandler = msgHandler;
+    public void addClientHandler(ClientHandler clientHandler) {
+        this.clientHandler = clientHandler;
     }
 
     /**
@@ -101,10 +131,27 @@ public class ClientEndpoint {
     }
 
     /**
-     * Message handler interface to register call back.
+     * Close current connection.
+     *
+     * @param reason the reason which is going to send.
      */
-    public interface MessageHandler {
+    public void closeConnection(CloseReason reason) {
+        if (this.userSession != null) {
+            try {
+                this.userSession.close(reason);
+            } catch (IOException e) {
+                logger.error("Error on closing WS connection.", e);
+            }
+        }
+    }
+
+    /**
+     * Client handler interface to register call back.
+     */
+    public interface ClientHandler {
 
         void handleMessage(String message);
+
+        void handleClose(CloseReason reason);
     }
 }

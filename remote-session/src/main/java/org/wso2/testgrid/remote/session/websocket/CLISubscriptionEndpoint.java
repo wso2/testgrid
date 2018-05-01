@@ -18,8 +18,6 @@
 
 package org.wso2.testgrid.remote.session.websocket;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.remote.session.utils.HttpSessionConfigurator;
 
 import javax.websocket.CloseReason;
@@ -34,55 +32,53 @@ import javax.websocket.server.ServerEndpoint;
 /**
  * This class represents web socket endpoint to manage Remote Sessions from CLI tool.
  */
-@ServerEndpoint(value = "/client/{deviceId}", configurator = HttpSessionConfigurator.class)
+@ServerEndpoint(value = "/client/{clientId}", configurator = HttpSessionConfigurator.class)
 public class CLISubscriptionEndpoint extends SubscriptionEndpoint {
-
-    private static final Logger logger = LoggerFactory.getLogger(CLISubscriptionEndpoint.class);
 
     /**
      * Web socket onOpen use when client connect to web socket url
      *
      * @param session    - Registered session.
-     * @param deviceId   - Device Identifier
+     * @param clientId   - Client Identifier
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam("deviceId") String deviceId) {
-
+    public void onOpen(Session session, @PathParam("clientId") String clientId) {
+        super.onOpen(session, clientId);
     }
 
     /**
      * Web socket onMessage use when client sends a string message
      *
      * @param session    - Registered  session.
-     * @param deviceId   - Device Identifier
+     * @param clientId   - Client Identifier
      */
     @OnMessage
-    public void onMessage(Session session, String message, @PathParam ("deviceId") String deviceId) {
-        super.onMessage(session, message, deviceId);
+    public void onMessage(Session session, String message, @PathParam ("clientId") String clientId) {
+        super.onMessage(session, message, clientId);
     }
 
     /**
      * Web socket onMessage use when client sends a byte message
      *
      * @param session    - Registered  session.
-     * @param deviceId   - Device Identifier
+     * @param clientId   - Client Identifier
      * @param message    - Byte message which needs to send to peer
      */
     @OnMessage
-    public void onMessage(Session session, byte[] message, @PathParam ("deviceId") String deviceId) {
-        super.onMessage(session, message, deviceId);
+    public void onMessage(Session session, byte[] message, @PathParam ("clientId") String clientId) {
+        super.onMessage(session, message, clientId);
     }
 
     /**
      * Web socket onClose use to handle  socket connection close
      *
      * @param session    - Registered  session.
-     * @param deviceId   - Device Identifier
+     * @param clientId   - Client Identifier
      * @param reason     - Status code for web-socket close.
      */
     @OnClose
-    public void onClose(Session session, CloseReason reason, @PathParam ("deviceId") String deviceId) {
-        super.onClose(session, reason, deviceId);
+    public void onClose(Session session, CloseReason reason, @PathParam ("clientId") String clientId) {
+        super.onClose(session, reason, clientId);
     }
 
     /**
@@ -90,10 +86,10 @@ public class CLISubscriptionEndpoint extends SubscriptionEndpoint {
      *
      * @param session    - Registered  session.
      * @param throwable  - Web socket exception
-     * @param deviceId   - Device Identifier
+     * @param clientId   - Client Identifier
      */
     @OnError
-    public void onError(Session session, Throwable throwable, @PathParam ("deviceId") String deviceId) {
-        super.onError(session, throwable, deviceId);
+    public void onError(Session session, Throwable throwable, @PathParam ("clientId") String clientId) {
+        super.onError(session, throwable, clientId);
     }
 }

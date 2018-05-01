@@ -30,6 +30,7 @@ import java.util.Calendar;
 import java.util.UUID;
 import javax.websocket.Session;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -41,11 +42,23 @@ import javax.ws.rs.core.Response;
  * This class represents REST service implementation of Agent Management.
  */
 
-@Path("/management/agent/{agentId}")
+@Path("/management/agent")
 @Produces(MediaType.APPLICATION_JSON)
 public class AgentManagement {
 
     private static final Logger logger = LoggerFactory.getLogger(AgentManagement.class);
+
+    /**
+     * Get list of registered agents.
+     *
+     * @return A list of registered agents.
+     */
+    @GET
+    @Path("/list")
+    public Response listAllRegisteredAgents() {
+        SessionManager sessionManager = SessionManager.getInstance();
+        return Response.status(Response.Status.OK).entity(sessionManager.getAgentIds()).build();
+    }
 
     /**
      * Send operation to agent and get response.
@@ -53,7 +66,7 @@ public class AgentManagement {
      * @return The operation response.
      */
     @POST
-    @Path("/operation")
+    @Path("/{agentId}/operation")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response sendOperation(@PathParam("agentId") String agentId, OperationRequest operationRequest) {
         SessionManager sessionManager = SessionManager.getInstance();
