@@ -71,12 +71,14 @@ public final class TestGridUtil {
 
     /**
      * Executes a command.
-     * Used for creating the infrastructure and deployment.
+     * Used to executing a script in a given working directory.
      *
-     * @param command Command to execute
-     * @return boolean for successful/unsuccessful command execution
+     * @param command                 {@link String} Command to be executed.
+     * @param workingDirectory        {@link File} Directory the command is executed.
+     * @return The output of script execution as a String.
+     * @throws CommandExecutionException When there is an error executing the command.
      */
-    public static boolean executeCommand(String command, File workingDirectory) throws CommandExecutionException {
+    public static String executeCommand(String command, File workingDirectory) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
@@ -101,7 +103,7 @@ public final class TestGridUtil {
                 }
                 String result = builder.toString();
                 logger.info("Execution result : " + result);
-                return true;
+                return result;
             } catch (IOException e) {
                 throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
                         + command + "'", e);
@@ -138,6 +140,7 @@ public final class TestGridUtil {
                 processBuilder.directory(workingDirectory);
             }
             Map<String, String> environment = processBuilder.environment();
+
             for (Host host : deploymentCreationResult.getHosts()) {
                 environment.put(host.getLabel(), host.getIp());
             }
