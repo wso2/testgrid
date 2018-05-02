@@ -120,7 +120,7 @@ public class AWSProvider implements InfrastructureProvider {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
                 infrastructureConfig.getParameters().forEach((key, value) ->
                         script.getInputParameters().setProperty((String) key, (String) value));
-                return doProvision(infrastructureConfig, script.getName(), testPlan.getInfrastructureRepository());
+                return doProvision(infrastructureConfig, script.getName(), testPlan);
             }
         }
         throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
@@ -142,7 +142,7 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
-        String stackName, String infraRepoDir) throws TestGridInfrastructureException {
+        String stackName, TestPlan testPlan) throws TestGridInfrastructureException {
         String region = infrastructureConfig.getProvisioners().get(0)
                 .getScripts().get(0).getInputParameters().getProperty(AWS_REGION_PARAMETER);
 
@@ -166,8 +166,8 @@ public class AWSProvider implements InfrastructureProvider {
                     .findAny()
                     .orElseThrow(() -> new IllegalArgumentException(
                             "The script with name '" + stackName + "' does not exist."));
-            String file = new String(Files.readAllBytes(Paths.get(infraRepoDir, script.getFile())),
-                    StandardCharsets.UTF_8);
+            String file = new String(Files.readAllBytes(Paths.get(testPlan.getInfrastructureRepository(),
+                    script.getFile())), StandardCharsets.UTF_8);
             file = cfScriptPreprocessor.process(file);
             ValidateTemplateRequest validateTemplateRequest = new ValidateTemplateRequest();
             validateTemplateRequest.withTemplateBody(file);
@@ -175,7 +175,8 @@ public class AWSProvider implements InfrastructureProvider {
             List<TemplateParameter> expectedParameters = validationResult.getParameters();
 
             stackRequest.setTemplateBody(file);
-            stackRequest.setParameters(getParameters(script, expectedParameters, infrastructureConfig));
+            stackRequest.setParameters(getParameters(script, expectedParameters, infrastructureConfig,
+                    testPlan.getId()));
 
             logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
@@ -281,7 +282,7 @@ public class AWSProvider implements InfrastructureProvider {
      * @throws IOException When there is an error reading the parameters file.
      */
     private List<Parameter> getParameters(Script script, List<TemplateParameter> expectedParameters,
-                                          InfrastructureConfig infrastructureConfig)
+                                          InfrastructureConfig infrastructureConfig, String testPlanId)
             throws IOException, TestGridInfrastructureException {
 
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
@@ -301,6 +302,13 @@ public class AWSProvider implements InfrastructureProvider {
                         withParameterValue((String) theScriptParameter.getValue());
                 cfCompatibleParameters.add(awsParameter);
             });
+
+            //Set TestPlanId
+            if (TestGridConstants.TEST_PLAN_ID.equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(testPlanId);
+                cfCompatibleParameters.add(awsParameter);
+            }
 
             //Set WUM credentials
             if (TestGridConstants.WUM_USERNAME_PROPERTY.equals(expected.getParameterKey())) {
