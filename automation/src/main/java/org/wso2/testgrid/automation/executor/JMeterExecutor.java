@@ -47,7 +47,6 @@ public class JMeterExecutor extends TestExecutor {
     private String testName;
     private TestScenario testScenario;
 
-
     public JMeterExecutor() {
         testScenarioUOW = new TestScenarioUOW();
     }

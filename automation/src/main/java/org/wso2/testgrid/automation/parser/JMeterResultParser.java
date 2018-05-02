@@ -42,10 +42,10 @@ public abstract class JMeterResultParser {
     public abstract boolean canParse(String nodeName);
 
     /**
-     * This method goes through the file structure and create an object model of the tests.
+     * This method will parse the JMeter result file.
      *
      * @throws JMeterResultParserException {@link JMeterResultParserException} when an error occurs while parsing the
-     * given JTL file
+     * result file
      */
     public abstract void parseResults() throws JMeterResultParserException;
 }

@@ -73,8 +73,8 @@ public class FunctionalTestResultParser extends JMeterResultParser {
         String testScenarioName = testScenario.getName();
         try {
             if (logger.isDebugEnabled()) {
-                logger.debug("Parsing scenario-results file : '" + testScenarioName + "' using the " +
-                        "FunctionalTestResultParser");
+                logger.debug("Parsing scenario-results file of the TestScenario : '" + testScenarioName + "' using " +
+                        "the FunctionalTestResultParser");
             }
 
             inputStream = new FileInputStream(scenarioResultFile);
@@ -108,13 +108,11 @@ public class FunctionalTestResultParser extends JMeterResultParser {
                             this.testScenario.addTestCase(testCase);
                         }
                         break;
-                    default:
-                        break;
                 }
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("End parsing scenario-results file of TestScenario : '" + testScenarioName +
+                logger.debug("End parsing scenario-results file of the TestScenario : '" + testScenarioName +
                         "' using the FunctionalTestResultParser");
             }
         } catch (XMLStreamException e) {
@@ -129,7 +127,7 @@ public class FunctionalTestResultParser extends JMeterResultParser {
                 }
             } catch (IOException e) {
                 throw new JMeterResultParserException("Unable to close the input stream of scenario results file of " +
-                        "TestScenario : " + testScenarioName, e);
+                        "the TestScenario : " + testScenarioName, e);
             }
         }
     }

@@ -32,7 +32,7 @@ public class JMeterParserUtil {
     static final String JTL_EXTENSION = ".jtl";
 
     /**
-     * This method goes through the file structure and create an object model of the tests.
+     * This method will return the location of the JMeter scenario results file.
      *
      * @param testLocation - Location of the scenario test
      * @return a String {@link String} JTL file location
