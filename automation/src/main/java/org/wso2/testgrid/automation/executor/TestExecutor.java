@@ -59,7 +59,7 @@ public abstract class TestExecutor {
     /**
      * Executes companion scripts.
      * <p>
-     * <p>Used for test scenarios that have seperate scripts to create or destroy environments</p>
+     * <p>Used for test scenarios that have separate scripts to create or destroy environments</p>
      *
      * @param script                   {@link Path} reference to the script.
      * @param deploymentCreationResult {@link DeploymentCreationResult} object with current environment details.
@@ -69,7 +69,8 @@ public abstract class TestExecutor {
     public String executeEnvironmentScript(Path script, DeploymentCreationResult deploymentCreationResult)
             throws TestAutomationException {
         try {
-            return TestGridUtil.executeCommand("bash " + script.toString(), null, deploymentCreationResult);
+            return TestGridUtil.executeCommand("bash " + script.toString(), null,
+                    deploymentCreationResult);
         } catch (CommandExecutionException e) {
             throw new TestAutomationException("Error executing " + script.toString(), e);
         }

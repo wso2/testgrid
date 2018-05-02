@@ -105,7 +105,7 @@ public class TestPlanExecutor {
         persistTestPlanStatus(testPlan);
 
         //cleanup
-        releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
+        //releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
     }
 
     /**
