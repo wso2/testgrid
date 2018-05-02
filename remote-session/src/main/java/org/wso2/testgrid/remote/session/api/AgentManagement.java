@@ -26,7 +26,9 @@ import org.wso2.testgrid.remote.session.utils.Constants;
 import org.wso2.testgrid.remote.session.utils.SessionManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.UUID;
 import javax.websocket.Session;
 import javax.ws.rs.Consumes;
@@ -42,7 +44,7 @@ import javax.ws.rs.core.Response;
  * This class represents REST service implementation of Agent Management.
  */
 
-@Path("/management/agent")
+@Path("/management")
 @Produces(MediaType.APPLICATION_JSON)
 public class AgentManagement {
 
@@ -54,22 +56,45 @@ public class AgentManagement {
      * @return A list of registered agents.
      */
     @GET
-    @Path("/list")
+    @Path("/agents")
     public Response listAllRegisteredAgents() {
         SessionManager sessionManager = SessionManager.getInstance();
         return Response.status(Response.Status.OK).entity(sessionManager.getAgentIds()).build();
     }
 
     /**
+     * Get list of registered agents under a test plan.
+     *
+     * @return A list of registered agents under a test plan.
+     */
+    @GET
+    @Path("/test-plan/{testPlanId}/agents")
+    public Response listAllRegisteredTestPlanAgents(@PathParam("testPlanId") String testPlanId) {
+        SessionManager sessionManager = SessionManager.getInstance();
+        List<String> agentIds = new ArrayList<>();
+        for (String aid : sessionManager.getAgentIds()) {
+            if (aid.startsWith(testPlanId)) {
+                agentIds.add(aid);
+            }
+        }
+        return Response.status(Response.Status.OK).entity(agentIds).build();
+    }
+
+    /**
      * Send operation to agent and get response.
      *
+     * @param testPlanId       - Test plan id of the target agent.
+     * @param nodeId           - Node id of the target agent.
+     * @param operationRequest - Operation request.
      * @return The operation response.
      */
     @POST
-    @Path("/{agentId}/operation")
+    @Path("/test-plan/{testPlanId}/agent/{nodeId}/operation")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response sendOperation(@PathParam("agentId") String agentId, OperationRequest operationRequest) {
+    public Response sendOperation(@PathParam("testPlanId") String testPlanId, @PathParam("nodeId") String nodeId,
+                                  OperationRequest operationRequest) {
         SessionManager sessionManager = SessionManager.getInstance();
+        String agentId = testPlanId + ":" + nodeId;
         if (sessionManager.hasAgentSession(agentId)) {
             Session wsSession = sessionManager.getAgentSession(agentId);
             try {
@@ -100,7 +125,7 @@ public class AgentManagement {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
             }
             return Response.status(Response.Status.OK)
-                    .entity(sessionManager.retriveOperationResponse(operationRequest.getOperationId())).build();
+                    .entity(sessionManager.retrieveOperationResponse(operationRequest.getOperationId())).build();
         } else {
             ErrorResponse errorResponse = new ErrorResponse();
             errorResponse.setCode(Response.Status.NOT_FOUND.getStatusCode());

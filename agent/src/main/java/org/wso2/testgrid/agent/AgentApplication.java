@@ -71,7 +71,9 @@ public class AgentApplication implements OperationResponseListner {
                 input = new FileInputStream(AGENT_PROP_FILE);
                 prop.load(input);
                 wsEndpoint = prop.getProperty("wsEndpoint");
-                agentId = prop.getProperty("testPlanId") + ":" + prop.getProperty("nodeId");
+                if (prop.containsKey("testPlanId") && prop.containsKey("nodeId")) {
+                    agentId = prop.getProperty("testPlanId") + ":" + prop.getProperty("nodeId");
+                }
             } else {
                 logger.info("Using default configurations.");
             }
@@ -88,6 +90,7 @@ public class AgentApplication implements OperationResponseListner {
         }
 
         try {
+            logger.info("Agent ID: " + agentId);
             // open web socket
             clientEndPoint = new ClientEndpoint(new URI(wsEndpoint + agentId));
 
@@ -102,10 +105,8 @@ public class AgentApplication implements OperationResponseListner {
 
                 @Override
                 public void handleClose(CloseReason reason) {
-                    if (CloseReason.CloseCodes.GOING_AWAY != reason.getCloseCode()) {
-                        logger.warn("Client disconnected. Retrying to connect.");
-                        clientEndPoint.connectClient();
-                    }
+                    logger.warn("Client disconnected. Retrying to connect.");
+                    clientEndPoint.connectClient();
                 }
             });
 

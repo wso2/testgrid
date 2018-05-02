@@ -96,13 +96,15 @@ public class SubscriptionEndpoint {
      */
     public void onError(Session session, Throwable throwable, String clientId) {
         if (throwable instanceof IOException) {
+            // This is normal if client terminated without graceful shutdown.
+            logger.warn("Client connection lost. " + throwable.getMessage());
             if (logger.isDebugEnabled()) {
-                logger.error("Error occurred in session ID: " + session.getId() + "client id: " + clientId +
+                logger.debug("Error occurred in session ID: " + session.getId() + ", client id: " + clientId +
                         ", for request URI - " + session.getRequestURI() +
                         ", " + throwable.getMessage(), throwable);
             }
         } else {
-            logger.error("Error occurred in session ID: " + session.getId() + " client id: " + clientId +
+            logger.error("Error occurred in session ID: " + session.getId() + ", client id: " + clientId +
                     ", for request URI - " + session.getRequestURI() + ", " + throwable.getMessage(), throwable);
         }
         try {
@@ -110,7 +112,11 @@ public class SubscriptionEndpoint {
                 session.close(new CloseReason(CloseReason.CloseCodes.PROTOCOL_ERROR, "Unexpected Error Occurred"));
             }
         } catch (IOException ex) {
-            logger.error("Failed to disconnect the client.", ex);
+            // This is normal if client terminated without graceful shutdown.
+            logger.warn("Failed to disconnect the client. " + ex.getMessage());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Error details:", ex);
+            }
         }
     }
 }

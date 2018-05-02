@@ -70,7 +70,7 @@ public class SessionManager {
         return operationResponses.containsKey(operationId);
     }
 
-    public synchronized OperationResponse retriveOperationResponse(String operationId) {
+    public synchronized OperationResponse retrieveOperationResponse(String operationId) {
         OperationResponse operationResponse = operationResponses.get(operationId);
         operationResponses.remove(operationId);
         return operationResponse;

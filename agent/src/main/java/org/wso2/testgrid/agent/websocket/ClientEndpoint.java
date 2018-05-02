@@ -42,7 +42,8 @@ public class ClientEndpoint {
     private ClientHandler clientHandler;
     private URI endpointURI;
     private int retryAttempt = 0;
-    private boolean clientConnected = false;
+    private boolean hasClientConnected = false;
+    private boolean isShuttingDown = false;
 
     public ClientEndpoint(URI endpointURI) {
         this.endpointURI = endpointURI;
@@ -53,9 +54,9 @@ public class ClientEndpoint {
             ClientManager client = ClientManager.createClient();
             client.connectToServer(this, endpointURI);
             retryAttempt = 0;
-            clientConnected = true;
+            hasClientConnected = true;
         } catch (Exception e) {
-            clientConnected = false;
+            hasClientConnected = false;
             int delay = 5000;
             if (++retryAttempt > 3) {
                 delay *= 3;
@@ -80,7 +81,7 @@ public class ClientEndpoint {
      */
     @OnOpen
     public void onOpen(Session userSession) {
-        logger.info("opening websocket");
+        logger.info("Connected to web socket session: " + userSession.getId());
         this.userSession = userSession;
     }
 
@@ -92,10 +93,11 @@ public class ClientEndpoint {
      */
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
-        logger.info("closing web socket session: '" + userSession.getId() + "'. Reason: " + reason.getReasonPhrase());
+        logger.info("Closing web socket session: '" + userSession.getId() + "'. Code: " +
+                reason.getCloseCode().toString() + " Reason: " + reason.getReasonPhrase());
         this.userSession = null;
-        if (this.clientHandler != null && clientConnected) {
-            clientConnected = false;
+        if (this.clientHandler != null && hasClientConnected && !isShuttingDown) {
+            hasClientConnected = false;
             this.clientHandler.handleClose(reason);
         }
     }
@@ -136,6 +138,9 @@ public class ClientEndpoint {
      * @param reason the reason which is going to send.
      */
     public void closeConnection(CloseReason reason) {
+        if (reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY)) {
+            isShuttingDown = true;
+        }
         if (this.userSession != null) {
             try {
                 this.userSession.close(reason);
