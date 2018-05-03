@@ -30,7 +30,6 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 /**
@@ -59,19 +58,15 @@ public class JMeterResultParserFactory {
 
             while (eventReader.hasNext()) {
                 XMLEvent event = eventReader.nextEvent();
-                switch(event.getEventType()) {
-                    case XMLStreamConstants.START_ELEMENT:
-                        StartElement startElement = event.asStartElement();
-                        String qName = startElement.getName().getLocalPart();
-                        FunctionalTestResultParser functionalTestResultParser =
-                                new FunctionalTestResultParser(testScenario, testLocation);
-                        if (functionalTestResultParser.canParse(qName)) {
-                            return Optional.of(functionalTestResultParser);
-                        }
-                        break;
+                if (event.getEventType() == XMLStreamConstants.START_ELEMENT) {
+                    String qName = event.asStartElement().getName().getLocalPart();
+                    FunctionalTestResultParser functionalTestResultParser =
+                            new FunctionalTestResultParser(testScenario, testLocation);
+                    if (functionalTestResultParser.canParse(qName)) {
+                        return Optional.of(functionalTestResultParser);
+                    }
                 }
             }
-
         } catch (XMLStreamException e) {
             throw new JMeterResultParserException("Unable to parse the scenario-results file of the test scenario : " +
                     "'" + testScenarioName + "'", e);
