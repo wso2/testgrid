@@ -52,11 +52,9 @@ public class JMeterResultParserFactory {
     public static Optional<JMeterResultParser> getParser(TestScenario testScenario, String testLocation) throws
             JMeterResultParserException {
         XMLInputFactory factory = XMLInputFactory.newInstance();
-        InputStream inputStream = null;
         String testScenarioName = testScenario.getName();
-        try {
-            String scenarioResultFile = JMeterParserUtil.getJTLFile(testLocation);
-            inputStream = new FileInputStream(scenarioResultFile);
+        String scenarioResultFile = JMeterParserUtil.getJTLFile(testLocation);
+        try (InputStream inputStream = new FileInputStream(scenarioResultFile)) {
             XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
 
             while (eventReader.hasNext()) {
@@ -80,15 +78,9 @@ public class JMeterResultParserFactory {
         } catch (FileNotFoundException e) {
             throw new JMeterResultParserException("Unable to locate the scenario-results file of the test scenario : " +
                     "'" + testScenarioName + "'", e);
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    throw new JMeterResultParserException("Unable to close the input stream of the" +
-                            " scenario-results file for test scenario : '" + testScenarioName + "'", e);
-                }
-            }
+        } catch (IOException e) {
+            throw new JMeterResultParserException("Unable to close the input stream of the" +
+                    " scenario-results file for test scenario : '" + testScenarioName + "'", e);
         }
         return Optional.empty();
     }

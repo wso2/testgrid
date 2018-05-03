@@ -67,17 +67,16 @@ public class FunctionalTestResultParser extends JMeterResultParser {
     public void parseResults() throws JMeterResultParserException {
         boolean failureMsgElement = false;
         XMLInputFactory factory = XMLInputFactory.newInstance();
-        InputStream inputStream = null;
+        //InputStream inputStream = null;
 
         String scenarioResultFile = JMeterParserUtil.getJTLFile(this.testLocation);
         String testScenarioName = testScenario.getName();
-        try {
+        try (InputStream inputStream = new FileInputStream(scenarioResultFile)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Parsing scenario-results file of the TestScenario : '" + testScenarioName + "' using " +
                         "the FunctionalTestResultParser");
             }
 
-            inputStream = new FileInputStream(scenarioResultFile);
             XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
             TestCase testCase = null;
             while (eventReader.hasNext()) {
@@ -88,7 +87,7 @@ public class FunctionalTestResultParser extends JMeterResultParser {
                         String elementName = startElement.getName().getLocalPart();
                         if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(elementName) ||
                                 SAMPLE_ELEMENT.equalsIgnoreCase(elementName)) {
-                            testCase = this.addAttributes(startElement);
+                            testCase = this.buildTestCase(startElement);
                         } else if (FAILURE_MESSAGE_ELEMENT.equalsIgnoreCase(elementName)) {
                             failureMsgElement = true;
                         }
@@ -108,6 +107,8 @@ public class FunctionalTestResultParser extends JMeterResultParser {
                             this.testScenario.addTestCase(testCase);
                         }
                         break;
+                    default:
+                        break;
                 }
             }
 
@@ -120,22 +121,16 @@ public class FunctionalTestResultParser extends JMeterResultParser {
                     testScenarioName, e);
         } catch (FileNotFoundException e) {
             throw new JMeterResultParserException("Unable to locate the scenario-results file.", e);
-        } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (IOException e) {
-                throw new JMeterResultParserException("Unable to close the input stream of scenario results file of " +
-                        "the TestScenario : " + testScenarioName, e);
-            }
+        } catch (IOException e) {
+            throw new JMeterResultParserException("Unable to close the input stream of scenario results file of " +
+                    "the TestScenario : " + testScenarioName, e);
         }
     }
 
-    private TestCase addAttributes(StartElement startElement) {
+    private TestCase buildTestCase(StartElement sampleElement) {
         TestCase testCase = new TestCase();
         testCase.setTestScenario(this.testScenario);
-        Iterator<Attribute> attributes = startElement.getAttributes();
+        Iterator<Attribute> attributes = sampleElement.getAttributes();
 
         while (attributes.hasNext()) {
             Attribute attribute = attributes.next();
