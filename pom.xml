@@ -294,31 +294,6 @@
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.jmeter</groupId>
-                <artifactId>ApacheJMeter_http</artifactId>
-                <version>${apache.jmeter.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.jmeter</groupId>
-                <artifactId>ApacheJMeter_core</artifactId>
-                <version>${apache.jmeter.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.jmeter</groupId>
-                <artifactId>ApacheJMeter_java</artifactId>
-                <version>${apache.jmeter.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-htmlunit-driver</artifactId>
-                <version>${org.selenium.html.driver.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-java</artifactId>
-                <version>${org.selenium.java.version}</version>
-            </dependency>
             <!-- DAO dependencies -->
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
@@ -562,7 +537,6 @@
         <!-- TestGrid infrastructure dependencies -->
         <com.aws.version>1.11.219</com.aws.version>
         <apache.http.version>4.5.3</apache.http.version>
-        <apache.jmeter.version>3.3</apache.jmeter.version>
         <org.selenium.java.version>2.52.0</org.selenium.java.version>
         <org.selenium.html.driver.version>2.52.0</org.selenium.html.driver.version>
         <testng.version>6.11</testng.version>

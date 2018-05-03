@@ -139,13 +139,15 @@ public class Test {
      */
     public TestScenario execute(String testLocation, DeploymentCreationResult input)
             throws TestAutomationException {
+        testExecutor.init(testLocation, getTestName(), testScenario);
+
         if (!StringUtil.isStringNullOrEmpty(preScenarioScript)) {
             String result = testExecutor.executeEnvironmentScript(Paths.get(preScenarioScript), input);
             if (result.contains("OK")) {
                 testScenario.setIsPreScriptSuccessful(true);
             }
         }
-        testExecutor.init(testLocation, getTestName(), testScenario);
+
         for (String script : scripts) {
             testExecutor.execute(script, input);
         }
