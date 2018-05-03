@@ -18,17 +18,10 @@
 
 import React, { Component } from 'react';
 import '../App.css';
-import {
-    Table,
-    TableBody,
-    TableHeader,
-    TableHeaderColumn,
-    TableRow,
-    TableRowColumn,
-} from 'material-ui/Table';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
 import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
+import { Table } from 'reactstrap';
 
 class TestCaseView extends Component {
 
@@ -59,10 +52,10 @@ class TestCaseView extends Component {
                 'Accept': 'application/json'
             }
         })
-        .then(this.handleError)
-        .then(response => {
-            return response.json();
-        })
+            .then(this.handleError)
+            .then(response => {
+                return response.json();
+            })
             .then(data => this.setState({ hits: data }));
 
     }
@@ -71,33 +64,31 @@ class TestCaseView extends Component {
         return (
             <div>
                 <Subheader style={{ fontSize: '20px' }} > <i>{this.props.active.reducer.currentProduct.productName} {this.props.active.reducer.currentProduct.productVersion} {this.props.active.reducer.currentProduct.productChannel} / {this.props.active.reducer.currentDeployment.deploymentName} /{this.props.active.reducer.currentInfra.deploymentName} /
-                {this.props.active.reducer.currentScenario.scenarioName} </i>
+                    {this.props.active.reducer.currentScenario.scenarioName} </i>
                 </Subheader>
 
-                <Table>
-                    <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
-                        <TableRow>
-                            <TableHeaderColumn><h2>TestCase</h2></TableHeaderColumn>
-                            <TableHeaderColumn><h2>TestResult</h2></TableHeaderColumn>
-                            <TableHeaderColumn><h2>Error message</h2></TableHeaderColumn>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody displayRowCheckbox={false}>
+                <Table responsive>
+                    <thead displaySelectAll={false} adjustForCheckbox={false}>
+                    <tr>
+                        <th>TestCase</th>
+                        <th>TestResult</th>
+                        <th>Error message</th>
+                    </tr>
+                    </thead>
+                    <tbody displayRowCheckbox={false}>
 
-                        {this.state.hits.testCases.map((data, index) => {
-                            return (<TableRow key={index}>
-                                <TableRowColumn>
-                                    <h4>{data.name}</h4></TableRowColumn>
-                                <TableRowColumn><SingleRecord value={data.success} /></TableRowColumn>
-                                <TableRowColumn style={{
-                                    color: 'red',
-                                    whiteSpace: 'normal',
-                                    wordWrap: 'break-word'
-                                }}>
-                                    <h4>{data.errorMsg}</h4></TableRowColumn>
-                            </TableRow>)
-                        })}
-                    </TableBody>
+                    {this.state.hits.testCases.map((data, index) => {
+                        return (<tr key={index}>
+                            <td>{data.name}</td>
+                            <td><SingleRecord value={data.success} /></td>
+                            <td style={{
+                                color: 'red',
+                                whiteSpace: 'normal',
+                                wordWrap: 'break-word'
+                            }}>{data.errorMsg}</td>
+                        </tr>)
+                    })}
+                    </tbody>
                 </Table>
             </div>
         );

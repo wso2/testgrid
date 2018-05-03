@@ -8,5 +8,5 @@ export const DID_NOT_RUN = "DID_NOT_RUN";
 export const HTTP_UNAUTHORIZED = "401";
 export const HTTP_OK = 200;
 export const HTTP_NOT_FOUND = 404;
-export const LOGIN_URI = "/testgrid/dashboard/login";
-export const TESTGRID_CONTEXT = "/testgrid/dashboard";
+export const LOGIN_URI = "/login";
+export const TESTGRID_CONTEXT = "";

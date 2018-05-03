@@ -27,26 +27,26 @@ import { Button, Table, Modal, ModalHeader, ModalBody, ModalFooter } from 'react
 
 class ProductStatusView extends Component {
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      hits: [],
-        modal: false,
-        errorMassage : ""
-    };
+    constructor(props) {
+        super(props);
+        this.state = {
+            hits: [],
+            modal: false,
+            errorMassage : ""
+        };
 
-      this.toggle = this.toggle.bind(this);
+        this.toggle = this.toggle.bind(this);
 
-  }
-
-  handleError(response){
-    if (response.status.toString() === HTTP_UNAUTHORIZED) {
-          window.location.replace(LOGIN_URI);
-    } else if(!response.ok){
-      throw Error(response.statusText)
     }
-    return response;
-  }
+
+    handleError(response){
+        if (response.status.toString() === HTTP_UNAUTHORIZED) {
+            window.location.replace(LOGIN_URI);
+        } else if(!response.ok){
+            throw Error(response.statusText)
+        }
+        return response;
+    }
 
     toggle(Message) {
         this.setState({
@@ -55,25 +55,25 @@ class ProductStatusView extends Component {
         });
     }
 
-  componentDidMount() {
-    var url = TESTGRID_CONTEXT + '/api/products/product-status';
-    fetch(url, {
-      method: "GET",
-      credentials: 'same-origin',
-      headers: {
-        'Accept': 'application/json'
-      }
-    })
-    .then(this.handleError)
-    .then(response => {return response.json()})
-    .then(data => this.setState({ hits: data }))
-    .catch(error => console.error(error));
-  }
+    componentDidMount() {
+        var url = TESTGRID_CONTEXT + '/api/products/product-status';
+        fetch(url, {
+            method: "GET",
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+            .then(this.handleError)
+            .then(response => {return response.json()})
+            .then(data => this.setState({ hits: data }))
+            .catch(error => console.error(error));
+    }
 
-  navigateToRoute(route, product) {
-    this.props.dispatch(add_current_product(product));
-    this.props.history.push(route);
-  }
+    navigateToRoute(route, product) {
+        this.props.dispatch(add_current_product(product));
+        this.props.history.push(route);
+    }
 
     downloadReport(productName) {
         let url = TESTGRID_CONTEXT + '/api/products/reports?product-name=' + productName;
@@ -96,90 +96,93 @@ class ProductStatusView extends Component {
         ).catch(error => console.error(error));
     }
 
-  render() {
-    const products = this.state.hits.map((product, index) => {
-      return (<tr key={index}>
-        <td> <SingleRecord value={product.status} /> </td>
-        <th onClick={() => this.navigateToRoute( TESTGRID_CONTEXT+ "/deployments/product/" + product.id, {
-          productId: product.id,
-          productName: product.name,
-          productStatus :product.status
-        })} scope="row">
-        <i style={{ cursor: 'pointer' }}>{product.name}</i>
-        </th>
-        <td style={{ fontSize: '16px' }}>
-          {(() => {
-            if (product.lastBuild.modifiedTimestamp) {
-              return (
-                <SingleRecord value={product.lastBuild.status}
-                  nevigate={() => this.navigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
-                    productId: product.id,
-                    productName: product.name,
-                    productStatus :product.status
-                  })} time={product.lastBuild.modifiedTimestamp}
-                />)
-            } else {
-              return ("No builds yet!");
-            }
-          })()}
-        </td>
-        <td style={{ fontSize: '16px' }}>
-          {(() => {
-            if (product.lastfailed.modifiedTimestamp) {
-              return (
-                <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/deployments/product/" + product.id, {
-                  productId: product.id,
-                  productName: product.name,
-                  productStatus :product.status
-                })} style={{ cursor: 'pointer' }}>
-                {Moment(product.lastfailed.modifiedTimestamp).fromNow()}</i>
-              );
-            } else {
-              return ("No failed builds yet!")
-            }
-          })()}
-        </td>
-        <td> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" onClick={() => { window
-        .location = '/job/'+
-        product.name +'/build' }} /> <ReactTooltip /></td>
-        <td ><img src={require('../configure.png')} width="36" height="36" onClick={() => { window.location = '/job/'+
-        product.name +'/configure' }} data-tip="Configure job" style={{ cursor: 'pointer' }}/>
-        </td>
-        <td ><Button color="success" onClick={this.downloadReport.bind(this, product.name)}>Download</Button>
-        </td>
-      </tr>)
-    });
+    render() {
+        const products = this.state.hits.map((product, index) => {
+            return (<tr key={index}>
+                <td> <SingleRecord value={product.productStatus} /> </td>
+                <th onClick={() => this.navigateToRoute( TESTGRID_CONTEXT + "/" + product.productName, {
+                    productId: product.productId,
+                    productName: product.productName,
+                    productStatus :product.productStatus
+                })} scope="row">
+                    <i style={{ cursor: 'pointer' }}>{product.productName}</i>
+                </th>
+                <td style={{ fontSize: '16px' }}>
+                    {(() => {
+                        if (product.lastBuild.modifiedTimestamp) {
+                            return (
+                                <SingleRecord value={product.lastBuild.status}
+                                              nevigate={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
+                                                  product.productName, {
+                                                  productId: product.productId,
+                                                  productName: product.productName,
+                                                  productStatus :product.productStatus
+                                              })} time={product.lastBuild.modifiedTimestamp}
+                                />)
+                        } else {
+                            return ("No builds yet!");
+                        }
+                    })()}
+                </td>
+                <td style={{ fontSize: '16px' }}>
+                    {(() => {
+                        if (product.lastfailed.modifiedTimestamp) {
+                            return (
+                                <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" + product.productName, {
+                                    productId: product.productId,
+                                    productName: product.productName,
+                                    productStatus :product.productStatus
+                                })} style={{ cursor: 'pointer' }}>
+                                    {Moment(product.lastfailed.modifiedTimestamp).fromNow()}</i>
+                            );
+                        } else {
+                            return ("No failed builds yet!")
+                        }
+                    })()}
+                </td>
+                <td> <img src={require('../play.png')} width="36" height="36" data-tip="Execute job" onClick={() =>
+                { window.location = '/job/'+ product.productName +'/build' }} /> <ReactTooltip /></td>
+                <td ><img src={require('../configure.png')} width="36" height="36" onClick={() => { window.location =
+                    '/job/'+ product.productName +'/configure' }} data-tip="Configure job" style={{ cursor: 'pointer' }}/>
+                </td>
+                <td >
+                    <Button color="success" onClick={this.downloadReport.bind(this, product.productName)}>
+                        Download
+                    </Button>
+                </td>
+            </tr>)
+        });
 
-    return (
-        <div>
-            <Table responsive>
-                <thead displaySelectAll={false} adjustForCheckbox={false}>
-                <tr>
-                    <th>Status</th>
-                    <th>Job</th>
-                    <th>Latest Build</th>
-                    <th>Last Failure</th>
-                    <th>Execute</th>
-                    <th>Configure</th>
-                    <th>Report</th>
-                </tr>
-                </thead>
-                <tbody displayRowCheckbox={false}>
-                {products}
-                </tbody>
-            </Table>
-            <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className} centered={true}>
-                <ModalHeader toggle={()=>this.toggle("")}>Error</ModalHeader>
-                <ModalBody>
-                    {this.state.errorMassage}
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="danger" onClick={()=>this.toggle("")}>OK</Button>{' '}
-                </ModalFooter>
-            </Modal>
-        </div>
-    )
-  }
+        return (
+            <div>
+                <Table responsive>
+                    <thead displaySelectAll={false} adjustForCheckbox={false}>
+                    <tr>
+                        <th>Status</th>
+                        <th>Job</th>
+                        <th>Latest Build</th>
+                        <th>Last Failure</th>
+                        <th>Execute</th>
+                        <th>Configure</th>
+                        <th>Report</th>
+                    </tr>
+                    </thead>
+                    <tbody displayRowCheckbox={false}>
+                    {products}
+                    </tbody>
+                </Table>
+                <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className} centered={true}>
+                    <ModalHeader toggle={()=>this.toggle("")}>Error</ModalHeader>
+                    <ModalBody>
+                        {this.state.errorMassage}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="danger" onClick={()=>this.toggle("")}>OK</Button>{' '}
+                    </ModalFooter>
+                </Modal>
+            </div>
+        )
+    }
 }
 
 export default ProductStatusView;

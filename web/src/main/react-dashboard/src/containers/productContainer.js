@@ -21,15 +21,15 @@ import ProductStatusView from '../components/ProductStatusView.js'
 
 const mapStateToProps = (state, ownProps) => ({
     active: state
-})
+});
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch: dispatch
-})
+});
 
 const ProductContainer = connect(
     mapStateToProps,
     mapDispatchToProps
-)(ProductStatusView)
+)(ProductStatusView);
 
 export default ProductContainer;

@@ -21,10 +21,10 @@ import DeploymentPatternView from '../components/DeploymentPatternView.js'
 
 const mapStateToProps = (state, ownProps) => ({
     active: state
-})
+});
 
 const DeploymentContainer = connect(
     mapStateToProps
-)(DeploymentPatternView)
+)(DeploymentPatternView);
 
 export default DeploymentContainer;

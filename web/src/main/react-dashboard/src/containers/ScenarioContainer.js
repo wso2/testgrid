@@ -19,12 +19,12 @@
 import { connect } from 'react-redux'
 import ScenarioView from '../components/ScenarioView.js'
 
-const mapStateToProps = (state ,ownProps) =>({
-    active:state
-})
+const mapStateToProps = (state, ownProps) => ({
+    active: state
+});
 
 const ScenarioContainer = connect(
     mapStateToProps
-)(ScenarioView)
+)(ScenarioView);
 
 export default ScenarioContainer;
