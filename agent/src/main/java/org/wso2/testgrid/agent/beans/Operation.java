@@ -58,6 +58,6 @@ public abstract class Operation {
      * Supported operations.
      */
     public enum OperationCode {
-        SHELL
+        SHELL, PING
     }
 }

@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
-import java.util.UUID;
 import javax.websocket.CloseReason;
 
 /**
@@ -60,25 +59,24 @@ public class AgentApplication implements OperationResponseListner {
     }
 
     private void startService() {
-        String wsEndpoint = "ws://localhost:8080/remote-session/v0.9/agent/";
-        String agentId = "orphan:" + UUID.randomUUID().toString();
+        String wsEndpoint;
+        String agentId;
 
         Properties prop = new Properties();
         InputStream input = null;
         try {
             if (new File(AGENT_PROP_FILE).exists()) {
-                logger.info("Loading configurations from: " + AGENT_PROP_FILE);
                 input = new FileInputStream(AGENT_PROP_FILE);
                 prop.load(input);
                 wsEndpoint = prop.getProperty("wsEndpoint");
-                if (prop.containsKey("testPlanId") && prop.containsKey("nodeId")) {
-                    agentId = prop.getProperty("testPlanId") + ":" + prop.getProperty("nodeId");
-                }
+                agentId = prop.getProperty("testPlanId") + ":" + prop.getProperty("nodeId");
             } else {
-                logger.info("Using default configurations.");
+                logger.warn("Agent configurations not found.");
+                return;
             }
         } catch (IOException ex) {
             logger.error("Error occurred when reading prop file: " + ex.getMessage(), ex);
+            return;
         } finally {
             if (input != null) {
                 try {
@@ -121,7 +119,7 @@ public class AgentApplication implements OperationResponseListner {
 
     @Override
     public void sendResponse(OperationResponse response) {
-        // send message to websocket
+        // send message to web socket
         if (logger.isDebugEnabled()) {
             logger.debug("Sending message: " + response.toJSON());
         }

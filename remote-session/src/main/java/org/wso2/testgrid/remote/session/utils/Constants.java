@@ -24,7 +24,8 @@ package org.wso2.testgrid.remote.session.utils;
 public class Constants {
 
     public static final String HTTP_HEADERS = "HttpHeaders";
-    public static final int OPERATION_TIMEOUT = 60; //Operation timeout interval in seconds.
+    public static final int OPERATION_TIMEOUT = 60000; //Operation timeout interval in milliseconds.
+    public static final int HEARTBEAT_INTERVAL = 60000; //Heartbeat interval in milliseconds.
 
     private Constants() {
     }

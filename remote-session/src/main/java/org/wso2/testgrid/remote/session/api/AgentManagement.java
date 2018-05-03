@@ -103,7 +103,7 @@ public class AgentManagement {
                 long initTime = Calendar.getInstance().getTimeInMillis();
                 while (!sessionManager.hasOperationResponse(operationRequest.getOperationId())) {
                     long currentTime = Calendar.getInstance().getTimeInMillis();
-                    if (initTime + Constants.OPERATION_TIMEOUT * 1000 < currentTime) {
+                    if (initTime + Constants.OPERATION_TIMEOUT < currentTime) {
                         String message = "Operation timed out for agent: " + agentId;
                         logger.error(message);
                         ErrorResponse errorResponse = new ErrorResponse();

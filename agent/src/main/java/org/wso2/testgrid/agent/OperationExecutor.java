@@ -53,6 +53,9 @@ public class OperationExecutor {
                 String response = executeCommand(operationRequest.getRequest());
                 operationResponse.setResponse(response);
                 break;
+            case PING:
+                operationResponse.setResponse("ACK");
+                break;
         }
         operationResponseListner.sendResponse(operationResponse);
     }

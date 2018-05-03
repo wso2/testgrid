@@ -72,8 +72,12 @@ public class SessionManager {
 
     public synchronized OperationResponse retrieveOperationResponse(String operationId) {
         OperationResponse operationResponse = operationResponses.get(operationId);
-        operationResponses.remove(operationId);
+        removeOperationResponse(operationId);
         return operationResponse;
+    }
+
+    public synchronized void removeOperationResponse(String operationId) {
+        operationResponses.remove(operationId);
     }
 
 }

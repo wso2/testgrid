@@ -37,4 +37,9 @@
         <servlet-name>jersey-servlet</servlet-name>
         <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
+    <listener>
+        <listener-class>
+            org.wso2.testgrid.remote.session.utils.AppServletContextListener
+        </listener-class>
+    </listener>
 </web-app>
