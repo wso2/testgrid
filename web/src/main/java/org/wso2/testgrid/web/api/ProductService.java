@@ -122,11 +122,11 @@ public class ProductService {
         try {
             for (Product product : productUOW.getProducts()) {
                 ProductStatus status = new ProductStatus();
-                status.setId(product.getId());
-                status.setName(StringUtil.concatStrings(product.getName()));
+                status.setProductId(product.getId());
+                status.setProductName(StringUtil.concatStrings(product.getName()));
                 status.setLastfailed(APIUtil.getTestPlanBean(testPlanUOW.getLastFailure(product), false));
                 status.setLastBuild(APIUtil.getTestPlanBean(testPlanUOW.getLastBuild(product), false));
-                status.setStatus(testPlanUOW.getCurrentStatus(product).toString());
+                status.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());
                 list.add(status);
             }
         } catch (TestGridDAOException e) {
@@ -136,6 +136,44 @@ public class ProductService {
                     new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
         return Response.status(Response.Status.OK).entity(list).build();
+    }
+
+    /**
+     * This method returns the product that are currently in TestGrid.
+     *
+     * <p> The product is returned as a json response with the last build information and
+     * the last failed build information<p/>
+     *
+     * @return product
+     */
+    @GET
+    @Path("/product-status/{productName}")
+    public Response getProductStatus(
+            @PathParam("productName") String productName) {
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            ProductUOW productUOW = new ProductUOW();
+            ProductStatus productStatus = new ProductStatus();
+            Optional<Product> productInstance = productUOW.getProduct(productName);
+            Product product;
+            if (productInstance.isPresent()) {
+                product = productInstance.get();
+                productStatus.setProductId(product.getId());
+                productStatus.setProductName(StringUtil.concatStrings(product.getName()));
+                productStatus.setLastfailed(APIUtil.getTestPlanBean(testPlanUOW.getLastFailure(product), false));
+                productStatus.setLastBuild(APIUtil.getTestPlanBean(testPlanUOW.getLastBuild(product), false));
+                productStatus.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());
+            } else {
+                String msg = "Could not found a product for requested product name in the TestGrid.";
+                logger.error(msg);
+                return Response.status(Response.Status.NOT_FOUND).entity(msg).build();
+            }
+            return Response.status(Response.Status.OK).entity(productStatus).build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the Product statuses ";
+            logger.error(msg, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+        }
     }
 
     /**
@@ -149,9 +187,9 @@ public class ProductService {
     @Path("/reports")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getProductReport(
-        @QueryParam("product-name") String productName,
-        @DefaultValue("false") @QueryParam("show-success") Boolean showSuccess,
-        @DefaultValue("SCENARIO") @QueryParam("group-by") String groupBy) {
+            @QueryParam("product-name") String productName,
+            @DefaultValue("false") @QueryParam("show-success") Boolean showSuccess,
+            @DefaultValue("SCENARIO") @QueryParam("group-by") String groupBy) {
         try {
             ProductUOW productUOW = new ProductUOW();
             Optional<Product> productInstance = productUOW.getProduct(productName);
