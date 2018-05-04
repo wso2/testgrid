@@ -123,7 +123,7 @@ public class ProductService {
             for (Product product : productUOW.getProducts()) {
                 ProductStatus status = new ProductStatus();
                 status.setProductId(product.getId());
-                status.setProductName(StringUtil.concatStrings(product.getName()));
+                status.setProductName(product.getName());
                 status.setLastfailed(APIUtil.getTestPlanBean(testPlanUOW.getLastFailure(product), false));
                 status.setLastBuild(APIUtil.getTestPlanBean(testPlanUOW.getLastBuild(product), false));
                 status.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());
@@ -139,7 +139,7 @@ public class ProductService {
     }
 
     /**
-     * This method returns the product that are currently in TestGrid.
+     * This method returns the product if the requested product name exists in the TestGrid.
      *
      * <p> The product is returned as a json response with the last build information and
      * the last failed build information<p/>
@@ -159,7 +159,7 @@ public class ProductService {
             if (productInstance.isPresent()) {
                 product = productInstance.get();
                 productStatus.setProductId(product.getId());
-                productStatus.setProductName(StringUtil.concatStrings(product.getName()));
+                productStatus.setProductName(product.getName());
                 productStatus.setLastfailed(APIUtil.getTestPlanBean(testPlanUOW.getLastFailure(product), false));
                 productStatus.setLastBuild(APIUtil.getTestPlanBean(testPlanUOW.getLastBuild(product), false));
                 productStatus.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());

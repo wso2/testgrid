@@ -77,8 +77,8 @@ class InfraCombinationView extends Component {
                     currentInfra.testPlanStatus = data[0].status;
                     this.props.active.reducer.currentInfra = currentInfra;
                 }
-                currentInfra.relatedProduct = currentUrl[currentUrl.length-3];
-                currentInfra.relatedDeplymentPattern = currentUrl[currentUrl.length-2];
+                currentInfra.relatedProduct = currentUrl[currentUrl.length-4];
+                currentInfra.relatedDeplymentPattern = currentUrl[currentUrl.length-3];
                 this.setState({ hits: data, currentInfra: currentInfra});})
             .catch(error => console.error(error));
     }
