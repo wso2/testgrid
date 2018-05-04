@@ -365,7 +365,7 @@ class DeploymentPatternView extends Component {
                                                 })()}
                                             </td>
                                             <td> <img src={require('../play.png')} width="48" height="48"
-                                                      data-tip="Execute Job" onClick={() => { window.location = '/job/'+
+                                                      data-tip="Execute Job" onClick={() => { window.location = '/admin/job/'+
                                                           this.state.product.productName +'/build' }} />
                                                 <ReactTooltip /></td>
                                         </tr>
@@ -440,8 +440,9 @@ class DeploymentPatternView extends Component {
                                                 })()}
                                             </td>
                                             <td> <img src={require('../play.png')} width="48" height="48"
-                                                      data-tip="Execute Job" onClick={() => { window.location = '/job/'+
-                                                this.state.product.productName + '/build' }} /><ReactTooltip /></td>
+                                                      data-tip="Execute Job" onClick={() => { window.location =
+                                              '/admin/job/'+ this.state.product.productName + '/build' }} /><ReactTooltip />
+                                            </td>
                                         </tr>
                                     )
                                 }
