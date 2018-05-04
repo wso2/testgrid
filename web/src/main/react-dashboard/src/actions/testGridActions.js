@@ -17,22 +17,22 @@
  */
 
 export const add_current_product = (product) => ({
-    type: "ADD_CURRENT_PRODUCT",
-    product
-})
+  type: "ADD_CURRENT_PRODUCT",
+  product
+});
 
 export const add_current_deployment = (deployment) => ({
-    type: "ADD_CURRENT_DEPLOYMENT",
-    deployment
-})
+  type: "ADD_CURRENT_DEPLOYMENT",
+  deployment
+});
 
 export const add_current_infra = (infra) => ({
-    type: "ADD_CURRENT_INFRA",
-    infra
-})
+  type: "ADD_CURRENT_INFRA",
+  infra
+});
 
 export const add_current_scenario = (scenario) => ({
-    type: "ADD_CURRENT_SCENARIO",
-    scenario
+  type: "ADD_CURRENT_SCENARIO",
+  scenario
 })
 

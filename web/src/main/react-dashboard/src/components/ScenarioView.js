@@ -26,81 +26,81 @@ import {Table} from 'reactstrap';
 
 class ScenarioView extends Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            hits: {
-                testScenarios: []
-            }
-        }
+  constructor(props) {
+    super(props);
+    this.state = {
+      hits: {
+        testScenarios: []
+      }
     }
+  }
 
-    nevigateToRoute(route, scenario) {
-        this.props.dispatch(add_current_scenario(scenario));
-        this.props.history.push(route);
+  nevigateToRoute(route, scenario) {
+    this.props.dispatch(add_current_scenario(scenario));
+    this.props.history.push(route);
+  }
+
+  handleError(response) {
+    if (response.status.toString() === HTTP_UNAUTHORIZED) {
+      window.location.replace(LOGIN_URI);
+      return response;
     }
+    return response;
+  }
 
-    handleError(response) {
-        if (response.status.toString() === HTTP_UNAUTHORIZED) {
-            window.location.replace(LOGIN_URI);
-            return response;
-        }
-        return response;
-    }
+  componentDidMount() {
+    var url = TESTGRID_CONTEXT + "/api/test-plans/" +
+      this.props.active.reducer.currentInfra.infrastructureId + "?require-test-scenario-info=true";
 
-    componentDidMount() {
-        var url = TESTGRID_CONTEXT + "/api/test-plans/" +
-            this.props.active.reducer.currentInfra.infrastructureId + "?require-test-scenario-info=true";
+    fetch(url, {
+      method: "GET",
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+      .then(this.handleError)
+      .then(response => {
+        return response.json()
+      })
+      .then(data => this.setState({hits: data}));
+  }
 
-        fetch(url, {
-            method: "GET",
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json'
-            }
-        })
-            .then(this.handleError)
-            .then(response => {
-                return response.json()
-            })
-            .then(data => this.setState({hits: data}));
-    }
-
-    render() {
-        console.log(this.props);
-        var infraString = "";
-        return (<div>
-            <Subheader style={{fontSize: '20px'}}>
-                <i> {this.props.active.reducer.currentProduct.productName} {this.props.active.reducer.currentProduct.productVersion}
-                    {this.props.active.reducer.currentProduct.productChannel} / {this.props.active.reducer.currentDeployment.deploymentName} / {this.props.active.reducer.currentInfra.deploymentName}</i>
-            </Subheader>
-            <Table responsive>
-                <thead displaySelectAll={false} adjustForCheckbox={false}>
-                <tr>
-                    <th>Scenario ID</th>
-                    <th>Scenario Description</th>
-                    <th>Scenario Status</th>
-                </tr>
-                </thead>
-                <tbody displayRowCheckbox={false}>
-                {this.state.hits.testScenarios.map((data, index) => {
-                    return (<tr key={index}>
-                        <td>{data.name}</td>
-                        <td>{data.description}</td>
-                        <td>
-                            <SingleRecord value={data.status}
-                                          nevigate={() => this.nevigateToRoute(TESTGRID_CONTEXT + "/testcases/scenario/"
-                                              + data.id, {
-                                              scenarioId: data.id,
-                                              scenarioName: data.name,
-                                          })}/>
-                        </td>
-                    </tr>)
-                })}
-                </tbody>
-            </Table>
-        </div>);
-    }
+  render() {
+    console.log(this.props);
+    var infraString = "";
+    return (<div>
+      <Subheader style={{fontSize: '20px'}}>
+        <i> {this.props.active.reducer.currentProduct.productName} {this.props.active.reducer.currentProduct.productVersion}
+          {this.props.active.reducer.currentProduct.productChannel} / {this.props.active.reducer.currentDeployment.deploymentName} / {this.props.active.reducer.currentInfra.deploymentName}</i>
+      </Subheader>
+      <Table responsive>
+        <thead displaySelectAll={false} adjustForCheckbox={false}>
+        <tr>
+          <th>Scenario ID</th>
+          <th>Scenario Description</th>
+          <th>Scenario Status</th>
+        </tr>
+        </thead>
+        <tbody displayRowCheckbox={false}>
+        {this.state.hits.testScenarios.map((data, index) => {
+          return (<tr key={index}>
+            <td>{data.name}</td>
+            <td>{data.description}</td>
+            <td>
+              <SingleRecord value={data.status}
+                            nevigate={() => this.nevigateToRoute(TESTGRID_CONTEXT + "/testcases/scenario/"
+                              + data.id, {
+                              scenarioId: data.id,
+                              scenarioName: data.name,
+                            })}/>
+            </td>
+          </tr>)
+        })}
+        </tbody>
+      </Table>
+    </div>);
+  }
 }
 
 export default ScenarioView;
