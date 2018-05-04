@@ -42,7 +42,7 @@ scenarioConfig:
   scenarios:
     - name: 'Test scenario 01'
       description: 'Test scenario 01'
-      dir: scenario01
+      dir: solution01
 deploymentConfig:
   deploymentPatterns:
     - name: 01-local-is-deployment
