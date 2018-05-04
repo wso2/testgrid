@@ -164,13 +164,15 @@ public class ProductService {
                 productStatus.setLastBuild(APIUtil.getTestPlanBean(testPlanUOW.getLastBuild(product), false));
                 productStatus.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());
             } else {
-                String msg = "Could not found a product for requested product name in the TestGrid.";
+                String msg = "Could not found the product:" + productName + " in TestGrid. Please check the "
+                        + "infrastructure_parameter table";
                 logger.error(msg);
                 return Response.status(Response.Status.NOT_FOUND).entity(msg).build();
             }
             return Response.status(Response.Status.OK).entity(productStatus).build();
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the Product statuses ";
+            String msg = "Error occurred while fetching the statuses of the product: " + productName + ". Please "
+                    + "check the database configurations";
             logger.error(msg, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
         }
