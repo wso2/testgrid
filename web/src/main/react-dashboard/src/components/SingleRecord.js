@@ -134,4 +134,4 @@ class SingleRecord extends Component {
     }
 }
 
-export default SingleRecord
+export default SingleRecord;
