@@ -76,6 +76,7 @@ public class SSOSessionCheckFilter implements Filter {
                         } else {
                             httpResponse.sendRedirect(ssoLoginUrl);
                         }
+                        return;
                     }
                 }
             }

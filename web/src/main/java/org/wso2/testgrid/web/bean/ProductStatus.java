@@ -1,72 +1,72 @@
 /*
-* Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* WSO2 Inc. licenses this file to you under the Apache License,
-* Version 2.0 (the "License"); you may not use this file except
-* in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied. See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.testgrid.web.bean;
 
 /**
- * Bean class for Aggregated product status reponses.
+ * Bean class for Aggregated product productStatus reponses.
  *
  * @since 1.0.0
  */
 public class ProductStatus {
 
-    private String id;
-    private String name;
+    private String productId;
+    private String productName;
     private String reportLink;
-    private String status;
+    private String productStatus;
     private TestPlan lastBuild;
     private TestPlan lastfailed;
     private String executeLink;
     private String configLink;
 
     /**
-     * Returns the id of the product.
+     * Returns the productId of the product.
      *
-     * @return id of the product
+     * @return productId of the product
      */
-    public String getId() {
-        return id;
+    public String getProductId() {
+        return productId;
     }
 
     /**
-     * Sets the id of the product.
+     * Sets the productId of the product.
      *
-     * @param id product-id
+     * @param productId product-productId
      */
-    public void setId(String id) {
-        this.id = id;
+    public void setProductId(String productId) {
+        this.productId = productId;
     }
 
     /**
-     * Returns the name of product.
+     * Returns the productName of product.
      *
-     * @return product name
+     * @return product productName
      */
-    public String getName() {
-        return name;
+    public String getProductName() {
+        return productName;
     }
 
     /**
-     * Sets the name of product.
+     * Sets the productName of product.
      *
-     * @param name name to set to product
+     * @param productName productName to set to product
      */
-    public void setName(String name) {
-        this.name = name;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     /**
@@ -90,21 +90,21 @@ public class ProductStatus {
 
     /**
      *
-     * Returns the status of product.
+     * Returns the productStatus of product.
      *
-     * @return the status of product
+     * @return the productStatus of product
      */
-    public String getStatus() {
-        return status;
+    public String getProductStatus() {
+        return productStatus;
     }
 
     /**
-     * Sets the status of the product.
+     * Sets the productStatus of the product.
      *
-     * @param status the status of product
+     * @param productStatus the productStatus of product
      */
-    public void setStatus(String status) {
-        this.status = status;
+    public void setProductStatus(String productStatus) {
+        this.productStatus = productStatus;
     }
 
     /**

@@ -2,7 +2,7 @@
   "name": "testgrid-dashboard",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/testgrid/dashboard",
+  "homepage": "/",
   "dependencies": {
     "bootstrap": "^4.1.0",
     "downloadjs": "^1.4.7",

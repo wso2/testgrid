@@ -16,15 +16,15 @@
  * under the License.
  */
 
-import { connect } from 'react-redux'
+import {connect} from 'react-redux'
 import InfraCombinationView from '../components/InfraCombinationView.js'
 
-const mapStateToProps = (state ,ownProps) =>({
-    active:state
-})
+const mapStateToProps = (state, ownProps) => ({
+  active: state
+});
 
-const InfrastructureContainer= connect(
-    mapStateToProps
-)(InfraCombinationView)
+const InfrastructureContainer = connect(
+  mapStateToProps
+)(InfraCombinationView);
 
 export default InfrastructureContainer;

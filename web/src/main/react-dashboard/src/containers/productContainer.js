@@ -16,20 +16,20 @@
  * under the License.
  */
 
-import { connect } from 'react-redux'
+import {connect} from 'react-redux'
 import ProductStatusView from '../components/ProductStatusView.js'
 
 const mapStateToProps = (state, ownProps) => ({
-    active: state
-})
+  active: state
+});
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    dispatch: dispatch
-})
+  dispatch: dispatch
+});
 
 const ProductContainer = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(ProductStatusView)
+  mapStateToProps,
+  mapDispatchToProps
+)(ProductStatusView);
 
 export default ProductContainer;

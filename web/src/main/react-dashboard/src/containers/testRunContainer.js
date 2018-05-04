@@ -20,11 +20,11 @@ import {connect} from 'react-redux'
 import TestRunView from '../components/TestRunView.js'
 
 const mapStateToProps = (state, ownProps) => ({
-    active: state
+  active: state
 });
 
 const testRunContainer = connect(
-    mapStateToProps
+  mapStateToProps
 )(TestRunView);
 
 export default testRunContainer;
