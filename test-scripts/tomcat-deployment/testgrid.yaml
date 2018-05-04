@@ -45,14 +45,14 @@ infrastructureConfig:
 #      type : <string>
 scenarioConfig:
   scenarios:
-    -  "scenario01"
+    - name: 'Test scenario 01'
+      description: 'Test scenario 01'
+      dir: scenario01
 deploymentConfig:
   deploymentPatterns:
     - name: 01-testgrid-tomcat-deployment
       description: Deploys a Tomcat in AWS
       dir: .
-#      inputsForInfrastructurefile:
-#          - requiredVMCount: 2
       scripts:
         - type: SHELL
           description: Do a IS two node deployment.

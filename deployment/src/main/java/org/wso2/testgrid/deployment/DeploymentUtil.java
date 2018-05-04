@@ -38,7 +38,7 @@ import java.util.List;
  */
 public class DeploymentUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(Deployment.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeploymentUtil.class);
 
     /**
      * Reads the deployment.json file and constructs the deployment object.
@@ -54,6 +54,12 @@ public class DeploymentUtil {
         ObjectMapper mapper = new ObjectMapper();
         File file = new File(Paths.get(workspace, DeployerConstants.DEPLOYMENT_FILE).toString());
         try {
+            if (!file.exists()) {
+                logger.warn("The deployment.json file was not found at: " + file.getPath() + ". This is where the "
+                        + "deployment creation outputs are stored. Continuing without the deployment outputs.");
+                return deploymentCreationResult;
+            }
+
             List<Host> hostList = mapper.readValue(file, DeploymentCreationResult.class).getHosts();
             /* JMeter test files has the values for the host and ports as two properties. In order to replace
              * the values, the serverHost and serverPort has to be set as two different hosts.
@@ -75,7 +81,7 @@ public class DeploymentUtil {
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new TestGridDeployerException(StringUtil.concatStrings(
-                    "Error occurred while reading ", file.getAbsolutePath(), e));
+                    "Error occurred while reading ", file.getAbsolutePath()), e);
         }
     }
 }
