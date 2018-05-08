@@ -16,15 +16,15 @@
  * under the License.
  */
 
-import { connect } from 'react-redux'
+import {connect} from 'react-redux'
 import ScenarioView from '../components/ScenarioView.js'
 
-const mapStateToProps = (state ,ownProps) =>({
-    active:state
-})
+const mapStateToProps = (state, ownProps) => ({
+  active: state
+});
 
 const ScenarioContainer = connect(
-    mapStateToProps
-)(ScenarioView)
+  mapStateToProps
+)(ScenarioView);
 
 export default ScenarioContainer;

@@ -16,19 +16,19 @@
  * under the License.
  */
 
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import '../App.css';
 
 class Login extends Component {
 
-    render() {
-        return (
-            <div>
-            <img src={require('../testgrid_logo.png')} width="160" height="160"/>
-            <h2>Click <a href="samlsso?SAML2.HTTPBinding=HTTP-Redirect">here</a> to login.</h2>
-            </div>
-            );
-    }
+  render() {
+    return (
+      <div>
+        <img src={require('../testgrid_logo.png')} alt="" width="160" height="160"/>
+        <h2>Click <a href="samlsso?SAML2.HTTPBinding=HTTP-Redirect">here</a> to login.</h2>
+      </div>
+    );
+  }
 }
 
 export default Login;

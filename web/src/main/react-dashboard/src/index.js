@@ -19,11 +19,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import { BrowserRouter } from 'react-router-dom'
+import {BrowserRouter} from 'react-router-dom'
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
-/*This is the main component of the dash board*/ 
+/*This is the main component of the dash board*/
 ReactDOM.render(
-    <BrowserRouter >
-        <App />
-    </BrowserRouter>, document.getElementById('root'));
+  <BrowserRouter>
+    <App/>
+  </BrowserRouter>, document.getElementById('root'));

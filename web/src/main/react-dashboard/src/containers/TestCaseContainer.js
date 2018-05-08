@@ -16,15 +16,15 @@
  * under the License.
  */
 
-import { connect } from 'react-redux'
+import {connect} from 'react-redux'
 import TestCaseView from '../components/TestCaseView.js'
 
-const mapStateToProps = (state ,ownProps) =>({
-    active:state
-})
+const mapStateToProps = (state, ownProps) => ({
+  active: state
+});
 
 const TestCaseContainer = connect(
-    mapStateToProps
-)(TestCaseView)
+  mapStateToProps
+)(TestCaseView);
 
 export default TestCaseContainer;

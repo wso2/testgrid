@@ -16,15 +16,15 @@
  * under the License.
  */
 
-import { connect } from 'react-redux'
+import {connect} from 'react-redux'
 import DeploymentPatternView from '../components/DeploymentPatternView.js'
 
 const mapStateToProps = (state, ownProps) => ({
-    active: state
-})
+  active: state
+});
 
 const DeploymentContainer = connect(
-    mapStateToProps
-)(DeploymentPatternView)
+  mapStateToProps
+)(DeploymentPatternView);
 
 export default DeploymentContainer;

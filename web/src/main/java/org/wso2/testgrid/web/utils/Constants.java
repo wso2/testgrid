@@ -30,7 +30,7 @@ public class Constants extends TestGridConstants {
     public static final String JENKINS_CRUMB_ISSUER_URI = "/crumbIssuer/api/json";
     public static final String CRUMB = "crumb";
     public static final String JENKINS_CRUMB_HEADER_NAME = "Jenkins-Crumb";
-    public static final String WEBAPP_CONTEXT = "/testgrid/dashboard";
+    public static final String WEBAPP_CONTEXT = "/";
 
     /* Terms used in Jenkins template job. */
     public static final String PRODUCT_NAME = "$productName";
@@ -44,12 +44,12 @@ public class Constants extends TestGridConstants {
     public static final String SCENARIOS_LOCATION = "$scenariosLocation";
 
     /* Constants relates to SSO configurations. */
-    public static final String LOGIN_URI = WEBAPP_CONTEXT + "/login";
-    public static final String STATIC_DATA_URI = WEBAPP_CONTEXT + "/static";
-    public static final String ACS_URI = WEBAPP_CONTEXT + "/api/acs";
+    public static final String LOGIN_URI = WEBAPP_CONTEXT + "login";
+    public static final String STATIC_DATA_URI = WEBAPP_CONTEXT + "static";
+    public static final String ACS_URI = WEBAPP_CONTEXT + "api/acs";
     public static final String JKS_FILE_NAME = "wso2carbon.jks";
     public static final String SSO_DIRECTORY = "SSO";
-    public static final String BACKEND_API_URI = WEBAPP_CONTEXT + "/api/";
+    public static final String BACKEND_API_URI = WEBAPP_CONTEXT + "api/";
 
     public static final String PROPERTYNAME_KEYSTORE_PASSWORD = "KeyStorePassword";
     public static final String PROPERTYNAME_PRIVATE_KEY_ALIAS = "PrivateKeyAlias";

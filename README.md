@@ -21,7 +21,7 @@ TestGrid strengthens the positioning of WSO2 products and adds major value to th
 Currently, we only have a crude list that simply detail names and descriptions though. [3]
 
 ------------------------
-Current TestGrid-Live dashboard can be found here - https://testgrid-live.private.wso2.com/testgrid/dashboard/
+Current TestGrid-Live dashboard can be found here - https://testgrid-live.private.wso2.com/
 
 Once we have the TestGrid beta,
 * You will find the TestGrid home page here - https://testgrid.wso2.com

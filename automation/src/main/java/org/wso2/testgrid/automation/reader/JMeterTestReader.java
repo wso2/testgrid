@@ -25,54 +25,55 @@ import org.wso2.testgrid.automation.TestEngine;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Reader for reading Jmeter test files of the standard maven structure.
  */
 public class JMeterTestReader implements TestReader {
 
-    private static final String JMTER_SUFFIX = ".jmx";
     private static final String JMETER_TEST_PATH = "jmeter";
     private static final String SHELL_SUFFIX = ".sh";
     private static final String PRE_STRING = "pre-scenario-steps";
     private static final String POST_STRING = "post-scenario-steps";
+    private static final String SCENARIO_SCRIPT = "scenario.sh";
 
     /**
      * This method goes through the file structure and create an object model of the tests.
      *
-     * @param file     File object for the test folder
-     * @param scenario test scenario associated with the test
+     * @param file     {@link File} File object for the test folder
+     * @param scenario {@link TestScenario} test scenario associated with the test
      * @return a list of {@link Test} instances
      */
     private List<Test> processTestStructure(File file, TestScenario scenario) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
-        File tests = new File(Paths.get(file.getAbsolutePath(), JMETER_TEST_PATH).toString());
-        if (tests.exists()) {
-            List<String> scripts = Arrays.asList(ArrayUtils.nullToEmpty(tests.list()));
-            List<String> jmxList = scripts.stream()
-                    .filter(x -> x.endsWith(JMTER_SUFFIX))
-                    .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
-                    .sorted()
-                    .collect(Collectors.toList());
+        Path scenarioScriptLocation = Paths.get(file.getAbsolutePath(), SCENARIO_SCRIPT);
+        if (Files.exists(scenarioScriptLocation) && !Files.isDirectory(scenarioScriptLocation)) {
+            File tests = new File(Paths.get(file.getAbsolutePath(), JMETER_TEST_PATH).toString());
+            if (tests.exists()) {
+                List<String> scripts = Arrays.asList(ArrayUtils.nullToEmpty(tests.list()));
+                List<String> scriptList = new ArrayList<>();
+                scriptList.add(scenarioScriptLocation.toString());
+                Test test = new Test(scenario.getName(), TestEngine.JMETER, scriptList, scenario);
 
-            Test test = new Test(scenario.getName(), TestEngine.JMETER, jmxList, scenario);
-            scripts.stream()
-                    .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(PRE_STRING))
-                    .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
-                    .findFirst()
-                    .ifPresent(test::setPreScenarioScript);
+                scripts.stream()
+                        .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(PRE_STRING))
+                        .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
+                        .findFirst()
+                        .ifPresent(test::setPreScenarioScript);
 
-            scripts.stream()
-                    .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(POST_STRING))
-                    .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
-                    .findFirst()
-                    .ifPresent(test::setPostScenarioScript);
-            testsList.add(test);
+                scripts.stream()
+                        .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(POST_STRING))
+                        .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
+                        .findFirst()
+                        .ifPresent(test::setPostScenarioScript);
+                testsList.add(test);
+            }
         }
         return testsList;
     }

@@ -4,7 +4,7 @@ node('COMPONENT_ECS') {
         copyArtifacts(projectName: 'testgrid/testgrid', filter: 'distribution/target/*.zip, web/target/*.war, remote-session/target/*.war');
         sshagent(['testgrid-dev-key']) {
             sh """
-                scp -o StrictHostKeyChecking=no web/target/*.war ${DEV_USER}@${DEV_HOST}:/testgrid/deployment/apache-tomcat-8.5.23/webapps/
+                scp -o StrictHostKeyChecking=no web/target/*.war ${DEV_USER}@${DEV_HOST}:/testgrid/deployment/apache-tomcat-8.5.23/webapps/ROOT.war
                 scp -o StrictHostKeyChecking=no weremote-session/target/*.war ${DEV_USER}@${DEV_HOST}:/testgrid/deployment/apache-tomcat-8.5.23/webapps/
                 scp -o StrictHostKeyChecking=no distribution/target/*.zip ${DEV_USER}@${DEV_HOST}:/testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid.zip
                 """
@@ -39,7 +39,7 @@ node('COMPONENT_ECS') {
         if (userInput == true) {
             sshagent(['testgrid-prod-key']) {
                 sh """
-                    scp -o StrictHostKeyChecking=no web/target/*.war ${PROD_USER}@${PROD_HOST}:/testgrid/deployment/apache-tomcat-8.5.24/webapps/
+                    scp -o StrictHostKeyChecking=no web/target/*.war ${PROD_USER}@${PROD_HOST}:/testgrid/deployment/apache-tomcat-8.5.24/webapps/ROOT.war
                     scp -o StrictHostKeyChecking=no weremote-session/target/*.war ${PROD_USER}@${PROD_HOST}:/testgrid/deployment/apache-tomcat-8.5.24/webapps/
                     scp -o StrictHostKeyChecking=no distribution/target/*.zip ${PROD_USER}@${PROD_HOST}:/testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid.zip
                  """
