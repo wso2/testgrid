@@ -142,10 +142,10 @@ class ProductStatusView extends Component {
             }
           })()}
         </td>
-        <td><img src={require('../play.png')} width="36" height="36" data-tip="Execute job" onClick={() => {
+        <td><img src={require('../play.png')} alt="" width="36" height="36" data-tip="Execute job" onClick={() => {
           window.location = '/admin/job/' + product.productName + '/build'
         }}/> <ReactTooltip/></td>
-        <td><img src={require('../configure.png')} width="36" height="36" onClick={() => {
+        <td><img src={require('../configure.png')} alt="" width="36" height="36" onClick={() => {
           window.location =
             '/admin/job/' + product.productName + '/configure'
         }} data-tip="Configure job" style={{cursor: 'pointer'}}/>

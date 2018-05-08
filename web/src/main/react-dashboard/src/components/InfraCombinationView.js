@@ -101,7 +101,7 @@ class InfraCombinationView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../close.png')}
+                        src={require('../close.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -126,7 +126,7 @@ class InfraCombinationView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../success.png')}
+                        src={require('../success.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -151,7 +151,7 @@ class InfraCombinationView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../new.png')}
+                        src={require('../new.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -176,7 +176,7 @@ class InfraCombinationView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../did_not_run.png')}
+                        src={require('../did_not_run.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -201,7 +201,7 @@ class InfraCombinationView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../incomplete.png')}
+                        src={require('../incomplete.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -226,7 +226,7 @@ class InfraCombinationView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../error.png')}
+                        src={require('../error.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -252,7 +252,7 @@ class InfraCombinationView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../wait.gif')}
+                        src={require('../wait.gif')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",

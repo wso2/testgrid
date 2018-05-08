@@ -102,7 +102,7 @@ class DeploymentPatternView extends Component {
     const DID_NOT_RUN = "DID_NOT_RUN";
 
     var groupByDeployment = {};
-    this.state.hits.map((value, index) => {
+    this.state.hits.forEach((value, index) => {
       if (groupByDeployment[value.lastBuild.deploymentPattern] === undefined) {
         groupByDeployment[value.lastBuild.deploymentPattern] = [{
           'lastBuild': value.lastBuild, 'lastFailed':
@@ -129,7 +129,7 @@ class DeploymentPatternView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../close.png')}
+                        src={require('../close.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -151,7 +151,7 @@ class DeploymentPatternView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../success.png')}
+                        src={require('../success.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -173,7 +173,7 @@ class DeploymentPatternView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../error.png')}
+                        src={require('../error.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -195,7 +195,7 @@ class DeploymentPatternView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../incomplete.png')}
+                        src={require('../incomplete.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -217,7 +217,7 @@ class DeploymentPatternView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../did_not_run.png')}
+                        src={require('../did_not_run.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -239,7 +239,7 @@ class DeploymentPatternView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../new.png')}
+                        src={require('../new.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -262,7 +262,7 @@ class DeploymentPatternView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../wait.gif')}
+                        src={require('../wait.gif')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -368,7 +368,7 @@ class DeploymentPatternView extends Component {
                           }
                         })()}
                       </td>
-                      <td><img src={require('../play.png')} width="48" height="48"
+                      <td><img src={require('../play.png')} alt="" width="48" height="48"
                                data-tip="Execute Job" onClick={() => {
                         window.location = '/admin/job/' +
                           this.state.product.productName + '/build'
@@ -445,7 +445,7 @@ class DeploymentPatternView extends Component {
                           }
                         })()}
                       </td>
-                      <td><img src={require('../play.png')} width="48" height="48"
+                      <td><img src={require('../play.png')} alt="" width="48" height="48"
                                data-tip="Execute Job" onClick={() => {
                         window.location =
                           '/admin/job/' + this.state.product.productName + '/build'

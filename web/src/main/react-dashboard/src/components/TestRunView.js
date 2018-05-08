@@ -180,7 +180,7 @@ class TestRunView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../close.png')}
+                        src={require('../close.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -202,7 +202,7 @@ class TestRunView extends Component {
                   <tr>
                     <td style={{padding: 5}}>
                       <img
-                        src={require('../success.png')}
+                        src={require('../success.png')} alt=""
                         style={{
                           verticalAlign: "middle",
                           height: "50px",
@@ -318,37 +318,37 @@ class TestRunView extends Component {
                                   return <div>
                                     <img width="36"
                                          height="36"
-                                         src={require('../success.png')}/>
+                                         src={require('../success.png')} alt=""/>
                                   </div>;
                                 case FAIL:
                                   return <div>
                                     <img width="36"
                                          height="36"
-                                         src={require('../close.png')}/>
+                                         src={require('../close.png')} alt=""/>
                                   </div>;
                                 case PENDING:
                                   return <div>
                                     <img width="36"
                                          height="36"
-                                         src={require('../new.png')}/>
+                                         src={require('../new.png')} alt=""/>
                                   </div>;
                                 case INCOMPLETE:
                                   return <div>
                                     <img width="36"
                                          height="36"
-                                         src={require('../incomplete.png')}/>
+                                         src={require('../incomplete.png')} alt=""/>
                                   </div>;
                                 case DID_NOT_RUN:
                                   return <div>
                                     <img width="36"
                                          height="36"
-                                         src={require('../did_not_run.png')}/>
+                                         src={require('../did_not_run.png')} alt=""/>
                                   </div>;
                                 case ERROR:
                                   return <div>
                                     <img width="36"
                                          height="36"
-                                         src={require('../error.png')}/>
+                                         src={require('../error.png')} alt=""/>
                                   </div>;
                                 case "RUNNING":
                                 default:
@@ -440,11 +440,11 @@ class TestRunView extends Component {
                                       {entry.isTestSuccess ?
                                         <img width="36"
                                              height="36"
-                                             src={require('../success.png')}/>
+                                             src={require('../success.png')} alt=""/>
                                         :
                                         <img width="36"
                                              height="36"
-                                             src={require('../close.png')}/>}
+                                             src={require('../close.png')} alt=""/>}
                                     </td>
                                     <td style={{
                                       fontSize: "15px",
