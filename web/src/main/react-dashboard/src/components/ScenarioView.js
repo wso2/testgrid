@@ -68,7 +68,6 @@ class ScenarioView extends Component {
 
   render() {
     console.log(this.props);
-    var infraString = "";
     return (<div>
       <Subheader style={{fontSize: '20px'}}>
         <i> {this.props.active.reducer.currentProduct.productName} {this.props.active.reducer.currentProduct.productVersion}

@@ -21,9 +21,6 @@ import Moment from 'moment';
 import {SUCCESS, ERROR, PENDING, RUNNING, INCOMPLETE, DID_NOT_RUN} from '../constants.js';
 
 class SingleRecord extends Component {
-  constructor(props) {
-    super(props);
-  }
 
   render() {
     if (this.props.value === SUCCESS || this.props.value === true) {
