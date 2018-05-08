@@ -35,6 +35,8 @@ import javax.websocket.Session;
 
 /**
  * This class listen for web app lifecycle and run heartbeat.
+ *
+ * @since 1.0.0
  */
 public class AppServletContextListener implements ServletContextListener {
 
@@ -42,11 +44,17 @@ public class AppServletContextListener implements ServletContextListener {
 
     private Timer heartBeatTimer;
 
-    @Override
-    public void contextDestroyed(ServletContextEvent contextEvent) {
-        heartBeatTimer.cancel();
-    }
-
+    /**
+     * Receives notification that the web application initialization
+     * process is starting.
+     *
+     * <p>All ServletContextListeners are notified of context
+     * initialization before any filters or servlets in the web
+     * application are initialized.
+     *
+     * @param contextEvent the ServletContextEvent containing the ServletContext
+     * that is being initialized
+     */
     @Override
     public void contextInitialized(ServletContextEvent contextEvent) {
         TimerTask hbTimerTask = new HeartBeatTimerTask();
@@ -54,16 +62,41 @@ public class AppServletContextListener implements ServletContextListener {
         heartBeatTimer.scheduleAtFixedRate(hbTimerTask, Constants.HEARTBEAT_INTERVAL, Constants.HEARTBEAT_INTERVAL);
     }
 
+    /**
+     * Receives notification that the ServletContext is about to be
+     * shut down.
+     *
+     * <p>All servlets and filters will have been destroyed before any
+     * ServletContextListeners are notified of context
+     * destruction.
+     *
+     * @param contextEvent the ServletContextEvent containing the ServletContext
+     * that is being destroyed
+     */
+    @Override
+    public void contextDestroyed(ServletContextEvent contextEvent) {
+        heartBeatTimer.cancel();
+    }
+
+    /**
+     * Inner class contains the Heartbeat timer implementation.
+     *
+     * @since 1.0.0
+     */
     static final class HeartBeatTimerTask extends TimerTask {
 
         @Override
         public void run() {
-            SessionManager sessionManager = SessionManager.getInstance();
-            for (String agentId : sessionManager.getAgentIds()) {
-                sendHeartBeat(sessionManager, agentId);
-            }
+            final SessionManager sessionManager = SessionManager.getInstance();
+            sessionManager.getAgentIds().forEach(agentId -> sendHeartBeat(sessionManager, agentId));
         }
 
+        /**
+         * Sends heartbeat to specified agent.
+         *
+         * @param sessionManager - Session manager which holds the agent session data.
+         * @param agentId - Agent Id of the agent.
+         */
         private void sendHeartBeat(SessionManager sessionManager, String agentId) {
             Session wsSession = sessionManager.getAgentSession(agentId);
             try {
@@ -90,7 +123,7 @@ public class AppServletContextListener implements ServletContextListener {
                 }
                 sessionManager.removeOperationResponse(operationRequest.getOperationId());
             } catch (IOException e) {
-                String message = "Error occurred while sending operation to agent: " + agentId;
+                String message = "Error occurred while sending heartbeat to agent: " + agentId;
                 logger.error(message, e);
             }
         }

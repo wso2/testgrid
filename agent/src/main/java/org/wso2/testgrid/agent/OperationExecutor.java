@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.agent.beans.OperationRequest;
 import org.wso2.testgrid.agent.beans.OperationResponse;
-import org.wso2.testgrid.agent.listners.OperationResponseListner;
+import org.wso2.testgrid.agent.listners.OperationResponseListener;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,16 +31,18 @@ import java.io.InputStreamReader;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * This class executes operations
+ * This class executes operations.
+ *
+ * @since 1.0.0
  */
 public class OperationExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(AgentApplication.class);
 
-    private OperationResponseListner operationResponseListner;
+    private OperationResponseListener operationResponseListener;
 
-    public OperationExecutor(OperationResponseListner operationResponseListner) {
-        this.operationResponseListner = operationResponseListner;
+    public OperationExecutor(OperationResponseListener operationResponseListener) {
+        this.operationResponseListener = operationResponseListener;
     }
 
     public void executeOperation(OperationRequest operationRequest) {
@@ -57,7 +59,7 @@ public class OperationExecutor {
                 operationResponse.setResponse("ACK");
                 break;
         }
-        operationResponseListner.sendResponse(operationResponse);
+        operationResponseListener.sendResponse(operationResponse);
     }
 
     private String executeCommand(String command) {

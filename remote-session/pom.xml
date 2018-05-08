@@ -51,6 +51,12 @@
             <artifactId>gson</artifactId>
         </dependency>
 
+        <!-- TestGrid dependencies -->
+        <dependency>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.common</artifactId>
+        </dependency>
+
         <!-- Glass fish / jersey dependencies -->
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
@@ -81,6 +87,12 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- Infrastructure dependencies -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
         </dependency>
     </dependencies>
 

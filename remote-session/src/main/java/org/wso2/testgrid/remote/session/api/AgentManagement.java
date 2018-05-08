@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,16 +20,17 @@ package org.wso2.testgrid.remote.session.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.remote.session.beans.Agent;
 import org.wso2.testgrid.remote.session.beans.ErrorResponse;
 import org.wso2.testgrid.remote.session.beans.OperationRequest;
 import org.wso2.testgrid.remote.session.utils.Constants;
 import org.wso2.testgrid.remote.session.utils.SessionManager;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.websocket.Session;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -42,6 +43,8 @@ import javax.ws.rs.core.Response;
 
 /**
  * This class represents REST service implementation of Agent Management.
+ *
+ * @since 1.0.0
  */
 
 @Path("/management")
@@ -59,7 +62,7 @@ public class AgentManagement {
     @Path("/agents")
     public Response listAllRegisteredAgents() {
         SessionManager sessionManager = SessionManager.getInstance();
-        return Response.status(Response.Status.OK).entity(sessionManager.getAgentIds()).build();
+        return Response.status(Response.Status.OK).entity(sessionManager.getAgents()).build();
     }
 
     /**
@@ -71,32 +74,28 @@ public class AgentManagement {
     @Path("/test-plan/{testPlanId}/agents")
     public Response listAllRegisteredTestPlanAgents(@PathParam("testPlanId") String testPlanId) {
         SessionManager sessionManager = SessionManager.getInstance();
-        List<String> agentIds = new ArrayList<>();
-        for (String aid : sessionManager.getAgentIds()) {
-            if (aid.startsWith(testPlanId)) {
-                agentIds.add(aid);
-            }
-        }
-        return Response.status(Response.Status.OK).entity(agentIds).build();
+        List<Agent> agents = sessionManager.getAgents().stream()
+                .filter(agent -> testPlanId.equals(agent.getTestPlanId())).collect(Collectors.toList());
+        return Response.status(Response.Status.OK).entity(agents).build();
     }
 
     /**
      * Send operation to agent and get response.
      *
      * @param testPlanId       - Test plan id of the target agent.
-     * @param nodeId           - Node id of the target agent.
+     * @param instanceName     - Instance Name of the target agent.
      * @param operationRequest - Operation request.
      * @return The operation response.
      */
     @POST
-    @Path("/test-plan/{testPlanId}/agent/{nodeId}/operation")
+    @Path("/test-plan/{testPlanId}/agent/{instanceName}/operation")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response sendOperation(@PathParam("testPlanId") String testPlanId, @PathParam("nodeId") String nodeId,
-                                  OperationRequest operationRequest) {
+    public Response sendOperation(@PathParam("testPlanId") String testPlanId,
+                                  @PathParam("instanceName") String instanceName, OperationRequest operationRequest) {
         SessionManager sessionManager = SessionManager.getInstance();
-        String agentId = testPlanId + ":" + nodeId;
-        if (sessionManager.hasAgentSession(agentId)) {
-            Session wsSession = sessionManager.getAgentSession(agentId);
+        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
+        if (agent != null && sessionManager.hasAgentSession(agent.getAgentId())) {
+            Session wsSession = sessionManager.getAgentSession(agent.getAgentId());
             try {
                 operationRequest.setOperationId(UUID.randomUUID().toString());
                 wsSession.getBasicRemote().sendText(operationRequest.toJSON());
@@ -104,7 +103,7 @@ public class AgentManagement {
                 while (!sessionManager.hasOperationResponse(operationRequest.getOperationId())) {
                     long currentTime = Calendar.getInstance().getTimeInMillis();
                     if (initTime + Constants.OPERATION_TIMEOUT < currentTime) {
-                        String message = "Operation timed out for agent: " + agentId;
+                        String message = "Operation timed out for agent: " + agent.getAgentId();
                         logger.error(message);
                         ErrorResponse errorResponse = new ErrorResponse();
                         errorResponse.setCode(Response.Status.REQUEST_TIMEOUT.getStatusCode());
@@ -117,7 +116,7 @@ public class AgentManagement {
                     }
                 }
             } catch (IOException e) {
-                String message = "Error occurred while sending operation to agent: " + agentId;
+                String message = "Error occurred while sending operation to agent: " + agent.getAgentId();
                 logger.error(message, e);
                 ErrorResponse errorResponse = new ErrorResponse();
                 errorResponse.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());

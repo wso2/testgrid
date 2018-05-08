@@ -21,7 +21,9 @@ package org.wso2.testgrid.agent.beans;
 import com.google.gson.Gson;
 
 /**
- * This class holds abstract operation data
+ * This class holds abstract operation data.
+ *
+ * @since 1.0.0
  */
 public abstract class Operation {
 
@@ -56,6 +58,8 @@ public abstract class Operation {
 
     /**
      * Supported operations.
+     *
+     * @since 1.0.0
      */
     public enum OperationCode {
         SHELL, PING

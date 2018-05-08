@@ -34,6 +34,8 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * This class represents web socket endpoint to connect from agent.
+ *
+ * @since 1.0.0
  */
 @ServerEndpoint(value = "/agent/{agentId}", configurator = HttpSessionConfigurator.class)
 public class AgentSubscriptionEndpoint extends SubscriptionEndpoint {

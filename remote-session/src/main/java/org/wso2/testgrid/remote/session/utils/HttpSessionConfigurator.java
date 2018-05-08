@@ -26,9 +26,28 @@ import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * This class is to handle HTTP session for Web Sockets.
+ *
+ * @since 1.0.0
  */
 public class HttpSessionConfigurator extends ServerEndpointConfig.Configurator {
 
+    /**
+     * Called by the container after it has formulated a handshake response resulting from
+     * a well-formed handshake request. The container has already
+     * checked that this configuration has a matching URI, determined the
+     * validity of the origin using the checkOrigin method, and filled
+     * out the negotiated sub-protocols and extensions based on this configuration.
+     * Custom configurations may override this method in order to inspect
+     * the request parameters and modify the handshake response that the server has formulated.
+     * and the URI checking also.
+     *
+     * <p>If the developer does not override this method, no further
+     * modification of the request and response are made by the implementation.
+     *
+     * @param config the configuration object involved in the handshake
+     * @param request  the opening handshake request.
+     * @param response the proposed opening handshake response
+     */
     public void modifyHandshake(ServerEndpointConfig config, HandshakeRequest request, HandshakeResponse response) {
         Map<String, List<String>> httpHeaders = request.getHeaders();
         config.getUserProperties().put(Constants.HTTP_HEADERS, httpHeaders);

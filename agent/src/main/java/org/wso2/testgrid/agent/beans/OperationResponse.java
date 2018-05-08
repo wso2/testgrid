@@ -19,7 +19,9 @@
 package org.wso2.testgrid.agent.beans;
 
 /**
- * This class holds operation response data
+ * This class holds operation response data.
+ *
+ * @since 1.0.0
  */
 public class OperationResponse extends Operation {
 

@@ -11,24 +11,29 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 
-package org.wso2.testgrid.remote.session.utils;
+package org.wso2.testgrid.remote.session.providers;
 
 /**
- * This class holds the constants related to remote session web app.
+ * Interface for Cloud provider specific functionality.
+ *
+ * <p>This interface is providing generic methods related to different cloud
+ * vendors like aws, azure, gce.
  *
  * @since 1.0.0
  */
-public final class Constants {
+public interface Provider {
 
-    public static final String HTTP_HEADERS = "HttpHeaders";
-    public static final int OPERATION_TIMEOUT = 60000; //Operation timeout interval in milliseconds.
-    public static final int HEARTBEAT_INTERVAL = 60000; //Heartbeat interval in milliseconds.
-
-    private Constants() {
-    }
+    /**
+     * Returns the name of the instance specified by region and the instance id.
+     *
+     * @param region     - Region of the stack.
+     * @param instanceId - Id of the instance.
+     * @return The name of the instance.
+     */
+    String getInstanceName(String region, String instanceId);
 }

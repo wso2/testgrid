@@ -31,6 +31,8 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * This class represents web socket endpoint to manage Remote Sessions from CLI tool.
+ *
+ * @since 1.0.0
  */
 @ServerEndpoint(value = "/client/{clientId}", configurator = HttpSessionConfigurator.class)
 public class CLISubscriptionEndpoint extends SubscriptionEndpoint {

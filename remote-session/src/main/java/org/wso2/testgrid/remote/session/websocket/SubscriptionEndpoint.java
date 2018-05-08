@@ -26,7 +26,9 @@ import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
 /**
- * This class represents common web socket endpoint to manage Remote Sessions
+ * This class represents common web socket endpoint to manage Remote Sessions.
+ *
+ * @since 1.0.0
  */
 public class SubscriptionEndpoint {
 

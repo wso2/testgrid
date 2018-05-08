@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.testgrid.agent.websocket;
 
 import org.glassfish.tyrus.client.ClientManager;
@@ -32,7 +33,9 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
 /**
- * This class holds web socket client implementation for agent
+ * This class holds web socket client implementation for agent.
+ *
+ * @since 1.0.0
  */
 @javax.websocket.ClientEndpoint
 public class ClientEndpoint {

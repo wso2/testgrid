@@ -19,7 +19,9 @@
 package org.wso2.testgrid.remote.session.beans;
 
 /**
- * This class holds operation request data
+ * This class holds operation request data.
+ *
+ * @since 1.0.0
  */
 public class OperationRequest extends Operation {
 

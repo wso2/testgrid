@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.agent.beans.OperationRequest;
 import org.wso2.testgrid.agent.beans.OperationResponse;
-import org.wso2.testgrid.agent.listners.OperationResponseListner;
+import org.wso2.testgrid.agent.listners.OperationResponseListener;
 import org.wso2.testgrid.agent.websocket.ClientEndpoint;
 
 import java.io.File;
@@ -36,9 +36,11 @@ import java.util.Properties;
 import javax.websocket.CloseReason;
 
 /**
- * Agent bootstrap class
+ * Agent bootstrap class.
+ *
+ * @since 1.0.0
  */
-public class AgentApplication implements OperationResponseListner {
+public class AgentApplication implements OperationResponseListener {
 
     private static final Logger logger = LoggerFactory.getLogger(AgentApplication.class);
     private static final String AGENT_PROP_FILE = File.separator + "opt" + File.separator + "testgrid" +
@@ -69,7 +71,9 @@ public class AgentApplication implements OperationResponseListner {
                 input = new FileInputStream(AGENT_PROP_FILE);
                 prop.load(input);
                 wsEndpoint = prop.getProperty("wsEndpoint");
-                agentId = prop.getProperty("testPlanId") + ":" + prop.getProperty("nodeId");
+                //aws:us-west-1:6718f976-7150-316d-9ec6-db29b7a2675f:i-0658922f45d25856f
+                agentId = prop.getProperty("provider") + ":" + prop.getProperty("region") + ":" +
+                        prop.getProperty("testPlanId") + ":" + prop.getProperty("instanceId");
             } else {
                 logger.warn("Agent configurations not found.");
                 return;
