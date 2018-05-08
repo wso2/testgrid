@@ -303,10 +303,16 @@ public class AWSProvider implements InfrastructureProvider {
                 cfCompatibleParameters.add(awsParameter);
             });
 
-            //Set TestPlanId
-            if (TestGridConstants.TEST_PLAN_ID.equals(expected.getParameterKey())) {
+            //Set Remote Management
+            if (TestGridConstants.CUSTOM_USER_DATA.equals(expected.getParameterKey())) {
+                String remoteManagementEP = ConfigurationContext.getProperty(ConfigurationContext.
+                        ConfigurationProperties.REMOTE_MANAGEMENT_EP);
+                String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
+                        ConfigurationProperties.AWS_REGION_NAME);
+                String customScript = "/opt/testgrid/agent/init.sh " + remoteManagementEP + " " + awsRegion +
+                        " " + testPlanId + " aws";
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
-                        withParameterValue(testPlanId);
+                        withParameterValue(customScript);
                 cfCompatibleParameters.add(awsParameter);
             }
 

@@ -113,7 +113,12 @@ public class ConfigurationContext {
         /**
          * WUM user password of TestGrid deployment
          */
-        WUM_PASSWORD("WUM_PASSWORD");
+        WUM_PASSWORD("WUM_PASSWORD"),
+
+        /**
+         * Remote Management Server endpoint of TestGrid deployment
+         */
+        REMOTE_MANAGEMENT_EP("REMOTE_MANAGEMENT_EP");
 
         private String propertyName;
 
