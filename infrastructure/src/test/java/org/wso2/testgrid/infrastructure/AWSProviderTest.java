@@ -39,6 +39,7 @@ import com.amazonaws.waiters.WaiterParameters;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -47,13 +48,11 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
-import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
@@ -66,6 +65,7 @@ import java.util.Set;
  *
  * @since 1.0.0
  */
+@PowerMockIgnore({"javax.net.ssl.*", "javax.security.*"})
 @PrepareForTest({
                         AWSProvider.class, AmazonCloudFormationClientBuilder.class
                         , AmazonCloudFormation.class, AwsClientBuilder.class
@@ -94,22 +94,6 @@ public class AWSProviderTest extends PowerMockTestCase {
         AWSProvider awsProvider = new AWSProvider();
         awsProvider.init();
         Assert.assertNotNull(awsProvider);
-        unset(map.keySet());
-    }
-
-    @Test(description = "This test case tests creation of AWS Manager object when AWS credentials are " +
-            "not set correctly."
-            ,
-          expectedExceptions = TestGridInfrastructureException.class)
-    public void testManagerCreationNegativeTests() throws TestGridInfrastructureException, IOException,
-            InterruptedException, NoSuchFieldException, IllegalAccessException {
-        String secret2 = "AWS_SCERET2";
-        Map<String, String> map = new HashMap<>();
-        map.put(AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
-        set(map);
-        //invoke without no secret key environment variable set.
-        AWSProvider awsProvider = new AWSProvider();
-        awsProvider.init();
         unset(map.keySet());
     }
 
