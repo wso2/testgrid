@@ -44,8 +44,8 @@
         <module>logging</module>
         <module>test/coverage</module>
         <module>distribution</module>
-        <module>agent</module>
-        <module>remote-session</module>
+        <module>remoting-agent</module>
+        <module>deployment-tinkerer</module>
     </modules>
 
     <scm>
