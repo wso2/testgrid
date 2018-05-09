@@ -195,12 +195,12 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * @return a list of {@link TestPlan}
      */
     public List<TestPlan> getLatestTestPlans(Product product) {
-        String sql = "select t.* from test_plan t inner join (select tp.infra_parameters," +
-                "max(tp.modified_timestamp) AS time, dp.name from test_plan tp inner join " +
-                "deployment_pattern dp on tp.DEPLOYMENTPATTERN_id=dp.id  and tp.DEPLOYMENTPATTERN_id in " +
-                "(select id from deployment_pattern where PRODUCT_id= ? ) " +
-                "group by tp.infra_parameters,dp.name) as x on t.infra_parameters=x.infra_parameters " +
-                "AND t.modified_timestamp=x.time;";
+        String sql = "select t.* from test_plan t inner join (select tp.infra_parameters, max(tp.modified_timestamp) AS"
+                + " time, dp.name , dp.id As dep_id from test_plan tp inner join deployment_pattern dp on "
+                + "tp.DEPLOYMENTPATTERN_id=dp.id  and tp.DEPLOYMENTPATTERN_id in "
+                + "(select id from deployment_pattern where PRODUCT_id= ? ) group by tp.infra_parameters,dp.id) as x "
+                + "on t.infra_parameters=x.infra_parameters AND t.modified_timestamp=x.time AND "
+                + "t.DEPLOYMENTPATTERN_id=x.dep_id;";
 
         @SuppressWarnings("unchecked")
         List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
