@@ -43,7 +43,7 @@ public class JMeterParserUtil {
         File dir = new File(testLocation);
         FilenameFilter filter = (dir1, name) -> name.endsWith(JTL_EXTENSION);
         String[] files = dir.list(filter);
-        if (files == null) {
+        if (files == null || files.length == 0) {
             throw new JMeterResultParserException("Unable to locate the results jtl file in the directory : '" +
                     testLocation + "'");
         } else if (files.length > 0) {
