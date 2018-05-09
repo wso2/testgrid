@@ -203,7 +203,7 @@ public class AWSProvider implements InfrastructureProvider {
             List<Host> hosts = new ArrayList<>();
             Host tomcatHost = new Host();
             tomcatHost.setLabel("tomcatHost");
-            tomcatHost.setIp("ec2-54-165-166-188.compute-1.amazonaws.com");
+            tomcatHost.setIp("ec2-35-171-21-194.compute-1.amazonaws.com");
             Host tomcatPort = new Host();
             tomcatPort.setLabel("tomcatPort");
             tomcatPort.setIp("8080");
