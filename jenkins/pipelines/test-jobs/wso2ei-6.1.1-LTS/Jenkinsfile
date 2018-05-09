@@ -32,9 +32,6 @@ pipeline {
             JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
 
             MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
-            // Jmeter dependencies
-            SELENIUM_JAR='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/selenium-java/3.8.1/selenium-java-3.8.1.jar'
-            HTML_UNIT_DRIVER='https://search.maven.org/remotecontent?filepath=org/seleniumhq/selenium/htmlunit-driver/2.29.0/htmlunit-driver-2.29.0-jar-with-dependencies.jar'
         }
 
     tools {
@@ -66,8 +63,6 @@ pipeline {
                 unzip -o ${TESTGRID_NAME}.zip
                 cd ${TESTGRID_NAME}
                 curl -o ./lib/mysql.jar $MYSQL_DRIVER_LOCATION
-                curl -o ./lib/selenium-java.jar $SELENIUM_JAR
-                curl -o ./lib/html-unit-driver.jar $HTML_UNIT_DRIVER
                 """
 
                 sh """
@@ -101,6 +96,8 @@ pipeline {
                             sh "java -version"
                             unstash name: "${JOB_CONFIG_YAML}"
                             sh """
+                            cd ${SCENARIOS_LOCATION}
+                            git clean -f
                             cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
                             ./testgrid run-testplan --product ${PRODUCT} \
                             --file "${TESTGRID_HOME}/jobs/${PRODUCT}/test-plans/${f.name}"
