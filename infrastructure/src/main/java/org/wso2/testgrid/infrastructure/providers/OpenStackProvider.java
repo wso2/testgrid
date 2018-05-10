@@ -43,7 +43,12 @@ public class OpenStackProvider implements InfrastructureProvider {
     }
 
     @Override
-    public void init() throws TestGridInfrastructureException {
+    public void init(TestPlan testPlan) throws TestGridInfrastructureException {
+        // empty
+    }
+
+    @Override
+    public void cleanup(TestPlan testPlan) throws TestGridInfrastructureException {
         // empty
     }
 

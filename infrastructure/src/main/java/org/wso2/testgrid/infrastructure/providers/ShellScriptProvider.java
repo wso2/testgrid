@@ -56,8 +56,42 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public void init() throws TestGridInfrastructureException {
-        // empty
+    public void init(TestPlan testPlan) throws TestGridInfrastructureException {
+        String scriptsLocation = testPlan.getScenarioTestsRepository();
+        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(scriptsLocation));
+        if (testPlan.getScenarioConfig().getScripts() != null
+                && testPlan.getScenarioConfig().getScripts().size() > 0) {
+            for (Script script : testPlan.getScenarioConfig().getScripts()) {
+                if (Script.Phase.CREATE.equals(script.getPhase())) {
+                    try {
+                        logger.info("Provisioning additional infra");
+                        shellExecutor.executeCommand("sh " + script.getFile());
+                    } catch (CommandExecutionException e) {
+                        throw new TestGridInfrastructureException("Error while executing " + script.getFile());
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void cleanup(TestPlan testPlan) throws TestGridInfrastructureException {
+        String scriptsLocation = testPlan.getScenarioTestsRepository();
+        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(scriptsLocation));
+        if (testPlan.getScenarioConfig().getScripts() != null
+                && testPlan.getScenarioConfig().getScripts().size() > 0) {
+            for (Script script : testPlan.getScenarioConfig().getScripts()) {
+                if (Script.Phase.DESTROY.equals(script.getPhase())) {
+                    try {
+                        shellExecutor.executeCommand("sh " + script.getFile());
+                    } catch (CommandExecutionException e) {
+                        throw new TestGridInfrastructureException("Error while executing " + script.getFile());
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     @Override

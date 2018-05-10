@@ -43,10 +43,12 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
@@ -54,8 +56,10 @@ import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -80,6 +84,27 @@ public class AWSProviderTest extends PowerMockTestCase {
     private String scriptFile = "template.json";
     private String mockStackName = "MockStack";
 
+    private TestPlan testPlan;
+    private List<Script> scripts;
+    private String scenarioRepo = "src/test/resources/scenarios";
+
+    @BeforeMethod (description = "Creates a dummy testplan before running a test.")
+    public void setUp() throws Exception {
+        testPlan = new TestPlan();
+        scripts = new ArrayList<>();
+        Script initScript = new Script();
+        initScript.setFile("init.sh");
+        Script cleanupScript = new Script();
+        cleanupScript.setFile("cleanup.sh");
+        scripts.add(initScript);
+        scripts.add(cleanupScript);
+
+        ScenarioConfig scenarioConfig = new ScenarioConfig();
+        scenarioConfig.setScripts(scripts);
+        testPlan.setScenarioConfig(scenarioConfig);
+        testPlan.setScenarioTestsRepository(scenarioRepo);
+    }
+
     @Test(description = "This test case tests creation of AWSProvider object when AWS credentials are " +
             "set correctly.")
     public void testManagerCreation() throws Exception {
@@ -92,7 +117,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
 
         AWSProvider awsProvider = new AWSProvider();
-        awsProvider.init();
+        awsProvider.init(testPlan);
         Assert.assertNotNull(awsProvider);
         unset(map.keySet());
     }
@@ -156,8 +181,9 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.whenNew(StackCreationWaiter.class).withAnyArguments().thenReturn(validatorMock);
 
         AWSProvider awsProvider = new AWSProvider();
-        awsProvider.init();
-        TestPlan testPlan = new TestPlan();
+
+        awsProvider.init(testPlan);
+
         testPlan.setInfrastructureConfig(infrastructureConfig);
         testPlan.setInfrastructureRepository(resourcePath.getAbsolutePath());
         InfrastructureProvisionResult provisionResult = awsProvider
@@ -186,6 +212,20 @@ public class AWSProviderTest extends PowerMockTestCase {
         provisioner.setScripts(Collections.singletonList(script));
         infrastructureConfig.setProvisioners(Collections.singletonList(provisioner));
         return infrastructureConfig;
+    }
+
+    private ScenarioConfig getDummyScenarioConfig(String patternName) {
+        //create dummy script object
+        Script initScript = new Script();
+        initScript.setFile("init.sh");
+        Script cleanupScript = new Script();
+        cleanupScript.setFile("cleanup.sh");
+        scripts.add(initScript);
+        scripts.add(cleanupScript);
+
+        ScenarioConfig scenarioConfig = new ScenarioConfig();
+        scenarioConfig.setScripts(scripts);
+        return scenarioConfig;
     }
 
     @Test(description = "This test case tests destroying infrastructure given a already built stack name.")
@@ -233,7 +273,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
 
         AWSProvider awsProvider = new AWSProvider();
-        awsProvider.init();
+        awsProvider.init(testPlan);
         boolean released = awsProvider.release(dummyInfrastructureConfig, resourcePath
                 .getAbsolutePath());
 

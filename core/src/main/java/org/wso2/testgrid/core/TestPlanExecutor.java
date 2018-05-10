@@ -210,7 +210,7 @@ public class TestPlanExecutor {
             }
             InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                     .getInfrastructureProvider(infrastructureConfig);
-            infrastructureProvider.init();
+            infrastructureProvider.init(testPlan);
             InfrastructureProvisionResult provisionResult = infrastructureProvider.provision(testPlan);
 
             provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
@@ -262,6 +262,9 @@ public class TestPlanExecutor {
             InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                     .getInfrastructureProvider(infrastructureConfig);
             infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository());
+            // Destroy additional infra created for test execution
+            infrastructureProvider.cleanup(testPlan);
+
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",

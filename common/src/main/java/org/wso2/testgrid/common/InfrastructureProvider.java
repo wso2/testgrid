@@ -45,7 +45,13 @@ public interface InfrastructureProvider {
      * Initialization may include usecases such as the initial log-in into a
      * cloud provider.
      */
-    void init() throws TestGridInfrastructureException;
+    void init(TestPlan testPlan) throws TestGridInfrastructureException;
+
+    /**
+     * This method can be used to cleanup any additional infrastructure provided.
+     * This should be executed after running all the scenarios.
+     */
+    void cleanup(TestPlan testPlan) throws TestGridInfrastructureException;
 
     /**
      * This method creates the necessary infrastructureConfig using the provided configuration.

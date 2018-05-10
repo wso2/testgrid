@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -108,6 +109,55 @@ public class ShellExecutor {
                 if (workDirectory.exists()) {
                     processBuilder.directory(workDirectory);
                 }
+            }
+            Process process = processBuilder.start();
+
+            StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), logger::info);
+            StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), logger::error);
+
+            executor.submit(outputStreamGobbler);
+            executor.submit(errorStreamGobbler);
+
+            return process.waitFor();
+
+        } catch (IOException e) {
+            throw new CommandExecutionException(
+                    "Error occurred while executing the command '" + command + "', " + "from directory '"
+                            + workingDirectory.toString(), e);
+        } catch (InterruptedException e) {
+            throw new CommandExecutionException(
+                    "InterruptedException occurred while executing the command '" + command + "', " + "from directory '"
+                            + workingDirectory.toString(), e);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    /**
+     * Executes a shell command.
+     *
+     * @param command Command to execute
+     * @return boolean for successful/unsuccessful command execution (success == true)
+     * @throws CommandExecutionException if an {@link IOException} occurs while executing the command
+     */
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
+    public int executeCommand(String command, Map<String, String> map) throws CommandExecutionException {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.toString());
+        }
+        ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        try {
+            if (workingDirectory != null) {
+                File workDirectory = workingDirectory.toFile();
+                if (workDirectory.exists()) {
+                    processBuilder.directory(workDirectory);
+                }
+            }
+            if (map.size() > 0) {
+                processBuilder.environment().putAll(map);
             }
             Process process = processBuilder.start();
 

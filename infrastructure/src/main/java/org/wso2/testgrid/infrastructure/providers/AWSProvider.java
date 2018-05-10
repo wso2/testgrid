@@ -41,12 +41,14 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -100,9 +102,46 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     @Override
-    public void init() throws TestGridInfrastructureException {
+    public void init(TestPlan testPlan) throws TestGridInfrastructureException {
         cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
         amiMapper = new AMIMapper();
+        String scriptsLocation = testPlan.getScenarioTestsRepository();
+        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(scriptsLocation));
+
+        if (testPlan.getScenarioConfig().getScripts() != null
+                && testPlan.getScenarioConfig().getScripts().size() > 0) {
+            for (Script script : testPlan.getScenarioConfig().getScripts()) {
+                if (Script.Phase.CREATE.equals(script.getPhase())) {
+                    try {
+                        logger.info("Provisioning additional infra");
+                        shellExecutor.executeCommand("sh " + script.getFile());
+                    } catch (CommandExecutionException e) {
+                        throw new TestGridInfrastructureException("Error while executing " + script.getFile());
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void cleanup(TestPlan testPlan) throws TestGridInfrastructureException {
+        String scriptsLocation = testPlan.getScenarioTestsRepository();
+        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(scriptsLocation));
+
+        if (testPlan.getScenarioConfig().getScripts() != null
+                && testPlan.getScenarioConfig().getScripts().size() > 0) {
+            for (Script script : testPlan.getScenarioConfig().getScripts()) {
+                if (Script.Phase.DESTROY.equals(script.getPhase())) {
+                    try {
+                        shellExecutor.executeCommand("sh " + script.getFile());
+                    } catch (CommandExecutionException e) {
+                        throw new TestGridInfrastructureException("Error while executing " + script.getFile());
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     /**

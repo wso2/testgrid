@@ -18,6 +18,8 @@
 
 package org.wso2.testgrid.automation;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.executor.TestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
 import org.wso2.testgrid.common.DeploymentCreationResult;
@@ -34,6 +36,7 @@ import java.util.List;
  */
 public class Test {
 
+    private static final Logger logger = LoggerFactory.getLogger(Test.class);
     private final String testName;
     private final TestExecutor testExecutor;
     private final List<String> scripts;
@@ -142,18 +145,24 @@ public class Test {
         testExecutor.init(testLocation, getTestName(), testScenario);
 
         if (!StringUtil.isStringNullOrEmpty(preScenarioScript)) {
-            String result = testExecutor.executeEnvironmentScript(Paths.get(preScenarioScript), input);
-            if (result.contains("OK")) {
+            int result = testExecutor.executeEnvironmentScript(Paths.get(preScenarioScript), input);
+            if (result == 0) {
                 testScenario.setIsPreScriptSuccessful(true);
             }
         }
+        try {
+            for (String script : scripts) {
+                testExecutor.execute(script, input);
+            }
+        } catch (Exception e) {
+            // we need to continue and execute the post script to destroy any scenario specific services.
+            logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
+                    testScenario.getName(), "' in TestPlan\nCaused by "), e);
 
-        for (String script : scripts) {
-            testExecutor.execute(script, input);
         }
         if (!StringUtil.isStringNullOrEmpty(postScenarioScript)) {
-            String result = testExecutor.executeEnvironmentScript(Paths.get(postScenarioScript), input);
-            if (result.contains("OK")) {
+            int result = testExecutor.executeEnvironmentScript(Paths.get(postScenarioScript), input);
+            if (result == 0) {
                 testScenario.setIsPostScriptSuccessful(true);
             }
         }
