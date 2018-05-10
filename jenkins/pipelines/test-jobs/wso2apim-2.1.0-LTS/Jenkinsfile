@@ -28,6 +28,8 @@ pipeline {
 
             AWS_ACCESS_KEY_ID=credentials('AWS_ACCESS_KEY_ID')
             AWS_SECRET_ACCESS_KEY=credentials('AWS_SECRET_ACCESS_KEY')
+            tomcatUsername=credentials('TOMCAT_USERNAME')
+            tomcatPassword=credentials('TOMCAT_PASSWORD')
             PWD=pwd()
             JOB_CONFIG_YAML = "job-config.yaml"
             JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
@@ -114,6 +116,11 @@ pipeline {
                                 } catch (Exception err) {
                                     echo "Error : ${err}"
                                     currentBuild.result = 'FAILURE'
+                                }
+                                // Archive jtl files
+                                withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
+                                    // Upload artifacts to S3
+                                    s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"jenkins-testrun-artifacts", path:"artifacts/${f.name}")
                                 }
                                 echo "RESULT: ${currentBuild.result}"
                             }
