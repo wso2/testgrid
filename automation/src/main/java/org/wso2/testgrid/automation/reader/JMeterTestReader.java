@@ -41,7 +41,7 @@ public class JMeterTestReader implements TestReader {
     private static final String SHELL_SUFFIX = ".sh";
     private static final String PRE_STRING = "pre-scenario-steps";
     private static final String POST_STRING = "post-scenario-steps";
-    private static final String SCENARIO_SCRIPT = "scenario.sh";
+    private static final String SCENARIO_SCRIPT = "run-scenario.sh";
 
     /**
      * This method goes through the file structure and create an object model of the tests.
