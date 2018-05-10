@@ -77,6 +77,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String AWS_PROVIDER = "AWS";
     private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
     private static final String AWS_REGION_PARAMETER = "region";
+    private static final String CUSTOM_USER_DATA = "CustomUserData";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     private AMIMapper amiMapper;
     private static final int TIMEOUT = 30;
@@ -304,7 +305,7 @@ public class AWSProvider implements InfrastructureProvider {
             });
 
             //Set Remote Management
-            if (TestGridConstants.CUSTOM_USER_DATA.equals(expected.getParameterKey())) {
+            if (CUSTOM_USER_DATA.equals(expected.getParameterKey())) {
                 String deploymentTinkererEP = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.DEPLOYMENT_TINKERER_EP);
                 String deploymentTinkererUserName = ConfigurationContext.getProperty(ConfigurationContext.
