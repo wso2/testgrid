@@ -534,12 +534,12 @@
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
                 <artifactId>tyrus-client</artifactId>
-                <version>1.1</version>
+                <version>${glassfish.tyrus.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
-                <artifactId>tyrus-container-grizzly</artifactId>
-                <version>1.1</version>
+                <artifactId>tyrus-container-grizzly-client</artifactId>
+                <version>${glassfish.tyrus.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
@@ -599,5 +599,6 @@
         <org.opensaml.version>2.6.4</org.opensaml.version>
         <commons.validator.version>1.6</commons.validator.version>
         <google.gson.version>2.2.4</google.gson.version>
+        <glassfish.tyrus.version>1.13.1</glassfish.tyrus.version>
     </properties>
 </project>

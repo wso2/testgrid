@@ -69,6 +69,8 @@ public class AgentApplication {
     private void startService() {
         String wsEndpoint;
         String agentId;
+        String userName;
+        String password;
 
         Properties prop = new Properties();
         InputStream input = null;
@@ -80,6 +82,8 @@ public class AgentApplication {
                 //aws:us-west-1:6718f976-7150-316d-9ec6-db29b7a2675f:i-0658922f45d25856f
                 agentId = prop.getProperty("provider") + ":" + prop.getProperty("region") + ":" +
                         prop.getProperty("testPlanId") + ":" + prop.getProperty("instanceId");
+                userName = prop.getProperty("userName");
+                password = prop.getProperty("password");
             } else {
                 logger.warn("Agent configurations not found in " + agentPropFilePath.toString());
                 return;
@@ -106,7 +110,7 @@ public class AgentApplication {
             } else {
                 agentEndpoint = wsEndpoint + "/" + agentId;
             }
-            clientEndPoint = new ClientEndpoint(new URI(agentEndpoint));
+            clientEndPoint = new ClientEndpoint(new URI(agentEndpoint), userName, password);
             clientEndPoint.connectClient();
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> clientEndPoint.closeConnection(

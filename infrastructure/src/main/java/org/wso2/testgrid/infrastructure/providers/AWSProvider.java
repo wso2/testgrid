@@ -305,12 +305,16 @@ public class AWSProvider implements InfrastructureProvider {
 
             //Set Remote Management
             if (TestGridConstants.CUSTOM_USER_DATA.equals(expected.getParameterKey())) {
-                String remoteManagementEP = ConfigurationContext.getProperty(ConfigurationContext.
-                        ConfigurationProperties.REMOTE_MANAGEMENT_EP);
+                String deploymentTinkererEP = ConfigurationContext.getProperty(ConfigurationContext.
+                        ConfigurationProperties.DEPLOYMENT_TINKERER_EP);
+                String deploymentTinkererUserName = ConfigurationContext.getProperty(ConfigurationContext.
+                        ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME);
+                String deploymentTinkererPassword = ConfigurationContext.getProperty(ConfigurationContext.
+                        ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
                 String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.AWS_REGION_NAME);
-                String customScript = "/opt/testgrid/agent/init.sh " + remoteManagementEP + " " + awsRegion +
-                        " " + testPlanId + " aws";
+                String customScript = "/opt/testgrid/agent/init.sh " + deploymentTinkererEP + " " + awsRegion +
+                        " " + testPlanId + " aws " + deploymentTinkererUserName + " " + deploymentTinkererPassword;
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);
                 cfCompatibleParameters.add(awsParameter);

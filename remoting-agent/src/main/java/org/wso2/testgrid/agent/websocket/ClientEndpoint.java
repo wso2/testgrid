@@ -20,18 +20,19 @@ package org.wso2.testgrid.agent.websocket;
 
 import com.google.gson.Gson;
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
+import org.glassfish.tyrus.client.auth.Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.agent.OperationExecutor;
 import org.wso2.testgrid.agent.beans.OperationRequest;
-import org.wso2.testgrid.agent.beans.OperationResponse;
-import org.wso2.testgrid.agent.listeners.OperationResponseListener;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.websocket.CloseReason;
+import javax.websocket.DeploymentException;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -43,26 +44,45 @@ import javax.websocket.Session;
  * @since 1.0.0
  */
 @javax.websocket.ClientEndpoint
-public class ClientEndpoint implements OperationResponseListener {
+public class ClientEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientEndpoint.class);
     private Session userSession = null;
+    private Credentials credentials;
     private URI endpointURI;
     private int retryAttempt = 0;
     private boolean hasClientConnected = false;
     private boolean isShuttingDown = false;
 
-    public ClientEndpoint(URI endpointURI) {
+    /**
+     * Create {@link ClientEndpoint} instance.
+     *
+     * @param endpointURI - Web socket server endpoint.
+     * @param userName    - Username required for basic auth.
+     * @param password    - Password required for basic auth.
+     */
+    public ClientEndpoint(URI endpointURI, String userName, String password) {
         this.endpointURI = endpointURI;
+        if (userName != null && password != null) {
+            this.credentials = new Credentials(userName, password);
+        } else {
+            this.credentials = null;
+        }
     }
 
+    /**
+     * Create web socket client connection using {@link ClientManager}.
+     */
     public void connectClient() {
+        ClientManager client = ClientManager.createClient();
+        if (credentials != null) {
+            client.getProperties().put(ClientProperties.CREDENTIALS, this.credentials);
+        }
         try {
-            ClientManager client = ClientManager.createClient();
             client.connectToServer(this, endpointURI);
             retryAttempt = 0;
             hasClientConnected = true;
-        } catch (Exception e) {
+        } catch (DeploymentException | IOException e) {
             hasClientConnected = false;
             int delay = 5000;
             if (++retryAttempt > 3) {
@@ -111,15 +131,23 @@ public class ClientEndpoint implements OperationResponseListener {
     }
 
     /**
-     * Callback hook for Message Events. This method will be invoked when a client send a message.
+     * Callback hook for Message Events.
      *
-     * @param message The text message
+     * <p>This method will be invoked when a client send a message.
+     *
+     * @param message The text message.
      */
     @OnMessage
     public void onMessage(String message) {
         logger.info("Operation received: " + message);
         OperationRequest operationRequest = new Gson().fromJson(message, OperationRequest.class);
-        OperationExecutor operationExecutor = new OperationExecutor(this);
+        OperationExecutor operationExecutor = new OperationExecutor(response -> {
+            // send message to web socket
+            if (logger.isDebugEnabled()) {
+                logger.debug("Sending message: " + response.toJSON());
+            }
+            sendMessage(response.toJSON());
+        });
         operationExecutor.executeOperation(operationRequest);
     }
 
@@ -148,14 +176,5 @@ public class ClientEndpoint implements OperationResponseListener {
                 logger.error("Error on closing WS connection.", e);
             }
         }
-    }
-
-    @Override
-    public void sendResponse(OperationResponse response) {
-        // send message to web socket
-        if (logger.isDebugEnabled()) {
-            logger.debug("Sending message: " + response.toJSON());
-        }
-        sendMessage(response.toJSON());
     }
 }
