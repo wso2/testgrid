@@ -29,7 +29,6 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
 import java.io.File;
 import java.util.Optional;
@@ -42,18 +41,9 @@ import java.util.Optional;
 public class JMeterExecutor extends TestExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(JMeterExecutor.class);
-    private final TestScenarioUOW testScenarioUOW;
     private String testLocation;
     private String testName;
     private TestScenario testScenario;
-
-    public JMeterExecutor() {
-        testScenarioUOW = new TestScenarioUOW();
-    }
-
-    public JMeterExecutor(TestScenarioUOW testScenarioUOW) {
-        this.testScenarioUOW = testScenarioUOW;
-    }
 
     @Override
     public void init(String testLocation, String testName, TestScenario testScenario) throws TestAutomationException {
