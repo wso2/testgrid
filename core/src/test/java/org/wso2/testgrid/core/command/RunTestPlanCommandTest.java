@@ -171,7 +171,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         PowerMockito.spy(StringUtil.class);
         when(StringUtil.generateRandomString(anyInt())).thenReturn("");
         PowerMockito.mockStatic(TestExecutorFactory.class);
-        when(TestExecutorFactory.getTestExecutor(any())).thenReturn(new JMeterExecutor(testScenarioUOW));
+        when(TestExecutorFactory.getTestExecutor(any())).thenReturn(new JMeterExecutor());
 
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "{}", true);
