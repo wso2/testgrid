@@ -35,7 +35,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Implementation of the AWS cloud provider functionality.
+ * Implementation of the AWS cloud provider functionality for Deployment tinkerer.
+ *
+ * <p>This implementation provides AWS specific functionality to get instance specific data.
  *
  * @since 1.0.0
  */
