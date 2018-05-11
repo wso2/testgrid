@@ -19,6 +19,7 @@
 package org.wso2.testgrid.agent.websocket;
 
 import com.google.gson.Gson;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.auth.Credentials;
@@ -31,6 +32,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.OnClose;
@@ -47,6 +50,8 @@ import javax.websocket.Session;
 public class ClientEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientEndpoint.class);
+
+    private ExecutorService executorService;
     private Session userSession = null;
     private Credentials credentials;
     private URI endpointURI;
@@ -110,6 +115,7 @@ public class ClientEndpoint {
     public void onOpen(Session userSession) {
         logger.info("Connected to web socket session: " + userSession.getId());
         this.userSession = userSession;
+        executorService = Executors.newFixedThreadPool(10);
     }
 
     /**
@@ -128,6 +134,7 @@ public class ClientEndpoint {
             logger.info("Retrying to connect.");
             connectClient();
         }
+        executorService.shutdown();
     }
 
     /**
@@ -138,6 +145,8 @@ public class ClientEndpoint {
      * @param message The text message.
      */
     @OnMessage
+    @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
+            justification = "No use of returned Future<?> from executor service submit().")
     public void onMessage(String message) {
         logger.info("Operation received: " + message);
         OperationRequest operationRequest = new Gson().fromJson(message, OperationRequest.class);
@@ -148,7 +157,7 @@ public class ClientEndpoint {
             }
             sendMessage(response.toJSON());
         });
-        operationExecutor.executeOperation(operationRequest);
+        executorService.submit(() -> operationExecutor.executeOperation(operationRequest));
     }
 
     /**

@@ -19,9 +19,9 @@
 package org.wso2.testgrid.deployment.tinkerer.websocket;
 
 import com.google.gson.Gson;
+import org.wso2.testgrid.deployment.tinkerer.SessionManager;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationResponse;
 import org.wso2.testgrid.deployment.tinkerer.utils.HttpSessionConfigurator;
-import org.wso2.testgrid.deployment.tinkerer.utils.SessionManager;
 
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;

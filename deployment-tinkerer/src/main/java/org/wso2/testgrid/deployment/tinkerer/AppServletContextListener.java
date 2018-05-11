@@ -16,18 +16,22 @@
  * under the License.
  */
 
-package org.wso2.testgrid.deployment.tinkerer.utils;
+package org.wso2.testgrid.deployment.tinkerer;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.deployment.tinkerer.beans.Operation;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationRequest;
+import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.websocket.CloseReason;
@@ -41,6 +45,7 @@ import javax.websocket.Session;
 public class AppServletContextListener implements ServletContextListener {
 
     private static final Logger logger = LoggerFactory.getLogger(AppServletContextListener.class);
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     private Timer heartBeatTimer;
 
@@ -76,6 +81,7 @@ public class AppServletContextListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent contextEvent) {
         heartBeatTimer.cancel();
+        executorService.shutdown();
     }
 
     /**
@@ -97,35 +103,43 @@ public class AppServletContextListener implements ServletContextListener {
          * @param sessionManager - Session manager which holds the agent session data.
          * @param agentId - Agent Id of the agent.
          */
+        @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
+                justification = "No use of returned Future<?> from executor service submit().")
         private void sendHeartBeat(SessionManager sessionManager, String agentId) {
-            Session wsSession = sessionManager.getAgentSession(agentId);
-            try {
-                OperationRequest operationRequest = new OperationRequest();
-                operationRequest.setCode(Operation.OperationCode.PING);
-                operationRequest.setOperationId(UUID.randomUUID().toString());
-                wsSession.getBasicRemote().sendText(operationRequest.toJSON());
-                long initTime = Calendar.getInstance().getTimeInMillis();
-                while (!sessionManager.hasOperationResponse(operationRequest.getOperationId())) {
-                    long currentTime = Calendar.getInstance().getTimeInMillis();
-                    if (initTime + (Constants.OPERATION_TIMEOUT / 2) < currentTime) {
-                        if (wsSession.isOpen()) {
-                            wsSession.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION,
-                                    "Agent unresponsive"));
+            Runnable hbTask = () -> {
+                Session wsSession = sessionManager.getAgentSession(agentId);
+                try {
+                    OperationRequest operationRequest = new OperationRequest();
+                    operationRequest.setCode(Operation.OperationCode.PING);
+                    operationRequest.setOperationId(UUID.randomUUID().toString());
+                    wsSession.getBasicRemote().sendText(operationRequest.toJSON());
+                    long initTime = Calendar.getInstance().getTimeInMillis();
+                    while (!sessionManager.hasOperationResponse(operationRequest.getOperationId())) {
+                        long currentTime = Calendar.getInstance().getTimeInMillis();
+                        if (initTime + (Constants.OPERATION_TIMEOUT / 2) < currentTime) {
+                            if (wsSession.isOpen()) {
+                                wsSession.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION,
+                                        "Agent unresponsive"));
+                            }
+                            sessionManager.removeAgentSession(agentId);
+                            logger.error("Removed unresponsive agent: " + agentId);
+                            break;
                         }
-                        sessionManager.removeAgentSession(agentId);
-                        logger.error("Removed unresponsive agent: " + agentId);
-                        break;
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ignore) {
+                            break;
+                        }
                     }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ignore) {
+                    if (sessionManager.hasOperationResponse(operationRequest.getOperationId())) {
+                        sessionManager.removeOperationResponse(operationRequest.getOperationId());
                     }
+                } catch (IOException e) {
+                    String message = "Error occurred while sending heartbeat to agent: " + agentId;
+                    logger.error(message, e);
                 }
-                sessionManager.removeOperationResponse(operationRequest.getOperationId());
-            } catch (IOException e) {
-                String message = "Error occurred while sending heartbeat to agent: " + agentId;
-                logger.error(message, e);
-            }
+            };
+            executorService.submit(hbTask);
         }
     }
 }

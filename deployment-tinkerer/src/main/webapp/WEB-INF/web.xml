@@ -59,7 +59,7 @@
     </login-config>
     <listener>
         <listener-class>
-            org.wso2.testgrid.deployment.tinkerer.utils.AppServletContextListener
+            org.wso2.testgrid.deployment.tinkerer.AppServletContextListener
         </listener-class>
     </listener>
 </web-app>

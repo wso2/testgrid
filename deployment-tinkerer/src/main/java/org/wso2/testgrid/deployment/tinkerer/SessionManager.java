@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.testgrid.deployment.tinkerer.utils;
+package org.wso2.testgrid.deployment.tinkerer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class SessionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionManager.class);
 
-    private static SessionManager sessionManager = new SessionManager();
+    private static final SessionManager sessionManager = new SessionManager();
     private static volatile Map<String, Session> agentSessions = new HashMap<>();
     private static volatile Map<String, Agent> agents = new HashMap<>();
     private static volatile Map<String, OperationResponse> operationResponses = new HashMap<>();

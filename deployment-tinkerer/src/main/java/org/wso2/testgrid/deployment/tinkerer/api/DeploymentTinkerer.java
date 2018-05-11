@@ -20,11 +20,11 @@ package org.wso2.testgrid.deployment.tinkerer.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.deployment.tinkerer.SessionManager;
 import org.wso2.testgrid.deployment.tinkerer.beans.Agent;
 import org.wso2.testgrid.deployment.tinkerer.beans.ErrorResponse;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationRequest;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
-import org.wso2.testgrid.deployment.tinkerer.utils.SessionManager;
 
 import java.io.IOException;
 import java.util.Calendar;
