@@ -113,7 +113,22 @@ public class ConfigurationContext {
         /**
          * WUM user password of TestGrid deployment
          */
-        WUM_PASSWORD("WUM_PASSWORD");
+        WUM_PASSWORD("WUM_PASSWORD"),
+
+        /**
+         * Deployment Tinkerer endpoint of TestGrid deployment.
+         */
+        DEPLOYMENT_TINKERER_EP("DEPLOYMENT_TINKERER_EP"),
+
+        /**
+         * Deployment Tinkerer username of TestGrid deployment.
+         */
+        DEPLOYMENT_TINKERER_USERNAME("DEPLOYMENT_TINKERER_USERNAME"),
+
+        /**
+         * Deployment Tinkerer password of TestGrid deployment.
+         */
+        DEPLOYMENT_TINKERER_PASSWORD("DEPLOYMENT_TINKERER_PASSWORD");
 
         private String propertyName;
 
