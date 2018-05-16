@@ -33,6 +33,7 @@ public class ScenarioConfig implements Serializable {
     private static final long serialVersionUID = 6295205041044769906L;
 
     private List<TestScenario> scenarios;
+    private List<Script> scripts;
 
     /**
      * This method returns the list of scenarios.
@@ -45,5 +46,13 @@ public class ScenarioConfig implements Serializable {
 
     public void setScenarios(List<TestScenario> scenarios) {
         this.scenarios = scenarios;
+    }
+
+    public List<Script> getScripts() {
+        return scripts;
+    }
+
+    public void setScripts(List<Script> scripts) {
+        this.scripts = scripts;
     }
 }

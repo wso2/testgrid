@@ -170,7 +170,10 @@ The scenario test repository may contain following files:
 #### init.sh
 This script will run before all the scenario tests.
 This is intended to do a set of common tasks (such as tenant creation) that is
-applicable for all scenarios.
+applicable for all scenarios. This should be specified with the phase *CREATE* in testgrid.yaml.
+
+Scenario tests might need additional infrastructure other than the product deployment such as a tomcat deployment or an MSF4J service. 
+These are facilitated by TestGrid through `init.sh`.
 
 #### run-scenarios.sh
 This script will invoke the **`init.sh`**, and then
@@ -186,7 +189,8 @@ This script will do the following:
 
 #### cleanup.sh
 This is last script that will run after the execution of all scenario tests.
-This can be used to delete the tenants created, remove any populated databases etc.
+This can be used to destroy the additional infrastructure created in `init.sh`, delete the tenants created, remove any populated databases etc.
+This should be specified with the phase *DESTROY* in testgrid.yaml
 
 ### testgrid.yaml :: scenarioConfig
 
@@ -231,29 +235,67 @@ scenarioConfig:
             - ...
 ```
 
+#### The testgrid.yaml for scenario test configuration v3:
+
+```yaml
+scenarioConfig:
+    scenarios:
+      - name: <string>
+        description: <string>
+        dir: scenario<string>
+      - ...
+    scenariosDir: <string>    <-- (optional)
+    config-change-sets:
+      - name: config<string>
+        description: <string>
+        applies-to:
+          - scenario<string>
+          - ...
+      - name: config<string>
+          description: config<string>
+          excluded-from:
+            - scenario<string>
+            - ...
+    scripts:
+      -
+        file: <name of infra creation file. eg. init.sh>
+        phase: CREATE
+      -
+        file: <name of infra destruction file. eg. cleanup.sh>
+        phase: DESTROY
+```
+
 NOTE: 'applies-to' and 'excluded-from' are mutually exclusive.
 If neither are specified, all scenarios will be run for that config changeset
 
 'scenarios' and 'scenariosDir' are mutually exclusive. You can either list all
 scenarios one-by-one or point to the directory that contains all the scenarios.
 
-Example testgrid.yaml for v2 of scenario test repos:
+Example testgrid.yaml for v3 of scenario test repos:
 ```yaml
-scenarios:
-  - name: scenario01
-    description: Tests Identity Server's SAML SSO usecases.
-    dir: scenarios/scenario01
-  - ...
-config-change-sets:
-  - name: config01
-    description: applies the cache-enabling config changeset into a deployment.
-    applies-to:
-      - scenario01
-      - scenario10
-  - name: config02
-    description: applies the facebook authenticator into a deployment.
-    excluded-from:
-      - scenario20
+scenarioConfig:
+  scenarios:
+    - name: scenario01
+      description: Tests Identity Server's SAML SSO usecases.
+      dir: scenarios/scenario01
+    - ...
+  config-change-sets:
+    - name: config01
+      description: applies the cache-enabling config changeset into a deployment.
+      applies-to:
+        - scenario01
+        - scenario10
+    - name: config02
+      description: applies the facebook authenticator into a deployment.
+      excluded-from:
+        - scenario20
+  scripts:
+    -
+      file: init.sh
+      phase: CREATE
+    -
+      file: cleanup.sh
+      phase: DESTROY
 ```
 ##### Deploy Config Change Sets:
 Sometimes, we have a need to run the same scenario test scripts but with

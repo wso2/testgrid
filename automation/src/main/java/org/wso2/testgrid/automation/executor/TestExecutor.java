@@ -20,11 +20,14 @@ package org.wso2.testgrid.automation.executor;
 
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.Host;
+import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
-import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Interface for Test executors.
@@ -66,11 +69,16 @@ public abstract class TestExecutor {
      * @return The response of script execution.
      * @throws TestAutomationException Throws exception when there is an error executing the script.
      */
-    public String executeEnvironmentScript(Path script, DeploymentCreationResult deploymentCreationResult)
+    public int executeEnvironmentScript(Path script, DeploymentCreationResult deploymentCreationResult)
             throws TestAutomationException {
         try {
-            return TestGridUtil.executeCommand("bash " + script.toString(), null,
-                    deploymentCreationResult);
+            ShellExecutor shellExecutor = new ShellExecutor();
+            Map<String, String> environment = new HashMap<>();
+
+            for (Host host : deploymentCreationResult.getHosts()) {
+                environment.put(host.getLabel(), host.getIp());
+            }
+            return shellExecutor.executeCommand("bash " + script.toString(), environment);
         } catch (CommandExecutionException e) {
             throw new TestAutomationException("Error executing " + script.toString(), e);
         }
