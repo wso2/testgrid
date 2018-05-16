@@ -56,6 +56,7 @@ import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,17 +86,18 @@ public class AWSProviderTest extends PowerMockTestCase {
     private String mockStackName = "MockStack";
 
     private TestPlan testPlan;
-    private List<Script> scripts;
-    private String scenarioRepo = "src/test/resources/scenarios";
+    private static final String scenarioRepo = Paths.get("src/test/resources/scenarios").toString();
 
     @BeforeMethod (description = "Creates a dummy testplan before running a test.")
     public void setUp() throws Exception {
         testPlan = new TestPlan();
-        scripts = new ArrayList<>();
+        List<Script> scripts = new ArrayList<>();
         Script initScript = new Script();
         initScript.setFile("init.sh");
+        initScript.setPhase(Script.Phase.CREATE);
         Script cleanupScript = new Script();
         cleanupScript.setFile("cleanup.sh");
+        cleanupScript.setPhase(Script.Phase.DESTROY);
         scripts.add(initScript);
         scripts.add(cleanupScript);
 
@@ -181,9 +183,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.whenNew(StackCreationWaiter.class).withAnyArguments().thenReturn(validatorMock);
 
         AWSProvider awsProvider = new AWSProvider();
-
         awsProvider.init(testPlan);
-
         testPlan.setInfrastructureConfig(infrastructureConfig);
         testPlan.setInfrastructureRepository(resourcePath.getAbsolutePath());
         InfrastructureProvisionResult provisionResult = awsProvider
@@ -212,20 +212,6 @@ public class AWSProviderTest extends PowerMockTestCase {
         provisioner.setScripts(Collections.singletonList(script));
         infrastructureConfig.setProvisioners(Collections.singletonList(provisioner));
         return infrastructureConfig;
-    }
-
-    private ScenarioConfig getDummyScenarioConfig(String patternName) {
-        //create dummy script object
-        Script initScript = new Script();
-        initScript.setFile("init.sh");
-        Script cleanupScript = new Script();
-        cleanupScript.setFile("cleanup.sh");
-        scripts.add(initScript);
-        scripts.add(cleanupScript);
-
-        ScenarioConfig scenarioConfig = new ScenarioConfig();
-        scenarioConfig.setScripts(scripts);
-        return scenarioConfig;
     }
 
     @Test(description = "This test case tests destroying infrastructure given a already built stack name.")

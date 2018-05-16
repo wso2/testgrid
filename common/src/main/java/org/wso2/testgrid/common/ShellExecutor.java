@@ -18,7 +18,6 @@
 
 package org.wso2.testgrid.common;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
@@ -74,7 +73,7 @@ public class ShellExecutor {
         @Override
         public void run() {
             new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines()
-                    .forEach(consumer::accept);
+                    .forEach(consumer);
         }
     }
 
@@ -94,7 +93,6 @@ public class ShellExecutor {
      * @return boolean for successful/unsuccessful command execution (success == true)
      * @throws CommandExecutionException if an {@link IOException} occurs while executing the command
      */
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public int executeCommand(String command) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
@@ -115,8 +113,8 @@ public class ShellExecutor {
             StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), logger::info);
             StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), logger::error);
 
-            executor.submit(outputStreamGobbler);
-            executor.submit(errorStreamGobbler);
+            executor.execute(outputStreamGobbler);
+            executor.execute(errorStreamGobbler);
 
             return process.waitFor();
 
@@ -137,11 +135,12 @@ public class ShellExecutor {
      * Executes a shell command.
      *
      * @param command Command to execute
+     * @param environment environment variables to be set before execution of the script
      * @return boolean for successful/unsuccessful command execution (success == true)
+     *
      * @throws CommandExecutionException if an {@link IOException} occurs while executing the command
      */
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
-    public int executeCommand(String command, Map<String, String> map) throws CommandExecutionException {
+    public int executeCommand(String command, Map<String, String> environment) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.toString());
@@ -156,16 +155,16 @@ public class ShellExecutor {
                     processBuilder.directory(workDirectory);
                 }
             }
-            if (map.size() > 0) {
-                processBuilder.environment().putAll(map);
+            if (environment.size() > 0) {
+                processBuilder.environment().putAll(environment);
             }
             Process process = processBuilder.start();
 
             StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), logger::info);
             StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), logger::error);
 
-            executor.submit(outputStreamGobbler);
-            executor.submit(errorStreamGobbler);
+            executor.execute(outputStreamGobbler);
+            executor.execute(errorStreamGobbler);
 
             return process.waitFor();
 

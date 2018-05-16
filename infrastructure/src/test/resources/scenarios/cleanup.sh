@@ -19,5 +19,7 @@
 #
 # ----------------------------------------------------------------------------
 
+set -e
+
 # Test init.sh script to run before running scenarios
 echo "Running cleanup.sh test script"

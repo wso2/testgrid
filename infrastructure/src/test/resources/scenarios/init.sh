@@ -19,5 +19,7 @@
 #
 # ----------------------------------------------------------------------------
 
+set -e
+
 # Test init.sh script to run before running scenarios
 echo "Running init.sh test script"

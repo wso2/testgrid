@@ -49,12 +49,10 @@ public class ScenarioConfig implements Serializable {
     }
 
     public List<Script> getScripts() {
-
         return scripts;
     }
 
     public void setScripts(List<Script> scripts) {
-
         this.scripts = scripts;
     }
 }

@@ -264,7 +264,6 @@ public class TestPlanExecutor {
             infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository());
             // Destroy additional infra created for test execution
             infrastructureProvider.cleanup(testPlan);
-
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",

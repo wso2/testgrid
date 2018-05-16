@@ -65,9 +65,14 @@ public class ShellScriptProvider implements InfrastructureProvider {
                 if (Script.Phase.CREATE.equals(script.getPhase())) {
                     try {
                         logger.info("Provisioning additional infra");
-                        shellExecutor.executeCommand("sh " + script.getFile());
+                        int exitCode = shellExecutor.executeCommand("sh " + script.getFile());
+                        if (exitCode > 0) {
+                            throw new TestGridInfrastructureException(StringUtil.concatStrings(
+                                    "Error while executing ", script.getFile(),
+                                    ". Script exited with a non-zero exit code (exit code = ", exitCode, ")"));
+                        }
                     } catch (CommandExecutionException e) {
-                        throw new TestGridInfrastructureException("Error while executing " + script.getFile());
+                        throw new TestGridInfrastructureException("Error while executing " + script.getFile(), e);
                     }
                     break;
                 }
@@ -84,9 +89,14 @@ public class ShellScriptProvider implements InfrastructureProvider {
             for (Script script : testPlan.getScenarioConfig().getScripts()) {
                 if (Script.Phase.DESTROY.equals(script.getPhase())) {
                     try {
-                        shellExecutor.executeCommand("sh " + script.getFile());
+                        int exitCode = shellExecutor.executeCommand("sh " + script.getFile());
+                        if (exitCode > 0) {
+                            throw new TestGridInfrastructureException(StringUtil.concatStrings(
+                                    "Error while executing ", script.getFile(),
+                                    ". Script exited with a non-zero exit code (exit code = ", exitCode, ")"));
+                        }
                     } catch (CommandExecutionException e) {
-                        throw new TestGridInfrastructureException("Error while executing " + script.getFile());
+                        throw new TestGridInfrastructureException("Error while executing " + script.getFile(), e);
                     }
                     break;
                 }
