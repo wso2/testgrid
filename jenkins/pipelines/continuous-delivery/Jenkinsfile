@@ -1,7 +1,7 @@
 node('COMPONENT_ECS') {
     stage('Deploy to Dev'){
         deleteDir()
-        copyArtifacts(projectName: 'testgrid/testgrid', filter: 'distribution/target/*.zip, web/target/*.war, remote-session/target/*.war');
+        copyArtifacts(projectName: 'testgrid/testgrid', filter: 'distribution/target/*.zip, web/target/*.war, deployment-tinkerer/target/*.war');
         sshagent(['testgrid-dev-key']) {
             sh """
                 scp -o StrictHostKeyChecking=no web/target/*.war ${DEV_USER}@${DEV_HOST}:/testgrid/deployment/apache-tomcat-8.5.23/webapps/ROOT.war
