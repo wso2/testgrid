@@ -30,8 +30,15 @@ import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
-import java.util.stream.Collector;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -50,12 +57,12 @@ public class InfrastructureCombinationsProvider {
     public Set<InfrastructureCombination> getCombinations(TestgridYaml testgridYaml) throws TestGridDAOException {
         Set<InfrastructureValueSet> valueSets = new InfrastructureParameterUOW().getValueSet();
         if (logger.isDebugEnabled()) {
-            logger.debug("Retrieved value-set from database: " + valueSets);
+            logger.debug(String.format("Retrieved value-set from database: %s", valueSets));
         }
         Set<InfrastructureCombination> infrastructureCombinations = getCombinations(
                 filterInfrastructures(valueSets, testgridYaml));
         if (logger.isDebugEnabled()) {
-            logger.debug("Generated set of infrastructure combinations: " + infrastructureCombinations);
+            logger.debug(String.format("Generated set of infrastructure combinations: %s", infrastructureCombinations));
         }
 
         return infrastructureCombinations;
@@ -129,12 +136,25 @@ public class InfrastructureCombinationsProvider {
         }
     }
 
+    /**
+     * This class provides set of filtered infrastructure values.
+     * <p>
+     * The filtering is executed by reading exclude and include attributes in the @{@link TestgridYaml} file.
+     * If exclude attribute is set in @{@link TestgridYaml} and if those are exists in the current infrastructure
+     * value set, those will be eliminated.
+     * Further, if include attribute is set in @{@link TestgridYaml} and if those are exists in the current
+     * infrastructure value set, only those infrastructure will be consider when creating combinations.
+     *
+     * @param infrastructures entire infrastructure value set
+     * @param testgridYaml    object model of testgrid.yaml config file
+     * @return filtered infrastructure value set
+     */
     private Set<InfrastructureValueSet> filterInfrastructures(Set<InfrastructureValueSet> infrastructures,
             TestgridYaml testgridYaml) {
 
         List<String> excludes = testgridYaml.getInfrastructureConfig().getExcludes();
         List<String> includes = testgridYaml.getInfrastructureConfig().getIncludes();
-        Set<InfrastructureValueSet> selectedInfraValSet = new HashSet<>();
+        Set<InfrastructureValueSet> selectedInfraValSet = ConcurrentHashMap.newKeySet();
 
         if (excludes != null && !excludes.isEmpty()) {
             infrastructures.forEach(infrastructureValueSet -> {
@@ -144,7 +164,7 @@ public class InfrastructureCombinationsProvider {
                 selectedInfraValSet.add(new InfrastructureValueSet(infrastructureValueSet.getType(), selectedSet));
             });
             return selectedInfraValSet;
-        } else if (includes!= null && !includes.isEmpty()) {
+        } else if (includes != null && !includes.isEmpty()) {
             infrastructures.forEach(infrastructureValueSet -> {
                 Set<InfrastructureParameter> selectedSet = infrastructureValueSet.getValues().stream()
                         .filter(infrastructureParameter -> includes.contains(infrastructureParameter.getName()))
