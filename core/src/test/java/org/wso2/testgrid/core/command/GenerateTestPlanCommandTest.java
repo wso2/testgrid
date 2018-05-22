@@ -116,9 +116,10 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
 
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "{}", true);
-        InfrastructureCombination comb1 = new InfrastructureCombination(Collections.singleton(param));
+        InfrastructureCombination infrastructureCombination = new InfrastructureCombination(
+                Collections.singleton(param));
         when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class)))
-                .thenReturn(Collections.singleton(comb1));
+                .thenReturn(Collections.singleton(infrastructureCombination));
 
         logger.info("Product : " + product.getName());
         when(productUOW.persistProduct(anyString())).thenReturn(product);

@@ -140,10 +140,10 @@ public class InfrastructureCombinationsProvider {
      * This class provides set of filtered infrastructure values.
      * <p>
      * The filtering is executed by reading exclude and include attributes in the @{@link TestgridYaml} file.
-     * If exclude attribute is set in @{@link TestgridYaml} and if those are exists in the current infrastructure
-     * value set, those will be eliminated.
-     * Further, if include attribute is set in @{@link TestgridYaml} and if those are exists in the current
-     * infrastructure value set, only those infrastructure will be consider when creating combinations.
+     * If exclude attribute is set in @{@link TestgridYaml} and if those exist in the current infrastructure value set,
+     * those will be eliminated. Further, if include attribute is set in @{@link TestgridYaml} and if those
+     * exist in the current infrastructure value set, only those infrastructures will be considered when creating
+     * combinations.
      *
      * @param infrastructures entire infrastructure value set
      * @param testgridYaml    object model of testgrid.yaml config file
