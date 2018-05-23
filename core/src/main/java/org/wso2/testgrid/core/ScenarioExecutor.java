@@ -89,12 +89,13 @@ public class ScenarioExecutor {
             if (tests.isEmpty()) {
                 logger.warn("Couldn't find any tests for the scenario " + testScenario + " At location "
                         + testLocation);
-            }
-
-            for (Test test : tests) {
-                logger.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
-                test.execute(testLocation, deploymentCreationResult);
-                logger.info("---------------------------------------");
+                testScenario.setStatus(Status.ERROR);
+            } else {
+                for (Test test : tests) {
+                    logger.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
+                    test.execute(testLocation, deploymentCreationResult);
+                    logger.info("---------------------------------------");
+                }
             }
 
         } catch (TestAutomationException e) {
