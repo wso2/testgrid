@@ -32,6 +32,7 @@ import javax.persistence.criteria.Root;
  * @param <T> type of the entity a given specification handles.
  * @param <U> type of the result-set DTO.
  */
+@FunctionalInterface
 public interface Specification<T, U> {
 
     Predicate toPredicate(Root<T> root, CriteriaQuery<U> query, CriteriaBuilder cb);

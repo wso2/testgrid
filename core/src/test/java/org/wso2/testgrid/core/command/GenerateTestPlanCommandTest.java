@@ -37,6 +37,7 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
@@ -81,7 +82,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
     private Product product;
     private TestPlan testPlan;
     private DeploymentPattern deploymentPattern;
-    
+
     @BeforeMethod
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -104,7 +105,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "getJobConfigData")
-    public void testExecute(String jobConfigFile, String workingDir) throws Exception {
+    public void testExecute(String jobConfigFileLocation, String workingDir) throws Exception {
         infrastructureCombinationsProvider = mock(InfrastructureCombinationsProvider.class);
         productUOW = mock(ProductUOW.class);
         deploymentPatternUOW = mock(DeploymentPatternUOW.class);
@@ -115,8 +116,10 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
 
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "{}", true);
-        InfrastructureCombination comb1 = new InfrastructureCombination(Collections.singleton(param));
-        when(infrastructureCombinationsProvider.getCombinations()).thenReturn(Collections.singleton(comb1));
+        InfrastructureCombination infrastructureCombination = new InfrastructureCombination(
+                Collections.singleton(param));
+        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class)))
+                .thenReturn(Collections.singleton(infrastructureCombination));
 
         logger.info("Product : " + product.getName());
         when(productUOW.persistProduct(anyString())).thenReturn(product);
@@ -125,7 +128,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
                 thenReturn(Optional.of(deploymentPattern));
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFile, workingDir, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
+                jobConfigFileLocation, workingDir, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
                 testPlanUOW);
         generateTestPlanCommand.execute();
 

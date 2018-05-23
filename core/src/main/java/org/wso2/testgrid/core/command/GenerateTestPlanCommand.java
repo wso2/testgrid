@@ -196,7 +196,7 @@ public class GenerateTestPlanCommand implements Command {
             throws CommandExecutionException, IOException, TestGridDAOException {
         // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
         populateDefaults(testgridYaml);
-        Set<InfrastructureCombination> combinations = infrastructureCombinationsProvider.getCombinations();
+        Set<InfrastructureCombination> combinations = infrastructureCombinationsProvider.getCombinations(testgridYaml);
         List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
 
         Product product = createOrReturnProduct(productName);

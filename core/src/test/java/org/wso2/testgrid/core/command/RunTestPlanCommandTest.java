@@ -42,6 +42,7 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
@@ -56,7 +57,6 @@ import org.wso2.testgrid.dao.uow.TestCaseUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -176,7 +176,8 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "{}", true);
         InfrastructureCombination comb1 = new InfrastructureCombination(Collections.singleton(param));
-        when(infrastructureCombinationsProvider.getCombinations()).thenReturn(Collections.singleton(comb1));
+        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class)))
+                .thenReturn(Collections.singleton(comb1));
 
         logger.info("Product : " + product.getName());
         when(productUOW.persistProduct(anyString())).thenReturn(product);
