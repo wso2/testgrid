@@ -40,7 +40,6 @@ import java.util.List;
 public class JMeterTestReader implements TestReader {
 
     private static final Logger logger = LoggerFactory.getLogger(JMeterTestReader.class);
-
     private static final String JMETER_TEST_PATH = "jmeter";
     private static final String SHELL_SUFFIX = ".sh";
     private static final String PRE_STRING = "pre-scenario-steps";
