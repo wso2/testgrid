@@ -124,7 +124,7 @@ E.g: IS 5.4.0 with cloudformation
     infrastructureRepository: "/home/ubuntu/cloudformation-is/cloudformation-templates/pattern-1"
     deploymentRepository: "/home/ubuntu/cloudformation-is/cloudformation-templates/pattern-1"
     scenarioTestsRepository: "/home/ubuntu/identity-test-integration"
-    testgridYamlLocation: "/home/ubuntu/testgrid.yaml"
+    testgridYamlLocation: .testgrid.yaml
     relativePaths: false
    ```
     

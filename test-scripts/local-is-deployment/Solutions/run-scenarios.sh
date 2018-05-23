@@ -21,4 +21,6 @@
 
 set -o xtrace
 
-echo "This is a Dummy Scenario execution scripts"
+echo "This is a Dummy Scenario execution script for solution 01."
+
+$JMETER_HOME/bin/jmeter.sh -n -t jmeter/01-TestIS540.jmx -p resources/user.properties

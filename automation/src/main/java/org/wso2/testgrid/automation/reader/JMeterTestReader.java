@@ -19,6 +19,8 @@
 package org.wso2.testgrid.automation.reader;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.TestEngine;
@@ -36,6 +38,8 @@ import java.util.List;
  * Reader for reading Jmeter test files of the standard maven structure.
  */
 public class JMeterTestReader implements TestReader {
+
+    private static final Logger logger = LoggerFactory.getLogger(JMeterTestReader.class);
 
     private static final String JMETER_TEST_PATH = "jmeter";
     private static final String SHELL_SUFFIX = ".sh";
@@ -74,6 +78,8 @@ public class JMeterTestReader implements TestReader {
                         .ifPresent(test::setPostScenarioScript);
                 testsList.add(test);
             }
+        } else {
+            logger.error("Scenario script file (" + SCENARIO_SCRIPT + ") was not found in " + file.getAbsolutePath());
         }
         return testsList;
     }
