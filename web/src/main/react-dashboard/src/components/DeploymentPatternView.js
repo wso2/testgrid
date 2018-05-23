@@ -24,7 +24,7 @@ import {add_current_deployment, add_current_infra} from '../actions/testGridActi
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
 import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
-import {Table} from 'reactstrap';
+import {Table, Input} from 'reactstrap';
 
 class DeploymentPatternView extends Component {
 
@@ -32,6 +32,7 @@ class DeploymentPatternView extends Component {
     super(props);
     this.state = {
       hits: [],
+      hitsClone: [],
       product: null
     };
   }
@@ -44,6 +45,20 @@ class DeploymentPatternView extends Component {
     }
     return response;
   }
+
+  handleInputChange = () => {
+    let hits = this.state.hitsClone;
+    if (this.search.value.length > 0) {
+      let searchHits = hits.filter(hit => hit.lastBuild.infraParams.toLowerCase().includes(this.search.value.toLowerCase()));
+      this.setState({
+        hits: searchHits
+      })
+    } else {
+      this.setState({
+        hits: this.state.hitsClone
+      })
+    }
+  };
 
   componentDidMount() {
     let currentProduct = this.props.active.reducer.currentProduct;
@@ -82,7 +97,7 @@ class DeploymentPatternView extends Component {
       .then(response => {
         return response.json()
       })
-      .then(data => this.setState({hits: data, product: currentProduct}))
+      .then(data => this.setState({hits: data, hitsClone: data, product: currentProduct}))
       .catch(error => console.error(error));
   }
 
@@ -276,6 +291,9 @@ class DeploymentPatternView extends Component {
               </Subheader>;
           }
         })()}
+        <div>
+          <Input placeholder="Search Infra..." innerRef={Input => this.search = Input} onChange={this.handleInputChange}/>
+        </div>
         <Table responsive bordered className='deployment-pattern-view' fixedHeader={false} size="sm">
           <thead displaySelectAll={false} adjustForCheckbox={false}>
           <tr style={{borderBottom: '0'}}>
