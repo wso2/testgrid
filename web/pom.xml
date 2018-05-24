@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.testgrid</groupId>
         <artifactId>testgrid-parent</artifactId>
-        <version>0.9.0-m28</version>
+        <version>0.9.0-m29-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -30,7 +30,7 @@
     <artifactId>org.wso2.testgrid.web</artifactId>
     <name>WSO2 TestGrid Project - Webapp POM</name>
     <packaging>war</packaging>
-    <version>0.9.0-m28</version>
+    <version>0.9.0-m29-SNAPSHOT</version>
 
     <dependencies>
         <!-- TestGrid dependencies -->

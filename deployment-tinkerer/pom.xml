@@ -21,7 +21,7 @@
     <parent>
         <artifactId>testgrid-parent</artifactId>
         <groupId>org.wso2.testgrid</groupId>
-        <version>0.9.0-m28</version>
+        <version>0.9.0-m29-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.testgrid.deployment.tinkerer</artifactId>
