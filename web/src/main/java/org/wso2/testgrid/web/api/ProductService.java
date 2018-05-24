@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Optional;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -173,6 +174,54 @@ public class ProductService {
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the statuses of the product: " + productName + ". Please "
                     + "check the database configurations";
+            logger.error(msg, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+        }
+    }
+
+    /**
+     * This method verifies the existence of the requesting report in the remote location.
+     * <p>
+     *
+     * @return existence of the querying product report
+     */
+    @HEAD
+    @Path("/reports")
+    public Response isProductReportExist(
+            @QueryParam("product-name") String productName,
+            @DefaultValue("false") @QueryParam("show-success") Boolean showSuccess,
+            @DefaultValue("SCENARIO") @QueryParam("group-by") String groupBy) {
+        try {
+            ProductUOW productUOW = new ProductUOW();
+            Optional<Product> productInstance = productUOW.getProduct(productName);
+            Product product;
+            if (productInstance.isPresent()) {
+                product = productInstance.get();
+                AxisColumn uniqueAxisColumn = AxisColumn.valueOf(groupBy.toUpperCase(Locale.ENGLISH));
+                String fileName = StringUtil
+                        .concatStrings(product.getName(), "-", uniqueAxisColumn, Constants.HTML_EXTENSION);
+                String bucketKey = Paths.get(Constants.AWS_BUCKET_ARTIFACT_DIR, productName, fileName).toString();
+                ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
+                        Constants.AWS_BUCKET_NAME);
+                if (artifactReadable.isExistArtifact(bucketKey)) {
+                    return Response.status(Response.Status.OK).entity("The artifact exists in the remote storage")
+                            .build();
+                }
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Couldn't found the Artifact in the remote location").build();
+            }
+            return Response.status(Response.Status.NOT_FOUND).entity("Could't found the Product in Test Grid").build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the product for product name : '" + productName + "' ";
+            logger.error(msg, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+        } catch (ArtifactReaderException e) {
+            String msg = "Error occurred while creating AWS artifact reader.";
+            logger.error(msg, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
+        } catch (IOException e) {
+            String msg = "Error occurred while accessing configurations.";
             logger.error(msg, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).build();
         }

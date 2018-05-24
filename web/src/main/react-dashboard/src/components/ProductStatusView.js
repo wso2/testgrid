@@ -80,11 +80,8 @@ class ProductStatusView extends Component {
   downloadReport(productName) {
     let url = TESTGRID_CONTEXT + '/api/products/reports?product-name=' + productName;
     fetch(url, {
-      method: "GET",
+      method: "HEAD",
       credentials: 'same-origin',
-      headers: {
-        'Accept': 'application/html'
-      }
     }).then(response => {
         if (response.status === HTTP_NOT_FOUND) {
           let errorMessage = "Unable to locate report in the remote storage, please contact the administrator.";
@@ -93,6 +90,8 @@ class ProductStatusView extends Component {
           let errorMessage = "Internal server error. Couldn't download the report at the moment, please " +
             "contact the administrator.";
           this.toggle(errorMessage);
+        } else if (response.status === HTTP_OK) {
+          document.location = url;
         }
       }
     ).catch(error => console.error(error));

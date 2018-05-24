@@ -57,4 +57,11 @@ public interface ArtifactReadable {
      */
     InputStream getArtifactStream(String key);
 
+    /**
+     * Verify the existence of the artifact for the given key.
+     *
+     * @param key           key of the artifact to download
+     * @return {@link Boolean} If artifact exist in the remote storage return True otherwise return False
+     */
+    Boolean isExistArtifact(String key);
 }
