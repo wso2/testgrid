@@ -28,7 +28,6 @@ import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
-import org.wso2.testgrid.web.utils.Constants;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,16 +89,19 @@ public class AWSArtifactReader implements ArtifactReadable {
 
     @Override public InputStream getArtifactStream(String key) {
         try {
+            if (!amazonS3.doesObjectExist(bucketName, key)) {
+                throw new ResourceNotFoundException("File not found in the remote storage");
+            }
             S3Object s3Object = amazonS3.getObject(bucketName, key);
             return s3Object.getObjectContent();
         } catch (AmazonServiceException e) {
-            if (Constants.HTTP_FILE_NOT_FOUND.equals(String.valueOf(e.getStatusCode()))) {
-                throw new ResourceNotFoundException("File not found in the remote storage");
-            } else {
-                throw new TestGridRuntimeException("Error occured in Amazon service", e);
-            }
+            throw new TestGridRuntimeException("Error occured in Amazon service", e);
         } catch (SdkClientException e) {
             throw new TestGridRuntimeException("Error occured in SDK client", e);
         }
+    }
+
+    @Override public Boolean isExistArtifact(String key) {
+        return amazonS3.doesObjectExist(bucketName, key);
     }
 }
