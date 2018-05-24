@@ -349,19 +349,17 @@ public class GenerateTestPlanCommand implements Command {
         StringBuilder testgridYamlBuilder = new StringBuilder();
         String ls = System.lineSeparator();
         testgridYamlBuilder
-                .append(getTestgridYamlFor(Paths.get(infraRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
+                .append(getTestgridYamlFor(getTestGridYamlLocation(infraRepositoryLocation)))
                 .append(ls);
         String testgridYamlContent = testgridYamlBuilder.toString().trim();
         if (!testgridYamlContent.isEmpty()) {
             if (!testgridYamlContent.contains("deploymentConfig")) {
                 testgridYamlBuilder
-                        .append(getTestgridYamlFor(
-                                Paths.get(deployRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
+                        .append(getTestgridYamlFor(getTestGridYamlLocation(deployRepositoryLocation)))
                         .append(ls);
             }
             testgridYamlBuilder
-                    .append(getTestgridYamlFor(
-                            Paths.get(scenarioTestsRepositoryLocation, TestGridConstants.TESTGRID_YAML)))
+                    .append(getTestgridYamlFor(getTestGridYamlLocation(scenarioTestsRepositoryLocation)))
                     .append(ls);
         } else {
             logger.warn(StringUtil.concatStrings(
@@ -628,6 +626,22 @@ public class GenerateTestPlanCommand implements Command {
             } else {
                 return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
             }
+        }
+    }
+
+    /**
+     * If the testgrid yaml file is hidden in the directory, change the URI as to refer the hidden file.
+     * @param directory directory where the testgrid yaml file exists
+     * @return testgrid yaml file path
+     */
+    private Path getTestGridYamlLocation(String directory) {
+        Path hiddenYamlPath = Paths.get(
+                directory, TestGridConstants.HIDDEN_FILE_INDICATOR + TestGridConstants.TESTGRID_YAML);
+        Path defaultYamlPath = Paths.get(directory, TestGridConstants.TESTGRID_YAML);
+        if (Files.exists(hiddenYamlPath)) {
+            return hiddenYamlPath;
+        } else {
+            return defaultYamlPath;
         }
     }
 }
