@@ -635,13 +635,13 @@ public class GenerateTestPlanCommand implements Command {
      * @return testgrid yaml file path
      */
     private Path getTestGridYamlLocation(String directory) {
-        String hiddenFileDot = ".";
-        Path yamlPathIfHidden = Paths.get(directory, hiddenFileDot + TestGridConstants.TESTGRID_YAML);
-        Path yamlPathIfNotHidden = Paths.get(directory, TestGridConstants.TESTGRID_YAML);
-        if (Files.exists(yamlPathIfHidden)) {
-            return yamlPathIfHidden;
+        Path hiddenYamlPath = Paths.get(
+                directory, TestGridConstants.HIDDEN_FILE_INDICATOR + TestGridConstants.TESTGRID_YAML);
+        Path defaultYamlPath = Paths.get(directory, TestGridConstants.TESTGRID_YAML);
+        if (Files.exists(hiddenYamlPath)) {
+            return hiddenYamlPath;
         } else {
-            return yamlPathIfNotHidden;
+            return defaultYamlPath;
         }
     }
 }
