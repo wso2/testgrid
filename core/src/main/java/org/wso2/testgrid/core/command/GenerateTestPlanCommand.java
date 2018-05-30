@@ -33,6 +33,7 @@ import org.wso2.testgrid.common.config.JobConfigFile;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
@@ -54,10 +55,7 @@ import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -233,7 +231,11 @@ public class GenerateTestPlanCommand implements Command {
 
             //Remove reference ids from yaml
             output = output.replaceAll("[&,*]id[0-9]+", "");
-            saveFile(output, infraGenDirectory, fileName);
+            try {
+                FileUtil.saveFile(output, infraGenDirectory, fileName);
+            } catch (TestGridException e) {
+                throw new CommandExecutionException("Error while saving Testgrid yaml file.", e);
+            }
 
             /*
              * Test plans of test scenarios should be persisted. This is persisted after building the
@@ -459,24 +461,6 @@ public class GenerateTestPlanCommand implements Command {
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
         return new Yaml(new NullRepresenter(), options);
-    }
-
-    /**
-     * Saves the content to a file with the given name in the given file path.
-     *
-     * @param content  content to write in the file
-     * @param filePath location to save the file
-     * @param fileName name of the file
-     * @throws CommandExecutionException thrown when error on persisting file
-     */
-    private void saveFile(String content, String filePath, String fileName) throws CommandExecutionException {
-        String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
-        try (OutputStream outputStream = new FileOutputStream(fileAbsolutePath);
-                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
-            outputStreamWriter.write(content);
-        } catch (IOException e) {
-            throw new CommandExecutionException(StringUtil.concatStrings("Error in writing file ", fileName), e);
-        }
     }
 
     /**

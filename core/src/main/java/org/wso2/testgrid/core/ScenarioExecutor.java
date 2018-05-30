@@ -18,6 +18,11 @@
 
 package org.wso2.testgrid.core;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.Test;
@@ -26,8 +31,11 @@ import org.wso2.testgrid.automation.reader.TestReader;
 import org.wso2.testgrid.automation.reader.TestReaderFactory;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -35,12 +43,19 @@ import org.wso2.testgrid.dao.uow.TestCaseUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
 import java.io.File;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+
+import static org.wso2.testgrid.common.TestGridConstants.JMETER_FILE_FILTER_PATTERN;
+import static org.wso2.testgrid.common.TestGridConstants.JMETER_FOLDER;
+import static org.wso2.testgrid.common.TestGridConstants.RUN_SCENARIO_SCRIPT;
+import static org.wso2.testgrid.common.TestGridConstants.RUN_SCENARIO_SCRIPT_TEMPLATE;
 
 /**
  * This class is mainly responsible for executing a TestScenario. This will invoke the TestAutomationEngine for
@@ -82,6 +97,12 @@ public class ScenarioExecutor {
             testScenario.setStatus(Status.RUNNING);
             testScenario = persistTestScenario(testScenario);
 
+            // Create run-scenario.sh file if it's missing.
+            if (!Files.exists(Paths.get(
+                    testPlan.getScenarioTestsRepository(), scenarioDir, RUN_SCENARIO_SCRIPT))) {
+                createRunScenarioScript(homeDir + TestGridConstants.FILE_SEPARATOR + scenarioDir);
+            }
+
             logger.info("Executing Tests for Solution Pattern : " + testScenario.getName());
             String testLocation = Paths.get(homeDir, scenarioDir).toAbsolutePath().toString();
             List<Test> tests = getTests(testScenario, testLocation);
@@ -105,6 +126,46 @@ public class ScenarioExecutor {
                     .concatStrings("Exception occurred while running the Tests for Solution Pattern '",
                             testScenario.getName(), "'"), e);
         }
+    }
+
+    /**
+     * This method creates a run-scenario script file which will include the test scripts
+     * arranged in alphabetical order.
+     * @param directory directory where the run-scenario script should exists
+     */
+    private void createRunScenarioScript(String directory) throws ScenarioExecutorException {
+        try {
+            List<String> files = FileUtil.getFilesOnDirectory(
+                    directory + TestGridConstants.FILE_SEPARATOR + JMETER_FOLDER, JMETER_FILE_FILTER_PATTERN);
+            files.sort(Comparator.naturalOrder());
+            FileUtil.saveFile(prepareScriptContent(files), directory, "run-scenario.sh");
+        } catch (TestGridException e) {
+            throw new ScenarioExecutorException(StringUtil
+                    .concatStrings("Exception occurred while creating run-scenario.sh file in directory ",
+                            directory), e);
+        }
+    }
+
+    /**
+     * This method prepares the content of the run-scenario script which will include complete shell commands including
+     * script file names.
+     * @param  files sorted list of files needs to be added to the script
+     * @return content of the run-scenario.sh script
+     */
+    private String prepareScriptContent(List<String> files) {
+            VelocityEngine velocityEngine = new VelocityEngine();
+            //Set velocity class loader as to refer templates from resources directory.
+            velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+            velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+
+            velocityEngine.init();
+            VelocityContext context = new VelocityContext();
+            context.put("scripts", files);
+
+            Template template = velocityEngine.getTemplate(RUN_SCENARIO_SCRIPT_TEMPLATE);
+            StringWriter writer = new StringWriter();
+            template.merge(context, writer);
+            return writer.toString();
     }
 
     /**
