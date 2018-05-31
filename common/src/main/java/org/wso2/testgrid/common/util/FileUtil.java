@@ -69,8 +69,7 @@ public class FileUtil {
      */
     public static List<String> getFilesOnDirectory(String directory, String glob) throws TestGridException {
         List<String> files = new ArrayList<>();
-        try {
-            DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(directory), glob);
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(directory), glob)) {
             for (Path entry : stream) {
                 files.add(entry.toString());
             }
