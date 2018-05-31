@@ -30,6 +30,11 @@ public class TestGridConstants {
     public static final String TESTGRID_YAML = "testgrid.yaml";
     public static final String TEST_PLAN_YAML_PREFIX = "test-plan";
 
+    public static final String RUN_SCENARIO_SCRIPT = "run-scenario.sh";
+    public static final String RUN_SCENARIO_SCRIPT_TEMPLATE = "run-scenarioTemplate.vm";
+    public static final String JMETER_FOLDER = "jmeter";
+    public static final String JMETER_FILE_FILTER_PATTERN = "*.jmx";
+
     public static final String TESTGRID_LOG_FILE_NAME = "testgrid.log";
     public static final String TESTGRID_LOGS_DIR = "logs";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";

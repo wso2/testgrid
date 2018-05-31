@@ -551,6 +551,11 @@
                 <artifactId>mysql-connector-java</artifactId>
                 <version>6.0.6</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity</artifactId>
+                <version>${apache.velocity.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -590,6 +595,7 @@
         <apache.httpcomponents.fluent.version>5.0-alpha3</apache.httpcomponents.fluent.version>
         <apache.commons.io.version>2.6</apache.commons.io.version>
         <apache.commons.collections4.version>4.1</apache.commons.collections4.version>
+        <apache.velocity.version>1.7</apache.velocity.version>
         <!-- Logging dependencies -->
         <slf4j.version>1.7.25</slf4j.version>
         <log4j.core.version>2.8.2</log4j.core.version>
