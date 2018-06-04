@@ -105,7 +105,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "getJobConfigData")
-    public void testExecute(String jobConfigFileLocation, String workingDir) throws Exception {
+    public void testExecute(String jobConfigFileLocation) throws Exception {
         infrastructureCombinationsProvider = mock(InfrastructureCombinationsProvider.class);
         productUOW = mock(ProductUOW.class);
         deploymentPatternUOW = mock(DeploymentPatternUOW.class);
@@ -128,7 +128,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
                 thenReturn(Optional.of(deploymentPattern));
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFileLocation, workingDir, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
+                jobConfigFileLocation, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
                 testPlanUOW);
         generateTestPlanCommand.execute();
 
@@ -161,8 +161,8 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
     @DataProvider
     public Object[][] getJobConfigData() {
         return new Object[][] {
-                { "src/test/resources/job-config.yaml", "." },
-                { "src/test/resources/job-config2.yaml", "" }
+                { "src/test/resources/job-config.yaml" },
+                { "src/test/resources/job-config2.yaml" }
         };
     }
 
