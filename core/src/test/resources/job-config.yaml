@@ -1,4 +1,4 @@
-infrastructureRepository: src/test/resources/workspace/infrastructure
-deploymentRepository: src/test/resources/workspace/deployment
-scenarioTestsRepository: src/test/resources/workspace/scenarioTests
-testgridYamlLocation: src/test/resources/workspace/testgrid.yaml
+infrastructureRepository: workspace/infrastructure
+deploymentRepository: workspace/deployment
+scenarioTestsRepository: workspace/scenarioTests
+testgridYamlLocation: workspace/testgrid.yaml

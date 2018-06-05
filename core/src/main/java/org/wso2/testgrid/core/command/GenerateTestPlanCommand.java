@@ -66,7 +66,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static org.wso2.testgrid.common.TestGridConstants.FILE_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_JOB_DIR;
 
@@ -90,19 +93,8 @@ public class GenerateTestPlanCommand implements Command {
     @Option(name = "--file",
             usage = "Provide the path to Testgrid configuration file.",
             aliases = { "-f" })
-    private String jobConfigFile = "";
+    private String jobConfigFilePath = "";
 
-    @Option(name = "--workingDir",
-            usage = "Provide the path to Testgrid configuration file.",
-            aliases = { "-wd" })
-    private String workingDir = "";
-
-    /**
-     * This is @{@link Deprecated} in favor of '--file'
-     */
-    @Option(name = "--testConfig",
-            usage = "Test Configuration File (Deprecated)",
-            aliases = { "-tc" })
     private String testgridYamlLocation = "";
 
     private InfrastructureCombinationsProvider infrastructureCombinationsProvider;
@@ -123,17 +115,15 @@ public class GenerateTestPlanCommand implements Command {
      * of unit tests.
      *
      * @param productName          product name
-     * @param jobConfigFile        path to job-config.yaml
-     * @param workingDir           working dir
+     * @param jobConfigFilePath    path to job-config.yaml
      * @param combinationsProvider infrastructure Combinations Provider
      * @param productUOW           the ProductUOW
      */
-    GenerateTestPlanCommand(String productName, String jobConfigFile, String workingDir,
+    GenerateTestPlanCommand(String productName, String jobConfigFilePath,
             InfrastructureCombinationsProvider combinationsProvider, ProductUOW productUOW,
                             DeploymentPatternUOW deploymentPatternUOW, TestPlanUOW testPlanUOW) {
         this.productName = productName;
-        this.jobConfigFile = jobConfigFile;
-        this.workingDir = workingDir;
+        this.jobConfigFilePath = jobConfigFilePath;
         this.infrastructureCombinationsProvider = combinationsProvider;
         this.productUOW = productUOW;
         this.deploymentPatternUOW = deploymentPatternUOW;
@@ -147,17 +137,8 @@ public class GenerateTestPlanCommand implements Command {
             LogFilePathLookup.setLogFilePath(
                     TestGridUtil.deriveLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
 
-            if (!StringUtil.isStringNullOrEmpty(testgridYamlLocation)) {
-                logger.warn("--testConfig / -tc is deprecated. Use --file instead.");
-                String testgridYamlContent = new String(Files.readAllBytes(Paths.get(this.testgridYamlLocation)),
-                        StandardCharsets.UTF_8);
-                TestgridYaml testgridYaml = new Yaml().loadAs(testgridYamlContent, TestgridYaml.class);
-                processTestgridYaml(testgridYaml);
-                return;
-            }
-
-            if (StringUtils.isNotEmpty(jobConfigFile)) {
-                processTestgridConfiguration(jobConfigFile, workingDir);
+            if (StringUtils.isNotEmpty(jobConfigFilePath)) {
+                processTestgridConfiguration(jobConfigFilePath);
                 return;
             }
 
@@ -170,12 +151,20 @@ public class GenerateTestPlanCommand implements Command {
         }
     }
 
-    private void processTestgridConfiguration(String jobConfigFilePath, String workingDir)
+    private void processTestgridConfiguration(String jobConfigFilePath)
             throws IOException, CommandExecutionException, TestGridDAOException {
         JobConfigFile jobConfigFile = FileUtil.readYamlFile(jobConfigFilePath, JobConfigFile.class);
-        if (!StringUtil.isStringNullOrEmpty(workingDir)) {
-            jobConfigFile.setWorkingDir(workingDir);
-        } else if (StringUtil.isStringNullOrEmpty(jobConfigFile.getWorkingDir())) {
+        Pattern pattern = Pattern.compile(StringUtil
+                .concatStrings(TestGridUtil.getTestGridHomePath(), FILE_SEPARATOR, TESTGRID_JOB_DIR, FILE_SEPARATOR,
+                        "*"));
+        Matcher matcher = pattern.matcher(jobConfigFilePath);
+        if (!matcher.find()) {
+            Path directory = Paths.
+                    get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR, productName)
+                    .toAbsolutePath();
+            Files.createDirectories(directory).toAbsolutePath();
+            jobConfigFile.setWorkingDir(directory.toString());
+        } else {
             Path parent = Paths.get(jobConfigFilePath).toAbsolutePath().getParent();
             if (parent != null) {
                 jobConfigFile.setWorkingDir(parent.toString());
@@ -187,10 +176,10 @@ public class GenerateTestPlanCommand implements Command {
         resolvePaths(jobConfigFile);
         this.testgridYamlLocation = jobConfigFile.getTestgridYamlLocation();
         TestgridYaml testgridYaml = buildTestgridYamlContent(jobConfigFile);
-        processTestgridYaml(testgridYaml);
+        processTestgridYaml(testgridYaml, jobConfigFile);
     }
 
-    private void processTestgridYaml(TestgridYaml testgridYaml)
+    private void processTestgridYaml(TestgridYaml testgridYaml, JobConfigFile jobConfigFile)
             throws CommandExecutionException, IOException, TestGridDAOException {
         // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
         populateDefaults(testgridYaml);
@@ -198,7 +187,7 @@ public class GenerateTestPlanCommand implements Command {
         List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
 
         Product product = createOrReturnProduct(productName);
-        String infraGenDirectory = createTestPlanGenDirectory(product);
+        String infraGenDirectory = createTestPlanGenDirectory(jobConfigFile);
 
         // Save test plans to file-system
         Yaml yaml = createYamlInstance();
@@ -292,8 +281,9 @@ public class GenerateTestPlanCommand implements Command {
      * @param jobConfigFile The job-config.yaml bean
      */
     private void resolvePaths(JobConfigFile jobConfigFile) {
-        String parent = jobConfigFile.getWorkingDir();
-        if (jobConfigFile.isRelativePaths() && parent != null) {
+        Path parentPath = Paths.get(jobConfigFilePath).toAbsolutePath().getParent();
+        if (jobConfigFile.isRelativePaths() && parentPath != null) {
+            String parent = parentPath.toString();
             //infra
             Path repoPath = Paths.get(parent, jobConfigFile.getInfrastructureRepository());
             jobConfigFile.setInfrastructureRepository(resolvePath(repoPath, jobConfigFile));
@@ -377,7 +367,7 @@ public class GenerateTestPlanCommand implements Command {
                 logger.debug("job-config.yaml content: " + jobConfigFile.toString());
             }
             throw new TestGridRuntimeException("Could not find testgrid.yaml content. It is either empty or the path "
-                    + "could not be resolved via the job-config.yaml at: " + this.jobConfigFile);
+                    + "could not be resolved via the job-config.yaml at: " + this.jobConfigFilePath);
         }
 
         Representer representer = new Representer();
@@ -563,17 +553,13 @@ public class GenerateTestPlanCommand implements Command {
     /**
      * Creates a directory for the given product.
      *
-     * @param product product
      * @return location of the created directory
      * @throws CommandExecutionException thrown when error on creating directories
      */
-    private String createTestPlanGenDirectory(Product product) throws CommandExecutionException {
+    private String createTestPlanGenDirectory(JobConfigFile jobConfigFile) throws CommandExecutionException {
         try {
-            String directoryName = product.getName();
-            String testGridHome = TestGridUtil.getTestGridHomePath();
             Path directory = Paths.
-                    get(testGridHome, TESTGRID_JOB_DIR, directoryName, PRODUCT_TEST_PLANS_DIR).toAbsolutePath();
-
+                    get(jobConfigFile.getWorkingDir(), PRODUCT_TEST_PLANS_DIR).toAbsolutePath();
             // if the directory exists, remove it
             removeDirectories(directory);
 
