@@ -83,8 +83,7 @@ pipeline {
                 cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
                 ./testgrid generate-test-plan \
                     --product ${PRODUCT} \
-                    --file ${JOB_CONFIG_YAML_PATH} \
-                    --workingDir ${PWD}
+                    --file ${JOB_CONFIG_YAML_PATH}
                 """
             }
         }
@@ -103,7 +102,7 @@ pipeline {
                             pwd
                             cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
                             ./testgrid run-testplan --product ${PRODUCT} \
-                            --file "${TESTGRID_HOME}/jobs/${PRODUCT}/test-plans/${f.name}"
+                            --file "${PWD}/test-plans/${f.name}"
                             """
                         } catch (Exception err) {
                             echo "Error : ${err}"
