@@ -50,6 +50,9 @@ public class Constants extends TestGridConstants {
     public static final String JKS_FILE_NAME = "wso2carbon.jks";
     public static final String SSO_DIRECTORY = "SSO";
     public static final String BACKEND_API_URI = WEBAPP_CONTEXT + "api/";
+    public static final String RELAY_STATE_PARAM = "RelayState";
+    public static final String QUERY_PARAM_APPEND = "&";
+    public static final String QUERY_PARAM_EQUAL = "=";
 
     public static final String PROPERTYNAME_KEYSTORE_PASSWORD = "KeyStorePassword";
     public static final String PROPERTYNAME_PRIVATE_KEY_ALIAS = "PrivateKeyAlias";
