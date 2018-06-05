@@ -63,7 +63,7 @@ public class SSOService {
 
     /**
       * This has the implementation of the REST API for creating session and send the redirection information .
-      * @return Redirection to dashboard home page.
+      * @return Redirection to requested page of the dashboard.
      */
     @POST
     public Response createSession(@FormParam("SAMLResponse") String responseMessage,
@@ -84,11 +84,7 @@ public class SSOService {
             validateSignature(saml2Response.getSignature());
             request.getSession();
             String redirectUri;
-            if (StringUtil.isStringNullOrEmpty(relayState)) {
-                redirectUri = Constants.WEBAPP_CONTEXT;
-            } else {
-                redirectUri = relayState;
-            }
+            redirectUri = StringUtil.isStringNullOrEmpty(relayState) ? Constants.WEBAPP_CONTEXT : relayState;
             return Response.status(Response.Status.FOUND).
                     header(HttpHeaders.LOCATION, redirectUri).type(MediaType.TEXT_PLAIN).build();
         } catch (SSOAgentException e) {
