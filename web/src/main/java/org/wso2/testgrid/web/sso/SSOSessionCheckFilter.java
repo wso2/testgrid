@@ -74,7 +74,9 @@ public class SSOSessionCheckFilter implements Filter {
                         if (path.startsWith(Constants.BACKEND_API_URI)) {
                             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
                         } else {
-                            httpResponse.sendRedirect(ssoLoginUrl);
+                            httpResponse.sendRedirect(ssoLoginUrl + Constants.QUERY_PARAM_APPEND +
+                                    Constants.RELAY_STATE_PARAM + Constants.QUERY_PARAM_EQUAL +
+                                    ((HttpServletRequest) servletRequest).getRequestURI());
                         }
                         return;
                     }

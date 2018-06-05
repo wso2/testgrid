@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.sso.agent.SSOAgentException;
 import org.wso2.carbon.identity.sso.agent.saml.X509CredentialImpl;
 import org.wso2.carbon.identity.sso.agent.util.SSOAgentUtils;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.sso.SSOConfigurationReader;
 import org.wso2.testgrid.web.utils.Constants;
@@ -65,7 +66,8 @@ public class SSOService {
       * @return Redirection to dashboard home page.
      */
     @POST
-    public Response createSession(@FormParam("SAMLResponse") String responseMessage) throws TestGridException {
+    public Response createSession(@FormParam("SAMLResponse") String responseMessage,
+                                  @FormParam(Constants.RELAY_STATE_PARAM) String relayState) throws TestGridException {
         XMLObject response;
         org.opensaml.saml2.core.Response saml2Response;
         try {
@@ -81,9 +83,14 @@ public class SSOService {
         try {
             validateSignature(saml2Response.getSignature());
             request.getSession();
+            String redirectUri;
+            if (StringUtil.isStringNullOrEmpty(relayState)) {
+                redirectUri = Constants.WEBAPP_CONTEXT;
+            } else {
+                redirectUri = relayState;
+            }
             return Response.status(Response.Status.FOUND).
-                    header(HttpHeaders.LOCATION, Constants.WEBAPP_CONTEXT).
-                    type(MediaType.TEXT_PLAIN).build();
+                    header(HttpHeaders.LOCATION, redirectUri).type(MediaType.TEXT_PLAIN).build();
         } catch (SSOAgentException e) {
             String msg = "Signature validation failed. Observed an attempt with invalid SAMLResponse.";
             logger.error(msg, e);

@@ -78,6 +78,7 @@ public class TestgridSSOAgentFilter extends SSOAgentFilter {
         SSOAgentConfig config = (SSOAgentConfig) filterConfig.getServletContext().
                 getAttribute(SSOAgentConstants.CONFIG_BEAN_NAME);
         config.getSAML2().setHttpBinding(httpBinding);
+        config.getSAML2().setRelayState(servletRequest.getParameter(Constants.RELAY_STATE_PARAM));
 
         //If the request consists of Username & Password (Form data), that means a request is coming from TestGrid
         //login page. Then generate and set necessary HTML Payload to be sent to IdP.
