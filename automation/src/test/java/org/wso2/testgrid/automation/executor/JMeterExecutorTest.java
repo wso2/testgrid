@@ -21,9 +21,11 @@ import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.testgrid.automation.parser.JMeterResultParser;
-import org.wso2.testgrid.automation.parser.JMeterResultParserException;
+import org.wso2.testgrid.automation.exception.JTLResultParserException;
+import org.wso2.testgrid.automation.exception.ParserInitializationException;
+import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.automation.parser.JMeterResultParserFactory;
+import org.wso2.testgrid.automation.parser.ResultParser;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.net.URL;
@@ -43,7 +45,8 @@ public class JMeterExecutorTest {
     }
 
     @Test(description = "Test for testing the functional test parser instance")
-    public void testJMeterFunctionalTestParserInstance() throws JMeterResultParserException {
+    public void testJMeterFunctionalTestParserInstance() throws JTLResultParserException
+            , ParserInitializationException {
         // Set cloned test plan location.
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("test-grid-is-resources");
@@ -54,14 +57,14 @@ public class JMeterExecutorTest {
                 .toAbsolutePath().toString();
         TestScenario testScenario = new TestScenario();
         testScenario.setName("SolutionPattern22");
-        Optional<JMeterResultParser> jMeterResultParser = JMeterResultParserFactory.
+        Optional<ResultParser> jMeterResultParser = new JMeterResultParserFactory().
                 getParser(testScenario, testLocation);
         Assert.assertTrue(jMeterResultParser.isPresent());
-        Assert.assertTrue(jMeterResultParser.get() instanceof JMeterResultParser);
+        Assert.assertTrue(jMeterResultParser.get() instanceof ResultParser);
     }
 
     @Test(description = "Test for testing the functional test")
-    public void testJMeterFunctionalTestParser() throws JMeterResultParserException {
+    public void testJMeterFunctionalTestParser() throws ResultParserException, ParserInitializationException {
         // Set cloned test plan location.
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("test-grid-is-resources");
@@ -72,7 +75,7 @@ public class JMeterExecutorTest {
                 .toAbsolutePath().toString();
         TestScenario testScenario = new TestScenario();
         testScenario.setName("SolutionPattern22");
-        Optional<JMeterResultParser> jMeterResultParser = JMeterResultParserFactory.
+        Optional<ResultParser> jMeterResultParser = new JMeterResultParserFactory().
                 getParser(testScenario, testLocation);
         Assert.assertTrue(jMeterResultParser.isPresent());
         jMeterResultParser.get().parseResults();
