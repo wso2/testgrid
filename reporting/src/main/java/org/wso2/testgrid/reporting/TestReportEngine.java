@@ -32,10 +32,15 @@ import org.wso2.testgrid.reporting.model.PerAxisHeader;
 import org.wso2.testgrid.reporting.model.PerAxisSummary;
 import org.wso2.testgrid.reporting.model.Report;
 import org.wso2.testgrid.reporting.model.ReportElement;
+import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
+import org.wso2.testgrid.reporting.model.performance.ResultFormatter;
+import org.wso2.testgrid.reporting.model.performance.ScenarioSection;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
 import org.wso2.testgrid.reporting.util.FileUtil;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -64,8 +69,12 @@ public class TestReportEngine {
     private static final Logger logger = LoggerFactory.getLogger(TestReportEngine.class);
 
     private static final String REPORT_MUSTACHE = "report.mustache";
+    private static final String PERFORMANCE_REPORT_MUSTACHE = "performance_report.mustache";
     private static final String REPORT_TEMPLATE_KEY = "parsedReport";
     private static final String HTML_EXTENSION = ".html";
+
+    private static final String PERFORMANCE_REPORT = "PerformanceReport";
+    private static final String RESULT_FOLDER = "Results";
 
     /**
      * Generates a test report based on the given product name and product version.
@@ -103,6 +112,55 @@ public class TestReportEngine {
     }
 
     /**
+     * Generates a performance report for the test plan and formatter definition.The report will be saved in the Product
+     * folder inside TestGrid home.
+     *
+     * @param testplan         TestPlan object carrying the details of test plan
+     * @param testRunWorkspace the test plan workspace
+     * @param resultFormatter  {@link ResultFormatter} that defines the report structure
+     * @throws ReportingException then there is an error creating the report
+     */
+    public void generatePerformanceReport(TestPlan testplan, Path testRunWorkspace, String resultFormatter)
+            throws ReportingException {
+
+        try {
+            Product product = testplan.getDeploymentPattern().getProduct();
+            ResultFormatter formatter = org.wso2.testgrid.common.util.FileUtil.readYamlFile(resultFormatter
+                    , ResultFormatter.class);
+            Path workspace = Paths.get(TestGridUtil.getTestGridHomePath()).resolve(testRunWorkspace);
+
+            PerformanceResultProcessor processor = new PerformanceResultProcessor();
+            //process the workspace and generate data model for the report
+            List<ScenarioSection> scenarioSections = processor.processWorkspace(testplan.getTestScenarios()
+                    , workspace, formatter);
+            PerformanceReport report = new PerformanceReport(product.getName(),
+                    formatter.getReportStructure().entrySet(), scenarioSections);
+            Map<String, Object> parsedResultMap = new HashMap<>();
+            parsedResultMap.put(REPORT_TEMPLATE_KEY, report);
+            Renderable renderable = RenderableFactory.getRenderable(PERFORMANCE_REPORT_MUSTACHE);
+            String htmlString = renderable.render(PERFORMANCE_REPORT_MUSTACHE, parsedResultMap);
+
+            String fileName = StringUtil.concatStrings(product.getName(), "-", PERFORMANCE_REPORT, HTML_EXTENSION);
+            String testGridHome = TestGridUtil.getTestGridHomePath();
+            Path reportDirPath = Paths.get(testGridHome).resolve(product.getName()).resolve(RESULT_FOLDER);
+            Path reportPath = reportDirPath.resolve(fileName);
+            //create the result folder if doesnt exist
+            if (!Files.exists(reportPath)) {
+                Files.createDirectories(reportDirPath);
+            }
+            //copy the image assets required by the report to relevant location
+            processor.copyReportAssets(workspace, reportDirPath);
+            writeHTMLToFile(reportPath, htmlString);
+            //TODO upload artifacts to S3 bucket
+
+        } catch (IOException e) {
+            throw new ReportingException(String.format("Error occured while creating the Performane " +
+                    "report for product :%s", testplan.getDeploymentPattern().getProduct()
+                    .getName()), e);
+        }
+    }
+
+    /**
      * Creates and returns a list of per axis headers for the given params.
      *
      * @param uniqueAxisColumn unique axis column
@@ -135,8 +193,8 @@ public class TestReportEngine {
 
             // Filter success test cases based on user input
             List<ReportElement> filteredReportElements = showSuccess ?
-                                                         reportElementsForOverallResult :
-                                                         filterSuccessReportElements(reportElementsForOverallResult);
+                    reportElementsForOverallResult :
+                    filterSuccessReportElements(reportElementsForOverallResult);
 
             // grouped by the value of the unique column
             for (ReportElement reportElement : filteredReportElements) {
@@ -199,8 +257,8 @@ public class TestReportEngine {
             boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
                 if (successListReportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
-                    successListReportElement.getInfraParams()
-                            .equals(failListReportElement.getInfraParams())) {
+                        successListReportElement.getInfraParams()
+                                .equals(failListReportElement.getInfraParams())) {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
@@ -242,9 +300,9 @@ public class TestReportEngine {
             boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
                 if (successListReportElement.getInfraParams()
-                            .equals(failListReportElement.getInfraParams()) &&
-                    successListReportElement.getScenarioDescription()
-                            .equals(failListReportElement.getScenarioDescription())) {
+                        .equals(failListReportElement.getInfraParams()) &&
+                        successListReportElement.getScenarioDescription()
+                                .equals(failListReportElement.getScenarioDescription())) {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
@@ -286,8 +344,8 @@ public class TestReportEngine {
             boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
                 if (successListReportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
-                    successListReportElement.getScenarioDescription()
-                            .equals(failListReportElement.getScenarioDescription())) {
+                        successListReportElement.getScenarioDescription()
+                                .equals(failListReportElement.getScenarioDescription())) {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
@@ -469,8 +527,8 @@ public class TestReportEngine {
 
         // If show success is false and the test is a success ignore the result of this test
         List<ReportElement> filteredReportElements = showSuccess ?
-                                                     new ArrayList<>(reportElements) :
-                                                     filterSuccessReportElements(reportElements);
+                new ArrayList<>(reportElements) :
+                filterSuccessReportElements(reportElements);
 
         Map<String, List<ReportElement>> groupedReportElements =
                 getGroupedReportElementsByColumn(uniqueAxisColumn, filteredReportElements);
