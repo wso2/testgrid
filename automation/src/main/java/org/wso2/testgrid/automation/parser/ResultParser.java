@@ -46,8 +46,7 @@ public abstract class ResultParser {
      * The default no argument constructor is required because the {@link java.util.ServiceLoader} instantiates
      * the object using default constructor while iterating the implementation list.
      */
-    ResultParser() {
-    }
+    ResultParser() {}
 
     /**
      * This method returns a boolean indicating whether it is possible to parse the given JTL file or not.

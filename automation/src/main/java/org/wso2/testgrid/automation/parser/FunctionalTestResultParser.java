@@ -61,9 +61,7 @@ public class FunctionalTestResultParser extends JTLResultParser {
         super(testScenario, testLocation);
     }
 
-    public FunctionalTestResultParser() {
-
-    }
+    public FunctionalTestResultParser() {}
 
     @Override
     public boolean canParse(TestScenario testScenario, String testLocation) throws JTLResultParserException {

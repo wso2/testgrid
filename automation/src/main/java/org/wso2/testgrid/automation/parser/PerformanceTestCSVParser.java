@@ -45,9 +45,7 @@ public class PerformanceTestCSVParser extends CSVResultParser {
         super(testScenario, testLocation);
     }
 
-    public PerformanceTestCSVParser() {
-
-    }
+    public PerformanceTestCSVParser() {}
 
     @Override
     public boolean canParse(TestScenario testScenario, String testLocation) throws CSVResultParserException {

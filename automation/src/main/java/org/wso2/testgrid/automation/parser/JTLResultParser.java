@@ -30,7 +30,6 @@ public abstract class JTLResultParser extends ResultParser {
         super(testScenario, testLocation);
     }
 
-    public JTLResultParser() {
-    }
+    public JTLResultParser() {}
 
 }
