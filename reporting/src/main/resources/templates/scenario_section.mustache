@@ -1,0 +1,15 @@
+
+{{#scenarioSection}}
+    {{scenarioName}} : {{description}}
+
+    {{#dividerSection}}
+        {{>divider_section}}
+    {{/dividerSection}}
+
+    <ul>
+        {{#chartsList}}
+            <li><img src="./img/{{.}}"></li>
+        {{/chartsList}}
+    </ul>
+
+{{/scenarioSection}}

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+  ~ Copyright (c) 2018, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<html>
+<head>
+    <title>WSO2 Test Grid - Test Execution Summary</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+    <style>
+        /*
+        Message boxes
+         */
+        .isa_info, .isa_success, .isa_warning, .isa_error {
+            margin: 10px 0px;
+            padding: 12px;
+            text-align: left;
+            font-family: sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .isa_info {
+            color: #00529B;
+            background-color: #BDE5F8;
+        }
+
+        .isa_success {
+            color: #4F8A10;
+            background-color: #DFF2BF;
+        }
+
+        .isa_warning {
+            color: #9F6000;
+            background-color: #FEEFB3;
+        }
+
+        .isa_error {
+            color: #D8000C;
+            background-color: #FFD2D2;
+        }
+
+        /*
+        Report table style
+         */
+        table.reportTable {
+            font-family: sans-serif;
+            border: 1px solid #000000;
+            background-color: #FFFFFF;
+            width: 95%;
+            text-align: left;
+            border-collapse: collapse;
+        }
+
+        table.reportTable td, table.reportTable th {
+            border: 1px solid #000000;
+            padding: 10px 5px;
+        }
+
+        table.reportTable tbody td {
+            font-size: 14px;
+        }
+
+        table.reportTable tr:nth-child(even) {
+            background: #F6F6F6;
+        }
+
+        table.reportTable thead {
+            background: #949494;
+            border-bottom: 2px solid #000000;
+        }
+
+        table.reportTable thead th {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000000;
+            text-align: center;
+        }
+
+        table.reportTable thead th:first-child {
+            border-left: none;
+        }
+
+        /*
+        Titles
+         */
+        .tableTitle {
+            font-family: sans-serif;
+            font-weight: 600;
+            font-size: 20px;
+            line-height: 20px;
+            width: 100%;
+            color: #e46226;
+        }
+
+        .mainTitle {
+            font-family: sans-serif;
+            font-weight: 900;
+            font-size: 30px;
+            line-height: 20px;
+            width: 100%;
+            color: #e46226;
+        }
+
+        /*
+        Test styles
+         */
+        .errorText {
+            color: #FF0000;
+        }
+
+        .successText {
+            color: #09950B;
+        }
+
+        i.fa-times-circle {
+            color: #e50000;
+            font-size: 36px;
+        }
+
+        i.fa-check-circle {
+            color: #09950B;
+            font-size: 36px;
+        }
+
+         table, th, td {
+         border: 1px solid black;
+        }
+
+    </style>
+</head>
+<body>
+<center>
+    <div style="width: 100%; margin: auto; background-color: #ffffff; ">
+        {{#parsedReport}}
+            <table style="padding: 0 0; width: 100%; background: #ffffff;">
+                <tr>
+                    <td valign="middle"
+                        style="text-align: center; width: 5%; background: #ffffff; text-align: left; padding: 0.5% 7%;">
+                        <a href="http://wso2.com/">
+                            <img style="height: 30px;"
+                                 src="http://b.content.wso2.com/sites/all/wum/wso2-logo-w.png"/></a>
+                    </td>
+                    <td style="width: 95%; background: #ffffff; text-align: left; padding: 0.5% 7%;font-family: arial; font-size: 16px;">
+                        WSO2 Test Grid - Test Execution Summary for {{productName}}
+                    </td>
+                </tr>
+                <tr>
+                    <td colSpan="2"
+                        style="padding: 20px 7% 20px 7%; font-family: arial; font-size: 16px; line-height: 24px; color: #676767; border-top: 1px solid #cccccc;">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td valign="middle"
+                                    style="text-align: right; width: 12%; padding-right: 50px;">
+                                    <img style="height: 120px;"
+                                         src="http://www.robertsmania.com/G90/my_testpatterns/1080_Grid_01.jpg"/>
+                                </td>
+                                <td style=" padding: 1% 5%; font-family: arial; font-size: 16px; line-height: 24px; text-align: left;">
+                                    <span style="font-weight: 600; font-size: 34px; width: 100%; margin-bottom: 20px; color: #272727;">Test Execution Summary for</span><br/>
+                                    <span style="font-weight: 200; font-size: 30px; width: 100%; margin-bottom: 20px; color: #272727;">{{productName}}</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            {{#reportContent}}
+                <h1>{{key}}</h1>
+                <h4>{{value}}</h4>
+            {{/reportContent}}
+
+            {{{parsedScenarioString}}}
+
+        {{/parsedReport}}
+    </div>
+</center>
+</body>
+</html>
