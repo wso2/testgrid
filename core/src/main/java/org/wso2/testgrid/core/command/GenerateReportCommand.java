@@ -78,7 +78,7 @@ public class GenerateReportCommand implements Command {
     /**
      * Returns an instance of {@link Product} for the given product name and product version.
      *
-     * @param productName    product name
+     * @param productName product name
      * @return an instance of {@link Product} for the given product name and product version
      * @throws CommandExecutionException throw when error on obtaining product for the given product name and product
      *                                   version

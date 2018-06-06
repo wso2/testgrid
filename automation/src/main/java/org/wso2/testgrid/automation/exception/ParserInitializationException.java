@@ -23,7 +23,7 @@ package org.wso2.testgrid.automation.exception;
 public class ParserInitializationException extends Exception {
 
     /**
-     * Constructs a new exceptoin with the detailed message
+     * Constructs a new exception with the detailed message
      *
      * @param message the detailed message from the exception
      */
@@ -32,7 +32,7 @@ public class ParserInitializationException extends Exception {
     }
 
     /**
-     * Constructs a new exceptoin with the detailed message and the cause
+     * Constructs a new exception with the detailed message and the cause
      *
      * @param message the detailed message of the exception
      * @param cause   cause for the exception

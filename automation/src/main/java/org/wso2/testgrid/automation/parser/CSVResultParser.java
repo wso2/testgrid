@@ -37,9 +37,7 @@ public abstract class CSVResultParser extends ResultParser {
         super(testScenario, testLocation);
     }
 
-    CSVResultParser() {
-
-    }
+    CSVResultParser() {}
 
     @Override
     public boolean canParse(TestScenario testScenario, String testLocation) throws CSVResultParserException {

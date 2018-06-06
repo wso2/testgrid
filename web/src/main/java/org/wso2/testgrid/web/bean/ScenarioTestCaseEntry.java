@@ -30,7 +30,7 @@ public class ScenarioTestCaseEntry {
     private final List<TestCaseEntry> testCaseEntries;
 
     /**
-     * Constructs an instance of {@link ScenarioTestCaseEntry}
+     * Constructs an instance of {@link ScenarioTestCaseEntry}.
      *
      * @param scenarioDescription    scenario description
      * @param testCaseEntries list of test case entries
