@@ -18,34 +18,49 @@
 
 package org.wso2.testgrid.automation.parser;
 
+import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.common.TestScenario;
 
 /**
- * Defines the contract for JMeter result parser implementations.
+ * Defines the contract for result parser implementations.
+ *
+ * @since 1.0.0
  */
-public abstract class JMeterResultParser {
+public abstract class ResultParser {
 
-    TestScenario testScenario;
-    String testLocation;
+    protected TestScenario testScenario;
+    protected String testLocation;
 
-    public JMeterResultParser(TestScenario testScenario, String testLocation) {
+    /**
+     * Superclass implementation holds the variable values and this constructor must be called to set them
+     *
+     * @param testScenario TestScenario associated with the current test
+     * @param testLocation Location of the tests
+     */
+    ResultParser(TestScenario testScenario, String testLocation) {
         this.testScenario = testScenario;
         this.testLocation = testLocation;
     }
 
     /**
+     * The default no argument constructor is required because the {@link java.util.ServiceLoader} instantiates
+     * the object using default constructor while iterating the implementation list.
+     */
+    ResultParser() {
+    }
+
+    /**
      * This method returns a boolean indicating whether it is possible to parse the given JTL file or not.
      *
-     * @param nodeName     File object for the test folder
      * @return a boolean {@link boolean} indicating if it is possible to parse the given JTL or not
      */
-    public abstract boolean canParse(String nodeName);
+    public abstract boolean canParse(TestScenario testScenario, String testLocation) throws ResultParserException;
 
     /**
      * This method will parse the JMeter result file.
      *
-     * @throws JMeterResultParserException {@link JMeterResultParserException} when an error occurs while parsing the
-     * result file
+     * @throws ResultParserException {@link ResultParserException} when an error occurs while parsing the
+     *                               results
      */
-    public abstract void parseResults() throws JMeterResultParserException;
+    public abstract void parseResults() throws ResultParserException;
 }

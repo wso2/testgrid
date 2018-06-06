@@ -22,9 +22,12 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.automation.parser.JMeterResultParser;
-import org.wso2.testgrid.automation.parser.JMeterResultParserException;
-import org.wso2.testgrid.automation.parser.JMeterResultParserFactory;
+import org.wso2.testgrid.automation.exception.JTLResultParserException;
+import org.wso2.testgrid.automation.exception.ParserFactoryInitializationException;
+import org.wso2.testgrid.automation.exception.ParserInitializationException;
+import org.wso2.testgrid.automation.exception.ResultParserException;
+import org.wso2.testgrid.automation.parser.ResultParser;
+import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
@@ -86,7 +89,8 @@ public class JMeterExecutor extends TestExecutor {
             }
 
             //Parse JTL file
-            Optional<JMeterResultParser> parser = JMeterResultParserFactory.getParser(this.testScenario, testLocation);
+            ResultParserFactory factory = ResultParserFactory.getFactory(testLocation);
+            Optional<ResultParser> parser = factory.getParser(testScenario, testLocation);
             if (parser.isPresent()) {
                 parser.get().parseResults();
                 persistResultArtifacts(testLocation);
@@ -97,10 +101,23 @@ public class JMeterExecutor extends TestExecutor {
 
         } catch (CommandExecutionException e) {
             this.testScenario.setStatus(Status.ERROR);
-            throw new TestAutomationException("Error executing scenario script" + script, e);
-        } catch (JMeterResultParserException e) {
+            throw new TestAutomationException(String.format("Error executing scenario " +
+                    "script%s", script), e);
+        } catch (JTLResultParserException e) {
             this.testScenario.setStatus(Status.ERROR);
             throw new TestAutomationException("Unable to parse the JMeter results file.", e);
+        } catch (ParserFactoryInitializationException e) {
+            this.testScenario.setStatus(Status.ERROR);
+            throw new TestAutomationException(String.format("Error when initializing the parser " +
+                    "factory for script%s", script), e);
+        } catch (ParserInitializationException e) {
+            this.testScenario.setStatus(Status.ERROR);
+            throw new TestAutomationException(String.format("Error when initializing the Result " +
+                    "Parser for script : %s", script), e);
+        } catch (ResultParserException e) {
+            this.testScenario.setStatus(Status.ERROR);
+            throw new TestAutomationException(String.format("Error parsing the result " +
+                    "files from script : %s", script), e);
         }
     }
 

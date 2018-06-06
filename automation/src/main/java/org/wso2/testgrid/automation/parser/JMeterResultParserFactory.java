@@ -18,76 +18,65 @@
 
 package org.wso2.testgrid.automation.parser;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.automation.exception.JTLResultParserException;
+import org.wso2.testgrid.automation.exception.ParserInitializationException;
+import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.common.TestScenario;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.XMLEvent;
+import java.util.ServiceLoader;
 
 /**
  * Factory to return an appropriate JMeter result parser instance.
  *
  * @since 1.0.0
  */
-public class JMeterResultParserFactory {
+public class JMeterResultParserFactory extends ResultParserFactory {
 
-    private static final Logger logger = LoggerFactory.getLogger(JMeterResultParserFactory.class);
+    private ServiceLoader<JTLResultParser> parsers = ServiceLoader.load(JTLResultParser.class);
 
     /**
-     * This method returns an instance of {@link JMeterResultParser} to parse the given JMeter result file.
+     * This method returns an instance of {@link ResultParser} to parse the given JMeter result file.
      *
      * @param testScenario {@link TestScenario}  TestScenario object associated with the tests
      * @param testLocation {@link String}        Location of the scenario test directory
-     * @return a JMeterResultParser {@link JMeterResultParser} to parse the given JTL file
-     * @throws JMeterResultParserException {@link JMeterResultParserException} when an error occurs while obtaining the
-     * instance of the parser
+     * @return a ResultParser {@link ResultParser} to parse the given JTL file
+     * @throws ParserInitializationException {@link ParserInitializationException} when an
+     *                                       error occurs while obtaining the instance of the parser
      */
-    public static Optional<JMeterResultParser> getParser(TestScenario testScenario, String testLocation) throws
-            JMeterResultParserException {
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        String testScenarioName = testScenario.getName();
-        String scenarioResultFile = JMeterParserUtil.getJTLFile(testLocation);
-        if (scenarioResultFile == null || scenarioResultFile.isEmpty() || !Files
-                .exists(Paths.get(scenarioResultFile))) {
-            logger.warn("A JMeter result output file (*.jtl) was not found for scenario: " + testScenarioName);
-            return Optional.empty();
-        }
-        try (InputStream inputStream = new FileInputStream(scenarioResultFile)) {
-            XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
-
-            while (eventReader.hasNext()) {
-                XMLEvent event = eventReader.nextEvent();
-                if (event.getEventType() == XMLStreamConstants.START_ELEMENT) {
-                    String qName = event.asStartElement().getName().getLocalPart();
-                    FunctionalTestResultParser functionalTestResultParser =
-                            new FunctionalTestResultParser(testScenario, testLocation);
-                    if (functionalTestResultParser.canParse(qName)) {
-                        return Optional.of(functionalTestResultParser);
-                    }
+    public Optional<ResultParser> getParser(TestScenario testScenario, String testLocation)
+            throws ParserInitializationException {
+        for (ResultParser parser : parsers) {
+            try {
+                if (parser.canParse(testScenario, testLocation)) {
+                    Constructor<? extends ResultParser> constructor = parser.getClass()
+                            .getConstructor(TestScenario.class, String.class);
+                    return Optional.of(constructor.newInstance(testScenario, testLocation));
                 }
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException
+                    | InvocationTargetException e) {
+                throw new ParserInitializationException(String.format("Error occurred while " +
+                        "initializing the Result Parser %s", parser.getClass().toString()), e);
+            } catch (ResultParserException e) {
+                throw new ParserInitializationException("Error occurred while checking " +
+                        "the parser compatibility for Result Parser :" + parser.getClass().toString(), e);
             }
-        } catch (XMLStreamException e) {
-            throw new JMeterResultParserException("Unable to parse the scenario-results file of the test scenario : " +
-                    "'" + testScenarioName + "'", e);
-        } catch (FileNotFoundException e) {
-            throw new JMeterResultParserException("Unable to locate the scenario-results file of the test scenario : " +
-                    "'" + testScenarioName + "'", e);
-        } catch (IOException e) {
-            throw new JMeterResultParserException("Unable to close the input stream of the" +
-                    " scenario-results file for test scenario : '" + testScenarioName + "'", e);
         }
-        return Optional.empty();
+        throw new ParserInitializationException(String.format("Unable to find a matching Parser " +
+                "for the testScenario :%sIn test location :%s", testScenario.getName(), testLocation));
+    }
+
+    @Override
+    public boolean canHandle(String testLocation) {
+        //Can parse if there is JTL file generated after the test execution in workspace
+        String jtlFile;
+        try {
+            jtlFile = ResultParserUtil.getJTLFile(testLocation);
+        } catch (JTLResultParserException e) {
+            return false;
+        }
+        return jtlFile != null;
     }
 }

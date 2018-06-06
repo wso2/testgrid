@@ -20,6 +20,7 @@ package org.wso2.testgrid.automation.parser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.automation.exception.JTLResultParserException;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 
@@ -28,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.Optional;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -40,11 +42,13 @@ import javax.xml.stream.events.XMLEvent;
 
 /**
  * Parser implementation for parsing JMeter Functional Test result file.
+ *
+ * @since 1.0.0
  */
-public class FunctionalTestResultParser extends JMeterResultParser {
+public class FunctionalTestResultParser extends JTLResultParser {
 
     private static final Logger logger = LoggerFactory.
-             getLogger(FunctionalTestResultParser.class.getName());
+            getLogger(FunctionalTestResultParser.class.getName());
     private static final long serialVersionUID = -5244808712889913949L;
 
     private static final String HTTP_SAMPLE_ELEMENT = "httpSample";
@@ -57,18 +61,50 @@ public class FunctionalTestResultParser extends JMeterResultParser {
         super(testScenario, testLocation);
     }
 
-    @Override
-    public boolean canParse(String nodeName) {
-        return HTTP_SAMPLE_ELEMENT.equals(nodeName) || SAMPLE_ELEMENT.equals(nodeName);
+    public FunctionalTestResultParser() {
+
     }
 
     @Override
-    public void parseResults() throws JMeterResultParserException {
+    public boolean canParse(TestScenario testScenario, String testLocation) throws JTLResultParserException {
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        String testScenarioName = testScenario.getName();
+        Optional<String> jtlFile = Optional.ofNullable(ResultParserUtil.getJTLFile(testLocation));
+        if (jtlFile.isPresent()) {
+            try (InputStream inputStream = new FileInputStream(jtlFile.get())) {
+                XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
+
+                while (eventReader.hasNext()) {
+                    XMLEvent event = eventReader.nextEvent();
+                    if (event.getEventType() == XMLStreamConstants.START_ELEMENT) {
+                        String qName = event.asStartElement().getName().getLocalPart();
+                        if (HTTP_SAMPLE_ELEMENT.equals(qName) || SAMPLE_ELEMENT.equals(qName)) {
+                            return true;
+                        }
+                    }
+                }
+            } catch (XMLStreamException e) {
+                throw new JTLResultParserException("Unable to parse the scenario-results file of the test scenario : " +
+                        "'" + testScenarioName + "'", e);
+            } catch (FileNotFoundException e) {
+                throw new JTLResultParserException("Unable to locate the scenario-results file of the " +
+                        "test scenario : '" + testScenarioName + "'", e);
+            } catch (IOException e) {
+                throw new JTLResultParserException("Unable to close the input stream of the" +
+                        " scenario-results file for test scenario : '" + testScenarioName + "'", e);
+            }
+        } else {
+            throw new JTLResultParserException("Unable to locate the scenario-results file of the test scenario : " +
+                    "'" + testScenarioName + "'");
+        }
+        return false;
+    }
+
+    @Override
+    public void parseResults() throws JTLResultParserException {
         boolean failureMsgElement = false;
         XMLInputFactory factory = XMLInputFactory.newInstance();
-        //InputStream inputStream = null;
-
-        String scenarioResultFile = JMeterParserUtil.getJTLFile(this.testLocation);
+        String scenarioResultFile = ResultParserUtil.getJTLFile(this.testLocation);
         String testScenarioName = testScenario.getName();
         try (InputStream inputStream = new FileInputStream(scenarioResultFile)) {
             if (logger.isDebugEnabled()) {
@@ -80,7 +116,7 @@ public class FunctionalTestResultParser extends JMeterResultParser {
             TestCase testCase = null;
             while (eventReader.hasNext()) {
                 XMLEvent event = eventReader.nextEvent();
-                switch(event.getEventType()) {
+                switch (event.getEventType()) {
                     case XMLStreamConstants.START_ELEMENT:
                         StartElement startElement = event.asStartElement();
                         String elementName = startElement.getName().getLocalPart();
@@ -116,12 +152,12 @@ public class FunctionalTestResultParser extends JMeterResultParser {
                         "' using the FunctionalTestResultParser");
             }
         } catch (XMLStreamException e) {
-            throw new JMeterResultParserException("Unable to parse the scenario-results file of TestScenario :" +
+            throw new JTLResultParserException("Unable to parse the scenario-results file of TestScenario :" +
                     testScenarioName, e);
         } catch (FileNotFoundException e) {
-            throw new JMeterResultParserException("Unable to locate the scenario-results file.", e);
+            throw new JTLResultParserException("Unable to locate the scenario-results file.", e);
         } catch (IOException e) {
-            throw new JMeterResultParserException("Unable to close the input stream of scenario results file of " +
+            throw new JTLResultParserException("Unable to close the input stream of scenario results file of " +
                     "the TestScenario : " + testScenarioName, e);
         }
     }
