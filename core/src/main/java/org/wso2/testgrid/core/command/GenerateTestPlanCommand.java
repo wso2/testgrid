@@ -263,10 +263,7 @@ public class GenerateTestPlanCommand implements Command {
                 return optionalDeploymentPattern.get();
             }
 
-            DeploymentPattern deploymentPattern = new DeploymentPattern();
-            deploymentPattern.setName(deploymentPatternName);
-            deploymentPattern.setProduct(product);
-            return deploymentPattern;
+            return deploymentPatternUOW.persistDeploymentPattern(product, deploymentPatternName);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error while retrieving deployment pattern for { product: ", product,
