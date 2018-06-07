@@ -24,11 +24,8 @@ import Avatar from 'material-ui/Avatar';
 import List from 'material-ui/List/List';
 import ListItem from 'material-ui/List/ListItem';
 import Divider from 'material-ui/Divider';
-import AceEditor from 'react-ace';
 import LinearProgress from 'material-ui/LinearProgress';
-import CircularProgress from 'material-ui/CircularProgress';
 import Download from 'downloadjs'
-import Websocket from 'react-websocket';
 import Snackbar from 'material-ui/Snackbar';
 import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
   from '../constants.js';
@@ -466,120 +463,6 @@ class TestRunView extends Component {
                     <br/>
                     <LinearProgress mode="indeterminate"/>
                   </div>;
-              }
-            })()}
-            {divider}
-            <br/>
-            {/*Test log*/}
-            <h2>Test Run Log</h2>
-            {/*Display log from file system*/}
-            {this.state && this.state.currentInfra && (() => {
-              switch (this.state.currentInfra.testPlanStatus) {
-                case PENDING:
-                case "RUNNING":
-                  return (<div>
-                    <Websocket
-                      url={'wss://' + window.location.hostname + TESTGRID_CONTEXT + '/live-log/' +
-                      this.state.currentInfra.testPlanId}
-                      onMessage={data => {
-                        this.handleLiveLogData(data)
-                      }}/>
-                    <AceEditor
-                      theme="github"
-                      ref="log"
-                      fontSize={16}
-                      showGutter={true}
-                      highlightActiveLine={true}
-                      value={this.state.logContent}
-                      wrapEnabled={true}
-                      readOnly={true}
-                      setOptions={{
-                        showLineNumbers: true,
-                        maxLines: Infinity
-                      }}
-                      style={{
-                        width: this.props.containerWidth
-                      }}/>
-                    <center><CircularProgress size={40} thickness={8}/></center>
-                  </div>);
-                case FAIL:
-                case SUCCESS:
-                default: {
-                  // Display Log from S3
-                  switch (this.state.logDownloadStatus) {
-                    case ERROR:
-                      return <div style={{
-                        padding: 5,
-                        color: "#D8000C",
-                        backgroundColor: "#FFD2D2"
-                      }}>
-                        <br/>
-                        <strong>Oh snap! </strong>
-                        Error occurred when downloading the log file content.
-                      </div>;
-                    case SUCCESS:
-                      return <div>
-                        <AceEditor
-                          theme="github"
-                          ref="log"
-                          fontSize={16}
-                          showGutter={true}
-                          highlightActiveLine={true}
-                          value={this.state.logContent}
-                          wrapEnabled={true}
-                          readOnly={true}
-                          setOptions={{
-                            showLineNumbers: true,
-                            maxLines: Infinity
-                          }}
-                          style={{
-                            width: this.props.containerWidth
-                          }}/>
-                        {this.state.isLogTruncated ?
-                          <div>
-                            <center>
-                              <FlatButton
-                                onClick={() => (fetch(logAllContentUrl, {
-                                  method: "GET",
-                                  credentials: 'same-origin',
-                                  headers: {
-                                    'Accept': 'application/json'
-                                  }
-                                }).then(this.handleError)
-                                  .then(response => {
-                                    this.setState({
-                                      logDownloadStatus: response.ok ? SUCCESS : ERROR
-                                    });
-                                    return response;
-                                  }).then(data => data.json().then(json =>
-                                    this.setState({
-                                      logContent: json.inputStreamContent,
-                                      isLogTruncated: false
-                                    }),
-                                  )))}
-                                label={"See More (" + this.state.inputStreamSize + ")"}
-                                labelStyle={{
-                                  fontSize: '20px',
-                                  fontWeight: 600
-                                }}
-                                style={{
-                                  color: '#0E457C'
-                                }}/>
-                            </center>
-                          </div>
-                          : ""}
-                      </div>;
-                    case PENDING:
-                    default:
-                      return <div>
-                        <br/>
-                        <br/>
-                        <b>Loading test log...</b>
-                        <br/>
-                        <LinearProgress mode="indeterminate"/>
-                      </div>;
-                  }
-                }
               }
             })()}
           </CardMedia>
