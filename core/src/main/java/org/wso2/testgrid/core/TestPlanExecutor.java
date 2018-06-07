@@ -21,6 +21,10 @@ package org.wso2.testgrid.core;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.automation.exception.ReportGeneratorException;
+import org.wso2.testgrid.automation.exception.ReportGeneratorInitializingException;
+import org.wso2.testgrid.automation.report.ReportGenerator;
+import org.wso2.testgrid.automation.report.ReportGeneratorFactory;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.InfrastructureProvider;
@@ -108,6 +112,18 @@ public class TestPlanExecutor {
         }
         // Run test scenarios.
         runScenarioTests(testPlan, deploymentCreationResult);
+
+        //Add the new report generation here
+        try {
+            ReportGenerator reportGenerator = ReportGeneratorFactory.getReportGenerator(testPlan);
+            reportGenerator.generateReport();
+
+        } catch (ReportGeneratorInitializingException e) {
+            e.printStackTrace();
+        } catch (ReportGeneratorException e) {
+            e.printStackTrace();
+        }
+
 
         // Test plan completed. Persist the testplan status
         persistTestPlanStatus(testPlan);
