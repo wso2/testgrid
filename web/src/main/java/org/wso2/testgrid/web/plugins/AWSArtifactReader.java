@@ -101,7 +101,7 @@ public class AWSArtifactReader implements ArtifactReadable {
         }
     }
 
-    @Override public Boolean isExistArtifact(String key) {
+    @Override public Boolean isArtifactExist(String key) {
         return amazonS3.doesObjectExist(bucketName, key);
     }
 }

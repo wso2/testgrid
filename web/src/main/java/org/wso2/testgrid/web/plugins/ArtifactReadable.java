@@ -63,5 +63,5 @@ public interface ArtifactReadable {
      * @param key           key of the artifact to download
      * @return {@link Boolean} If artifact exist in the remote storage return True otherwise return False
      */
-    Boolean isExistArtifact(String key);
+    Boolean isArtifactExist(String key);
 }

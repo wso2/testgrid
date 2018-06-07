@@ -202,9 +202,9 @@ public class ProductService {
                         .concatStrings(product.getName(), "-", uniqueAxisColumn, Constants.HTML_EXTENSION);
                 String bucketKey = Paths.get(Constants.AWS_BUCKET_ARTIFACT_DIR, productName, fileName).toString();
                 ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
-                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
-                        Constants.AWS_BUCKET_NAME);
-                if (artifactReadable.isExistArtifact(bucketKey)) {
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+                if (artifactReadable.isArtifactExist(bucketKey)) {
                     return Response.status(Response.Status.OK).entity("The artifact exists in the remote storage")
                             .build();
                 }
@@ -252,8 +252,8 @@ public class ProductService {
                         .concatStrings(product.getName(), "-", uniqueAxisColumn, Constants.HTML_EXTENSION);
                 String bucketKey = Paths.get(Constants.AWS_BUCKET_ARTIFACT_DIR, productName, fileName).toString();
                 ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
-                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
-                        Constants.AWS_BUCKET_NAME);
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
                 Response.ResponseBuilder response = Response
                         .ok(artifactReadable.getArtifactStream(bucketKey), MediaType.APPLICATION_OCTET_STREAM);
                 response.status(Response.Status.OK);

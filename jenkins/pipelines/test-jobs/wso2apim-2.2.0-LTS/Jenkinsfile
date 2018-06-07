@@ -1,3 +1,9 @@
+properties = null
+def loadProperties() {
+    node {
+        properties = readProperties file: "${TESTGRID_HOME}/config.properties"
+    }
+}
 pipeline {
     agent {
         node {
@@ -111,12 +117,18 @@ pipeline {
                         }
                         echo "RESULT: ${currentBuild.result}"
 
-                        // Archive jtl files
-                        withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
-                            // Upload artifacts to S3
-                            s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"jenkins-testrun-artifacts", path:"artifacts/${f.name}")
+                        script {
+                            loadProperties()
+                            // Archive jtl files
+                            def bucket= properties['AWS_S3_BUCKET_NAME']
+                            if ( "${bucket}" == "null") {
+                                bucket="unknown"
+                            }
+                            withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
+                                // Upload artifacts to S3
+                                s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/${f.name}")
+                            }
                         }
-
                     }
                 }
             }
@@ -138,13 +150,18 @@ pipeline {
             --product ${PRODUCT} \
             --groupBy scenario
             """
-
-            // Archive artifacts
-            withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
-              // Upload artifacts to S3
-              s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"jenkins-testrun-artifacts", path:"artifacts/")
-            }
-
+           script {
+               // Archive artifacts
+                loadProperties()
+                def bucket= properties['AWS_S3_BUCKET_NAME']
+                if ( "${bucket}" == "null") {
+                    bucket="unknown"
+                }
+                withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
+                  // Upload artifacts to S3
+                  s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"${bucket}", path:"artifacts/")
+                }
+           }
             // Delete logs and reports after upload
             dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
                 sh """

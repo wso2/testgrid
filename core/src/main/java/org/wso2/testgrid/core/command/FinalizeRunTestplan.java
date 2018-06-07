@@ -68,7 +68,7 @@ public class FinalizeRunTestplan implements Command {
     public void execute() throws CommandExecutionException {
 
         LogFilePathLookup.setLogFilePath(
-                TestGridUtil.deriveLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
+                TestGridUtil.deriveTestGridLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
 
         if (Paths.get(testPlanYamlFilePath).toFile().exists()) {
             //Read test plan id from test-plan yaml file
