@@ -204,7 +204,7 @@ public class ProductService {
                 ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
                         getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
                         ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_BUCKET_NAME));
-                if (artifactReadable.isExistArtifact(bucketKey)) {
+                if (artifactReadable.isArtifactExist(bucketKey)) {
                     return Response.status(Response.Status.OK).entity("The artifact exists in the remote storage")
                             .build();
                 }
