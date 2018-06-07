@@ -405,7 +405,7 @@ public final class TestGridUtil {
 
     /**
      * Returns the path of the test-run log file.
-     *todo
+     *
      * @param testPlan test-plan
      * @return log file path
      */
@@ -420,7 +420,6 @@ public final class TestGridUtil {
      * Returns the test-plan directory name based on the test-plan content.
      * @param testPlan test-plan
      * @return test-plan directory name.
-     * @throws TestGridException
      */
     public static String deriveTestPlanDirName(TestPlan testPlan) throws TestGridException {
         DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();

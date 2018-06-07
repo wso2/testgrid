@@ -162,7 +162,6 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
 
-            //String logFileDir = Paths.get(subStrings[0], TestGridConstants.TESTGRID_LOGS_DIR).toString();
             String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan);
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
