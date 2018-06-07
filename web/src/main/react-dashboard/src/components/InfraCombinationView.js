@@ -18,7 +18,6 @@
 
 import React, {Component} from 'react';
 import '../App.css';
-import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
 import {add_current_infra, add_current_deployment} from '../actions/testGridActions.js';
 import FlatButton from 'material-ui/FlatButton';
@@ -26,7 +25,8 @@ import Divider from 'material-ui/Divider';
 import Moment from 'moment';
 import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
   from '../constants.js';
-import {Table} from 'reactstrap';
+import {Card, CardText, CardTitle, Col, Row, Table} from 'reactstrap';
+import ReactTooltip from 'react-tooltip'
 
 class InfraCombinationView extends Component {
 
@@ -45,6 +45,21 @@ class InfraCombinationView extends Component {
       throw Error(response.statusText)
     }
     return response;
+  }
+
+  static parseInfraCombination(infraCombination){
+    let infraData = JSON.parse(infraCombination);
+    return <Card body inverse>
+      <CardText>
+        {
+          Object.entries(infraData).map(([key, value]) => {
+            return (
+              <small className="text-muted"><b>{key}</b>-{value}  </small>
+            )
+          })
+        }
+      </CardText>
+    </Card>
   }
 
   navigateToRoute(route, deployment, testPlan) {
@@ -70,7 +85,7 @@ class InfraCombinationView extends Component {
       })
       .then(data => {
         let currentUrl = window.location.href.split("/");
-        if (this.props.active.reducer.currentInfra) {
+        if (this.props.active.reducer.currentInfra && this.props.active.reducer.currentInfra.testPlanId === data[0].id) {
           currentInfra = this.props.active.reducer.currentInfra;
         } else {
           currentInfra = {};
@@ -92,181 +107,90 @@ class InfraCombinationView extends Component {
         {this.state && this.state.currentInfra && (() => {
           switch (this.state.currentInfra.testPlanStatus) {
             case FAIL:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#ffd6d3"
-              }}>
-                <Table responsive>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../close.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i>{this.state.currentInfra.relatedProduct} /
-                      {this.state.currentInfra.relatedDeplymentPattern} <br/>
-                      {this.state.currentInfra.infraParameters}
-                    </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse style={{ backgroundColor: '#e57373', borderColor: '#e57373' }}>
+                    <CardTitle><i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!">
+                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    </i><ReactTooltip/></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
             case SUCCESS:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#cdffba"
-              }}>
-                <Table responsive>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../success.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i>{this.state.currentInfra.relatedProduct} /
-                      {this.state.currentInfra.relatedDeplymentPattern} <br/>
-                      {this.state.currentInfra.infraParameters}
-                    </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse color="success">
+                    <CardTitle><i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!">
+                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    </i><ReactTooltip/></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
             case PENDING:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#cdffba"
-              }}>
-                <Table responsive>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../new.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i>{this.state.currentInfra.relatedProduct} /
-                      {this.state.currentInfra.relatedDeplymentPattern} <br/>
-                      {this.state.currentInfra.infraParameters}
-                    </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse color="info">
+                    <CardTitle><i className="fa fa-tasks" aria-hidden="true" data-tip="Pending!">
+                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    </i><ReactTooltip/></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
             case DID_NOT_RUN:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#cdffba"
-              }}>
-                <Table>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../did_not_run.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i>{this.state.currentInfra.relatedProduct} /
-                      {this.state.currentInfra.relatedDeplymentPattern} <br/>
-                      {this.state.currentInfra.infraParameters}
-                    </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse color="info">
+                    <CardTitle><i className="fa fa-ban" aria-hidden="true" data-tip="Did Not Run!">
+                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    </i><ReactTooltip/></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
             case INCOMPLETE:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#cdffba"
-              }}>
-                <Table responsive>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../incomplete.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i>{this.state.currentInfra.relatedProduct} /
-                      {this.state.currentInfra.relatedDeplymentPattern} <br/>
-                      {this.state.currentInfra.infraParameters}
-                    </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse color="info">
+                    <CardTitle><i className="fa fa-hourglass-half" aria-hidden="true" data-tip="Incomplete!">
+                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    </i><ReactTooltip/></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
             case ERROR:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#ffd6d3"
-              }}>
-                <Table responsive>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../error.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i>{this.state.currentInfra.relatedProduct} /
-                      {this.state.currentInfra.relatedDeplymentPattern} <br/>
-                      {this.state.currentInfra.infraParameters}
-                    </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse style={{ backgroundColor: '#e57373', borderColor: '#e57373' }}>
+                    <CardTitle><i className="fa fa-times-circle" aria-hidden="true" data-tip="Error!">
+                      <span>{this.state.currentInfra.relatedProduct}</span> </i>
+                      <ReactTooltip/></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
             case RUNNING:
             default:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#FFCC80"
-              }}>
-                <Table responsive>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../wait.gif')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i>{this.state.currentInfra.relatedProduct} /
-                      {this.state.currentInfra.relatedDeplymentPattern} <br/>
-                      {this.state.currentInfra.infraParameters}
-                    </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse color="info">
+                    <CardTitle><i className="fa fa-spinner fa-pulse" data-tip="Running!">
+                      <span className="sr-only">Loading...</span></i><ReactTooltip/>
+                      <span> {this.state.currentInfra.relatedProduct}</span></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
           }
         })()}
         <Divider/>
@@ -287,7 +211,7 @@ class InfraCombinationView extends Component {
               return (<tr key={index}>
                 <td>{index + 1}</td>
                 <td>
-                  <FlatButton style={{color: '#0E457C'}}
+                  <FlatButton style={{height: 'inherit', width: '100%', 'max-width': '150px'}}
                               onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
                                 this.state.currentInfra.relatedProduct + "/" +
                                 this.state.currentInfra.relatedDeplymentPattern + "/test-plans/"

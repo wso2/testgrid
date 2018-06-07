@@ -241,7 +241,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
     public List<TestPlan> getTestPlanHistory(TestPlan testPlan) {
         String sql = " select t.* from test_plan t inner join deployment_pattern dp inner " +
                 "join product p on p.id=dp.PRODUCT_id and dp.id=t.DEPLOYMENTPATTERN_id " +
-                "where t.infra_parameters=? AND dp.id=? AND p.id=?";
+                "where t.infra_parameters=? AND dp.id=? AND p.id=? ORDER BY modified_timestamp DESC";
 
         @SuppressWarnings("unchecked")
         List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)

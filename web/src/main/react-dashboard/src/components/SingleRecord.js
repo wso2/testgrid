@@ -19,112 +19,111 @@
 import React, {Component} from 'react';
 import Moment from 'moment';
 import {SUCCESS, ERROR, PENDING, RUNNING, INCOMPLETE, DID_NOT_RUN} from '../constants.js';
+import 'font-awesome/css/font-awesome.min.css';
+import {Button} from "reactstrap";
+import ReactTooltip from 'react-tooltip'
 
 class SingleRecord extends Component {
 
   render() {
     if (this.props.value === SUCCESS || this.props.value === true) {
       return (
-        <div style={{"fontSize": "16px"}}>
-          <img src={require('../success.png')} width="28" height="28"
-               onClick={this.props.nevigate}
-               style={{cursor: 'pointer'}}
-               title='Successful'
-               alt='Succesful'/>
-          {(() => {
-            if (this.props.time) {
-              return (<i> {Moment(this.props.time).fromNow()}</i>);
-            }
-          })()}
+        <div>
+          <Button onClick={this.props.nevigate} outline color="success" size="sm" className="success-status-btn">
+            <i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!"> </i>
+            <ReactTooltip/>
+            {(() => {
+              if (this.props.time) {
+                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
+              }
+            })()}
+          </Button>
         </div>
       )
     } else if (this.props.value === INCOMPLETE) {
       return (
-        <div style={{"fontSize": "16px"}}>
-          <img src={require('../incomplete.png')} width="30" height="30"
-               onClick={this.props.nevigate}
-               style={{cursor: 'pointer'}}
-               title='Incomplete'
-               alt='Incomplete'/>
-          {(() => {
-            if (this.props.time) {
-              return (<i> {Moment(this.props.time).fromNow()}</i>);
-            }
-          })()}
+        <div>
+          <Button onClick={this.props.nevigate} outline color="info" size="sm" className="incomplete-status-btn">
+            <i className="fa fa-hourglass-half" aria-hidden="true" data-tip="Incomplete!"> </i>
+            <ReactTooltip/>
+            {(() => {
+              if (this.props.time) {
+                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
+              }
+            })()}
+          </Button>
         </div>
       )
     } else if (this.props.value === DID_NOT_RUN) {
       return (
-        <div style={{"fontSize": "16px"}}>
-          <img src={require('../did_not_run.png')} width="30" height="30"
-               onClick={this.props.nevigate}
-               style={{cursor: 'pointer'}}
-               title='Did not Run'
-               alt='Did not Run'/>
-          {(() => {
-            if (this.props.time) {
-              return (<i> {Moment(this.props.time).fromNow()}</i>);
-            }
-          })()}
+        <div>
+          <Button onClick={this.props.nevigate} outline color="info" size="sm" className="not-run-status-btn">
+            <i className="fa fa-ban" aria-hidden="true" data-tip="Did Not Run!"> </i>
+            <ReactTooltip/>
+            {(() => {
+              if (this.props.time) {
+                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
+              }
+            })()}
+          </Button>
         </div>
       )
     } else if (this.props.value === ERROR) {
       return (
-        <div style={{"fontSize": "16px"}}>
-          <img src={require('../error.png')} width="30" height="30"
-               onClick={this.props.nevigate}
-               style={{cursor: 'pointer'}}
-               title='Error'
-               alt='Error'/>
-          {(() => {
-            if (this.props.time) {
-              return (<i> {Moment(this.props.time).fromNow()}</i>);
-            }
-          })()}
+        <div>
+          <Button onClick={this.props.nevigate} outline color="danger" size="sm" className="error-status-btn">
+            <i className="fa fa-times-circle" aria-hidden="true" data-tip="Error!"> </i>
+            <ReactTooltip/>
+            {(() => {
+              if (this.props.time) {
+                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
+              }
+            })()}
+          </Button>
         </div>
       )
     } else if (this.props.value === RUNNING) {
       return (
-        <div style={{"fontSize": "16px"}}>
-          <img src={require('../wait.gif')} width="30" height="30"
-               onClick={this.props.nevigate}
-               style={{cursor: 'pointer'}}
-               title='Running'
-               alt='Running'/>
-          {(() => {
-            if (this.props.time) {
-              return (<i> {Moment(this.props.time).fromNow()}</i>);
-            }
-          })()}
+        <div>
+          <Button onClick={this.props.nevigate} outline color="info" size="sm" className="running-status-btn">
+            <i className="fa fa-spinner fa-pulse" data-tip="Running!"> </i>
+            <span className="sr-only">Loading...</span>
+            <ReactTooltip/>
+            {(() => {
+              if (this.props.time) {
+                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
+              }
+            })()}
+          </Button>
         </div>
       )
     } else if (this.props.value === PENDING) {
       return (
-        <div style={{"fontSize": "16px"}}>
-          <img src={require('../new.png')} width="30" height="30"
-               onClick={this.props.nevigate}
-               style={{cursor: 'pointer'}}
-               alt='Pending'/>
-          {(() => {
-            if (this.props.time) {
-              return (<i> {Moment(this.props.time).fromNow()}</i>);
-            }
-          })()}
+        <div>
+          <Button onClick={this.props.nevigate} outline color="info" size="sm">
+            <i className="fa fa-tasks" aria-hidden="true" data-tip="Pending!"> </i>
+            <ReactTooltip/>
+            {(() => {
+              if (this.props.time) {
+                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
+              }
+            })()}
+          </Button>
         </div>
       )
     }
     else {
       return (
-        <div style={{"fontSize": "16px", cursor: "pointer"}}>
-          <img src={require('../close.png')}
-               width="28" height="28"
-               onClick={this.props.nevigate}
-               style={{cursor: 'pointer'}} alt='Failed'/>
-          {(() => {
-            if (this.props.time) {
-              return (<i> {Moment(this.props.time).fromNow()}</i>);
-            }
-          })()}
+        <div>
+          <Button onClick={this.props.nevigate} outline color="danger" size="sm">
+            <i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!"> </i>
+            <ReactTooltip/>
+            {(() => {
+              if (this.props.time) {
+                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
+              }
+            })()}
+          </Button>
         </div>
       )
     }
