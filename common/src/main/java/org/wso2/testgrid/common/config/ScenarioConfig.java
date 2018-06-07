@@ -36,6 +36,7 @@ public class ScenarioConfig implements Serializable {
     private List<ConfigChangeSet> configChangeSets;
     private List<TestScenario> scenarios;
     private List<Script> scripts;
+    private String testType;
 
     /**
      * This method returns the list of scenarios.
@@ -65,5 +66,14 @@ public class ScenarioConfig implements Serializable {
 
     public void setScripts(List<Script> scripts) {
         this.scripts = scripts;
+    }
+
+
+    public String getTestType() {
+        return testType;
+    }
+
+    public void setTestType(String testType) {
+        this.testType = testType;
     }
 }
