@@ -114,9 +114,13 @@ pipeline {
                         }
                         echo "RESULT: ${currentBuild.result}"
                          script {
-                            loadProperties()
-                            def bucket= properties['AWS_BUCKET_NAME']
                             // Archive jtl files
+                            loadProperties()
+                            def bucket= properties['AWS_S3_BUCKET_NAME']
+                            if ( "${bucket}" == "null") {
+                                bucket="unknown"
+                            }
+
                             withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
                                 // Upload artifacts to S3
                                 s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/${f.name}")
@@ -145,9 +149,12 @@ pipeline {
             --groupBy scenario
             """
             script {
+                 // Archive artifacts
                 loadProperties()
-                def bucket= properties['AWS_BUCKET_NAME']
-                // Archive artifacts
+                def bucket= properties['AWS_S3_BUCKET_NAME']
+                if ( "${bucket}" == "null") {
+                    bucket="unknown"
+                }
                 withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
                   // Upload artifacts to S3
                   s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"jenkins-testrun-artifacts", path:"artifacts/")

@@ -169,7 +169,7 @@ public class TestPlanService {
             // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
                     getProperty(ConfigurationProperties.AWS_REGION_NAME),
-                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_BUCKET_NAME));
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
 
             // If truncated the input stream will be maximum of 200kb
             TruncatedInputStreamData truncatedInputStreamData = truncate ?
