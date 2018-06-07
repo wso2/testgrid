@@ -22,7 +22,6 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestCase;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
@@ -78,7 +77,6 @@ import javax.ws.rs.core.Response;
 public class TestPlanService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
-    private static final String AWS_BUCKET_NAME = "jenkins-testrun-artifacts";
     private static final String AWS_BUCKET_ARTIFACT_DIR = "artifacts";
     private JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
     private JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
@@ -164,17 +162,15 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
 
-            String testGridArtifactLocation = TestGridUtil.getTestRunWorkspace(testPlan).toString();
-            String[] subStrings = testGridArtifactLocation.split(TestGridConstants.FILE_SEPARATOR, 2);
-            String logFileName = subStrings[1].replaceAll(TestGridConstants.FILE_SEPARATOR, "_")
-                    + TestGridConstants.LOG_FILE_EXTENSION;
-            String logFileDir = Paths.get(subStrings[0], TestGridConstants.TESTGRID_LOGS_DIR).toString();
+            //String logFileDir = Paths.get(subStrings[0], TestGridConstants.TESTGRID_LOGS_DIR).toString();
+            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan);
             String bucketKey = Paths
-                    .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir, logFileName).toString();
+                    .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
             // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
-                    getProperty(ConfigurationProperties.AWS_REGION_NAME), AWS_BUCKET_NAME);
+                    getProperty(ConfigurationProperties.AWS_REGION_NAME),
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_BUCKET_NAME));
 
             // If truncated the input stream will be maximum of 200kb
             TruncatedInputStreamData truncatedInputStreamData = truncate ?

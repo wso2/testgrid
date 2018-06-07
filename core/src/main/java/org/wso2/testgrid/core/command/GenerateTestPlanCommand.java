@@ -135,7 +135,7 @@ public class GenerateTestPlanCommand implements Command {
         try {
             //Set the log file path
             LogFilePathLookup.setLogFilePath(
-                    TestGridUtil.deriveLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
+                    TestGridUtil.deriveTestGridLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
 
             if (StringUtils.isNotEmpty(jobConfigFilePath)) {
                 processTestgridConfiguration(jobConfigFilePath);

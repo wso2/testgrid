@@ -398,11 +398,31 @@ public final class TestGridUtil {
      * @param productName product name
      * @return log file path
      */
-    public static String deriveLogFilePath(String productName, String logFileName) {
-        return Paths.get(productName, TestGridConstants.TESTGRID_LOGS_DIR, logFileName).toString();
+    public static String deriveTestGridLogFilePath(String productName, String logFileName) {
+        return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
+                logFileName).toString();
     }
 
-    public static String deriveTestRunLogFileName(TestPlan testPlan) throws TestGridException {
+    /**
+     * Returns the path of the test-run log file.
+     *todo
+     * @param testPlan test-plan
+     * @return log file path
+     */
+    public static String deriveTestRunLogFilePath(TestPlan testPlan) throws TestGridException {
+        String productName = testPlan.getDeploymentPattern().getProduct().getName();
+        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
+        return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
+                testPlanDirName, TestGridConstants.TESTRUN_LOG_FILE_NAME).toString();
+    }
+
+    /**
+     * Returns the test-plan directory name based on the test-plan content.
+     * @param testPlan test-plan
+     * @return test-plan directory name.
+     * @throws TestGridException
+     */
+    public static String deriveTestPlanDirName(TestPlan testPlan) throws TestGridException {
         DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
         int testRunNumber = testPlan.getTestRunNumber();
         String deploymentDir = deploymentPattern.getName();
