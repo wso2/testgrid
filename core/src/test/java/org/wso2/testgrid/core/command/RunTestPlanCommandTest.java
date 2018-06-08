@@ -78,8 +78,6 @@ import static org.testng.Assert.assertTrue;
 public class RunTestPlanCommandTest extends PowerMockTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommandTest.class);
-    private static final String EXPECTED_TEST_PLAN_PATH = Paths.get("src", "test", "resources", "test-plan-01.yaml")
-            .toString();
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String infraParamsString = "{\"operating_system\":\"ubuntu_16.04\"}";
     private static final String TESTPLAN_ID = "TP_1";

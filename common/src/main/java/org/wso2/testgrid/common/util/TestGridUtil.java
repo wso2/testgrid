@@ -71,6 +71,8 @@ public final class TestGridUtil {
     private static final String UNDERSCORE = "_";
 
     /**
+     * Use {@link org.wso2.testgrid.common.ShellExecutor#executeCommand(String)} instead.
+     *
      * Executes a command.
      * Used to executing a script in a given working directory.
      *
@@ -79,6 +81,7 @@ public final class TestGridUtil {
      * @return The output of script execution as a String.
      * @throws CommandExecutionException When there is an error executing the command.
      */
+    @Deprecated
     public static String executeCommand(String command, File workingDirectory) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
@@ -116,6 +119,8 @@ public final class TestGridUtil {
     }
 
     /**
+     * Use {@link org.wso2.testgrid.common.ShellExecutor#executeCommand(String)} instead.
+     *
      * Executes a command.
      * Used to execute a script with given deployment details as environment variables.
      *
@@ -125,6 +130,7 @@ public final class TestGridUtil {
      * @return The output of script execution as a String.
      * @throws CommandExecutionException When there is an error executing the command.
      */
+    @Deprecated
     public static String executeCommand(String command, File workingDirectory,
             DeploymentCreationResult deploymentCreationResult)
             throws CommandExecutionException {
