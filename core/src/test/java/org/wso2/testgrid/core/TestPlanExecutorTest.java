@@ -1,11 +1,24 @@
 package org.wso2.testgrid.core;
 
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.core.command.RunTestPlanCommandTest;
+import org.wso2.testgrid.dao.uow.TestCaseUOW;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
+import org.wso2.testgrid.dao.uow.TestScenarioUOW;
+import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,11 +26,40 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.mockito.Mockito.spy;
+
 /**
  * Tests the summary log that gets printed at the end.
- *
  */
+@PowerMockIgnore({ "javax.management.*", "javax.script.*", "org.apache.logging.log4j.*" })
 public class TestPlanExecutorTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommandTest.class);
+
+    @Mock
+    private TestScenarioUOW testScenarioUOW;
+    @Mock
+    private TestPlanUOW testPlanUOW;
+    @Mock
+    private TestCaseUOW testCaseUOW;
+
+    private Product product;
+    private TestPlanExecutor testPlanExecutor;
+    private ScenarioExecutor scenarioExecutor;
+
+    @BeforeMethod
+    public void init() throws Exception {
+        final String randomStr = StringUtil.generateRandomString(5);
+        String productName = "wso2-" + randomStr;
+        this.product = new Product();
+        product.setName(productName);
+
+        scenarioExecutor = new ScenarioExecutor(testScenarioUOW, testCaseUOW);
+        testPlanExecutor = new TestPlanExecutor(scenarioExecutor, testPlanUOW, testScenarioUOW);
+        testPlanExecutor = spy(testPlanExecutor);
+        MockitoAnnotations.initMocks(this);
+    }
+
     @Test
     public void testPrintSummary() throws Exception {
         TestPlan testPlan = new TestPlan();
@@ -54,12 +96,16 @@ public class TestPlanExecutorTest {
 
         testPlan.setTestScenarios(Arrays.asList(s, s2));
 
-        final Path testgridLogPath = Paths.get("target", "testgrid.log");
-        Files.deleteIfExists(testgridLogPath);
-        final TestPlanExecutor testPlanExecutor = new TestPlanExecutor();
+        LogFilePathLookup.setLogFilePath("TestPlanExecutorTest.log");
+        final Path testgridLogPath = Paths.get("target", "TestPlanExecutorTest.log").toAbsolutePath();
+        final TestPlanExecutor testPlanExecutor = new TestPlanExecutor(scenarioExecutor, testPlanUOW, testScenarioUOW);
         testPlanExecutor.printSummary(testPlan, System.currentTimeMillis() - 1525414900000L);
 
-        final List<String> testgridLog = Files.readAllLines(testgridLogPath);
+        logger.info("Reading TestPlanExecutorTest.log at " + testgridLogPath.toAbsolutePath());
+        waitForLog(testgridLogPath.toAbsolutePath());
+
+        final List<String> testgridLog = Files.readAllLines(testgridLogPath.toAbsolutePath());
+        logger.info("TestPlanExecutorTest.log content: " + testgridLog);
         boolean failedTestsTextFound = false;
         boolean testPlanSummaryTextFound = false;
         boolean testRunFailTextFound = false;
@@ -85,7 +131,24 @@ public class TestPlanExecutorTest {
         Assert.assertTrue(testPlanSummaryTextFound, "'Test Plan Summary for:' text was not found.");
         Assert.assertTrue(testRunFailTextFound, "'TEST RUN FAIL:' text was not found.");
 
-        Files.deleteIfExists(testgridLogPath);
+        LogFilePathLookup.setLogFilePath("testgrid.log");
+    }
+
+    private void waitForLog(Path path) {
+        int retryCount = 100;
+
+        while (retryCount-- > 0) {
+            try {
+                if (Files.exists(path)) {
+                    logger.info("Log file found at " + path + " in " + (101 - retryCount) + " tries.");
+                    return;
+                } else {
+                    Thread.sleep(500);
+                }
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(e);
+            }
+        }
     }
 
 }
