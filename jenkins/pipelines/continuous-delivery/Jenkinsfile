@@ -1,4 +1,6 @@
 node('COMPONENT_ECS') {
+    def MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
+
     stage('Deploy to Dev'){
         deleteDir()
         copyArtifacts(projectName: 'testgrid/testgrid', filter: 'distribution/target/*.zip, web/target/*.war, deployment-tinkerer/target/*.war');
@@ -7,6 +9,14 @@ node('COMPONENT_ECS') {
                 scp -o StrictHostKeyChecking=no web/target/*.war ${DEV_USER}@${DEV_HOST}:/testgrid/deployment/apache-tomcat-8.5.23/webapps/ROOT.war
                 scp -o StrictHostKeyChecking=no deployment-tinkerer/target/*.war ${DEV_USER}@${DEV_HOST}:/testgrid/deployment/apache-tomcat-8.5.23/webapps/
                 scp -o StrictHostKeyChecking=no distribution/target/*.zip ${DEV_USER}@${DEV_HOST}:/testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid.zip
+                ssh -o StrictHostKeyChecking=no ${DEV_USER}@${DEV_HOST} /bin/bash << EOF
+                    cd /testgrid/testgrid-home/testgrid-dist/;
+                    unzip WSO2-TestGrid.zip -d WSO2-TestGrid-unzipped;
+                    curl -o ./WSO2-TestGrid-unzipped/lib/mysql.jar ${MYSQL_DRIVER_LOCATION}
+                    rm -rf WSO2-TestGrid-backup;
+                    mv WSO2-TestGrid WSO2-TestGrid-backup;
+                    mv WSO2-TestGrid-unzipped WSO2-TestGrid;
+                    EOF
                 """
            }
     }
@@ -42,10 +52,18 @@ node('COMPONENT_ECS') {
                     scp -o StrictHostKeyChecking=no web/target/*.war ${PROD_USER}@${PROD_HOST}:/testgrid/deployment/apache-tomcat-8.5.24/webapps/ROOT.war
                     scp -o StrictHostKeyChecking=no deployment-tinkerer/target/*.war ${PROD_USER}@${PROD_HOST}:/testgrid/deployment/apache-tomcat-8.5.24/webapps/
                     scp -o StrictHostKeyChecking=no distribution/target/*.zip ${PROD_USER}@${PROD_HOST}:/testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid.zip
+                    ssh -o StrictHostKeyChecking=no ${PROD_USER}@${PROD_HOST} /bin/bash << EOF
+                        cd /testgrid/testgrid-home/testgrid-dist/;
+                        unzip WSO2-TestGrid.zip -d WSO2-TestGrid-unzipped;
+                        curl -o ./WSO2-TestGrid-unzipped/lib/mysql.jar ${MYSQL_DRIVER_LOCATION}
+                        rm -rf WSO2-TestGrid-backup;
+                        mv WSO2-TestGrid WSO2-TestGrid-backup;
+                        mv WSO2-TestGrid-unzipped WSO2-TestGrid;
+                        EOF
                  """
             }
         } else {
-            echo "Not proceeding with pre prod"
+            echo "Not proceeding with prod deployment."
         }
     }
 
