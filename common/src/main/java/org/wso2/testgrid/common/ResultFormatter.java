@@ -15,8 +15,9 @@
 * specific language governing permissions and limitations
 * under the License.
 */
-package org.wso2.testgrid.reporting.model.performance;
+package org.wso2.testgrid.common;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +28,14 @@ import java.util.Map;
  *
  * @since 1.0.0
  */
-public class ResultFormatter {
+public class ResultFormatter implements Serializable {
 
     private String primaryDivider;
     private List<String> dividers;
     private List<Column> table;
     private Map<String, String> reportStructure;
+
+    private static final long serialVersionUID = 9208065474380972876L;
 
 
     public Map<String, String> getReportStructure() {

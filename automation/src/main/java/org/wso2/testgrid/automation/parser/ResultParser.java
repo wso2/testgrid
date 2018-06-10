@@ -43,19 +43,6 @@ public abstract class ResultParser {
     }
 
     /**
-     * The default no argument constructor is required because the {@link java.util.ServiceLoader} instantiates
-     * the object using default constructor while iterating the implementation list.
-     */
-    ResultParser() {}
-
-    /**
-     * This method returns a boolean indicating whether it is possible to parse the given JTL file or not.
-     *
-     * @return a boolean {@link boolean} indicating if it is possible to parse the given JTL or not
-     */
-    public abstract boolean canParse(TestScenario testScenario, String testLocation) throws ResultParserException;
-
-    /**
      * This method will parse the JMeter result file.
      *
      * @throws ResultParserException {@link ResultParserException} when an error occurs while parsing the

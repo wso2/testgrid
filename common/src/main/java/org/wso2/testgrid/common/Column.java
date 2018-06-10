@@ -15,8 +15,9 @@
 * specific language governing permissions and limitations
 * under the License.
 */
-package org.wso2.testgrid.reporting.model.performance;
+package org.wso2.testgrid.common;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -24,7 +25,9 @@ import java.util.List;
  *
  * @since 1.0.0
  */
-public class Column {
+public class Column implements Serializable {
+
+    private static final long serialVersionUID = 9208023674380972876L;
 
     public static final String COLUMN = "Column";
     public static final String COMMON_COLUMN = "CommonColumn";

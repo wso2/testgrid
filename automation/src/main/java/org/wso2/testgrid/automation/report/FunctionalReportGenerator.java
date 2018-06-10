@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+* Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 *
 * WSO2 Inc. licenses this file to you under the Apache License,
 * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,11 @@ package org.wso2.testgrid.automation.report;
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
 import org.wso2.testgrid.common.TestPlan;
 
+/**
+ * Report Generator implementation for Factional Tests.
+ *
+ * @since 1.0.0
+ */
 public class FunctionalReportGenerator extends ReportGenerator {
 
     private static final String TEST_TYPE_FUNCTIONAL = "FUNCTIONAL";
@@ -32,12 +37,11 @@ public class FunctionalReportGenerator extends ReportGenerator {
     @Override
     public void generateReport() throws ReportGeneratorException {
         TestPlan testPlan = this.getTestPlan();
-        if(testPlan != null) {
-             //TODO implement the functional testing per test plan report generation
-
-        }else{
-            throw new ReportGeneratorException(String.format("Report generator %s is not correctly initialized with a TestPlan",
-                    this.getClass().toString()));
+        if (testPlan != null) {
+            //TODO implement the functional testing per test plan report generation
+        } else {
+            throw new ReportGeneratorException(String.format("Report generator %s is not correctly " +
+                            "initialized with a TestPlan", this.getClass().toString()));
         }
     }
 }

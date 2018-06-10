@@ -20,6 +20,7 @@ package org.wso2.testgrid.common;
 
 import org.wso2.testgrid.common.util.StringUtil;
 
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +87,12 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
 
     @Transient
     private String dir;
+
+    @Transient
+    private List<List<String>> performanceTestResults;
+
+    @Transient
+    private List<String> summaryGraphs;
 
     /**
      * Returns the name of the test scenario.
@@ -242,6 +249,43 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      */
     public void addTestCase(TestCase testCase) {
         testCases.add(testCase);
+    }
+
+    /**
+     *Returns the performance results data section
+     *
+     * @return List of List of Strings containing the CSV data
+     */
+    public List<List<String>> getPerformanceTestResults() {
+        return performanceTestResults;
+    }
+
+    /**
+     *Set the PerformanceTest results data
+     *
+     * @param performanceTestResults List of List of string containing the performance data
+     */
+    public void setPerformanceTestResults(List<List<String>> performanceTestResults) {
+        this.performanceTestResults = performanceTestResults;
+    }
+
+    /**
+     *
+     * Returns a List of Paths referencing the summary graphs
+     *
+     * @return List of path objects containing the graphs
+     */
+    public List<String> getSummaryGraphs() {
+        return summaryGraphs;
+    }
+
+    /**
+     * Set the performance summary graphs list
+     *
+     * @param summaryGraphs List of Paths referencing the graphs
+     */
+    public void setSummaryGraphs(List<String> summaryGraphs) {
+        this.summaryGraphs = summaryGraphs;
     }
 
     @Override

@@ -22,12 +22,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.automation.exception.JTLResultParserException;
-import org.wso2.testgrid.automation.exception.ParserFactoryInitializationException;
-import org.wso2.testgrid.automation.exception.ParserInitializationException;
-import org.wso2.testgrid.automation.exception.ResultParserException;
-import org.wso2.testgrid.automation.parser.ResultParser;
-import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
@@ -41,10 +35,14 @@ import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.File;
+<<<<<<< 34500928d28144423672ac92d963ed436411c414
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+=======
+import java.nio.file.Paths;
+>>>>>>>  Finalize changes
 
 import static org.wso2.testgrid.common.TestGridConstants.SCENARIO_RESULTS_FILTER_PATTERN;
 
@@ -72,6 +70,7 @@ public class JMeterExecutor extends TestExecutor {
     public void execute(String script, DeploymentCreationResult deploymentCreationResult)
             throws TestAutomationException {
         try {
+            TestGridUtil.executeCommand("bash " + script, new File(testLocation));
 
             String jmeterHome = EnvironmentUtil.getSystemVariableValue(JMETER_HOME);
             if (jmeterHome == null) {
@@ -88,6 +87,7 @@ public class JMeterExecutor extends TestExecutor {
                         testScenario.getDir(), ". Script exited with a status code of ", exitCode));
             }
 
+<<<<<<< 34500928d28144423672ac92d963ed436411c414
             //Parse JTL file
             ResultParserFactory factory = ResultParserFactory.getFactory(testLocation);
             Optional<ResultParser> parser = factory.getParser(testScenario, testLocation);
@@ -99,25 +99,12 @@ public class JMeterExecutor extends TestExecutor {
                 throw new TestAutomationException("Unable to parse the JMeter results file.");
             }
 
+=======
+>>>>>>>  Finalize changes
         } catch (CommandExecutionException e) {
             this.testScenario.setStatus(Status.ERROR);
             throw new TestAutomationException(String.format("Error executing scenario " +
                     "script%s", script), e);
-        } catch (JTLResultParserException e) {
-            this.testScenario.setStatus(Status.ERROR);
-            throw new TestAutomationException("Unable to parse the JMeter results file.", e);
-        } catch (ParserFactoryInitializationException e) {
-            this.testScenario.setStatus(Status.ERROR);
-            throw new TestAutomationException(String.format("Error when initializing the parser " +
-                    "factory for script%s", script), e);
-        } catch (ParserInitializationException e) {
-            this.testScenario.setStatus(Status.ERROR);
-            throw new TestAutomationException(String.format("Error when initializing the Result " +
-                    "Parser for script : %s", script), e);
-        } catch (ResultParserException e) {
-            this.testScenario.setStatus(Status.ERROR);
-            throw new TestAutomationException(String.format("Error parsing the result " +
-                    "files from script : %s", script), e);
         }
     }
 
