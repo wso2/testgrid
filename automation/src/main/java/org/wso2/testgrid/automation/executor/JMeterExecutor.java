@@ -35,14 +35,10 @@ import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.File;
-<<<<<<< 34500928d28144423672ac92d963ed436411c414
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Optional;
-=======
-import java.nio.file.Paths;
->>>>>>>  Finalize changes
+
 
 import static org.wso2.testgrid.common.TestGridConstants.SCENARIO_RESULTS_FILTER_PATTERN;
 
@@ -87,20 +83,6 @@ public class JMeterExecutor extends TestExecutor {
                         testScenario.getDir(), ". Script exited with a status code of ", exitCode));
             }
 
-<<<<<<< 34500928d28144423672ac92d963ed436411c414
-            //Parse JTL file
-            ResultParserFactory factory = ResultParserFactory.getFactory(testLocation);
-            Optional<ResultParser> parser = factory.getParser(testScenario, testLocation);
-            if (parser.isPresent()) {
-                parser.get().parseResults();
-                persistResultArtifacts(testLocation);
-            } else {
-                this.testScenario.setStatus(Status.ERROR);
-                throw new TestAutomationException("Unable to parse the JMeter results file.");
-            }
-
-=======
->>>>>>>  Finalize changes
         } catch (CommandExecutionException e) {
             this.testScenario.setStatus(Status.ERROR);
             throw new TestAutomationException(String.format("Error executing scenario " +

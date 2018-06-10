@@ -17,10 +17,12 @@
 */
 package org.wso2.testgrid.automation.exception;
 
+import org.wso2.testgrid.common.exception.TestGridException;
+
 /**
  * Indicates the common Result Parser Exception
  */
-public class ResultParserException extends Exception {
+public class ResultParserException extends TestGridException {
 
     /**
      * Constructs a new exception with {@code null} as its detail message. The cause is not initialized, and may
@@ -39,7 +41,6 @@ public class ResultParserException extends Exception {
     public ResultParserException(String message) {
         super(message);
     }
-
 
     /**
      * Constructs a new exception with the specified detail message and cause.
