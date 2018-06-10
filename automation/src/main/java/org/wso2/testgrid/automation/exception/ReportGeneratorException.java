@@ -19,12 +19,28 @@ package org.wso2.testgrid.automation.exception;
 
 import org.wso2.testgrid.common.exception.TestGridException;
 
+/**
+ * Indicates that an error whenn generating the report.
+ *
+ * @since 1.0.0
+ */
 public class ReportGeneratorException extends TestGridException {
 
+    /**
+     * Constructs a new exception with the specified detail message.
+     *
+     * @param message the detail message of the exception
+     */
     public ReportGeneratorException(String message) {
         super(message);
     }
 
+    /**
+     * Constructs a new exception with the message provided and the cause.
+     *
+     * @param message the detailed message of the exception
+     * @param cause   the cause of the exception
+     */
     public ReportGeneratorException(String message, Throwable cause) {
         super(message, cause);
     }

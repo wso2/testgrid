@@ -18,22 +18,35 @@
 package org.wso2.testgrid.automation.report;
 
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
-import org.wso2.testgrid.automation.parser.CSVResultParser;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.reporting.PerformanceResultProcessor;
+import org.wso2.testgrid.reporting.ReportingException;
+import org.wso2.testgrid.reporting.TestReportEngine;
+import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
+import org.wso2.testgrid.reporting.model.performance.ScenarioSection;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
+ * ReportGenerator implementation for the PerformanceTests
  *
+ * @since 1.0.0
  */
-public class PerformanceReportGenerator extends ReportGenerator{
+public class PerformanceReportGenerator extends ReportGenerator {
 
     private static final String TEST_TYPE_PERFORMANCE = "PERFORMANCE";
 
-    PerformanceReportGenerator(TestPlan testPlan){
+    public PerformanceReportGenerator(TestPlan testPlan) {
         super(testPlan);
     }
 
-    PerformanceReportGenerator(){}
+    public PerformanceReportGenerator() {
+    }
 
     @Override
     public boolean canGenerateReport(TestPlan testPlan) {
@@ -43,18 +56,27 @@ public class PerformanceReportGenerator extends ReportGenerator{
     @Override
     public void generateReport() throws ReportGeneratorException {
         TestPlan testPlan = this.getTestPlan();
-        if(testPlan != null) {
-
-            //parse data
-
-            //crete performance report data model
-            //render report
-            //save report
-
-
-        }else{
-            throw new ReportGeneratorException(String.format("Report generator %s is not correctly initialized with a TestPlan",
-                    this.getClass().toString()));
+        List<ScenarioSection> scenarioSections = new ArrayList<>();
+        PerformanceResultProcessor processor = new PerformanceResultProcessor();
+        if (testPlan != null) {
+            for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                ScenarioSection scenarioSection = processor.processScenario(testScenario
+                        , testPlan.getResultFormatter());
+                scenarioSections.add(scenarioSection);
+            }
+            String productName = testPlan.getDeploymentPattern().getProduct().getName();
+            Set<Map.Entry<String, String>> entries = testPlan.getResultFormatter().getReportStructure().entrySet();
+            try {
+                PerformanceReport performanceReport = new PerformanceReport(productName, entries, scenarioSections);
+                TestReportEngine engine = new TestReportEngine();
+                engine.generatePerformanceReport(performanceReport, testPlan.getTestScenarios());
+            } catch (ReportingException e) {
+                throw new ReportGeneratorException(String.format("Error occured while genearating " +
+                                "per test plan report for %s", productName), e);
+            }
+        } else {
+            throw new ReportGeneratorException(String.format("Report generator %s is not correctly" +
+                            " initialized with a TestPlan", this.getClass().toString()));
         }
     }
 }
