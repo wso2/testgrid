@@ -17,10 +17,12 @@
 */
 package org.wso2.testgrid.automation.exception;
 
+import org.wso2.testgrid.common.exception.TestGridException;
+
 /**
  * Indicates that an error has occurred while initializing the Parser Factory
  */
-public class ParserFactoryInitializationException extends Exception {
+public class ParserFactoryInitializationException extends TestGridException {
 
     /**
      * Constructs a new exception with the detailed message

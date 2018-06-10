@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+* Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 *
 * WSO2 Inc. licenses this file to you under the Apache License,
 * Version 2.0 (the "License"); you may not use this file except
@@ -19,12 +19,28 @@ package org.wso2.testgrid.automation.exception;
 
 import org.wso2.testgrid.common.exception.TestGridException;
 
-public class ReportGeneratorInitializingException extends TestGridException{
+/**
+ * Indicates an error when initializing the Report Generators.
+ *
+ * @since 1.0.0
+ */
+public class ReportGeneratorInitializingException extends TestGridException {
 
+    /**
+     * Constructs a new exception with the specified detail message.
+     *
+     * @param message the detail message of the exception
+     */
     public ReportGeneratorInitializingException(String message) {
         super(message);
     }
 
+    /**
+     * Constructs a new exception with the message provided and the cause.
+     *
+     * @param message the detailed message of the exception
+     * @param cause   the cause of the exception
+     */
     public ReportGeneratorInitializingException(String message, Throwable cause) {
         super(message, cause);
     }

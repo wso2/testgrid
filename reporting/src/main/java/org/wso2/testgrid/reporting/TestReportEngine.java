@@ -33,8 +33,6 @@ import org.wso2.testgrid.reporting.model.PerAxisSummary;
 import org.wso2.testgrid.reporting.model.Report;
 import org.wso2.testgrid.reporting.model.ReportElement;
 import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
-import org.wso2.testgrid.reporting.model.performance.ResultFormatter;
-import org.wso2.testgrid.reporting.model.performance.ScenarioSection;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
 import org.wso2.testgrid.reporting.util.FileUtil;
@@ -75,6 +73,7 @@ public class TestReportEngine {
 
     private static final String PERFORMANCE_REPORT = "PerformanceReport";
     private static final String RESULT_FOLDER = "Results";
+    private static final String IMAGES_FOLDER = "img";
 
     /**
      * Generates a test report based on the given product name and product version.
@@ -112,52 +111,66 @@ public class TestReportEngine {
     }
 
     /**
-     * Generates a performance report for the test plan and formatter definition.The report will be saved in the Product
-     * folder inside TestGrid home.
+     * This method creates and saves a PerformanceReport
      *
-     * @param testplan         TestPlan object carrying the details of test plan
-     * @param testRunWorkspace the test plan workspace
-     * @param resultFormatter  {@link ResultFormatter} that defines the report structure
-     * @throws ReportingException then there is an error creating the report
+     * @param report        Parsed PerformanceReport object
+     * @param testScenarios A List of TestScenarios included in the report
      */
-    public void generatePerformanceReport(TestPlan testplan, Path testRunWorkspace, String resultFormatter)
+    public void generatePerformanceReport(PerformanceReport report, List<TestScenario> testScenarios)
             throws ReportingException {
-
         try {
-            Product product = testplan.getDeploymentPattern().getProduct();
-            ResultFormatter formatter = org.wso2.testgrid.common.util.FileUtil.readYamlFile(resultFormatter
-                    , ResultFormatter.class);
-            Path workspace = Paths.get(TestGridUtil.getTestGridHomePath()).resolve(testRunWorkspace);
-
-            PerformanceResultProcessor processor = new PerformanceResultProcessor();
-            //process the workspace and generate data model for the report
-            List<ScenarioSection> scenarioSections = processor.processWorkspace(testplan.getTestScenarios()
-                    , workspace, formatter);
-            PerformanceReport report = new PerformanceReport(product.getName(),
-                    formatter.getReportStructure().entrySet(), scenarioSections);
             Map<String, Object> parsedResultMap = new HashMap<>();
             parsedResultMap.put(REPORT_TEMPLATE_KEY, report);
             Renderable renderable = RenderableFactory.getRenderable(PERFORMANCE_REPORT_MUSTACHE);
             String htmlString = renderable.render(PERFORMANCE_REPORT_MUSTACHE, parsedResultMap);
 
-            String fileName = StringUtil.concatStrings(product.getName(), "-", PERFORMANCE_REPORT, HTML_EXTENSION);
+            String fileName = StringUtil.concatStrings(report.getProductName(), "-"
+                    , PERFORMANCE_REPORT, HTML_EXTENSION);
             String testGridHome = TestGridUtil.getTestGridHomePath();
-            Path reportDirPath = Paths.get(testGridHome).resolve(product.getName()).resolve(RESULT_FOLDER);
+            Path reportDirPath = Paths.get(testGridHome).resolve(report.getProductName()).resolve(RESULT_FOLDER);
             Path reportPath = reportDirPath.resolve(fileName);
             //create the result folder if doesnt exist
             if (!Files.exists(reportPath)) {
                 Files.createDirectories(reportDirPath);
             }
             //copy the image assets required by the report to relevant location
-            processor.copyReportAssets(workspace, reportDirPath);
+            copyReportAssets(testScenarios, reportDirPath);
             writeHTMLToFile(reportPath, htmlString);
-            //TODO upload artifacts to S3 bucket
-
         } catch (IOException e) {
-            throw new ReportingException(String.format("Error occured while creating the Performane " +
-                    "report for product :%s", testplan.getDeploymentPattern().getProduct()
-                    .getName()), e);
+            throw new ReportingException(String.format(" Error while creating the output files structure for Product %s"
+                    , report.getProductName()), e);
+        } catch (ReportingException e) {
+            throw new ReportingException(String.format("Error while prepering the report for Product %s"
+                    , report.getProductName()), e);
         }
+
+    }
+
+    /**
+     * This method copies the assets of report to the relevant location.
+     *
+     * @param reportDirPath target location where the Report is generated
+     * @throws IOException thrown when there is an error copying files
+     */
+    public void copyReportAssets(List<TestScenario> imageList, Path reportDirPath) throws IOException {
+        Path assetDir = reportDirPath.resolve(IMAGES_FOLDER);
+        if (!Files.exists(assetDir)) {
+            Files.createDirectories(assetDir);
+        }
+        for (TestScenario scenario : imageList) {
+            List<String> summaryGraphs = scenario.getSummaryGraphs();
+            for (String path : summaryGraphs) {
+                Path imagePath = Paths.get(path);
+                if (imagePath != null) {
+                    Path destination = assetDir.resolve(imagePath.getFileName());
+                    if (destination != null) {
+                        Files.copy(imagePath, destination);
+                    }
+
+                }
+            }
+        }
+
     }
 
     /**

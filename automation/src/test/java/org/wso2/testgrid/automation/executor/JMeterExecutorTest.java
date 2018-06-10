@@ -24,9 +24,12 @@ import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.exception.JTLResultParserException;
 import org.wso2.testgrid.automation.exception.ParserInitializationException;
 import org.wso2.testgrid.automation.exception.ResultParserException;
-import org.wso2.testgrid.automation.parser.JMeterResultParserFactory;
 import org.wso2.testgrid.automation.parser.ResultParser;
+import org.wso2.testgrid.automation.parser.ResultParserFactory;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 
 import java.net.URL;
 import java.nio.file.Paths;
@@ -51,14 +54,16 @@ public class JMeterExecutorTest {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
-
-        String testLocation = Paths
-                .get(resource.getPath(), "SolutionPattern22", "Tests")
-                .toAbsolutePath().toString();
         TestScenario testScenario = new TestScenario();
+        testScenario.setDir("scenarioDir");
+        TestPlan testPlan = new TestPlan();
+        ScenarioConfig scenarioConfig = new ScenarioConfig();
+        scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_FUNCTIONAL);
+        testPlan.setScenarioConfig(scenarioConfig);
+        testPlan.setScenarioTestsRepository("resources");
         testScenario.setName("SolutionPattern22");
-        Optional<ResultParser> jMeterResultParser = new JMeterResultParserFactory().
-                getParser(testScenario, testLocation);
+        Optional<ResultParser> jMeterResultParser = ResultParserFactory.
+                getParser(testPlan, testScenario);
         Assert.assertTrue(jMeterResultParser.isPresent());
         Assert.assertTrue(jMeterResultParser.get() instanceof ResultParser);
     }
@@ -75,8 +80,14 @@ public class JMeterExecutorTest {
                 .toAbsolutePath().toString();
         TestScenario testScenario = new TestScenario();
         testScenario.setName("SolutionPattern22");
-        Optional<ResultParser> jMeterResultParser = new JMeterResultParserFactory().
-                getParser(testScenario, testLocation);
+        testScenario.setDir("");
+        TestPlan testPlan = new TestPlan();
+        ScenarioConfig scenarioConfig = new ScenarioConfig();
+        scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_FUNCTIONAL);
+        testPlan.setScenarioConfig(scenarioConfig);
+        testPlan.setScenarioTestsRepository(testLocation);
+        Optional<ResultParser> jMeterResultParser = ResultParserFactory
+                .getParser(testPlan, testScenario);
         Assert.assertTrue(jMeterResultParser.isPresent());
         jMeterResultParser.get().parseResults();
         Assert.assertFalse(testScenario.getTestCases().isEmpty());

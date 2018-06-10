@@ -17,30 +17,19 @@
 */
 package org.wso2.testgrid.reporting;
 
+import org.wso2.testgrid.common.Column;
+import org.wso2.testgrid.common.ResultFormatter;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.util.LambdaExceptionUtils;
-import org.wso2.testgrid.reporting.model.performance.Column;
 import org.wso2.testgrid.reporting.model.performance.ColumnHeader;
 import org.wso2.testgrid.reporting.model.performance.DataSection;
 import org.wso2.testgrid.reporting.model.performance.DividerSection;
 import org.wso2.testgrid.reporting.model.performance.PerformanceTable;
-import org.wso2.testgrid.reporting.model.performance.ResultFormatter;
 import org.wso2.testgrid.reporting.model.performance.ScenarioSection;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
@@ -56,78 +45,49 @@ public class PerformanceResultProcessor {
     private static final String GRAPH_EXTENSION = ".png";
     private static final String IMAGES_FOLDER = "img";
 
-
     /**
-     * This method goes through to find the summary csv file and then process it to generate the report sections
-     * for the performance report.
+     * This method returns the {@link ScenarioSection} that is processed from the TestScenario ob object
      *
-     * @param testScenarios   List of TestScenario objects thaw was executed to produce the results
-     * @param workspace       The location where artifacts are present
-     * @param resultFormatter {@link ResultFormatter} object defining the structure required
-     * @return List of {@link ScenarioSection} objects that contain the data for the report
-     * @throws ReportingException when there is an error during the process
+     * @param testScenario TestScenario being processed
+     * @param resultFormatter ResultFormatter containing the format data
+     * @return ScenarioSection object that is included in the report
      */
-    public List<ScenarioSection> processWorkspace(List<TestScenario> testScenarios, Path workspace
-            , ResultFormatter resultFormatter) throws ReportingException {
-
-        List<ScenarioSection> scenarioSections = new ArrayList<>();
-        for (TestScenario testScenario : testScenarios) {
-            File file = workspace.resolve(RESULT_FILE).toFile(); // TODO add scenario speceific folder
-            //Read the csv file line by line and store as a List of List of Strings
-            String line = "";
-            List<List<String>> data = new ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)
-                    , StandardCharsets.UTF_8));) {
-
-                Optional<String> topicString = Optional.of(reader.readLine());
-                if (topicString.isPresent()) {
-                    List<String> topics = Arrays.asList(topicString.get().split(","));
-                    while (null != (line = reader.readLine())) {
-                        data.add(Arrays.asList(line.split(",")));
-                    }
-                    //Create a new scenario section per test scenario
-                    ScenarioSection scenarioSection = new ScenarioSection();
-                    scenarioSection.setScenarioName(testScenario.getName());
-                    scenarioSection.setDescription(testScenario.getDescription());
-                    //get the index of the primary divider from topic list
-                    int indexOf = topics.indexOf(resultFormatter.getPrimaryDivider());
-                    //
-                    Stack<String> dividers = new Stack<>();
-                    dividers.addAll(resultFormatter.getDividers());
-                    //divide the data in to groups with primary divider
-                    List<String> primarySections = data.stream()
-                            .map(strings -> strings.get(indexOf))
-                            .distinct()
-                            .collect(Collectors.toList());
-                    //for each section fill the data
-                    primarySections.forEach(primarySection -> {
-                        Stack<String> cloneOfDividers = (Stack<String>) dividers.clone();
-                        DividerSection primary = new DividerSection();
-                        primary.setData(resultFormatter.getPrimaryDivider() + " : " + primarySection);
-                        List<List<String>> section = data.stream()
-                                .filter(strings -> strings.get(indexOf).equals(primarySection))
-                                .collect(Collectors.toList());
-                        ;
-                        DividerSection sectionData = getSectionData(cloneOfDividers, section, topics
-                                , resultFormatter);
-                        primary.setChildSections(Collections.singletonList(sectionData));
-                        scenarioSection.setDividerSection(primary);
-                    });
-                    List<String> imageList = getImagesList(workspace).stream()
-                            .map(path -> path.getFileName().toString())
-                            .collect(Collectors.toList());
-                    scenarioSection.setChartsList(imageList);
-                    scenarioSections.add(scenarioSection);
-                } else {
-                    throw new ReportingException("Null value encountered while reading the CSV topics list ");
-                }
-
-            } catch (IOException e) {
-                throw new ReportingException("Error occurred while copying the Report assets to " +
-                        "destination", e);
-            }
-        }
-        return scenarioSections;
+    public ScenarioSection processScenario(TestScenario testScenario, ResultFormatter resultFormatter) {
+        List<List<String>> data = testScenario.getPerformanceTestResults();
+        ScenarioSection scenarioSection = new ScenarioSection();
+        scenarioSection.setScenarioName(testScenario.getName());
+        scenarioSection.setDescription(testScenario.getDescription());
+        List<String> topics = data.remove(0);
+        //Create a new scenario section per test scenario
+        scenarioSection.setScenarioName(testScenario.getName());
+        scenarioSection.setDescription(testScenario.getDescription());
+        //get the index of the primary divider from topic list
+        int indexOf = topics.indexOf(resultFormatter.getPrimaryDivider());
+        //
+        Stack<String> dividers = new Stack<>();
+        dividers.addAll(resultFormatter.getDividers());
+        //divide the data in to groups with primary divider
+        List<String> primarySections = data.stream()
+                .map(strings -> strings.get(indexOf))
+                .distinct()
+                .collect(Collectors.toList());
+        //for each section fill the data
+        primarySections.forEach(primarySection -> {
+            Stack<String> cloneOfDividers = (Stack<String>) dividers.clone();
+            DividerSection primary = new DividerSection();
+            primary.setData(resultFormatter.getPrimaryDivider() + " : " + primarySection);
+            List<List<String>> section = data.stream()
+                    .filter(strings -> strings.get(indexOf).equals(primarySection))
+                    .collect(Collectors.toList());
+            DividerSection sectionData = getSectionData(cloneOfDividers, section, topics
+                    , resultFormatter);
+            primary.setChildSections(Collections.singletonList(sectionData));
+            scenarioSection.setDividerSection(primary);
+        });
+        scenarioSection.setChartsList(testScenario.getSummaryGraphs()
+                .stream().map(s -> Paths.get(s)).map(path -> path.getFileName().toString())
+                .collect(Collectors.toList()));
+        return scenarioSection;
     }
 
     /**
@@ -245,7 +205,7 @@ public class PerformanceResultProcessor {
                 .collect(Collectors.toList());
         performanceTable.setBodyData(tableData);
         //create header data
-        List<List<ColumnHeader>> headerData = new ArrayList<>();
+        List<List<org.wso2.testgrid.reporting.model.performance.ColumnHeader>> headerData = new ArrayList<>();
         while (depth >= 1) {
             int finalDepth = depth;
             //keep the next header row data
@@ -277,36 +237,4 @@ public class PerformanceResultProcessor {
         return performanceTable;
     }
 
-    /**
-     * This method copies the assets of report to the relevant location.
-     *
-     * @param workspace     location of the assets
-     * @param reportDirPath target location where the Report is generated
-     * @throws IOException thrown when there is an error copying files
-     */
-    void copyReportAssets(Path workspace, Path reportDirPath) throws IOException {
-        Path assetDir = reportDirPath.resolve(IMAGES_FOLDER);
-        ArrayList<Path> imageList = getImagesList(workspace);
-        if (!Files.exists(assetDir)) {
-            Files.createDirectories(assetDir);
-        }
-        imageList.forEach(LambdaExceptionUtils.rethrowConsumer(path -> {
-            Files.copy(path, assetDir.resolve(Paths.get(path.getFileName().toString())));
-        }));
-    }
-
-    /**
-     * This method returns a list of image files that are in the workspace. it is useful to find the graphs that
-     * are generated in the tests.
-     *
-     * @param workspace location of the images
-     * @return List paths representing the images
-     * @throws IOException thrown when there is an error reading the files
-     */
-    private ArrayList<Path> getImagesList(Path workspace) throws IOException {
-        ArrayList<Path> imageFiles = new ArrayList<>();
-        Files.newDirectoryStream(workspace, entry -> entry.toString().endsWith(GRAPH_EXTENSION))
-                .forEach(imageFiles::add);
-        return imageFiles;
-    }
 }

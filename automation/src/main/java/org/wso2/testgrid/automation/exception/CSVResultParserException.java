@@ -34,4 +34,12 @@ public class CSVResultParserException extends ResultParserException {
         super(message, cause);
     }
 
+    /**
+     * Constructs a new exception with the specified detail message.
+     *
+     * @param message the detail message of the exception
+     */
+    public CSVResultParserException(String message) {
+        super(message);
+    }
 }
