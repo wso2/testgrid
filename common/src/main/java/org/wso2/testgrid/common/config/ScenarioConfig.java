@@ -19,6 +19,7 @@
 
 package org.wso2.testgrid.common.config;
 
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.Serializable;
@@ -34,7 +35,8 @@ public class ScenarioConfig implements Serializable {
 
     private List<TestScenario> scenarios;
     private List<Script> scripts;
-    private String testType;
+    //keep default value of test type as functional
+    private String testType = TestGridConstants.TEST_TYPE_FUNCTIONAL;
 
     /**
      * This method returns the list of scenarios.
