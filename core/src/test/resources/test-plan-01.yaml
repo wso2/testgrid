@@ -44,6 +44,7 @@ scenarioConfig:
     status: PENDING
     testCases: [
       ]
+  testType: FUNCTIONAL
 scenarioTestsRepository: ./src/test/resources/workspace/scenarioTests
 testRunNumber: 1
 testScenarios: [
