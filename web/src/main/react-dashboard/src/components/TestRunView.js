@@ -18,22 +18,20 @@
 
 import React, {Component} from 'react';
 import '../App.css';
-import Subheader from 'material-ui/Subheader';
-import {Card, CardMedia} from 'material-ui/Card';
+import {CardMedia} from 'material-ui/Card';
 import FlatButton from 'material-ui/FlatButton';
 import Avatar from 'material-ui/Avatar';
 import List from 'material-ui/List/List';
 import ListItem from 'material-ui/List/ListItem';
 import Divider from 'material-ui/Divider';
-import AceEditor from 'react-ace';
 import LinearProgress from 'material-ui/LinearProgress';
-import CircularProgress from 'material-ui/CircularProgress';
 import Download from 'downloadjs'
-import Websocket from 'react-websocket';
 import Snackbar from 'material-ui/Snackbar';
 import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
   from '../constants.js';
-import {Table} from 'reactstrap';
+import {Button, Table, Card, CardText, CardTitle, Col, Row} from 'reactstrap';
+import InfraCombinationView from "./InfraCombinationView";
+import ReactTooltip from 'react-tooltip'
 
 /**
  * View responsible for displaying test run log and summary information.
@@ -162,76 +160,46 @@ class TestRunView extends Component {
 
     return (
       <div>
-        {/*Sub header*/}
         {this.state && this.state.currentInfra && (() => {
-          const subHeader = (<td style={{padding: 5}}>
-            <i> {this.state.currentInfra.relatedProduct}/
-              {this.state.currentInfra.relatedDeplymentPattern} /
-              {this.state.currentInfra.infraParameters}</i>
-          </td>);
           switch (this.state.currentInfra.testPlanStatus) {
             case FAIL:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#ffd6d3"
-              }}>
-                <Table responsive>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../close.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    {subHeader}
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse style={{ backgroundColor: '#e57373', borderColor: '#e57373' }}>
+                    <CardTitle><i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!">
+                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    </i><ReactTooltip/></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
             case SUCCESS:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#cdffba"
-              }}>
-                <Table responsive>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../success.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    {subHeader}
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse color="success">
+                    <CardTitle><i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!">
+                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    </i><ReactTooltip/></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
             case PENDING:
             case RUNNING:
             default:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#d7d9ff"
-              }}>
-                <Table responsive>
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <CircularProgress size={80} thickness={8}/>
-                    </td>
-                    {subHeader}
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse color="info">
+                    <CardTitle><i className="fa fa-spinner fa-pulse" data-tip="Running!">
+                      <span className="sr-only">Loading...</span></i><ReactTooltip/>
+                      <span> {this.state.currentInfra.relatedProduct}</span></CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                  </Card>
+                </Col>
+              </Row>;
           }
         })()}
         <Card style={{padding: 20}}>
@@ -316,46 +284,56 @@ class TestRunView extends Component {
                               switch (data.scenarioStatus) {
                                 case SUCCESS:
                                   return <div>
-                                    <img width="36"
-                                         height="36"
-                                         src={require('../success.png')} alt=""/>
+                                    <Button outline color="success" size="sm" className="success-status-btn">
+                                      <i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!"> </i>
+                                      <ReactTooltip/>
+                                    </Button>
                                   </div>;
                                 case FAIL:
                                   return <div>
-                                    <img width="36"
-                                         height="36"
-                                         src={require('../close.png')} alt=""/>
+                                    <Button outline color="danger" size="sm">
+                                      <i className="fa fa-exclamation-circle" aria-hidden="true"
+                                         data-tip="Failed!"> </i>
+                                      <ReactTooltip/>
+                                    </Button>
                                   </div>;
                                 case PENDING:
                                   return <div>
-                                    <img width="36"
-                                         height="36"
-                                         src={require('../new.png')} alt=""/>
+                                    <Button outline color="info" size="sm">
+                                      <i className="fa fa-tasks" aria-hidden="true" data-tip="Pending!"> </i>
+                                      <ReactTooltip/>
+                                    </Button>
                                   </div>;
                                 case INCOMPLETE:
                                   return <div>
-                                    <img width="36"
-                                         height="36"
-                                         src={require('../incomplete.png')} alt=""/>
+                                    <Button outline color="info" size="sm" className="incomplete-status-btn">
+                                      <i className="fa fa-hourglass-half" aria-hidden="true"
+                                         data-tip="Incomplete!"> </i>
+                                      <ReactTooltip/>
+                                    </Button>
                                   </div>;
                                 case DID_NOT_RUN:
                                   return <div>
-                                    <img width="36"
-                                         height="36"
-                                         src={require('../did_not_run.png')} alt=""/>
+                                    <Button outline color="info" size="sm" className="not-run-status-btn" >
+                                      <i className="fa fa-ban" aria-hidden="true" data-tip="Did Not Run!"> </i>
+                                      <ReactTooltip/>
+                                    </Button>
                                   </div>;
                                 case ERROR:
                                   return <div>
-                                    <img width="36"
-                                         height="36"
-                                         src={require('../error.png')} alt=""/>
+                                    <Button outline color="danger" size="sm" className="error-status-btn">
+                                      <i className="fa fa-times-circle" aria-hidden="true" data-tip="Error!"> </i>
+                                      <ReactTooltip/>
+                                    </Button>
                                   </div>;
                                 case "RUNNING":
                                 default:
                                   return <div>
-                                    <CircularProgress
-                                      size={40}
-                                      thickness={8}/>
+                                    <Button outline color="info" size="sm" className="running-status-btn">
+                                      <i className="fa fa-spinner fa-pulse" data-tip="Running!"> </i>
+                                      <span className="sr-only">Loading...</span>
+                                      <ReactTooltip/>
+                                    </Button>
                                   </div>
                               }
                             })()}
@@ -438,13 +416,15 @@ class TestRunView extends Component {
                                     <td
                                       style={{width: "5%"}}>
                                       {entry.isTestSuccess ?
-                                        <img width="36"
-                                             height="36"
-                                             src={require('../success.png')} alt=""/>
-                                        :
-                                        <img width="36"
-                                             height="36"
-                                             src={require('../close.png')} alt=""/>}
+                                        <Button outline color="success" size="sm" className="success-status-btn">
+                                          <i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!"> </i>
+                                          <ReactTooltip/>
+                                        </Button> :
+                                        <Button outline color="danger" size="sm">
+                                          <i className="fa fa-exclamation-circle" aria-hidden="true"
+                                             data-tip="Failed!"> </i>
+                                          <ReactTooltip/>
+                                        </Button>}
                                     </td>
                                     <td style={{
                                       fontSize: "15px",
@@ -483,120 +463,6 @@ class TestRunView extends Component {
                     <br/>
                     <LinearProgress mode="indeterminate"/>
                   </div>;
-              }
-            })()}
-            {divider}
-            <br/>
-            {/*Test log*/}
-            <h2>Test Run Log</h2>
-            {/*Display log from file system*/}
-            {this.state && this.state.currentInfra && (() => {
-              switch (this.state.currentInfra.testPlanStatus) {
-                case PENDING:
-                case "RUNNING":
-                  return (<div>
-                    <Websocket
-                      url={'wss://' + window.location.hostname + TESTGRID_CONTEXT + '/live-log/' +
-                      this.state.currentInfra.testPlanId}
-                      onMessage={data => {
-                        this.handleLiveLogData(data)
-                      }}/>
-                    <AceEditor
-                      theme="github"
-                      ref="log"
-                      fontSize={16}
-                      showGutter={true}
-                      highlightActiveLine={true}
-                      value={this.state.logContent}
-                      wrapEnabled={true}
-                      readOnly={true}
-                      setOptions={{
-                        showLineNumbers: true,
-                        maxLines: Infinity
-                      }}
-                      style={{
-                        width: this.props.containerWidth
-                      }}/>
-                    <center><CircularProgress size={40} thickness={8}/></center>
-                  </div>);
-                case FAIL:
-                case SUCCESS:
-                default: {
-                  // Display Log from S3
-                  switch (this.state.logDownloadStatus) {
-                    case ERROR:
-                      return <div style={{
-                        padding: 5,
-                        color: "#D8000C",
-                        backgroundColor: "#FFD2D2"
-                      }}>
-                        <br/>
-                        <strong>Oh snap! </strong>
-                        Error occurred when downloading the log file content.
-                      </div>;
-                    case SUCCESS:
-                      return <div>
-                        <AceEditor
-                          theme="github"
-                          ref="log"
-                          fontSize={16}
-                          showGutter={true}
-                          highlightActiveLine={true}
-                          value={this.state.logContent}
-                          wrapEnabled={true}
-                          readOnly={true}
-                          setOptions={{
-                            showLineNumbers: true,
-                            maxLines: Infinity
-                          }}
-                          style={{
-                            width: this.props.containerWidth
-                          }}/>
-                        {this.state.isLogTruncated ?
-                          <div>
-                            <center>
-                              <FlatButton
-                                onClick={() => (fetch(logAllContentUrl, {
-                                  method: "GET",
-                                  credentials: 'same-origin',
-                                  headers: {
-                                    'Accept': 'application/json'
-                                  }
-                                }).then(this.handleError)
-                                  .then(response => {
-                                    this.setState({
-                                      logDownloadStatus: response.ok ? SUCCESS : ERROR
-                                    });
-                                    return response;
-                                  }).then(data => data.json().then(json =>
-                                    this.setState({
-                                      logContent: json.inputStreamContent,
-                                      isLogTruncated: false
-                                    }),
-                                  )))}
-                                label={"See More (" + this.state.inputStreamSize + ")"}
-                                labelStyle={{
-                                  fontSize: '20px',
-                                  fontWeight: 600
-                                }}
-                                style={{
-                                  color: '#0E457C'
-                                }}/>
-                            </center>
-                          </div>
-                          : ""}
-                      </div>;
-                    case PENDING:
-                    default:
-                      return <div>
-                        <br/>
-                        <br/>
-                        <b>Loading test log...</b>
-                        <br/>
-                        <LinearProgress mode="indeterminate"/>
-                      </div>;
-                  }
-                }
               }
             })()}
           </CardMedia>

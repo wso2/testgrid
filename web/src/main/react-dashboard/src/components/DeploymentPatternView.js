@@ -18,13 +18,14 @@
 
 import React, {Component} from 'react';
 import '../App.css';
-import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
 import {add_current_deployment, add_current_infra} from '../actions/testGridActions.js';
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
 import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
-import {Table, Input} from 'reactstrap';
+import {Table, Input, Alert} from 'reactstrap';
+import {Button} from "reactstrap";
+import Moment from "moment/moment";
 
 class DeploymentPatternView extends Component {
 
@@ -135,160 +136,49 @@ class DeploymentPatternView extends Component {
         {this.state && this.state.product && (() => {
           switch (this.state.product.productStatus) {
             case FAIL:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#ffd6d3"
-              }}>
-                <Table responsive bordered size="sm">
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../close.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i> {this.state.product.productName + " "} </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Alert color="danger">
+                <i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!"> </i>
+                <ReactTooltip/>
+                {" " + this.state.product.productName}
+              </Alert>;
             case SUCCESS :
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#cdffba"
-              }}>
-                <Table responsive bordered size="sm">
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../success.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i> {this.state.product.productName + " "} </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Alert color="success">
+                <i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!"> </i>
+                <ReactTooltip/>
+                {" " + this.state.product.productName}
+              </Alert>;
             case ERROR :
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#ffd6d3"
-              }}>
-                <Table responsive bordered size="sm">
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../error.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i> {this.state.product.productName + " "} </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Alert color="danger">
+                <i className="fa fa-times-circle" aria-hidden="true" data-tip="Error!"> </i>
+                <ReactTooltip/>
+                {" " + this.state.product.productName}
+              </Alert>;
             case INCOMPLETE :
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#cdffba"
-              }}>
-                <Table responsive bordered size="sm">
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../incomplete.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i> {this.state.product.productName + " "} </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Alert color="info">
+                <i className="fa fa-hourglass-half" aria-hidden="true" data-tip="Incomplete!"> </i>
+                <ReactTooltip/>
+                {" " + this.state.product.productName}
+              </Alert>;
             case DID_NOT_RUN :
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#cdffba"
-              }}>
-                <Table responsive bordered size="sm">
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../did_not_run.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i> {this.state.product.productName + " "} </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Alert color="info">
+                <i className="fa fa-ban" aria-hidden="true" data-tip="Did Not Run!"> </i>
+                <ReactTooltip/>
+                {" " + this.state.product.productName}
+              </Alert>;
             case PENDING:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#cdffba"
-              }}>
-                <Table responsive bordered size="sm">
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../new.png')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i> {this.state.product.productName + " "} </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Alert color="info">
+                <i className="fa fa-tasks" aria-hidden="true" data-tip="Pending!"> </i>
+                <ReactTooltip/>
+                {" " + this.state.product.productName}
+              </Alert>;
             case RUNNING:
             default:
-              return <Subheader style={{
-                fontSize: '20px',
-                backgroundColor: "#FFCC80"
-              }}>
-                <Table responsive bordered size="sm">
-                  <tbody>
-                  <tr>
-                    <td style={{padding: 5}}>
-                      <img
-                        src={require('../wait.gif')} alt=""
-                        style={{
-                          verticalAlign: "middle",
-                          height: "50px",
-                          width: "50px"
-                        }}/>
-                    </td>
-                    <i> {this.state.product.productName + " "} </i>
-                  </tr>
-                  </tbody>
-                </Table>
-              </Subheader>;
+              return <Alert color="info">
+                <i className="fa fa-spinner fa-pulse" data-tip="Running!"> </i>
+                <span className="sr-only">Loading...</span>
+                <ReactTooltip/>
+                {" " + this.state.product.productName}
+              </Alert>;
           }
         })()}
         <div>
@@ -344,7 +234,7 @@ class DeploymentPatternView extends Component {
                         <ReactTooltip/>
                       </td>
                       <td>
-                        <FlatButton
+                        <FlatButton style={{height: 'inherit', width: '100%', maxWidth: '150px'}}
                           onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
                             this.state.product.productName + "/" + key + "/test-plans/" +
                             value.lastBuild.id, {
@@ -358,24 +248,19 @@ class DeploymentPatternView extends Component {
                                         time={value.lastBuild.modifiedTimestamp}/>
                         </FlatButton>
                       </td>
-                      <td>
+                      <td style={{fontSize: '16px'}}>
                         {(() => {
                           if (value.lastFailed.modifiedTimestamp) {
                             return (
-                              <FlatButton
-                                onClick={() => this.navigateToRoute(TESTGRID_CONTEXT +
-                                  "/" + this.state.product.productName + "/" + key +
-                                  "/test-plans/" + value.lastFailed.id,
-                                  {deploymentPatternName: key}, {
-                                    testPlanId: value.lastFailed.id,
-                                    infraParameters: value.lastFailed.infraParams,
-                                    testPlanStatus: value.lastFailed.status
-                                  }
-                                )}>
-                                <SingleRecord value={value.lastFailed.status}
-                                              time={value.lastFailed.modifiedTimestamp}
-                                />
-                              </FlatButton>
+                              <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT +
+                                "/" + this.state.product.productName + "/" + key +
+                                "/test-plans/" + value.lastFailed.id,
+                                {deploymentPatternName: key}, {
+                                  testPlanId: value.lastFailed.id,
+                                  infraParameters: value.lastFailed.infraParams,
+                                  testPlanStatus: value.lastFailed.status
+                                })}
+                                 style={{cursor: 'pointer'}}>{Moment(value.lastFailed.modifiedTimestamp).fromNow()}</i>
                             );
                           } else {
                             return (
@@ -386,11 +271,13 @@ class DeploymentPatternView extends Component {
                           }
                         })()}
                       </td>
-                      <td><img src={require('../play.png')} alt="" width="48" height="48"
-                               data-tip="Execute Job" onClick={() => {
-                        window.location = '/admin/job/' +
-                          this.state.product.productName + '/build'
-                      }}/>
+                      <td>
+                        <Button outline color="info" size="sm" onClick={() => {
+                          window.location =
+                            '/admin/job/' + this.state.product.productName + '/build'
+                        }}>
+                          <i className="fa fa-play-circle" aria-hidden="true"> </i>
+                        </Button>
                         <ReactTooltip/></td>
                     </tr>
                   )
@@ -420,7 +307,7 @@ class DeploymentPatternView extends Component {
                         <ReactTooltip/>
                       </td>
                       <td>
-                        <FlatButton
+                        <FlatButton style={{height: 'inherit', width: '100%', maxWidth: '150px'}}
                           onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
                             this.state.product.productName + "/" + key + "/test-plans/" +
                             value.lastFailed.id, {
@@ -434,25 +321,19 @@ class DeploymentPatternView extends Component {
                                         time={value.lastBuild.modifiedTimestamp}/>
                         </FlatButton>
                       </td>
-                      <td>
+                      <td style={{fontSize: '16px'}}>
                         {(() => {
                           if (value.lastFailed.modifiedTimestamp) {
                             return (
-                              <FlatButton
-                                onClick={() => this.navigateToRoute(TESTGRID_CONTEXT
-                                  + "/" + this.state.product.productName + "/" + key +
-                                  "/test-plans/" + value.lastFailed.id,
-                                  {deploymentPatternName: key},
-                                  {
-                                    testPlanId: value.lastFailed.id,
-                                    infraParameters: value.lastFailed.infraParams,
-                                    testPlanStatus: value.lastFailed.status
-                                  }
-                                )}>
-                                <SingleRecord value={value.lastFailed.status}
-                                              time={value.lastFailed.modifiedTimestamp}
-                                />
-                              </FlatButton>
+                              <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT +
+                                "/" + this.state.product.productName + "/" + key +
+                                "/test-plans/" + value.lastFailed.id,
+                                {deploymentPatternName: key}, {
+                                  testPlanId: value.lastFailed.id,
+                                  infraParameters: value.lastFailed.infraParams,
+                                  testPlanStatus: value.lastFailed.status
+                                })}
+                                 style={{cursor: 'pointer'}}>{Moment(value.lastFailed.modifiedTimestamp).fromNow()}</i>
                             );
                           } else {
                             return (
@@ -463,11 +344,13 @@ class DeploymentPatternView extends Component {
                           }
                         })()}
                       </td>
-                      <td><img src={require('../play.png')} alt="" width="48" height="48"
-                               data-tip="Execute Job" onClick={() => {
-                        window.location =
-                          '/admin/job/' + this.state.product.productName + '/build'
-                      }}/><ReactTooltip/>
+                      <td>
+                        <Button outline color="info" size="sm" onClick={() => {
+                          window.location =
+                            '/admin/job/' + this.state.product.productName + '/build'
+                        }}>
+                          <i className="fa fa-play-circle" aria-hidden="true"> </i>
+                        </Button>
                       </td>
                     </tr>
                   )

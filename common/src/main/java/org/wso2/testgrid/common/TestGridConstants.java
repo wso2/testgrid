@@ -37,10 +37,11 @@ public class TestGridConstants {
 
     public static final String TESTGRID_LOG_FILE_NAME = "testgrid.log";
     public static final String TESTGRID_LOGS_DIR = "logs";
+    public static final String TESTRUN_LOG_FILE_NAME = "test-run.log";
+    public static final String TESTGRID_BUILDS_DIR = "builds";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
     public static final String FILE_SEPARATOR = "/";
     public static final String HIDDEN_FILE_INDICATOR = ".";
-    public static final String LOG_FILE_EXTENSION = ".log";
 
     public static final String WORKSPACE = "workspace";
     public static final String TESTGRID_JOB_DIR = "jobs";

@@ -106,6 +106,11 @@ public class ConfigurationContext {
         AWS_REGION_NAME("AWS_REGION_NAME"),
 
         /**
+         * AWS S3 Bucket used to upload TestGrid artifacts
+         */
+        AWS_S3_BUCKET_NAME("AWS_S3_BUCKET_NAME"),
+
+        /**
          * WUM Username of TestGrid deployment
          */
         WUM_USERNAME("WUM_USERNAME"),

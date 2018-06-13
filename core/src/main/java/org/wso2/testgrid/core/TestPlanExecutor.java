@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.core;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.ConfigChangeSet;
@@ -48,9 +49,12 @@ import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.HashSet;
 import java.util.Set;
-
 
 /**
  * This class is responsible for executing the provided TestPlan.
@@ -59,7 +63,9 @@ import java.util.Set;
  */
 public class TestPlanExecutor {
 
+    public static final int LINE_LENGTH = 72;
     private static final Logger logger = LoggerFactory.getLogger(TestPlanExecutor.class);
+    private static final int MAX_NAME_LENGTH = 52;
     private TestScenarioUOW testScenarioUOW;
     private TestPlanUOW testPlanUOW;
     private ScenarioExecutor scenarioExecutor;
@@ -85,6 +91,8 @@ public class TestPlanExecutor {
      */
     public void execute(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws TestPlanExecutorException, TestGridDAOException {
+        long startTime = System.currentTimeMillis();
+
         // Provision infrastructure
         InfrastructureProvisionResult infrastructureProvisionResult = provisionInfrastructure(infrastructureConfig,
                 testPlan);
@@ -113,12 +121,16 @@ public class TestPlanExecutor {
 
         //cleanup
         releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
+
+        // Print summary
+        printSummary(testPlan, System.currentTimeMillis() - startTime);
+
     }
 
     /**
      * Run all the scenarios mentioned in the testgrid.yaml.
      *
-     * @param testPlan the test plan
+     * @param testPlan                 the test plan
      * @param deploymentCreationResult the result of the previous build step
      */
     private void runScenarioTests(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
@@ -423,4 +435,129 @@ public class TestPlanExecutor {
                     "Error while persisting test scenario ", testScenario.getName(), e));
         }
     }
+
+    /**
+     * Prints a summary of the executed test plan.
+     * Summary includes the list of scenarios that has been run, and their pass/fail status.
+     *
+     * @param testPlan the test plan
+     * @param totalTime time taken to run the test plan
+     */
+    void printSummary(TestPlan testPlan, long totalTime) {
+        switch (testPlan.getStatus()) {
+        case SUCCESS:
+            logger.info("all tests passed...");
+            break;
+        case ERROR:
+            logger.error("There are deployment/test errors...");
+            logger.info("Sorry, we are yet to infer an error summary!");
+            break;
+        case FAIL:
+            printFailState(testPlan);
+            break;
+        case RUNNING:
+        case PENDING:
+        case DID_NOT_RUN:
+        case INCOMPLETE:
+        default:
+            logger.error(StringUtil.concatStrings(
+                    "Inconsistent state detected (", testPlan.getStatus(), "). Please report this to testgrid team "
+                            + "at github.com/wso2/testgrid."));
+        }
+
+        printSeparator(LINE_LENGTH);
+        logger.info(StringUtil.concatStrings("Test Plan Summary for ", testPlan.getInfraParameters()), ":");
+        for (TestScenario testScenario : testPlan.getTestScenarios()) {
+            StringBuilder buffer = new StringBuilder(128);
+
+            buffer.append(testScenario.getName());
+            buffer.append(' ');
+
+            String padding = StringUtils.repeat(".", MAX_NAME_LENGTH - buffer.length());
+            buffer.append(padding);
+            buffer.append(' ');
+
+            buffer.append(testScenario.getStatus());
+            logger.info(buffer.toString());
+        }
+
+        printSeparator(LINE_LENGTH);
+        logger.info("TEST RUN " + testPlan.getStatus());
+        printSeparator(LINE_LENGTH);
+
+        logger.info("Total Time: " + getHumanReadableTimeDiff(totalTime));
+        logger.info("Finished at: " + new Date());
+        printSeparator(LINE_LENGTH);
+    }
+
+    /**
+     * Prints the logs for failure scenario.
+     *
+     * @param testPlan the test plan that has failures.
+     */
+    private static void printFailState(TestPlan testPlan) {
+        logger.warn("There are test failures...");
+        logger.info("Failed tests:");
+        AtomicInteger testCaseCount = new AtomicInteger(0);
+        AtomicInteger failedTestCaseCount = new AtomicInteger(0);
+        testPlan.getTestScenarios().stream()
+                .peek(ts -> {
+                    testCaseCount.addAndGet(ts.getTestCases().size());
+                    if (ts.getTestCases().size() == 0) {
+                        testCaseCount.incrementAndGet();
+                        failedTestCaseCount.incrementAndGet();
+                    }
+                })
+                .filter(ts -> ts.getStatus() != Status.SUCCESS)
+                .map(TestScenario::getTestCases)
+                .flatMap(Collection::stream)
+                .filter(tc -> !tc.isSuccess())
+                .forEachOrdered(
+                        tc -> {
+                            failedTestCaseCount.incrementAndGet();
+                            logger.info("  " + tc.getTestScenario().getName() + "::" + tc.getName() + ": " + tc
+                                    .getFailureMessage());
+                        });
+
+        logger.info("");
+        logger.info(
+                StringUtil.concatStrings("Tests run: ", testCaseCount, ", Failures/Errors: ", failedTestCaseCount));
+        logger.info("");
+    }
+
+    /**
+     * Prints a series of dashes ('-') into the log.
+     *
+     * @param length no of characters to print
+     */
+    private static void printSeparator(int length) {
+        logger.info(StringUtils.repeat("-", length));
+    }
+
+    /**
+     * Get time for summary logging purposes.
+     *
+     * @param timeDifferenceMilliseconds the time taken to run the test plan
+     * @return human readable elapsed time
+     */
+    private static String getHumanReadableTimeDiff(long timeDifferenceMilliseconds) {
+        long diffSeconds = timeDifferenceMilliseconds / 1000;
+        long diffMinutes = timeDifferenceMilliseconds / (60 * 1000);
+        long diffHours = timeDifferenceMilliseconds / (60 * 60 * 1000);
+        long diffDays = timeDifferenceMilliseconds / (60 * 60 * 1000 * 24);
+
+        if (diffSeconds < 1) {
+            return "less than a second";
+        } else if (diffMinutes < 1) {
+            return diffSeconds + " seconds";
+        } else if (diffHours < 1) {
+            return diffMinutes + " minutes" + " " + (diffSeconds % 60) + " seconds";
+        } else if (diffDays < 1) {
+            return diffHours + " hours" + " " + (diffMinutes % 60) + " minutes";
+        } else {
+            return diffDays + " days" + " " + (diffHours % 24) + " hours";
+        }
+
+    }
+
 }

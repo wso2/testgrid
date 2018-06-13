@@ -114,9 +114,7 @@ public class RunTestPlanCommand implements Command {
                 persistTestPlan(testPlan);
 
                 //Create logging directory
-                String productName = testPlan.getDeploymentPattern().getProduct().getName();
-                LogFilePathLookup.setLogFilePath(
-                        TestGridUtil.deriveLogFilePath(productName, TestGridUtil.deriveTestRunLogFileName(testPlan)));
+                LogFilePathLookup.setLogFilePath(TestGridUtil.deriveTestRunLogFilePath(testPlan));
 
                 executeTestPlan(testPlan, infrastructureConfig);
             } else {

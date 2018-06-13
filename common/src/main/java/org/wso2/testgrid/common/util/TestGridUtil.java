@@ -71,6 +71,8 @@ public final class TestGridUtil {
     private static final String UNDERSCORE = "_";
 
     /**
+     * Use {@link org.wso2.testgrid.common.ShellExecutor#executeCommand(String)} instead.
+     *
      * Executes a command.
      * Used to executing a script in a given working directory.
      *
@@ -79,6 +81,7 @@ public final class TestGridUtil {
      * @return The output of script execution as a String.
      * @throws CommandExecutionException When there is an error executing the command.
      */
+    @Deprecated
     public static String executeCommand(String command, File workingDirectory) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
@@ -116,6 +119,8 @@ public final class TestGridUtil {
     }
 
     /**
+     * Use {@link org.wso2.testgrid.common.ShellExecutor#executeCommand(String)} instead.
+     *
      * Executes a command.
      * Used to execute a script with given deployment details as environment variables.
      *
@@ -125,6 +130,7 @@ public final class TestGridUtil {
      * @return The output of script execution as a String.
      * @throws CommandExecutionException When there is an error executing the command.
      */
+    @Deprecated
     public static String executeCommand(String command, File workingDirectory,
             DeploymentCreationResult deploymentCreationResult)
             throws CommandExecutionException {
@@ -398,11 +404,30 @@ public final class TestGridUtil {
      * @param productName product name
      * @return log file path
      */
-    public static String deriveLogFilePath(String productName, String logFileName) {
-        return Paths.get(productName, TestGridConstants.TESTGRID_LOGS_DIR, logFileName).toString();
+    public static String deriveTestGridLogFilePath(String productName, String logFileName) {
+        return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
+                logFileName).toString();
     }
 
-    public static String deriveTestRunLogFileName(TestPlan testPlan) throws TestGridException {
+    /**
+     * Returns the path of the test-run log file.
+     *
+     * @param testPlan test-plan
+     * @return log file path
+     */
+    public static String deriveTestRunLogFilePath(TestPlan testPlan) throws TestGridException {
+        String productName = testPlan.getDeploymentPattern().getProduct().getName();
+        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
+        return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
+                testPlanDirName, TestGridConstants.TESTRUN_LOG_FILE_NAME).toString();
+    }
+
+    /**
+     * Returns the test-plan directory name based on the test-plan content.
+     * @param testPlan test-plan
+     * @return test-plan directory name.
+     */
+    public static String deriveTestPlanDirName(TestPlan testPlan) throws TestGridException {
         DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
         int testRunNumber = testPlan.getTestRunNumber();
         String deploymentDir = deploymentPattern.getName();

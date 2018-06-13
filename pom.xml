@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.testgrid</groupId>
     <artifactId>testgrid-parent</artifactId>
-    <version>0.9.0-m30-SNAPSHOT</version>
+    <version>0.9.0-m31-SNAPSHOT</version>
     <name>WSO2 TestGrid Project - Aggregator POM</name>
     <url>http://wso2.org</url>
     <packaging>pom</packaging>
@@ -305,7 +305,12 @@
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.jpa</artifactId>
-                <version>${javax.persistence.version}</version>
+                <version>${org.eclipse.persistence.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.core</artifactId>
+                <version>${org.eclipse.persistence.version}</version>
             </dependency>
 
             <!-- Web app dependencies -->
@@ -466,19 +471,19 @@
                 <version>${slf4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>${slf4j.version}</version>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-core</artifactId>
-                <version>${log4j.core.version}</version>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.eclipse.persistence</groupId>
-                <artifactId>org.eclipse.persistence.core</artifactId>
-                <version>${javax.persistence.version}</version>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j.version}</version>
             </dependency>
             <!--FindBugs dependencies-->
             <dependency>
@@ -563,7 +568,7 @@
         <!-- Plugin versions -->
         <jacoco.version>0.7.9</jacoco.version>
         <!-- TestGrid version-->
-        <test.grid.version>0.9.0-m30-SNAPSHOT</test.grid.version>
+        <test.grid.version>0.9.0-m31-SNAPSHOT</test.grid.version>
         <!-- Test Grid core dependencies -->
         <jgit.version>4.1.1.201511131810-r</jgit.version>
         <!-- TestGrid infrastructure dependencies -->
@@ -584,6 +589,7 @@
         <com.h2database.version>1.4.196</com.h2database.version>
         <!-- DAO dependencies -->
         <javax.persistence.version>2.2.0</javax.persistence.version>
+        <org.eclipse.persistence.version>2.2.0</org.eclipse.persistence.version>
         <jersey.server.version>2.17</jersey.server.version>
         <!-- Web app dependencies -->
         <javax.websocket.version>1.1</javax.websocket.version>
@@ -598,7 +604,7 @@
         <apache.velocity.version>1.7</apache.velocity.version>
         <!-- Logging dependencies -->
         <slf4j.version>1.7.25</slf4j.version>
-        <log4j.core.version>2.8.2</log4j.core.version>
+        <log4j.version>2.11.0</log4j.version>
         <!--Dashboard dependencies-->
         <org.codehaus.mojo.version>1.3.2</org.codehaus.mojo.version>
         <!--Findbugs dependencies-->

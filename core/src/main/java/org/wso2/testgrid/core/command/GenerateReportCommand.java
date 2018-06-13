@@ -66,7 +66,7 @@ public class GenerateReportCommand implements Command {
 
             Product product = getProduct(productName);
             LogFilePathLookup.setLogFilePath(
-                    TestGridUtil.deriveLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
+                    TestGridUtil.deriveTestGridLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
             TestReportEngine testReportEngine = new TestReportEngine();
             testReportEngine.generateReport(product, showSuccess, groupBy);
         } catch (ReportingException e) {

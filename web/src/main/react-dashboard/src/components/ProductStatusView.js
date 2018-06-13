@@ -21,7 +21,6 @@ import '../App.css';
 import SingleRecord from './SingleRecord.js';
 import {add_current_product} from '../actions/testGridActions.js';
 import Moment from 'moment'
-import ReactTooltip from 'react-tooltip';
 import {HTTP_OK, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
 import {Button, Table, Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap';
 
@@ -105,7 +104,7 @@ class ProductStatusView extends Component {
           productId: product.productId,
           productName: product.productName,
           productStatus: product.productStatus
-        })} scope="row">
+        })} scope="row  ">
           <i style={{cursor: 'pointer'}}>{product.productName}</i>
         </th>
         <td style={{fontSize: '16px'}}>
@@ -141,17 +140,23 @@ class ProductStatusView extends Component {
             }
           })()}
         </td>
-        <td><img src={require('../play.png')} alt="" width="36" height="36" data-tip="Execute job" onClick={() => {
-          window.location = '/admin/job/' + product.productName + '/build'
-        }}/> <ReactTooltip/></td>
-        <td><img src={require('../configure.png')} alt="" width="36" height="36" onClick={() => {
-          window.location =
-            '/admin/job/' + product.productName + '/configure'
-        }} data-tip="Configure job" style={{cursor: 'pointer'}}/>
+        <td>
+          <Button  outline color="info" size="sm" onClick={() => {
+            window.location = '/admin/job/' + product.productName + '/build'
+          }}>
+            <i className="fa fa-play-circle" aria-hidden="true"> </i>
+          </Button>
         </td>
         <td>
-          <Button color="success" onClick={this.downloadReport.bind(this, product.productName)}>
-            Download
+          <Button outline color="info" size="sm" onClick={() => {
+            window.location = '/admin/job/' + product.productName + '/configure'
+          }}>
+            <i className="fa fa-cogs" aria-hidden="true"> </i>
+          </Button>
+        </td>
+        <td>
+          <Button outline color="info" size="sm" onClick={this.downloadReport.bind(this, product.productName)}>
+            <i className="fa fa-download" aria-hidden="true"> </i>
           </Button>
         </td>
       </tr>)
