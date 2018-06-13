@@ -39,7 +39,6 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.testgrid.common.util.StringUtil;
-//import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
