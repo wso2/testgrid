@@ -51,8 +51,7 @@ public class FunctionalTestResultParser extends JMeterResultParser {
     private static final String SAMPLE_ELEMENT = "sample";
     private static final String FAILURE_MESSAGE_ELEMENT = "failureMessage";
     private static final String TEST_NAME_ATTRIBUTE = "lb";
-    private static final String TEST_STATUS_ATTRIBUTE = "ec";
-    private static final String TEST_STATUS_FAIL = "1";
+    private static final String TEST_SUCCESS_ATTRIBUTE = "s";
 
     public FunctionalTestResultParser(TestScenario testScenario, String testLocation) {
         super(testScenario, testLocation);
@@ -136,12 +135,8 @@ public class FunctionalTestResultParser extends JMeterResultParser {
             Attribute attribute = attributes.next();
             if (TEST_NAME_ATTRIBUTE.equals(attribute.getName().getLocalPart())) {
                 testCase.setName(attribute.getValue());
-            } else if (TEST_STATUS_ATTRIBUTE.equals(attribute.getName().getLocalPart())) {
-                if (TEST_STATUS_FAIL.equals(attribute.getValue())) {
-                    testCase.setSuccess(false);
-                } else {
-                    testCase.setSuccess(true);
-                }
+            } else if (TEST_SUCCESS_ATTRIBUTE.equals(attribute.getName().getLocalPart())) {
+                testCase.setSuccess(Boolean.valueOf(attribute.getValue()));
             }
         }
         return testCase;

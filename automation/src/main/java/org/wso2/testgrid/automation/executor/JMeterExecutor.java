@@ -26,16 +26,20 @@ import org.wso2.testgrid.automation.parser.JMeterResultParser;
 import org.wso2.testgrid.automation.parser.JMeterResultParserException;
 import org.wso2.testgrid.automation.parser.JMeterResultParserFactory;
 import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +53,7 @@ import static org.wso2.testgrid.common.TestGridConstants.SCENARIO_RESULTS_FILTER
 public class JMeterExecutor extends TestExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(JMeterExecutor.class);
+    public static final String JMETER_HOME = "JMETER_HOME";
     private String testLocation;
     private String testName;
     private TestScenario testScenario;
@@ -65,7 +70,21 @@ public class JMeterExecutor extends TestExecutor {
             throws TestAutomationException {
         try {
 
-            TestGridUtil.executeCommand("bash " + script, new File(testLocation));
+            String jmeterHome = EnvironmentUtil.getSystemVariableValue(JMETER_HOME);
+            if (jmeterHome == null) {
+                logger.error(JMETER_HOME + " environment variable is not set. JMeter test execution may fail.");
+            } else {
+                logger.info(JMETER_HOME + ": " + jmeterHome);
+            }
+
+            ShellExecutor shellExecutor = new ShellExecutor(Paths.get(testLocation));
+            int exitCode = shellExecutor.executeCommand("bash " + script);
+
+            if (exitCode > 0) {
+                logger.error(StringUtil.concatStrings("Error occurred while executing the test: ", testName, ", at: ",
+                        testScenario.getDir(), ". Script exited with a status code of ", exitCode));
+            }
+
             //Parse JTL file
             Optional<JMeterResultParser> parser = JMeterResultParserFactory.getParser(this.testScenario, testLocation);
             if (parser.isPresent()) {
