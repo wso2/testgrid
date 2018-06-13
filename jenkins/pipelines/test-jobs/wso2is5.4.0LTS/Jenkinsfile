@@ -123,7 +123,7 @@ pipeline {
                             }
                             withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
                                 // Upload artifacts to S3
-                                s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/${f.name}")
+                                s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/")
                             }
                         }
                     }

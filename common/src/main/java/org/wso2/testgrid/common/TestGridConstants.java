@@ -34,9 +34,11 @@ public class TestGridConstants {
     public static final String RUN_SCENARIO_SCRIPT_TEMPLATE = "run-scenarioTemplate.vm";
     public static final String JMETER_FOLDER = "jmeter";
     public static final String JMETER_FILE_FILTER_PATTERN = "*.jmx";
+    public static final String SCENARIO_RESULTS_FILTER_PATTERN = "*.{log,jtl}";
 
     public static final String TESTGRID_LOG_FILE_NAME = "testgrid.log";
     public static final String TESTGRID_LOGS_DIR = "logs";
+    public static final String TESTGRID_COMPRESSED_FILE_EXT = ".zip";
     public static final String TESTRUN_LOG_FILE_NAME = "test-run.log";
     public static final String TESTGRID_BUILDS_DIR = "builds";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";

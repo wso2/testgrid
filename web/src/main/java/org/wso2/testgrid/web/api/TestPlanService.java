@@ -22,6 +22,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestCase;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
@@ -68,6 +69,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT;
+import static org.wso2.testgrid.web.utils.Constants.RESPONSE_HEADER_CONTENT_DISPOSITION;
+import static org.wso2.testgrid.web.utils.Constants.RESPONSE_HEADER_FILE_NAME;
+import static org.wso2.testgrid.web.utils.Constants.RESPONSE_HEADER_VALUE_APPLICATION_ZIP;
+import static org.wso2.testgrid.web.utils.Constants.RESPONSE_HEADER_VALUE_ATTACHMENT;
 
 /**
  * REST service implementation of TestPlan.
@@ -378,8 +385,8 @@ public class TestPlanService {
             // Create scenario summary
             long totalSuccess = testCases.stream().filter(TestCase::isSuccess).count();
             long totalFailed = testCases.stream().filter(testCase -> !testCase.isSuccess()).count();
-            ScenarioSummary scenarioSummary = new ScenarioSummary(
-                    testScenario.getDescription(), totalSuccess, totalFailed, testScenario.getStatus());
+            ScenarioSummary scenarioSummary = new ScenarioSummary(testScenario.getDescription(), totalSuccess,
+                    totalFailed, testScenario.getStatus(), testScenario.getName());
             scenarioSummaries.add(scenarioSummary);
 
             // Create test case entries for failed tests
@@ -393,5 +400,72 @@ public class TestPlanService {
                     testScenario.getDescription(), failedTestCaseEntries));
         }
         return new TestExecutionSummary(scenarioSummaries, scenarioTestCaseEntries);
+    }
+
+    /**
+     * Returns the result (archive file) to the given scenario of a test plan.
+     *
+     * @param id test plan id
+     * @param scenarioDir scenario directory name
+     * @return archived file of the results
+     */
+    @GET
+    @Path("/result/{id}/{scenarioDir}")
+    public Response getScenarioResult(@PathParam("id") String id, @PathParam("scenarioDir") String scenarioDir) {
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            Optional<TestPlan> testPlanOptional = testPlanUOW.getTestPlanById(id);
+            if (!testPlanOptional.isPresent()) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Couldn't found a TestPlan for the requested id").build();
+            }
+            TestPlan testPlan = testPlanOptional.get();
+            String testPlanDir = TestGridUtil.deriveTestPlanDirName(testPlan);
+            String productName = testPlan.getDeploymentPattern().getProduct().getName();
+            String archiveFileDir = Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName,
+                    TestGridConstants.TESTGRID_BUILDS_DIR, testPlanDir, scenarioDir,
+                    scenarioDir + TESTGRID_COMPRESSED_FILE_EXT).toString();
+            String bucketKey = Paths
+                    .get(AWS_BUCKET_ARTIFACT_DIR, archiveFileDir).toString();
+            ArtifactReadable artifactDownloadable = new AWSArtifactReader(
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+
+            if (artifactDownloadable.isArtifactExist(bucketKey)) {
+                return Response
+                        .ok(artifactDownloadable.getArtifactStream(bucketKey))
+                        .type(RESPONSE_HEADER_VALUE_APPLICATION_ZIP)
+                        .header(RESPONSE_HEADER_CONTENT_DISPOSITION, RESPONSE_HEADER_VALUE_ATTACHMENT + "; " +
+                                RESPONSE_HEADER_FILE_NAME + "=\" " + scenarioDir +
+                                TESTGRID_COMPRESSED_FILE_EXT + "\"")
+                        .build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Couldn't found result-artifacts in the remote location").build();
+            }
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "' ";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (TestGridException e) {
+            String msg = "Error occurred when deriving test run artifacts directory.";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (ArtifactReaderException e) {
+            String msg = "Error occurred when reading the artifact.";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(e.getMessage())
+                            .setDescription(e.getMessage()).build()).build();
+        }
     }
 }
