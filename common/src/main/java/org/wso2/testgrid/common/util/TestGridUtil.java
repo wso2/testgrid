@@ -410,6 +410,21 @@ public final class TestGridUtil {
     }
 
     /**
+     * Derives the relative path of a scenario-artifact.
+     *
+     * @param testScenario test-scenario of the artifact
+     * @param fileName name of the artifact
+     * @return relative path of the artifact
+     */
+    public static String deriveScenarioArtifactPath(TestScenario testScenario, String fileName)
+            throws TestGridException {
+        String productName = testScenario.getTestPlan().getDeploymentPattern().getProduct().getName();
+        return Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR, productName,
+                TestGridConstants.TESTGRID_BUILDS_DIR, deriveTestPlanDirName(testScenario.getTestPlan()),
+                testScenario.getDir(), fileName).toString();
+    }
+
+    /**
      * Returns the path of the test-run log file.
      *
      * @param testPlan test-plan

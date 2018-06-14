@@ -67,5 +67,8 @@ public class Constants extends TestGridConstants {
 
     public static final String HTML_EXTENSION = ".html";
     public static final String AWS_BUCKET_ARTIFACT_DIR = "artifacts";
-    public static final String HTTP_FILE_NOT_FOUND = "404";
+    public static final String RESPONSE_HEADER_CONTENT_DISPOSITION = "Content-Disposition";
+    public static final String RESPONSE_HEADER_VALUE_ATTACHMENT = "attachment";
+    public static final String RESPONSE_HEADER_VALUE_APPLICATION_ZIP = "application/zip";
+    public static final String RESPONSE_HEADER_FILE_NAME = "filename";
 }
