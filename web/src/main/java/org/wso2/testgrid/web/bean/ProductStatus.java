@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.web.bean;
 
+import java.sql.Timestamp;
+
 /**
  * Bean class for Aggregated product productStatus reponses.
  *
@@ -28,10 +30,10 @@ public class ProductStatus {
     private String productName;
     private String reportLink;
     private String productStatus;
-    private TestPlan lastBuild;
-    private TestPlan lastfailed;
     private String executeLink;
     private String configLink;
+    private Timestamp lastSuccessTimestamp;
+    private Timestamp lastFailureTimestamp;
 
     /**
      * Returns the productId of the product.
@@ -108,44 +110,6 @@ public class ProductStatus {
     }
 
     /**
-     * Returns the last build TestPlan of the product
-     *
-     * @return {@link TestPlan} for the last build
-     */
-    public TestPlan getLastBuild() {
-        return lastBuild;
-    }
-
-    /**
-     *
-     * Sets the last build for the product.
-     *
-     * @param lastBuild the last build {@link TestPlan}
-     */
-    public void setLastBuild(TestPlan lastBuild) {
-        this.lastBuild = lastBuild;
-    }
-
-    /**
-     *
-     * Returns the last failed TestPlan of the product.
-     *
-     * @return {@link TestPlan} for last failed build
-     */
-    public TestPlan getLastfailed() {
-        return lastfailed;
-    }
-
-    /**
-     *Sets the last failed build for the product
-     *
-     * @param lastfailed {@link TestPlan} for last failed build
-     */
-    public void setLastfailed(TestPlan lastfailed) {
-        this.lastfailed = lastfailed;
-    }
-
-    /**
      *Returns the executable link for the product that contains all the jobs.
      *
      * @return executable URL for the product
@@ -179,5 +143,41 @@ public class ProductStatus {
      */
     public void setConfigLink(String configLink) {
         this.configLink = configLink;
+    }
+
+    /**
+     * Returns the last success timestamp of the product build.
+     *
+     * @return timestamp
+     */
+    public Timestamp getLastSuccessTimestamp() {
+        return lastSuccessTimestamp == null ? null : new Timestamp(lastSuccessTimestamp.getTime());
+    }
+
+    /**
+     * Sets the last success timestamp of the product build.
+     *
+     * @param lastSuccessTimestamp timestamp
+     */
+    public void setLastSuccessTimestamp(Timestamp lastSuccessTimestamp) {
+        this.lastSuccessTimestamp = lastSuccessTimestamp == null ? null : new Timestamp(lastSuccessTimestamp.getTime());
+    }
+
+    /**
+     * Returns the last failure timestamp of the product build.
+     *
+     * @return timestamp
+     */
+    public Timestamp getLastFailureTimestamp() {
+        return lastFailureTimestamp == null ? null : new Timestamp(lastFailureTimestamp.getTime());
+    }
+
+    /**
+     * Sets the last failure timestamp of the product build.
+     *
+     * @param lastFailureTimestamp timestamp
+     */
+    public void setLastFailureTimestamp(Timestamp lastFailureTimestamp) {
+        this.lastFailureTimestamp = lastFailureTimestamp == null ? null : new Timestamp(lastFailureTimestamp.getTime());
     }
 }

@@ -49,6 +49,8 @@ class APIUtil {
         if (product != null) {
             productBean.setId(product.getId());
             productBean.setName(product.getName());
+            productBean.setLastSuccessTimestamp(product.getLastSuccessTimestamp());
+            productBean.setLastFailureTimestamp(product.getLastFailureTimestamp());
         }
         return productBean;
     }

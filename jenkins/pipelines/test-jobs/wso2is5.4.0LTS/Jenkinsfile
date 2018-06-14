@@ -125,7 +125,7 @@ pipeline {
             sh """
 	    cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
             ./testgrid finalize-run-testplan \
-            --product ${PRODUCT}
+            --product ${PRODUCT} --workspace ${PWD}
             """
 
            sh """
