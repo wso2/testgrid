@@ -71,6 +71,8 @@ public final class TestGridUtil {
     private static final String UNDERSCORE = "_";
 
     /**
+     * Use {@link org.wso2.testgrid.common.ShellExecutor#executeCommand(String)} instead.
+     *
      * Executes a command.
      * Used to executing a script in a given working directory.
      *
@@ -79,6 +81,7 @@ public final class TestGridUtil {
      * @return The output of script execution as a String.
      * @throws CommandExecutionException When there is an error executing the command.
      */
+    @Deprecated
     public static String executeCommand(String command, File workingDirectory) throws CommandExecutionException {
 
         if (logger.isDebugEnabled()) {
@@ -116,6 +119,8 @@ public final class TestGridUtil {
     }
 
     /**
+     * Use {@link org.wso2.testgrid.common.ShellExecutor#executeCommand(String)} instead.
+     *
      * Executes a command.
      * Used to execute a script with given deployment details as environment variables.
      *
@@ -125,6 +130,7 @@ public final class TestGridUtil {
      * @return The output of script execution as a String.
      * @throws CommandExecutionException When there is an error executing the command.
      */
+    @Deprecated
     public static String executeCommand(String command, File workingDirectory,
             DeploymentCreationResult deploymentCreationResult)
             throws CommandExecutionException {
@@ -401,6 +407,21 @@ public final class TestGridUtil {
     public static String deriveTestGridLogFilePath(String productName, String logFileName) {
         return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
                 logFileName).toString();
+    }
+
+    /**
+     * Derives the relative path of a scenario-artifact.
+     *
+     * @param testScenario test-scenario of the artifact
+     * @param fileName name of the artifact
+     * @return relative path of the artifact
+     */
+    public static String deriveScenarioArtifactPath(TestScenario testScenario, String fileName)
+            throws TestGridException {
+        String productName = testScenario.getTestPlan().getDeploymentPattern().getProduct().getName();
+        return Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR, productName,
+                TestGridConstants.TESTGRID_BUILDS_DIR, deriveTestPlanDirName(testScenario.getTestPlan()),
+                testScenario.getDir(), fileName).toString();
     }
 
     /**

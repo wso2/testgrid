@@ -14,10 +14,7 @@ pipeline {
 
     environment {
             CONCURRENT_JOBS = 4
-            TESTGRID_VERSION = '0.9.0-SNAPSHOT'
             TESTGRID_NAME = 'WSO2-TestGrid'
-            TESTGRID_DIST_URL = 'https://wso2.org/jenkins/job/testgrid/job/testgrid/' +
-                    'lastSuccessfulBuild/artifact/distribution/target/${TESTGRID_NAME}-${TESTGRID_VERSION}.zip'
             TESTGRID_DIST_LOCATION = '/testgrid/testgrid-home/testgrid-dist/'
             TESTGRID_HOME='/testgrid/testgrid-home/'
 
@@ -40,7 +37,6 @@ pipeline {
             JOB_CONFIG_YAML = "job-config.yaml"
             JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
 
-            MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
     }
 
     tools {
@@ -65,14 +61,6 @@ pipeline {
                 dir("${INFRA_LOCATION}"){
                     git url:"${INFRASTRUCTURE_REPOSITORY}"
                 }
-
-                sh """
-                echo ${TESTGRID_NAME}
-		        cd ${TESTGRID_DIST_LOCATION}
-                unzip -o ${TESTGRID_NAME}.zip
-                cd ${TESTGRID_NAME}
-                curl -o ./lib/mysql.jar $MYSQL_DRIVER_LOCATION
-                """
 
                 sh """
                 echo 'infrastructureRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' > ${JOB_CONFIG_YAML_PATH}
@@ -131,7 +119,7 @@ pipeline {
                                     }
                                     withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
                                         // Upload artifacts to S3
-                                        s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/${f.name}")
+                                        s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/")
                                     }
                                 }
                                 echo "RESULT: ${currentBuild.result}"

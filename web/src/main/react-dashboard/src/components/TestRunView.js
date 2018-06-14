@@ -27,11 +27,12 @@ import Divider from 'material-ui/Divider';
 import LinearProgress from 'material-ui/LinearProgress';
 import Download from 'downloadjs'
 import Snackbar from 'material-ui/Snackbar';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
   from '../constants.js';
 import {Button, Table, Card, CardText, CardTitle, Col, Row} from 'reactstrap';
 import InfraCombinationView from "./InfraCombinationView";
 import ReactTooltip from 'react-tooltip'
+import {HTTP_OK} from "../constants";
 
 /**
  * View responsible for displaying test run log and summary information.
@@ -135,9 +136,9 @@ class TestRunView extends Component {
     }
   }
 
-  handleLogDownloadErrorDialogClose = () => {
+  handleLogDownloadStatusDialogClose = () => {
     this.setState({
-      showLogDownloadErrorDialog: false,
+      showLogDownloadStatusDialog: false,
     });
   };
 
@@ -150,6 +151,34 @@ class TestRunView extends Component {
       window.location.replace(LOGIN_URI);
     }
     return response;
+  }
+
+  toggle(Message) {
+    this.setState({
+      showLogDownloadStatusMessage: Message,
+      showLogDownloadStatusDialog: true,
+    });
+  }
+
+  downloadScenarioResult(scenarioId) {
+    let url = TESTGRID_CONTEXT + '/api/test-plans/result/' + this.state.currentInfra.testPlanId + "/" + scenarioId;
+    fetch(url, {
+      method: "GET",
+      credentials: 'same-origin',
+    }).then(response => {
+        if (response.status === HTTP_NOT_FOUND) {
+          let errorMessage = "Unable to locate results in the remote storage.";
+          this.toggle(errorMessage);
+        } else if (response.status !== HTTP_OK) {
+          let errorMessage = "Internal server error. Couldn't download the results at the moment.";
+          this.toggle(errorMessage);
+        } else if (response.status === HTTP_OK) {
+          let statusMessage = "Download will begin in a moment..";
+          this.toggle(statusMessage);
+          document.location = url;
+        }
+      }
+    ).catch(error => console.error(error));
   }
 
   render() {
@@ -226,22 +255,25 @@ class TestRunView extends Component {
                             })
                               .then(this.handleError)
                               .then(response => {
-                                this.setState({
-                                  showLogDownloadErrorDialog: !response.ok
-                                });
+                                if (response.status !== HTTP_OK) {
+                                  let statusMessage = "Error on downloading log file...";
+                                  this.toggle(statusMessage);
+                                }
                                 return response.json();
                               }).then(data => {
-                                  if (!this.state.showLogDownloadErrorDialog) {
+                                  if (!this.state.showLogDownloadStatusDialog) {
                                     Download(data.inputStreamContent, "test-run.log", "plain/text");
                                   }
                                 }
                               ))}
+
+
                 />
                 <Snackbar
-                  open={this.state.showLogDownloadErrorDialog}
-                  message="Error on downloading log file..."
+                  open={this.state.showLogDownloadStatusDialog}
+                  message={this.state.showLogDownloadStatusMessage}
                   autoHideDuration={4000}
-                  onRequestClose={this.handleLogDownloadErrorDialogClose}
+                  onRequestClose={this.handleLogDownloadStatusDialogClose}
                   contentStyle={{
                     fontWeight: 600,
                     fontSize: "15px"
@@ -274,6 +306,7 @@ class TestRunView extends Component {
                         <th style={{width: "15%", textAlign: "center"}}>Total Success</th>
                         <th style={{width: "15%", textAlign: "center"}}>Total Failed</th>
                         <th style={{width: "15%", textAlign: "center"}}>Success Percentage</th>
+                        <th style={{width: "15%", textAlign: "center"}}>Results</th>
                       </tr>
                       </thead>
                       <tbody displayRowCheckbox={false} showRowHover={true}>
@@ -378,6 +411,19 @@ class TestRunView extends Component {
                                 "0.0" :
                                 parseFloat(data.successPercentage).toFixed(2)
                             }%
+                          </td>
+                          <td
+                            style={{
+                              width: "15%",
+                              textAlign: "center",
+                              fontSize: "20px",
+                              wordWrap: "break-word",
+                              whiteSpace: "wrap"
+                            }}>
+                              <Button outline color="info" size="sm"
+                                     onClick={this.downloadScenarioResult.bind(this, data.scenarioDir)}>
+                              <i className="fa fa-download" aria-hidden="true"> </i>
+                              </Button>
                           </td>
                         </tr>)
                       })}

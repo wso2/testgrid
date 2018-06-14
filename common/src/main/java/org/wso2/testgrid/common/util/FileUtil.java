@@ -26,13 +26,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility class for handling file operations.
@@ -52,7 +58,8 @@ public class FileUtil {
      */
     public static <T> T readYamlFile(String location, Class<T> type) throws IOException {
         if (StringUtil.isStringNullOrEmpty(location) || !location.endsWith(YAML_EXTENSION)) {
-            throw new IllegalArgumentException(StringUtil.concatStrings("Invalid configuration file: ", location));
+            throw new IllegalArgumentException(
+                    StringUtil.concatStrings("Invalid configuration file: ", location));
         }
 
         try (FileInputStream fileInputStream = new FileInputStream(new File(location))) {
@@ -96,4 +103,28 @@ public class FileUtil {
             throw new TestGridException(StringUtil.concatStrings("Error in writing file ", fileName), e);
         }
     }
+
+    /**
+     * Creates a archive file of the list of files passing in the given destination.
+     *
+     * @param files list of files to be archive
+     * @param destination path of the archive file
+     */
+    public static void compressFiles(List<String> files, String destination) throws TestGridException {
+        Map<String, String> env = new HashMap<>();
+        env.put("create", "true");
+
+        URI uri = URI.create("jar:file:" + destination);
+
+        try (FileSystem zipFileSystem = FileSystems.newFileSystem(uri, env)) {
+            for (String filePath: files) {
+                File file = new File(filePath);
+                Path destinationPath =  zipFileSystem.getPath(file.getName());
+                Files.copy(file.toPath(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            throw new TestGridException("Error occurred while making the archive: " + destination , e);
+        }
+    }
+
 }

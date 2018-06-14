@@ -31,6 +31,7 @@ public class ScenarioSummary {
     private final long totalFail;
     private final double successPercentage;
     private final Status scenarioStatus;
+    private final String scenarioDir;
 
     /**
      * Constructs an instance of a {@link ScenarioSummary}.
@@ -40,12 +41,14 @@ public class ScenarioSummary {
      * @param totalFail      total number of failed test cases
      * @param scenarioStatus test scenario overall result
      */
-    public ScenarioSummary(String scenarioDescription, long totalSuccess, long totalFail, Status scenarioStatus) {
+    public ScenarioSummary(String scenarioDescription, long totalSuccess, long totalFail, Status scenarioStatus,
+                           String scenarioDir) {
         this.scenarioDescription = scenarioDescription;
         this.totalSuccess = totalSuccess;
         this.totalFail = totalFail;
         this.successPercentage = (double) totalSuccess / ((double) totalSuccess + (double) totalFail) * 100d;
         this.scenarioStatus = scenarioStatus;
+        this.scenarioDir = scenarioDir;
     }
 
     /**
@@ -91,6 +94,15 @@ public class ScenarioSummary {
      */
     public Status getScenarioStatus() {
         return scenarioStatus;
+    }
+
+    /**
+     * Returns the directory of the test scenario.
+     *
+     * @return directory of the test scenario
+     */
+    public String getScenarioDir() {
+        return scenarioDir;
     }
 
     @Override

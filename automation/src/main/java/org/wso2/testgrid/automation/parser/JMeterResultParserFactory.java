@@ -19,12 +19,16 @@
 package org.wso2.testgrid.automation.parser;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Optional;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -38,6 +42,8 @@ import javax.xml.stream.events.XMLEvent;
  * @since 1.0.0
  */
 public class JMeterResultParserFactory {
+
+    private static final Logger logger = LoggerFactory.getLogger(JMeterResultParserFactory.class);
 
     /**
      * This method returns an instance of {@link JMeterResultParser} to parse the given JMeter result file.
@@ -53,6 +59,11 @@ public class JMeterResultParserFactory {
         XMLInputFactory factory = XMLInputFactory.newInstance();
         String testScenarioName = testScenario.getName();
         String scenarioResultFile = JMeterParserUtil.getJTLFile(testLocation);
+        if (scenarioResultFile == null || scenarioResultFile.isEmpty() || !Files
+                .exists(Paths.get(scenarioResultFile))) {
+            logger.warn("A JMeter result output file (*.jtl) was not found for scenario: " + testScenarioName);
+            return Optional.empty();
+        }
         try (InputStream inputStream = new FileInputStream(scenarioResultFile)) {
             XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
 
