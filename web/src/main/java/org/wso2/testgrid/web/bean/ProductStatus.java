@@ -110,7 +110,7 @@ public class ProductStatus {
     }
 
     /**
-     *Returns the executable link for the product that contains all the jobs.
+     * Returns the executable link for the product that contains all the jobs.
      *
      * @return executable URL for the product
      */
@@ -119,7 +119,7 @@ public class ProductStatus {
     }
 
     /**
-     *Set the executable link for the product.
+     * Set the executable link for the product.
      *
      * @param executeLink URL for the job execution of product
      */
@@ -137,7 +137,7 @@ public class ProductStatus {
     }
 
     /**
-     *Set the Jenkins configuration link for the product.
+     * Set the Jenkins configuration link for the product.
      *
      * @param configLink URL for configuration console
      */

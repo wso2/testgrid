@@ -177,9 +177,7 @@ public class ProductRepository extends AbstractRepository<Product> {
             // Commit transaction
             entityManager.getTransaction().commit();
         } catch (Exception e) {
-            throw new TestGridDAOException(
-                    StringUtil.concatStrings("Error on executing the native SQL" + " query to update product table"),
-                    e);
+            throw new TestGridDAOException("Error on executing the native SQL query to update product table.", e);
         }
     }
 }
