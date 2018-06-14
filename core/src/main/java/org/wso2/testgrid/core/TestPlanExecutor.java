@@ -199,7 +199,7 @@ public class TestPlanExecutor {
     }
 
     /**
-     * Apply config change set script before run test scenarios
+     * Apply config change set script before and after run test scenarios
      * @param testPlan  the test plan
      * @param configChangeSet   config change set to apply
      * @param isInit    run apply config-script if true. else, run revert-config script
