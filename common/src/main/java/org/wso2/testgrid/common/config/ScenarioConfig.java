@@ -59,7 +59,6 @@ public class ScenarioConfig implements Serializable {
         this.scripts = scripts;
     }
 
-
     public String getTestType() {
         return testType;
     }
@@ -68,3 +67,4 @@ public class ScenarioConfig implements Serializable {
         this.testType = testType;
     }
 }
+

@@ -24,12 +24,6 @@ import org.wso2.testgrid.automation.exception.JTLResultParserException;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestScenario;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
-import java.util.Optional;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -39,6 +33,11 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
 
 /**
  * Parser implementation for parsing JMeter Functional Test result file.
@@ -68,114 +67,65 @@ public class FunctionalTestResultParser extends ResultParser {
         super(testScenario, testLocation);
     }
 
-
-    /**
-     * This method will be used to verify if the scenario artifacts could be parsed from
-     * this parser
-     *
-     * @param testScenario TestScenario to be checked
-     * @param testLocation location of the test artifacts
-     * @return true if it can be parsed, otherwise false
-     * @throws JTLResultParserException When there is an error with verifying
-     */
-    private boolean canParse(TestScenario testScenario, String testLocation) throws JTLResultParserException {
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        String testScenarioName = testScenario.getName();
-        Optional<String> jtlFile = Optional.ofNullable(ResultParserUtil.getJTLFile(testLocation));
-        if (jtlFile.isPresent()) {
-            try (InputStream inputStream = new FileInputStream(jtlFile.get())) {
-                XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
-
-                while (eventReader.hasNext()) {
-                    XMLEvent event = eventReader.nextEvent();
-                    if (event.getEventType() == XMLStreamConstants.START_ELEMENT) {
-                        String qName = event.asStartElement().getName().getLocalPart();
-                        if (HTTP_SAMPLE_ELEMENT.equals(qName) || SAMPLE_ELEMENT.equals(qName)) {
-                            return true;
-                        }
-                    }
-                }
-            } catch (XMLStreamException e) {
-                throw new JTLResultParserException("Unable to parse the scenario-results file of the test scenario : " +
-                        "'" + testScenarioName + "'", e);
-            } catch (FileNotFoundException e) {
-                throw new JTLResultParserException("Unable to locate the scenario-results file of the " +
-                        "test scenario : '" + testScenarioName + "'", e);
-            } catch (IOException e) {
-                throw new JTLResultParserException("Unable to close the input stream of the" +
-                        " scenario-results file for test scenario : '" + testScenarioName + "'", e);
-            }
-        } else {
-            throw new JTLResultParserException("Unable to locate the scenario-results file of the test scenario : " +
-                    "'" + testScenarioName + "'");
-        }
-        return false;
-    }
-
     @Override
     public void parseResults() throws JTLResultParserException {
-
-        if (canParse(testScenario, testLocation)) {
-            boolean failureMsgElement = false;
-            XMLInputFactory factory = XMLInputFactory.newInstance();
-            String scenarioResultFile = ResultParserUtil.getJTLFile(this.testLocation);
-            String testScenarioName = testScenario.getName();
-            try (InputStream inputStream = new FileInputStream(scenarioResultFile)) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Parsing scenario-results file of the TestScenario : '"
-                            + testScenarioName + "' using the FunctionalTestResultParser");
-                }
-
-                XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
-                TestCase testCase = null;
-                while (eventReader.hasNext()) {
-                    XMLEvent event = eventReader.nextEvent();
-                    switch (event.getEventType()) {
-                        case XMLStreamConstants.START_ELEMENT:
-                            StartElement startElement = event.asStartElement();
-                            String elementName = startElement.getName().getLocalPart();
-                            if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(elementName) ||
-                                    SAMPLE_ELEMENT.equalsIgnoreCase(elementName)) {
-                                testCase = this.buildTestCase(startElement);
-                            } else if (FAILURE_MESSAGE_ELEMENT.equalsIgnoreCase(elementName)) {
-                                failureMsgElement = true;
-                            }
-                            break;
-                        case XMLStreamConstants.CHARACTERS:
-                            Characters characters = event.asCharacters();
-                            if (failureMsgElement) {
-                                testCase.setFailureMessage(characters.getData());
-                                failureMsgElement = false;
-                            }
-                            break;
-                        case XMLStreamConstants.END_ELEMENT:
-                            EndElement endElement = event.asEndElement();
-                            String nodeName = endElement.getName().getLocalPart();
-                            if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(nodeName) ||
-                                    SAMPLE_ELEMENT.equalsIgnoreCase(nodeName)) {
-                                this.testScenario.addTestCase(testCase);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                if (logger.isDebugEnabled()) {
-                    logger.debug("End parsing scenario-results file of the TestScenario : '" + testScenarioName +
-                            "' using the FunctionalTestResultParser");
-                }
-            } catch (XMLStreamException e) {
-                throw new JTLResultParserException("Unable to parse the scenario-results file of TestScenario :" +
-                        testScenarioName, e);
-            } catch (FileNotFoundException e) {
-                throw new JTLResultParserException("Unable to locate the scenario-results file.", e);
-            } catch (IOException e) {
-                throw new JTLResultParserException("Unable to close the input stream of scenario results file of " +
-                        "the TestScenario : " + testScenarioName, e);
+        boolean failureMsgElement = false;
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        String scenarioResultFile = ResultParserUtil.getJTLFile(this.testLocation);
+        String testScenarioName = testScenario.getName();
+        try (InputStream inputStream = new FileInputStream(scenarioResultFile)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Parsing scenario-results file of the TestScenario : '"
+                        + testScenarioName + "' using the FunctionalTestResultParser");
             }
-        } else {
-            throw new JTLResultParserException("The JTL files does not have the required element structure");
+
+            XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
+            TestCase testCase = null;
+            while (eventReader.hasNext()) {
+                XMLEvent event = eventReader.nextEvent();
+                switch (event.getEventType()) {
+                    case XMLStreamConstants.START_ELEMENT:
+                        StartElement startElement = event.asStartElement();
+                        String elementName = startElement.getName().getLocalPart();
+                        if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(elementName) ||
+                                SAMPLE_ELEMENT.equalsIgnoreCase(elementName)) {
+                            testCase = this.buildTestCase(startElement);
+                        } else if (FAILURE_MESSAGE_ELEMENT.equalsIgnoreCase(elementName)) {
+                            failureMsgElement = true;
+                        }
+                        break;
+                    case XMLStreamConstants.CHARACTERS:
+                        Characters characters = event.asCharacters();
+                        if (failureMsgElement) {
+                            testCase.setFailureMessage(characters.getData());
+                            failureMsgElement = false;
+                        }
+                        break;
+                    case XMLStreamConstants.END_ELEMENT:
+                        EndElement endElement = event.asEndElement();
+                        String nodeName = endElement.getName().getLocalPart();
+                        if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(nodeName) ||
+                                SAMPLE_ELEMENT.equalsIgnoreCase(nodeName)) {
+                            this.testScenario.addTestCase(testCase);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("End parsing scenario-results file of the TestScenario : '" + testScenarioName +
+                        "' using the FunctionalTestResultParser");
+            }
+        } catch (XMLStreamException e) {
+            throw new JTLResultParserException("Unable to parse the scenario-results file of TestScenario :" +
+                    testScenarioName, e);
+        } catch (FileNotFoundException e) {
+            throw new JTLResultParserException("Unable to locate the scenario-results file.", e);
+        } catch (IOException e) {
+            throw new JTLResultParserException("Unable to close the input stream of scenario results file of " +
+                    "the TestScenario : " + testScenarioName, e);
         }
     }
 
@@ -195,3 +145,4 @@ public class FunctionalTestResultParser extends ResultParser {
         return testCase;
     }
 }
+

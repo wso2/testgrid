@@ -21,6 +21,8 @@ import java.util.List;
 
 /**
  * Model class representing the data section of the {@link PerformanceReport}.
+ * Data section is the section in the report that contains the details at the leaf level
+ * This section contains the {@link PerformanceTable} list populated with the data
  *
  * @since 1.0.0
  *
@@ -55,3 +57,4 @@ public class DataSection {
         this.performanceTableList = performanceTableList;
     }
 }
+

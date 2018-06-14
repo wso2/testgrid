@@ -45,3 +45,4 @@ public class ReportGeneratorInitializingException extends TestGridException {
         super(message, cause);
     }
 }
+

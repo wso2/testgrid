@@ -50,3 +50,4 @@ public abstract class ResultParser {
      */
     public abstract void parseResults() throws ResultParserException;
 }
+

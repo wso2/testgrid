@@ -43,3 +43,4 @@ public class ParserFactoryInitializationException extends TestGridException {
         super(message, cause);
     }
 }
+

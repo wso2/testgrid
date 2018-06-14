@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * @since 1.0.0
  */
-public class ResultFormatter implements Serializable {
+public class ResultFormat implements Serializable {
 
     private String primaryDivider;
     private List<String> dividers;
@@ -36,7 +36,6 @@ public class ResultFormatter implements Serializable {
     private Map<String, String> reportStructure;
 
     private static final long serialVersionUID = 9208065474380972876L;
-
 
     public Map<String, String> getReportStructure() {
         return reportStructure;
@@ -71,3 +70,4 @@ public class ResultFormatter implements Serializable {
         this.dividers = dividers;
     }
 }
+

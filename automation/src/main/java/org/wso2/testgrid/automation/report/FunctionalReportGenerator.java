@@ -18,6 +18,7 @@
 package org.wso2.testgrid.automation.report;
 
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 
 /**
@@ -27,11 +28,11 @@ import org.wso2.testgrid.common.TestPlan;
  */
 public class FunctionalReportGenerator extends ReportGenerator {
 
-    private static final String TEST_TYPE_FUNCTIONAL = "FUNCTIONAL";
 
     @Override
     public boolean canGenerateReport(TestPlan testPlan) {
-        return TEST_TYPE_FUNCTIONAL.equals(testPlan.getScenarioConfig().getTestType());
+        return TestGridConstants.TEST_TYPE_FUNCTIONAL.equals(testPlan.getScenarioConfig()
+                .getTestType());
     }
 
     @Override
@@ -45,3 +46,4 @@ public class FunctionalReportGenerator extends ReportGenerator {
         }
     }
 }
+

@@ -29,8 +29,6 @@ import org.wso2.testgrid.reporting.model.performance.ScenarioSection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 
 /**
  * ReportGenerator implementation for the PerformanceTests
@@ -61,11 +59,11 @@ public class PerformanceReportGenerator extends ReportGenerator {
         if (testPlan != null) {
             for (TestScenario testScenario : testPlan.getTestScenarios()) {
                 ScenarioSection scenarioSection = processor.processScenario(testScenario
-                        , testPlan.getResultFormatter());
+                        , testPlan.getResultFormat());
                 scenarioSections.add(scenarioSection);
             }
             String productName = testPlan.getDeploymentPattern().getProduct().getName();
-            Set<Map.Entry<String, String>> entries = testPlan.getResultFormatter().getReportStructure().entrySet();
+            Map<String, String> entries = testPlan.getResultFormat().getReportStructure();
             try {
                 PerformanceReport performanceReport = new PerformanceReport(productName, entries, scenarioSections);
                 TestReportEngine engine = new TestReportEngine();
@@ -80,3 +78,4 @@ public class PerformanceReportGenerator extends ReportGenerator {
         }
     }
 }
+

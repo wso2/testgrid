@@ -43,3 +43,4 @@ public class CSVResultParserException extends ResultParserException {
         super(message);
     }
 }
+

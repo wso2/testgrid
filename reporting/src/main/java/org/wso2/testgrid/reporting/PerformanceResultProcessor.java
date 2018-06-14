@@ -18,7 +18,7 @@
 package org.wso2.testgrid.reporting;
 
 import org.wso2.testgrid.common.Column;
-import org.wso2.testgrid.common.ResultFormatter;
+import org.wso2.testgrid.common.ResultFormat;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.reporting.model.performance.ColumnHeader;
 import org.wso2.testgrid.reporting.model.performance.DataSection;
@@ -35,7 +35,8 @@ import java.util.stream.Collectors;
 
 /**
  * This class contains the functionalities required to process the CSV result file and genreate the
- * Report data model.
+ * Report data model.The {@link ResultFormat} defines the processing logic for each scenario result
+ * The processed output is used to create {@link org.wso2.testgrid.reporting.model.performance.PerformanceReport}.
  *
  * @since 1.0.0
  */
@@ -46,13 +47,18 @@ public class PerformanceResultProcessor {
     private static final String IMAGES_FOLDER = "img";
 
     /**
-     * This method returns the {@link ScenarioSection} that is processed from the TestScenario ob object
+     * This method returns the {@link ScenarioSection} that is processed from the TestScenario object
+     * ScenarioSection maps to a single test scenario in the tests that was executed.The data is being
+     * processed so that the {@link ResultFormat} structure is maintained. Each scenario will be divided
+     * in to several sections as defined in the format, each such section will be added to the scenario
+     * as a {@link DividerSection} . These sections in turn can have child Divider sections or
+     * {@link DataSection} which contains the {@link PerformanceTable}
      *
      * @param testScenario TestScenario being processed
-     * @param resultFormatter ResultFormatter containing the format data
+     * @param resultFormat ResultFormatter containing the format data
      * @return ScenarioSection object that is included in the report
      */
-    public ScenarioSection processScenario(TestScenario testScenario, ResultFormatter resultFormatter) {
+    public ScenarioSection processScenario(TestScenario testScenario, ResultFormat resultFormat) {
         List<List<String>> data = testScenario.getPerformanceTestResults();
         ScenarioSection scenarioSection = new ScenarioSection();
         scenarioSection.setScenarioName(testScenario.getName());
@@ -62,10 +68,10 @@ public class PerformanceResultProcessor {
         scenarioSection.setScenarioName(testScenario.getName());
         scenarioSection.setDescription(testScenario.getDescription());
         //get the index of the primary divider from topic list
-        int indexOf = topics.indexOf(resultFormatter.getPrimaryDivider());
-        //
+        int indexOf = topics.indexOf(resultFormat.getPrimaryDivider());
+
         Stack<String> dividers = new Stack<>();
-        dividers.addAll(resultFormatter.getDividers());
+        dividers.addAll(resultFormat.getDividers());
         //divide the data in to groups with primary divider
         List<String> primarySections = data.stream()
                 .map(strings -> strings.get(indexOf))
@@ -75,12 +81,12 @@ public class PerformanceResultProcessor {
         primarySections.forEach(primarySection -> {
             Stack<String> cloneOfDividers = (Stack<String>) dividers.clone();
             DividerSection primary = new DividerSection();
-            primary.setData(resultFormatter.getPrimaryDivider() + " : " + primarySection);
+            primary.setData(resultFormat.getPrimaryDivider() + " : " + primarySection);
             List<List<String>> section = data.stream()
                     .filter(strings -> strings.get(indexOf).equals(primarySection))
                     .collect(Collectors.toList());
             DividerSection sectionData = getSectionData(cloneOfDividers, section, topics
-                    , resultFormatter);
+                    , resultFormat);
             primary.setChildSections(Collections.singletonList(sectionData));
             scenarioSection.setDividerSection(primary);
         });
@@ -96,11 +102,11 @@ public class PerformanceResultProcessor {
      * @param dividers        Stack of dividers
      * @param section         the list of data that needs to be processed into sections
      * @param topics          the topic list from csv data file
-     * @param resultFormatter ResultFormatter file that defines the data table structure
+     * @param resultFormat ResultFormatter file that defines the data table structure
      * @return a DividerSection object populated with data
      */
     private DividerSection getSectionData(Stack<String> dividers, List<List<String>> section,
-                                          List<String> topics, ResultFormatter resultFormatter) {
+                                          List<String> topics, ResultFormat resultFormat) {
         //create a copy of divider stack because this method will be called recursively
         Stack<String> copyOfDividers = (Stack<String>) dividers.clone();
         if (!copyOfDividers.isEmpty()) {
@@ -125,7 +131,7 @@ public class PerformanceResultProcessor {
                     List<List<String>> collect1 = section.stream()
                             .filter(strings -> strings.get(index).equals(s))
                             .collect(Collectors.toList());
-                    PerformanceTable table = createPerformanceTable(topics, collect1, resultFormatter);
+                    PerformanceTable table = createPerformanceTable(topics, collect1, resultFormat);
                     table.setDescription(s);
                     performanceTableList.add(table);
                 });
@@ -143,7 +149,7 @@ public class PerformanceResultProcessor {
                             .collect(Collectors.toList());
                     //recursively set divider sections
                     DividerSection dividerSection = this.getSectionData(copyOfDividers, collect1, topics
-                            , resultFormatter);
+                            , resultFormat);
                     dividerSection.setData(s);
                     dividerSections.add(dividerSection);
                 });
@@ -158,19 +164,21 @@ public class PerformanceResultProcessor {
     }
 
     /**
-     * Creates the performance table given the data and formatter data.
+     * Creates the performance table given the data and formatter data.This table is needed to model
+     * the performance result table in the mustache template, and the data is divided by the
+     * {@link ResultFormat} definition.
      *
      * @param topics          topic list of csv data
      * @param data            the data that needs to be applied to the table
-     * @param resultFormatter {@link ResultFormatter} defining the structure of table
+     * @param resultFormat {@link ResultFormat} defining the structure of table
      * @return PerformanceTable instance with data populated
      */
     private PerformanceTable createPerformanceTable(List<String> topics, List<List<String>> data,
-                                                    ResultFormatter resultFormatter) {
+                                                    ResultFormat resultFormat) {
         int depth = 1;
         int colspan = 1;
         //get table structure from result formatter
-        List<Column> table = resultFormatter.getTable();
+        List<Column> table = resultFormat.getTable();
         List<String> effectiveColumnLIst = new ArrayList<>();
 
         PerformanceTable performanceTable = new PerformanceTable();
@@ -238,3 +246,4 @@ public class PerformanceResultProcessor {
     }
 
 }
+
