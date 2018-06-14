@@ -19,6 +19,7 @@
 
 package org.wso2.testgrid.common.config;
 
+import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.Serializable;
@@ -32,6 +33,7 @@ import java.util.List;
 public class ScenarioConfig implements Serializable {
     private static final long serialVersionUID = 6295205041044769906L;
 
+    private List<ConfigChangeSet> configChangeSets;
     private List<TestScenario> scenarios;
     private List<Script> scripts;
 
@@ -40,6 +42,15 @@ public class ScenarioConfig implements Serializable {
      *
      * @return List of test scenarios that need to be run in testgrid.
      */
+
+    public List<ConfigChangeSet> getConfigChangeSets() {
+        return configChangeSets;
+    }
+
+    public void setConfigChangeSets(List<ConfigChangeSet> configChangeSets) {
+        this.configChangeSets = configChangeSets;
+    }
+
     public List<TestScenario> getScenarios() {
         return scenarios;
     }

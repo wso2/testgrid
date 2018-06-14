@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,15 +21,18 @@ package org.wso2.testgrid.core;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
 import org.wso2.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
@@ -44,9 +47,14 @@ import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -136,23 +144,89 @@ public class TestPlanExecutor {
                 }
             }
         }
-        for (TestScenario testScenario : testPlan.getTestScenarios()) {
-            try {
-                scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
-            } catch (Exception e) {
-                // we need to continue the rest of the tests irrespective of the exception thrown here.
-                logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
-                        testScenario.getName(), "' in TestPlan\nCaused by "), e);
+
+        Set<String> appliedScenarios = new HashSet<String>();
+        List<ConfigChangeSet> configChangeSetList = testPlan.getScenarioConfig().getConfigChangeSets();
+        if (configChangeSetList != null) {
+            for (ConfigChangeSet configChangeSet : configChangeSetList) {
+                for (String configScenario : configChangeSet.getAppliesTo()) {
+                    for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                        if (configScenario.equals(testScenario.getName())) {
+                            appliedScenarios.add(configScenario);
+                            // Apply changes
+                            applyConfigChangeSet(testPlan, configChangeSet, true);
+                            try {
+                                scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
+                            } catch (Exception e) {
+                                // we need to continue the rest of the tests irrespective of the exception thrown here.
+                                logger.error(StringUtil.concatStrings(
+                                        "Error occurred while executing the SolutionPattern '",
+                                        testScenario.getName(), "' in TestPlan\nCaused by "), e);
+                            }
+                            // Revert changes back
+                            applyConfigChangeSet(testPlan, configChangeSet, false);
+                            try {
+                                persistTestScenario(testScenario);
+                            } catch (TestPlanExecutorException e) {
+                                logger.error(StringUtil.concatStrings(
+                                        "Error occurred while persisting test scenario ",
+                                        testScenario.getName()), e);
+                            }
+                            break;
+                        }
+                    }
+                }
             }
-            try {
-                persistTestScenario(testScenario);
-            } catch (TestPlanExecutorException e) {
-                logger.error(StringUtil.concatStrings(
-                        "Error occurred while persisting test scenario ", testScenario.getName()), e);
+        }
+
+        for (TestScenario testScenario : testPlan.getTestScenarios()) {
+            if (!appliedScenarios.contains(testScenario.getName())) {
+                try {
+                    scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
+                } catch (Exception e) {
+                    // we need to continue the rest of the tests irrespective of the exception thrown here.
+                    logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
+                            testScenario.getName(), "' in TestPlan\nCaused by "), e);
+                }
+                try {
+                    persistTestScenario(testScenario);
+                } catch (TestPlanExecutorException e) {
+                    logger.error(StringUtil.concatStrings(
+                            "Error occurred while persisting test scenario ", testScenario.getName()), e);
+                }
             }
         }
     }
 
+    /**
+     * Apply config change set script before and after run test scenarios
+     * @param testPlan  the test plan
+     * @param configChangeSet   config change set to apply
+     * @param isInit    run apply config-script if true. else, run revert-config script
+     */
+    private void applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet, boolean isInit) {
+
+        Path configChangeSetPath = Paths.get(testPlan.getScenarioTestsRepository(),
+                "config-sets", configChangeSet.getName());
+        ShellExecutor shellExecutor = new ShellExecutor(configChangeSetPath);
+        String bashCommand;
+        if (isInit) {
+            bashCommand = "bash apply-config.sh";
+        } else {
+            bashCommand = "bash revert-config.sh";
+        }
+        try {
+            int exitCode = shellExecutor
+                    .executeCommand(bashCommand);
+            if (exitCode > 0) {
+                logger.error(StringUtil.concatStrings(
+                        "Error occurred while executing the config change set script. ",
+                        "Script exited with a status code of ", exitCode));
+            }
+        } catch (CommandExecutionException shellException) {
+            logger.warn("Exception in executing config change set" + shellException);
+        }
+    }
     /**
      * Creates the deployment in the provisioned infrastructure.
      *
