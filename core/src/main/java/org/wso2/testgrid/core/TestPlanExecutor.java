@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -53,6 +53,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -145,8 +146,9 @@ public class TestPlanExecutor {
         }
 
         Set<String> appliedSenarios = new HashSet<String>();
-        if (testPlan.getScenarioConfig().getConfigChangeSets() != null) {
-            for (ConfigChangeSet configChangeSet : testPlan.getScenarioConfig().getConfigChangeSets()) {
+        List<ConfigChangeSet> configChangeSetList = testPlan.getScenarioConfig().getConfigChangeSets();
+        if (configChangeSetList != null) {
+            for (ConfigChangeSet configChangeSet : configChangeSetList) {
                 for (String configScenario : configChangeSet.getAppliesTo()) {
                     for (TestScenario testScenario : testPlan.getTestScenarios()) {
                         if (configScenario.equals(testScenario.getName())) {
