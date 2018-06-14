@@ -153,7 +153,7 @@ public class TestPlanExecutor {
                     for (TestScenario testScenario : testPlan.getTestScenarios()) {
                         if (configScenario.equals(testScenario.getName())) {
                             appliedSenarios.add(configScenario);
-                            // apply changes
+                            // Apply changes
                             applyConfigChangeSet(testPlan, configChangeSet, true);
                             try {
                                 scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
@@ -163,7 +163,7 @@ public class TestPlanExecutor {
                                         "Error occurred while executing the SolutionPattern '",
                                         testScenario.getName(), "' in TestPlan\nCaused by "), e);
                             }
-                            // revert changes back
+                            // Revert changes back
                             applyConfigChangeSet(testPlan, configChangeSet, false);
                             try {
                                 persistTestScenario(testScenario);
@@ -199,7 +199,7 @@ public class TestPlanExecutor {
     }
 
     /**
-     * apply config change set script before run test scenarios
+     * Apply config change set script before run test scenarios
      * @param testPlan  the test plan
      * @param configChangeSet   config change set to apply
      * @param isInit    run apply config-script if true. else, run revert-config script
@@ -216,7 +216,6 @@ public class TestPlanExecutor {
             bashCommand = "bash revert-config.sh";
         }
         try {
-
             int exitCode = shellExecutor
                     .executeCommand(bashCommand);
             if (exitCode > 0) {
