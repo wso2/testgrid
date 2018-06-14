@@ -145,14 +145,14 @@ public class TestPlanExecutor {
             }
         }
 
-        Set<String> appliedSenarios = new HashSet<String>();
+        Set<String> appliedScenarios = new HashSet<String>();
         List<ConfigChangeSet> configChangeSetList = testPlan.getScenarioConfig().getConfigChangeSets();
         if (configChangeSetList != null) {
             for (ConfigChangeSet configChangeSet : configChangeSetList) {
                 for (String configScenario : configChangeSet.getAppliesTo()) {
                     for (TestScenario testScenario : testPlan.getTestScenarios()) {
                         if (configScenario.equals(testScenario.getName())) {
-                            appliedSenarios.add(configScenario);
+                            appliedScenarios.add(configScenario);
                             // Apply changes
                             applyConfigChangeSet(testPlan, configChangeSet, true);
                             try {
@@ -180,7 +180,7 @@ public class TestPlanExecutor {
         }
 
         for (TestScenario testScenario : testPlan.getTestScenarios()) {
-            if (!appliedSenarios.contains(testScenario.getName())) {
+            if (!appliedScenarios.contains(testScenario.getName())) {
                 try {
                     scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
                 } catch (Exception e) {
