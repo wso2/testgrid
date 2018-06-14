@@ -141,11 +141,11 @@ public class FinalizeRunTestplan implements Command {
             }
             updateProductStatus();
         } catch (IOException e) {
-            logger.error("Error occurred while trying to read " + testPlanYamlFilePath);
+            logger.error("Error occurred while trying to read " + testPlanYamlFilePath, e);
         } catch (TestGridDAOException e) {
-            logger.error("Error while fetching test plan from database.");
+            logger.error("Error while fetching test plan from database.", e);
         } catch (TestGridException e) {
-            logger.error("Error occured while updating the product status.");
+            logger.error("Error occured while updating the product status.", e);
         }
     }
 
@@ -168,7 +168,7 @@ public class FinalizeRunTestplan implements Command {
      *
      */
     private void updateProductStatus() throws TestGridException {
-        Path source = Paths.get(workspace + "/test-plans");
+        Path source = Paths.get(workspace, "test-plans");
         String productId;
         Boolean isCompleteBuild = true;
         try (Stream<Path> stream = Files.list(source).filter(Files::isRegularFile)) {
@@ -200,9 +200,9 @@ public class FinalizeRunTestplan implements Command {
                 }
             }
         } catch (TestGridDAOException e) {
-            logger.error("Error occured when updating the product table of TG");
+            logger.error("Error occured when updating the product table of TG", e);
         } catch (IOException e) {
-            logger.error("Error occured when reading a test plan yaml file");
+            logger.error("Error occured when reading a test plan yaml file", e);
         }
     }
 }

@@ -153,31 +153,25 @@ public class ProductRepository extends AbstractRepository<Product> {
     /**
      * This method updates the last_success_timestamp column or last_failure_timestamp column with given timestamp.
      * The column is selected by considering product status.
+     * ex:- UPDATE product SET last_failure_timestamp = <timestamp> where id = <product_id>;
      *
      * @param status Status of the product
      * @param timestamp Current timestamp
      * @param productId Id of the product
      */
-    public void updateProductStatusTimestamp(Status status, Date timestamp, String productId)
-            throws TestGridDAOException {
-        try {
-            String queryStr = "UPDATE product SET ";
-            if (status.equals(Status.SUCCESS)) {
-                queryStr += "last_success_timestamp = ";
-            } else if (status.equals(Status.FAIL)) {
-                queryStr += "last_failure_timestamp = ";
-            }
-            queryStr += "'" + timestamp + "' where id = '" + productId + "';";
-
-            // Begin entity manager transaction
-            entityManager.getTransaction().begin();
-
-            entityManager.createNativeQuery(queryStr).executeUpdate();
-
-            // Commit transaction
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            throw new TestGridDAOException("Error on executing the native SQL query to update product table.", e);
+    public void updateProductStatusTimestamp(Status status, Date timestamp, String productId) {
+        String queryStr = "UPDATE product SET ";
+        if (status.equals(Status.SUCCESS)) {
+            queryStr += "last_success_timestamp = ";
+        } else if (status.equals(Status.FAIL)) {
+            queryStr += "last_failure_timestamp = ";
         }
+
+        // Begin entity manager transaction
+        entityManager.getTransaction().begin();
+        entityManager.createNativeQuery(
+                StringUtil.concatStrings(queryStr, "'", timestamp, "' where id = '", productId, "';")).executeUpdate();
+        // Commit transaction
+        entityManager.getTransaction().commit();
     }
 }
