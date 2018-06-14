@@ -18,6 +18,7 @@
 package org.wso2.testgrid.automation.parser;
 
 import org.wso2.testgrid.automation.exception.CSVResultParserException;
+import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.BufferedReader;
@@ -80,6 +81,11 @@ public class PerformanceTestCSVParser extends ResultParser {
         } catch (IOException e) {
             throw new CSVResultParserException("Error occurred while parsing the csv file", e);
         }
+    }
+
+    @Override
+    public void persistResults() throws ResultParserException {
+        //TODO implement performance test artifact persisting
     }
 }
 

@@ -18,29 +18,20 @@
 
 package org.wso2.testgrid.automation.executor;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
-import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.List;
-
-
-import static org.wso2.testgrid.common.TestGridConstants.SCENARIO_RESULTS_FILTER_PATTERN;
 
 /**
  * Responsible for performing the tasks related to execution of single JMeter solution.
@@ -87,32 +78,6 @@ public class JMeterExecutor extends TestExecutor {
             this.testScenario.setStatus(Status.ERROR);
             throw new TestAutomationException(String.format("Error executing scenario " +
                     "script%s", script), e);
-        }
-    }
-
-    /**
-     * This method moves the test-result artifacts (ex: JTL files, logs) to relevant TestGrid build directory to
-     * persist for future references. In addition, it also creates a compressed file of all the result artifacts.
-     *
-     * @param testLocation directory belongs to the scenario where all the output artifacts can be found.
-     */
-    private void persistResultArtifacts(String testLocation) throws TestAutomationException {
-        try {
-            List<String> files = FileUtil.getFilesOnDirectory(testLocation, SCENARIO_RESULTS_FILTER_PATTERN);
-            if (!files.isEmpty()) {
-                String zipFilePath = TestGridUtil.deriveScenarioArtifactPath(testScenario,
-                        testScenario.getDir() + TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT);
-                for (String filePath : files) {
-                    File file = new File(filePath);
-                    File destinationFile = new File(
-                            TestGridUtil.deriveScenarioArtifactPath(testScenario, file.getName()));
-                    FileUtils.copyFile(file, destinationFile);
-                }
-                FileUtil.compressFiles(files, zipFilePath);
-            }
-        } catch (IOException | TestGridException e) {
-            throw new TestAutomationException("Error occurred while persisting scenario test-results." +
-                    "Scenario ID: " + testScenario.getId() + ", Scenario Directory: " + testScenario.getDir(), e);
         }
     }
 

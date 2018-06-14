@@ -49,5 +49,7 @@ public abstract class ResultParser {
      *                               results
      */
     public abstract void parseResults() throws ResultParserException;
+
+    public abstract void persistResults() throws ResultParserException;
 }
 

@@ -18,17 +18,25 @@
 
 package org.wso2.testgrid.automation.parser;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.JTLResultParserException;
+import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.common.TestCase;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.List;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -38,6 +46,8 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+
+import static org.wso2.testgrid.common.TestGridConstants.SCENARIO_RESULTS_FILTER_PATTERN;
 
 /**
  * Parser implementation for parsing JMeter Functional Test result file.
@@ -126,6 +136,27 @@ public class FunctionalTestResultParser extends ResultParser {
         } catch (IOException e) {
             throw new JTLResultParserException("Unable to close the input stream of scenario results file of " +
                     "the TestScenario : " + testScenarioName, e);
+        }
+    }
+
+    @Override
+    public void persistResults() throws ResultParserException {
+        try {
+            List<String> files = FileUtil.getFilesOnDirectory(this.testLocation, SCENARIO_RESULTS_FILTER_PATTERN);
+            if (!files.isEmpty()) {
+                String zipFilePath = TestGridUtil.deriveScenarioArtifactPath(testScenario,
+                        testScenario.getDir() + TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT);
+                for (String filePath : files) {
+                    File file = new File(filePath);
+                    File destinationFile = new File(
+                            TestGridUtil.deriveScenarioArtifactPath(this.testScenario, file.getName()));
+                    FileUtils.copyFile(file, destinationFile);
+                }
+                FileUtil.compressFiles(files, zipFilePath);
+            }
+        } catch (IOException | TestGridException e) {
+            throw new ResultParserException("Error occurred while persisting scenario test-results." +
+                    "Scenario ID: " + testScenario.getId() + ", Scenario Directory: " + testScenario.getDir(), e);
         }
     }
 
