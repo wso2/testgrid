@@ -125,8 +125,8 @@ public class ProductService {
                 ProductStatus status = new ProductStatus();
                 status.setProductId(product.getId());
                 status.setProductName(product.getName());
-                status.setLastfailed(APIUtil.getTestPlanBean(testPlanUOW.getLastFailure(product), false));
-                status.setLastBuild(APIUtil.getTestPlanBean(testPlanUOW.getLastBuild(product), false));
+                status.setLastSuccessTimestamp(product.getLastSuccessTimestamp());
+                status.setLastFailureTimestamp(product.getLastFailureTimestamp());
                 status.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());
                 list.add(status);
             }
@@ -161,8 +161,8 @@ public class ProductService {
                 product = productInstance.get();
                 productStatus.setProductId(product.getId());
                 productStatus.setProductName(product.getName());
-                productStatus.setLastfailed(APIUtil.getTestPlanBean(testPlanUOW.getLastFailure(product), false));
-                productStatus.setLastBuild(APIUtil.getTestPlanBean(testPlanUOW.getLastBuild(product), false));
+                productStatus.setLastSuccessTimestamp(product.getLastSuccessTimestamp());
+                productStatus.setLastFailureTimestamp(product.getLastFailureTimestamp());
                 productStatus.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());
             } else {
                 String msg = "Could not found the product:" + productName + " in TestGrid. Please check the "

@@ -18,12 +18,16 @@
 
 package org.wso2.testgrid.web.bean;
 
+import java.sql.Timestamp;
+
 /**
  * Bean class of Product object used in APIs.
  */
 public class Product {
     private String id;
     private String name;
+    private Timestamp lastSuccessTimestamp;
+    private Timestamp lastFailureTimestamp;
 
     /**
      * Returns the id of the product test plan.
@@ -61,4 +65,39 @@ public class Product {
         this.name = name;
     }
 
+    /**
+     * Returns the last success timestamp of the product build.
+     *
+     * @return timestamp
+     */
+    public Timestamp getLastSuccessTimestamp() {
+        return lastSuccessTimestamp == null ? null : new Timestamp(lastSuccessTimestamp.getTime());
+    }
+
+    /**
+     * Sets the last success timestamp of the product build.
+     *
+     * @param lastSuccessTimestamp timestamp
+     */
+    public void setLastSuccessTimestamp(Timestamp lastSuccessTimestamp) {
+        this.lastSuccessTimestamp = lastSuccessTimestamp == null ? null : new Timestamp(lastSuccessTimestamp.getTime());
+    }
+
+    /**
+     * Returns the last failure timestamp of the product build.
+     *
+     * @return timestamp
+     */
+    public Timestamp getLastFailureTimestamp() {
+        return lastFailureTimestamp == null ? null : new Timestamp(lastFailureTimestamp.getTime());
+    }
+
+    /**
+     * Sets the last failure timestamp of the product build.
+     *
+     * @param lastFailureTimestamp timestamp
+     */
+    public void setLastFailureTimestamp(Timestamp lastFailureTimestamp) {
+        this.lastFailureTimestamp = lastFailureTimestamp == null ? null : new Timestamp(lastFailureTimestamp.getTime());
+    }
 }
