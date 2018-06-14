@@ -21,6 +21,13 @@ package org.wso2.testgrid.core;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.automation.exception.ReportGeneratorException;
+import org.wso2.testgrid.automation.exception.ReportGeneratorInitializingException;
+import org.wso2.testgrid.automation.exception.ResultParserException;
+import org.wso2.testgrid.automation.parser.ResultParser;
+import org.wso2.testgrid.automation.parser.ResultParserFactory;
+import org.wso2.testgrid.automation.report.ReportGenerator;
+import org.wso2.testgrid.automation.report.ReportGeneratorFactory;
 import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
@@ -40,6 +47,7 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
@@ -49,11 +57,11 @@ import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -78,7 +86,7 @@ public class TestPlanExecutor {
     }
 
     public TestPlanExecutor(ScenarioExecutor scenarioExecutor, TestPlanUOW testPlanUOW,
-            TestScenarioUOW testScenarioUOW) {
+                            TestScenarioUOW testScenarioUOW) {
         this.scenarioExecutor = scenarioExecutor;
         this.testPlanUOW = testPlanUOW;
         this.testScenarioUOW = testScenarioUOW;
@@ -116,7 +124,19 @@ public class TestPlanExecutor {
         }
         // Run test scenarios.
         runScenarioTests(testPlan, deploymentCreationResult);
-
+        //report generation
+        try {
+            ReportGenerator reportGenerator = ReportGeneratorFactory.getReportGenerator(testPlan);
+            reportGenerator.generateReport();
+        } catch (ReportGeneratorInitializingException e) {
+            logger.error("Error while initializing the report generators  " +
+                    "for TestPlan of " + testPlan.getDeploymentPattern()
+                    .getProduct().getName());
+        } catch (ReportGeneratorException e) {
+            logger.error("Error while generating the report for " +
+                    "TestPlan of " + testPlan.getDeploymentPattern()
+                    .getProduct().getName());
+        }
         // Test plan completed. Persist the testplan status
         persistTestPlanStatus(testPlan);
 
@@ -183,7 +203,22 @@ public class TestPlanExecutor {
             if (!appliedScenarios.contains(testScenario.getName())) {
                 try {
                     scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
-                } catch (Exception e) {
+                    Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
+                    if (parser.isPresent()) {
+                        try {
+                            ResultParser resultParser = parser.get();
+                            resultParser.parseResults();
+                            resultParser.persistResults();
+                        } catch (ResultParserException e) {
+                            logger.error(String.format("Error parsing the results for the" +
+                                    " scenario %s", testScenario.getName()));
+                        }
+                    } else {
+                        testScenario.setStatus(Status.ERROR);
+                        logger.error(String.format("Error parsing the results for the " +
+                                "scenario %s", testScenario.getName()));
+                    }
+                } catch (ScenarioExecutorException e) {
                     // we need to continue the rest of the tests irrespective of the exception thrown here.
                     logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
                             testScenario.getName(), "' in TestPlan\nCaused by "), e);

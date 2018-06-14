@@ -18,16 +18,25 @@
 
 package org.wso2.testgrid.automation.parser;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.automation.exception.JTLResultParserException;
+import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.common.TestCase;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.List;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -38,13 +47,17 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import static org.wso2.testgrid.common.TestGridConstants.SCENARIO_RESULTS_FILTER_PATTERN;
+
 /**
  * Parser implementation for parsing JMeter Functional Test result file.
+ *
+ * @since 1.0.0
  */
-public class FunctionalTestResultParser extends JMeterResultParser {
+public class FunctionalTestResultParser extends ResultParser {
 
     private static final Logger logger = LoggerFactory.
-             getLogger(FunctionalTestResultParser.class.getName());
+            getLogger(FunctionalTestResultParser.class.getName());
     private static final long serialVersionUID = -5244808712889913949L;
 
     private static final String HTTP_SAMPLE_ELEMENT = "httpSample";
@@ -53,34 +66,34 @@ public class FunctionalTestResultParser extends JMeterResultParser {
     private static final String TEST_NAME_ATTRIBUTE = "lb";
     private static final String TEST_SUCCESS_ATTRIBUTE = "s";
 
+    /**
+     * This constructor creates a {@link FunctionalTestResultParser} object with the
+     * test scenario and test location.
+     *
+     * @param testScenario The TestScenario to be parsed
+     * @param testLocation The location of the test artifacts
+     */
     public FunctionalTestResultParser(TestScenario testScenario, String testLocation) {
         super(testScenario, testLocation);
     }
 
     @Override
-    public boolean canParse(String nodeName) {
-        return HTTP_SAMPLE_ELEMENT.equals(nodeName) || SAMPLE_ELEMENT.equals(nodeName);
-    }
-
-    @Override
-    public void parseResults() throws JMeterResultParserException {
+    public void parseResults() throws JTLResultParserException {
         boolean failureMsgElement = false;
         XMLInputFactory factory = XMLInputFactory.newInstance();
-        //InputStream inputStream = null;
-
-        String scenarioResultFile = JMeterParserUtil.getJTLFile(this.testLocation);
+        String scenarioResultFile = ResultParserUtil.getJTLFile(this.testLocation);
         String testScenarioName = testScenario.getName();
         try (InputStream inputStream = new FileInputStream(scenarioResultFile)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Parsing scenario-results file of the TestScenario : '" + testScenarioName + "' using " +
-                        "the FunctionalTestResultParser");
+                logger.debug("Parsing scenario-results file of the TestScenario : '"
+                        + testScenarioName + "' using the FunctionalTestResultParser");
             }
 
             XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
             TestCase testCase = null;
             while (eventReader.hasNext()) {
                 XMLEvent event = eventReader.nextEvent();
-                switch(event.getEventType()) {
+                switch (event.getEventType()) {
                     case XMLStreamConstants.START_ELEMENT:
                         StartElement startElement = event.asStartElement();
                         String elementName = startElement.getName().getLocalPart();
@@ -116,13 +129,34 @@ public class FunctionalTestResultParser extends JMeterResultParser {
                         "' using the FunctionalTestResultParser");
             }
         } catch (XMLStreamException e) {
-            throw new JMeterResultParserException("Unable to parse the scenario-results file of TestScenario :" +
+            throw new JTLResultParserException("Unable to parse the scenario-results file of TestScenario :" +
                     testScenarioName, e);
         } catch (FileNotFoundException e) {
-            throw new JMeterResultParserException("Unable to locate the scenario-results file.", e);
+            throw new JTLResultParserException("Unable to locate the scenario-results file.", e);
         } catch (IOException e) {
-            throw new JMeterResultParserException("Unable to close the input stream of scenario results file of " +
+            throw new JTLResultParserException("Unable to close the input stream of scenario results file of " +
                     "the TestScenario : " + testScenarioName, e);
+        }
+    }
+
+    @Override
+    public void persistResults() throws ResultParserException {
+        try {
+            List<String> files = FileUtil.getFilesOnDirectory(this.testLocation, SCENARIO_RESULTS_FILTER_PATTERN);
+            if (!files.isEmpty()) {
+                String zipFilePath = TestGridUtil.deriveScenarioArtifactPath(testScenario,
+                        testScenario.getDir() + TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT);
+                for (String filePath : files) {
+                    File file = new File(filePath);
+                    File destinationFile = new File(
+                            TestGridUtil.deriveScenarioArtifactPath(this.testScenario, file.getName()));
+                    FileUtils.copyFile(file, destinationFile);
+                }
+                FileUtil.compressFiles(files, zipFilePath);
+            }
+        } catch (IOException | TestGridException e) {
+            throw new ResultParserException("Error occurred while persisting scenario test-results." +
+                    "Scenario ID: " + testScenario.getId() + ", Scenario Directory: " + testScenario.getDir(), e);
         }
     }
 
@@ -142,3 +176,4 @@ public class FunctionalTestResultParser extends JMeterResultParser {
         return testCase;
     }
 }
+

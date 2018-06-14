@@ -1,0 +1,2 @@
+org.wso2.testgrid.automation.report.FunctionalReportGenerator
+org.wso2.testgrid.automation.report.PerformanceReportGenerator

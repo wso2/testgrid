@@ -483,6 +483,7 @@ public class GenerateTestPlanCommand implements Command {
                         combination.getParameters());
                 testPlan.getInfrastructureConfig().setParameters(configAwareInfraCombination);
                 testPlan.setScenarioConfig(testgridYaml.getScenarioConfig());
+                testPlan.setResultFormat(testgridYaml.getResultFormat());
 
                 testPlan.setInfrastructureRepository(testgridYaml.getInfrastructureRepository());
                 testPlan.setDeploymentRepository(testgridYaml.getDeploymentRepository());

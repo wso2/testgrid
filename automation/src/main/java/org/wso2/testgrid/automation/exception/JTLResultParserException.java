@@ -16,20 +16,20 @@
  *  under the License.
  */
 
-package org.wso2.testgrid.automation.parser;
+package org.wso2.testgrid.automation.exception;
 
 /**
  * Indicates an error occurred when parsing JMeter results.
  *
  * @since 1.0.0
  */
-public class JMeterResultParserException extends Exception {
+public class JTLResultParserException extends ResultParserException {
 
     /**
      * Constructs a new exception with {@code null} as its detail message. The cause is not initialized, and may
      * subsequently be initialized by a call to {@link #initCause(Throwable)}.
      */
-    public JMeterResultParserException() {
+    public JTLResultParserException() {
         super();
     }
 
@@ -39,7 +39,7 @@ public class JMeterResultParserException extends Exception {
      *
      * @param message the detail message of the exception
      */
-    public JMeterResultParserException(String message) {
+    public JTLResultParserException(String message) {
         super(message);
     }
 
@@ -49,7 +49,7 @@ public class JMeterResultParserException extends Exception {
      *
      * @param cause the cause of the exception
      */
-    public JMeterResultParserException(Throwable cause) {
+    public JTLResultParserException(Throwable cause) {
         super(cause);
     }
 
@@ -59,7 +59,8 @@ public class JMeterResultParserException extends Exception {
      * @param message the detail message of the exception
      * @param cause   the cause of the exception
      */
-    public JMeterResultParserException(String message, Throwable cause) {
+    public JTLResultParserException(String message, Throwable cause) {
         super(message, cause);
     }
 }
+

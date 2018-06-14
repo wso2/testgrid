@@ -1,0 +1,31 @@
+<H2>{{data}}</H2>
+
+{{#childSections}}
+    <!--<h3>{{data}}</h3>-->
+    {{>divider_section}}
+{{/childSections}}
+
+{{#dataSection}}
+    <!--<h3>{{description}}</h3>-->
+   {{#performanceTableList}}
+       <h2>{{description}}</h2>
+       <table>
+           {{#headerData}}
+                <tr>
+                {{#.}}
+                    <th rowSpan={{rowSpan}}  colSpan={{colSpan}}>{{name}}</th>
+                {{/.}}
+                </tr>
+           {{/headerData}}
+           {{#bodyData}}
+               <tr>
+               {{#.}}
+                   <td>{{.}}</td>
+               {{/.}}
+               </tr>
+
+           {{/bodyData}}
+       </table>
+   {{/performanceTableList}}
+{{/dataSection}}
+
