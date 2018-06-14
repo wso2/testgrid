@@ -27,6 +27,7 @@ scenarioConfig:
         name: scenario01
         description: 'Test Scenario'
         dir: scenario01
+    testType: FUNCTIONAL
 deploymentConfig:
   deploymentPatterns:
     - name: 01-dummy-deployment

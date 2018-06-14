@@ -57,4 +57,7 @@ public class TestGridConstants {
     public static final String WUM_USERNAME_PROPERTY = "WUMUsername";
     public static final String WUM_PASSWORD_PROPERTY = "WUMPassword";
 
+    public static final String TEST_TYPE_FUNCTIONAL = "FUNCTIONAL";
+    public static final String TEST_TYPE_PERFORMANCE = "PERFORMANCE";
+
 }

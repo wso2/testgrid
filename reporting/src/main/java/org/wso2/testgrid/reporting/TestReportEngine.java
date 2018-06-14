@@ -32,10 +32,13 @@ import org.wso2.testgrid.reporting.model.PerAxisHeader;
 import org.wso2.testgrid.reporting.model.PerAxisSummary;
 import org.wso2.testgrid.reporting.model.Report;
 import org.wso2.testgrid.reporting.model.ReportElement;
+import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
 import org.wso2.testgrid.reporting.util.FileUtil;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -64,8 +67,13 @@ public class TestReportEngine {
     private static final Logger logger = LoggerFactory.getLogger(TestReportEngine.class);
 
     private static final String REPORT_MUSTACHE = "report.mustache";
+    private static final String PERFORMANCE_REPORT_MUSTACHE = "performance_report.mustache";
     private static final String REPORT_TEMPLATE_KEY = "parsedReport";
     private static final String HTML_EXTENSION = ".html";
+
+    private static final String PERFORMANCE_REPORT = "PerformanceReport";
+    private static final String RESULT_FOLDER = "Results";
+    private static final String IMAGES_FOLDER = "img";
 
     /**
      * Generates a test report based on the given product name and product version.
@@ -103,6 +111,69 @@ public class TestReportEngine {
     }
 
     /**
+     * This method creates and saves a PerformanceReport
+     *
+     * @param report        Parsed PerformanceReport object
+     * @param testScenarios A List of TestScenarios included in the report
+     */
+    public void generatePerformanceReport(PerformanceReport report, List<TestScenario> testScenarios)
+            throws ReportingException {
+        try {
+            Map<String, Object> parsedResultMap = new HashMap<>();
+            parsedResultMap.put(REPORT_TEMPLATE_KEY, report);
+            Renderable renderable = RenderableFactory.getRenderable(PERFORMANCE_REPORT_MUSTACHE);
+            String htmlString = renderable.render(PERFORMANCE_REPORT_MUSTACHE, parsedResultMap);
+
+            String fileName = StringUtil.concatStrings(report.getProductName(), "-"
+                    , PERFORMANCE_REPORT, HTML_EXTENSION);
+            String testGridHome = TestGridUtil.getTestGridHomePath();
+            Path reportDirPath = Paths.get(testGridHome).resolve(report.getProductName()).resolve(RESULT_FOLDER);
+            Path reportPath = reportDirPath.resolve(fileName);
+            //create the result folder if doesnt exist
+            if (!Files.exists(reportPath)) {
+                Files.createDirectories(reportDirPath);
+            }
+            //copy the image assets required by the report to relevant location
+            copyReportAssets(testScenarios, reportDirPath);
+            writeHTMLToFile(reportPath, htmlString);
+        } catch (IOException e) {
+            throw new ReportingException(String.format(" Error while creating the output files structure for Product %s"
+                    , report.getProductName()), e);
+        } catch (ReportingException e) {
+            throw new ReportingException(String.format("Error while prepering the report for Product %s"
+                    , report.getProductName()), e);
+        }
+
+    }
+
+    /**
+     * This method copies the assets of report to the relevant location.
+     *
+     * @param reportDirPath target location where the Report is generated
+     * @throws IOException thrown when there is an error copying files
+     */
+    public void copyReportAssets(List<TestScenario> imageList, Path reportDirPath) throws IOException {
+        Path assetDir = reportDirPath.resolve(IMAGES_FOLDER);
+        if (!Files.exists(assetDir)) {
+            Files.createDirectories(assetDir);
+        }
+        for (TestScenario scenario : imageList) {
+            List<String> summaryGraphs = scenario.getSummaryGraphs();
+            for (String path : summaryGraphs) {
+                Path imagePath = Paths.get(path);
+                if (imagePath != null) {
+                    Path destination = assetDir.resolve(imagePath.getFileName());
+                    if (destination != null) {
+                        Files.copy(imagePath, destination);
+                    }
+
+                }
+            }
+        }
+
+    }
+
+    /**
      * Creates and returns a list of per axis headers for the given params.
      *
      * @param uniqueAxisColumn unique axis column
@@ -135,8 +206,8 @@ public class TestReportEngine {
 
             // Filter success test cases based on user input
             List<ReportElement> filteredReportElements = showSuccess ?
-                                                         reportElementsForOverallResult :
-                                                         filterSuccessReportElements(reportElementsForOverallResult);
+                    reportElementsForOverallResult :
+                    filterSuccessReportElements(reportElementsForOverallResult);
 
             // grouped by the value of the unique column
             for (ReportElement reportElement : filteredReportElements) {
@@ -199,8 +270,8 @@ public class TestReportEngine {
             boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
                 if (successListReportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
-                    successListReportElement.getInfraParams()
-                            .equals(failListReportElement.getInfraParams())) {
+                        successListReportElement.getInfraParams()
+                                .equals(failListReportElement.getInfraParams())) {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
@@ -242,9 +313,9 @@ public class TestReportEngine {
             boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
                 if (successListReportElement.getInfraParams()
-                            .equals(failListReportElement.getInfraParams()) &&
-                    successListReportElement.getScenarioDescription()
-                            .equals(failListReportElement.getScenarioDescription())) {
+                        .equals(failListReportElement.getInfraParams()) &&
+                        successListReportElement.getScenarioDescription()
+                                .equals(failListReportElement.getScenarioDescription())) {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
@@ -286,8 +357,8 @@ public class TestReportEngine {
             boolean isBreakLoop = false;
             for (ReportElement failListReportElement : failList) {
                 if (successListReportElement.getDeployment().equals(failListReportElement.getDeployment()) &&
-                    successListReportElement.getScenarioDescription()
-                            .equals(failListReportElement.getScenarioDescription())) {
+                        successListReportElement.getScenarioDescription()
+                                .equals(failListReportElement.getScenarioDescription())) {
 
                     // If same combination os found, omit this next time
                     failList.remove(failListReportElement);
@@ -469,8 +540,8 @@ public class TestReportEngine {
 
         // If show success is false and the test is a success ignore the result of this test
         List<ReportElement> filteredReportElements = showSuccess ?
-                                                     new ArrayList<>(reportElements) :
-                                                     filterSuccessReportElements(reportElements);
+                new ArrayList<>(reportElements) :
+                filterSuccessReportElements(reportElements);
 
         Map<String, List<ReportElement>> groupedReportElements =
                 getGroupedReportElementsByColumn(uniqueAxisColumn, filteredReportElements);

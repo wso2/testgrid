@@ -72,6 +72,10 @@
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.dao</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.reporting</artifactId>
+        </dependency>
 
         <!-- TestNG dependencies -->
         <dependency>
