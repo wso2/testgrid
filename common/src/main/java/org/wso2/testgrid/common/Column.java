@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Model class representing a table column in {@link ResultFormatter}.
+ * Model class representing a table column in {@link ResultFormat}.
  *
  * @since 1.0.0
  */
@@ -60,3 +60,4 @@ public class Column implements Serializable {
         this.columns = columns;
     }
 }
+

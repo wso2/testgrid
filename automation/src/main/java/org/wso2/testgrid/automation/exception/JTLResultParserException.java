@@ -63,3 +63,4 @@ public class JTLResultParserException extends ResultParserException {
         super(message, cause);
     }
 }
+

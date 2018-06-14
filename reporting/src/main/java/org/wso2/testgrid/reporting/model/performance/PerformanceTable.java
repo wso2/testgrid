@@ -20,7 +20,9 @@ package org.wso2.testgrid.reporting.model.performance;
 import java.util.List;
 
 /**
- * Model class representing a performance data table.
+ * Model class representing a performance data table.This class is the data model for the Performance
+ * table defined in the {@link DividerSection} that in turn will finally present in the
+ * {@link PerformanceReport}
  *
  * @since 1.0.0
  */
@@ -54,3 +56,4 @@ public class PerformanceTable {
         this.description = description;
     }
 }
+

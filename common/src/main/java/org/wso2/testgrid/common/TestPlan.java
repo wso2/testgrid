@@ -100,7 +100,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String scenarioTestsRepository;
 
     @Transient
-    private ResultFormatter resultFormatter;
+    private ResultFormat resultFormat;
 
     /**
      * Returns the status of the infrastructure.
@@ -303,17 +303,17 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      *
      * @return ResultFormatter object of TestPlan
      */
-    public ResultFormatter getResultFormatter() {
-        return resultFormatter;
+    public ResultFormat getResultFormat() {
+        return resultFormat;
     }
 
     /**
      * Set the ResultFormatter object for the TestPlan
      *
-     * @param resultFormatter ResultFormatter object to be set
+     * @param resultFormat ResultFormatter object to be set
      */
-    public void setResultFormatter(ResultFormatter resultFormatter) {
-        this.resultFormatter = resultFormatter;
+    public void setResultFormat(ResultFormat resultFormat) {
+        this.resultFormat = resultFormat;
     }
 
     @Override

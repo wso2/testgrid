@@ -50,3 +50,4 @@ public class ResultParserFactory {
         return Optional.ofNullable(resultParser);
     }
 }
+

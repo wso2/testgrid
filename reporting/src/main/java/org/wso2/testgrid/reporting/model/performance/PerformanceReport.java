@@ -24,10 +24,9 @@ import org.wso2.testgrid.reporting.renderer.RenderableFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Model class representing the Performance report
+ * Model class representing the Performance report.
  *
  * @since 1.0.0
  *
@@ -39,7 +38,7 @@ public class PerformanceReport {
 
     private String productName;
     private List<ScenarioSection> scenarioSections;
-    private Set<Map.Entry<String, String>> reportContent;
+    private Map<String, String> reportContent;
     private String parsedScenarioString;
 
     /**
@@ -50,7 +49,7 @@ public class PerformanceReport {
      * @param scenarioSections List of {@link ScenarioSection} of the report
      * @throws ReportingException when there is an error creating the report
      */
-    public PerformanceReport(String productName, Set<Map.Entry<String, String>> reportContent,
+    public PerformanceReport(String productName, Map<String, String> reportContent,
                              List<ScenarioSection> scenarioSections)
             throws ReportingException {
         this.productName = productName;
@@ -80,11 +79,11 @@ public class PerformanceReport {
         this.productName = productName;
     }
 
-    public void setReportContent(Set<Map.Entry<String, String>> reportContent) {
+    public void setReportContent(Map<String, String> reportContent) {
         this.reportContent = reportContent;
     }
 
-    public Set<Map.Entry<String, String>> getReportContent() {
+    public Map<String, String> getReportContent() {
         return reportContent;
     }
 
@@ -96,3 +95,4 @@ public class PerformanceReport {
         this.parsedScenarioString = parsedScenarioString;
     }
 }
+

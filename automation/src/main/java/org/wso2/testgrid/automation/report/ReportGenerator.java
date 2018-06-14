@@ -71,10 +71,11 @@ public abstract class ReportGenerator {
     /**
      * Setter method for TestPlan
      *
-     * @param testPlan the TestPlan to be used
+     * @param testPlan the TestPlan to be usedn
      */
     public void setTestPlan(TestPlan testPlan) {
         this.testPlan = testPlan;
     }
 
 }
+
