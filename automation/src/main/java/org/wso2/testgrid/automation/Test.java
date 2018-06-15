@@ -26,7 +26,6 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 
-import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -144,12 +143,6 @@ public class Test {
             throws TestAutomationException {
         testExecutor.init(testLocation, getTestName(), testScenario);
 
-        if (!StringUtil.isStringNullOrEmpty(preScenarioScript)) {
-            int result = testExecutor.executeEnvironmentScript(Paths.get(preScenarioScript), input);
-            if (result == 0) {
-                testScenario.setIsPreScriptSuccessful(true);
-            }
-        }
         try {
             for (String script : scripts) {
                 testExecutor.execute(script, input);
@@ -160,12 +153,7 @@ public class Test {
                     testScenario.getName(), "' in TestPlan\nCaused by "), e);
 
         }
-        if (!StringUtil.isStringNullOrEmpty(postScenarioScript)) {
-            int result = testExecutor.executeEnvironmentScript(Paths.get(postScenarioScript), input);
-            if (result == 0) {
-                testScenario.setIsPostScriptSuccessful(true);
-            }
-        }
+
         return this.testScenario;
     }
 }

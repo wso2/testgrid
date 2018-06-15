@@ -22,16 +22,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.common.util.TestGridUtil;
 
-import java.io.File;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Responsible for performing the tasks related to execution of single JMeter solution.
@@ -57,8 +58,6 @@ public class JMeterExecutor extends TestExecutor {
     public void execute(String script, DeploymentCreationResult deploymentCreationResult)
             throws TestAutomationException {
         try {
-            TestGridUtil.executeCommand("bash " + script, new File(testLocation));
-
             String jmeterHome = EnvironmentUtil.getSystemVariableValue(JMETER_HOME);
             if (jmeterHome == null) {
                 logger.error(JMETER_HOME + " environment variable is not set. JMeter test execution may fail.");
@@ -67,8 +66,12 @@ public class JMeterExecutor extends TestExecutor {
             }
 
             ShellExecutor shellExecutor = new ShellExecutor(Paths.get(testLocation));
-            int exitCode = shellExecutor.executeCommand("bash " + script);
+            Map<String, String> environment = new HashMap<>();
 
+            for (Host host : deploymentCreationResult.getHosts()) {
+                environment.put(host.getLabel(), host.getIp());
+            }
+            int exitCode = shellExecutor.executeCommand("bash " + script, environment);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the test: ", testName, ", at: ",
                         testScenario.getDir(), ". Script exited with a status code of ", exitCode));
