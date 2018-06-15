@@ -20,7 +20,7 @@ pipeline {
 
         INFRASTRUCTURE_REPOSITORY='https://github.com/harshanl/cloudformation-is'
         DEPLOYMENT_REPOSITORY='https://github.com/harshanl/cloudformation-is'
-        SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/identity-test-integration.git'
+        SCENARIOS_REPOSITORY='https://github.com/harshanl/identity-test-integration'
 
         INFRA_VERSION="5.4.0.1"
         INFRA_LOCATION="workspace/cloudformation-is-${INFRA_VERSION}"
