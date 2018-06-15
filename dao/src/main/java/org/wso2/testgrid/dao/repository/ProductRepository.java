@@ -20,6 +20,7 @@ package org.wso2.testgrid.dao.repository;
 import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.ProductTestStatus;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.SortOrder;
@@ -27,6 +28,7 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -146,5 +148,30 @@ public class ProductRepository extends AbstractRepository<Product> {
                                                         (String) result[2], (String) result[4], (Timestamp) result[5]));
         }
         return productTestStatuses;
+    }
+
+    /**
+     * This method updates the last_success_timestamp column or last_failure_timestamp column with given timestamp.
+     * The column is selected by considering product status.
+     * ex:- UPDATE product SET last_failure_timestamp = <timestamp> where id = <product_id>;
+     *
+     * @param status Status of the product
+     * @param timestamp Current timestamp
+     * @param productId Id of the product
+     */
+    public void updateProductStatusTimestamp(Status status, Date timestamp, String productId) {
+        String queryStr = "UPDATE product SET ";
+        if (status.equals(Status.SUCCESS)) {
+            queryStr += "last_success_timestamp = ";
+        } else if (status.equals(Status.FAIL)) {
+            queryStr += "last_failure_timestamp = ";
+        }
+
+        // Begin entity manager transaction
+        entityManager.getTransaction().begin();
+        entityManager.createNativeQuery(
+                StringUtil.concatStrings(queryStr, "'", timestamp, "' where id = '", productId, "';")).executeUpdate();
+        // Commit transaction
+        entityManager.getTransaction().commit();
     }
 }

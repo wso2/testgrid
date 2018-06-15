@@ -21,6 +21,7 @@ package org.wso2.testgrid.common;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -71,6 +72,11 @@ public class Product extends AbstractUUIDEntity implements Serializable {
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
+    @Column(name = "last_success_timestamp")
+    private Timestamp lastSuccessTimestamp;
+
+    @Column(name = "last_failure_timestamp")
+    private Timestamp lastFailureTimestamp;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DeploymentPattern> deploymentPatterns = new ArrayList<>();
@@ -111,6 +117,44 @@ public class Product extends AbstractUUIDEntity implements Serializable {
         this.deploymentPatterns = deploymentPatterns;
     }
 
+    /**
+     * Returns the last success timestamp of the product build.
+     *
+     * @return timestamp
+     */
+    public Timestamp getLastSuccessTimestamp() {
+        return lastSuccessTimestamp == null ? null : new Timestamp(lastSuccessTimestamp.getTime());
+    }
+
+    /**
+     * Sets the last success timestamp of the product build.
+     *
+     * @param lastSuccessTimestamp timestamp
+     */
+    public void setLastSuccessTimestamp(Timestamp lastSuccessTimestamp) {
+        this.lastSuccessTimestamp =
+                this.lastSuccessTimestamp == null ? null : new Timestamp(lastSuccessTimestamp.getTime());
+    }
+
+    /**
+     * Returns the last failure timestamp of the product build.
+     *
+     * @return timestamp
+     */
+    public Timestamp getLastFailureTimestamp() {
+        return lastFailureTimestamp == null ? null : new Timestamp(lastFailureTimestamp.getTime());
+    }
+
+    /**
+     * Sets the last failure timestamp of the product build.
+     *
+     * @param lastFailureTimestamp timestamp
+     */
+    public void setLastFailureTimestamp(Timestamp lastFailureTimestamp) {
+        this.lastFailureTimestamp =
+                this.lastFailureTimestamp == null ? null : new Timestamp(lastFailureTimestamp.getTime());
+    }
+
     @Override
     public String toString() {
         String id = this.getId() != null ? this.getId() : "";
@@ -121,6 +165,8 @@ public class Product extends AbstractUUIDEntity implements Serializable {
                 ", name='", name, "\'",
                 ", createdTimestamp='", createdTimestamp, "\'",
                 ", modifiedTimestamp='", modifiedTimestamp, "\'",
+                ", lastSuccessTimestamp='", lastSuccessTimestamp, "\'",
+                ", lastFailureTimestamp='", lastFailureTimestamp, "\'",
                 '}');
     }
 }

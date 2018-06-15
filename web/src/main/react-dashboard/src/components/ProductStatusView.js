@@ -109,31 +109,30 @@ class ProductStatusView extends Component {
         </th>
         <td style={{fontSize: '16px'}}>
           {(() => {
-            if (product.lastBuild.modifiedTimestamp) {
+            if (product.lastSuccessTimestamp) {
               return (
-                <SingleRecord value={product.lastBuild.status}
-                              nevigate={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
+                <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
                                 product.productName, {
                                 productId: product.productId,
                                 productName: product.productName,
                                 productStatus: product.productStatus
-                              })} time={product.lastBuild.modifiedTimestamp}
-                />)
+                })}> time={Moment(product.lastSuccessTimestamp).fromNow()}</i>
+                )
             } else {
-              return ("No builds yet!");
+              return ("No Success builds yet!");
             }
           })()}
         </td>
         <td style={{fontSize: '16px'}}>
           {(() => {
-            if (product.lastfailed.modifiedTimestamp) {
+            if (product.lastFailureTimestamp) {
               return (
                 <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" + product.productName, {
                   productId: product.productId,
                   productName: product.productName,
                   productStatus: product.productStatus
                 })} style={{cursor: 'pointer'}}>
-                  {Moment(product.lastfailed.modifiedTimestamp).fromNow()}</i>
+                  {Moment(product.lastFailureTimestamp).fromNow()}</i>
               );
             } else {
               return ("No failed builds yet!")
@@ -169,7 +168,7 @@ class ProductStatusView extends Component {
           <tr>
             <th>Status</th>
             <th>Job</th>
-            <th>Latest Build</th>
+            <th>Last Success</th>
             <th>Last Failure</th>
             <th>Execute</th>
             <th>Configure</th>

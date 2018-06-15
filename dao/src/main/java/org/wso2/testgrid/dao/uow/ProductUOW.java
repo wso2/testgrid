@@ -19,6 +19,7 @@ package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.ProductTestStatus;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.ProductRepository;
@@ -109,5 +110,15 @@ public class ProductUOW {
      */
     public List<ProductTestStatus> getProductTestHistory(Timestamp date) throws TestGridDAOException {
         return productRepository.getProductTestHistory(date);
+    }
+
+    /**
+     * This method update the last success timestamp or last failure timestamp according to the product status.
+     *
+     * @param status status of the product
+     * @param productId Id of the product
+     */
+    public void updateProductStatusTimestamp(Status status, String productId) throws TestGridDAOException {
+        productRepository.updateProductStatusTimestamp(status, new Timestamp(System.currentTimeMillis()), productId);
     }
 }
