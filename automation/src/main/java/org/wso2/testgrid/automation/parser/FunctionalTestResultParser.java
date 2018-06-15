@@ -28,13 +28,14 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
@@ -86,12 +87,13 @@ public class FunctionalTestResultParser extends ResultParser {
         String testScenarioName = testScenario.getName();
 
         if (scenarioResultFiles.length == 0) {
-            logger.warn("Unable to locate jtl files for the scenario : " + testScenarioName);
+            logger.warn(StringUtil.concatStrings("Unable to locate jtl files for the scenario : '",
+                    testScenarioName, "' , in path : ", this.testLocation));
             return;
         }
 
         for (String jtlFile : scenarioResultFiles) {
-            try (InputStream inputStream = new FileInputStream(Paths.get(testLocation, jtlFile).toString())) {
+            try (InputStream inputStream = Files.newInputStream(Paths.get(testLocation, jtlFile))) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Parsing scenario-results file of the TestScenario : '"
                             + testScenarioName + "' using the FunctionalTestResultParser");
