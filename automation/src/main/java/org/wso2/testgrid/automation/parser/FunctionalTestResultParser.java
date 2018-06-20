@@ -28,13 +28,15 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.stream.XMLEventReader;
@@ -81,61 +83,70 @@ public class FunctionalTestResultParser extends ResultParser {
     public void parseResults() throws JTLResultParserException {
         boolean failureMsgElement = false;
         XMLInputFactory factory = XMLInputFactory.newInstance();
-        String scenarioResultFile = ResultParserUtil.getJTLFile(this.testLocation);
+        String[] scenarioResultFiles = ResultParserUtil.getJTLFiles(this.testLocation);
         String testScenarioName = testScenario.getName();
-        try (InputStream inputStream = new FileInputStream(scenarioResultFile)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Parsing scenario-results file of the TestScenario : '"
-                        + testScenarioName + "' using the FunctionalTestResultParser");
-            }
 
-            XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
-            TestCase testCase = null;
-            while (eventReader.hasNext()) {
-                XMLEvent event = eventReader.nextEvent();
-                switch (event.getEventType()) {
-                    case XMLStreamConstants.START_ELEMENT:
-                        StartElement startElement = event.asStartElement();
-                        String elementName = startElement.getName().getLocalPart();
-                        if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(elementName) ||
-                                SAMPLE_ELEMENT.equalsIgnoreCase(elementName)) {
-                            testCase = this.buildTestCase(startElement);
-                        } else if (FAILURE_MESSAGE_ELEMENT.equalsIgnoreCase(elementName)) {
-                            failureMsgElement = true;
-                        }
-                        break;
-                    case XMLStreamConstants.CHARACTERS:
-                        Characters characters = event.asCharacters();
-                        if (failureMsgElement) {
-                            testCase.setFailureMessage(characters.getData());
-                            failureMsgElement = false;
-                        }
-                        break;
-                    case XMLStreamConstants.END_ELEMENT:
-                        EndElement endElement = event.asEndElement();
-                        String nodeName = endElement.getName().getLocalPart();
-                        if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(nodeName) ||
-                                SAMPLE_ELEMENT.equalsIgnoreCase(nodeName)) {
-                            this.testScenario.addTestCase(testCase);
-                        }
-                        break;
-                    default:
-                        break;
+        if (scenarioResultFiles.length == 0) {
+            logger.warn(StringUtil.concatStrings("Unable to locate jtl files for the scenario : '",
+                    testScenarioName, "' , in path : ", this.testLocation));
+            return;
+        }
+
+        for (String jtlFile : scenarioResultFiles) {
+            try (InputStream inputStream = Files.newInputStream(Paths.get(testLocation, jtlFile))) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Parsing scenario-results file of the TestScenario : '"
+                            + testScenarioName + "' using the FunctionalTestResultParser");
                 }
-            }
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("End parsing scenario-results file of the TestScenario : '" + testScenarioName +
-                        "' using the FunctionalTestResultParser");
+                XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
+                TestCase testCase = null;
+                while (eventReader.hasNext()) {
+                    XMLEvent event = eventReader.nextEvent();
+                    switch (event.getEventType()) {
+                        case XMLStreamConstants.START_ELEMENT:
+                            StartElement startElement = event.asStartElement();
+                            String elementName = startElement.getName().getLocalPart();
+                            if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(elementName) ||
+                                    SAMPLE_ELEMENT.equalsIgnoreCase(elementName)) {
+                                testCase = this.buildTestCase(startElement);
+                            } else if (FAILURE_MESSAGE_ELEMENT.equalsIgnoreCase(elementName)) {
+                                failureMsgElement = true;
+                            }
+                            break;
+                        case XMLStreamConstants.CHARACTERS:
+                            Characters characters = event.asCharacters();
+                            if (failureMsgElement) {
+                                testCase.setFailureMessage(characters.getData());
+                                failureMsgElement = false;
+                            }
+                            break;
+                        case XMLStreamConstants.END_ELEMENT:
+                            EndElement endElement = event.asEndElement();
+                            String nodeName = endElement.getName().getLocalPart();
+                            if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(nodeName) ||
+                                    SAMPLE_ELEMENT.equalsIgnoreCase(nodeName)) {
+                                this.testScenario.addTestCase(testCase);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("End parsing scenario-results file of the TestScenario : '" + testScenarioName +
+                            "' using the FunctionalTestResultParser");
+                }
+            } catch (XMLStreamException e) {
+                throw new JTLResultParserException("Unable to parse the scenario-results file of TestScenario :" +
+                        testScenarioName, e);
+            } catch (FileNotFoundException e) {
+                throw new JTLResultParserException("Unable to locate the scenario-results file.", e);
+            } catch (IOException e) {
+                throw new JTLResultParserException("Unable to close the input stream of scenario results file of " +
+                        "the TestScenario : " + testScenarioName, e);
             }
-        } catch (XMLStreamException e) {
-            throw new JTLResultParserException("Unable to parse the scenario-results file of TestScenario :" +
-                    testScenarioName, e);
-        } catch (FileNotFoundException e) {
-            throw new JTLResultParserException("Unable to locate the scenario-results file.", e);
-        } catch (IOException e) {
-            throw new JTLResultParserException("Unable to close the input stream of scenario results file of " +
-                    "the TestScenario : " + testScenarioName, e);
         }
     }
 
