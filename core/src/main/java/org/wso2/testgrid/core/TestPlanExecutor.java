@@ -19,6 +19,12 @@
 package org.wso2.testgrid.core;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.hc.client5.http.fluent.Content;
+import org.apache.hc.client5.http.fluent.Request;
+import org.apache.hc.core5.http.ContentType;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
@@ -28,6 +34,7 @@ import org.wso2.testgrid.automation.parser.ResultParser;
 import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.automation.report.ReportGenerator;
 import org.wso2.testgrid.automation.report.ReportGeneratorFactory;
+import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
@@ -38,6 +45,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
@@ -55,14 +63,22 @@ import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import javax.ws.rs.core.HttpHeaders;
 /**
  * This class is responsible for executing the provided TestPlan.
  *
@@ -245,39 +261,36 @@ public class TestPlanExecutor {
                 }
             }
 
-
-            for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                try {
-                    scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
-                    Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
-                    if (parser.isPresent()) {
-                        try {
-                            ResultParser resultParser = parser.get();
-                            resultParser.parseResults();
-                            resultParser.persistResults();
-                        } catch (ResultParserException e) {
-                            logger.error(String.format("Error parsing the results for the" +
-                                    " scenario %s", testScenario.getName()));
+            Set<String> appliedScenarios = new HashSet<String>();
+            List<ConfigChangeSet> configChangeSetList = testPlan.getScenarioConfig().getConfigChangeSets();
+            // Run test for available config change sets
+            if (configChangeSetList != null) {
+                if (initConfigChangeSet(testPlan)) {
+                    for (ConfigChangeSet configChangeSet : configChangeSetList) {
+                        for (String configScenario : configChangeSet.getAppliesTo()) {
+                            for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                                if (configScenario.equals(testScenario.getName())) {
+                                    if (applyConfigChangeSet(testPlan, configChangeSet, true)) {
+                                        executeTestScenario(testScenario, deploymentCreationResult, testPlan);
+                                        applyConfigChangeSet(testPlan, configChangeSet, false);
+                                        // Add to the applied list only if execution success
+                                        appliedScenarios.add(configScenario);
+                                    }
+                                    break;
+                                }
+                            }
                         }
-                    } else {
-                        testScenario.setStatus(Status.ERROR);
-                        logger.error(String.format("Error parsing the results for the " +
-                                "scenario %s", testScenario.getName()));
                     }
-                } catch (ScenarioExecutorException e) {
-                    // we need to continue the rest of the tests irrespective of the exception thrown here.
-                    logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
-                            testScenario.getName(), "' in TestPlan\nCaused by "), e);
+                    deInitConfigChangeSet(testPlan);
                 }
-                try {
-                    persistTestScenario(testScenario);
-                } catch (TestPlanExecutorException e) {
-                    logger.error(StringUtil.concatStrings(
-                            "Error occurred while persisting test scenario ", testScenario.getName()), e);
-                }
-
             }
 
+            // Run test for unavailable config change sets
+            for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                if (!appliedScenarios.contains(testScenario.getName())) {
+                    executeTestScenario(testScenario, deploymentCreationResult, testPlan);
+                }
+            }
             // Run cleanup.sh in scenario repository
             runPostScenariosScripts(testPlan, deploymentCreationResult);
         } else {
@@ -286,6 +299,179 @@ public class TestPlanExecutor {
         }
     }
 
+    /**
+     * Execute given test scenario
+     *
+     * @param testScenario the test scenario
+     * @param deploymentCreationResult the result of the previous build step
+     * @param testPlan the test plan
+     */
+    private void executeTestScenario(TestScenario testScenario, DeploymentCreationResult deploymentCreationResult,
+                                     TestPlan testPlan) {
+        try {
+            scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
+            Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
+            if (parser.isPresent()) {
+                try {
+                    ResultParser resultParser = parser.get();
+                    resultParser.parseResults();
+                    resultParser.persistResults();
+                } catch (ResultParserException e) {
+                    logger.error(String.format("Error parsing the results for the" +
+                            " scenario %s", testScenario.getName()));
+                }
+            } else {
+                testScenario.setStatus(Status.ERROR);
+                logger.error(String.format("Error parsing the results for the " +
+                        "scenario %s", testScenario.getName()));
+            }
+        } catch (ScenarioExecutorException e) {
+            // we need to continue the rest of the tests irrespective of the exception thrown here.
+            logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
+                    testScenario.getName(), "' in TestPlan\nCaused by "), e);
+        }
+        try {
+            persistTestScenario(testScenario);
+        } catch (TestPlanExecutorException e) {
+            logger.error(StringUtil.concatStrings(
+                    "Error occurred while persisting test scenario ", testScenario.getName()), e);
+        }
+    }
+
+    /**
+     * Apply config change set script before and after run test scenarios
+     *
+     * @param testPlan the test plan
+     * @param configChangeSet   config change set
+     * @param isInit run apply config-script if true. else, run revert-config script
+     * @return execution passed or failed
+     */
+    private boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet, boolean isInit) {
+        try {
+            URL scenarioRepoPath = new URL(testPlan.getScenarioTestsRepository());
+            String filePath = scenarioRepoPath.getPath();
+            String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+            String shellCommand = "./repos/" + fileName + "-master/config-sets/" + configChangeSet.getName();
+            if (isInit) {
+                shellCommand = shellCommand.concat("/apply-config.sh &>/dev/null");
+            } else {
+                shellCommand = shellCommand.concat("/revert-config.sh &>/dev/null");
+            }
+            // Generate array of commands that need to be applied
+            String[] applyShellCommand = { shellCommand };
+            return applyShellCommandOnAgent(testPlan, applyShellCommand);
+        } catch (MalformedURLException e) {
+            logger.warn("Error parsing scenario path " + e);
+            return false;
+        }
+    }
+
+    /**
+     * Initialize agent before running config change set
+     *
+     * @param testPlan  The test plan
+     * @return          True if execution success. Else, false
+     */
+    private boolean initConfigChangeSet(TestPlan testPlan) {
+        try {
+            URL scenarioRepoPath = new URL(testPlan.getScenarioTestsRepository());
+
+            String filePath = scenarioRepoPath.getPath();
+            String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+
+            String[] initShellCommand = {
+                    "mkdir repos",
+                    "cd repos && curl -LJO " +
+                            testPlan.getScenarioTestsRepository() + "/archive/master.tar.gz   &>/dev/null",
+                    "cd repos && tar xvzf " + fileName + "-master.tar.gz  &>/dev/null",
+                    "chmod -R 755 repos/" + fileName + "-master/config-sets/ &>/dev/null"
+            };
+            return applyShellCommandOnAgent(testPlan, initShellCommand);
+        } catch (MalformedURLException e) {
+            logger.warn("Error parsing scenario path " + e);
+            return false;
+        }
+    }
+
+    /**
+     * Revert back changes did in initConfigChangeSet
+     *
+     * @param testPlan  The test plan
+     * @return          True if execution success. Else, false
+     */
+    private boolean deInitConfigChangeSet(TestPlan testPlan) {
+        String[] deInitShellCommand = {
+                "rm -rf repos"
+        };
+        return applyShellCommandOnAgent(testPlan, deInitShellCommand);
+    }
+
+    /**
+     * Send an array of shell command to an agent
+     *
+     * @param testPlan          The test plan
+     * @param initShellCommand  Array of shell command
+     * @return  True if execution success. Else, false
+     */
+    private boolean applyShellCommandOnAgent(TestPlan testPlan, String[] initShellCommand) {
+        String tinkererHost = ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_API_EP);
+        // Get authentication detail from config.properties and encode with BASE64
+        String authenticationString = ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME) + ":" +
+                ConfigurationContext.getProperty(
+                        ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
+        String authenticationToken = Base64.getEncoder().encodeToString(
+                authenticationString.getBytes(StandardCharsets.UTF_8));
+        try {
+            Content agentResponse = Request.Get(tinkererHost + "/agents")
+                    .addHeader(HttpHeaders.AUTHORIZATION, authenticationToken).
+                            execute().returnContent();
+            try {
+                // Todo use with Agent class with jackson mapper
+                JSONArray agentArray = new JSONArray(agentResponse.asString());
+                for (int index = 0; index < agentArray.length(); index++) {
+                    JSONObject agent = agentArray.getJSONObject(index);
+                    if (agent.getString("testPlanId").equals(testPlan.getId())) {
+                        for (String shellCommand : initShellCommand) {
+                            logger.info("exec " + shellCommand);
+                            Content shellCommandResponse = sendShellCommand(tinkererHost, authenticationToken
+                                    , agent, shellCommand);
+                        }
+                    }
+                }
+                return true;
+            } catch (JSONException e) {
+                logger.warn("JSON parsing error " + e);
+                return false;
+            }
+        } catch (IOException e) {
+            logger.warn("Error in API call " + e);
+            return false;
+        }
+    }
+
+    /**
+     * Send a shell command to the agent and execute it
+     *
+     * @param tinkererHost          Tinkerer host address
+     * @param authenticationKey     Tinkerer authentication key as BASE64 encoded string
+     * @param agent                 Agent details
+     * @param script                Script that need to be executed
+     * @return                      Shell execution output
+     * @throws IOException          Request post exception
+     * @throws JSONException        JSON parsing exception
+     */
+    private Content sendShellCommand(String tinkererHost, String authenticationKey, JSONObject agent, String script)
+            throws IOException, JSONException {
+        return Request.Post(
+                tinkererHost + "/test-plan/" + agent.getString("testPlanId") +
+                        "/agent/" + agent.getString("instanceName") + "/operation"
+        ).addHeader(HttpHeaders.AUTHORIZATION, authenticationKey)
+                .addHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+                .bodyString("{\"request\":\"" + script + "\",\"code\":\"SHELL\"}", ContentType.APPLICATION_JSON).
+                        execute().returnContent();
+    }
 
     /**
      * Creates the deployment in the provisioned infrastructure.

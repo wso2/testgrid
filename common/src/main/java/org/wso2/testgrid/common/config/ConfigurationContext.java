@@ -121,6 +121,10 @@ public class ConfigurationContext {
         WUM_PASSWORD("WUM_PASSWORD"),
 
         /**
+         * Deployment Tinkerer API endpoint for TestGrid deployment
+         */
+        DEPLOYMENT_TINKERER_API_EP("DEPLOYMENT_TINKERER_API_EP"),
+        /**
          * Deployment Tinkerer endpoint of TestGrid deployment.
          */
         DEPLOYMENT_TINKERER_EP("DEPLOYMENT_TINKERER_EP"),
