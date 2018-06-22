@@ -31,7 +31,7 @@ import java.util.Properties;
 
 /**
  * Implementation of a dynamic property file reader, which can be used to read properties from TestGrid property files.
- * Ex: Read values from scenario-output property file.
+ * Ex: Read values from testgrid build-output property file.
  * This also includes enums for possible defined properties in each Testgrid property files.
  */
 public class PropertyFileReader {
@@ -56,9 +56,9 @@ public class PropertyFileReader {
     }
 
     /**
-     * Defines the testgrid scenario output properties.
+     * Defines the Testgrid build output properties.
      */
-    public enum ScenarioOutputProperties {
+    public enum BuildOutputProperties {
 
         /**
          * Git revision of the source used to build the product.
@@ -70,7 +70,6 @@ public class PropertyFileReader {
          */
         GIT_LOCATION("GIT_LOCATION");
 
-
         private String propertyName;
 
         /**
@@ -78,7 +77,7 @@ public class PropertyFileReader {
          *
          * @param propertyName name of the property
          */
-        ScenarioOutputProperties(String propertyName) {
+        BuildOutputProperties(String propertyName) {
             this.propertyName = propertyName;
         }
 

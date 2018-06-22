@@ -159,12 +159,12 @@ public class EmailReportGenerator {
         String outputPropertyFilePath = null;
         try {
             outputPropertyFilePath =
-                    TestGridUtil.deriveScenarioOutputPropertyFilePath(testPlan.getTestScenarios().get(0), false);
+                    TestGridUtil.deriveScenarioOutputPropertyFilePath(testPlan, false);
             PropertyFileReader propertyFileReader = new PropertyFileReader();
             String gitRevision = propertyFileReader.
-                    getProperty(PropertyFileReader.ScenarioOutputProperties.GIT_REVISION, outputPropertyFilePath);
+                    getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION, outputPropertyFilePath);
             String gitLocation = propertyFileReader.
-                    getProperty(PropertyFileReader.ScenarioOutputProperties.GIT_LOCATION, outputPropertyFilePath);
+                    getProperty(PropertyFileReader.BuildOutputProperties.GIT_LOCATION, outputPropertyFilePath);
             if (gitLocation == null || gitLocation.isEmpty()) {
                 logger.error("Git location received as null/empty for test plan with id " + testPlan.getId());
                 stringBuilder.append("Git location: Unknown!");
@@ -185,5 +185,21 @@ public class EmailReportGenerator {
             return "Git build details are unknown!";
         }
         return stringBuilder.toString();
+    }
+
+    /**
+     * Check if the latest run of a certain product include failed tests.
+     * @param product product
+     * @return if test-failures exists or not
+     */
+    public boolean hasFailedTests(Product product) {
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
+        for (TestPlan testPlan: testPlans) {
+            if (testPlan.getStatus().equals(Status.FAIL)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

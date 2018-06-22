@@ -459,13 +459,13 @@ public final class TestGridUtil {
     /**
      * Returns the path of the integration test log file.
      *
-     * @param testScenario test-scenario
+     * @param testPlan test-plan
      * @return log file path
      */
-    public static String deriveScenarioOutputPropertyFilePath(TestScenario testScenario, Boolean relative)
+    public static String deriveScenarioOutputPropertyFilePath(TestPlan testPlan, Boolean relative)
             throws TestGridException {
-        String productName = testScenario.getTestPlan().getDeploymentPattern().getProduct().getName();
-        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testScenario.getTestPlan());
+        String productName = testPlan.getDeploymentPattern().getProduct().getName();
+        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
         String dirPrefix = "";
         if (!relative) {
             dirPrefix = getTestGridHomePath();

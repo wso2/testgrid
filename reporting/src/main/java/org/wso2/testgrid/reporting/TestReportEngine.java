@@ -721,8 +721,13 @@ public class TestReportEngine {
      * @param product product needing the report.
      */
     public void generateEmailReport(Product product) throws ReportingException {
-        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         EmailReportGenerator emailReportProcessor = new EmailReportGenerator();
+        if (!emailReportProcessor.hasFailedTests(product)) {
+            logger.error("Latest build of " + product + "does not contain failed tests. " +
+                    "Hence skipping email-report generation..");
+            return;
+        }
+        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         Map<String, Object> report = new HashMap<>();
         Map<String, Object> perSummariesMap = new HashMap<>();
         report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
@@ -733,9 +738,9 @@ public class TestReportEngine {
         String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
 
         // Write to HTML file
-        String fileName = StringUtil.concatStrings(TESTGRID_EMAIL_REPORT_NAME);
+        String relativeFilePath = TestGridUtil.deriveTestGridLogFilePath(product.getName(), TESTGRID_EMAIL_REPORT_NAME);
         String testGridHome = TestGridUtil.getTestGridHomePath();
-        Path reportPath = Paths.get(testGridHome).resolve(fileName);
+        Path reportPath = Paths.get(testGridHome, relativeFilePath);
         writeToFile(reportPath.toString(), htmlString);
     }
 }
