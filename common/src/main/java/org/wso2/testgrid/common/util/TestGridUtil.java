@@ -438,6 +438,43 @@ public final class TestGridUtil {
     }
 
     /**
+     * Returns the path of the integration test log file.
+     *
+     * @param testPlan test-plan
+     * @return log file path
+     */
+    public static String deriveTestIntegrationLogFilePath(TestPlan testPlan, Boolean relative)
+            throws TestGridException {
+        String productName = testPlan.getDeploymentPattern().getProduct().getName();
+        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
+        String dirPrefix = "";
+        if (!relative) {
+            dirPrefix = getTestGridHomePath();
+        }
+        return Paths.get(dirPrefix, TestGridConstants.TESTGRID_JOB_DIR, productName,
+                TestGridConstants.TESTGRID_BUILDS_DIR, testPlanDirName,
+                TestGridConstants.TEST_INTEGRATION_LOG_FILE_NAME).toString();
+    }
+
+    /**
+     * Returns the path of the integration test log file.
+     *
+     * @param testScenario test-scenario
+     * @return log file path
+     */
+    public static String deriveScenarioOutputPropertyFilePath(TestScenario testScenario, Boolean relative)
+            throws TestGridException {
+        String productName = testScenario.getTestPlan().getDeploymentPattern().getProduct().getName();
+        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testScenario.getTestPlan());
+        String dirPrefix = "";
+        if (!relative) {
+            dirPrefix = getTestGridHomePath();
+        }
+        return Paths.get(dirPrefix, TestGridConstants.TESTGRID_JOB_DIR, productName,
+                TestGridConstants.TESTGRID_BUILDS_DIR, testPlanDirName,
+                TestGridConstants.TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE).toString();
+    }
+    /**
      * Returns the test-plan directory name based on the test-plan content.
      * @param testPlan test-plan
      * @return test-plan directory name.

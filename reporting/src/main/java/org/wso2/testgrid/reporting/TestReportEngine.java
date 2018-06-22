@@ -53,9 +53,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_EMAIL_REPORT_NAME;
 import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
 import static org.wso2.testgrid.reporting.AxisColumn.INFRASTRUCTURE;
 import static org.wso2.testgrid.reporting.AxisColumn.SCENARIO;
+import static org.wso2.testgrid.reporting.util.FileUtil.writeToFile;
 
 /**
  * This class is responsible for generating the test reports.
@@ -68,7 +70,12 @@ public class TestReportEngine {
 
     private static final String REPORT_MUSTACHE = "report.mustache";
     private static final String PERFORMANCE_REPORT_MUSTACHE = "performance_report.mustache";
+    private static final String EMAIL_REPORT_MUSTACHE = "email_report.mustache";
     private static final String REPORT_TEMPLATE_KEY = "parsedReport";
+    private static final String PER_TEST_PLAN_TEMPLATE_KEY = "perTestPlan";
+    private static final String PRODUCT_STATUS_TEMPLATE_KEY = "productTestStatus";
+    private static final String PRODUCT_NAME_TEMPLATE_KEY = "productName";
+    private static final String GIT_BUILD_DETAILS_TEMPLATE_KEY = "gitBuildDetails";
     private static final String HTML_EXTENSION = ".html";
 
     private static final String PERFORMANCE_REPORT = "PerformanceReport";
@@ -705,5 +712,30 @@ public class TestReportEngine {
     private void writeHTMLToFile(Path filePath, String htmlString) throws ReportingException {
         logger.info("Writing test results to file: " + filePath.toString());
         FileUtil.writeToFile(filePath.toAbsolutePath().toString(), htmlString);
+    }
+
+    /**
+     * Generate a HTML report which is used as the content of the email to be sent out to
+     * relevant parties interested in TestGrid test job.
+     *
+     * @param product product needing the report.
+     */
+    public void generateEmailReport(Product product) throws ReportingException {
+        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
+        EmailReportGenerator emailReportProcessor = new EmailReportGenerator();
+        Map<String, Object> report = new HashMap<>();
+        Map<String, Object> perSummariesMap = new HashMap<>();
+        report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
+        report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product));
+        report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
+        report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product));
+        perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
+        String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
+
+        // Write to HTML file
+        String fileName = StringUtil.concatStrings(TESTGRID_EMAIL_REPORT_NAME);
+        String testGridHome = TestGridUtil.getTestGridHomePath();
+        Path reportPath = Paths.get(testGridHome).resolve(fileName);
+        writeToFile(reportPath.toString(), htmlString);
     }
 }
