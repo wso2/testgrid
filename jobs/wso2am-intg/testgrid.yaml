@@ -12,7 +12,7 @@ infrastructureConfig:
       description: Provision Infra for running intg tests
       dir: jobs/intg-test-resources
       scripts:
-        - name: ''
+        - name: '01-single-node-ec2-and-rds-deployment'
           description: ''
           type: CLOUDFORMATION
           file: wso2-intg-test-cfn.yaml
