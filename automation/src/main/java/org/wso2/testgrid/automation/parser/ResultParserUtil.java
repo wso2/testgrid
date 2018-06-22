@@ -22,7 +22,6 @@ import org.wso2.testgrid.automation.exception.JTLResultParserException;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.nio.file.Paths;
 
 /**
  * This class holds the util methods required for JMeter result parsers.
@@ -37,11 +36,11 @@ public class ResultParserUtil {
      * This method will return the location of the JMeter scenario results file.
      *
      * @param testLocation - Location of the scenario test
-     * @return a String {@link String} JTL file location
+     * @return an array of String {@link String} with JTL file names
      * @throws JTLResultParserException {@link JTLResultParserException} if the JTL file is not found in the
      *                                  location
      */
-    public static String getJTLFile(String testLocation) throws JTLResultParserException {
+    public static String [] getJTLFiles(String testLocation) throws JTLResultParserException {
         File dir = new File(testLocation);
         FilenameFilter filter = (dir1, name) -> name.endsWith(JTL_EXTENSION);
         String[] files = dir.list(filter);
@@ -49,9 +48,9 @@ public class ResultParserUtil {
             throw new JTLResultParserException("Unable to locate the results jtl file in the directory : '" +
                     testLocation + "'");
         } else if (files.length > 0) {
-            return Paths.get(testLocation, files[0]).toString();
+            return files;
         }
-        return null;
+        return new String[0];
     }
 }
 
