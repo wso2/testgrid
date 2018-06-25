@@ -61,6 +61,7 @@ public class TestPlanUOW {
             persisted.setScenarioTestsRepository(testPlan.getScenarioTestsRepository());
             persisted.setInfrastructureRepository(testPlan.getInfrastructureRepository());
             persisted.setDeploymentRepository(testPlan.getDeploymentRepository());
+            persisted.setConfigChangeSetRepository(testPlan.getConfigChangeSetRepository());
             persisted.setInfrastructureConfig(testPlan.getInfrastructureConfig());
             persisted.setDeploymentConfig(testPlan.getDeploymentConfig());
             persisted.setScenarioConfig(testPlan.getScenarioConfig());

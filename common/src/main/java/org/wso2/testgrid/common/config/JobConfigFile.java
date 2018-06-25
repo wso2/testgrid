@@ -33,6 +33,7 @@ public class JobConfigFile {
     private String infrastructureRepository;
     private String deploymentRepository;
     private String scenarioTestsRepository;
+    private String configChangeSetRepository;
 
     /**
      * @see #isRelativePaths()
@@ -82,6 +83,14 @@ public class JobConfigFile {
         this.scenarioTestsRepository = scenarioTestsRepository;
         this.scenariosTestRepository = scenarioTestsRepository;
         this.scenarioTestRepository = scenarioTestsRepository;
+    }
+
+    public String getConfigChangeSetRepository() {
+        return this.configChangeSetRepository;
+    }
+
+    public void setConfigChangeSetRepository(String configChangeSetRepository) {
+        this.configChangeSetRepository = configChangeSetRepository;
     }
 
     /**

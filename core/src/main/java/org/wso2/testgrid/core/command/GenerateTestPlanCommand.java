@@ -334,6 +334,7 @@ public class GenerateTestPlanCommand implements Command {
         String infraRepositoryLocation = jobConfigFile.getInfrastructureRepository();
         String deployRepositoryLocation = jobConfigFile.getDeploymentRepository();
         String scenarioTestsRepositoryLocation = jobConfigFile.getScenarioTestsRepository();
+        String configChangeSetRepositoryLocation = jobConfigFile.getConfigChangeSetRepository();
 
         StringBuilder testgridYamlBuilder = new StringBuilder();
         String ls = System.lineSeparator();
@@ -349,6 +350,9 @@ public class GenerateTestPlanCommand implements Command {
             }
             testgridYamlBuilder
                     .append(getTestgridYamlFor(getTestGridYamlLocation(scenarioTestsRepositoryLocation)))
+                    .append(ls);
+            testgridYamlBuilder
+                    .append(getTestgridYamlFor(getTestGridYamlLocation(configChangeSetRepositoryLocation)))
                     .append(ls);
         } else {
             logger.warn(StringUtil.concatStrings(
@@ -376,6 +380,7 @@ public class GenerateTestPlanCommand implements Command {
         testgridYaml.setInfrastructureRepository(jobConfigFile.getInfrastructureRepository());
         testgridYaml.setDeploymentRepository(jobConfigFile.getDeploymentRepository());
         testgridYaml.setScenarioTestsRepository(jobConfigFile.getScenarioTestsRepository());
+        testgridYaml.setConfigChangeSetRepository(jobConfigFile.getConfigChangeSetRepository());
 
         if (logger.isDebugEnabled()) {
             logger.debug("The testgrid.yaml content for this product build: " + testgridYamlContent);
@@ -488,6 +493,7 @@ public class GenerateTestPlanCommand implements Command {
                 testPlan.setInfrastructureRepository(testgridYaml.getInfrastructureRepository());
                 testPlan.setDeploymentRepository(testgridYaml.getDeploymentRepository());
                 testPlan.setScenarioTestsRepository(testgridYaml.getScenarioTestsRepository());
+                testPlan.setConfigChangeSetRepository(testgridYaml.getConfigChangeSetRepository());
                 testConfigurations.add(testPlan);
             }
         }

@@ -100,6 +100,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String scenarioTestsRepository;
 
     @Transient
+    private String configChangeSetRepository;
+
+    @Transient
     private ResultFormat resultFormat;
 
     /**
@@ -260,6 +263,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      */
     public void setScenarioTestsRepository(String scenarioTestsRepository) {
         this.scenarioTestsRepository = scenarioTestsRepository;
+    }
+
+    /**
+     * Return the path of config change set artifacts.
+     *
+     * @return the path of config change set artifacts.
+     */
+    public String getConfigChangeSetRepository() {
+        return configChangeSetRepository;
+    }
+
+    /**
+     * Sets the path of the config change set artifacts.
+     *
+     * @param configChangeSetRepository the path of config change set artifacts.
+     */
+    public void setConfigChangeSetRepository(String configChangeSetRepository) {
+        this.configChangeSetRepository = configChangeSetRepository;
     }
 
     /**

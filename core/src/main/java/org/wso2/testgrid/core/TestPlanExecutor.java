@@ -72,11 +72,9 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.core.HttpHeaders;
 /**
@@ -261,33 +259,24 @@ public class TestPlanExecutor {
                 }
             }
 
-            Set<String> appliedScenarios = new HashSet<String>();
             List<ConfigChangeSet> configChangeSetList = testPlan.getScenarioConfig().getConfigChangeSets();
-            // Run test for available config change sets
+            // Run test with config change sets
             if (configChangeSetList != null) {
                 if (initConfigChangeSet(testPlan)) {
                     for (ConfigChangeSet configChangeSet : configChangeSetList) {
-                        for (String configScenario : configChangeSet.getAppliesTo()) {
-                            for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                                if (configScenario.equals(testScenario.getName())) {
-                                    if (applyConfigChangeSet(testPlan, configChangeSet, true)) {
-                                        executeTestScenario(testScenario, deploymentCreationResult, testPlan);
-                                        applyConfigChangeSet(testPlan, configChangeSet, false);
-                                        // Add to the applied list only if execution success
-                                        appliedScenarios.add(configScenario);
-                                    }
-                                    break;
-                                }
+                        for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                            if (applyConfigChangeSet(testPlan, configChangeSet, true)) {
+                                executeTestScenario(testScenario, deploymentCreationResult, testPlan);
+                                applyConfigChangeSet(testPlan, configChangeSet, false);
                             }
                         }
+
                     }
                     deInitConfigChangeSet(testPlan);
                 }
-            }
-
-            // Run test for unavailable config change sets
-            for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                if (!appliedScenarios.contains(testScenario.getName())) {
+            } else {
+                // Run test without config change set
+                for (TestScenario testScenario : testPlan.getTestScenarios()) {
                     executeTestScenario(testScenario, deploymentCreationResult, testPlan);
                 }
             }
@@ -348,8 +337,8 @@ public class TestPlanExecutor {
      */
     private boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet, boolean isInit) {
         try {
-            URL scenarioRepoPath = new URL(testPlan.getScenarioTestsRepository());
-            String filePath = scenarioRepoPath.getPath();
+            URL configChangeSetRepoPath = new URL(testPlan.getConfigChangeSetRepository());
+            String filePath = configChangeSetRepoPath.getPath();
             String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
             String shellCommand = "./repos/" + fileName + "-master/config-sets/" + configChangeSet.getName();
             if (isInit) {
@@ -374,15 +363,13 @@ public class TestPlanExecutor {
      */
     private boolean initConfigChangeSet(TestPlan testPlan) {
         try {
-            URL scenarioRepoPath = new URL(testPlan.getScenarioTestsRepository());
-
-            String filePath = scenarioRepoPath.getPath();
+            URL configChangeSetRepoPath = new URL(testPlan.getConfigChangeSetRepository());
+            String filePath = configChangeSetRepoPath.getPath();
             String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
-
             String[] initShellCommand = {
                     "mkdir repos",
                     "cd repos && curl -LJO " +
-                            testPlan.getScenarioTestsRepository() + "/archive/master.tar.gz   &>/dev/null",
+                            testPlan.getConfigChangeSetRepository() + "/archive/master.tar.gz   &>/dev/null",
                     "cd repos && tar xvzf " + fileName + "-master.tar.gz  &>/dev/null",
                     "chmod -R 755 repos/" + fileName + "-master/config-sets/ &>/dev/null"
             };
@@ -421,7 +408,7 @@ public class TestPlanExecutor {
                 ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME) + ":" +
                 ConfigurationContext.getProperty(
                         ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
-        String authenticationToken = Base64.getEncoder().encodeToString(
+        String authenticationToken = "Basic " + Base64.getEncoder().encodeToString(
                 authenticationString.getBytes(StandardCharsets.UTF_8));
         try {
             Content agentResponse = Request.Get(tinkererHost + "/agents")
