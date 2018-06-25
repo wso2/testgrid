@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+  ~ Copyright (c) 2017, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<html>
+<head>
+    <title>WSO2 Test Grid - Test Execution Summary</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+    <style>
+        /*
+        Report table style
+         */
+        table.reportTable {
+            font-family: sans-serif;
+            border: 1px solid #000000;
+            background-color: #FFFFFF;
+            width: 95%;
+            text-align: left;
+            border-collapse: collapse;
+        }
+
+        table.reportTable td, table.reportTable th {
+            border: 1px solid #000000;
+            padding: 10px 5px;
+        }
+
+        table.reportTable tbody td {
+            font-size: 14px;
+        }
+
+        table.reportTable tr:nth-child(even) {
+            background: #F6F6F6;
+        }
+
+        table.reportTable thead {
+            background: #949494;
+            border-bottom: 2px solid #000000;
+        }
+
+        table.reportTable thead th {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000000;
+            text-align: center;
+        }
+
+        table.reportTable thead th:first-child {
+            border-left: none;
+        }
+
+        /*
+        Titles
+         */
+        .tableTitle {
+            font-family: sans-serif;
+            font-weight: 600;
+            font-size: 20px;
+            line-height: 20px;
+            width: 100%;
+            color: #e46226;
+        }
+
+        .mainTitle {
+            font-family: sans-serif;
+            font-weight: 900;
+            font-size: 30px;
+            line-height: 20px;
+            width: 100%;
+            color: #e46226;
+        }
+
+        .testResultSubTitle {
+            font-family: sans-serif;
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: bold;
+            color: #e46226;
+        }
+
+        .consoleLog {
+           font-family: monospace;
+            font-size: 12px;
+        }
+
+    </style>
+</head>
+<body>
+    <div style="margin: auto; background-color: #ffffff;">
+        {{#parsedReport}}
+            <table style="padding: 0 0; width: 100%; background: #ffffff;">
+                <tr>
+                    <td colspan="2"
+                        style="font-family: arial; font-size: 16px; line-height: 24px; color: #676767; border-top: 0px solid #cccccc;">
+                        <table>
+                            <tr>
+                                <td style="font-family: arial; font-size: 16px; line-height: 24px; text-align: center;">
+                                    <span class ="mainTitle">{{productName}}</span><br/><br/>
+                                    <span class ="mainTitle">integration tests {{productTestStatus}}!</span><br/>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <br/>
+            <div><em>{{{gitBuildDetails}}}</em></div>
+            <br/>
+            <span class="testResultSubTitle">Tests are failing in following environments:-</span>
+            <!--Start of per test-plan-->
+        <table class="reportTable">
+            {{#perTestPlan}}
+            <tr>
+                <td style="border-left: hidden; border-right: hidden;">
+                    <span class="testResultSubTitle">Infrastructure:</span>
+                    <span>{{infraCombination}}</span>
+                    <br/>
+                    <span class="testResultSubTitle">Deployment:</span>
+                    <span>{{deployment}}</span>
+                    <br/>
+                    <br/>
+                    <div class="consoleLog">
+                        {{{result}}}
+                    </div>
+                    <br/>
+                    <span class="testResultSubTitle">Detailed results available @ </span>
+                    <span><a href="{{dashboardLink}}">TestGrid dashboard</a></span>
+                    <br/>
+                </td>
+            </tr>
+            {{/perTestPlan}}
+            <!--End of per test-plan-->
+        {{/parsedReport}}
+    </table>
+        <em>Tested by WSO2 TestGrid.</em>
+    </div>
+</body>
+</html>

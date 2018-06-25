@@ -40,6 +40,7 @@ public class TestGridConstants {
     public static final String TESTGRID_LOGS_DIR = "logs";
     public static final String TESTGRID_COMPRESSED_FILE_EXT = ".zip";
     public static final String TESTRUN_LOG_FILE_NAME = "test-run.log";
+    public static final String TEST_INTEGRATION_LOG_FILE_NAME = "TestSuite.txt";
     public static final String TESTGRID_BUILDS_DIR = "builds";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
     public static final String FILE_SEPARATOR = "/";
@@ -53,6 +54,7 @@ public class TestGridConstants {
 
     public static final String DEFAULT_DEPLOYMENT_PATTERN_NAME = "default";
     public static final String TESTGRID_CONFIG_FILE = "config.properties";
+    public static final String TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE = "output.properties";
 
     public static final String WUM_USERNAME_PROPERTY = "WUMUsername";
     public static final String WUM_PASSWORD_PROPERTY = "WUMPassword";
@@ -60,4 +62,7 @@ public class TestGridConstants {
     public static final String TEST_TYPE_FUNCTIONAL = "FUNCTIONAL";
     public static final String TEST_TYPE_PERFORMANCE = "PERFORMANCE";
 
+    public static final String TEST_PLANS_URI = "test-plans";
+    public static final String HTML_LINE_SEPARATOR = "<br/>";
+    public static final String TESTGRID_EMAIL_REPORT_NAME = "EmailReport.html";
 }
