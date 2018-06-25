@@ -20,17 +20,17 @@ package org.wso2.testgrid.deployment.tinkerer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.deployment.tinkerer.beans.Agent;
+import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationResponse;
 import org.wso2.testgrid.deployment.tinkerer.providers.AWSProvider;
 import org.wso2.testgrid.deployment.tinkerer.providers.Provider;
 
+import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.websocket.Session;
 
 /**
  * This class manage sessions of agents corresponding to agent ids.
@@ -71,6 +71,7 @@ public class SessionManager {
         String instanceId = agent.getInstanceId();
         if (provider != null && region != null && instanceId != null) {
             agent.setInstanceName(getInstanceName(provider, region, instanceId));
+            agent.setInstanceUser(getInstanceUser(provider, region, instanceId));
             agentSessions.put(agentId, agentSession);
             agents.put(agentId, agent);
         }
@@ -204,6 +205,32 @@ public class SessionManager {
             return infraProvider.getInstanceName(region, instanceId);
         } else {
             return instanceId;
+        }
+    }
+
+    /**
+     * Get the instance username that is used to log into the instance depending on the cloud provider.
+     *
+     * @param provider Provider Name
+     * @param region Region of the instance
+     * @param instanceId ID of the instance
+     * @return Username of the instance
+     */
+    private static String getInstanceUser(String provider, String region, String instanceId) {
+
+        Provider infraProvider = null;
+        switch (provider) {
+            case "aws":
+                infraProvider = new AWSProvider();
+                break;
+            default:
+                logger.warn("Unknown cloud provider: " + provider);
+        }
+        if (infraProvider != null) {
+            Optional<String> instanceUserName = infraProvider.getInstanceUserName(region, instanceId);
+            return instanceUserName.orElse(null);
+        } else {
+            return null;
         }
     }
 

@@ -18,8 +18,10 @@
 
 package org.wso2.testgrid.deployment.tinkerer.beans;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.Gson;
 
+import java.util.Map;
 /**
  * This class holds abstract operation data.
  *
@@ -29,6 +31,16 @@ public abstract class Operation {
 
     private String operationId;
     private OperationCode code;
+    @JsonIgnoreProperties
+    private Map<String, String> data;
+
+    public Map<String, String> getData() {
+        return data;
+    }
+
+    public void setData(Map<String, String> data) {
+        this.data = data;
+    }
 
     public String getOperationId() {
         return operationId;
@@ -62,6 +74,6 @@ public abstract class Operation {
      * @since 1.0.0
      */
     public enum OperationCode {
-        SHELL, PING
+        SHELL, PING, STREAM_FILE
     }
 }
