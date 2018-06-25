@@ -39,10 +39,11 @@ public interface Provider {
     String getInstanceName(String region, String instanceId);
 
     /**
+     * Returns the instance username for the OS
      *
-     * @param region
-     * @param imageId
-     * @return
+     * @param region region of the stack.
+     * @param imageId Id of the instance
+     * @return An Optional instance of the username
      */
     Optional<String> getInstanceUserName(String region, String imageId);
 }

@@ -20,15 +20,22 @@ package org.wso2.testgrid.deployment.tinkerer.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.deployment.tinkerer.SessionManager;
-import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.deployment.tinkerer.beans.ErrorResponse;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationRequest;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 import org.wso2.testgrid.deployment.tinkerer.utils.SSHHelper;
 
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import javax.websocket.Session;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -38,13 +45,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * This class represents REST service implementation of Deployment Tinkerer service.

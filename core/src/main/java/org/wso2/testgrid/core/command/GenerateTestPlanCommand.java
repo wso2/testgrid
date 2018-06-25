@@ -216,6 +216,7 @@ public class GenerateTestPlanCommand implements Command {
 
             String fileName = String
                     .format("%s-%02d%s", TestGridConstants.TEST_PLAN_YAML_PREFIX, (i + 1), FileUtil.YAML_EXTENSION);
+            testPlan.setKeyFileLocation(jobConfigFile.getKeyFileLocation());
             String output = yaml.dump(testPlan);
 
             //Remove reference ids from yaml
@@ -290,7 +291,11 @@ public class GenerateTestPlanCommand implements Command {
             //scenarios
             repoPath = Paths.get(parent, jobConfigFile.getScenarioTestsRepository());
             jobConfigFile.setScenarioTestsRepository(resolvePath(repoPath, jobConfigFile));
-
+            //keyfile
+            if (jobConfigFile.getKeyFileLocation() != null) {
+                repoPath = Paths.get(parent, jobConfigFile.getKeyFileLocation());
+                jobConfigFile.setKeyFileLocation(resolvePath(repoPath, jobConfigFile));
+            }
             if (jobConfigFile.getTestgridYamlLocation() != null) {
                 //testgrid.yaml
                 repoPath = Paths.get(parent, jobConfigFile.getTestgridYamlLocation());

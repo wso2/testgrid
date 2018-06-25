@@ -25,12 +25,12 @@ import org.wso2.testgrid.deployment.tinkerer.beans.OperationResponse;
 import org.wso2.testgrid.deployment.tinkerer.providers.AWSProvider;
 import org.wso2.testgrid.deployment.tinkerer.providers.Provider;
 
-import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.websocket.Session;
 
 /**
  * This class manage sessions of agents corresponding to agent ids.

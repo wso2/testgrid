@@ -133,7 +133,13 @@ public class ConfigurationContext {
         /**
          * Deployment Tinkerer password of TestGrid deployment.
          */
-        DEPLOYMENT_TINKERER_PASSWORD("DEPLOYMENT_TINKERER_PASSWORD");
+        DEPLOYMENT_TINKERER_PASSWORD("DEPLOYMENT_TINKERER_PASSWORD"),
+
+        /**
+         * Base path of deployment Tinkerer rest api
+         */
+        DEPLOYMENT_TINKERER_REST_BASE_PATH("DEPLOYMENT_TINKERER_REST_BASE_PATH");
+
 
         private String propertyName;
 

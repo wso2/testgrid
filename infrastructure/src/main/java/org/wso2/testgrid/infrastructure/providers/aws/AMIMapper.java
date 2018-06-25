@@ -52,6 +52,7 @@ public class AMIMapper {
     //AMI lookup parameters
     private static final String AMI_TAG_OS = "OS";
     private static final String AMI_TAG_OS_VERSION = "OSVersion";
+    private static final String AMI_TAG_AGENT_READY = "AGENT_READY";
 
     private final AmazonEC2 amazonEC2;
 
@@ -143,6 +144,7 @@ public class AMIMapper {
                 }
             }
         }
+        lookupParams.setProperty(AMI_TAG_AGENT_READY, "true");
         return lookupParams;
     }
 

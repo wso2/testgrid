@@ -117,6 +117,14 @@
             <groupId>org.wso2.testgrid</groupId>
             <artifactId>org.wso2.testgrid.logging</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5-fluent</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
         <!-- Jacoco agent -->
         <dependency>
             <groupId>org.jacoco</groupId>
