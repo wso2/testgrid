@@ -49,7 +49,20 @@ import static org.wso2.testgrid.common.TestGridConstants.TEST_PLANS_URI;
  */
 public class EmailReportProcessor {
     private static final Logger logger = LoggerFactory.getLogger(EmailReportProcessor.class);
-    TestPlanUOW testPlanUOW = new TestPlanUOW();
+    private TestPlanUOW testPlanUOW;
+
+    public EmailReportProcessor() {
+        this.testPlanUOW = new TestPlanUOW();
+    }
+
+    /**
+     * This is created with default access modifier for the purpose of unit tests.
+     *
+     * @param testPlanUOW the TestPlanUOW
+     */
+    EmailReportProcessor(TestPlanUOW testPlanUOW) {
+        this.testPlanUOW = testPlanUOW;
+    }
 
     /**
      * Populates test-plan result sections in the report considering the latest test-plans of the product.
