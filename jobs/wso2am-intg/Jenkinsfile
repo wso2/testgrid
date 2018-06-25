@@ -147,6 +147,16 @@ pipeline {
             --product ${PRODUCT} \
             --groupBy scenario
             """
+        // Generate email-able report
+        /* Prereq:
+           1. Needs TestSuit.txt and output.properties files in relevant scenario directory.
+           2. DB needs to be updated on integration test result statues.
+
+           sh """
+            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+            ./testgrid generate-email \
+            --product ${PRODUCT} \
+            """ */
            script {
                // Archive artifacts
                 loadProperties()
@@ -158,6 +168,13 @@ pipeline {
                   // Upload artifacts to S3
                   s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"${bucket}", path:"artifacts/")
                 }
+                //Send email for failed results.
+             /* if (fileExists('/testgrid/testgrid-home/wso2is-5.5.0-LTS/EmailReport.html')) {
+                  emailext mimeType: 'text/html',
+                  body: '${FILE,path="/testgrid/testgrid-home/wso2is-5.5.0-LTS/EmailReport.html"}',
+                  subject: 'test',
+                  to: 'builder@wso2.org'
+                } */
            }
             // Delete logs and reports after upload
             dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
