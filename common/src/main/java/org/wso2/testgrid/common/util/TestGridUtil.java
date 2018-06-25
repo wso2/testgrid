@@ -441,6 +441,7 @@ public final class TestGridUtil {
      * Returns the path of the integration test log file.
      *
      * @param testPlan test-plan
+     * @param relative Whether the path need to be returned relative to testgrid.home or not
      * @return log file path
      */
     public static String deriveTestIntegrationLogFilePath(TestPlan testPlan, Boolean relative)

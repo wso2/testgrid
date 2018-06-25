@@ -43,12 +43,13 @@ import static org.wso2.testgrid.common.TestGridConstants.HTML_LINE_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.TEST_PLANS_URI;
 
 /**
- * This class is responsible for generating all the content for the email-report for TestReportEngine.
+ * This class is responsible for process and generate all the content for the email-report for TestReportEngine.
  * The report will consist of base details such as product status, git build details, as well as per test-plan
  * (per infra-combination) details such as test-plan log, test-plan infra combination.
  */
-public class EmailReportGenerator {
-    private static final Logger logger = LoggerFactory.getLogger(EmailReportGenerator.class);
+public class EmailReportProcessor {
+    private static final Logger logger = LoggerFactory.getLogger(EmailReportProcessor.class);
+    TestPlanUOW testPlanUOW = new TestPlanUOW();
 
     /**
      * Populates test-plan result sections in the report considering the latest test-plans of the product.
@@ -141,7 +142,6 @@ public class EmailReportGenerator {
      * @return current status of the product
      */
     public Status getProductStatus(Product product) {
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
         return testPlanUOW.getCurrentStatus(product);
     }
 
@@ -153,8 +153,9 @@ public class EmailReportGenerator {
      */
     public String getGitBuildDetails(Product product) {
         StringBuilder stringBuilder = new StringBuilder();
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
         List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
+        //All the test-plans are executed from the same git revision. Thus git build details are similar across them.
+        //Therefore we refer the fist test-plan's git-build details.
         TestPlan testPlan = testPlans.get(0);
         String outputPropertyFilePath = null;
         try {
@@ -181,7 +182,7 @@ public class EmailReportGenerator {
         } catch (TestGridException e) {
             logger.error("Error occurred while getting Git build details from file" + outputPropertyFilePath +
                     "for product " + product.getName() + "" + "considering the testplan with testplan id " +
-                    testPlan.getId());
+                    testPlan.getId(), e);
             return "Git build details are unknown!";
         }
         return stringBuilder.toString();
@@ -193,7 +194,6 @@ public class EmailReportGenerator {
      * @return if test-failures exists or not
      */
     public boolean hasFailedTests(Product product) {
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
         List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
         for (TestPlan testPlan: testPlans) {
             if (testPlan.getStatus().equals(Status.FAIL)) {

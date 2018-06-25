@@ -67,6 +67,8 @@ public class PropertyFileReader {
 
         /**
          * Git repository and branch of the product.
+         * The format of the value is "#repository-URI# @#branch#"
+         * ex: "wso2/product-apim @2.x"
          */
         GIT_LOCATION("GIT_LOCATION");
 

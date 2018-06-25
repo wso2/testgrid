@@ -116,7 +116,7 @@ class ProductStatusView extends Component {
                                 productId: product.productId,
                                 productName: product.productName,
                                 productStatus: product.productStatus
-                })}> time={Moment(product.lastSuccessTimestamp).fromNow()}</i>
+                })}> {Moment(product.lastSuccessTimestamp).fromNow()}</i>
                 )
             } else {
               return ("No Success builds yet!");

@@ -721,9 +721,9 @@ public class TestReportEngine {
      * @param product product needing the report.
      */
     public void generateEmailReport(Product product) throws ReportingException {
-        EmailReportGenerator emailReportProcessor = new EmailReportGenerator();
+        EmailReportProcessor emailReportProcessor = new EmailReportProcessor();
         if (!emailReportProcessor.hasFailedTests(product)) {
-            logger.error("Latest build of " + product + "does not contain failed tests. " +
+            logger.info("Latest build of " + product + "does not contain failed tests. " +
                     "Hence skipping email-report generation..");
             return;
         }
