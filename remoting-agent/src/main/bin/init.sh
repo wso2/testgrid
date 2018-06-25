@@ -26,4 +26,5 @@ echo "provider=$4" >> /opt/testgrid/agent-config.properties
 echo "userName=$5" >> /opt/testgrid/agent-config.properties
 echo "password=$6" >> /opt/testgrid/agent-config.properties
 echo "instanceId=$(wget -qO- http://169.254.169.254/latest/meta-data/instance-id)" >> /opt/testgrid/agent-config.properties
+echo "instanceIP=$(wget -qO- http://169.254.169.254/latest/meta-data/local-ipv4)" >> /opt/testgrid/agent-config.properties
 service testgrid-agent restart

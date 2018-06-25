@@ -31,15 +31,18 @@ public class Agent {
     private String testPlanId;
     private String instanceId;
     private String instanceName;
+    private String instanceIp;
+    private String instanceUser;
 
     public Agent(String agentId) {
         this.agentId = agentId;
         String[] params = agentId.split(":");
-        if (params.length == 4) {
+        if (params.length == 5) {
             this.provider = params[0];
             this.region = params[1];
             this.testPlanId = params[2];
             this.instanceId = params[3];
+            this.instanceIp = params[4];
         }
     }
 
@@ -89,5 +92,21 @@ public class Agent {
 
     public void setInstanceName(String instanceName) {
         this.instanceName = instanceName;
+    }
+
+    public String getInstanceIp() {
+        return instanceIp;
+    }
+
+    public void setInstanceIp(String instanceIp) {
+        this.instanceIp = instanceIp;
+    }
+
+    public String getInstanceUser() {
+        return instanceUser;
+    }
+
+    public void setInstanceUser(String instanceUser) {
+        this.instanceUser = instanceUser;
     }
 }
