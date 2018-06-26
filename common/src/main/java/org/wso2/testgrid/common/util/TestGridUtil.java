@@ -35,6 +35,7 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
 
@@ -59,6 +60,7 @@ import java.util.UUID;
 
 import static org.wso2.testgrid.common.TestGridConstants.DEFAULT_TESTGRID_HOME;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY;
+import static org.wso2.testgrid.common.config.InfrastructureConfig.InfrastructureProvider.SHELL;
 
 /**
  * This Util class holds the common utility methods.
@@ -261,7 +263,7 @@ public final class TestGridUtil {
      * @param infraParams infra parameters to get the UUID
      * @return UUID specific to the infra parameters
      */
-    private static String getInfraParamUUID(String infraParams) throws TestGridException {
+    private static String getInfraParamUUID(String infraParams) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, Object> sortedMap = new TreeMap<>();
@@ -276,11 +278,11 @@ public final class TestGridUtil {
             String stringToConvertToUUID = sortedMap.toString().toLowerCase(Locale.ENGLISH);
             return UUID.nameUUIDFromBytes(stringToConvertToUUID.getBytes(Charset.defaultCharset())).toString();
         } catch (JsonParseException e) {
-            throw new TestGridException(StringUtil.concatStrings("Error in parsing JSON ", infraParams), e);
+            throw new IllegalStateException(StringUtil.concatStrings("Error in parsing JSON ", infraParams), e);
         } catch (JsonMappingException e) {
-            throw new TestGridException(StringUtil.concatStrings("Error in mapping JSON ", infraParams), e);
+            throw new IllegalStateException(StringUtil.concatStrings("Error in mapping JSON ", infraParams), e);
         } catch (IOException e) {
-            throw new TestGridException(StringUtil.concatStrings("IO Exception when trying to map JSON ",
+            throw new IllegalStateException(StringUtil.concatStrings("IO Exception when trying to map JSON ",
                     infraParams), e);
         }
     }
@@ -319,8 +321,10 @@ public final class TestGridUtil {
             testPlanEntity.setDeploymentPattern(deploymentPattern);
 
             // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.
-            if (testPlan.getInfrastructureConfig().getInfrastructureProvider()
-                    == InfrastructureConfig.InfrastructureProvider.SHELL) {
+            final DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
+                    .getDeploymentPatterns().get(0);
+            if (deploymentPatternConfig.getScripts().stream().anyMatch(s -> s.getType() == Script.ScriptType.SHELL)
+                    || (testPlan.getInfrastructureConfig().getInfrastructureProvider() == SHELL)) {
                 testPlanEntity.setDeployerType(TestPlan.DeployerType.SHELL);
             }
             testPlanEntity.setInfraParameters(jsonInfraParams);
@@ -412,6 +416,8 @@ public final class TestGridUtil {
     /**
      * Derives the relative path of a scenario-artifact.
      *
+     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/#scenario_dir#/#file_name#
+     *
      * @param testScenario test-scenario of the artifact
      * @param fileName name of the artifact
      * @return relative path of the artifact
@@ -426,6 +432,8 @@ public final class TestGridUtil {
 
     /**
      * Returns the path of the test-run log file.
+     *
+     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/test-run.log
      *
      * @param testPlan test-plan
      * @return log file path
@@ -477,10 +485,11 @@ public final class TestGridUtil {
     }
     /**
      * Returns the test-plan directory name based on the test-plan content.
+     *
      * @param testPlan test-plan
      * @return test-plan directory name.
      */
-    public static String deriveTestPlanDirName(TestPlan testPlan) throws TestGridException {
+    public static String deriveTestPlanDirName(TestPlan testPlan) {
         DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
         int testRunNumber = testPlan.getTestRunNumber();
         String deploymentDir = deploymentPattern.getName();
