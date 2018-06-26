@@ -27,6 +27,7 @@ import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 
@@ -74,7 +75,11 @@ public class JMeterExecutor extends TestExecutor {
             for (Host host : deploymentCreationResult.getHosts()) {
                 environment.put(host.getLabel(), host.getIp());
             }
-            int exitCode = shellExecutor.executeCommand("bash " + script, environment);
+            String testInputsLoc = DataBucketsHelper.getTestInputLocation(testScenario.getTestPlan())
+                    .toAbsolutePath().toString();
+            final String command = "bash " + script + " --input-dir " + testInputsLoc;
+            logger.info("Execute: " + command);
+            int exitCode = shellExecutor.executeCommand(command, environment);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the test: ", testName, ", at: ",
                         testScenario.getDir(), ". Script exited with a status code of ", exitCode));
