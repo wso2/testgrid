@@ -27,11 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
+import org.wso2.testgrid.automation.TestEngine;
 import org.wso2.testgrid.automation.reader.TestReader;
 import org.wso2.testgrid.automation.reader.TestReaderFactory;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Status;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
@@ -42,20 +42,25 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestCaseUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import static org.wso2.testgrid.common.TestGridConstants.FILE_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.JMETER_FILE_FILTER_PATTERN;
 import static org.wso2.testgrid.common.TestGridConstants.JMETER_FOLDER;
 import static org.wso2.testgrid.common.TestGridConstants.RUN_SCENARIO_SCRIPT;
 import static org.wso2.testgrid.common.TestGridConstants.RUN_SCENARIO_SCRIPT_TEMPLATE;
+import static org.wso2.testgrid.common.TestGridConstants.SHELL_SUFFIX;
 
 /**
  * This class is mainly responsible for executing a TestScenario. This will invoke the TestAutomationEngine for
@@ -100,7 +105,7 @@ public class ScenarioExecutor {
             // Create run-scenario.sh file if it's missing.
             if (!Files.exists(Paths.get(
                     testPlan.getScenarioTestsRepository(), scenarioDir, RUN_SCENARIO_SCRIPT))) {
-                createRunScenarioScript(homeDir + TestGridConstants.FILE_SEPARATOR + scenarioDir);
+                createRunScenarioScript(homeDir + FILE_SEPARATOR + scenarioDir);
             }
 
             logger.info("Executing Tests for Solution Pattern : " + testScenario.getName());
@@ -136,7 +141,7 @@ public class ScenarioExecutor {
     private void createRunScenarioScript(String directory) throws ScenarioExecutorException {
         try {
             List<String> files = FileUtil.getFilesOnDirectory(
-                    directory + TestGridConstants.FILE_SEPARATOR + JMETER_FOLDER, JMETER_FILE_FILTER_PATTERN);
+                    directory + FILE_SEPARATOR + JMETER_FOLDER, JMETER_FILE_FILTER_PATTERN);
             files.sort(Comparator.naturalOrder());
             FileUtil.saveFile(prepareScriptContent(files), directory, "run-scenario.sh");
         } catch (TestGridException e) {
@@ -199,16 +204,21 @@ public class ScenarioExecutor {
             List<Test> testList = new ArrayList<>();
 
             if (Files.exists(testLocationPath)) {
-                File file = new File(Paths.get(testLocationPath.toString()).toString());
-                String[] testDirectories = file.list((current, name) -> new File(current, name).isDirectory());
-                testDirectories = testDirectories == null ? new String[0] : testDirectories;
+                Set<Path> testDirectories = Files.list(testLocationPath)
+                        .filter(p -> Files.isDirectory(p)).collect(Collectors.toSet());
 
-                for (String testDirectory : testDirectories) {
-                    Optional<TestReader> testReader = TestReaderFactory.getTestReader(testDirectory);
+                for (Path testDirectory : testDirectories) {
+                    Optional<TestReader> testReader = TestReaderFactory
+                            .getTestReader(testDirectory.getFileName().toString());
                     if (testReader.isPresent()) {
                         List<Test> tests = testReader.get().readTests(testLocation, testScenario);
                         testList.addAll(tests);
                     }
+                }
+                if (testList.isEmpty()) {
+                    List<String> scripts = getDefaultScriptsToRun(testLocationPath);
+                    Test defaultTest = new Test(testScenario.getName(), TestEngine.DEFAULT, scripts, testScenario);
+                    testList.add(defaultTest);
                 }
             } else {
                 throw new ScenarioExecutorException(
@@ -216,8 +226,26 @@ public class ScenarioExecutor {
                                 + testScenario.getName());
             }
             return testList;
-        } catch (TestAutomationException e) {
+        } catch (TestAutomationException | IOException e) {
             throw new ScenarioExecutorException("Error while reading tests for test scenario.", e);
+        }
+    }
+
+    /**
+     * By default, this looks for any shell script that has the name format as run-.*.sh,
+     * and returns them as a list.
+     *
+     * @param scenarioDir the scenario test location where tests are located.
+     */
+    private List<String> getDefaultScriptsToRun(Path scenarioDir) {
+        try {
+            return Files.list(scenarioDir)
+                    .filter(p -> p.getFileName().toString().matches("run-.*" + SHELL_SUFFIX))
+                    .map(p -> p.toAbsolutePath().toString())
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            logger.error("Error while reading list of files in " + scenarioDir, e);
+            return Collections.emptyList();
         }
     }
 }

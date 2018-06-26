@@ -599,7 +599,7 @@ public class TestPlanExecutor {
         logger.info("TEST RUN " + testPlan.getStatus());
         printSeparator(LINE_LENGTH);
 
-        logger.info("Total Time: " + getHumanReadableTimeDiff(totalTime));
+        logger.info("Total Time: " + StringUtil.getHumanReadableTimeDiff(totalTime));
         logger.info("Finished at: " + new Date());
         printSeparator(LINE_LENGTH);
     }
