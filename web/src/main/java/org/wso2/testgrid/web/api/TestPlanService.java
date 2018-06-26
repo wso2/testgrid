@@ -405,16 +405,18 @@ public class TestPlanService {
     /**
      * Returns the result (archive file) to the given scenario of a test plan.
      *
-     * @param id test plan id
+     * @param testPlanId test plan id
      * @param scenarioDir scenario directory name
      * @return archived file of the results
      */
     @GET
-    @Path("/result/{id}/{scenarioDir}")
-    public Response getScenarioResult(@PathParam("id") String id, @PathParam("scenarioDir") String scenarioDir) {
+    @Path("/result/{test-plan-id}/{scenario-directory}")
+    public Response getScenarioResult(@PathParam("test-plan-id") String testPlanId,
+                                      @PathParam("scenario-directory") String scenarioDir) {
+        String archiveFileDir = null;
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
-            Optional<TestPlan> testPlanOptional = testPlanUOW.getTestPlanById(id);
+            Optional<TestPlan> testPlanOptional = testPlanUOW.getTestPlanById(testPlanId);
             if (!testPlanOptional.isPresent()) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("Couldn't found a TestPlan for the requested id").build();
@@ -422,7 +424,7 @@ public class TestPlanService {
             TestPlan testPlan = testPlanOptional.get();
             String testPlanDir = TestGridUtil.deriveTestPlanDirName(testPlan);
             String productName = testPlan.getDeploymentPattern().getProduct().getName();
-            String archiveFileDir = Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName,
+            archiveFileDir = Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName,
                     TestGridConstants.TESTGRID_BUILDS_DIR, testPlanDir, scenarioDir,
                     scenarioDir + TESTGRID_COMPRESSED_FILE_EXT).toString();
             String bucketKey = Paths
@@ -440,23 +442,28 @@ public class TestPlanService {
                                 TESTGRID_COMPRESSED_FILE_EXT + "\"")
                         .build();
             } else {
+                String msg = "Couldn't find result-artifacts in " + archiveFileDir + " for test-plan ID:" + testPlanId +
+                ", scenario:" + scenarioDir;
+                logger.error(msg);
                 return Response.status(Response.Status.NOT_FOUND)
-                        .entity("Couldn't found result-artifacts in the remote location").build();
+                        .entity("Couldn't find result-artifacts in the remote location").build();
             }
         } catch (TestGridDAOException e) {
-            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "' ";
+            String msg = "Error occurred while fetching the test plan by id : " + testPlanId + "to get result-artifacts"
+                    + " for scenario" + scenarioDir;
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
                             .setDescription(e.getMessage()).build()).build();
         } catch (TestGridException e) {
-            String msg = "Error occurred when deriving test run artifacts directory.";
+            String msg = "Error occurred when deriving test run artifacts directory (Test Plan id:"  + testPlanId
+                    + ", Scenario directory: " + scenarioDir + ")";
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
                             .setDescription(e.getMessage()).build()).build();
         } catch (ArtifactReaderException e) {
-            String msg = "Error occurred when reading the artifact.";
+            String msg = "Error occurred when reading the artifact in " + archiveFileDir;
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)

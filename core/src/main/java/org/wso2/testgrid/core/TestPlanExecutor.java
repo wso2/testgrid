@@ -689,7 +689,9 @@ public class TestPlanExecutor {
     }
 
     /**
+     * This enum defines the Operating system categories.
      *
+     * @since 1.0.0
      */
     public enum OSCategory {
 

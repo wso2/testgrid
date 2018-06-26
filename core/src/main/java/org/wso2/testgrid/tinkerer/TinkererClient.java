@@ -17,7 +17,6 @@
  */
 package org.wso2.testgrid.tinkerer;
 
-
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;

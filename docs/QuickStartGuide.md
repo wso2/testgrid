@@ -127,7 +127,30 @@ E.g: IS 5.4.0 with cloudformation
     testgridYamlLocation: "/home/ubuntu/testgrid.yaml"
     relativePaths: false
    ```
-    
+
+11. Following requirements are needed in order download product logs via the deployment tinkerer
+
+Currently only AWS instances are supported by the tinkerer. The AMI must have the TestGrid agent pre
+baked at the location
+
+```/opt/testgrid/agent```
+And the AMI must have following TAG values present for TestGrids use
+
+```AGENT_READY true```
+
+```USERNAME ubuntu```
+
+The username value is the operating system username that is used to ssh into the instance, so the value
+needs to be appropriately added For example, CentOS value should be ```centos```, And Ubuntu will be ```ubuntu```
+
+Apart from that the SSH key should be also provided to the testgrid runtime. via the ```job-config.yaml```
+file. There needs to be a property ```keyFileLocation: LOCATION``` so that it can be used by the
+TestGrid when accessing the instances.
+
+###### Please note that all of above requirement are needed to successfully download logs
+
+
+
 ## Running TestGrid
 
 Execution of testGrid contains 4 commands to be executed sequentially in the following order. <br>

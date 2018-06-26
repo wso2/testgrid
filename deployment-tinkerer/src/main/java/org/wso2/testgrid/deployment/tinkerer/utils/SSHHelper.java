@@ -23,7 +23,6 @@ import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.deployment.tinkerer.exception.DeploymentTinkererException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -33,7 +32,6 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Base64;
 import java.util.HashSet;
-import java.util.Scanner;
 import java.util.Set;
 
 /**
@@ -133,17 +131,11 @@ public class SSHHelper {
      * @param file  File object for the ssh config file
      * @param entry Entry to be checked
      * @return true if the entry is already existing , false otherwise
-     * @throws FileNotFoundException when there is an error finding the config file
+     * @throws IOException when there is an error reading the config file
      */
-    private static boolean containsEntry(File file, String entry) throws FileNotFoundException {
-        Scanner scanner = new Scanner(file, StandardCharsets.UTF_8.name());
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            if (line.contains(entry)) {
-                return true;
-            }
-        }
-        return false;
+    private static boolean containsEntry(File file, String entry) throws IOException {
+        return Files.readAllLines(file.toPath(), StandardCharsets.UTF_8)
+                .stream().anyMatch(s -> s.contains(entry));
     }
 
     /**
