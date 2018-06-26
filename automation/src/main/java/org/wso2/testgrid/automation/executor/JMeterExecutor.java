@@ -37,11 +37,14 @@ import java.util.Map;
 /**
  * Responsible for performing the tasks related to execution of single JMeter solution.
  *
+ * @deprecated succeeded by {@link ShellTestExecutor}.
+ * We do not need test tool specific executors at this moment.
+ *
  * @since 1.0.0
  */
 public class JMeterExecutor extends TestExecutor {
 
-    private static final Logger logger = LoggerFactory.getLogger(JMeterExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ShellTestExecutor.class);
     public static final String JMETER_HOME = "JMETER_HOME";
     private String testLocation;
     private String testName;
@@ -60,7 +63,7 @@ public class JMeterExecutor extends TestExecutor {
         try {
             String jmeterHome = EnvironmentUtil.getSystemVariableValue(JMETER_HOME);
             if (jmeterHome == null) {
-                logger.error(JMETER_HOME + " environment variable is not set. JMeter test execution may fail.");
+                logger.warn(JMETER_HOME + " environment variable is not set. JMeter test executions may fail.");
             } else {
                 logger.info(JMETER_HOME + ": " + jmeterHome);
             }

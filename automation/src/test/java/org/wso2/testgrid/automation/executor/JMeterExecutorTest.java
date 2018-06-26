@@ -36,7 +36,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
- * Test class to test the functionality of the {@link JMeterExecutor} class.
+ * Test class to test the functionality of the {@link ShellTestExecutor} class.
  *
  * @since 1.0.0
  */

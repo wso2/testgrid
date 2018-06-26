@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.TestEngine;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
 
 import java.io.File;
@@ -41,10 +42,6 @@ public class JMeterTestReader implements TestReader {
 
     private static final Logger logger = LoggerFactory.getLogger(JMeterTestReader.class);
     private static final String JMETER_TEST_PATH = "jmeter";
-    private static final String SHELL_SUFFIX = ".sh";
-    private static final String PRE_STRING = "pre-scenario-steps";
-    private static final String POST_STRING = "post-scenario-steps";
-    private static final String SCENARIO_SCRIPT = "run-scenario.sh";
 
     /**
      * This method goes through the file structure and create an object model of the tests.
@@ -55,7 +52,7 @@ public class JMeterTestReader implements TestReader {
      */
     private List<Test> processTestStructure(File file, TestScenario scenario) throws TestAutomationException {
         List<Test> testsList = new ArrayList<>();
-        Path scenarioScriptLocation = Paths.get(file.getAbsolutePath(), SCENARIO_SCRIPT);
+        Path scenarioScriptLocation = Paths.get(file.getAbsolutePath(), TestGridConstants.SCENARIO_SCRIPT);
         if (Files.exists(scenarioScriptLocation) && !Files.isDirectory(scenarioScriptLocation)) {
             File tests = new File(Paths.get(file.getAbsolutePath(), JMETER_TEST_PATH).toString());
             if (tests.exists()) {
@@ -65,20 +62,22 @@ public class JMeterTestReader implements TestReader {
                 Test test = new Test(scenario.getName(), TestEngine.JMETER, scriptList, scenario);
 
                 scripts.stream()
-                        .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(PRE_STRING))
+                        .filter(x -> x.endsWith(TestGridConstants.SHELL_SUFFIX) && x.contains(
+                                TestGridConstants.PRE_STRING))
                         .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
                         .findFirst()
                         .ifPresent(test::setPreScenarioScript);
 
                 scripts.stream()
-                        .filter(x -> x.endsWith(SHELL_SUFFIX) && x.contains(POST_STRING))
+                        .filter(x -> x.endsWith(TestGridConstants.SHELL_SUFFIX) && x.contains(
+                                TestGridConstants.POST_STRING))
                         .map(x -> Paths.get(tests.getAbsolutePath(), x).toString())
                         .findFirst()
                         .ifPresent(test::setPostScenarioScript);
                 testsList.add(test);
             }
         } else {
-            logger.error("Scenario script file (" + SCENARIO_SCRIPT + ") was not found in " + file.getAbsolutePath());
+            logger.error("Scenario script file (" + TestGridConstants.SCENARIO_SCRIPT + ") was not found in " + file.getAbsolutePath());
         }
         return testsList;
     }
