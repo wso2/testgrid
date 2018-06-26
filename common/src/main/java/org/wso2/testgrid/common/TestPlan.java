@@ -19,12 +19,14 @@ package org.wso2.testgrid.common;
 
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.JobConfigFile;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -98,6 +100,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     @Transient
     private String scenarioTestsRepository;
+
+    @Transient
+    private Properties inputProperties = new Properties();
 
     @Transient
     private ResultFormat resultFormat;
@@ -299,6 +304,25 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      */
     public void setDeploymentRepository(String deploymentRepository) {
         this.deploymentRepository = deploymentRepository;
+    }
+
+    /**
+     * Get the list of build properties associated with this test plan.
+     * The build properties are currently contain properties received via
+     * {@link JobConfigFile#getProperties()}.
+     *
+     * @return build proprties
+     */
+    public Properties getInputProperties() {
+        return inputProperties;
+    }
+
+    /**
+     * See {@link #getInputProperties()}
+     * @param inputProperties build properties
+     */
+    public void setInputProperties(Properties inputProperties) {
+        this.inputProperties = inputProperties;
     }
 
     /**

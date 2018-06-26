@@ -48,6 +48,7 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -55,7 +56,9 @@ import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -205,6 +208,8 @@ public class AWSProvider implements InfrastructureProvider {
             describeStacksRequest.setStackName(stack.getStackId());
             DescribeStacksResult describeStacksResult = cloudFormation
                     .describeStacks(describeStacksRequest);
+
+            //TODO: remove these
             List<Host> hosts = new ArrayList<>();
             Host tomcatHost = new Host();
             tomcatHost.setLabel("tomcatHost");
@@ -214,15 +219,19 @@ public class AWSProvider implements InfrastructureProvider {
             tomcatPort.setIp("8080");
             hosts.add(tomcatHost);
             hosts.add(tomcatPort);
+
+            Properties outputProps = new Properties();
             for (Stack st : describeStacksResult.getStacks()) {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
                     host.setLabel(output.getOutputKey());
                     hosts.add(host);
+                    outputProps.setProperty(output.getOutputKey(), output.getOutputValue());
                 }
             }
-            logger.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
+
+            persistOutputs(testPlan, outputProps);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             //added for backward compatibility. todo remove.
             result.setHosts(hosts);
@@ -234,6 +243,18 @@ public class AWSProvider implements InfrastructureProvider {
 
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
+        }
+    }
+
+    private void persistOutputs(TestPlan testPlan, Properties deploymentInfo)
+            throws TestGridInfrastructureException {
+        final Path outputLocation = DataBucketsHelper.getOutputLocation(testPlan);
+        try (OutputStream outputStream = new FileOutputStream(
+                outputLocation.resolve(DataBucketsHelper.INFRA_OUT_FILE).toString(), true)) {
+            Files.createDirectories(outputLocation);
+            deploymentInfo.store(outputStream, null);
+        } catch (IOException e) {
+            throw new TestGridInfrastructureException("Error occurred while writing infra outputs.", e);
         }
     }
 

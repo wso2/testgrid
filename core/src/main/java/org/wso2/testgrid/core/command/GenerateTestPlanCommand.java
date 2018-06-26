@@ -373,19 +373,28 @@ public class GenerateTestPlanCommand implements Command {
         }
 
         Representer representer = new Representer();
-
-        // Skip missing properties in testgrid.yaml
-        representer.getPropertyUtils().setSkipMissingProperties(true);
+        representer.getPropertyUtils().setSkipMissingProperties(true); // Skip missing properties in testgrid.yaml
         TestgridYaml testgridYaml = new Yaml(new Constructor(TestgridYaml.class), representer)
                 .loadAs(testgridYamlContent, TestgridYaml.class);
-        testgridYaml.setInfrastructureRepository(jobConfigFile.getInfrastructureRepository());
-        testgridYaml.setDeploymentRepository(jobConfigFile.getDeploymentRepository());
-        testgridYaml.setScenarioTestsRepository(jobConfigFile.getScenarioTestsRepository());
+        insertJobConfigFilePropertiesTo(testgridYaml, jobConfigFile);
 
         if (logger.isDebugEnabled()) {
             logger.debug("The testgrid.yaml content for this product build: " + testgridYamlContent);
         }
         return testgridYaml;
+    }
+
+    /**
+     * Reads the @{@link JobConfigFile} and add its content into {@link TestgridYaml}.
+     *
+     * @param testgridYaml testgridYaml
+     * @param jobConfigFile jobConfigFile
+     */
+    private void insertJobConfigFilePropertiesTo(TestgridYaml testgridYaml, JobConfigFile jobConfigFile) {
+        testgridYaml.setInfrastructureRepository(jobConfigFile.getInfrastructureRepository());
+        testgridYaml.setDeploymentRepository(jobConfigFile.getDeploymentRepository());
+        testgridYaml.setScenarioTestsRepository(jobConfigFile.getScenarioTestsRepository());
+        testgridYaml.setInputProperties(jobConfigFile.getProperties());
     }
 
     /**

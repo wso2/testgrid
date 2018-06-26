@@ -18,93 +18,78 @@
 
 package org.wso2.testgrid.common.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * A helper class to get the input and output directories of each
+ * testgrid step.
+ * <p>
+ * A data bucket is a dir location where all the information
+ * about the provisioned infrastructure, created deployment etc. can be
+ * stored.
+ * <p>
+ * <ul><li>
+ * The infrastructure provisioners should store the IP addresses of
+ * each ec2 instance, IP/port of RDS instance, ssh keys etc.
+ * </li><li>
+ * The deployment creators should store the mgt console urls of each
+ * product profile, login credentials among other info.
+ * </li><li>
+ * The test writers should store the test outputs - ie. jmeter jtl files,
+ * surefire-reports
+ * </li>
+ * </ul>
+ */
 public class DataBucketsHelper {
 
-    public static final String INFRA_INPUT_DIR = "infra-inputs";
-    public static final String INFRA_OUTPUT_DIR = "infra-outputs";
-    public static final String DEPL_OUTPUT_DIR = "deploy-outputs";
-    public static final String TEST_OUTPUT_DIR = "test-outputs";
+    public static final String DATA_BUCKET_OUTPUT_DIR_NAME = "data-bucket";
+    public static final String INFRA_OUT_FILE = "infrastructure.properties";
+    public static final String DEPL_OUT_FILE = "deployment.properties";
+    public static final String TEST_OUT_FILE = "tests.properties";
+    public static final String TESTPLAN_PROPERTIES_FILE = "testplan-props.properties";
+    private static final Logger logger = LoggerFactory.getLogger(DataBucketsHelper.class);
+    private static boolean init = false;
 
     /**
      * Returns the path of infrastructure outputs (infra-outputs).
      * <p>
-     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/infra-outputs
-     * ex.~/.testgrid/jobs/wso2am/builds/two-node-depl_b158e122-78f8-11e8-adc0-fa7ae01bbebc_10/infra-outputs
+     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/data-bucket
+     * ex.~/.testgrid/jobs/wso2am/builds/two-node-depl_b158e122-78f8-11e8-adc0-fa7ae01bbebc_10/data-bucket
      *
      * @param testPlan test-plan
      * @return The dir location where this step's outputs are stored
      */
-    public static Path getInfrastructureOutputLocation(TestPlan testPlan) {
-        return getBuildOutputsDir(testPlan).resolve(INFRA_OUTPUT_DIR);
-    }
-
-    /**
-     * Returns the path of infrastructure outputs (infra-outputs).
-     * <p>
-     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/deploy-outputs
-     *
-     * @param testPlan test-plan
-     * @return The dir location where this step's outputs are stored
-     */
-    public static Path getDeploymentOutputLocation(TestPlan testPlan) {
-        return getBuildOutputsDir(testPlan).resolve(DEPL_OUTPUT_DIR);
-    }
-
-    /**
-     * Returns the path of infrastructure outputs (infra-outputs).
-     * <p>
-     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/test-outputs
-     *
-     * @param testPlan test-plan
-     * @return The dir location where this step's outputs are stored
-     */
-    public static Path getTestOutputLocation(TestPlan testPlan) {
-        return getBuildOutputsDir(testPlan).resolve(TEST_OUTPUT_DIR);
+    public static Path getOutputLocation(TestPlan testPlan) {
+        final Path dataBucketPath = getBuildOutputsDir(testPlan).resolve(DATA_BUCKET_OUTPUT_DIR_NAME);
+        if (!init) {
+            init(dataBucketPath);
+        }
+        return dataBucketPath;
     }
 
     /**
      * Returns the path of infrastructure inputs (infra-inputs).
      * <p>
-     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/infra-inputs
-     * ex.~/.testgrid/jobs/wso2am/builds/two-node-depl_b158e122-78f8-11e8-adc0-fa7ae01bbebc_10/infra-inputs
+     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/data-bucket
+     * ex.~/.testgrid/jobs/wso2am/builds/two-node-depl_b158e122-78f8-11e8-adc0-fa7ae01bbebc_10/data-bucket
      *
      * @param testPlan test-plan
      * @return The dir location where this step's inputs are stored
      */
-    public static Path getInfrastructureInputLocation(TestPlan testPlan) {
-        return getBuildOutputsDir(testPlan).resolve(INFRA_INPUT_DIR);
-    }
-
-    /**
-     * Returns the path of depl inputs (infra-outputs).
-     * In reality, deployment-inputs-location == infrastructure-outputs-location
-     * <p>
-     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/infra-outputs
-     *
-     * @param testPlan test-plan
-     * @return The dir location where this step's inputs are stored
-     */
-    public static Path getDeploymentInputLocation(TestPlan testPlan) {
-        return getInfrastructureOutputLocation(testPlan);
-    }
-
-    /**
-     * Returns the path of test inputs (depl-outputs).
-     * In reality, test-inputs-location == depl-outputs-location
-     * <p>
-     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/depl-outputs
-     *
-     * @param testPlan test-plan
-     * @return The dir location where this step's inputs are stored
-     */
-    public static Path getTestInputLocation(TestPlan testPlan) {
-        return getDeploymentOutputLocation(testPlan);
+    public static Path getInputLocation(TestPlan testPlan) {
+        final Path dataBucketPath = getBuildOutputsDir(testPlan).resolve(DATA_BUCKET_OUTPUT_DIR_NAME);
+        if (!init) {
+            init(dataBucketPath);
+        }
+        return dataBucketPath;
     }
 
     /**
@@ -116,8 +101,24 @@ public class DataBucketsHelper {
     private static Path getBuildOutputsDir(TestPlan testPlan) {
         String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
-        return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
-                testPlanDirName);
+        String testgridHome = TestGridUtil.getTestGridHomePath();
+        return Paths.get(testgridHome, TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants
+                .TESTGRID_BUILDS_DIR, testPlanDirName);
+    }
+
+    /**
+     * create the data bucket dir if it is missing.
+     *
+     * @param dataBucketPath path
+     */
+    private static void init(Path dataBucketPath) {
+        try {
+            if (!Files.exists(dataBucketPath)) {
+                Files.createDirectories(dataBucketPath);
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
 }

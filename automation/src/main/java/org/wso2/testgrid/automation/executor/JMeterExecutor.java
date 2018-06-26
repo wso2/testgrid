@@ -75,7 +75,7 @@ public class JMeterExecutor extends TestExecutor {
             for (Host host : deploymentCreationResult.getHosts()) {
                 environment.put(host.getLabel(), host.getIp());
             }
-            String testInputsLoc = DataBucketsHelper.getTestInputLocation(testScenario.getTestPlan())
+            String testInputsLoc = DataBucketsHelper.getInputLocation(testScenario.getTestPlan())
                     .toAbsolutePath().toString();
             final String command = "bash " + script + " --input-dir " + testInputsLoc;
             logger.info("Execute: " + command);
