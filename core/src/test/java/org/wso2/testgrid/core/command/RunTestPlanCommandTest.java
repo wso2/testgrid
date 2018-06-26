@@ -36,6 +36,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.executor.JMeterExecutor;
+import org.wso2.testgrid.automation.executor.ShellTestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
@@ -171,7 +172,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         PowerMockito.spy(StringUtil.class);
         when(StringUtil.generateRandomString(anyInt())).thenReturn("");
         PowerMockito.mockStatic(TestExecutorFactory.class);
-        when(TestExecutorFactory.getTestExecutor(any())).thenReturn(new JMeterExecutor());
+        when(TestExecutorFactory.getTestExecutor(any())).thenReturn(new ShellTestExecutor());
 
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "{}", true);
