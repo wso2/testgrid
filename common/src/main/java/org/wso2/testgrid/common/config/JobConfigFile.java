@@ -21,6 +21,8 @@ package org.wso2.testgrid.common.config;
 
 import org.wso2.testgrid.common.util.StringUtil;
 
+import java.util.Properties;
+
 /**
  * Describes the job configuration of a given product.
  * <p>
@@ -34,6 +36,7 @@ public class JobConfigFile {
     private String deploymentRepository;
     private String scenarioTestsRepository;
     private String keyFileLocation;
+    private Properties properties;
 
     /**
      * @see #isRelativePaths()
@@ -155,6 +158,25 @@ public class JobConfigFile {
 
     public void setKeyFileLocation(String keyFileLocation) {
         this.keyFileLocation = keyFileLocation;
+    }
+
+    /**
+     * Get a list of dynamic properties added to the job-config.yaml.
+     * An example include the product dist download location.
+     *
+     * @return list of properties
+     */
+    public Properties getProperties() {
+        return properties;
+    }
+
+    /**
+     * @see #getProperties()
+     *
+     * @param properties properties to set.
+     */
+    public void setProperties(Properties properties) {
+        this.properties = properties;
     }
 
     @Override
