@@ -163,11 +163,10 @@ public class TestPlanExecutor {
             logger.warn(String.format("Unable retrieve agents for  test plan with id %s , %n " +
                     "Continuing the build with no log download support", testPlan.getId()));
         }
-        OSCategory osCategory = getOsCatagory(testPlan.getInfraParameters());
+        OSCategory osCategory = getOSCatagory(testPlan.getInfraParameters());
         try {
             Optional<TinkererClient> executer = TinkererClientFactory.getExecuter(osCategory);
             if (executer.isPresent()) {
-                logger.info("Initiating log file downloading..");
                 executer.get().downloadLogs(deploymentCreationResult, testPlan);
             } else {
                 logger.error("Unable to find a Tinker Executor for OS category " + osCategory);
@@ -193,7 +192,7 @@ public class TestPlanExecutor {
         persistTestPlanStatus(testPlan);
 
         //cleanup
-//        releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
+        releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
 
         // Print summary
         printSummary(testPlan, System.currentTimeMillis() - startTime);
@@ -676,10 +675,12 @@ public class TestPlanExecutor {
 
     /**
      *
-     * @param infraParameters
-     * @return
+     * Returns the Category of the Operating system in the infra parameter String
+     *
+     * @param infraParameters the infrastructure parameters.
+     * @return the Catagory of the Operating System
      */
-    private OSCategory getOsCatagory(String infraParameters) {
+    private OSCategory getOSCatagory(String infraParameters) {
         if (infraParameters.contains(OSCategory.WINDOWS.toString().toLowerCase(Locale.ENGLISH))) {
             return OSCategory.WINDOWS;
         } else {

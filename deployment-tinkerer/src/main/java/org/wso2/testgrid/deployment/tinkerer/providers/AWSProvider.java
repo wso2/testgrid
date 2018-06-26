@@ -49,6 +49,8 @@ public class AWSProvider implements Provider {
     private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
 
     private static Path configFilePath;
+    private static final String USERNAME_ENTRY = "USERNAME";
+    private static final String NAME_ENTRY = "Name";
 
     static {
         try {
@@ -59,7 +61,7 @@ public class AWSProvider implements Provider {
     }
 
     @Override
-    public String getInstanceName(String region, String instanceId) {
+    public Optional<String> getInstanceName(String region, String instanceId) {
         final AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)
@@ -72,17 +74,14 @@ public class AWSProvider implements Provider {
         request.setInstanceIds(instanceIds);
 
         DescribeInstancesResult result = amazonEC2.describeInstances(request);
-        Optional<Tag> tagOptional = result.getReservations()
+        Optional<String> tagOptional = result.getReservations()
                 .stream()
                 .flatMap(reservation -> reservation.getInstances().stream())
                 .flatMap(instance -> instance.getTags().stream())
-                .filter(tag -> "Name".equals(tag.getKey()))
-                .findFirst();
-
-        if (tagOptional.isPresent()) {
-            return tagOptional.get().getValue();
-        }
-        return instanceId;
+                .filter(tag -> NAME_ENTRY.equals(tag.getKey()))
+                .findFirst()
+                .map(Tag::getValue);
+        return tagOptional;
     }
 
     /**
@@ -123,7 +122,7 @@ public class AWSProvider implements Provider {
             DescribeImagesResult describeImagesResult = amazonEC2.describeImages(imageReq);
             Optional<String> userName = describeImagesResult.getImages().stream()
                     .flatMap(image -> image.getTags().stream())
-                    .filter(tag -> tag.getKey().equals("USERNAME"))
+                    .filter(tag -> USERNAME_ENTRY.equals(tag.getKey()))
                     .findFirst()
                     .map(Tag::getValue);
             return userName;

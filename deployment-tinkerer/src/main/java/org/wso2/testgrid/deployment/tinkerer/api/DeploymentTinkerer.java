@@ -26,6 +26,7 @@ import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.deployment.tinkerer.SessionManager;
 import org.wso2.testgrid.deployment.tinkerer.beans.ErrorResponse;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationRequest;
+import org.wso2.testgrid.deployment.tinkerer.exception.DeploymentTinkererException;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 import org.wso2.testgrid.deployment.tinkerer.utils.SSHHelper;
 
@@ -173,18 +174,12 @@ public class DeploymentTinkerer {
         Agent agent = sessionManager.getAgent(testPlanId, instanceName);
 
         if (data != null) {
-            String keyFile = data.get("key");
+            String sshKey = data.get("key");
             String bastianIP = data.get("bastian-ip");
             String source = data.get("source");
             String destination = data.get("destination");
             try {
-                if (bastianIP != null) {
-                    //if there is a bastian entry add the host entry
-                    SSHHelper.addConfigEntry(keyFile, bastianIP, agent);
-                } else {
-                    //if there is no bastian entry then it does not need a proxy entry
-                    SSHHelper.addConfigEntry(keyFile, agent);
-                }
+                SSHHelper.addConfigEntry(sshKey, bastianIP, agent);
                 ShellExecutor executor = new ShellExecutor();
                 executor.executeCommand("ssh host:" + agent.getInstanceId() + " \"cat " + source
                         + "\" &> " + destination + "");
@@ -196,7 +191,6 @@ public class DeploymentTinkerer {
                 errorResponse.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
                 errorResponse.setMessage(message);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
-
             } catch (CommandExecutionException e) {
                 String message = "Error occurred while executing the ssh command : " + agent.getAgentId();
                 logger.error(message, e);
@@ -204,7 +198,15 @@ public class DeploymentTinkerer {
                 errorResponse.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
                 errorResponse.setMessage(message);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
+            } catch (DeploymentTinkererException e) {
+                String message = "Instance username is null in agent  : " + agent.getAgentId();
+                logger.error(message, e);
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                errorResponse.setMessage(message);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
             }
+
         }
         return Response.status(Response.Status.OK).build();
     }
