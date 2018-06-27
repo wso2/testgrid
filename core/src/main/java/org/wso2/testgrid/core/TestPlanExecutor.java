@@ -18,7 +18,11 @@
 
 package org.wso2.testgrid.core;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hc.client5.http.fluent.Request;
+import org.apache.hc.client5.http.fluent.Response;
+import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
@@ -28,6 +32,7 @@ import org.wso2.testgrid.automation.parser.ResultParser;
 import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.automation.report.ReportGenerator;
 import org.wso2.testgrid.automation.report.ReportGeneratorFactory;
+import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
@@ -38,6 +43,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
@@ -54,11 +60,19 @@ import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
+import org.wso2.testgrid.tinkerer.TinkererClient;
+import org.wso2.testgrid.tinkerer.TinkererClientFactory;
+import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -122,6 +136,45 @@ public class TestPlanExecutor {
         }
         // Run test scenarios.
         runScenarioTests(testPlan, deploymentCreationResult);
+        //download log files
+
+        //Call the rest api of tinkerer and get the agents for current test plan
+        try {
+            String tinkererEndpoint = ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
+                    .DEPLOYMENT_TINKERER_REST_BASE_PATH);
+            String username = ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
+                    .DEPLOYMENT_TINKERER_USERNAME);
+            String password = ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
+                    .DEPLOYMENT_TINKERER_PASSWORD);
+            String agentsPath = tinkererEndpoint + "test-plan/" + testPlan.getId() + "/agents";
+            Response execute = Request.Get(agentsPath)
+                    .setHeader(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString(
+                            StringUtil.concatStrings(username, ":", password).getBytes(
+                                    Charset.defaultCharset())))
+                    .execute();
+            String agentContent = execute.returnContent().toString();
+            logger.debug("AgentContent" + agentContent);
+            Agent[] agents = new Gson().fromJson(agentContent, Agent[].class);
+            for (Agent agent : Arrays.asList(agents)) {
+                logger.info("Agent registered : " + agent.getAgentId());
+            }
+            deploymentCreationResult.setAgents(Arrays.asList(agents));
+        } catch (IOException e) {
+            logger.warn(String.format("Unable retrieve agents for  test plan with id %s , %n " +
+                    "Continuing the build with no log download support", testPlan.getId()));
+        }
+        OSCategory osCategory = getOSCatagory(testPlan.getInfraParameters());
+        try {
+            Optional<TinkererClient> executer = TinkererClientFactory.getExecuter(osCategory);
+            if (executer.isPresent()) {
+                executer.get().downloadLogs(deploymentCreationResult, testPlan);
+            } else {
+                logger.error("Unable to find a Tinker Executor for OS category " + osCategory);
+            }
+        } catch (TinkererOperationException e) {
+            logger.error("Error while downloading the log files for TestPlan" +
+                    testPlan.getDeploymentPattern().getProduct().getName());
+        }
         //report generation
         try {
             ReportGenerator reportGenerator = ReportGeneratorFactory.getReportGenerator(testPlan);
@@ -150,7 +203,7 @@ public class TestPlanExecutor {
      * Run all the pre-scenario scripts mentioned in the testgrid.yaml.
      *
      * @param testPlan the test plan
-     * @return  a boolean value indicating the status of the operation
+     * @return a boolean value indicating the status of the operation
      */
     private boolean runPreScenariosScripts(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
         String scriptsLocation = testPlan.getScenarioTestsRepository();
@@ -190,7 +243,7 @@ public class TestPlanExecutor {
      * Run all the post-scenario scripts mentioned in the testgrid.yaml.
      *
      * @param testPlan the test plan
-     * @return  a boolean value indicating the status of the operation
+     * @return a boolean value indicating the status of the operation
      */
     private boolean runPostScenariosScripts(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
         String scriptsLocation = testPlan.getScenarioTestsRepository();
@@ -297,7 +350,7 @@ public class TestPlanExecutor {
      * @throws TestPlanExecutorException thrown when error on creating deployment
      */
     private DeploymentCreationResult createDeployment(InfrastructureConfig infrastructureConfig, TestPlan testPlan,
-            InfrastructureProvisionResult infrastructureProvisionResult)
+                                                      InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestPlanExecutorException {
         try {
             if (!infrastructureProvisionResult.isSuccess()) {
@@ -346,7 +399,7 @@ public class TestPlanExecutor {
      * @param testPlan             test plan
      */
     private InfrastructureProvisionResult provisionInfrastructure(InfrastructureConfig infrastructureConfig,
-            TestPlan testPlan) {
+                                                                  TestPlan testPlan) {
         try {
             if (infrastructureConfig == null) {
                 persistTestPlanStatus(testPlan, Status.FAIL);
@@ -396,8 +449,8 @@ public class TestPlanExecutor {
      *                                   infrastructure
      */
     private void releaseInfrastructure(TestPlan testPlan,
-            InfrastructureProvisionResult infrastructureProvisionResult,
-            DeploymentCreationResult deploymentCreationResult)
+                                       InfrastructureProvisionResult infrastructureProvisionResult,
+                                       DeploymentCreationResult deploymentCreationResult)
             throws TestPlanExecutorException {
         try {
             InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
@@ -501,29 +554,29 @@ public class TestPlanExecutor {
      * Prints a summary of the executed test plan.
      * Summary includes the list of scenarios that has been run, and their pass/fail status.
      *
-     * @param testPlan the test plan
+     * @param testPlan  the test plan
      * @param totalTime time taken to run the test plan
      */
     void printSummary(TestPlan testPlan, long totalTime) {
         switch (testPlan.getStatus()) {
-        case SUCCESS:
-            logger.info("all tests passed...");
-            break;
-        case ERROR:
-            logger.error("There are deployment/test errors...");
-            logger.info("Sorry, we are yet to infer an error summary!");
-            break;
-        case FAIL:
-            printFailState(testPlan);
-            break;
-        case RUNNING:
-        case PENDING:
-        case DID_NOT_RUN:
-        case INCOMPLETE:
-        default:
-            logger.error(StringUtil.concatStrings(
-                    "Inconsistent state detected (", testPlan.getStatus(), "). Please report this to testgrid team "
-                            + "at github.com/wso2/testgrid."));
+            case SUCCESS:
+                logger.info("all tests passed...");
+                break;
+            case ERROR:
+                logger.error("There are deployment/test errors...");
+                logger.info("Sorry, we are yet to infer an error summary!");
+                break;
+            case FAIL:
+                printFailState(testPlan);
+                break;
+            case RUNNING:
+            case PENDING:
+            case DID_NOT_RUN:
+            case INCOMPLETE:
+            default:
+                logger.error(StringUtil.concatStrings(
+                        "Inconsistent state detected (", testPlan.getStatus(), "). Please report this to testgrid team "
+                                + "at github.com/wso2/testgrid."));
         }
 
         printSeparator(LINE_LENGTH);
@@ -618,7 +671,44 @@ public class TestPlanExecutor {
         } else {
             return diffDays + " days" + " " + (diffHours % 24) + " hours";
         }
+    }
+
+    /**
+     *
+     * Returns the Category of the Operating system in the infra parameter String
+     *
+     * @param infraParameters the infrastructure parameters.
+     * @return the Catagory of the Operating System
+     */
+    private OSCategory getOSCatagory(String infraParameters) {
+        if (infraParameters.contains(OSCategory.WINDOWS.toString().toLowerCase(Locale.ENGLISH))) {
+            return OSCategory.WINDOWS;
+        } else {
+            return OSCategory.UNIX;
+        }
+    }
+
+    /**
+     * This enum defines the Operating system categories.
+     *
+     * @since 1.0.0
+     */
+    public enum OSCategory {
+
+        UNIX("UNIX", ""),
+        WINDOWS("WINDOWS", "");
+
+        private final String osCategory;
+        OSCategory(String osCategory, String logPath) {
+            this.osCategory = osCategory;
+        }
+
+        @Override
+        public String toString() {
+            return this.osCategory;
+        }
 
     }
 
 }
+

@@ -24,6 +24,7 @@ import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.config.DeploymentConfig;
@@ -33,6 +34,7 @@ import org.wso2.testgrid.deployment.DeploymentValidator;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -56,7 +58,7 @@ public class AWSDeployer implements Deployer {
 
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-            InfrastructureProvisionResult infrastructureProvisionResult)
+                                           InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestGridDeployerException {
         //wait for server startup
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
@@ -86,6 +88,11 @@ public class AWSDeployer implements Deployer {
         DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
         deploymentCreationResult.setName(deploymentPatternConfig.getName());
         deploymentCreationResult.setHosts(infrastructureProvisionResult.getHosts());
+        //store bastian ip
+        Optional<Host> bastionEIP = infrastructureProvisionResult.getHosts()
+                .stream().filter(host -> host.getLabel().equals(TestGridConstants.OUTPUT_BASTIAN_IP)).findFirst();
+        bastionEIP.ifPresent(host -> deploymentCreationResult.setBastianIP(host.getIp()));
+
         return deploymentCreationResult;
     }
 }

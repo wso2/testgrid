@@ -20,6 +20,7 @@
 package org.wso2.testgrid.common;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -37,6 +38,8 @@ public class DeploymentCreationResult implements Serializable {
     private String name;
     private Properties properties = new Properties();
     private List<Host> hosts = Collections.emptyList();
+    private List<Agent> agents;
+    private String bastianIP;
 
     public String getName() {
         return name;
@@ -77,4 +80,19 @@ public class DeploymentCreationResult implements Serializable {
         this.hosts = hosts;
     }
 
+    public void setAgents(List<Agent> agents) {
+        this.agents = agents;
+    }
+
+    public List<Agent> getAgents() {
+        return agents != null ? agents : new ArrayList<>();
+    }
+
+    public void setBastianIP(String bastianIP) {
+        this.bastianIP = bastianIP;
+    }
+
+    public String getBastianIP() {
+        return bastianIP;
+    }
 }

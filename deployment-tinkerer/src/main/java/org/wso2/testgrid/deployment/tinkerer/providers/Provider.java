@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.deployment.tinkerer.providers;
 
+import java.util.Optional;
 /**
  * Interface for Cloud provider specific functionality.
  *
@@ -35,5 +36,14 @@ public interface Provider {
      * @param instanceId - Id of the instance.
      * @return The name of the instance.
      */
-    String getInstanceName(String region, String instanceId);
+    Optional<String> getInstanceName(String region, String instanceId);
+
+    /**
+     * Returns the instance username for the OS
+     *
+     * @param region region of the stack.
+     * @param instanceId Id of the instance
+     * @return An Optional instance of the username
+     */
+    Optional<String> getInstanceUserName(String region, String instanceId);
 }

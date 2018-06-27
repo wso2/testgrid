@@ -144,7 +144,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
                 .replaceAll(repoPath, Paths.get(repoPath).toAbsolutePath().normalize().toString());
 
         Assert.assertEquals(generatedTestPlanContent, expectedTestPlanContent,
-                String.format("Generated test-plan is not correct: \n%s", generatedTestPlanContent));
+                String.format("Generated test-plan is not correct: %n%s", generatedTestPlanContent));
     }
 
     @AfterMethod

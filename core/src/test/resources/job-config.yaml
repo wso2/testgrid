@@ -2,3 +2,4 @@ infrastructureRepository: workspace/infrastructure
 deploymentRepository: workspace/deployment
 scenarioTestsRepository: workspace/scenarioTests
 testgridYamlLocation: workspace/testgrid.yaml
+keyFileLocation: workspace/testkey.pem

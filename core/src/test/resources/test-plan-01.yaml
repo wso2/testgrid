@@ -36,6 +36,7 @@ infrastructureConfig:
       phase: DESTROY
       type: SHELL
 infrastructureRepository: ./src/test/resources/workspace/infrastructure
+keyFileLocation: ./src/test/resources/workspace/testkey.pem
 scenarioConfig:
   scenarios:
   - description: Test Scenario
