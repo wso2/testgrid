@@ -77,7 +77,8 @@ public class JMeterTestReader implements TestReader {
                 testsList.add(test);
             }
         } else {
-            logger.error("Scenario script file (" + TestGridConstants.SCENARIO_SCRIPT + ") was not found in " + file.getAbsolutePath());
+            logger.error("Scenario script file (" + TestGridConstants.SCENARIO_SCRIPT + ") was not found in " + file
+                    .getAbsolutePath());
         }
         return testsList;
     }

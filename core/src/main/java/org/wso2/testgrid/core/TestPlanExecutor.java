@@ -458,10 +458,10 @@ public class TestPlanExecutor {
     private void persistInfraInputs(TestPlan testPlan) {
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
-        final Properties inputProperties = testPlan.getInputProperties();
+        final Properties jobProperties = testPlan.getJobProperties();
         final Properties infraParameters = testPlan.getInfrastructureConfig().getParameters();
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
-            inputProperties.store(os, null);
+            jobProperties.store(os, null);
             infraParameters.store(os, null);
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
@@ -675,31 +675,6 @@ public class TestPlanExecutor {
      */
     private static void printSeparator(int length) {
         logger.info(StringUtils.repeat("-", length));
-    }
-
-    /**
-     * Get time for summary logging purposes.
-     *
-     * @param timeDifferenceMilliseconds the time taken to run the test plan
-     * @return human readable elapsed time
-     */
-    private static String getHumanReadableTimeDiff(long timeDifferenceMilliseconds) {
-        long diffSeconds = timeDifferenceMilliseconds / 1000;
-        long diffMinutes = timeDifferenceMilliseconds / (60 * 1000);
-        long diffHours = timeDifferenceMilliseconds / (60 * 60 * 1000);
-        long diffDays = timeDifferenceMilliseconds / (60 * 60 * 1000 * 24);
-
-        if (diffSeconds < 1) {
-            return "less than a second";
-        } else if (diffMinutes < 1) {
-            return diffSeconds + " seconds";
-        } else if (diffHours < 1) {
-            return diffMinutes + " minutes" + " " + (diffSeconds % 60) + " seconds";
-        } else if (diffDays < 1) {
-            return diffHours + " hours" + " " + (diffMinutes % 60) + " minutes";
-        } else {
-            return diffDays + " days" + " " + (diffHours % 24) + " hours";
-        }
     }
 
     /**

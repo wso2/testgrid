@@ -391,10 +391,11 @@ public class GenerateTestPlanCommand implements Command {
      * @param jobConfigFile jobConfigFile
      */
     private void insertJobConfigFilePropertiesTo(TestgridYaml testgridYaml, JobConfigFile jobConfigFile) {
+        testgridYaml.setJobName(jobConfigFile.getJobName());
         testgridYaml.setInfrastructureRepository(jobConfigFile.getInfrastructureRepository());
         testgridYaml.setDeploymentRepository(jobConfigFile.getDeploymentRepository());
         testgridYaml.setScenarioTestsRepository(jobConfigFile.getScenarioTestsRepository());
-        testgridYaml.setInputProperties(jobConfigFile.getProperties());
+        testgridYaml.setJobProperties(jobConfigFile.getProperties());
     }
 
     /**

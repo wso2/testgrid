@@ -208,8 +208,10 @@ public class ScenarioExecutor {
                         .filter(p -> Files.isDirectory(p)).collect(Collectors.toSet());
 
                 for (Path testDirectory : testDirectories) {
+                    final Path fileName = testDirectory.getFileName();
+                    assert fileName != null;
                     Optional<TestReader> testReader = TestReaderFactory
-                            .getTestReader(testDirectory.getFileName().toString());
+                            .getTestReader(fileName.toString());
                     if (testReader.isPresent()) {
                         List<Test> tests = testReader.get().readTests(testLocation, testScenario);
                         testList.addAll(tests);

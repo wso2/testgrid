@@ -19,7 +19,6 @@ package org.wso2.testgrid.common;
 
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
-import org.wso2.testgrid.common.config.JobConfigFile;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.util.StringUtil;
 
@@ -93,6 +92,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private ScenarioConfig scenarioConfig = new ScenarioConfig();
 
     @Transient
+    private String jobName;
+
+    @Transient
     private String infrastructureRepository;
 
     @Transient
@@ -102,7 +104,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String scenarioTestsRepository;
 
     @Transient
-    private Properties inputProperties = new Properties();
+    private Properties jobProperties = new Properties();
 
     @Transient
     private ResultFormat resultFormat;
@@ -309,20 +311,21 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     /**
      * Get the list of build properties associated with this test plan.
      * The build properties are currently contain properties received via
-     * {@link JobConfigFile#getProperties()}.
+     * {@link org.wso2.testgrid.common.config.JobConfigFile#getProperties()}.
      *
      * @return build proprties
      */
-    public Properties getInputProperties() {
-        return inputProperties;
+    public Properties getJobProperties() {
+        return jobProperties;
     }
 
     /**
-     * See {@link #getInputProperties()}
-     * @param inputProperties build properties
+     * See {@link #getJobProperties()}
+     *
+     * @param jobProperties build properties
      */
-    public void setInputProperties(Properties inputProperties) {
-        this.inputProperties = inputProperties;
+    public void setJobProperties(Properties jobProperties) {
+        this.jobProperties = jobProperties;
     }
 
     /**
@@ -402,6 +405,14 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
                     + "this failure condition should never happen unless a serious system error occurred.", e);
         }
 
+    }
+
+    public String getJobName() {
+        return jobName;
+    }
+
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
     }
 
     /**

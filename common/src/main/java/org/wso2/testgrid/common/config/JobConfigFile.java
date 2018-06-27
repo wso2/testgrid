@@ -32,6 +32,7 @@ import java.util.Properties;
  */
 public class JobConfigFile {
 
+    private String jobName;
     private String infrastructureRepository;
     private String deploymentRepository;
     private String scenarioTestsRepository;
@@ -189,5 +190,13 @@ public class JobConfigFile {
                 ", testgridYamlLocation='" + testgridYamlLocation + '\'' +
                 ", testgridKeyFileLocation='" + keyFileLocation + '\'' +
                 '}';
+    }
+
+    public String getJobName() {
+        return jobName;
+    }
+
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
     }
 }

@@ -35,7 +35,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.TestAutomationException;
-import org.wso2.testgrid.automation.executor.JMeterExecutor;
 import org.wso2.testgrid.automation.executor.ShellTestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
 import org.wso2.testgrid.common.DeploymentPattern;
@@ -77,7 +76,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({ StringUtil.class, TestExecutorFactory.class })
-@PowerMockIgnore({ "javax.management.*", "javax.script.*", "org.apache.logging.log4j.*"})
+@PowerMockIgnore({ "javax.management.*", "javax.script.*", "org.apache.logging.log4j.*" })
 public class RunTestPlanCommandTest extends PowerMockTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommandTest.class);

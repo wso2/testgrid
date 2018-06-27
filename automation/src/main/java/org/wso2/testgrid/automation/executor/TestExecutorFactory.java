@@ -20,8 +20,6 @@ package org.wso2.testgrid.automation.executor;
 
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.TestEngine;
-import org.wso2.testgrid.common.ShellExecutor;
-import org.wso2.testgrid.common.util.StringUtil;
 
 /**
  * Factory class to return the specific test executor for the test type.
@@ -38,12 +36,12 @@ public class TestExecutorFactory {
      */
     public static TestExecutor getTestExecutor(TestEngine testType) throws TestAutomationException {
         switch (testType) {
-            case JMETER:
-                return new ShellTestExecutor();
-            case TESTNG:
-                return new TestNgExecutor();
-            default:
-                return new ShellTestExecutor();
+        case JMETER:
+            return new ShellTestExecutor();
+        case TESTNG:
+            return new TestNgExecutor();
+        default:
+            return new ShellTestExecutor();
         }
     }
 }
