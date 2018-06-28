@@ -37,7 +37,13 @@ public enum TestEngine {
     /**
      * Defines the Selenium TestEngine.
      */
-    SELENIUM("selenium");
+    SELENIUM("selenium"),
+
+    /**
+     * Defines tests run via shell.
+     *
+     */
+    DEFAULT("default");
 
     private final String testEngine;
 

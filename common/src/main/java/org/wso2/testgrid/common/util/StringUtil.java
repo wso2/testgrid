@@ -85,4 +85,29 @@ public class StringUtil {
         }
     }
 
+    /**
+     * Get time for summary logging purposes.
+     *
+     * @param timeDifferenceMilliseconds the time taken to run the test plan
+     * @return human readable elapsed time
+     */
+    public static String getHumanReadableTimeDiff(long timeDifferenceMilliseconds) {
+        long diffSeconds = timeDifferenceMilliseconds / 1000;
+        long diffMinutes = timeDifferenceMilliseconds / (60 * 1000);
+        long diffHours = timeDifferenceMilliseconds / (60 * 60 * 1000);
+        long diffDays = timeDifferenceMilliseconds / (60 * 60 * 1000 * 24);
+
+        if (diffSeconds < 1) {
+            return "less than a second";
+        } else if (diffMinutes < 1) {
+            return diffSeconds + " seconds";
+        } else if (diffHours < 1) {
+            return diffMinutes + " minutes" + " " + (diffSeconds % 60) + " seconds";
+        } else if (diffDays < 1) {
+            return diffHours + " hours" + " " + (diffMinutes % 60) + " minutes";
+        } else {
+            return diffDays + " days" + " " + (diffHours % 24) + " hours";
+        }
+
+    }
 }

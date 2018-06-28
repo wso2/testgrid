@@ -45,6 +45,7 @@ import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -103,8 +104,12 @@ public class AWSProviderTest extends PowerMockTestCase {
 
         ScenarioConfig scenarioConfig = new ScenarioConfig();
         scenarioConfig.setScripts(scripts);
+        DeploymentPattern deploymentPatternDBEntry = new DeploymentPattern();
+        deploymentPatternDBEntry.setName("deployment-pattern");
+        testPlan.setDeploymentPattern(deploymentPatternDBEntry);
         testPlan.setScenarioConfig(scenarioConfig);
         testPlan.setScenarioTestsRepository(scenarioRepo);
+        testPlan.setInfraParameters("{\"OS\": \"Ubuntu\"}");
     }
 
     @Test(description = "This test case tests creation of AWSProvider object when AWS credentials are " +
@@ -184,6 +189,7 @@ public class AWSProviderTest extends PowerMockTestCase {
 
         AWSProvider awsProvider = new AWSProvider();
         awsProvider.init(testPlan);
+        testPlan.setJobName("wso2");
         testPlan.setInfrastructureConfig(infrastructureConfig);
         testPlan.setInfrastructureRepository(resourcePath.getAbsolutePath());
         InfrastructureProvisionResult provisionResult = awsProvider

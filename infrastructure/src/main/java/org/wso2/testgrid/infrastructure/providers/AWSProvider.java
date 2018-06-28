@@ -48,6 +48,7 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -55,7 +56,9 @@ import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -126,7 +129,7 @@ public class AWSProvider implements InfrastructureProvider {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
                 infrastructureConfig.getParameters().forEach((key, value) ->
                         script.getInputParameters().setProperty((String) key, (String) value));
-                return doProvision(infrastructureConfig, script.getName(), testPlan);
+                return doProvision(infrastructureConfig, script, testPlan);
             }
         }
         throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
@@ -148,7 +151,7 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
-        String stackName, TestPlan testPlan) throws TestGridInfrastructureException {
+        Script script, TestPlan testPlan) throws TestGridInfrastructureException {
         String region = infrastructureConfig.getProvisioners().get(0)
                 .getScripts().get(0).getInputParameters().getProperty(AWS_REGION_PARAMETER);
 
@@ -164,14 +167,10 @@ public class AWSProvider implements InfrastructureProvider {
                 .withRegion(region)
                 .build();
 
+        String stackName = getValidatedStackName(script.getName());
         CreateStackRequest stackRequest = new CreateStackRequest();
         stackRequest.setStackName(stackName);
         try {
-            Script script = infrastructureConfig.getProvisioners().get(0).getScripts().stream()
-                    .filter(s -> s.getName().equals(stackName))
-                    .findAny()
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "The script with name '" + stackName + "' does not exist."));
             String file = new String(Files.readAllBytes(Paths.get(testPlan.getInfrastructureRepository(),
                     script.getFile())), StandardCharsets.UTF_8);
             file = cfScriptPreprocessor.process(file);
@@ -186,6 +185,7 @@ public class AWSProvider implements InfrastructureProvider {
 
             logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
+            final long start = System.currentTimeMillis();
             CreateStackResult stack = cloudFormation.createStack(stackRequest);
             if (logger.isDebugEnabled()) {
                 logger.info(StringUtil.concatStrings("Stack configuration created for name ", stackName));
@@ -200,13 +200,16 @@ public class AWSProvider implements InfrastructureProvider {
                 throw new TestGridInfrastructureException(
                         StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
             }
+            final String duration = StringUtil.getHumanReadableTimeDiff(System.currentTimeMillis() - start);
             logger.info(StringUtil.concatStrings("Stack : ", stackName, ", with ID : ", stack.getStackId(),
-                    " creation completed !"));
+                    " creation completed in ", duration, "."));
 
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(stack.getStackId());
             DescribeStacksResult describeStacksResult = cloudFormation
                     .describeStacks(describeStacksRequest);
+
+            //TODO: remove these
             List<Host> hosts = new ArrayList<>();
             Host tomcatHost = new Host();
             tomcatHost.setLabel("tomcatHost");
@@ -216,15 +219,19 @@ public class AWSProvider implements InfrastructureProvider {
             tomcatPort.setIp("8080");
             hosts.add(tomcatHost);
             hosts.add(tomcatPort);
+
+            Properties outputProps = new Properties();
             for (Stack st : describeStacksResult.getStacks()) {
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
                     host.setLabel(output.getOutputKey());
                     hosts.add(host);
+                    outputProps.setProperty(output.getOutputKey(), output.getOutputValue());
                 }
             }
-            logger.info("Created a CloudFormation Stack with the name :" + stackRequest.getStackName());
+
+            persistOutputs(testPlan, outputProps);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             //added for backward compatibility. todo remove.
             result.setHosts(hosts);
@@ -237,6 +244,32 @@ public class AWSProvider implements InfrastructureProvider {
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
         }
+    }
+
+    private void persistOutputs(TestPlan testPlan, Properties deploymentInfo)
+            throws TestGridInfrastructureException {
+        final Path outputLocation = DataBucketsHelper.getOutputLocation(testPlan);
+        try (OutputStream outputStream = new FileOutputStream(
+                outputLocation.resolve(DataBucketsHelper.INFRA_OUT_FILE).toString(), true)) {
+            Files.createDirectories(outputLocation);
+            deploymentInfo.store(outputStream, null);
+        } catch (IOException e) {
+            throw new TestGridInfrastructureException("Error occurred while writing infra outputs.", e);
+        }
+    }
+
+    /**
+     * The stack name must satisfy this regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*
+     *
+     * @param stackName the aws cfn stack name
+     * @return validated stack name
+     */
+    private String getValidatedStackName(String stackName) {
+        if (stackName.matches("^[^a-zA-Z].*")) {
+            stackName = 'a' + stackName;
+        }
+        stackName = stackName.replaceAll("[^-a-zA-Z0-9]", "-");
+        return stackName;
     }
 
     /**
