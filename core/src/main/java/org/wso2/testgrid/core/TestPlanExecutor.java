@@ -171,6 +171,7 @@ public class TestPlanExecutor {
             logger.warn(String.format("Unable retrieve agents for  test plan with id %s , %n " +
                     "Continuing the build with no log download support", testPlan.getId()));
         }
+        //Log file download
         OSCategory osCategory = getOSCatagory(testPlan.getInfraParameters());
         try {
             Optional<TinkererClient> executer = TinkererClientFactory.getExecuter(osCategory);
@@ -190,11 +191,11 @@ public class TestPlanExecutor {
         } catch (ReportGeneratorInitializingException e) {
             logger.error("Error while initializing the report generators  " +
                     "for TestPlan of " + testPlan.getDeploymentPattern()
-                    .getProduct().getName());
+                    .getProduct().getName(), e);
         } catch (ReportGeneratorException e) {
             logger.error("Error while generating the report for " +
                     "TestPlan of " + testPlan.getDeploymentPattern()
-                    .getProduct().getName());
+                    .getProduct().getName(), e);
         }
         // Test plan completed. Persist the testplan status
         persistTestPlanStatus(testPlan);
