@@ -265,9 +265,11 @@ public class TestPlanExecutor {
                 if (initConfigChangeSet(testPlan)) {
                     for (ConfigChangeSet configChangeSet : configChangeSetList) {
                         for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                            if (applyConfigChangeSet(testPlan, configChangeSet, true)) {
-                                executeTestScenario(testScenario, deploymentCreationResult, testPlan);
-                                applyConfigChangeSet(testPlan, configChangeSet, false);
+                            if (configChangeSet.getName().equals(testScenario.getConfigChangeSetName())) {
+                                if (applyConfigChangeSet(testPlan, configChangeSet, true)) {
+                                    executeTestScenario(testScenario, deploymentCreationResult, testPlan);
+                                    applyConfigChangeSet(testPlan, configChangeSet, false);
+                                }
                             }
                         }
 
@@ -402,7 +404,7 @@ public class TestPlanExecutor {
      */
     private boolean applyShellCommandOnAgent(TestPlan testPlan, String[] initShellCommand) {
         String tinkererHost = ConfigurationContext.getProperty(
-                ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_API_EP);
+                ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH);
         // Get authentication detail from config.properties and encode with BASE64
         String authenticationString = ConfigurationContext.getProperty(
                 ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME) + ":" +

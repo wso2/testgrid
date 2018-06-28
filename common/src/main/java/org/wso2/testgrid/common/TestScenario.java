@@ -75,6 +75,9 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     @Column(name = "is_pre_script_success")
     private boolean isPreScriptSuccessful = false;
 
+    @Column(name = "configChangeSet_name")
+    private String configChangeSetName;
+
     @Column(name = "is_post_script_success")
     private boolean isPostScriptSuccessful = false;
 
@@ -206,6 +209,13 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
         this.isPostScriptSuccessful = isPostScriptSuccessful;
     }
 
+    public String getConfigChangeSetName() {
+        return this.configChangeSetName;
+    }
+
+    public void setConfigChangeSetName(String configChangeSetName) {
+        this.configChangeSetName = configChangeSetName;
+    }
     /**
      * Returns the test plan associated with this test scenario.
      *
