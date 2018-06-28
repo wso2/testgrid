@@ -8,7 +8,7 @@ pipeline {
     agent {
         node {
             label ""
-             customWorkspace '/testgrid/testgrid-home/jobs/wso2apim-2.2.0-LTS'
+             customWorkspace '/testgrid/testgrid-home/jobs/wso2am-intg'
         }
     }
 
@@ -34,6 +34,10 @@ pipeline {
         PWD=pwd()
         JOB_CONFIG_YAML = "job-config.yaml"
         JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
+
+        PRODUCT_GIT_URL="${PRODUCT_GIT_URL}"
+        PRODUCT_GIT_BRANCH="${PRODUCT_GIT_BRANCH}"
+        PRODUCT_DIST_DOWNLOAD_API="${PRODUCT_DIST_DOWNLOAD_API}"
     }
 
     tools {
@@ -57,6 +61,7 @@ pipeline {
                     dir("${INFRA_LOCATION}"){
                         git branch: 'master', url:"${INFRASTRUCTURE_REPOSITORY}"
                     }
+                    writeFile file: "${INFRA_LOCATION}/deploy.sh", text: '#!/bin/sh'
 
                     sh """
                     echo ${TESTGRID_NAME}
@@ -77,6 +82,10 @@ pipeline {
                     echo 'deploymentRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'testgridYamlLocation: ${TESTGRID_YAML_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo 'properties:' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  gitURL: ${GIT_URL}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  gitBranch: ${GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
 
                     echo The job-config.yaml:
                     cat ${JOB_CONFIG_YAML_PATH}

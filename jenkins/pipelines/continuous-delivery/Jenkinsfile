@@ -16,7 +16,7 @@ node('COMPONENT_ECS') {
                     rm -rf WSO2-TestGrid-backup;
                     mv WSO2-TestGrid WSO2-TestGrid-backup;
                     mv WSO2-TestGrid-unzipped WSO2-TestGrid;
-                    EOF
+                    ls
                 """
            }
     }
@@ -59,7 +59,7 @@ node('COMPONENT_ECS') {
                         rm -rf WSO2-TestGrid-backup;
                         mv WSO2-TestGrid WSO2-TestGrid-backup;
                         mv WSO2-TestGrid-unzipped WSO2-TestGrid;
-                        EOF
+                        ls
                  """
             }
         } else {

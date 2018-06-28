@@ -8,14 +8,13 @@ infrastructureConfig:
   parameters:
     - JDK : ORACLE_JDK8
   provisioners:
-    - name: 01-single-node-ec2-and-rds-deployment
+    - name: single-node-ec2-and-rds-deployment
       description: Provision Infra for running intg tests
-      dir: jobs/intg-test-resources
       scripts:
-        - name: '01-single-node-ec2-and-rds-deployment'
+        - name: 'single-node-ec2-and-rds-deployment'
           description: ''
           type: CLOUDFORMATION
-          file: wso2-intg-test-cfn.yaml
+          file: jobs/intg-test-resources/wso2-intg-test-cfn.yaml
           inputParameters:
             parseInfrastructureScript: false
             region: us-east-1
@@ -26,20 +25,18 @@ infrastructureConfig:
 scenarioConfig:
   scenarios:
     -
-      name: intg-tests
+      name: integration-tests
       description: "integration tests"
-      dir: intg-tests
+      dir: integration-tests
 
-
-#deploymentConfig:
-#  deploymentPatterns:
-#    - name: 01-two-node-deployment
-#      description: Deploys a two node IS cluster
-#      dir: cloudformation-templates/pattern-1
-#      scripts:
-#        - name: 01-deploy-a-two-node-is-cluster
-#          description: Do a IS two node deployment.
-#          type: SHELL
-#          file: deploy.sh
-#          inputParameters:
-#            parseInfrastructureScript: false
+deploymentConfig:
+  deploymentPatterns:
+    - name: 'integration-tests'
+      description: 'dummy'
+      dir: .
+      scripts:
+        - name: 'default'
+          type: SHELL
+          file: deploy.sh
+          inputParameters:
+            parseInfrastructureScript: false
