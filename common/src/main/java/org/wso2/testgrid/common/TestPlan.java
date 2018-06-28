@@ -25,6 +25,7 @@ import org.wso2.testgrid.common.util.StringUtil;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -91,6 +92,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private ScenarioConfig scenarioConfig = new ScenarioConfig();
 
     @Transient
+    private String jobName;
+
+    @Transient
     private String infrastructureRepository;
 
     @Transient
@@ -98,6 +102,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     @Transient
     private String scenarioTestsRepository;
+
+    @Transient
+    private Properties jobProperties = new Properties();
 
     @Transient
     private String configChangeSetRepository;
@@ -323,6 +330,26 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
+     * Get the list of build properties associated with this test plan.
+     * The build properties are currently contain properties received via
+     * {@link org.wso2.testgrid.common.config.JobConfigFile#getProperties()}.
+     *
+     * @return build proprties
+     */
+    public Properties getJobProperties() {
+        return jobProperties;
+    }
+
+    /**
+     * See {@link #getJobProperties()}
+     *
+     * @param jobProperties build properties
+     */
+    public void setJobProperties(Properties jobProperties) {
+        this.jobProperties = jobProperties;
+    }
+
+    /**
      * Returns the ResultFormatter object fot the specific TestPlan
      *
      * @return ResultFormatter object of TestPlan
@@ -399,6 +426,14 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
                     + "this failure condition should never happen unless a serious system error occurred.", e);
         }
 
+    }
+
+    public String getJobName() {
+        return jobName;
+    }
+
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
     }
 
     /**

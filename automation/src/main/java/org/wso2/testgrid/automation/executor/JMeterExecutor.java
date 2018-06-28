@@ -27,6 +27,7 @@ import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 
@@ -37,11 +38,14 @@ import java.util.Map;
 /**
  * Responsible for performing the tasks related to execution of single JMeter solution.
  *
+ * @deprecated succeeded by {@link ShellTestExecutor}.
+ * We do not need test tool specific executors at this moment.
+ *
  * @since 1.0.0
  */
 public class JMeterExecutor extends TestExecutor {
 
-    private static final Logger logger = LoggerFactory.getLogger(JMeterExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ShellTestExecutor.class);
     public static final String JMETER_HOME = "JMETER_HOME";
     private String testLocation;
     private String testName;
@@ -60,7 +64,7 @@ public class JMeterExecutor extends TestExecutor {
         try {
             String jmeterHome = EnvironmentUtil.getSystemVariableValue(JMETER_HOME);
             if (jmeterHome == null) {
-                logger.error(JMETER_HOME + " environment variable is not set. JMeter test execution may fail.");
+                logger.warn(JMETER_HOME + " environment variable is not set. JMeter test executions may fail.");
             } else {
                 logger.info(JMETER_HOME + ": " + jmeterHome);
             }
@@ -71,7 +75,11 @@ public class JMeterExecutor extends TestExecutor {
             for (Host host : deploymentCreationResult.getHosts()) {
                 environment.put(host.getLabel(), host.getIp());
             }
-            int exitCode = shellExecutor.executeCommand("bash " + script, environment);
+            String testInputsLoc = DataBucketsHelper.getInputLocation(testScenario.getTestPlan())
+                    .toAbsolutePath().toString();
+            final String command = "bash " + script + " --input-dir " + testInputsLoc;
+            logger.info("Execute: " + command);
+            int exitCode = shellExecutor.executeCommand(command, environment);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the test: ", testName, ", at: ",
                         testScenario.getDir(), ". Script exited with a status code of ", exitCode));

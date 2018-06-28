@@ -60,7 +60,8 @@ pipeline {
                     }
 
                     sh """
-                    echo 'infrastructureRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' > ${JOB_CONFIG_YAML_PATH}
+                    echo 'jobName: ${PRODUCT}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo 'infrastructureRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' >>${JOB_CONFIG_YAML_PATH}
                     echo 'deploymentRepository: ${INFRA_LOCATION}/cloudformation-templates/pattern-1/' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'testgridYamlLocation: ${INFRA_CONFIGS_LOCATION}/single-node-infra.yaml' >> ${JOB_CONFIG_YAML_PATH}

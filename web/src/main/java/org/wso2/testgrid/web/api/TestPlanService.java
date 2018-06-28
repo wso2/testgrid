@@ -455,13 +455,6 @@ public class TestPlanService {
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
                             .setDescription(e.getMessage()).build()).build();
-        } catch (TestGridException e) {
-            String msg = "Error occurred when deriving test run artifacts directory (Test Plan id:"  + testPlanId
-                    + ", Scenario directory: " + scenarioDir + ")";
-            logger.error(msg, e);
-            return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
-                            .setDescription(e.getMessage()).build()).build();
         } catch (ArtifactReaderException e) {
             String msg = "Error occurred when reading the artifact in " + archiveFileDir;
             logger.error(msg, e);

@@ -58,6 +58,7 @@ import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.testgrid.common.exception.UnsupportedProviderException;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
@@ -71,10 +72,13 @@ import org.wso2.testgrid.tinkerer.TinkererClientFactory;
 import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
@@ -85,7 +89,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
  * This class is responsible for executing the provided TestPlan.
@@ -129,7 +137,7 @@ public class TestPlanExecutor {
                 testPlan);
 
         // Create and set deployment.
-        DeploymentCreationResult deploymentCreationResult = createDeployment(infrastructureConfig, testPlan,
+        DeploymentCreationResult deploymentCreationResult = createDeployment(testPlan,
                 infrastructureProvisionResult);
 
         if (!deploymentCreationResult.isSuccess()) {
@@ -294,7 +302,7 @@ public class TestPlanExecutor {
      * @param testPlan                 the test plan
      * @param deploymentCreationResult the result of the previous build step
      */
-    private void runScenarioTests(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
+    public void runScenarioTests(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
         // Run init.sh in scenario repository
         boolean status = runPreScenariosScripts(testPlan, deploymentCreationResult);
 
@@ -514,14 +522,13 @@ public class TestPlanExecutor {
     /**
      * Creates the deployment in the provisioned infrastructure.
      *
-     * @param infrastructureConfig          infrastructure to create the deployment
      * @param testPlan                      test plan
      * @param infrastructureProvisionResult the output of the infrastructure provisioning scripts
      * @return created {@link DeploymentCreationResult}
      * @throws TestPlanExecutorException thrown when error on creating deployment
      */
-    private DeploymentCreationResult createDeployment(InfrastructureConfig infrastructureConfig, TestPlan testPlan,
-                                                      InfrastructureProvisionResult infrastructureProvisionResult)
+    public DeploymentCreationResult createDeployment(TestPlan testPlan,
+            InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestPlanExecutorException {
         try {
             if (!infrastructureProvisionResult.isSuccess()) {
@@ -565,12 +572,13 @@ public class TestPlanExecutor {
 
     /**
      * Sets up infrastructure for the given {@link InfrastructureConfig}.
+     * TODO: Remove infrastructureConfig since it does not need to be a separate param. It's available within testPlan.
      *
      * @param infrastructureConfig infrastructure to set up
      * @param testPlan             test plan
      */
-    private InfrastructureProvisionResult provisionInfrastructure(InfrastructureConfig infrastructureConfig,
-                                                                  TestPlan testPlan) {
+    public InfrastructureProvisionResult provisionInfrastructure(InfrastructureConfig infrastructureConfig,
+            TestPlan testPlan) {
         try {
             if (infrastructureConfig == null) {
                 persistTestPlanStatus(testPlan, Status.FAIL);
@@ -578,6 +586,8 @@ public class TestPlanExecutor {
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
             }
+
+            persistInfraInputs(testPlan);
             InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                     .getInfrastructureProvider(infrastructureConfig);
             infrastructureProvider.init(testPlan);
@@ -611,6 +621,25 @@ public class TestPlanExecutor {
     }
 
     /**
+     * The infra-provision.sh / deploy.sh / run-scenario.sh receive the test plan
+     * configuration as a properties file.
+     *
+     * @param testPlan test plan
+     */
+    private void persistInfraInputs(TestPlan testPlan) {
+        final Path location = DataBucketsHelper.getInputLocation(testPlan)
+                .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
+        final Properties jobProperties = testPlan.getJobProperties();
+        final Properties infraParameters = testPlan.getInfrastructureConfig().getParameters();
+        try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
+            jobProperties.store(os, null);
+            infraParameters.store(os, null);
+        } catch (IOException e) {
+            logger.error("Error while persisting infra input params to " + location, e);
+        }
+    }
+
+    /**
      * Destroys the given {@link InfrastructureConfig}.
      *
      * @param testPlan                      test plan
@@ -619,9 +648,9 @@ public class TestPlanExecutor {
      * @throws TestPlanExecutorException thrown when error on destroying
      *                                   infrastructure
      */
-    private void releaseInfrastructure(TestPlan testPlan,
-                                       InfrastructureProvisionResult infrastructureProvisionResult,
-                                       DeploymentCreationResult deploymentCreationResult)
+    public void releaseInfrastructure(TestPlan testPlan,
+            InfrastructureProvisionResult infrastructureProvisionResult,
+            DeploymentCreationResult deploymentCreationResult)
             throws TestPlanExecutorException {
         try {
             InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
@@ -770,7 +799,7 @@ public class TestPlanExecutor {
         logger.info("TEST RUN " + testPlan.getStatus());
         printSeparator(LINE_LENGTH);
 
-        logger.info("Total Time: " + getHumanReadableTimeDiff(totalTime));
+        logger.info("Total Time: " + StringUtil.getHumanReadableTimeDiff(totalTime));
         logger.info("Finished at: " + new Date());
         printSeparator(LINE_LENGTH);
     }
@@ -817,31 +846,6 @@ public class TestPlanExecutor {
      */
     private static void printSeparator(int length) {
         logger.info(StringUtils.repeat("-", length));
-    }
-
-    /**
-     * Get time for summary logging purposes.
-     *
-     * @param timeDifferenceMilliseconds the time taken to run the test plan
-     * @return human readable elapsed time
-     */
-    private static String getHumanReadableTimeDiff(long timeDifferenceMilliseconds) {
-        long diffSeconds = timeDifferenceMilliseconds / 1000;
-        long diffMinutes = timeDifferenceMilliseconds / (60 * 1000);
-        long diffHours = timeDifferenceMilliseconds / (60 * 60 * 1000);
-        long diffDays = timeDifferenceMilliseconds / (60 * 60 * 1000 * 24);
-
-        if (diffSeconds < 1) {
-            return "less than a second";
-        } else if (diffMinutes < 1) {
-            return diffSeconds + " seconds";
-        } else if (diffHours < 1) {
-            return diffMinutes + " minutes" + " " + (diffSeconds % 60) + " seconds";
-        } else if (diffDays < 1) {
-            return diffHours + " hours" + " " + (diffMinutes % 60) + " minutes";
-        } else {
-            return diffDays + " days" + " " + (diffHours % 24) + " hours";
-        }
     }
 
     /**
