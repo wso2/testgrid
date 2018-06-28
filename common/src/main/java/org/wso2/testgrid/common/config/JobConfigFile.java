@@ -90,10 +90,20 @@ public class JobConfigFile {
         this.scenarioTestRepository = scenarioTestsRepository;
     }
 
+    /**
+     * Get config change set repository
+     *
+     * @return the config change set repository
+     */
     public String getConfigChangeSetRepository() {
         return this.configChangeSetRepository;
     }
 
+    /**
+     * Set config change set repository
+     *
+     * @param configChangeSetRepository the config chage set repository
+     */
     public void setConfigChangeSetRepository(String configChangeSetRepository) {
         this.configChangeSetRepository = configChangeSetRepository;
     }
