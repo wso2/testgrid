@@ -517,7 +517,6 @@ public class GenerateTestPlanCommand implements Command {
                     }
                     testgridYaml.getScenarioConfig().setScenarios(modifiedTestScenarios);
                 }
-                logger.info("modified after" + testgridYaml.getScenarioConfig().getScenarios().size());
 
                 testPlan.setScenarioConfig(testgridYaml.getScenarioConfig());
                 testPlan.setResultFormat(testgridYaml.getResultFormat());
