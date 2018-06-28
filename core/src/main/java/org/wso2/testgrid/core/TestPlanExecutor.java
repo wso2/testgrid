@@ -86,7 +86,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.ws.rs.core.HttpHeaders;
+
 /**
  * This class is responsible for executing the provided TestPlan.
  *
