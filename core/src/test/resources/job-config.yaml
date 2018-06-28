@@ -3,3 +3,5 @@ deploymentRepository: workspace/deployment
 scenarioTestsRepository: workspace/scenarioTests
 testgridYamlLocation: workspace/testgrid.yaml
 keyFileLocation: workspace/testkey.pem
+properties:
+  PROPERTY1: value1

@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.DeploymentCreationResult;
-import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
@@ -66,7 +65,8 @@ public class UnixClient extends TinkererClient {
 
     private static final Logger logger = LoggerFactory.getLogger(UnixClient.class);
     private static final String SCENARIO_LOG_LOCATION = "/repository/logs/";
-    private static final String INTEGRATION_LOG_LOCATION = "/logs";
+    private static final String INTEGRATION_LOG_LOCATION = "/logs/";
+    private static final String WORKSPACE_DIR_POSIX = "WORKSPACE_DIR_POSIX";
 
     @Override
     public void downloadLogs(DeploymentCreationResult deploymentCreationResult, TestPlan testPlan)
@@ -130,11 +130,12 @@ public class UnixClient extends TinkererClient {
                 }
                 logLocation = productBasePath + SCENARIO_LOG_LOCATION;
             } else if (TestGridConstants.TEST_TYPE_INTEGRATION.equals(testType)) {
-                for (Host host : deploymentCreationResult.getHosts()) {
-                    if (host.getLabel().equals("workspace")) {
-                        productBasePath = host.getIp();
-                        break;
-                    }
+                if (testPlan.getJobProperties().containsKey(WORKSPACE_DIR_POSIX)) {
+                    productBasePath = testPlan.getJobProperties().getProperty(WORKSPACE_DIR_POSIX);
+                } else {
+                    throw new TinkererOperationException("Product workspace path is not present, Please check if" +
+                            "entry is present in job-config.yml file : "
+                            + "\nfor test plan :" + testPlan.getId());
                 }
                 logLocation = productBasePath + INTEGRATION_LOG_LOCATION;
             }
