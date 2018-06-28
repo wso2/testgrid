@@ -382,6 +382,7 @@ public class TestPlanService {
         for (TestScenario testScenario : testScenarios) {
             List<TestCase> testCases = new ArrayList<>(testScenario.getTestCases());
 
+            // TODO: change backend design to store these info within the db to reduce UI latency.
             // Create scenario summary
             long totalSuccess = testCases.stream().filter(TestCase::isSuccess).count();
             long totalFailed = testCases.stream().filter(testCase -> !testCase.isSuccess()).count();

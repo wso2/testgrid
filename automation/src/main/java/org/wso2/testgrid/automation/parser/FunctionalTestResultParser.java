@@ -79,6 +79,21 @@ public class FunctionalTestResultParser extends ResultParser {
         super(testScenario, testLocation);
     }
 
+    /**
+     * Here, you pass the results, find out all the test cases that has
+     * executed. Then, these test cases are inserted into the db as child
+     * items of {@link TestScenario} via {@link #persistResults()}.
+     *
+     * Workflow:
+     * <ul><li>
+     *  1. build a test case for each httpSample or sample element found in JTL.
+     * </li><li>
+     *  2. set the failure state to true/false along with message
+     * </li><li>
+     *  3. Add the test case into the test scenario.
+     * </li></ul>
+     * @throws JTLResultParserException result parser error
+     */
     @Override
     public void parseResults() throws JTLResultParserException {
         boolean failureMsgElement = false;
