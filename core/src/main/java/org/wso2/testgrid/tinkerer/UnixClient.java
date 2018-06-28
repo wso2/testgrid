@@ -34,9 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.DeploymentCreationResult;
-import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
@@ -44,6 +44,9 @@ import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
@@ -62,7 +65,8 @@ public class UnixClient extends TinkererClient {
 
     private static final Logger logger = LoggerFactory.getLogger(UnixClient.class);
     private static final String SCENARIO_LOG_LOCATION = "/repository/logs/";
-    private static final String INTEGRATION_LOG_LOCATION = "/logs";
+    private static final String INTEGRATION_LOG_LOCATION = "/logs/";
+    private static final String WORKSPACE_DIR_POSIX = "WORKSPACE_DIR_POSIX";
 
     @Override
     public void downloadLogs(DeploymentCreationResult deploymentCreationResult, TestPlan testPlan)
@@ -126,11 +130,12 @@ public class UnixClient extends TinkererClient {
                 }
                 logLocation = productBasePath + SCENARIO_LOG_LOCATION;
             } else if (TestGridConstants.TEST_TYPE_INTEGRATION.equals(testType)) {
-                for (Host host : deploymentCreationResult.getHosts()) {
-                    if (host.getLabel().equals("workspace")) {
-                        productBasePath = host.getIp();
-                        break;
-                    }
+                if (testPlan.getJobProperties().containsKey(WORKSPACE_DIR_POSIX)) {
+                    productBasePath = testPlan.getJobProperties().getProperty(WORKSPACE_DIR_POSIX);
+                } else {
+                    throw new TinkererOperationException("Product workspace path is not present, Please check if" +
+                            "entry is present in job-config.yml file : "
+                            + "\nfor test plan :" + testPlan.getId());
                 }
                 logLocation = productBasePath + INTEGRATION_LOG_LOCATION;
             }
@@ -180,20 +185,16 @@ public class UnixClient extends TinkererClient {
                         String key = Base64.getEncoder()
                                 .encodeToString(FileUtils.readFileToByteArray(new File(testPlan.getKeyFileLocation())));
                         String source = logLocation + logFileName;
-                        String destination = TestGridUtil.getTestGridHomePath() + File.separator +
-                                testPlan.getDeploymentPattern().getProduct().getName() + logFileName;
+                        String destination = Paths.get(TestGridUtil.deriveLogDownloadLocation(testPlan), logFileName)
+                                .toString();
                         String bastianIP = deploymentCreationResult.getBastianIP();
-                        //TODO set correct download path so the log files are in the correct place in the
-                        // folder hierarchy
                         String downloadPath = this.getTinkererBase() + "test-plan/" + agent.getTestPlanId() +
                                 "/agent/" + agent.getInstanceName() + "/stream-file";
-
                         Map<String, Object> payload = new HashMap<>();
                         payload.put("code", "STREAM_FILE");
                         Map<String, Object> subPayload = new HashMap<>();
                         subPayload.put("key", key);
                         subPayload.put("source", source);
-                        subPayload.put("destination", destination);
                         subPayload.put("destination", destination);
                         if (bastianIP != null) {
                             subPayload.put("bastian-ip", bastianIP);
@@ -216,6 +217,11 @@ public class UnixClient extends TinkererClient {
                                     "\nError message :"
                                     + EntityUtils.toString(((CloseableHttpResponse) httpResponse).getEntity()));
                         }
+                        //verify the downloaded files are present in the location
+                        if (!verifyFileDownload(destination)) {
+                            throw new TinkererOperationException("Failed to download the file :"
+                                    + destination);
+                        }
                         logger.debug("Download Location :" + destination);
                     } catch (IOException e) {
                         throw new TinkererOperationException("Error occurred while downloading " +
@@ -227,6 +233,12 @@ public class UnixClient extends TinkererClient {
                         throw new TinkererOperationException("Error occurred while parsing the " +
                                 "response from download " +
                                 "logfile operation : " + logFileName
+                                + "\nfrom agent :" + agent.getAgentId()
+                                + "\nRunning on instance : " + agent.getInstanceName()
+                                + "\nfor test plan :" + testPlan.getId(), e);
+                    } catch (TestGridException e) {
+                        throw new TinkererOperationException("Error occurred deriving the destination path " +
+                                  "for logfile : " + logFileName
                                 + "\nfrom agent :" + agent.getAgentId()
                                 + "\nRunning on instance : " + agent.getInstanceName()
                                 + "\nfor test plan :" + testPlan.getId(), e);
@@ -242,6 +254,17 @@ public class UnixClient extends TinkererClient {
      * to a map of strings.
      */
     private static class PropertyType extends TypeToken<HashMap<String, String>> {
+    }
+
+    /**
+     * This method verifies if the specified file is present in the file system
+     *
+     * @param fileLocation path of the file
+     * @return true if exists, otherwise false
+     */
+    private boolean verifyFileDownload(String fileLocation) {
+        Path path = Paths.get(fileLocation);
+        return Files.exists(path) && Files.isRegularFile(path);
     }
 }
 
