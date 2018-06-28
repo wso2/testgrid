@@ -34,6 +34,7 @@ public class JobConfigFile {
     private String deploymentRepository;
     private String scenarioTestsRepository;
     private String configChangeSetRepository;
+    private String keyFileLocation;
 
     /**
      * @see #isRelativePaths()
@@ -157,6 +158,14 @@ public class JobConfigFile {
         this.workingDir = workingDir;
     }
 
+    public String getKeyFileLocation() {
+        return keyFileLocation;
+    }
+
+    public void setKeyFileLocation(String keyFileLocation) {
+        this.keyFileLocation = keyFileLocation;
+    }
+
     @Override
     public String toString() {
         return "JobConfigFile{" +
@@ -165,6 +174,7 @@ public class JobConfigFile {
                 ", scenarioTestsRepository='" + scenarioTestsRepository + '\'' +
                 ", isRelativePaths=" + isRelativePaths +
                 ", testgridYamlLocation='" + testgridYamlLocation + '\'' +
+                ", testgridKeyFileLocation='" + keyFileLocation + '\'' +
                 '}';
     }
 }

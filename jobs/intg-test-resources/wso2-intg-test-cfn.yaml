@@ -268,10 +268,7 @@ Resources:
       DBInstanceClass: !Ref DBClass
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
-      DBInstanceIdentifier: !Join
-        - ''
-        - - !Ref 'AWS::StackName'
-          - '-wso2-dbinstance'
+      DBInstanceIdentifier: wso2-dbinstance
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       AutoMinorVersionUpgrade: false

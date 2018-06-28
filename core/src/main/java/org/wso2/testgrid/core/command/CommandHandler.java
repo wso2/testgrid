@@ -60,6 +60,8 @@ public class CommandHandler extends HelpCommand {
                                      impl = FinalizeRunTestplan.class),
                          @SubCommand(name = "generate-report",
                                      impl = GenerateReportCommand.class),
+                         @SubCommand(name = "generate-email",
+                                     impl = GenerateEmailCommand.class),
                          @SubCommand(name = "help",
                                      impl = HelpCommand.class)
                  })

@@ -20,15 +20,20 @@ package org.wso2.testgrid.deployment.tinkerer.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.Agent;
+import org.wso2.testgrid.common.ShellExecutor;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.deployment.tinkerer.SessionManager;
-import org.wso2.testgrid.deployment.tinkerer.beans.Agent;
 import org.wso2.testgrid.deployment.tinkerer.beans.ErrorResponse;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationRequest;
+import org.wso2.testgrid.deployment.tinkerer.exception.DeploymentTinkererException;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
+import org.wso2.testgrid.deployment.tinkerer.utils.SSHHelper;
 
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -148,6 +153,62 @@ public class DeploymentTinkerer {
             errorResponse.setMessage("Agent not found with given ID");
             return Response.status(Response.Status.NOT_FOUND).entity(errorResponse).build();
         }
+    }
+
+    /**
+     * Downloads a file from the given source to the destination.
+     * The destination path must be a location in the host machine.
+     *
+     * @param testPlanId   TestPlanID for the instance where source is located
+     * @param instanceName Name of the instance where source is located
+     */
+    @POST
+    @Path("test-plan/{testPlanId}/agent/{instanceName}/stream-file")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response streamFile(@PathParam("testPlanId") String testPlanId,
+                               @PathParam("instanceName") String instanceName,
+                               OperationRequest operationRequest) {
+        //get POST body data
+        Map<String, String> data = operationRequest.getData();
+        SessionManager sessionManager = SessionManager.getInstance();
+        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
+
+        if (data != null) {
+            String sshKey = data.get("key");
+            String bastianIP = data.get("bastian-ip");
+            String source = data.get("source");
+            String destination = data.get("destination");
+            try {
+                SSHHelper.addConfigEntry(sshKey, bastianIP, agent);
+                ShellExecutor executor = new ShellExecutor();
+                executor.executeCommand("ssh host:" + agent.getInstanceId() + " \"cat " + source
+                        + "\" &> " + destination + "");
+
+            } catch (IOException e) {
+                String message = "Error occurred while adding ssh config entries for agent: " + agent.getAgentId();
+                logger.error(message, e);
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                errorResponse.setMessage(message);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
+            } catch (CommandExecutionException e) {
+                String message = "Error occurred while executing the ssh command : " + agent.getAgentId();
+                logger.error(message, e);
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                errorResponse.setMessage(message);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
+            } catch (DeploymentTinkererException e) {
+                String message = "Instance username is null in agent  : " + agent.getAgentId();
+                logger.error(message, e);
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                errorResponse.setMessage(message);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
+            }
+
+        }
+        return Response.status(Response.Status.OK).build();
     }
 
 }

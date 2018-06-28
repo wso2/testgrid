@@ -57,6 +57,8 @@ import org.wso2.testgrid.dao.uow.TestCaseUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
+
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -161,7 +163,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         final Path generatedDeploymentFile = infrastructurePath.resolve("my-deployment.txt");
         assertTrue(Files.exists(generatedDeploymentFile), "Deployment creation script failed to run. Files does not "
                 + "exist: " + generatedDeploymentFile);
-        String content = new String(Files.readAllBytes(generatedDeploymentFile));
+        String content = new String(Files.readAllBytes(generatedDeploymentFile), StandardCharsets.UTF_8);
         Assert.assertEquals(content, "Deploy server1\n", "my-deployment.txt file does not contain expected content.");
     }
 

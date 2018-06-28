@@ -81,7 +81,8 @@ public class AgentApplication {
                 wsEndpoint = prop.getProperty("wsEndpoint");
                 //aws:us-west-1:6718f976-7150-316d-9ec6-db29b7a2675f:i-0658922f45d25856f
                 agentId = prop.getProperty("provider") + ":" + prop.getProperty("region") + ":" +
-                        prop.getProperty("testPlanId") + ":" + prop.getProperty("instanceId");
+                        prop.getProperty("testPlanId") + ":" + prop.getProperty("instanceId") + ":" +
+                        prop.getProperty("instanceIP");
                 userName = prop.getProperty("userName");
                 password = prop.getProperty("password");
             } else {

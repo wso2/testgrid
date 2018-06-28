@@ -20,9 +20,9 @@ package org.wso2.testgrid.deployment.tinkerer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.deployment.tinkerer.beans.Agent;
+import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationResponse;
-import org.wso2.testgrid.deployment.tinkerer.providers.AWSProvider;
+import org.wso2.testgrid.deployment.tinkerer.providers.InfraProviderFactory;
 import org.wso2.testgrid.deployment.tinkerer.providers.Provider;
 
 import java.util.ArrayList;
@@ -70,7 +70,14 @@ public class SessionManager {
         String region = agent.getRegion();
         String instanceId = agent.getInstanceId();
         if (provider != null && region != null && instanceId != null) {
-            agent.setInstanceName(getInstanceName(provider, region, instanceId));
+            Optional<Provider> infrastructureProvider = InfraProviderFactory
+                    .getInfrastructureProvider(provider);
+            infrastructureProvider
+                    .ifPresent(infraProvider -> infraProvider.getInstanceUserName(region, instanceId)
+                            .ifPresent(agent::setInstanceUser));
+            infrastructureProvider
+                    .ifPresent(infraProvider -> infraProvider.getInstanceName(region, instanceId)
+                            .ifPresent(agent::setInstanceName));
             agentSessions.put(agentId, agentSession);
             agents.put(agentId, agent);
         }
@@ -182,29 +189,5 @@ public class SessionManager {
     public synchronized void removeOperationResponse(String operationId) {
         operationResponses.remove(operationId);
     }
-
-    /**
-     * Get name of the instance name specified for the cloud provider.
-     *
-     * @param provider   - Provider name.
-     * @param region     - Provider region.
-     * @param instanceId - Id of the instance.
-     * @return Name of the instance.
-     */
-    private static String getInstanceName(String provider, String region, String instanceId) {
-        Provider infraProvider = null;
-        switch (provider) {
-            case "aws":
-                infraProvider = new AWSProvider();
-                break;
-            default:
-                logger.warn("Unknown cloud provider: " + provider);
-        }
-        if (infraProvider != null) {
-            return infraProvider.getInstanceName(region, instanceId);
-        } else {
-            return instanceId;
-        }
-    }
-
 }
+

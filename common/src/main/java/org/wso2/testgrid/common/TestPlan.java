@@ -105,6 +105,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     @Transient
     private ResultFormat resultFormat;
 
+    @Transient
+    private String keyFileLocation;
+
     /**
      * Returns the status of the infrastructure.
      *
@@ -335,6 +338,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      */
     public void setResultFormat(ResultFormat resultFormat) {
         this.resultFormat = resultFormat;
+    }
+
+    /**
+     * Get the location of the key file used to access the instances.
+     *
+     * @return location of the key file
+     */
+    public String getKeyFileLocation() {
+        return keyFileLocation;
+    }
+
+    /**
+     * Sets the location of the key file.
+     *
+     * @param keyFileLocation location of the key file
+     */
+    public void setKeyFileLocation(String keyFileLocation) {
+        this.keyFileLocation = keyFileLocation;
     }
 
     @Override
