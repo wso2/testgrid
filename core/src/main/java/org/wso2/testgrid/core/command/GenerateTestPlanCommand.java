@@ -219,6 +219,7 @@ public class GenerateTestPlanCommand implements Command {
             String fileName = String
                     .format("%s-%02d%s", TestGridConstants.TEST_PLAN_YAML_PREFIX, (i + 1), FileUtil.YAML_EXTENSION);
             testPlan.setKeyFileLocation(jobConfigFile.getKeyFileLocation());
+            testPlan.setJobProperties(jobConfigFile.getProperties());
             String output = yaml.dump(testPlan);
 
             //Remove reference ids from yaml

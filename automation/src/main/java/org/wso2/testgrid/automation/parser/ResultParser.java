@@ -50,6 +50,13 @@ public abstract class ResultParser {
      */
     public abstract void parseResults() throws ResultParserException;
 
+    /**
+     * Archive the results file for dashboard and reporting purposes.
+     * In here, the results file should be copied to the data-buckets folder.
+     *
+     * @throws ResultParserException failure during persisting.
+     * @see org.wso2.testgrid.common.util.DataBucketsHelper
+     */
     public abstract void persistResults() throws ResultParserException;
 }
 

@@ -466,6 +466,21 @@ public final class TestGridUtil {
     }
 
     /**
+     * Returns the path of the directory where log files will be downloaded.
+     *
+     * @param testPlan TestPlan object
+     * @return File download location path
+     * @throws TestGridException when there is an error deriving the path
+     */
+    public static String deriveLogDownloadLocation(TestPlan testPlan)
+            throws TestGridException {
+        String productName = testPlan.getDeploymentPattern().getProduct().getName();
+        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
+        return Paths.get(getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR, productName,
+                TestGridConstants.TESTGRID_BUILDS_DIR, testPlanDirName).toString();
+    }
+
+    /**
      * Returns the path of the integration test log file.
      *
      * @param testPlan test-plan

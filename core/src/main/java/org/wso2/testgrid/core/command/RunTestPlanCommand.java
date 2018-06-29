@@ -116,7 +116,10 @@ public class RunTestPlanCommand implements Command {
                 //Create logging directory
                 LogFilePathLookup.setLogFilePath(TestGridUtil.deriveTestRunLogFilePath(testPlan));
 
-                executeTestPlan(testPlan, infrastructureConfig);
+                final boolean success = executeTestPlan(testPlan, infrastructureConfig);
+                if (!success) {
+                    throw new IllegalStateException("Test plan execution failed.");
+                }
             } else {
                 throw new CommandExecutionException(StringUtil.concatStrings("Unable to locate persisted " +
                         "TestPlan instance {TestPlan id: ", testPlan.getId(), "}"));
@@ -217,12 +220,13 @@ public class RunTestPlanCommand implements Command {
      * This method triggers the execution of a {@link org.wso2.testgrid.common.TestPlan}.
      *
      * @param testPlan test plan to execute
+     * @return test execution status
      * @throws CommandExecutionException thrown when error on executing test plan
      */
-    private void executeTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
+    private boolean executeTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws CommandExecutionException {
         try {
-            testPlanExecutor.execute(testPlan, infrastructureConfig);
+            return testPlanExecutor.execute(testPlan, infrastructureConfig);
         } catch (TestPlanExecutorException | TestGridDAOException e) {
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan ", testPlan), e);

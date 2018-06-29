@@ -73,7 +73,7 @@ public class SSHHelper {
             }
         }
         String bastianEntry = "bastian:" + agent.getTestPlanId();
-        String hostEntry = "host:" + agent.getInstanceName();
+        String hostEntry = "host:" + agent.getInstanceId();
         if (bastianIP != null) {
             //check if the bastian entry has been made
             if (!containsEntry(file, bastianEntry)) {
@@ -81,10 +81,10 @@ public class SSHHelper {
                 String entry = String.format("Host %s%n" +
                                 "  StrictHostKeyChecking=no%n" +
                                 "  UserKnownHostsFile=/dev/null%n" +
-                                "  User ubuntu%n" +
+                                "  User %s%n" +
                                 "  HostName %s%n" +
                                 "  IdentityFile %s%n",
-                        bastianEntry, bastianIP, keyPath.toAbsolutePath().toString());
+                        bastianEntry, agent.getInstanceUser(), bastianIP, keyPath.toAbsolutePath().toString());
                 Files.write(config, entry.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
             }
             if (!containsEntry(file, hostEntry)) {

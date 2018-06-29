@@ -17,9 +17,14 @@
 */
 package org.wso2.testgrid.deployment.deployers;
 
+import com.google.gson.Gson;
+import org.apache.hc.client5.http.fluent.Request;
+import org.apache.hc.client5.http.fluent.Response;
+import org.apache.http.HttpHeaders;
 import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
@@ -27,13 +32,18 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TimeOutBuilder;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.deployment.DeploymentValidator;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -93,6 +103,35 @@ public class AWSDeployer implements Deployer {
                 .stream().filter(host -> host.getLabel().equals(TestGridConstants.OUTPUT_BASTIAN_IP)).findFirst();
         bastionEIP.ifPresent(host -> deploymentCreationResult.setBastianIP(host.getIp()));
 
+        //Call the rest api of tinkerer and get the agents for current test plan
+        try {
+            String tinkererEndpoint = ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
+                    .DEPLOYMENT_TINKERER_REST_BASE_PATH);
+            String username = ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
+                    .DEPLOYMENT_TINKERER_USERNAME);
+            String password = ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
+                    .DEPLOYMENT_TINKERER_PASSWORD);
+            String agentsPath = tinkererEndpoint + "test-plan/" + testPlan.getId() + "/agents";
+            Response execute = Request.Get(agentsPath)
+                    .setHeader(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString(
+                            StringUtil.concatStrings(username, ":", password).getBytes(
+                                    Charset.defaultCharset())))
+                    .execute();
+            String agentContent = execute.returnContent().toString();
+            logger.debug("AgentContent" + agentContent);
+            Agent[] agents = new Gson().fromJson(agentContent, Agent[].class);
+            for (Agent agent : Arrays.asList(agents)) {
+                logger.info("Agent registered : " + agent.getAgentId());
+            }
+            if (agents.length == 0) {
+                logger.warn(String.format("Unable retrieve agents for  test plan with id %s , %n "
+                        , testPlan.getId()));
+            }
+            deploymentCreationResult.setAgents(Arrays.asList(agents));
+        } catch (IOException e) {
+            logger.warn(String.format("Unable retrieve agents for  test plan with id %s , %n "
+                    , testPlan.getId()));
+        }
         return deploymentCreationResult;
     }
 }

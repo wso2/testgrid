@@ -46,6 +46,8 @@ public class ResultParserFactory {
             resultParser = new FunctionalTestResultParser(testScenario, testLocation);
         } else if (TestGridConstants.TEST_TYPE_PERFORMANCE.equals(testPlan.getScenarioConfig().getTestType())) {
             resultParser = new PerformanceTestCSVParser(testScenario, testLocation);
+        } else if (TestGridConstants.TEST_TYPE_INTEGRATION.equals(testPlan.getScenarioConfig().getTestType())) {
+            resultParser = new TestNgResultsParser(testScenario, testLocation);
         }
         return Optional.ofNullable(resultParser);
     }

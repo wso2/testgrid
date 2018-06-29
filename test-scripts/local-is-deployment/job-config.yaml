@@ -3,3 +3,6 @@ infrastructureRepository: ./Infrastructure
 deploymentRepository: ./Deployment
 scenarioTestsRepository: ./Solutions
 testgridYamlLocation: ./.testgrid.yaml
+properties:
+  REMOTE_WORKSPACE_DIR_POSIX: /opt/wso2/workspace
+  GIT_URL: https://github.com/wso2/testgrid
