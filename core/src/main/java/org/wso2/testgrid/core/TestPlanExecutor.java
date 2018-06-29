@@ -36,6 +36,7 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -48,6 +49,7 @@ import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -468,6 +470,13 @@ public class TestPlanExecutor {
             DeploymentCreationResult deploymentCreationResult)
             throws TestPlanExecutorException {
         try {
+            if (TestGridUtil.isDebugMode(testPlan)) {
+                printSeparator(LINE_LENGTH);
+                logger.info(TestGridConstants.DEBUG_MODE + " is enabled. NOT RELEASING the infrastructure. The"
+                        + "infrastructure need to be manually released/de-allocated.");
+                printSeparator(LINE_LENGTH);
+                return;
+            }
             InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
             if (!infrastructureProvisionResult.isSuccess() || !deploymentCreationResult.isSuccess()) {
                 logger.error("Execution of previous steps failed. Trying to release the possibly provisioned "
