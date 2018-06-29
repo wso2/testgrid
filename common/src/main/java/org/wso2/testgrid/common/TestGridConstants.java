@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 public class TestGridConstants {
 
     public static final String TESTGRID_YAML = "testgrid.yaml";
+    public static final String DEBUG_MODE = "DEBUG_MODE";
     public static final String TEST_PLAN_YAML_PREFIX = "test-plan";
 
     public static final String RUN_SCENARIO_SCRIPT = "run-scenario.sh";
@@ -65,8 +66,6 @@ public class TestGridConstants {
     public static final String TEST_TYPE_INTEGRATION = "INTEGRATION";
 
     public static final String OUTPUT_BASTIAN_IP = "BastionEIP";
-
-
 
     public static final String TEST_PLANS_URI = "test-plans";
     public static final String HTML_LINE_SEPARATOR = "<br/>";
