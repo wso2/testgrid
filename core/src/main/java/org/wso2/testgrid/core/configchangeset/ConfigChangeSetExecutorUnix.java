@@ -70,7 +70,8 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
             String[] applyShellCommand = { shellCommand };
             return applyShellCommandOnAgent(testPlan, applyShellCommand);
         } catch (MalformedURLException e) {
-            logger.warn("Error parsing scenario path " + testPlan.getConfigChangeSetRepository() + e);
+            logger.warn("Error parsing scenario repository path for ".
+                    concat(testPlan.getConfigChangeSetRepository()), e);
             return false;
         }
     }
@@ -96,7 +97,8 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
             };
             return applyShellCommandOnAgent(testPlan, initShellCommand);
         } catch (MalformedURLException e) {
-            logger.warn("Error parsing scenario path " + testPlan.getConfigChangeSetRepository() + e);
+            logger.warn("Error parsing scenario repository path for ".
+                    concat(testPlan.getConfigChangeSetRepository()), e);
             return false;
         }
     }
@@ -142,7 +144,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
             Agent[] agents = new Gson().fromJson(agentResponse.asString(), Agent[].class);
 
             for (Agent agent : Arrays.asList(agents)) {
-                logger.info("Agent registered : " + agent.getAgentId());
+                logger.info("Connected agent : " + agent.getAgentId());
                 if (agent.getTestPlanId().equals(testPlan.getId())) {
                     for (String shellCommand : initShellCommand) {
                         logger.info("exec " + shellCommand);
@@ -153,7 +155,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
             }
             return true;
         } catch (IOException e) {
-            logger.warn("Error in API call " + e);
+            logger.warn("Error in API call request ".concat(tinkererHost), e);
             return false;
         }
     }

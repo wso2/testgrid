@@ -45,7 +45,7 @@ public class ConfigChangeSetFactory {
             return Optional.of(new ConfigChangeSetExecutorUnix());
         } else if (osCategory.equals(TestPlanExecutor.OSCategory.WINDOWS)) {
             logger.info("OSCatagory is WINDOWS");
-            return Optional.of(new ConfigChangeSetExecutorUnix());
+            return Optional.of(new ConfigChangeSetExecutorWindows());
         } else {
             return Optional.empty();
         }

@@ -561,18 +561,6 @@
                 <artifactId>velocity</artifactId>
                 <version>${apache.velocity.version}</version>
             </dependency>
-            <!-- JSON parsing library -->
-            <dependency>
-                <groupId>org.json</groupId>
-                <artifactId>json</artifactId>
-                <version>${json.version}</version>
-            </dependency>
-            <!-- HTTP headers library -->
-            <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>jsr311-api</artifactId>
-                <version>${jsr.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -629,7 +617,5 @@
         <commons.validator.version>1.6</commons.validator.version>
         <google.gson.version>2.2.4</google.gson.version>
         <glassfish.tyrus.version>1.13.1</glassfish.tyrus.version>
-        <json.version>20090211</json.version>
-        <jsr.version>1.1.1</jsr.version>
     </properties>
 </project>
