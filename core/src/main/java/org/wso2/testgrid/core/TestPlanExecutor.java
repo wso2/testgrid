@@ -109,7 +109,7 @@ public class TestPlanExecutor {
      * @param testPlan an instance of {@link TestPlan} in which the tests should be executed
      * @throws TestPlanExecutorException thrown when error on executing test plan
      */
-    public void execute(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
+    public boolean execute(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws TestPlanExecutorException, TestGridDAOException {
         long startTime = System.currentTimeMillis();
 
@@ -131,7 +131,8 @@ public class TestPlanExecutor {
                     "Error occurred while performing deployment for test plan", testPlan.getId(),
                     "Releasing infrastructure..."));
             releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
-            return;
+            printSummary(testPlan, System.currentTimeMillis() - startTime);
+            return false;
         }
         // Run test scenarios.
         runScenarioTests(testPlan, deploymentCreationResult);
@@ -154,6 +155,7 @@ public class TestPlanExecutor {
         // Print summary
         printSummary(testPlan, System.currentTimeMillis() - startTime);
 
+        return testPlan.getStatus() == Status.SUCCESS;
     }
 
     /**
@@ -579,7 +581,7 @@ public class TestPlanExecutor {
                 break;
             case ERROR:
                 logger.error("There are deployment/test errors...");
-                logger.info("Sorry, we are yet to infer an error summary!");
+                logger.info("Error summary is coming soon!");
                 break;
             case FAIL:
                 printFailState(testPlan);
