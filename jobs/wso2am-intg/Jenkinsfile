@@ -101,6 +101,7 @@ pipeline {
                     echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  sqlDriversLocationUnix: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  sshKeyFileLocation: workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
 
                     echo The job-config.yaml:
                     cat ${JOB_CONFIG_YAML_PATH}
