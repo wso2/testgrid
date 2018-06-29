@@ -101,6 +101,7 @@ pipeline {
                     echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  sqlDriversLocationUnix: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  sshKeyFileLocation: workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
 
                     echo The job-config.yaml:
                     cat ${JOB_CONFIG_YAML_PATH}
@@ -175,12 +176,12 @@ pipeline {
             /* Prereq:
                1. Needs TestSuit.txt and output.properties files in relevant scenario directory.
                2. DB needs to be updated on integration test result statues.
-
+            */
                sh """
                 cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
                 ./testgrid generate-email \
                 --product ${PRODUCT} \
-                """ */
+                """
             script {
                 // Archive artifacts
                 loadProperties()
@@ -193,12 +194,12 @@ pipeline {
                     s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"${bucket}", path:"artifacts/")
                 }
                 //Send email for failed results.
-                /* if (fileExists('/testgrid/testgrid-home/${PRODUCT}/EmailReport.html')) {
+                if (fileExists('/testgrid/testgrid-home/${PRODUCT}/EmailReport.html')) {
                      emailext mimeType: 'text/html',
                      body: '${FILE,path="/testgrid/testgrid-home/${PRODUCT}/EmailReport.html"}',
                      subject: '${PRODUCT} integration test failure!',
-                     to: 'builder@wso2.org'
-                   } */
+                     to: 'kasung@wso2.com,pasinduj@wso2.com'
+                   }
             }
             // Delete logs and reports after upload
             dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
