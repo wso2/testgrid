@@ -66,7 +66,7 @@ public class UnixClient extends TinkererClient {
     private static final Logger logger = LoggerFactory.getLogger(UnixClient.class);
     private static final String SCENARIO_LOG_LOCATION = "/repository/logs/";
     private static final String INTEGRATION_LOG_LOCATION = "/logs/";
-    private static final String WORKSPACE_DIR_POSIX = "WORKSPACE_DIR_POSIX";
+    private static final String WORKSPACE_DIR_POSIX = "REMOTE_WORKSPACE_DIR_UNIX";
 
     @Override
     public void downloadLogs(DeploymentCreationResult deploymentCreationResult, TestPlan testPlan)
@@ -246,6 +246,9 @@ public class UnixClient extends TinkererClient {
                 }
                 logger.info("Successfully downloaded all log files ");
             }
+        }
+        if (deploymentCreationResult.getAgents().size() == 0) {
+            logger.warn("No registered agents found!");
         }
     }
 

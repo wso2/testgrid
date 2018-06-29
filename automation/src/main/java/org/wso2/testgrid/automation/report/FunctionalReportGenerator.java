@@ -17,6 +17,8 @@
 */
 package org.wso2.testgrid.automation.report;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
@@ -28,6 +30,14 @@ import org.wso2.testgrid.common.TestPlan;
  */
 public class FunctionalReportGenerator extends ReportGenerator {
 
+    private static final Logger logger = LoggerFactory.getLogger(FunctionalReportGenerator.class);
+
+    public FunctionalReportGenerator(TestPlan testPlan) {
+        super(testPlan);
+    }
+
+    public FunctionalReportGenerator() {
+    }
 
     @Override
     public boolean canGenerateReport(TestPlan testPlan) {
@@ -39,7 +49,7 @@ public class FunctionalReportGenerator extends ReportGenerator {
     public void generateReport() throws ReportGeneratorException {
         TestPlan testPlan = this.getTestPlan();
         if (testPlan != null) {
-            //TODO implement the functional testing per test plan report generation
+            logger.warn("Functional test report generation not implemented yet!");
         } else {
             throw new ReportGeneratorException(String.format("Report generator %s is not correctly " +
                             "initialized with a TestPlan", this.getClass().toString()));
