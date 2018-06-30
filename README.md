@@ -8,33 +8,82 @@ Welcome to main repo of WSO2 TestGrid.
 
 TestGrid strengthens the positioning of WSO2 products and adds major value to the subscriptions WSO2 offers. Following are some benefits TestGrid provide:
 
-1. TestGrid tests entire feature-set of our products (APIM/IS/EI/SP/IOT) against a wide-array of supported infrastructure combinations. (We are not there yet!) 
-(In essence, we add value to what we have claimed at [1], [2], and more.)
+1. TestGrid tests entire feature-set of our products (APIM/IS/EI/SP/IOT) against a wide-array of supported infrastructure combinations.
+In essence, we add value to what we have claimed at [Tested DBMSs](https://docs.wso2.com/display/compatibility/Tested+DBMSs),
+ [Tested Operating Systems and JDKs](https://docs.wso2.com/display/compatibility/Tested+Operating+Systems+and+JDKs),
+ and more.
 
-> _User asks_  : Does WSO2 IS support IBM JDK 8 with DB2 database on AIX operating system?
+ Here's a conversation that may highlight the value of Testgrid at WSO2:
 
-> _WSO2 response_ : IS has been tested exactly against this set of combinations, and is proven to work. You can find the current status of this infrastructure combination in the WSO2 TestGrid's dashboard at http://testgrid-live.wso2.com/.
+> _User asks_  : Does WSO2 IS support IBM JDK 8 with DB2 database on AIX
+operating system?
 
-2. Users get to validate their WSO2 deployments thru the scenario test support we provide. 
+> _WSO2 response_ : Yes, IS has been tested exactly against this set of
+combinations, and is proven to work.
+> You can find the current status of this infrastructure combination in
+the WSO2 TestGrid's dashboard at testgrid-live.wso2.example.com.
 
-3. Users get to see a document with a set of hypothetical user stories each having scenario test scripts. Each scenario test script will test for minor configuration variations (like caching enabled/disabled). This document will provide a single source of truth for user stories.
-Currently, we only have a crude list that simply detail names and descriptions though. [3]
+2. Users get to validate their WSO2 deployments through the scenario test
+support we provide.
 
-------------------------
-Current TestGrid-Live dashboard can be found here - https://testgrid-live.private.wso2.com/
+3. Users get to see a document with a set of user stories each having
+scenario test scripts. Each scenario test script will test for minor
+configuration variations (like caching enabled/disabled).
+This document will provide a single source of truth for user stories.
+See the current development at
+[identity-test-integration](https://github.com/wso2-incubator/identity-test-integration/blob/master/README.md
+), and [apim-test-integration](https://github.com/wso2-incubator/apim-test-integration/blob/master/README.md)
+repositories.
 
-Once we have the TestGrid beta,
-* You will find the TestGrid home page here - https://testgrid.wso2.com
-* You will find the TestGrid Live dashboard here - https://testgrid-live.wso2.com
-------------------------
+## Where to go next from here?
 
-[1] https://docs.wso2.com/display/compatibility/Tested+DBMSs
+1. Read the quick architecture details below
+2. Do the [quick start guide](QuickStartGuide.md), and get a local testgrid running
+3. Read the Testgrid concepts at [Infrastructure / Deployment / and Scenarios Repository Structure](Infrastructure-Deployment-Scenarios-Repository-Structure.md)
+4. See developer docs at [How to Pass Data between Testgrid steps](How-to-Pass-Data-to-Next-Steps.md)
 
-[2] https://docs.wso2.com/display/compatibility/Tested+Operating+Systems+and+JDKs
+## Testgrid architecture
 
-[3] https://github.com/wso2-incubator/identity-test-integration/blob/master/README.md
+### Overall system components are as follows:
+
+![testgrid-system-architecture](docs/testgrid-architecture.png)
+
+* Testgrid uses Jenkins as the runtime engine due to its CI capabilities that
+closely matches with some of the key requirements for testgrid's
+function. They include:
+
+1. Mature master-slave architecture: Jenkins provides a scalable model for
+TestGrid to execute multiple test-runs in parallel. The slave nodes can be
+scaled up and down depending on the size of the build queue.
+This allows TestGrid to be highly scalable which is a key requirement when
+the number of infrastructure combinations grow.
+2. Build triggers for running builds periodically, per git pull-request merge etc.
+3. Scripting support: Jenkins2 provides scripting of builds through
+Jenkins Pipelines.
+
+* TestGrid Core - TestGrid core is a library that knows how to execute a given
+test-plan. In TestGrid, Jenkins is the runtime execution engine, and the
+TestGrid Core is just a library. Jenkins is the one that instruct the TestGrid
+Core to execute test-plans, publish reports etc. as appropriate.
+
+* TestGrid Database - TestGrid test-run status is persisted in a database.
+The TestGrid Core store the build data in here. It includes the tested products
+(ie. product name+version), deployment patterns, and the test status of each
+scenario.
+Please find the [ER diagram](docs/erd/testgrid-erd.png).
+
+* Dashboard - Dashboard shows the build status of durable jobs.
 
 
-## Getting Started with WSO2 TestGrid
+### Testgrid core execution flow
 
-The [Quick Start Guide](docs/QuickStartGuide.md) contains end-to-end steps on getting started and running WSO2  TestGrid.
+Given a test-plan as an input, testgrid core knows where to
+find the infrastructure-as-code repo, product deployment scripts (puppet?),
+and test scripts. It can then execute the testgrid's three-step
+execution flow:
+
+1. Provision infrastructure (AWS/K8S/Azure)
+2. Create the deployment (Puppet/Shell scripting)
+3. Execute test scripts (JMeter / TestNG (via maven))
+
+![testgrid-system-architecture](docs/testgrid-testplan-executor-workflow.png)
