@@ -124,6 +124,30 @@ Parameters:
     AllowedValues:
       - OPEN_JDK8
       - ORACLE_JDK8
+Mappings:
+  DB2Licence:
+    mysql:
+      license: general-public-license
+    postgres:
+      license: postgresql-license
+    mariadb:
+      license: general-public-license
+    sqlserver-ex:
+      license: license-included
+    sqlserver-ee:
+      license: license-included
+    sqlserver-se:
+      license: license-included
+    sqlserver-web:
+      license: license-included
+    oracle-se:
+      license: license-included
+    oracle-se2:
+      license: license-included
+    oracle-ee:
+      license: license-included
+    oracle-se1:
+      license: license-included
 Resources:
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -271,7 +295,7 @@ Resources:
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
       DBInstanceIdentifier: wso2-dbinstance
-      LicenseModel: license-included
+      LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       AutoMinorVersionUpgrade: false
