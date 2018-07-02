@@ -222,12 +222,11 @@ Resources:
               source /etc/profile
           }
 
-          apt-get -y install git
-          mkdir -p /opt/wso2
+          mkdir -p /opt/wso2/workspace
           #TODO: We need to figure out the default user in the system.
           #So, provided permissions to all the users. Need to fix!
-          chmod 777 /opt/wso2
-          cd /opt/wso2
+          chmod 777 -R /opt/wso2
+          cd /opt/wso2/workspace
 
           setup_java_env
           echo "Installing Apache Maven"
@@ -272,6 +271,7 @@ Resources:
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
       DBInstanceIdentifier: wso2-dbinstance
+      LicenseModel: license-included
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       AutoMinorVersionUpgrade: false
