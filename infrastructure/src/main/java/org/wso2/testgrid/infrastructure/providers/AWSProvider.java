@@ -180,8 +180,9 @@ public class AWSProvider implements InfrastructureProvider {
             List<TemplateParameter> expectedParameters = validationResult.getParameters();
 
             stackRequest.setTemplateBody(file);
-            stackRequest.setParameters(getParameters(script, expectedParameters, infrastructureConfig,
-                    testPlan.getId()));
+            final List<Parameter> populatedExpectedParameters = getParameters(script, expectedParameters,
+                    infrastructureConfig, testPlan.getId());
+            stackRequest.setParameters(populatedExpectedParameters);
 
             logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
@@ -229,6 +230,11 @@ public class AWSProvider implements InfrastructureProvider {
                     hosts.add(host);
                     outputProps.setProperty(output.getOutputKey(), output.getOutputValue());
                 }
+            }
+            // add cfn input properties into the output. We sometimes use default values of cfn input params
+            // which needs to passed down to the next step.
+            for (Parameter param : populatedExpectedParameters) {
+                outputProps.setProperty(param.getParameterKey(), param.getParameterValue());
             }
 
             persistOutputs(testPlan, outputProps);
