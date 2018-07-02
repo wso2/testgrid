@@ -140,7 +140,6 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                     .addHeader(HttpHeaders.AUTHORIZATION, authenticationToken).
                             execute().returnContent();
 
-
             Agent[] agents = new Gson().fromJson(agentResponse.asString(), Agent[].class);
 
             for (Agent agent : Arrays.asList(agents)) {

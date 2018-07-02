@@ -36,8 +36,8 @@ public class ConfigChangeSetFactory {
 
     /**
      * Generate Config change set executor for given OS
-     * @param osCategory
-     * @return
+     * @param osCategory type of agent OS as WINDOWS or UNIX
+     * @return Object to run config change set commands
      */
     public static Optional<ConfigChangeSetExecutor> getExecuter(TestPlanExecutor.OSCategory osCategory) {
         if (osCategory.equals(TestPlanExecutor.OSCategory.UNIX)) {

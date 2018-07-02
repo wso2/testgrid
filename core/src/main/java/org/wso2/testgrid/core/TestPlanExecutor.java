@@ -307,7 +307,6 @@ public class TestPlanExecutor {
                 Optional<ConfigChangeSetExecutor> configChangeSetExecutor =
                         ConfigChangeSetFactory.getExecuter(osCategory);
                 if (configChangeSetExecutor.isPresent()) {
-
                     if (configChangeSetExecutor.get().initConfigChangeSet(testPlan)) {
                         for (ConfigChangeSet configChangeSet : configChangeSetList) {
                             for (TestScenario testScenario : testPlan.getTestScenarios()) {
