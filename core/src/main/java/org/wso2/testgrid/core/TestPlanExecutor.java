@@ -309,15 +309,16 @@ public class TestPlanExecutor {
                 if (configChangeSetExecutor.isPresent()) {
                     if (configChangeSetExecutor.get().initConfigChangeSet(testPlan)) {
                         for (ConfigChangeSet configChangeSet : configChangeSetList) {
-                            for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                                if (configChangeSet.getName().equals(testScenario.getConfigChangeSetName())) {
-                                    if (configChangeSetExecutor.get().
-                                            applyConfigChangeSet(testPlan, configChangeSet, true)) {
+                            logger.info("Start running config change set for " + configChangeSet.getName());
+                            if (configChangeSetExecutor.get().
+                                    applyConfigChangeSet(testPlan, configChangeSet, true)) {
+                                for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                                    if (configChangeSet.getName().equals(testScenario.getConfigChangeSetName())) {
                                         executeTestScenario(testScenario, deploymentCreationResult, testPlan);
-                                        configChangeSetExecutor.get().
-                                                applyConfigChangeSet(testPlan, configChangeSet, false);
                                     }
                                 }
+                                configChangeSetExecutor.get().
+                                        applyConfigChangeSet(testPlan, configChangeSet, false);
                             }
                         }
                         configChangeSetExecutor.get().deInitConfigChangeSet(testPlan);
