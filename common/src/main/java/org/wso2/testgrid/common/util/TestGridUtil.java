@@ -512,4 +512,17 @@ public final class TestGridUtil {
 
         return StringUtil.concatStrings(deploymentDir, UNDERSCORE, infraDir, UNDERSCORE, String.valueOf(testRunNumber));
     }
+
+    /**
+     * Checks whether debug mode is enabled for this test plan or not.
+     * Debug mode can be enabled by adding a property "DEBUG_MODE: true" to
+     * job-config.yaml.
+     *
+     * @param testPlan the test plan
+     * @return true if DEBUG_MODE property is set, and its value is true in job-config.xml
+     */
+    public static boolean isDebugMode(TestPlan testPlan) {
+        final String debugMode = testPlan.getJobProperties().getProperty(TestGridConstants.DEBUG_MODE);
+        return Boolean.valueOf(debugMode);
+    }
 }
