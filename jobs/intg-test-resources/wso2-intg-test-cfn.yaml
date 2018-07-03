@@ -308,6 +308,7 @@ Resources:
       AvailabilityZone: !Select
         - '0'
         - !GetAZs ''
+    DeletionPolicy: Delete
     Metadata:
       'AWS::CloudFormation::Designer':
         id: 5352b4e9-46ed-4a23-8bdc-bafc3666cbbd
