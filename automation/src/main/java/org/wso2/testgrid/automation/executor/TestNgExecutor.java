@@ -33,6 +33,8 @@ import java.nio.file.Paths;
 
 /**
  * This class is responsible for Executing TestNG tests.
+ * @deprecated Deprecated in favor of {@link ShellTestExecutor}
+ *
  */
 public class TestNgExecutor extends TestExecutor {
 

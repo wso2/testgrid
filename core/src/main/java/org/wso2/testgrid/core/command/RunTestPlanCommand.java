@@ -45,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This runs the test plans for the given parameters.
@@ -138,7 +139,7 @@ public class RunTestPlanCommand implements Command {
     /**
      * Copies non existing properties from a persisted test plan to a test plan object generated from the config.
      *
-     * @param testPlanConfig an instance of test plan which is generated from the config
+     * @param testPlanConfig    an instance of test plan which is generated from the config
      * @param testPlanPersisted an instance of test plan which is persisted in the db
      * @return an instance of {@link TestPlan} with merged properties
      */
@@ -226,6 +227,11 @@ public class RunTestPlanCommand implements Command {
     private boolean executeTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws CommandExecutionException {
         try {
+            final String infraCmb = testPlan.getInfrastructureConfig().getParameters().entrySet().stream()
+                    .map(e -> e.getKey() + "=" + e.getValue())
+                    .sorted()
+                    .collect(Collectors.joining("\n"));
+            logger.info("Executing test-plan for infrastructure combination: \n" + infraCmb);
             return testPlanExecutor.execute(testPlan, infrastructureConfig);
         } catch (TestPlanExecutorException | TestGridDAOException e) {
             throw new CommandExecutionException(

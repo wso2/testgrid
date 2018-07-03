@@ -84,25 +84,25 @@ public class StackCreationWaiter {
                 StackStatus stackStatus = StackStatus.fromValue(
                         describeStacksResult.getStacks().get(i).getStackStatus());
 
-                    // Event details of the stack
-                    DescribeStackEventsRequest describeStackEventsRequest = new DescribeStackEventsRequest()
-                            .withStackName(stackName);
-                    DescribeStackEventsResult describeStackEventsResult = cloudFormation.
-                            describeStackEvents(describeStackEventsRequest);
+                // Event details of the stack
+                DescribeStackEventsRequest describeStackEventsRequest = new DescribeStackEventsRequest()
+                        .withStackName(stackName);
+                DescribeStackEventsResult describeStackEventsResult = cloudFormation.
+                        describeStackEvents(describeStackEventsRequest);
 
-                    //Print a log of the current state of the resources
-                    StringBuilder stringBuilder = new StringBuilder();
-                    for (StackEvent stackEvent: describeStackEventsResult.getStackEvents()) {
-                        stringBuilder.append(StringUtil.concatStrings(
-                                "Status: ", stackEvent.getResourceStatus(), ", "));
-                        stringBuilder.append(StringUtil.concatStrings(
-                                "Resource Type: ", stackEvent.getResourceType(), ", "));
-                        stringBuilder.append(StringUtil.concatStrings(
-                                "Logical ID: ", stackEvent.getLogicalResourceId(), ", "));
-                        stringBuilder.append(StringUtil.concatStrings(
-                                "Status Reason: ", stackEvent.getResourceStatusReason()));
-                        stringBuilder.append("\n");
-                    }
+                //Print a log of the current state of the resources
+                StringBuilder stringBuilder = new StringBuilder();
+                for (StackEvent stackEvent : describeStackEventsResult.getStackEvents()) {
+                    stringBuilder.append(StringUtil.concatStrings(
+                            "Status: ", stackEvent.getResourceStatus(), ", "));
+                    stringBuilder.append(StringUtil.concatStrings(
+                            "Resource Type: ", stackEvent.getResourceType(), ", "));
+                    stringBuilder.append(StringUtil.concatStrings(
+                            "Logical ID: ", stackEvent.getLogicalResourceId(), ", "));
+                    stringBuilder.append(StringUtil.concatStrings(
+                            "Status Reason: ", stackEvent.getResourceStatusReason()));
+                    stringBuilder.append("\n");
+                }
                 logger.info(StringUtil.concatStrings("Event Details: \n", stringBuilder.toString()));
 
                 //Determine the steps to execute based on the status of the stack
