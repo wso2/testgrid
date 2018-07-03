@@ -682,7 +682,8 @@ public class TestPlanExecutor {
      * @return the Catagory of the Operating System
      */
     private OSCategory getOSCatagory(String infraParameters) {
-        if (infraParameters.contains(OSCategory.WINDOWS.toString().toLowerCase(Locale.ENGLISH))) {
+        if (infraParameters.toLowerCase(Locale.ENGLISH)
+                .contains(OSCategory.WINDOWS.toString().toLowerCase(Locale.ENGLISH))) {
             return OSCategory.WINDOWS;
         } else {
             return OSCategory.UNIX;
