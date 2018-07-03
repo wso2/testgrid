@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
 import org.wso2.testgrid.automation.exception.ReportGeneratorInitializingException;
+import org.wso2.testgrid.automation.exception.ReportGeneratorNotFoundException;
 import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.automation.parser.ResultParser;
 import org.wso2.testgrid.automation.parser.ResultParserFactory;
@@ -182,14 +183,16 @@ public class TestPlanExecutor {
                     testPlan.getDeploymentPattern().getProduct().getName());
         }
         //report generation
-        logger.info("initiating per testplan report generation");
+        logger.info("Generating report for the test plan: " + testPlan.getId());
         try {
             ReportGenerator reportGenerator = ReportGeneratorFactory.getReportGenerator(testPlan);
             reportGenerator.generateReport();
+        } catch (ReportGeneratorNotFoundException e) {
+            logger.error(e.getMessage() + " for TestPlan of " + testPlan.getDeploymentPattern()
+                    .getProduct().getName());
         } catch (ReportGeneratorInitializingException e) {
             logger.error("Error while initializing the report generators  " +
-                    "for TestPlan of " + testPlan.getDeploymentPattern()
-                    .getProduct().getName(), e);
+                    "for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName(), e);
         } catch (ReportGeneratorException e) {
             logger.error("Error while generating the report for " +
                     "TestPlan of " + testPlan.getDeploymentPattern()

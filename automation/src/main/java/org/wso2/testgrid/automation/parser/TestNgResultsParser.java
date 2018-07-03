@@ -129,9 +129,15 @@ public class TestNgResultsParser extends ResultParser {
         }
     }
 
-    private String getClassName(StartElement startElement) {
+    /**
+     * Read the name attribute from the classElement input.
+     *
+     * @param classElement the class element
+     * @return the name attribute
+     */
+    private String getClassName(StartElement classElement) {
         String classNameStr = "unknown";
-        final Iterator attributes = startElement.getAttributes();
+        final Iterator attributes = classElement.getAttributes();
         while (attributes.hasNext()) {
             Attribute att = (Attribute) attributes.next();
             if (att.getName().getLocalPart().equals("name")) {
@@ -178,6 +184,14 @@ public class TestNgResultsParser extends ResultParser {
         return testCase;
     }
 
+    /**
+     *
+     * Searches the provided path for files named "testng-results.xml",
+     * and returns the list of paths.
+     *
+     * @param dataBucket the data bucket folder where build artifacts are located.
+     * @return list of paths of testng-results.xml.
+     */
     private Set<Path> getResultInputFiles(Path dataBucket) {
         try {
             final Stream<Path> ls = Files.list(dataBucket);
