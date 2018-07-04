@@ -152,6 +152,10 @@ Mappings:
       license: license-included
     oracle-se1:
       license: license-included
+#Conditions
+Conditions:
+ IsWindows: !Equals [ !Ref OS, "Windows" ]
+ IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "UBUNTU" ]]
 Resources:
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -201,8 +205,9 @@ Resources:
     Metadata:
       'AWS::CloudFormation::Designer':
         id: d0dcc88f-97f7-4d80-901a-f746d372a295
-  WSO2Instance:
+  WSO2UnixInstance:
     Type: 'AWS::EC2::Instance'
+    Condition: 'IsUnix'
     DependsOn:
       - WSO2DBInstance
     Properties:
@@ -290,6 +295,48 @@ Resources:
                }
           }
        }
+  WSO2WindowsInstance:
+      Type: 'AWS::EC2::Instance'
+      Condition: 'IsWindows'
+      DependsOn:
+        - WSO2DBInstance
+      Properties:
+        DisableApiTermination: 'false'
+        InstanceInitiatedShutdownBehavior: stop
+        ImageId: !Ref AMI
+        InstanceType: !Ref WSO2InstanceType
+        KeyName: !Ref EC2KeyPair
+        Monitoring: 'false'
+        "BlockDeviceMappings" : [
+           {
+              "DeviceName" : "/dev/sda1",
+              "Ebs" : { "VolumeSize" : "50" }
+           },
+        ]
+        UserData:
+          !Base64
+          'Fn::Sub': |
+            <script>
+            setx -m JAVA_HOME "%${JDK}%"
+            </script>
+            <persist>true</persist>
+        SecurityGroups:
+          - !Ref WSO2InstanceSecurityGroup
+      Metadata:
+        'AWS::CloudFormation::Designer':
+          id: 8f512cce-69ee-45de-87ab-5aedd2a93d50
+        "AWS::CloudFormation::Init" : {
+            "config" : {
+                "packages" : {
+                    "apt" : {
+                      }
+                  },
+                 "sources" : {
+                  },
+                 "files" : {
+                 }
+            }
+         }
   WSO2DBInstance:
     Type: 'AWS::RDS::DBInstance'
     Properties:
@@ -313,17 +360,21 @@ Resources:
         id: 5352b4e9-46ed-4a23-8bdc-bafc3666cbbd
 Outputs:
   WSO2MgtConsoleURL:
-    Value: !Sub 'https://${WSO2Instance.PublicDnsName}:9443/carbon'
+    Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}:9443/carbon', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}:9443/carbon', !Ref AWS::NoValue]]
     Description: Access URL of the Management Console
   WSO2PublicIP:
-    Value: !Sub '${WSO2Instance.PublicIp}'
-    Description: Private IP of the WSO2 IS Instance
+    Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref AWS::NoValue]]
+    Description: Private IP of the WSO2 Product Instance
   DatabaseHost:
     Value: !Sub '${WSO2DBInstance.Endpoint.Address}'
     Description: Database Host
   DatabasePort:
     Value: !Sub '${WSO2DBInstance.Endpoint.Port}'
     Description: Database Port
+  OS:
+    Value: !Ref OS
+  WSO2InstanceId:
+    Value: !If [IsUnix, !Ref WSO2UnixInstance, !If [IsWindows, !Ref WSO2WindowsInstance, !Ref AWS::NoValue]]
 Metadata:
   'AWS::CloudFormation::Designer':
     abbdb5e8-f28b-4bc6-8b63-da9595b59c4a:
