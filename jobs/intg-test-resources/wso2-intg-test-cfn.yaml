@@ -363,7 +363,7 @@ Outputs:
     Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}:9443/carbon', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}:9443/carbon', !Ref 'AWS::NoValue']]
     Description: Access URL of the Management Console
   WSO2PublicIP:
-    Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref 'AWS::NoValue]']
+    Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref 'AWS::NoValue']]
     Description: Private IP of the WSO2 Product Instance
   DatabaseHost:
     Value: !Sub '${WSO2DBInstance.Endpoint.Address}'
