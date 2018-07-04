@@ -360,10 +360,10 @@ Resources:
         id: 5352b4e9-46ed-4a23-8bdc-bafc3666cbbd
 Outputs:
   WSO2MgtConsoleURL:
-    Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}:9443/carbon', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}:9443/carbon', !Ref 'AWS::NoValue' ]]
+    Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}:9443/carbon', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}:9443/carbon', !Ref 'AWS::NoValue']]
     Description: Access URL of the Management Console
   WSO2PublicIP:
-    Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref 'AWS::NoValue' ]]
+    Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref 'AWS::NoValue']]
     Description: Private IP of the WSO2 Product Instance
   DatabaseHost:
     Value: !Sub '${WSO2DBInstance.Endpoint.Address}'
@@ -374,7 +374,7 @@ Outputs:
   OS:
     Value: !Ref OS
   WSO2InstanceId:
-    Value: !If [IsUnix, !Ref WSO2UnixInstance, !If [IsWindows, !Ref WSO2WindowsInstance, !Ref 'AWS::NoValue' ]]
+    Value: !If [IsUnix, !Ref WSO2UnixInstance, !If [IsWindows, !Ref WSO2WindowsInstance, !Ref 'AWS::NoValue']]
 Metadata:
   'AWS::CloudFormation::Designer':
     abbdb5e8-f28b-4bc6-8b63-da9595b59c4a:
