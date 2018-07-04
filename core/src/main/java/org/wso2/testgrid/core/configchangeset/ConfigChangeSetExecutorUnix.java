@@ -136,7 +136,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
         String authenticationToken = "Basic " + Base64.getEncoder().encodeToString(
                 authenticationString.getBytes(StandardCharsets.UTF_8));
         try {
-            Content agentResponse = Request.Get(tinkererHost + "/agents")
+            Content agentResponse = Request.Get(tinkererHost + "agents")
                     .addHeader(HttpHeaders.AUTHORIZATION, authenticationToken).
                             execute().returnContent();
 
@@ -172,7 +172,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
     private Content sendShellCommand(String tinkererHost, String authenticationKey, Agent agent, String script)
             throws IOException {
         return Request.Post(
-                tinkererHost + "/test-plan/" + agent.getTestPlanId() +
+                tinkererHost + "test-plan/" + agent.getTestPlanId() +
                         "/agent/" + agent.getInstanceName() + "/operation"
         ).addHeader(HttpHeaders.AUTHORIZATION, authenticationKey)
                 .addHeader(HttpHeaders.CONTENT_TYPE, "application/json")
