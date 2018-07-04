@@ -137,6 +137,10 @@ public class UnixClient extends TinkererClient {
                             "entry is present in job-config.yml file : "
                             + "\nfor test plan :" + testPlan.getId());
                 }
+                /*If the path contains the ~ character we need to replace it with ~{OS-USER} because,
+                agent executes as the root user, and it will infer ~ as root.
+                ex: ~ --replace into--> ~centos*/
+                productBasePath = productBasePath.replace("~", "~" + agent.getInstanceUser());
                 logLocation = productBasePath + INTEGRATION_LOG_LOCATION;
             }
             logger.info("Product base path found " + productBasePath);

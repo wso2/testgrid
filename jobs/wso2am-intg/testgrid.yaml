@@ -19,6 +19,7 @@ infrastructureConfig:
             parseInfrastructureScript: false
             region: us-east-1
             DBPassword: "DB_Password"
+            DBUsername: "wso2carbon"
             DBClass: "db.m4.large"
             EC2KeyPair: "testgrid-key"
             ALBCertificateARN: "arn:aws:acm:us-east-1:809489900555:certificate/2ab5aded-5df1-4549-9f7e-91639ff6634e"
