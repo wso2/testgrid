@@ -143,7 +143,12 @@ public class ConfigurationContext {
         /**
          * Host-name of TestGrid deployment.
          */
-        TESTGRID_HOST("TESTGRID_HOST");
+        TESTGRID_HOST("TESTGRID_HOST"),
+
+        /**
+         * Waits for tack deletion.
+         */
+        WAIT_FOR_STACK_DELETION("WAIT_FOR_STACK_DELETION");
 
         private String propertyName;
 

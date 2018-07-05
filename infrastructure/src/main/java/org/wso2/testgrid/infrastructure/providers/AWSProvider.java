@@ -304,15 +304,21 @@ public class AWSProvider implements InfrastructureProvider {
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(stackName);
         stackdestroy.deleteStack(deleteStackRequest);
-        logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName, " to delete.."));
-        Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new
-                AmazonCloudFormationWaiters(stackdestroy).stackDeleteComplete();
-        try {
-            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()
-                    .withStackName(stackName)));
-        } catch (WaiterUnrecoverableException e) {
-            throw new TestGridInfrastructureException("Error occured while waiting for Stack :"
-                    + stackName + " deletion !");
+        logger.info(StringUtil.concatStrings("Stack : ", stackName, " is handed over for deletion!"));
+
+        boolean waitForStackDeletion = Boolean.parseBoolean(ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.WAIT_FOR_STACK_DELETION));
+        if (waitForStackDeletion) {
+            logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName, " to delete.."));
+            Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new
+                    AmazonCloudFormationWaiters(stackdestroy).stackDeleteComplete();
+            try {
+                describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()
+                        .withStackName(stackName)));
+            } catch (WaiterUnrecoverableException e) {
+                throw new TestGridInfrastructureException("Error occurred while waiting for Stack :"
+                                                          + stackName + " deletion !");
+            }
         }
         return true;
     }
