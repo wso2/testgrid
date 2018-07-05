@@ -233,6 +233,11 @@ public class AWSProvider implements InfrastructureProvider {
             }
             // add cfn input properties into the output. We sometimes use default values of cfn input params
             // which needs to passed down to the next step.
+            for (TemplateParameter param : expectedParameters) {
+                if (param.getDefaultValue() != null) {
+                    outputProps.setProperty(param.getParameterKey(), param.getDefaultValue());
+                }
+            }
             for (Parameter param : populatedExpectedParameters) {
                 outputProps.setProperty(param.getParameterKey(), param.getParameterValue());
             }
