@@ -210,6 +210,10 @@ Resources:
     Condition: 'IsUnix'
     DependsOn:
       - WSO2DBInstance
+    CreationPolicy:
+      ResourceSignal:
+        Count: '1'
+        Timeout: PT60M
     Properties:
       DisableApiTermination: 'false'
       InstanceInitiatedShutdownBehavior: stop
@@ -275,6 +279,7 @@ Resources:
 
           cat /dev/null > ~/.bash_history && history -c
           ${CustomUserData}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2Instance --region ${AWS::Region}
       Tags:
         - Key: Name
           Value: wso2-apim-intg-node
