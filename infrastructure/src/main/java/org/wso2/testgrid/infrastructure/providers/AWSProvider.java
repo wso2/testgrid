@@ -304,6 +304,7 @@ public class AWSProvider implements InfrastructureProvider {
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(stackName);
         stackdestroy.deleteStack(deleteStackRequest);
+        logger.info(StringUtil.concatStrings("Stack : ", stackName, " is handed over for deletion!"));
 
         boolean waitForStackDeletion = Boolean.parseBoolean(ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.WAIT_FOR_STACK_DELETION));
