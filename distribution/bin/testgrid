@@ -32,13 +32,16 @@
 # NOTE: Borrowed generously from Apache Tomcat startup scripts.
 # -----------------------------------------------------------------------------
 
-echo "__          _______  ____ ___    _______        _    _____      _     _ "
-echo "\ \        / / ____|/ __ \__ \  |__   __|      | |  / ____|    (_)   | |"
-echo " \ \  /\  / / (___ | |  | | ) |    | | ___  ___| |_| |  __ _ __ _  __| |"
-echo "  \ \/  \/ / \___ \| |  | |/ /     | |/ _ \/ __| __| | |_ |  __| |/ _  |"
-echo "   \  /\  /  ____) | |__| / /_     | |  __/\__ \ |_| |__| | |  | | (_| |"
-echo "    \/  \/  |_____/ \____/____|    |_|\___||___/\__|\_____|_|  |_|\____|"
-echo ""
+if [ "$1" = "generate-test-plan" ]; then
+    DO_LOG=true
+    echo "__          _______  ____ ___    _______        _    _____      _     _ "
+    echo "\ \        / / ____|/ __ \__ \  |__   __|      | |  / ____|    (_)   | |"
+    echo " \ \  /\  / / (___ | |  | | ) |    | | ___  ___| |_| |  __ _ __ _  __| |"
+    echo "  \ \/  \/ / \___ \| |  | |/ /     | |/ _ \/ __| __| | |_ |  __| |/ _  |"
+    echo "   \  /\  /  ____) | |__| / /_     | |  __/\__ \ |_| |__| | |  | | (_| |"
+    echo "    \/  \/  |_____/ \____/____|    |_|\___||___/\__|\_____|_|  |_|\____|"
+    echo ""
+fi
 
 BASE_DIR=$PWD
 cygwin=false;
@@ -136,7 +139,9 @@ if [ -z "$TESTGRID_HOME" ]; then
   TESTGRID_HOME="$HOME/.testgrid/"
   echo "TESTGRID_HOME is not set, using the default location : $TESTGRID_HOME"
 else
-  echo "Testgrid Home is set to : " $TESTGRID_HOME
+  if [ -n ${DO_LOG} ]; then
+    echo "Testgrid Home is set to : " $TESTGRID_HOME
+  fi
 fi
 
 # ----- Process the input command ----------------------------------------------
