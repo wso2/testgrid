@@ -208,8 +208,6 @@ Resources:
   WSO2UnixInstance:
     Type: 'AWS::EC2::Instance'
     Condition: 'IsUnix'
-    DependsOn:
-      - WSO2DBInstance
     CreationPolicy:
       ResourceSignal:
         Count: '1'
@@ -303,8 +301,6 @@ Resources:
   WSO2WindowsInstance:
       Type: 'AWS::EC2::Instance'
       Condition: 'IsWindows'
-      DependsOn:
-        - WSO2DBInstance
       Properties:
         DisableApiTermination: 'false'
         InstanceInitiatedShutdownBehavior: stop
