@@ -279,7 +279,7 @@ Resources:
 
           cat /dev/null > ~/.bash_history && history -c
           ${CustomUserData}
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2Instance --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
       Tags:
         - Key: Name
           Value: wso2-apim-intg-node
