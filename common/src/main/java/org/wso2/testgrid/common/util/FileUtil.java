@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.common.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.yaml.snakeyaml.Yaml;
 
@@ -39,6 +41,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Utility class for handling file operations.
@@ -47,6 +51,7 @@ import java.util.Map;
  */
 public class FileUtil {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
     public static final String YAML_EXTENSION = ".yaml";
 
     /**
@@ -69,8 +74,9 @@ public class FileUtil {
 
     /**
      * This method returns the list of files in a given directory after filtering a given glob pattern.
+     *
      * @param directory the directory in which the files should be look-up
-     * @param glob the glob pattern to be filtered
+     * @param glob      the glob pattern to be filtered
      * @return list of files
      * @throws TestGridException thrown when an error occurred while accessing files on directory.
      */
@@ -97,7 +103,7 @@ public class FileUtil {
     public static void saveFile(String content, String filePath, String fileName) throws TestGridException {
         String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
         try (OutputStream outputStream = new FileOutputStream(fileAbsolutePath);
-             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
             outputStreamWriter.write(content);
         } catch (IOException e) {
             throw new TestGridException(StringUtil.concatStrings("Error in writing file ", fileName), e);
@@ -124,6 +130,32 @@ public class FileUtil {
             }
         } catch (IOException e) {
             throw new TestGridException("Error occurred while making the archive: " + destination , e);
+        }
+    }
+
+    /**
+     * Compress the files at sourceDir into the destination zip file.
+     *
+     * @param sourceDir the source dir that has contents to archive
+     * @param destination the zip file location
+     */
+    public static void compress(String sourceDir, String destination) throws IOException {
+        Path destPath = Files.createFile(Paths.get(destination));
+        try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(destPath))) {
+            Path sourcePath = Paths.get(sourceDir);
+            Files.walk(sourcePath)
+                    .filter(path -> !Files.isDirectory(path))
+                    .forEach(path -> {
+                        ZipEntry zipEntry = new ZipEntry(sourcePath.relativize(path).toString());
+                        try {
+                            zs.putNextEntry(zipEntry);
+                            Files.copy(path, zs);
+                            zs.closeEntry();
+                        } catch (IOException e) {
+                            logger.debug(e.getMessage(), e);
+                            //ignore the exception and continue
+                        }
+                    });
         }
     }
 

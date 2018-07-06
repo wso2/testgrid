@@ -424,10 +424,14 @@ public final class TestGridUtil {
      */
     public static String deriveScenarioArtifactPath(TestScenario testScenario, String fileName)
             throws TestGridException {
+        return getTestScenarioArtifactPath(testScenario).resolve(fileName).toString();
+    }
+
+    public static Path getTestScenarioArtifactPath(TestScenario testScenario) {
         String productName = testScenario.getTestPlan().getDeploymentPattern().getProduct().getName();
         return Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR, productName,
                 TestGridConstants.TESTGRID_BUILDS_DIR, deriveTestPlanDirName(testScenario.getTestPlan()),
-                testScenario.getDir(), fileName).toString();
+                testScenario.getDir());
     }
 
     /**

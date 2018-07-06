@@ -308,7 +308,7 @@ public class TestPlanExecutor {
                         try {
                             ResultParser resultParser = parser.get();
                             resultParser.parseResults();
-                            resultParser.persistResults();
+                            resultParser.archiveResults();
                         } catch (ResultParserException e) {
                             logger.error(String.format("Error parsing the results for the" +
                                     " scenario %s", testScenario.getName()));

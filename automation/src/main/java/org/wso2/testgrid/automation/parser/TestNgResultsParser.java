@@ -17,18 +17,25 @@
  */
 package org.wso2.testgrid.automation.parser;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.common.TestCase;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
+import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -48,11 +55,15 @@ import javax.xml.stream.events.XMLEvent;
  * Surefire reports parser implementation related to parsing testng integration
  * test results.
  *
+ * List of file and dir names that'll be archived are 'surefire-reports',
+ * and 'automation.log' currently.
+ *
  * @since 1.0.0
  */
 public class TestNgResultsParser extends ResultParser {
 
     public static final String RESULTS_INPUT_FILE = "testng-results.xml";
+    private static final String[] ARCHIVABLE_FILES = new String[] { "surefire-reports", "automation.log" };
     private static final Logger logger = LoggerFactory.getLogger(TestNgResultsParser.class);
     private static final String TOTAL = "total";
     private static final String FAILED = "failed";
@@ -185,7 +196,6 @@ public class TestNgResultsParser extends ResultParser {
     }
 
     /**
-     *
      * Searches the provided path for files named "testng-results.xml",
      * and returns the list of paths.
      *
@@ -214,9 +224,47 @@ public class TestNgResultsParser extends ResultParser {
         }
     }
 
+    /**
+     * Persist the ARCHIVABLE_FILES into the test-scenario artifact dir.
+     * These will eventually get uploaded to S3 via jenkins pipeline.
+     *
+     * @throws ResultParserException if a parser error occurred.
+     */
     @Override
-    public void persistResults() throws ResultParserException {
-        //TODO implement
+    public void archiveResults() throws ResultParserException {
+        try {
+            int maxDepth = 100;
+            final Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan()).getParent();
+            final Set<Path> archivePaths = Files.find(outputLocation, maxDepth,
+                    (path, att) -> Arrays.stream(ARCHIVABLE_FILES).anyMatch(f -> f.equals
+                            (path.getFileName().toString()))).collect(Collectors.toSet());
+
+            logger.info("Found results paths at " + outputLocation + ": " + archivePaths);
+            if (!archivePaths.isEmpty()) {
+                Path artifactPath = TestGridUtil.getTestScenarioArtifactPath(testScenario);
+                for (Path filePath : archivePaths) {
+                    File file = filePath.toFile();
+                    File destinationFile = new File(
+                            TestGridUtil.deriveScenarioArtifactPath(this.testScenario, file.getName()));
+                    if (file.isDirectory()) {
+                        FileUtils.copyDirectory(file, destinationFile);
+                    } else {
+                        FileUtils.copyFile(file, destinationFile);
+                    }
+                }
+                Path zipFilePath = artifactPath.resolve(testScenario.getDir() + TestGridConstants
+                        .TESTGRID_COMPRESSED_FILE_EXT);
+                FileUtil.compress(artifactPath.toString(), zipFilePath.toString());
+                logger.info("Created the results archive: " + zipFilePath);
+            } else {
+                logger.info("Could not create results archive. No archived files with names: " + Arrays.toString
+                        (ARCHIVABLE_FILES) + " were found at " + outputLocation + ".");
+            }
+        } catch (IOException | TestGridException e) {
+            throw new ResultParserException("Error occurred while persisting scenario test-results." +
+                    "Scenario ID: " + testScenario.getId() + ", Scenario Directory: " + testScenario.getDir(), e);
+        }
+
     }
 }
 
