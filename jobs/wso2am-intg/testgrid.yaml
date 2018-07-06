@@ -40,6 +40,6 @@ deploymentConfig:
       scripts:
         - name: 'default'
           type: SHELL
-          file: deploy.sh
+          file: jobs/intg-test-resources/deploy.sh
           inputParameters:
             parseInfrastructureScript: false
