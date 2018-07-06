@@ -27,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.ConfigChangeSet;
+import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.core.TestPlanExecutor;
@@ -35,8 +37,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * This class execute commands for applying config change set on UNIX machines
@@ -45,6 +49,7 @@ import java.util.Base64;
 public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(TestPlanExecutor.class);
+    private static final String PRODUCT_HOME_ENV = "PRODUCT_HOME";
 
     /**
      * Apply config change set script before and after run test scenarios
@@ -55,19 +60,35 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
      * @return execution passed or failed
      */
     @Override
-    public boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet, boolean isInit) {
+    public boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
+                                        DeploymentCreationResult deploymentCreationResult, boolean isInit) {
         try {
             URL configChangeSetRepoPath = new URL(testPlan.getConfigChangeSetRepository());
             String filePath = configChangeSetRepoPath.getPath();
             String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
-            String shellCommand = "./repos/" + fileName + "-master/config-sets/" + configChangeSet.getName();
-            if (isInit) {
-                shellCommand = shellCommand.concat("/apply-config.sh &>/dev/null");
-            } else {
-                shellCommand = shellCommand.concat("/revert-config.sh &>/dev/null");
-            }
+            String configChangeSetLocation = "./repos/" + fileName + "-master/config-sets/" + configChangeSet.getName();
+            List<String> applyShellCommand = new ArrayList<String>();
             // Generate array of commands that need to be applied
-            String[] applyShellCommand = { shellCommand };
+            if (isInit) {
+                String productHomePath = System.getenv(PRODUCT_HOME_ENV);
+                if (productHomePath == null) {
+                    logger.warn(PRODUCT_HOME_ENV +
+                            "  environment variable is not set. JMeter test executions may fail.");
+                } else {
+                    configChangeSetLocation = "export productHome=" +
+                            productHomePath + " && " + configChangeSetLocation;
+                }
+                for (Host host : deploymentCreationResult.getHosts()) {
+                    configChangeSetLocation = "export " + host.getLabel() + "=" + host.getIp() + " && " +
+                            configChangeSetLocation;
+                }
+                // run if config-init.sh exist
+                applyShellCommand.add(configChangeSetLocation.concat("/config-init.sh &>/dev/null"));
+                applyShellCommand.add(configChangeSetLocation.concat("/apply-config.sh &>/dev/null"));
+            } else {
+                applyShellCommand.add(configChangeSetLocation.concat("/revert-config.sh &>/dev/null"));
+            }
+
             return applyShellCommandOnAgent(testPlan, applyShellCommand);
         } catch (MalformedURLException e) {
             logger.warn("Error parsing scenario repository path for ".
@@ -88,13 +109,12 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
             URL configChangeSetRepoPath = new URL(testPlan.getConfigChangeSetRepository());
             String filePath = configChangeSetRepoPath.getPath();
             String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
-            String[] initShellCommand = {
-                    "mkdir repos",
-                    "cd repos && curl -LJO " +
-                            testPlan.getConfigChangeSetRepository() + "/archive/master.tar.gz   &>/dev/null",
-                    "cd repos && tar xvzf " + fileName + "-master.tar.gz  &>/dev/null",
-                    "chmod -R 755 repos/" + fileName + "-master/config-sets/ &>/dev/null"
-            };
+            List<String> initShellCommand = new ArrayList<>();
+            initShellCommand.add("mkdir repos");
+            initShellCommand.add("cd repos && curl -LJO " +
+                    testPlan.getConfigChangeSetRepository() + "/archive/master.tar.gz   &>/dev/null");
+            initShellCommand.add("cd repos && tar xvzf " + fileName + "-master.tar.gz  &>/dev/null");
+            initShellCommand.add("chmod -R 755 repos/" + fileName + "-master/config-sets/ &>/dev/null");
             return applyShellCommandOnAgent(testPlan, initShellCommand);
         } catch (MalformedURLException e) {
             logger.warn("Error parsing scenario repository path for ".
@@ -111,9 +131,8 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
      */
     @Override
     public boolean deInitConfigChangeSet(TestPlan testPlan) {
-        String[] deInitShellCommand = {
-                "rm -rf repos"
-        };
+        List<String> deInitShellCommand = new ArrayList<>();
+        deInitShellCommand.add("rm -rf repos");
         return applyShellCommandOnAgent(testPlan, deInitShellCommand);
     }
 
@@ -122,10 +141,10 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
      * Send an array of shell command to an agent
      *
      * @param testPlan          The test plan
-     * @param initShellCommand  Array of shell command
+     * @param initShellCommand  List of shell command
      * @return  True if execution success. Else, false
      */
-    private boolean applyShellCommandOnAgent(TestPlan testPlan, String[] initShellCommand) {
+    private boolean applyShellCommandOnAgent(TestPlan testPlan, List<String> initShellCommand) {
         String tinkererHost = ConfigurationContext.getProperty(
                 ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH);
         // Get authentication detail from config.properties and encode with BASE64
@@ -145,8 +164,9 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
             for (Agent agent : Arrays.asList(agents)) {
                 logger.info("Connected agent : " + agent.getAgentId());
                 if (agent.getTestPlanId().equals(testPlan.getId())) {
+                    logger.info("Start sending commands to agent " + agent.getAgentId());
                     for (String shellCommand : initShellCommand) {
-                        logger.info("exec " + shellCommand);
+                        logger.info("Execute: " + shellCommand);
                         Content shellCommandResponse = sendShellCommand(tinkererHost, authenticationToken
                                 , agent, shellCommand);
                     }

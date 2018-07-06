@@ -19,6 +19,7 @@
 package org.wso2.testgrid.core.configchangeset;
 
 import org.wso2.testgrid.common.ConfigChangeSet;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestPlan;
 
 /**
@@ -34,7 +35,8 @@ public abstract class ConfigChangeSetExecutor {
      * @param isInit run apply config-script if true. else, run revert-config script
      * @return execution passed or failed
      */
-    public abstract boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet, boolean isInit);
+    public abstract boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
+                                                 DeploymentCreationResult deploymentCreationResult, boolean isInit);
 
     /**
      * Initialize agent before running config change set

@@ -78,6 +78,9 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     @Column(name = "config_change_set_name")
     private String configChangeSetName;
 
+    @Column(name = "config_change_set_description")
+    private String configChangeSetDescription;
+
     @Column(name = "is_post_script_success")
     private boolean isPostScriptSuccessful = false;
 
@@ -209,13 +212,42 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
         this.isPostScriptSuccessful = isPostScriptSuccessful;
     }
 
+    /**
+     * Get config change set name for a current scenario
+     *
+     * @return  config change set name
+     */
     public String getConfigChangeSetName() {
         return this.configChangeSetName;
     }
 
+    /**
+     * Set config change set name for current scenario
+     *
+     * @param configChangeSetName config change set name
+     */
     public void setConfigChangeSetName(String configChangeSetName) {
         this.configChangeSetName = configChangeSetName;
     }
+
+    /**
+     * Get config change set description for current scenario
+     *
+     * @return config change set name
+     */
+    public String getConfigChangeSetDescription() {
+        return this.configChangeSetDescription;
+    }
+
+    /**
+     * Set config change set description for current scenario
+     *
+     * @param configChangeSetDescription config change set description
+     */
+    public void setConfigChangeSetDescription(String configChangeSetDescription) {
+        this.configChangeSetDescription = configChangeSetDescription;
+    }
+
     /**
      * Returns the test plan associated with this test scenario.
      *

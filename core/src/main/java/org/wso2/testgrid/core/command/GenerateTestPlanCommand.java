@@ -521,6 +521,7 @@ public class GenerateTestPlanCommand implements Command {
                              newTestScenario.setStatus(testScenario.getStatus());
                              newTestScenario.setTestPlan(testScenario.getTestPlan());
                              newTestScenario.setConfigChangeSetName(configChangeSet.getName());
+                             newTestScenario.setConfigChangeSetDescription(configChangeSet.getDescription());
                              newTestScenario.setSummaryGraphs(testScenario.getSummaryGraphs());
                              newTestScenario.setTestCases(testScenario.getTestCases());
                              modifiedTestScenarios.add(newTestScenario);

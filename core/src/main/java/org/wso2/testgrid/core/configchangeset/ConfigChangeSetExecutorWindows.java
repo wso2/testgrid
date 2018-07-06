@@ -19,6 +19,7 @@
 package org.wso2.testgrid.core.configchangeset;
 
 import org.wso2.testgrid.common.ConfigChangeSet;
+import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestPlan;
 
 /**
@@ -35,7 +36,8 @@ public class ConfigChangeSetExecutorWindows extends ConfigChangeSetExecutor {
      * @return execution passed or failed
      */
     @Override
-    public boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet, boolean isInit) {
+    public boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
+                                        DeploymentCreationResult deploymentCreationResult, boolean isInit) {
         return false;
     }
 
