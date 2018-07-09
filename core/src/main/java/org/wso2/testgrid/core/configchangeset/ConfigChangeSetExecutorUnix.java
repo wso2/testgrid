@@ -155,21 +155,20 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
         String authenticationToken = "Basic " + Base64.getEncoder().encodeToString(
                 authenticationString.getBytes(StandardCharsets.UTF_8));
         try {
-            Content agentResponse = Request.Get(tinkererHost + "agents")
+            // Get list of agent for given test plan id
+            Content agentResponse = Request.Get(tinkererHost + "test-plan/" + testPlan.getId() + "/agents")
                     .addHeader(HttpHeaders.AUTHORIZATION, authenticationToken).
                             execute().returnContent();
 
             Agent[] agents = new Gson().fromJson(agentResponse.asString(), Agent[].class);
-
+            // Execute command on found agents
             for (Agent agent : Arrays.asList(agents)) {
-                logger.info("Connected agent : " + agent.getAgentId());
-                if (agent.getTestPlanId().equals(testPlan.getId())) {
-                    logger.info("Start sending commands to agent " + agent.getAgentId());
-                    for (String shellCommand : initShellCommand) {
-                        logger.info("Execute: " + shellCommand);
-                        Content shellCommandResponse = sendShellCommand(tinkererHost, authenticationToken
-                                , agent, shellCommand);
-                    }
+                logger.info("Start sending commands to agent " + agent.getAgentId());
+                for (String shellCommand : initShellCommand) {
+                    logger.info("Execute: " + shellCommand);
+                    Content shellCommandResponse = sendShellCommand(tinkererHost, authenticationToken
+                            , agent, shellCommand);
+                    logger.info("Agent Response: " + shellCommandResponse.asString());
                 }
             }
             return true;

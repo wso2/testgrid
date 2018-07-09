@@ -307,9 +307,11 @@ public class TestPlanExecutor {
                 Optional<ConfigChangeSetExecutor> configChangeSetExecutor =
                         ConfigChangeSetFactory.getExecuter(osCategory);
                 if (configChangeSetExecutor.isPresent()) {
+                    // Initialize config set repos on agent
                     if (configChangeSetExecutor.get().initConfigChangeSet(testPlan)) {
                         for (ConfigChangeSet configChangeSet : configChangeSetList) {
                             logger.info("Start running config change set for " + configChangeSet.getName());
+                            // Apply config change set script on agent
                             if (configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
                                             deploymentCreationResult, true)) {
                                 for (TestScenario testScenario : testPlan.getTestScenarios()) {
@@ -317,10 +319,12 @@ public class TestPlanExecutor {
                                         executeTestScenario(testScenario, deploymentCreationResult, testPlan);
                                     }
                                 }
+                                // Revert config change set
                                 configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
                                         deploymentCreationResult, false);
                             }
                         }
+                        // Remove config set repos on agent
                         configChangeSetExecutor.get().deInitConfigChangeSet(testPlan);
                     }
                 } else {
