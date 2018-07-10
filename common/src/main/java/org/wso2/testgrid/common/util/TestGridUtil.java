@@ -71,6 +71,7 @@ public final class TestGridUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(TestGridUtil.class);
     private static final String UNDERSCORE = "_";
+    private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
 
     /**
      * Use {@link org.wso2.testgrid.common.ShellExecutor#executeCommand(String)} instead.
@@ -453,7 +454,7 @@ public final class TestGridUtil {
      */
     public static String deriveTestIntegrationLogFilePath(TestPlan testPlan)
             throws TestGridException {
-        return Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(),
+        return Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(), SUREFIRE_REPORTS_DIR,
                 TestGridConstants.TEST_INTEGRATION_LOG_FILE_NAME).toString();
     }
 
