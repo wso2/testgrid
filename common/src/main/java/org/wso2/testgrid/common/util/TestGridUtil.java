@@ -446,22 +446,14 @@ public final class TestGridUtil {
     }
 
     /**
-     * Returns the path of the integration test log file.
+     * Returns the absolute path of the integration test log file.
      *
      * @param testPlan test-plan
-     * @param relative Whether the path need to be returned relative to testgrid.home or not
      * @return log file path
      */
-    public static String deriveTestIntegrationLogFilePath(TestPlan testPlan, Boolean relative)
+    public static String deriveTestIntegrationLogFilePath(TestPlan testPlan)
             throws TestGridException {
-        String productName = testPlan.getDeploymentPattern().getProduct().getName();
-        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
-        String dirPrefix = "";
-        if (!relative) {
-            dirPrefix = getTestGridHomePath();
-        }
-        return Paths.get(dirPrefix, TestGridConstants.TESTGRID_JOB_DIR, productName,
-                TestGridConstants.TESTGRID_BUILDS_DIR, testPlanDirName,
+        return Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(),
                 TestGridConstants.TEST_INTEGRATION_LOG_FILE_NAME).toString();
     }
 
