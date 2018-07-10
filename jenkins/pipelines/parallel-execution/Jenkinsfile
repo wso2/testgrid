@@ -1,0 +1,250 @@
+properties = null
+def SLAVE_NAME = "slave1"
+def loadProperties() {
+    node('slave1') {
+        properties = readProperties file: "${TESTGRID_HOME}/config.properties"
+    }
+}
+def runPlan(tPlan, node) {
+    echo "Executing Test Plan : ${tPlan} On node : ${node}"
+
+    try {
+        echo "Running Test-Plan: ${tPlan}"
+        sh "java -version"
+        unstash name: "${JOB_CONFIG_YAML}"
+        sh """
+            echo "Before PWD"
+            pwd
+            cd /testgrid/testgrid-home/jobs/${PRODUCT}
+            cd ${SCENARIOS_LOCATION}
+            git clean -fd
+            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+            ./testgrid run-testplan --product ${PRODUCT} \
+                --file "/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}"
+            """
+    } catch (Exception err) {
+        echo "Error : ${err}"
+        currentBuild.result = 'UNSTABLE'
+    }
+    echo "RESULT: ${currentBuild.result}"
+
+    script {
+      loadProperties()
+     //Archive jtl files
+    def bucket= properties['AWS_S3_BUCKET_NAME']
+    if ( "${bucket}" == "null") {
+      bucket="unknown"
+    }
+    withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
+    // Upload artifacts to S3
+      s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/")
+    }
+    }
+}
+pipeline {
+    agent {
+        node {
+            label "${SLAVE_NAME}"
+            customWorkspace '/testgrid/testgrid-home/jobs/wso2am-intg-py-slave'
+        }
+    }
+
+    environment {
+        TESTGRID_NAME = 'WSO2-TestGrid'
+        TESTGRID_DIST_LOCATION = '/testgrid/testgrid-home/testgrid-dist/'
+        TESTGRID_HOME='/testgrid/testgrid-home/'
+
+        PRODUCT = "${JOB_BASE_NAME}"
+        INFRASTRUCTURE_REPOSITORY='https://github.com/wso2/testgrid'
+        DEPLOYMENT_REPOSITORY='https://github.com/wso2/testgrid'
+        SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/apim-test-integration.git'
+
+        INFRA_LOCATION="workspace/testgrid"
+        DEPLOYMENT_LOCATION="workspace/testgrid"
+        SCENARIOS_LOCATION="workspace/apim-test-integration"
+        TESTGRID_YAML_LOCATION="${INFRA_LOCATION}/jobs/${PRODUCT}/testgrid.yaml"
+
+        AWS_ACCESS_KEY_ID=credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY=credentials('AWS_SECRET_ACCESS_KEY')
+        tomcatUsername=credentials('TOMCAT_USERNAME')
+        tomcatPassword=credentials('TOMCAT_PASSWORD')
+        PWD=pwd()
+        JOB_CONFIG_YAML = "job-config.yaml"
+        JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
+
+        PRODUCT_GIT_URL="${PRODUCT_GIT_URL}"
+        PRODUCT_GIT_BRANCH="${PRODUCT_GIT_BRANCH}"
+        PRODUCT_DIST_DOWNLOAD_API="${PRODUCT_DIST_DOWNLOAD_API}"
+    }
+
+    tools {
+        jdk 'jdk8-slave1'
+    }
+
+    stages {
+        stage('Preparation') {
+            steps {
+                echo pwd()
+                deleteDir()
+
+                // Clone scenario repo
+                sh "mkdir -p ${SCENARIOS_LOCATION}"
+                dir("${SCENARIOS_LOCATION}"){
+                    git branch: 'master', url: "${SCENARIOS_REPOSITORY}"
+                }
+
+                // Clone infra repo
+                sh "mkdir -p ${INFRA_LOCATION}"
+                dir("${INFRA_LOCATION}"){
+                    git branch: 'master', url:"${INFRASTRUCTURE_REPOSITORY}"
+                }
+                writeFile file: "${INFRA_LOCATION}/deploy.sh", text: '#!/bin/sh'
+
+                sh """
+                    echo ${TESTGRID_NAME}
+                    cd ${TESTGRID_DIST_LOCATION}
+                    cd ${TESTGRID_NAME}
+
+                    sed -i 's/-Xms256m -Xmx1024m/-Xmx2G -Xms2G/g' testgrid
+                    """
+
+                // Get testgrid.yaml from jenkins managed files
+                configFileProvider(
+                        [configFile(fileId: "${PRODUCT}-testgrid-yaml", targetLocation:
+                                "${TESTGRID_YAML_LOCATION}")]) {
+                }
+
+                configFileProvider([configFile(fileId: '3a63892b-06b8-483a-8a0d-74dffaf69c3d', targetLocation: 'workspace/testgrid-key.pem', variable: 'TESTGRIDKEY')]) {
+                    sh """
+                        echo 'keyFileLocation: workspace/testgrid-key.pem' > ${JOB_CONFIG_YAML_PATH}
+                        chmod 400 workspace/testgrid-key.pem
+                        """
+                }
+
+                sh """
+                    echo 'infrastructureRepository: ${INFRA_LOCATION}/' > ${JOB_CONFIG_YAML_PATH}
+                    echo 'deploymentRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
+                    echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo 'testgridYamlLocation: ${TESTGRID_YAML_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo 'properties:' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  PRODUCT_GIT_URL: ${PRODUCT_GIT_URL}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  PRODUCT_GIT_BRANCH: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  PRODUCT_DIST_DOWNLOAD_API: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  SQL_DRIVERS_LOCATION_UNIX: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  SSH_KEY_LOCATION: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  REMOTE_WORKSPACE_DIR_UNIX: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  REMOTE_WORKSPACE_DIR_WINDOWS: ${REMOTE_WORKSPACE_DIR_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  gitURL: ${PRODUCT_GIT_URL}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  gitBranch: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  sqlDriversLocationUnix: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  sshKeyFileLocation: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+
+                    echo The job-config.yaml:
+                    cat ${JOB_CONFIG_YAML_PATH}
+                    """
+
+                stash name: "${JOB_CONFIG_YAML}", includes : "${JOB_CONFIG_YAML}"
+
+                sh """
+                    cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+                    ./testgrid generate-test-plan \
+                        --product ${PRODUCT} \
+                        --file ${JOB_CONFIG_YAML_PATH}
+                    """
+            }
+        }
+
+        stage('parallel-run') {
+            steps {
+                script {
+                    def parallelExecCount = 3
+                    def tests = [:]
+                    def files = findFiles(glob: '**/test-plans/*.yaml')
+                    for (int f = 1; f < parallelExecCount+1; f++) {
+                        def executor = f
+                        tests["Executor-${f}"] = {
+                            node('slave1') {
+                                stage("Parallel Executor : ${executor}") {
+                                    script {
+                                        int processFileCount = files.length/parallelExecCount
+                                        if (executor == parallelExecCount){
+                                            for (int i = processFileCount * (executor - 1); i < files.length; i++) {
+                                                // Execution logic
+                                                runPlan(files[i], "node1")
+                                            }
+                                        } else {
+                                            for (int i = 0; i < processFileCount; i++) {
+                                                int fileNo = processFileCount * (executor - 1) + i
+                                                runPlan(files[fileNo], "node1")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    parallel tests
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh """
+            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+            ./testgrid finalize-run-testplan \
+            --product ${PRODUCT} --workspace ${PWD}
+            """
+
+            sh """
+             cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+            ./testgrid generate-report \
+            --product ${PRODUCT} \
+            --groupBy scenario
+            """
+            // Generate email-able report
+            /* Prereq:
+               1. Needs TestSuit.txt and output.properties files in relevant scenario directory.
+               2. DB needs to be updated on integration test result statues.
+            */
+            sh """
+                cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+                ./testgrid generate-email \
+                --product ${PRODUCT} \
+                """
+            script {
+                // Archive artifacts
+                loadProperties()
+                def bucket= properties['AWS_S3_BUCKET_NAME']
+                if ( "${bucket}" == "null") {
+                    bucket="unknown"
+                }
+                withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
+                    // Upload artifacts to S3
+                    s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"${bucket}", path:"artifacts/")
+                }
+                //Send email for failed results.
+                if (fileExists('/testgrid/testgrid-home/${PRODUCT}/EmailReport.html')) {
+                    emailext mimeType: 'text/html',
+                            body: '${FILE,path="/testgrid/testgrid-home/${PRODUCT}/EmailReport.html"}',
+                            subject: '${PRODUCT} integration test failure!',
+                            to: 'kasung@wso2.com,pasinduj@wso2.com'
+                }
+            }
+            // Delete logs and reports after upload
+            dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
+                sh """
+                find . -maxdepth 1 -type f \\( -name "*.log" -o -name "*.html" \\) -delete
+                """
+            }
+
+//              emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
+
+// Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: 'harshan@wso2.com,kasung@wso2.com,asmaj@wso2.com,viduran@wso2.com,sameeraw@wso2.com,pasinduj@wso2.com'
+
+        }
+    }
+}
