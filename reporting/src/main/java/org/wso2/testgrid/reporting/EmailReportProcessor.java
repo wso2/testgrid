@@ -109,7 +109,7 @@ public class EmailReportProcessor {
         StringBuilder stringBuilder = new StringBuilder();
         Path filePath;
         try {
-            filePath = Paths.get(TestGridUtil.deriveTestIntegrationLogFilePath(testPlan, false));
+            filePath = Paths.get(TestGridUtil.deriveTestIntegrationLogFilePath(testPlan));
         } catch (TestGridException e) {
             throw new ReportingException("Error occurred while deriving integration-test log file path to get" +
                     " integration test results for test-plan with id " + testPlan.getId() + "of the product " +
