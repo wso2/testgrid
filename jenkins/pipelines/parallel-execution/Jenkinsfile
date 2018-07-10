@@ -13,15 +13,15 @@ def runPlan(tPlan, node) {
         sh "java -version"
         unstash name: "${JOB_CONFIG_YAML}"
         sh """
-                            echo "Before PWD"
-                            pwd
-                            cd /testgrid/testgrid-home/jobs/${PRODUCT}
-                            cd ${SCENARIOS_LOCATION}
-                            git clean -fd
-                            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
-                            ./testgrid run-testplan --product ${PRODUCT} \
-                             --file "/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}"
-                            """
+            echo "Before PWD"
+            pwd
+            cd /testgrid/testgrid-home/jobs/${PRODUCT}
+            cd ${SCENARIOS_LOCATION}
+            git clean -fd
+            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+            ./testgrid run-testplan --product ${PRODUCT} \
+                --file "/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}"
+            """
     } catch (Exception err) {
         echo "Error : ${err}"
         currentBuild.result = 'UNSTABLE'
@@ -175,7 +175,7 @@ pipeline {
                                                 runPlan(files[i], "node1")
                                             }
                                         } else {
-                                            for (int i = 0; i <  processFileCount; i++) {
+                                            for (int i = 0; i < processFileCount; i++) {
                                                 int fileNo = processFileCount * (executor - 1) + i
                                                 runPlan(files[fileNo], "node1")
                                             }
