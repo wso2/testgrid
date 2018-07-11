@@ -32,6 +32,8 @@ public class ScenarioSummary {
     private final double successPercentage;
     private final Status scenarioStatus;
     private final String scenarioDir;
+    private final String scenarioConfigChangeSetName;
+    private final String scenarioConfigChangeSetDescription;
 
     /**
      * Constructs an instance of a {@link ScenarioSummary}.
@@ -41,9 +43,12 @@ public class ScenarioSummary {
      * @param totalFail      total number of failed test cases
      * @param scenarioStatus test scenario overall result
      */
-    public ScenarioSummary(String scenarioDescription, long totalSuccess, long totalFail, Status scenarioStatus,
-                           String scenarioDir) {
+    public ScenarioSummary(String scenarioDescription, String scenarioConfigChangeSetName,
+                           String scenarioConfigChangeSetDescription, long totalSuccess,
+                           long totalFail, Status scenarioStatus, String scenarioDir) {
         this.scenarioDescription = scenarioDescription;
+        this.scenarioConfigChangeSetDescription = scenarioConfigChangeSetDescription;
+        this.scenarioConfigChangeSetName = scenarioConfigChangeSetName;
         this.totalSuccess = totalSuccess;
         this.totalFail = totalFail;
         this.successPercentage = (double) totalSuccess / ((double) totalSuccess + (double) totalFail) * 100d;
@@ -58,6 +63,19 @@ public class ScenarioSummary {
      */
     public String getScenarioDescription() {
         return scenarioDescription;
+    }
+
+    public String getScenarioConfigChangeSetName() {
+        return scenarioConfigChangeSetName;
+    }
+
+    /**
+     * Returns the scenario config change set description
+     *
+     * @return config change set description
+     */
+    public String getScenarioConfigChangeSetDescription() {
+        return scenarioConfigChangeSetDescription;
     }
 
     /**
@@ -113,6 +131,8 @@ public class ScenarioSummary {
                ", totalFail='" + totalFail + '\'' +
                ", successPercentage='" + successPercentage + "%\'" +
                ", scenarioStatus='" + scenarioStatus + "\'" +
+               ", scenarioConfigChangeSetName=" + scenarioConfigChangeSetName + '\'' +
+               ", scenarioConfigChangeSetDescription=" + scenarioConfigChangeSetDescription + '\'' +
                '}';
     }
 }

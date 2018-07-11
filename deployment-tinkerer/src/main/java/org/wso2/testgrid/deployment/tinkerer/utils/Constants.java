@@ -26,7 +26,7 @@ package org.wso2.testgrid.deployment.tinkerer.utils;
 public final class Constants {
 
     public static final String HTTP_HEADERS = "HttpHeaders";
-    public static final int OPERATION_TIMEOUT = 60000; //Operation timeout interval in milliseconds.
+    public static final int OPERATION_TIMEOUT = 900000; //Operation timeout 15 minutes interval in milliseconds.
     public static final int HEARTBEAT_INTERVAL = 60000; //Heartbeat interval in milliseconds.
 
     private Constants() {

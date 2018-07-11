@@ -19,6 +19,8 @@
 package org.wso2.testgrid.core.configchangeset;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.core5.http.ContentType;
@@ -154,6 +156,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                         ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
         String authenticationToken = "Basic " + Base64.getEncoder().encodeToString(
                 authenticationString.getBytes(StandardCharsets.UTF_8));
+        boolean executionStatus = true;
         try {
             // Get list of agent for given test plan id
             Content agentResponse = Request.Get(tinkererHost + "test-plan/" + testPlan.getId() + "/agents")
@@ -168,10 +171,24 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                     logger.info("Execute: " + shellCommand);
                     Content shellCommandResponse = sendShellCommand(tinkererHost, authenticationToken
                             , agent, shellCommand);
-                    logger.info("Agent Response: " + shellCommandResponse.asString());
+                    JsonParser jsonParser = new JsonParser();
+                    JsonObject result = (JsonObject) jsonParser.parse(shellCommandResponse.asString());
+                    logger.info("Agent exit value: " + result.get("exitValue").getAsInt());
+                    // Agent code defalut is SHELL, if time out then, code is 408
+                    logger.info("Agent code: " + result.get("code").getAsString());
+                    logger.info("Agent response: \n" + result.get("response").getAsString());
+                    try {
+                        if (result.get("code").getAsString().equals("408") || result.get("exitValue").getAsInt() != 0) {
+                            executionStatus = false;
+                            logger.warn("Agent execution failed");
+                        }
+                    } catch (NullPointerException e) {
+                        logger.warn("Agent execution failed");
+                    }
+
                 }
             }
-            return true;
+            return executionStatus;
         } catch (IOException e) {
             logger.warn("Error in API call request ".concat(tinkererHost), e);
             return false;

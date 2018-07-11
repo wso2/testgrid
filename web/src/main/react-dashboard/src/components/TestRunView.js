@@ -376,9 +376,11 @@ class TestRunView extends Component {
                             wordWrap: "break-word",
                             whiteSpace: "wrap",
                             textDecoration: "none"
-                          }}><a href={"#" + data.scenarioDescription}>
-                            {data.scenarioDescription}
-                          </a>
+                          }}><FlatButton class='view-history' data-tip={data.scenarioConfigChangeSetDescription}>
+                              <a href={"#" + data.scenarioDescription}>
+                                  {data.scenarioConfigChangeSetName + ":" + data.scenarioDescription}
+                              </a>
+                          </FlatButton>
                           </td>
                           <td
                             style={{
