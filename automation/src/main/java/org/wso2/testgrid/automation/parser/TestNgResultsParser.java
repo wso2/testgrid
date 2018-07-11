@@ -116,6 +116,7 @@ public class TestNgResultsParser extends ResultParser {
         final Path dataBucket = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
         Set<Path> inputFiles = getResultInputFiles(dataBucket);
 
+
         for (Path resultsFile : inputFiles) {
             try (final InputStream stream = Files.newInputStream(resultsFile, StandardOpenOption.READ)) {
                 final XMLEventReader eventReader = XMLInputFactory.newInstance().createXMLEventReader(stream);
@@ -234,12 +235,13 @@ public class TestNgResultsParser extends ResultParser {
     public void archiveResults() throws ResultParserException {
         try {
             int maxDepth = 100;
-            final Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan()).getParent();
+            final Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
             final Set<Path> archivePaths = Files.find(outputLocation, maxDepth,
                     (path, att) -> Arrays.stream(ARCHIVABLE_FILES).anyMatch(f -> f.equals
                             (path.getFileName().toString()))).collect(Collectors.toSet());
 
-            logger.info("Found results paths at " + outputLocation + ": " + archivePaths);
+            logger.info("Found results paths at " + outputLocation + ": " + archivePaths.stream().map
+                     (outputLocation::relativize).collect(Collectors.toSet()));
             if (!archivePaths.isEmpty()) {
                 Path artifactPath = TestGridUtil.getTestScenarioArtifactPath(testScenario);
                 for (Path filePath : archivePaths) {
@@ -254,6 +256,7 @@ public class TestNgResultsParser extends ResultParser {
                 }
                 Path zipFilePath = artifactPath.resolve(testScenario.getDir() + TestGridConstants
                         .TESTGRID_COMPRESSED_FILE_EXT);
+                Files.deleteIfExists(zipFilePath);
                 FileUtil.compress(artifactPath.toString(), zipFilePath.toString());
                 logger.info("Created the results archive: " + zipFilePath);
             } else {

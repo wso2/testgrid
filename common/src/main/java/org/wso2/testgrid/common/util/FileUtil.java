@@ -51,8 +51,8 @@ import java.util.zip.ZipOutputStream;
  */
 public class FileUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
     public static final String YAML_EXTENSION = ".yaml";
+    private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
     /**
      * Returns an instance of the specified type from the given configuration YAML.
@@ -113,7 +113,7 @@ public class FileUtil {
     /**
      * Creates a archive file of the list of files passing in the given destination.
      *
-     * @param files list of files to be archive
+     * @param files       list of files to be archive
      * @param destination path of the archive file
      */
     public static void compressFiles(List<String> files, String destination) throws TestGridException {
@@ -123,20 +123,20 @@ public class FileUtil {
         URI uri = URI.create("jar:file:" + destination);
 
         try (FileSystem zipFileSystem = FileSystems.newFileSystem(uri, env)) {
-            for (String filePath: files) {
+            for (String filePath : files) {
                 File file = new File(filePath);
-                Path destinationPath =  zipFileSystem.getPath(file.getName());
+                Path destinationPath = zipFileSystem.getPath(file.getName());
                 Files.copy(file.toPath(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
-            throw new TestGridException("Error occurred while making the archive: " + destination , e);
+            throw new TestGridException("Error occurred while making the archive: " + destination, e);
         }
     }
 
     /**
      * Compress the files at sourceDir into the destination zip file.
      *
-     * @param sourceDir the source dir that has contents to archive
+     * @param sourceDir   the source dir that has contents to archive
      * @param destination the zip file location
      */
     public static void compress(String sourceDir, String destination) throws IOException {
@@ -146,8 +146,11 @@ public class FileUtil {
             Files.walk(sourcePath)
                     .filter(path -> !Files.isDirectory(path))
                     .forEach(path -> {
-                        ZipEntry zipEntry = new ZipEntry(sourcePath.relativize(path).toString());
                         try {
+                            if (Files.isSameFile(path, destPath)) {
+                                return;
+                            }
+                            ZipEntry zipEntry = new ZipEntry(sourcePath.relativize(path).toString());
                             zs.putNextEntry(zipEntry);
                             Files.copy(path, zs);
                             zs.closeEntry();
