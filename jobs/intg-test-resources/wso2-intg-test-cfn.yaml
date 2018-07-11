@@ -305,7 +305,7 @@ Resources:
         DisableApiTermination: 'false'
         InstanceInitiatedShutdownBehavior: stop
         ImageId: !Ref AMI
-        InstanceType: !Ref WSO2InstanceType
+        InstanceType: 'm3.2xlarge'
         KeyName: !Ref EC2KeyPair
         Monitoring: 'false'
         "BlockDeviceMappings" : [
