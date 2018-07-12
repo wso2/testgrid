@@ -5,6 +5,17 @@ def loadProperties() {
         properties = readProperties file: "${TESTGRID_HOME}/config.properties"
     }
 }
+
+def uploadToS3() {
+  def bucket= properties['AWS_S3_BUCKET_NAME']
+  if ( "${bucket}" == "null") {
+      bucket="unknown"
+  }
+  sh """
+      aws s3 sync ${TESTGRID_HOME}/jobs/ s3://${bucket}/artifacts --exclude "*" --include "*.log" --include "*.properties" --include "*.xml"
+      """
+}
+
 def runPlan(tPlan, node) {
     echo "Executing Test Plan : ${tPlan} On node : ${node}"
 
@@ -30,12 +41,9 @@ def runPlan(tPlan, node) {
     echo "RESULT: ${currentBuild.result}"
 
     script {
-      loadProperties()
+        loadProperties()
+        uploadToS3()
     }
-
-    sh"""
-        aws s3 cp ${TESTGRID_HOME}/jobs/ s3://jenkins-testrun-artifacts-dev/artifacts --recursive --exclude "*" --include "*.log" --include "*.properties" --include "*.xml"
-      """
 }
 pipeline {
     agent {
@@ -54,6 +62,7 @@ pipeline {
         INFRASTRUCTURE_REPOSITORY='https://github.com/wso2/testgrid'
         DEPLOYMENT_REPOSITORY='https://github.com/wso2/testgrid'
         SCENARIOS_REPOSITORY='https://github.com/wso2/apim-test-integration.git'
+
         INFRA_LOCATION="workspace/testgrid"
         DEPLOYMENT_LOCATION="workspace/testgrid"
         SCENARIOS_LOCATION="workspace/apim-test-integration"
@@ -85,13 +94,13 @@ pipeline {
                 // Clone scenario repo
                 sh "mkdir -p ${SCENARIOS_LOCATION}"
                 dir("${SCENARIOS_LOCATION}"){
-                    git branch: 'grid2', url: "${SCENARIOS_REPOSITORY}"
+                    git branch: 'master', url: "${SCENARIOS_REPOSITORY}"
                 }
 
                 // Clone infra repo
                 sh "mkdir -p ${INFRA_LOCATION}"
                 dir("${INFRA_LOCATION}"){
-                    git branch: 'gridTest', url:"${INFRASTRUCTURE_REPOSITORY}"
+                    git branch: 'master', url:"${INFRASTRUCTURE_REPOSITORY}"
                 }
                 writeFile file: "${INFRA_LOCATION}/deploy.sh", text: '#!/bin/sh'
 
@@ -217,22 +226,14 @@ pipeline {
                 --workspace ${PWD}
                 """
             script {
-                // Archive artifacts
-                loadProperties()
-                def bucket= properties['AWS_S3_BUCKET_NAME']
-                if ( "${bucket}" == "null") {
-                    bucket="unknown"
-                }
-                withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
-                    // Upload artifacts to S3
-                    s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/builds/**, **/*.log, **/*.html", bucket:"${bucket}", path:"artifacts/")
-                }
                 //Send email for failed results.
-                if (fileExists('/testgrid/testgrid-home/${PRODUCT}/EmailReport.html')) {
+                if (fileExists('/testgrid/testgrid-home/jobs/${PRODUCT}/EmailReport.html')) {
                     emailext mimeType: 'text/html',
-                            body: '${FILE,path="/testgrid/testgrid-home/${PRODUCT}/EmailReport.html"}',
+                            body: '${FILE,path="/testgrid/testgrid-home/jobs/${PRODUCT}/EmailReport.html"}',
                             subject: '${PRODUCT} integration test failure!',
                             to: 'kasung@wso2.com,pasinduj@wso2.com,yasassri@wso2.com'
+                } else {
+                  echo "No EmailReport.html file found!!"
                 }
             }
             // Delete logs and reports after upload
