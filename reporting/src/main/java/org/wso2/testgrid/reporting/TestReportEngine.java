@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -734,11 +735,18 @@ public class TestReportEngine {
                     throw new ReportingException(
                             "Test Plan File doesn't exist. File path is " + path.toAbsolutePath().toString());
                 }
+                logger.info("Test Plan File does exist " + path.toAbsolutePath().toString());
                 TestPlan testPlanYaml = org.wso2.testgrid.common.util.FileUtil
                         .readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
-                testPlanUOW.getTestPlanById(testPlanYaml.getId()).ifPresent(testPlan -> {
-                    testPlans.add(testPlan);
-                });
+                Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanYaml.getId());
+                if (testPlanById.isPresent()) {
+                    logger.info("Derived test plan dir in email phase : " +
+                            TestGridUtil.deriveTestPlanDirName(testPlanById.get()));
+                    testPlans.add(testPlanById.get());
+                } else {
+                    logger.error("TestPlan does not exist in the database for testplan id : "
+                            + testPlanById.get().getId());
+                }
             }
         } catch (IOException e) {
             throw new ReportingException("Error occurred while reading the test-plan yamls in workspace "
