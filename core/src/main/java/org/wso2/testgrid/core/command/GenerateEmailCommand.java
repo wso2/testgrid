@@ -42,12 +42,18 @@ public class GenerateEmailCommand implements Command {
             required = true)
     private String productName = "";
 
+    @Option(name = "--workspace",
+            usage = "Product workspace",
+            aliases = {"-w"},
+            required = true)
+    private String workspace = "";
+
     @Override
     public void execute() throws CommandExecutionException {
         Product product = getProduct(productName);
         try {
             TestReportEngine testReportEngine = new TestReportEngine();
-            testReportEngine.generateEmailReport(product);
+            testReportEngine.generateEmailReport(product,workspace);
         } catch (ReportingException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error occurred when generating email report for {" +

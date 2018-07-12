@@ -69,10 +69,8 @@ public class EmailReportProcessor {
      * @param product product needing the results
      * @return list of test-plan sections
      */
-    public List<TestPlanResultSection> generatePerTestPlanSection(Product product) throws ReportingException {
+    public List<TestPlanResultSection> generatePerTestPlanSection(Product product, List<TestPlan> testPlans) throws ReportingException {
         List<TestPlanResultSection> perTestPlanMap = new ArrayList<>();
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
-        List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
         String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.TESTGRID_HOST);
         String productName = product.getName();
@@ -193,11 +191,10 @@ public class EmailReportProcessor {
     /**
      * Check if the latest run of a certain product include failed tests.
      *
-     * @param product product
+     * @param testPlans List of test plans
      * @return if test-failures exists or not
      */
-    public boolean hasFailedTests(Product product) {
-        List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
+    public boolean hasFailedTests(List<TestPlan> testPlans) {
         for (TestPlan testPlan : testPlans) {
             if (testPlan.getStatus().equals(Status.FAIL)) {
                 return true;

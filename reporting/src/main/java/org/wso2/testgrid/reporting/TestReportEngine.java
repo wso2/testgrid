@@ -26,6 +26,7 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.model.GroupBy;
 import org.wso2.testgrid.reporting.model.PerAxisHeader;
@@ -52,6 +53,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_EMAIL_REPORT_NAME;
 import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
@@ -718,11 +720,35 @@ public class TestReportEngine {
      * Generate a HTML report which is used as the content of the email to be sent out to
      * relevant parties interested in TestGrid test job.
      *
-     * @param product product needing the report.
+     * @param product   product needing the report.
+     * @param workspace workspace containing the test-plan yamls
      */
-    public void generateEmailReport(Product product) throws ReportingException {
+    public void generateEmailReport(Product product, String workspace) throws ReportingException {
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        List<TestPlan> testPlans = new ArrayList<>();
+        Path source = Paths.get(workspace, "test-plans");
+        try (Stream<Path> stream = Files.list(source).filter(Files::isRegularFile)) {
+            List<Path> paths = stream.sorted().collect(Collectors.toList());
+            for (Path path : paths) {
+                if (!path.toFile().exists()) {
+                    throw new ReportingException(
+                            "Test Plan File doesn't exist. File path is " + path.toAbsolutePath().toString());
+                }
+                TestPlan testPlanYaml = org.wso2.testgrid.common.util.FileUtil
+                        .readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
+                testPlanUOW.getTestPlanById(testPlanYaml.getId()).ifPresent(testPlan -> {
+                    testPlans.add(testPlan);
+                });
+            }
+        }catch (IOException e) {
+            throw new ReportingException("Error occurred while reading the test-plan yamls in workspace "
+                    + workspace, e);
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occurred while getting the test plan from database " , e);
+        }
+        //start email generation
         EmailReportProcessor emailReportProcessor = new EmailReportProcessor();
-        if (!emailReportProcessor.hasFailedTests(product)) {
+        if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of " + product + "does not contain failed tests. " +
                     "Hence skipping email-report generation..");
             return;
@@ -733,7 +759,7 @@ public class TestReportEngine {
         report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product));
         report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
-        report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product));
+        report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
         perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
         String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
 
