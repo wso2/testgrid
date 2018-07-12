@@ -183,6 +183,7 @@ pipeline {
                 cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
                 ./testgrid generate-email \
                 --product ${PRODUCT} \
+                --workspace ${PWD}
                 """
             script {
                 // Archive artifacts
