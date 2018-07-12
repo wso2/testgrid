@@ -317,14 +317,20 @@ public class TestPlanExecutor {
                             // Apply config change set script on agent
                             if (configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
                                             deploymentCreationResult, true)) {
+                                // Run test scenarios for relevant config change set
                                 for (TestScenario testScenario : testPlan.getTestScenarios()) {
                                     if (configChangeSet.getName().equals(testScenario.getConfigChangeSetName())) {
                                         executeTestScenario(testScenario, deploymentCreationResult, testPlan);
                                     }
                                 }
-                                // Revert config change set
-                                configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
-                                        deploymentCreationResult, false);
+                                // Revert config change set after running test scenarios
+                                // If revert back is not success then, break all test scenarios running
+                                if (!configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
+                                        deploymentCreationResult, false)) {
+                                    logger.info("Config change set revert script execution failed for " +
+                                            configChangeSet.getName() + ". Abort running test scenarios");
+                                    break;
+                                }
                             }
                         }
                         // Remove config set repos on agent
@@ -348,7 +354,7 @@ public class TestPlanExecutor {
     }
 
     /**
-     * Execute given test scenario
+     * Execute given test scenario.
      *
      * @param testScenario the test scenario
      * @param deploymentCreationResult the result of the previous build step

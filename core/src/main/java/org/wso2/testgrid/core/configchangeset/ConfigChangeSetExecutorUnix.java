@@ -33,7 +33,9 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.core.TestPlanExecutor;
+import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -45,7 +47,7 @@ import java.util.Base64;
 import java.util.List;
 
 /**
- * This class execute commands for applying config change set on UNIX machines
+ * This class execute commands for applying config change set on UNIX machines.
  *
  */
 public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
@@ -93,7 +95,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
 
             return applyShellCommandOnAgent(testPlan, applyShellCommand);
         } catch (MalformedURLException e) {
-            logger.warn("Error parsing scenario repository path for ".
+            logger.error("Error parsing scenario repository path for ".
                     concat(testPlan.getConfigChangeSetRepository()), e);
             return false;
         }
@@ -157,9 +159,10 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
         String authenticationToken = "Basic " + Base64.getEncoder().encodeToString(
                 authenticationString.getBytes(StandardCharsets.UTF_8));
         boolean executionStatus = true;
+        String agentLink = tinkererHost + "test-plan/" + testPlan.getId() + "/agents";
         try {
             // Get list of agent for given test plan id
-            Content agentResponse = Request.Get(tinkererHost + "test-plan/" + testPlan.getId() + "/agents")
+            Content agentResponse = Request.Get(agentLink)
                     .addHeader(HttpHeaders.AUTHORIZATION, authenticationToken).
                             execute().returnContent();
 
@@ -173,24 +176,35 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                             , agent, shellCommand);
                     JsonParser jsonParser = new JsonParser();
                     JsonObject result = (JsonObject) jsonParser.parse(shellCommandResponse.asString());
-                    logger.info("Agent exit value: " + result.get("exitValue").getAsInt());
-                    // Agent code defalut is SHELL, if time out then, code is 408
-                    logger.info("Agent code: " + result.get("code").getAsString());
-                    logger.info("Agent response: \n" + result.get("response").getAsString());
-                    try {
-                        if (result.get("code").getAsString().equals("408") || result.get("exitValue").getAsInt() != 0) {
-                            executionStatus = false;
-                            logger.warn("Agent execution failed");
-                        }
-                    } catch (NullPointerException e) {
-                        logger.warn("Agent execution failed");
+                    // Set default  value as empty
+                    int exitValue = 0;
+                    String code = "";
+                    String response = "";
+                    if (result.get("exitValue") != null) {
+                        exitValue = result.get("exitValue").getAsInt();
                     }
-
+                    if (result.get("code") != null) {
+                        code = result.get("code").getAsString();
+                    }
+                    if (result.get("response") != null) {
+                        response = result.get("response").getAsString();
+                    }
+                    logger.info("Agent exit value: " + exitValue);
+                    logger.info("Agent code: " + code);
+                    logger.info("Agent response: \n" + response);
+                    // Agent code default is SHELL, if time out then, it return code as 408
+                    if (code.equals("408") || exitValue != 0) {
+                        executionStatus = false;
+                        logger.error("Agent script execution failed with code " + code + " exit value " + exitValue);
+                    }
                 }
             }
             return executionStatus;
+        } catch (ScenarioExecutorException e) {
+            logger.error("Error in API call request to execute script ".concat(tinkererHost), e);
+            return false;
         } catch (IOException e) {
-            logger.warn("Error in API call request ".concat(tinkererHost), e);
+            logger.error("Error in API call request to get Agent list ".concat(agentLink), e);
             return false;
         }
     }
@@ -203,17 +217,23 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
      * @param agent                 Agent details
      * @param script                Script that need to be executed
      * @return                      Shell execution output
-     * @throws IOException          Request post exception
+     * @throws ScenarioExecutorException          Request post exception
      */
     private Content sendShellCommand(String tinkererHost, String authenticationKey, Agent agent, String script)
-            throws IOException {
-        return Request.Post(
-                tinkererHost + "test-plan/" + agent.getTestPlanId() +
-                        "/agent/" + agent.getInstanceName() + "/operation"
-        ).addHeader(HttpHeaders.AUTHORIZATION, authenticationKey)
-                .addHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-                .bodyString("{\"request\":\"" + script + "\",\"code\":\"SHELL\"}", ContentType.APPLICATION_JSON).
-                        execute().returnContent();
+            throws ScenarioExecutorException {
+        Content result;
+        String requestLink = tinkererHost + "test-plan/" + agent.getTestPlanId() +
+                "/agent/" + agent.getInstanceName() + "/operation";
+        try {
+            result = Request.Post(requestLink).addHeader(HttpHeaders.AUTHORIZATION, authenticationKey)
+                    .addHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+                    .bodyString("{\"request\":\"" + script + "\",\"code\":\"SHELL\"}", ContentType.APPLICATION_JSON).
+                            execute().returnContent();
+        } catch (IOException e) {
+            throw new ScenarioExecutorException(StringUtil.concatStrings(
+                    "Send api request to the agent error occur for the ", requestLink), e);
+        }
+        return result;
     }
 
 }
