@@ -21,30 +21,29 @@ package org.wso2.testgrid.core.configchangeset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.core.TestPlanExecutor;
-import org.wso2.testgrid.tinkerer.TinkererClientFactory;
 
 import java.util.Optional;
 
 /**
- * This factory create appropriate config change set executor class for given OS
+ * This factory create appropriate config change set executor class for given OS.
  *
  * @since 1.0.0
  */
 public class ConfigChangeSetFactory {
 
-    private static final Logger logger = LoggerFactory.getLogger(TinkererClientFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConfigChangeSetFactory.class);
 
     /**
      * Generate Config change set executor for given OS
      * @param osCategory type of agent OS as WINDOWS or UNIX
      * @return Object to run config change set commands
      */
-    public static Optional<ConfigChangeSetExecutor> getExecuter(TestPlanExecutor.OSCategory osCategory) {
+    public static Optional<ConfigChangeSetExecutor> getExecutor(TestPlanExecutor.OSCategory osCategory) {
         if (osCategory.equals(TestPlanExecutor.OSCategory.UNIX)) {
-            logger.info("OSCatagory is UNIX");
+            logger.debug("OSCatagory is UNIX");
             return Optional.of(new ConfigChangeSetExecutorUnix());
         } else if (osCategory.equals(TestPlanExecutor.OSCategory.WINDOWS)) {
-            logger.info("OSCatagory is WINDOWS");
+            logger.debug("OSCatagory is WINDOWS");
             return Optional.of(new ConfigChangeSetExecutorWindows());
         } else {
             return Optional.empty();

@@ -23,21 +23,36 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestPlan;
 
 /**
- * This class execute commands for applying config change set on WINDOWS machines
+ * This class execute commands for applying config change set on WINDOWS machines.
+ * Todo this class should be implement according to the Windows environment
+ *
  */
 public class ConfigChangeSetExecutorWindows extends ConfigChangeSetExecutor {
 
     /**
-     * Apply config change set script before and after run test scenarios
+     * Apply config change set script before run test scenarios
      *
      * @param testPlan the test plan
      * @param configChangeSet   config change set
-     * @param isInit run apply config-script if true. else, run revert-config script
+     * @param deploymentCreationResult
      * @return execution passed or failed
      */
     @Override
     public boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
-                                        DeploymentCreationResult deploymentCreationResult, boolean isInit) {
+                                        DeploymentCreationResult deploymentCreationResult) {
+        return false;
+    }
+
+    /**
+     * Revert config change set script after run test scenarios
+     *
+     * @param testPlan the test plan
+     * @param configChangeSet the config change set
+     * @param deploymentCreationResult deployment creation result
+     * @return execution passed or failed
+     */
+    public boolean revertConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
+                                         DeploymentCreationResult deploymentCreationResult) {
         return false;
     }
 
