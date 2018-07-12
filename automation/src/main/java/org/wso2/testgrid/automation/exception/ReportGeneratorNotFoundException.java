@@ -17,12 +17,13 @@
  */
 package org.wso2.testgrid.automation.exception;
 
+import org.wso2.testgrid.common.exception.TestGridException;
 /**
  * Indicates that a report generator cannot be found for the given test type.
  *
  * @since 1.0.0
  */
-public class ReportGeneratorNotFoundException extends ReportGeneratorInitializingException {
+public class ReportGeneratorNotFoundException extends TestGridException {
 
     /**
      * Constructs a new exception with the specified detail message.

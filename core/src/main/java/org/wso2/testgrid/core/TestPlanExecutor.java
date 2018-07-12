@@ -143,8 +143,8 @@ public class TestPlanExecutor {
         try {
             //post test plan actions
             performPostTestPlanActions(testPlan, deploymentCreationResult);
-        } catch (Exception e) {
-            //catch exception here because we need to ensure the test plan life cycle executes fully
+        } catch (Throwable e) {
+            //catch throwable here because we need to ensure the test plan life cycle executes fully
             //even if an error occurs at this stage.
             logger.error("Unexpected Error occurred while performing post test execution tasks," +
                     "hence skipping the step and continuing the test plan lifecycle. ", e);
@@ -180,7 +180,7 @@ public class TestPlanExecutor {
             }
         } catch (TinkererOperationException e) {
             logger.error("Error while downloading the log files for TestPlan" +
-                    testPlan.getDeploymentPattern().getProduct().getName());
+                    testPlan.getDeploymentPattern().getProduct().getName(), e);
         }
         //report generation
         logger.info("Generating report for the test plan: " + testPlan.getId());
@@ -188,8 +188,8 @@ public class TestPlanExecutor {
             ReportGenerator reportGenerator = ReportGeneratorFactory.getReportGenerator(testPlan);
             reportGenerator.generateReport();
         } catch (ReportGeneratorNotFoundException e) {
-            logger.error(e.getMessage() + " for TestPlan of " + testPlan.getDeploymentPattern()
-                    .getProduct().getName());
+            logger.error("Error occurred while finding a report generator " +
+                    " for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName(), e);
         } catch (ReportGeneratorInitializingException e) {
             logger.error("Error while initializing the report generators  " +
                     "for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName(), e);
