@@ -157,9 +157,8 @@ public class EmailReportProcessor {
      * @param product product
      * @return Git build information
      */
-    public String getGitBuildDetails(Product product) {
+    public String getGitBuildDetails(Product product, List<TestPlan> testPlans) {
         StringBuilder stringBuilder = new StringBuilder();
-        List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
         //All the test-plans are executed from the same git revision. Thus git build details are similar across them.
         //Therefore we refer the fist test-plan's git-build details.
         TestPlan testPlan = testPlans.get(0);
