@@ -53,7 +53,7 @@ public class GenerateEmailCommand implements Command {
         Product product = getProduct(productName);
         try {
             TestReportEngine testReportEngine = new TestReportEngine();
-            testReportEngine.generateEmailReport(product,workspace);
+            testReportEngine.generateEmailReport(product, workspace);
         } catch (ReportingException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error occurred when generating email report for {" +

@@ -740,11 +740,11 @@ public class TestReportEngine {
                     testPlans.add(testPlan);
                 });
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             throw new ReportingException("Error occurred while reading the test-plan yamls in workspace "
                     + workspace, e);
         } catch (TestGridDAOException e) {
-            throw new ReportingException("Error occurred while getting the test plan from database " , e);
+            throw new ReportingException("Error occurred while getting the test plan from database ", e);
         }
         //start email generation
         EmailReportProcessor emailReportProcessor = new EmailReportProcessor();
