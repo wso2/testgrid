@@ -24,7 +24,6 @@ import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -32,6 +31,7 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -54,7 +54,7 @@ import javax.xml.stream.events.XMLEvent;
 /**
  * Surefire reports parser implementation related to parsing testng integration
  * test results.
- *
+ * <p>
  * List of file and dir names that'll be archived are 'surefire-reports',
  * and 'automation.log' currently.
  *
@@ -116,11 +116,18 @@ public class TestNgResultsParser extends ResultParser {
         final Path dataBucket = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
         Set<Path> inputFiles = getResultInputFiles(dataBucket);
 
-
+        final Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
+        logger.info("Found testng-results.xml result files at: " + inputFiles.stream().map
+                (outputLocation::relativize).collect(Collectors.toSet()));
         for (Path resultsFile : inputFiles) {
             try (final InputStream stream = Files.newInputStream(resultsFile, StandardOpenOption.READ)) {
-                final XMLEventReader eventReader = XMLInputFactory.newInstance().createXMLEventReader(stream);
+                logger.info("Processing results file: " + outputLocation.relativize(resultsFile));
+                if (logger.isDebugEnabled()) {
+                    logger.debug(
+                            "File content: " + new String(Files.readAllBytes(resultsFile), StandardCharsets.UTF_8));
+                }
 
+                final XMLEventReader eventReader = XMLInputFactory.newInstance().createXMLEventReader(stream);
                 while (eventReader.hasNext()) {
                     XMLEvent event = eventReader.nextEvent();
                     if (event.getEventType() == XMLStreamConstants.START_ELEMENT) {
@@ -133,7 +140,8 @@ public class TestNgResultsParser extends ResultParser {
                         }
                     }
                 }
-
+                logger.info(String.format("Found %s test cases. %s test cases has failed.", testScenario.getTestCases
+                        ().size(), testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count()));
             } catch (IOException | XMLStreamException e) {
                 logger.error("Error while parsing testng-results.xml at " + resultsFile + " for " +
                         testScenario.getName(), e);
@@ -241,7 +249,7 @@ public class TestNgResultsParser extends ResultParser {
                             (path.getFileName().toString()))).collect(Collectors.toSet());
 
             logger.info("Found results paths at " + outputLocation + ": " + archivePaths.stream().map
-                     (outputLocation::relativize).collect(Collectors.toSet()));
+                    (outputLocation::relativize).collect(Collectors.toSet()));
             if (!archivePaths.isEmpty()) {
                 Path artifactPath = TestGridUtil.getTestScenarioArtifactPath(testScenario);
                 for (Path filePath : archivePaths) {
@@ -263,7 +271,7 @@ public class TestNgResultsParser extends ResultParser {
                 logger.info("Could not create results archive. No archived files with names: " + Arrays.toString
                         (ARCHIVABLE_FILES) + " were found at " + outputLocation + ".");
             }
-        } catch (IOException | TestGridException e) {
+        } catch (IOException e) {
             throw new ResultParserException("Error occurred while persisting scenario test-results." +
                     "Scenario ID: " + testScenario.getId() + ", Scenario Directory: " + testScenario.getDir(), e);
         }

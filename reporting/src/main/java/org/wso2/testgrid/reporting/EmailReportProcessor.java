@@ -26,7 +26,6 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.PropertyFileReader;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.model.email.TestPlanResultSection;
@@ -108,14 +107,7 @@ public class EmailReportProcessor {
     private String getIntegrationTestLogResult(TestPlan testPlan) throws ReportingException {
         StringBuilder stringBuilder = new StringBuilder();
         Path filePath;
-        try {
-            filePath = Paths.get(TestGridUtil.deriveTestIntegrationLogFilePath(testPlan));
-        } catch (TestGridException e) {
-            throw new ReportingException("Error occurred while deriving integration-test log file path to get" +
-                    " integration test results for test-plan with id " + testPlan.getId() + "of the product " +
-                    testPlan.getDeploymentPattern().getProduct().getName() + "having infra-combination as " +
-                    testPlan.getInfraParameters(), e);
-        }
+        filePath = Paths.get(TestGridUtil.deriveTestIntegrationLogFilePath(testPlan));
 
         if (Files.exists(filePath)) {
             try (BufferedReader bufferedReader = Files.newBufferedReader(filePath)) {
@@ -151,6 +143,7 @@ public class EmailReportProcessor {
 
     /**
      * Returns the current status of the product.
+     *
      * @param product product
      * @return current status of the product
      */
@@ -161,6 +154,7 @@ public class EmailReportProcessor {
     /**
      * Returns the Git build information of the latest build of the product.
      * This will consist of git location and git revision used to build the distribution.
+     *
      * @param product product
      * @return Git build information
      */
@@ -171,44 +165,40 @@ public class EmailReportProcessor {
         //Therefore we refer the fist test-plan's git-build details.
         TestPlan testPlan = testPlans.get(0);
         String outputPropertyFilePath = null;
-        try {
-            outputPropertyFilePath =
-                    TestGridUtil.deriveScenarioOutputPropertyFilePath(testPlan);
-            PropertyFileReader propertyFileReader = new PropertyFileReader();
-            String gitRevision = propertyFileReader.
-                    getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION, outputPropertyFilePath);
-            String gitLocation = propertyFileReader.
-                    getProperty(PropertyFileReader.BuildOutputProperties.GIT_LOCATION, outputPropertyFilePath);
-            if (gitLocation == null || gitLocation.isEmpty()) {
-                logger.error("Git location received as null/empty for test plan with id " + testPlan.getId());
-                stringBuilder.append("Git location: Unknown!");
-            } else {
-                stringBuilder.append("Git location: ").append(gitLocation);
-            }
-            stringBuilder.append(HTML_LINE_SEPARATOR);
-            if (gitRevision == null || gitRevision.isEmpty()) {
-                logger.error("Git revision received as null/empty for test plan with id " + testPlan.getId());
-                stringBuilder.append("Git revision: Unknown!");
-            } else {
-                stringBuilder.append("Git revision: ").append(gitRevision);
-            }
-        } catch (TestGridException e) {
-            logger.error("Error occurred while getting Git build details from file" + outputPropertyFilePath +
-                    "for product " + product.getName() + "" + "considering the testplan with testplan id " +
-                    testPlan.getId(), e);
-            return "Git build details are unknown!";
+        outputPropertyFilePath =
+                TestGridUtil.deriveScenarioOutputPropertyFilePath(testPlan);
+        PropertyFileReader propertyFileReader = new PropertyFileReader();
+        String gitRevision = propertyFileReader.
+                getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION, outputPropertyFilePath)
+                .orElse("");
+        String gitLocation = propertyFileReader.
+                getProperty(PropertyFileReader.BuildOutputProperties.GIT_LOCATION, outputPropertyFilePath)
+                .orElse("");
+        if (gitLocation.isEmpty()) {
+            logger.error("Git location received as null/empty for test plan with id " + testPlan.getId());
+            stringBuilder.append("Git location: Unknown!");
+        } else {
+            stringBuilder.append("Git location: ").append(gitLocation);
+        }
+        stringBuilder.append(HTML_LINE_SEPARATOR);
+        if (gitRevision.isEmpty()) {
+            logger.error("Git revision received as null/empty for test plan with id " + testPlan.getId());
+            stringBuilder.append("Git revision: Unknown!");
+        } else {
+            stringBuilder.append("Git revision: ").append(gitRevision);
         }
         return stringBuilder.toString();
     }
 
     /**
      * Check if the latest run of a certain product include failed tests.
+     *
      * @param product product
      * @return if test-failures exists or not
      */
     public boolean hasFailedTests(Product product) {
         List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
-        for (TestPlan testPlan: testPlans) {
+        for (TestPlan testPlan : testPlans) {
             if (testPlan.getStatus().equals(Status.FAIL)) {
                 return true;
             }

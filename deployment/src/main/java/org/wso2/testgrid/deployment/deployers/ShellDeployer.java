@@ -36,7 +36,6 @@ import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.deployment.DeploymentUtil;
@@ -160,16 +159,10 @@ public class ShellDeployer implements Deployer {
     }
 
     private Properties getInputParameters(TestPlan testPlan, Script deployment) {
-        try {
-            Path workspace = TestGridUtil.getTestRunWorkspace(testPlan, false);
-            final Properties inputParameters = deployment.getInputParameters();
-            inputParameters.setProperty(WORKSPACE, workspace.toString());
-            return inputParameters;
-        } catch (TestGridException e) {
-            logger.info("Error while reading input parameters for deployment. Using empty properties. Error: " +
-                    e.getMessage(), e);
-            return new Properties();
-        }
+        Path workspace = TestGridUtil.getTestRunWorkspace(testPlan, false);
+        final Properties inputParameters = deployment.getInputParameters();
+        inputParameters.setProperty(WORKSPACE, workspace.toString());
+        return inputParameters;
     }
 
     /**

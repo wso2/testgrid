@@ -156,13 +156,8 @@ public class AWSProvider implements InfrastructureProvider {
                 .getScripts().get(0).getInputParameters().getProperty(AWS_REGION_PARAMETER);
 
             Path configFilePath;
-            try {
-                configFilePath = TestGridUtil.getConfigFilePath();
-            } catch (IOException e) {
-                throw new TestGridInfrastructureException(StringUtil.concatStrings(
-                        "Error occurred while trying to read AWS credentials.", e));
-            }
-            AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
+        configFilePath = TestGridUtil.getConfigFilePath();
+        AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)
                 .build();
@@ -295,12 +290,7 @@ public class AWSProvider implements InfrastructureProvider {
     private boolean doRelease(InfrastructureConfig infrastructureConfig, String stackName) throws
             TestGridInfrastructureException, InterruptedException {
         Path configFilePath;
-        try {
-            configFilePath = TestGridUtil.getConfigFilePath();
-        } catch (IOException e) {
-            throw new TestGridInfrastructureException(StringUtil.concatStrings(
-                    "Error occurred while trying to read AWS credentials.", e));
-        }
+        configFilePath = TestGridUtil.getConfigFilePath();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(infrastructureConfig.getProvisioners().get(0).getScripts().get(0)

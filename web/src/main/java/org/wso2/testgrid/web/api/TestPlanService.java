@@ -189,12 +189,6 @@ public class TestPlanService {
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
                             .setDescription(e.getMessage()).build()).build();
-        } catch (TestGridException e) {
-            String msg = "Error occurred when calculating test run artifacts directory.";
-            logger.error(msg, e);
-            return Response.serverError()
-                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
-                            .setDescription(e.getMessage()).build()).build();
         } catch (ArtifactReaderException e) {
             String msg = "Error occurred when reading the artifact.";
             logger.error(msg, e);
