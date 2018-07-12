@@ -85,6 +85,19 @@ public class TestReportEngine {
     private static final String RESULT_FOLDER = "Results";
     private static final String IMAGES_FOLDER = "img";
 
+    private TestPlanUOW testPlanUOW;
+    private final EmailReportProcessor emailReportProcessor;
+
+    public TestReportEngine(TestPlanUOW testPlanUOW, EmailReportProcessor emailReportProcessor) {
+        this.testPlanUOW = testPlanUOW;
+        this.emailReportProcessor = emailReportProcessor;
+    }
+
+    public TestReportEngine() {
+        testPlanUOW = new TestPlanUOW();
+        emailReportProcessor = new EmailReportProcessor();
+    }
+
     /**
      * Generates a test report based on the given product name and product version.
      *
@@ -633,7 +646,6 @@ public class TestReportEngine {
      */
     private List<ReportElement> constructReportElements(Product product, AxisColumn groupByAxisColumn) {
         List<ReportElement> reportElements = new ArrayList<>();
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
         List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
         for (TestPlan testPlan : testPlans) {
             List<ReportElement> reportElementsForTestPlan = createReportElementsForTestPlan(testPlan,
@@ -720,14 +732,16 @@ public class TestReportEngine {
     /**
      * Generate a HTML report which is used as the content of the email to be sent out to
      * relevant parties interested in TestGrid test job.
-     *
-     * @param product   product needing the report.
+     *  @param product   product needing the report.
      * @param workspace workspace containing the test-plan yamls
      */
-    public void generateEmailReport(Product product, String workspace) throws ReportingException {
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
+    public Optional<Path> generateEmailReport(Product product, String workspace) throws ReportingException {
         List<TestPlan> testPlans = new ArrayList<>();
         Path source = Paths.get(workspace, "test-plans");
+        if (!Files.exists(source)) {
+            logger.error("Test-plans dir does not exist: " + source);
+            return Optional.empty();
+        }
         try (Stream<Path> stream = Files.list(source).filter(Files::isRegularFile)) {
             List<Path> paths = stream.sorted().collect(Collectors.toList());
             for (Path path : paths) {
@@ -755,11 +769,10 @@ public class TestReportEngine {
             throw new ReportingException("Error occurred while getting the test plan from database ", e);
         }
         //start email generation
-        EmailReportProcessor emailReportProcessor = new EmailReportProcessor();
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of " + product + "does not contain failed tests. " +
                     "Hence skipping email-report generation..");
-            return;
+            return Optional.empty();
         }
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         Map<String, Object> report = new HashMap<>();
@@ -776,5 +789,6 @@ public class TestReportEngine {
         String testGridHome = TestGridUtil.getTestGridHomePath();
         Path reportPath = Paths.get(testGridHome, relativeFilePath);
         writeToFile(reportPath.toString(), htmlString);
+        return Optional.of(reportPath);
     }
 }

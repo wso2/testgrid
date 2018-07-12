@@ -1,0 +1,105 @@
+-------------------------------------------------------------------------------
+Test set: TestSuite
+-------------------------------------------------------------------------------
+Tests run: 668, Failures: 219, Errors: 0, Skipped: 342, Time elapsed: 5,032.638 sec <<< FAILURE! - in TestSuite
+deployWebApps(org.wso2.am.integration.tests.other.AdvancedWebAppDeploymentConfig)  Time elapsed: 39.796 sec  <<< FAILURE!
+org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Exception when Adding the New API. Error: Read timed out
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:171)
+	at org.wso2.am.integration.tests.other.AdvancedWebAppDeploymentConfig.initialize(AdvancedWebAppDeploymentConfig.java:93)
+	at org.wso2.am.integration.tests.other.AdvancedWebAppDeploymentConfig.deployWebApps(AdvancedWebAppDeploymentConfig.java:72)
+
+testAPIApplicationLifeCycleITestCase(org.wso2.am.integration.tests.other.APIApplicationLifeCycleTestCase)  Time elapsed: 17.922 sec  <<< FAILURE!
+org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Unable to add API. Error: Read timed out
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:171)
+	at java.net.SocketInputStream.read(SocketInputStream.java:141)
+
+copyAPILifeCycleTestCase(org.wso2.am.integration.tests.other.APIApplicationLifeCycleTestCase)  Time elapsed: 7.884 sec  <<< FAILURE!
+org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Unable to update API. Error: Read timed out
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:171)
+	at java.net.SocketInputStream.read(SocketInputStream.java:141)
+
+destroy(org.wso2.am.integration.tests.other.TokenEncryptionScopeTestCase)  Time elapsed: 0.212 sec  <<< FAILURE!
+org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Unable to remove application - TokenEncryptionApp. Error: No Session Cookie found. Please login first
+	at org.wso2.am.integration.test.utils.clients.APIStoreRestClient.checkAuthentication(APIStoreRestClient.java:186)
+	at org.wso2.am.integration.test.utils.clients.APIStoreRestClient.removeApplication(APIStoreRestClient.java:523)
+	at org.wso2.am.integration.tests.other.TokenEncryptionScopeTestCase.destroy(TokenEncryptionScopeTestCase.java:245)
+
+testAPICreationWithWSDL(org.wso2.am.integration.tests.other.APIMANAGER5843WSDLHostnameTestCase)  Time elapsed: 7.011 sec  <<< FAILURE!
+org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Unable to add API. Error: Read timed out
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:171)
+	at java.net.SocketInputStream.read(SocketInputStream.java:141)
+	at org.apache.http.impl.io.SessionInputBufferImpl.streamRead(SessionInputBufferImpl.java:136)
+	at org.apache.http.impl.io.SessionInputBufferImpl.fillBuffer(SessionInputBufferImpl.java:152)
+	at org.apache.http.impl.io.SessionInputBufferImpl.readLine(SessionInputBufferImpl.java:270)
+	at org.apache.http.impl.conn.DefaultHttpResponseParser.parseHead(DefaultHttpResponseParser.java:140)
+	at org.apache.http.impl.conn.DefaultHttpResponseParser.parseHead(DefaultHttpResponseParser.java:57)
+	at org.apache.http.impl.io.AbstractMessageParser.parse(AbstractMessageParser.java:260)
+	at org.apache.http.impl.DefaultBHttpClientConnection.receiveResponseHeader(DefaultBHttpClientConnection.java:161)
+	at sun.reflect.GeneratedMethodAccessor10.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.apache.http.impl.conn.CPoolProxy.invoke(CPoolProxy.java:138)
+	at com.sun.proxy.$Proxy10.receiveResponseHeader(Unknown Source)
+	at org.apache.http.protocol.HttpRequestExecutor.doReceiveResponse(HttpRequestExecutor.java:271)
+	at org.apache.http.protocol.HttpRequestExecutor.execute(HttpRequestExecutor.java:123)
+	at org.apache.http.impl.execchain.MainClientExec.execute(MainClientExec.java:253)
+	at org.apache.http.impl.execchain.ProtocolExec.execute(ProtocolExec.java:194)
+	at org.apache.http.impl.execchain.RetryExec.execute(RetryExec.java:85)
+	at org.apache.http.impl.client.InternalHttpClient.doExecute(InternalHttpClient.java:186)
+	at org.apache.http.impl.client.CloseableHttpClient.execute(CloseableHttpClient.java:82)
+	at org.apache.http.impl.client.CloseableHttpClient.execute(CloseableHttpClient.java:106)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.sendPOSTMessage(HTTPSClientUtils.java:210)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.doPost(HTTPSClientUtils.java:78)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.doPost(HTTPSClientUtils.java:150)
+	at org.wso2.am.integration.test.utils.clients.APIPublisherRestClient.addAPI(APIPublisherRestClient.java:122)
+	at org.wso2.am.integration.tests.other.APIMANAGER5843WSDLHostnameTestCase.testAPICreationWithWSDL(APIMANAGER5843WSDLHostnameTestCase.java:80)
+
+testAPICreationWithWSDL(org.wso2.am.integration.tests.other.APIMANAGER5843WSDLHostnameTestCase)  Time elapsed: 7.021 sec  <<< FAILURE!
+org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Unable to add API. Error: Read timed out
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:171)
+	at java.net.SocketInputStream.read(SocketInputStream.java:141)
+	at org.apache.http.impl.io.SessionInputBufferImpl.streamRead(SessionInputBufferImpl.java:136)
+	at org.apache.http.impl.io.SessionInputBufferImpl.fillBuffer(SessionInputBufferImpl.java:152)
+	at org.apache.http.impl.io.SessionInputBufferImpl.readLine(SessionInputBufferImpl.java:270)
+	at org.apache.http.impl.client.CloseableHttpClient.execute(CloseableHttpClient.java:106)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.sendPOSTMessage(HTTPSClientUtils.java:210)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.doPost(HTTPSClientUtils.java:78)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.doPost(HTTPSClientUtils.java:150)
+	at org.wso2.am.integration.test.utils.clients.APIPublisherRestClient.addAPI(APIPublisherRestClient.java:122)
+	at org.wso2.am.integration.tests.other.APIMANAGER5843WSDLHostnameTestCase.testAPICreationWithWSDL(APIMANAGER5843WSDLHostnameTestCase.java:80)
+
+testInvokingWithGoldTier(org.wso2.am.integration.tests.api.lifecycle.ChangeAPITierAndTestInvokingTestCase)  Time elapsed: 11.487 sec  <<< FAILURE!
+org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Exception when Adding the New API. Error: Read timed out
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:171)
+	at java.net.SocketInputStream.read(SocketInputStream.java:141)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.sendPOSTMessage(HTTPSClientUtils.java:210)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.doPost(HTTPSClientUtils.java:78)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.doPost(HTTPSClientUtils.java:150)
+	at org.wso2.am.integration.test.utils.clients.APIPublisherRestClient.addAPI(APIPublisherRestClient.java:657)
+	at org.wso2.am.integration.tests.api.lifecycle.APIManagerLifecycleBaseTest.createAndPublishAPI(APIManagerLifecycleBaseTest.java:272)
+	at org.wso2.am.integration.tests.api.lifecycle.APIManagerLifecycleBaseTest.createPublishAndSubscribeToAPI(APIManagerLifecycleBaseTest.java:375)
+	at org.wso2.am.integration.tests.api.lifecycle.ChangeAPITierAndTestInvokingTestCase.testInvokingWithGoldTier(ChangeAPITierAndTestInvokingTestCase.java:110)
+
+testInvokingWithAPIGoldTierApplicationGoldResourceUnlimited(org.wso2.am.integration.tests.api.lifecycle.ChangeResourceTierAndTestInvokingTestCase)  Time elapsed: 15.352 sec  <<< FAILURE!
+org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Exception when change he lifecycle to publish. Error: Read timed out
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:171)
+testAvailabilityOfTiersInPermissionPageBeforeChangeTiersXML(org.wso2.am.integration.tests.api.lifecycle.EditTiersXMLAndVerifyInPublisherTestCase)  Time elapsed: 16.204 sec  <<< FAILURE!
+org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Exception when change he lifecycle to publish. Error: Read timed out
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	at java.net.SocketInputStream.read(SocketInputStream.java:171)
+	at java.net.SocketInputStream.read(SocketInputStream.java:141)

@@ -96,16 +96,16 @@ public class TestPlanExecutorTest {
 
         testPlan.setTestScenarios(Arrays.asList(s, s2));
 
-        LogFilePathLookup.setLogFilePath("TestPlanExecutorTest.log");
-        final Path testgridLogPath = Paths.get("target", "TestPlanExecutorTest.log").toAbsolutePath();
+        LogFilePathLookup.setLogFilePath("TestReportEngineTest.log");
+        final Path testgridLogPath = Paths.get("target", "TestReportEngineTest.log").toAbsolutePath();
         final TestPlanExecutor testPlanExecutor = new TestPlanExecutor(scenarioExecutor, testPlanUOW, testScenarioUOW);
         testPlanExecutor.printSummary(testPlan, System.currentTimeMillis() - 1525414900000L);
 
-        logger.info("Reading TestPlanExecutorTest.log at " + testgridLogPath.toAbsolutePath());
+        logger.info("Reading TestReportEngineTest.log at " + testgridLogPath.toAbsolutePath());
         waitForLog(testgridLogPath.toAbsolutePath());
 
         final List<String> testgridLog = Files.readAllLines(testgridLogPath.toAbsolutePath());
-        logger.info("TestPlanExecutorTest.log content: " + testgridLog);
+        logger.info("TestReportEngineTest.log content: " + testgridLog);
         boolean failedTestsTextFound = false;
         boolean testPlanSummaryTextFound = false;
         boolean testRunFailTextFound = false;
