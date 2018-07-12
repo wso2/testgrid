@@ -35,14 +35,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -134,14 +135,16 @@ public class TestNgResultsParser extends ResultParser {
                         StartElement startElement = event.asStartElement();
                         if (startElement.getName().getLocalPart().equals("class")) {
                             final String classNameStr = getClassName(startElement);
-                            final boolean failed = hasFailedTestMethods(eventReader);
-                            final TestCase testCase = buildTestCase(classNameStr, failed);
-                            testScenario.addTestCase(testCase);
+                            List<TestCase> testCases = getTestCasesFor(classNameStr, eventReader);
+                            logger.info(String.format("Found %s test cases in class '%s'", testCases.size(),
+                                    classNameStr));
+                            testCases.stream().forEachOrdered(tc -> testScenario.addTestCase(tc));
                         }
                     }
                 }
-                logger.info(String.format("Found %s test cases. %s test cases has failed.", testScenario.getTestCases
-                        ().size(), testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count()));
+                logger.info(String.format("Found total of %s test cases. %s test cases has failed.", testScenario
+                                .getTestCases().size(),
+                        testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count()));
             } catch (IOException | XMLStreamException e) {
                 logger.error("Error while parsing testng-results.xml at " + resultsFile + " for " +
                         testScenario.getName(), e);
@@ -171,12 +174,13 @@ public class TestNgResultsParser extends ResultParser {
      * Searches the child elements of class element for test-methods where
      * status == !PASS.
      *
-     * @param eventReader XMLEventReader
+     * @param classNameStr class name
+     * @param eventReader  XMLEventReader
      * @return true if all test-methods has PASS status, false otherwise.
      * @throws XMLStreamException {@link XMLStreamException}
      */
-    private boolean hasFailedTestMethods(XMLEventReader eventReader) throws XMLStreamException {
-        boolean hasFailedTestMethods = false;
+    private List<TestCase> getTestCasesFor(String classNameStr, XMLEventReader eventReader) throws XMLStreamException {
+        List<TestCase> testCases = new ArrayList<>();
         while (eventReader.hasNext()) {
             XMLEvent event = eventReader.nextEvent();
             if (event.getEventType() == XMLStreamConstants.END_ELEMENT &&
@@ -186,21 +190,62 @@ public class TestNgResultsParser extends ResultParser {
             if (event.getEventType() == XMLStreamConstants.START_ELEMENT) {
                 final StartElement element = event.asStartElement();
                 if (element.getName().getLocalPart().equals("test-method")) {
-                    Iterable<Attribute> testMethodAttrs = element::getAttributes; //todo
-                    hasFailedTestMethods = StreamSupport.stream(testMethodAttrs.spliterator(), false)
-                            .anyMatch(att -> att.getName().getLocalPart().equals("status")
-                                    && !att.getValue().equals("PASS"));
+                    final TestCase testCase = readTestMethod(classNameStr, element);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Test case found : " + testCase + " for scenario: " + testScenario);
+                    }
+                    testCases.add(testCase);
                 }
             }
         }
-        return hasFailedTestMethods;
+        return testCases;
     }
 
-    private TestCase buildTestCase(String className, boolean failed) {
+    private TestCase readTestMethod(String classNameStr, StartElement element) {
+        final Iterator attrs = element.getAttributes();
+        Boolean status = null;  // null means 'SKIP' for now. true/false for PASS/FAIL.
+        String name = "unknown";
+        String description = "";
+        while (attrs.hasNext()) {
+            final Attribute attr = (Attribute) attrs.next();
+            if ("status".equals(attr.getName().getLocalPart())) {
+                switch (attr.getValue()) {
+                case "PASS":
+                    status = Boolean.TRUE;
+                    break;
+                case "FAIL":
+                    status = Boolean.FALSE;
+                    break;
+                default:
+                    status = Boolean.FALSE; //handle the skipped case
+                    description += " :: " + attr.getValue();
+                    break;
+                }
+            }
+            if ("name".equals(attr.getName().getLocalPart())) {
+                name = attr.getValue();
+            }
+            if ("description".equals(attr.getName().getLocalPart())) {
+                description = description.isEmpty() ? attr.getValue() : attr.getValue() + description;
+            }
+        }
+        if (status == null) { // it's a skipped test!
+            // TODO we need to properly handle Skipped test cases.
+            name = name + " :: SKIPPED!";
+            status = Boolean.FALSE;
+        }
+        final TestCase testCase = buildTestCase(classNameStr + "." + name, status,
+                description); //todo capture failure message
+        return testCase;
+
+    }
+
+    private TestCase buildTestCase(String className, boolean isSuccess, String failureMessage) {
         TestCase testCase = new TestCase();
         testCase.setTestScenario(this.testScenario);
         testCase.setName(className);
-        testCase.setSuccess(!failed);
+        testCase.setSuccess(isSuccess);
+        testCase.setFailureMessage(failureMessage);
         return testCase;
     }
 
