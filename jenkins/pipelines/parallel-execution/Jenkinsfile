@@ -15,12 +15,13 @@ def runPlan(tPlan, node) {
         sh """
             echo "Before PWD"
             pwd
-            cd /testgrid/testgrid-home/jobs/${PRODUCT}
-            cd ${SCENARIOS_LOCATION}
+            cd /testgrid/testgrid-home/jobs/${PRODUCT}/${SCENARIOS_LOCATION}
+            # pwd
+            # cd ${SCENARIOS_LOCATION}
             git clean -fd
             cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
             ./testgrid run-testplan --product ${PRODUCT} \
-                --file "/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}"
+             --file "/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}"
             """
     } catch (Exception err) {
         echo "Error : ${err}"
@@ -30,22 +31,17 @@ def runPlan(tPlan, node) {
 
     script {
       loadProperties()
-     //Archive jtl files
-    def bucket= properties['AWS_S3_BUCKET_NAME']
-    if ( "${bucket}" == "null") {
-      bucket="unknown"
     }
-    withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
-    // Upload artifacts to S3
-      s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/")
-    }
-    }
+
+    sh"""
+        aws s3 cp ${TESTGRID_HOME}/jobs/ s3://jenkins-testrun-artifacts-dev/artifacts --recursive --exclude "*" --include "*.log" --include "*.properties" --include "*.xml"
+      """
 }
 pipeline {
     agent {
         node {
             label "${SLAVE_NAME}"
-            customWorkspace '/testgrid/testgrid-home/jobs/wso2am-intg-py-slave'
+            customWorkspace "/testgrid/testgrid-home/jobs/${JOB_BASE_NAME}"
         }
     }
 
@@ -57,8 +53,7 @@ pipeline {
         PRODUCT = "${JOB_BASE_NAME}"
         INFRASTRUCTURE_REPOSITORY='https://github.com/wso2/testgrid'
         DEPLOYMENT_REPOSITORY='https://github.com/wso2/testgrid'
-        SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/apim-test-integration.git'
-
+        SCENARIOS_REPOSITORY='https://github.com/wso2/apim-test-integration.git'
         INFRA_LOCATION="workspace/testgrid"
         DEPLOYMENT_LOCATION="workspace/testgrid"
         SCENARIOS_LOCATION="workspace/apim-test-integration"
@@ -90,13 +85,13 @@ pipeline {
                 // Clone scenario repo
                 sh "mkdir -p ${SCENARIOS_LOCATION}"
                 dir("${SCENARIOS_LOCATION}"){
-                    git branch: 'master', url: "${SCENARIOS_REPOSITORY}"
+                    git branch: 'grid2', url: "${SCENARIOS_REPOSITORY}"
                 }
 
                 // Clone infra repo
                 sh "mkdir -p ${INFRA_LOCATION}"
                 dir("${INFRA_LOCATION}"){
-                    git branch: 'master', url:"${INFRASTRUCTURE_REPOSITORY}"
+                    git branch: 'gridTest', url:"${INFRASTRUCTURE_REPOSITORY}"
                 }
                 writeFile file: "${INFRA_LOCATION}/deploy.sh", text: '#!/bin/sh'
 
@@ -122,7 +117,7 @@ pipeline {
                 }
 
                 sh """
-                    echo 'infrastructureRepository: ${INFRA_LOCATION}/' > ${JOB_CONFIG_YAML_PATH}
+                    echo 'infrastructureRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'deploymentRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'testgridYamlLocation: ${TESTGRID_YAML_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
@@ -159,23 +154,28 @@ pipeline {
         stage('parallel-run') {
             steps {
                 script {
-                    def parallelExecCount = 3
+                    def parallelExecCount = 12
                     def tests = [:]
                     def files = findFiles(glob: '**/test-plans/*.yaml')
-                    for (int f = 1; f < parallelExecCount+1; f++) {
+                    for (int f = 1; f < parallelExecCount+1 && f <= files.length; f++) {
                         def executor = f
                         tests["Executor-${f}"] = {
                             node('slave1') {
                                 stage("Parallel Executor : ${executor}") {
                                     script {
-                                        int processFileCount = files.length/parallelExecCount
-                                        if (executor == parallelExecCount){
+                                        int processFileCount = 0;
+                                        if (files.length < parallelExecCount) {
+                                          processFileCount = 1;
+                                        } else {
+                                          processFileCount = files.length/parallelExecCount;
+                                        }
+                                        if (executor == parallelExecCount) {
                                             for (int i = processFileCount * (executor - 1); i < files.length; i++) {
                                                 // Execution logic
                                                 runPlan(files[i], "node1")
                                             }
-                                        } else {
-                                            for (int i = 0; i < processFileCount; i++) {
+                                          } else {
+                                            for (int i = 0; i <  processFileCount; i++) {
                                                 int fileNo = processFileCount * (executor - 1) + i
                                                 runPlan(files[fileNo], "node1")
                                             }
@@ -214,6 +214,7 @@ pipeline {
                 cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
                 ./testgrid generate-email \
                 --product ${PRODUCT} \
+                --workspace ${PWD}
                 """
             script {
                 // Archive artifacts
@@ -224,14 +225,14 @@ pipeline {
                 }
                 withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
                     // Upload artifacts to S3
-                    s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"${bucket}", path:"artifacts/")
+                    s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/builds/**, **/*.log, **/*.html", bucket:"${bucket}", path:"artifacts/")
                 }
                 //Send email for failed results.
                 if (fileExists('/testgrid/testgrid-home/${PRODUCT}/EmailReport.html')) {
                     emailext mimeType: 'text/html',
                             body: '${FILE,path="/testgrid/testgrid-home/${PRODUCT}/EmailReport.html"}',
                             subject: '${PRODUCT} integration test failure!',
-                            to: 'kasung@wso2.com,pasinduj@wso2.com'
+                            to: 'kasung@wso2.com,pasinduj@wso2.com,yasassri@wso2.com'
                 }
             }
             // Delete logs and reports after upload
