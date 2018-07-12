@@ -41,7 +41,8 @@ public class ReportGeneratorFactory {
      * @return A {@link ReportGenerator} implementation
      * @throws ReportGeneratorInitializingException When there is an error initializing the ReportGenerator
      */
-    public static ReportGenerator getReportGenerator(TestPlan testPlan) throws ReportGeneratorInitializingException {
+    public static ReportGenerator getReportGenerator(TestPlan testPlan)
+            throws ReportGeneratorInitializingException, ReportGeneratorNotFoundException {
         for (ReportGenerator generator : generators) {
             if (generator.canGenerateReport(testPlan)) {
                 try {

@@ -226,7 +226,7 @@ public class UnixClient extends TinkererClient {
                             throw new TinkererOperationException("Failed to download the file :"
                                     + destination);
                         }
-                        logger.debug("Download Location :" + destination);
+                        logger.info("Download Location :" + destination);
                     } catch (IOException e) {
                         throw new TinkererOperationException("Error occurred while downloading " +
                                 "the log file location : " + logFileName
