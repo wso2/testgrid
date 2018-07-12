@@ -49,8 +49,8 @@ public class PropertyFileReader {
             return Optional.ofNullable(properties.getProperty(property.toString()));
         } catch (IOException e) {
             String msg =
-                    "Error while trying to read " + propertyFilePath + "to retrieve property " + property.toString();
-            logger.error(msg, e);
+                    "Error while trying to read " + propertyFilePath + " to retrieve property " + property.toString();
+            logger.error(msg);
             return Optional.empty();
         }
     }

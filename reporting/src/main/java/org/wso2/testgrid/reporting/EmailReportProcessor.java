@@ -83,7 +83,7 @@ public class EmailReportProcessor {
             String testPlanId = testPlan.getId();
             TestPlanResultSection testPlanResultSection = new TestPlanResultSection();
             testPlanResultSection.setDeployment(deploymentPattern);
-            testPlanResultSection.setInfraCombination(testPlan.getInfraParameters());
+            testPlanResultSection.setInfraCombination(testPlan.getInfrastructureConfig().getParameters().toString());
             try {
                 testPlanResultSection.setResult(getIntegrationTestLogResult(testPlan));
             } catch (ReportingException e) {
@@ -129,9 +129,10 @@ public class EmailReportProcessor {
             }
         } else {
             if (testPlan.getStatus().equals(Status.SUCCESS) || testPlan.getStatus().equals(Status.FAIL)) {
-                logger.error("Integration-test log file does not exists for test-plan with id "
-                        + testPlan.getId() + "of the product " +
-                        testPlan.getDeploymentPattern().getProduct().getName() + "having infra-combination as " +
+                logger.error("Integration-test log file does not exist at '" +
+                        Paths.get(TestGridUtil.getTestGridHomePath()).relativize(filePath) + "' for test-plan "
+                        + "with id '" + testPlan.getId() + "' of the product '" +
+                        testPlan.getDeploymentPattern().getProduct().getName() + "' having infra-combination as " +
                         testPlan.getInfraParameters());
                 return "Integration test-log is missing. Please contact TestGrid administrator.";
             } else {

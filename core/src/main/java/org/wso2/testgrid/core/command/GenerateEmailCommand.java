@@ -30,6 +30,9 @@ import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.reporting.ReportingException;
 import org.wso2.testgrid.reporting.TestReportEngine;
 
+import java.nio.file.Path;
+import java.util.Optional;
+
 /**
  * This generates an email report that consists of test results for a given product.
  */
@@ -53,7 +56,8 @@ public class GenerateEmailCommand implements Command {
         Product product = getProduct(productName);
         try {
             TestReportEngine testReportEngine = new TestReportEngine();
-            testReportEngine.generateEmailReport(product, workspace);
+            final Optional<Path> path = testReportEngine.generateEmailReport(product, workspace);
+            path.ifPresent(p -> logger.info("Written the email report body contents to: " + p));
         } catch (ReportingException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error occurred when generating email report for {" +
