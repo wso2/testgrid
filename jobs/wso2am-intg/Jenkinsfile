@@ -193,7 +193,8 @@ pipeline {
                 }
                 withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
                     // Upload artifacts to S3
-                    s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.log, **/*.html", bucket:"${bucket}", path:"artifacts/")
+                    s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/builds/**, **/*.log, **/*.html",
+                            bucket:"${bucket}", path:"artifacts/")
                 }
                 //Send email for failed results.
                 if (fileExists('/testgrid/testgrid-home/${PRODUCT}/EmailReport.html')) {

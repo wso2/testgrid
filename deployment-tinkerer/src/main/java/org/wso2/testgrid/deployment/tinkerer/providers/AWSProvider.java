@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,11 +52,7 @@ public class AWSProvider implements Provider {
     private static final String NAME_ENTRY = "Name";
 
     static {
-        try {
-            configFilePath = TestGridUtil.getConfigFilePath();
-        } catch (IOException e) {
-            logger.error("Error occurred while getting the config path.", e);
-        }
+        configFilePath = TestGridUtil.getConfigFilePath();
     }
 
     @Override

@@ -21,12 +21,12 @@ package org.wso2.testgrid.common.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.exception.TestGridException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -42,16 +42,16 @@ public class PropertyFileReader {
      * @param property Property key as in the property file.
      * @return Property value read from property file.
      */
-    public String getProperty(Enum property, String propertyFilePath) throws TestGridException {
+    public Optional<String> getProperty(Enum property, String propertyFilePath) {
         Properties properties = new Properties();
         try (InputStream inputStream = Files.newInputStream(Paths.get(propertyFilePath))) {
             properties.load(inputStream);
-            return properties.getProperty(property.toString());
+            return Optional.ofNullable(properties.getProperty(property.toString()));
         } catch (IOException e) {
             String msg =
                     "Error while trying to read " + propertyFilePath + "to retrieve property " + property.toString();
-            logger.error(msg);
-            throw new TestGridException(msg, e);
+            logger.error(msg, e);
+            return Optional.empty();
         }
     }
 

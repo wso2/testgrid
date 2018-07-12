@@ -27,7 +27,6 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -135,10 +134,6 @@ public class ShellScriptProvider implements InfrastructureProvider {
             throw new TestGridInfrastructureException(String.format(
                     "Exception occurred while executing the infra-provision script for deployment-pattern '%s'",
                     infrastructureConfig.getProvisioners().get(0).getName()), e);
-        } catch (TestGridException e) {
-            throw new TestGridInfrastructureException(
-                    "Exception occurred while executing the infra-create script " +
-                            "when generating Test run artifact directory ", e);
         }
 
     }

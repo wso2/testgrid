@@ -25,9 +25,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.DeploymentPattern;
-import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
@@ -39,12 +37,8 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -72,110 +66,6 @@ public final class TestGridUtil {
     private static final Logger logger = LoggerFactory.getLogger(TestGridUtil.class);
     private static final String UNDERSCORE = "_";
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
-
-    /**
-     * Use {@link org.wso2.testgrid.common.ShellExecutor#executeCommand(String)} instead.
-     *
-     * Executes a command.
-     * Used to executing a script in a given working directory.
-     *
-     * @param command                 {@link String} Command to be executed.
-     * @param workingDirectory        {@link File} Directory the command is executed.
-     * @return The output of script execution as a String.
-     * @throws CommandExecutionException When there is an error executing the command.
-     */
-    @Deprecated
-    public static String executeCommand(String command, File workingDirectory) throws CommandExecutionException {
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
-        }
-
-        ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
-        Process process;
-
-        try {
-            if (workingDirectory != null && workingDirectory.exists()) {
-                processBuilder.directory(workingDirectory);
-            }
-            process = processBuilder.start();
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(),
-                    StandardCharsets.UTF_8))) {
-                StringBuilder builder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line);
-                    builder.append(System.getProperty("line.separator"));
-                }
-                String result = builder.toString();
-                logger.info("Execution result : " + result);
-                return result;
-            } catch (IOException e) {
-                throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
-                        + command + "'", e);
-            }
-        } catch (IOException e) {
-            throw new CommandExecutionException("Error occurred while executing the command '" + command + "', " +
-                    "from directory '" + workingDirectory.getName() + "", e);
-        }
-    }
-
-    /**
-     * Use {@link org.wso2.testgrid.common.ShellExecutor#executeCommand(String)} instead.
-     *
-     * Executes a command.
-     * Used to execute a script with given deployment details as environment variables.
-     *
-     * @param command                  Command to execute.
-     * @param workingDirectory         Directory the command is executed.
-     * @param deploymentCreationResult Deployment creation output.
-     * @return The output of script execution as a String.
-     * @throws CommandExecutionException When there is an error executing the command.
-     */
-    @Deprecated
-    public static String executeCommand(String command, File workingDirectory,
-            DeploymentCreationResult deploymentCreationResult)
-            throws CommandExecutionException {
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.getName());
-        }
-
-        ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
-        Process process;
-
-        try {
-            if (workingDirectory != null && workingDirectory.exists()) {
-                processBuilder.directory(workingDirectory);
-            }
-            Map<String, String> environment = processBuilder.environment();
-
-            for (Host host : deploymentCreationResult.getHosts()) {
-                environment.put(host.getLabel(), host.getIp());
-            }
-            process = processBuilder.start();
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(),
-                    StandardCharsets.UTF_8))) {
-                StringBuilder builder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line);
-                    builder.append(System.getProperty("line.separator"));
-                }
-                String result = builder.toString();
-                logger.info("Execution result : " + result);
-                return result;
-            } catch (IOException e) {
-                throw new CommandExecutionException("Error occurred while fetching execution output of the command '"
-                        + command + "'", e);
-            }
-        } catch (IOException e) {
-            throw new CommandExecutionException("Error occurred while executing the command '" + command + "', " +
-                    "from directory '" + workingDirectory.getName() + "", e);
-        }
-    }
 
     /**
      * Returns the path of the test grid home.
@@ -239,9 +129,8 @@ public final class TestGridUtil {
      * @param testPlan test plan for getting the test run artifacts location
      * @param relative Whether the path need to be returned relative to testgrid.home or not.
      * @return path of the test run artifacts
-     * @throws TestGridException thrown when error on calculating test run artifacts directory
      */
-    public static Path getTestRunWorkspace(TestPlan testPlan, boolean relative) throws TestGridException {
+    public static Path getTestRunWorkspace(TestPlan testPlan, boolean relative) {
         DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
         Product product = deploymentPattern.getProduct();
         int testRunNumber = testPlan.getTestRunNumber();
@@ -345,7 +234,7 @@ public final class TestGridUtil {
         } catch (JsonProcessingException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error in preparing a JSON object from the given test plan infra " +
-                                    "parameters: ", testPlan.getInfrastructureConfig().getParameters()), e);
+                            "parameters: ", testPlan.getInfrastructureConfig().getParameters()), e);
         }
     }
 
@@ -397,9 +286,8 @@ public final class TestGridUtil {
      * Returns the path of config.properties.
      *
      * @return path of <TESTGRID_HOME>/config.properties
-     * @throws IOException for interrupted I/O operations
      */
-    public static Path getConfigFilePath() throws IOException {
+    public static Path getConfigFilePath() {
         return Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_CONFIG_FILE);
     }
 
@@ -416,15 +304,14 @@ public final class TestGridUtil {
 
     /**
      * Derives the relative path of a scenario-artifact.
-     *
+     * <p>
      * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/#scenario_dir#/#file_name#
      *
      * @param testScenario test-scenario of the artifact
-     * @param fileName name of the artifact
+     * @param fileName     name of the artifact
      * @return relative path of the artifact
      */
-    public static String deriveScenarioArtifactPath(TestScenario testScenario, String fileName)
-            throws TestGridException {
+    public static String deriveScenarioArtifactPath(TestScenario testScenario, String fileName) {
         return getTestScenarioArtifactPath(testScenario).resolve(fileName).toString();
     }
 
@@ -437,13 +324,13 @@ public final class TestGridUtil {
 
     /**
      * Returns the path of the test-run log file.
-     *
+     * <p>
      * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/test-run.log
      *
      * @param testPlan test-plan
      * @return log file path
      */
-    public static String deriveTestRunLogFilePath(TestPlan testPlan) throws TestGridException {
+    public static String deriveTestRunLogFilePath(TestPlan testPlan) {
         String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
         return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
@@ -456,8 +343,7 @@ public final class TestGridUtil {
      * @param testPlan test-plan
      * @return log file path
      */
-    public static String deriveTestIntegrationLogFilePath(TestPlan testPlan)
-            throws TestGridException {
+    public static String deriveTestIntegrationLogFilePath(TestPlan testPlan) {
         return Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(), SUREFIRE_REPORTS_DIR,
                 TestGridConstants.TEST_INTEGRATION_LOG_FILE_NAME).toString();
     }
@@ -467,10 +353,8 @@ public final class TestGridUtil {
      *
      * @param testPlan TestPlan object
      * @return File download location path
-     * @throws TestGridException when there is an error deriving the path
      */
-    public static String deriveLogDownloadLocation(TestPlan testPlan)
-            throws TestGridException {
+    public static String deriveLogDownloadLocation(TestPlan testPlan) {
         String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
         return Paths.get(getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR, productName,
@@ -484,11 +368,11 @@ public final class TestGridUtil {
      * @param testPlan test-plan
      * @return log file path
      */
-    public static String deriveScenarioOutputPropertyFilePath(TestPlan testPlan)
-            throws TestGridException {
+    public static String deriveScenarioOutputPropertyFilePath(TestPlan testPlan) {
         return Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(),
                 TestGridConstants.TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE).toString();
     }
+
     /**
      * Returns the test-plan directory name based on the test-plan content.
      *
