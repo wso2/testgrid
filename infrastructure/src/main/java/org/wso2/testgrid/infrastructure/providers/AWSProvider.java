@@ -180,8 +180,9 @@ public class AWSProvider implements InfrastructureProvider {
             List<TemplateParameter> expectedParameters = validationResult.getParameters();
 
             stackRequest.setTemplateBody(file);
-            stackRequest.setParameters(getParameters(script, expectedParameters, infrastructureConfig,
-                    testPlan.getId()));
+            final List<Parameter> populatedExpectedParameters = getParameters(script, expectedParameters,
+                    infrastructureConfig, testPlan.getId());
+            stackRequest.setParameters(populatedExpectedParameters);
 
             logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
@@ -229,6 +230,16 @@ public class AWSProvider implements InfrastructureProvider {
                     hosts.add(host);
                     outputProps.setProperty(output.getOutputKey(), output.getOutputValue());
                 }
+            }
+            // add cfn input properties into the output. We sometimes use default values of cfn input params
+            // which needs to passed down to the next step.
+            for (TemplateParameter param : expectedParameters) {
+                if (param.getDefaultValue() != null) {
+                    outputProps.setProperty(param.getParameterKey(), param.getDefaultValue());
+                }
+            }
+            for (Parameter param : populatedExpectedParameters) {
+                outputProps.setProperty(param.getParameterKey(), param.getParameterValue());
             }
 
             persistOutputs(testPlan, outputProps);
@@ -298,15 +309,21 @@ public class AWSProvider implements InfrastructureProvider {
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(stackName);
         stackdestroy.deleteStack(deleteStackRequest);
-        logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName, " to delete.."));
-        Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new
-                AmazonCloudFormationWaiters(stackdestroy).stackDeleteComplete();
-        try {
-            describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()
-                    .withStackName(stackName)));
-        } catch (WaiterUnrecoverableException e) {
-            throw new TestGridInfrastructureException("Error occured while waiting for Stack :"
-                    + stackName + " deletion !");
+        logger.info(StringUtil.concatStrings("Stack : ", stackName, " is handed over for deletion!"));
+
+        boolean waitForStackDeletion = Boolean.parseBoolean(ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.WAIT_FOR_STACK_DELETION));
+        if (waitForStackDeletion) {
+            logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName, " to delete.."));
+            Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new
+                    AmazonCloudFormationWaiters(stackdestroy).stackDeleteComplete();
+            try {
+                describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()
+                        .withStackName(stackName)));
+            } catch (WaiterUnrecoverableException e) {
+                throw new TestGridInfrastructureException("Error occurred while waiting for Stack :"
+                                                          + stackName + " deletion !");
+            }
         }
         return true;
     }

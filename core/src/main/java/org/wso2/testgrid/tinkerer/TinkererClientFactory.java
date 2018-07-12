@@ -42,10 +42,10 @@ public class TinkererClientFactory {
      */
     public static Optional<TinkererClient> getExecuter(TestPlanExecutor.OSCategory osCategory) {
         if (osCategory.equals(TestPlanExecutor.OSCategory.UNIX)) {
-            logger.info("OSCatagory is UNIX");
+            logger.info("OSCategory is UNIX");
             return Optional.of(new UnixClient());
         } else if (osCategory.equals(TestPlanExecutor.OSCategory.WINDOWS)) {
-            logger.info("OSCatagory is WINDOWS");
+            logger.info("OSCategory is WINDOWS");
             return Optional.of(new WindowsClient());
         } else {
             return Optional.empty();

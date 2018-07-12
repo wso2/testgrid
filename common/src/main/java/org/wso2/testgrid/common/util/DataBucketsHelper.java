@@ -98,7 +98,7 @@ public class DataBucketsHelper {
      * @param testPlan testplan
      * @return Get the build outputs dir
      */
-    private static Path getBuildOutputsDir(TestPlan testPlan) {
+    public static Path getBuildOutputsDir(TestPlan testPlan) {
         String productName = testPlan.getJobName();
         productName = productName == null ? testPlan.getDeploymentPattern().getProduct().getName() : productName;
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);

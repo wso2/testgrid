@@ -84,7 +84,7 @@ public class PerformanceTestCSVParser extends ResultParser {
     }
 
     @Override
-    public void persistResults() throws ResultParserException {
+    public void archiveResults() throws ResultParserException {
         //TODO implement performance test artifact persisting
     }
 }

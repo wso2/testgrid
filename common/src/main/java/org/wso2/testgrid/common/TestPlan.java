@@ -388,14 +388,10 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     @Override
     public String toString() {
         String id = this.getId() != null ? this.getId() : "";
-        String createdTimestamp = this.getCreatedTimestamp() != null ? this.getCreatedTimestamp().toString() : "";
-        String modifiedTimestamp = this.getModifiedTimestamp() != null ? this.getModifiedTimestamp().toString() : "";
         return StringUtil.concatStrings("TestPlan{",
                 "id='", id, "\'",
                 ", status='", status, "\'",
                 ", testRunNumber='", testRunNumber, "\'",
-                ", createdTimestamp='", createdTimestamp, "\'",
-                ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 ", deploymentPattern='", deploymentPattern, "\'",
                 ", infrastructureRepository='", infrastructureRepository, '\'',
                 ", deploymentRepository='", deploymentRepository, '\'',

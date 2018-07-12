@@ -19,6 +19,7 @@ package org.wso2.testgrid.automation.report;
 
 
 import org.wso2.testgrid.automation.exception.ReportGeneratorInitializingException;
+import org.wso2.testgrid.automation.exception.ReportGeneratorNotFoundException;
 import org.wso2.testgrid.common.TestPlan;
 
 import java.lang.reflect.InvocationTargetException;
@@ -53,7 +54,7 @@ public class ReportGeneratorFactory {
             }
         }
 
-        throw new ReportGeneratorInitializingException(String.format("Failed to find a matching" +
+        throw new ReportGeneratorNotFoundException(String.format("Failed to find a matching" +
                         " ReportGenerator for Product %s", testPlan.getDeploymentPattern()
                 .getProduct().getName()));
     }

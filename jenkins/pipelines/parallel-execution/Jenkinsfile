@@ -1,14 +1,51 @@
 properties = null
+def SLAVE_NAME = "slave1"
 def loadProperties() {
-    node {
+    node('slave1') {
         properties = readProperties file: "${TESTGRID_HOME}/config.properties"
+    }
+}
+def runPlan(tPlan, node) {
+    echo "Executing Test Plan : ${tPlan} On node : ${node}"
+
+    try {
+        echo "Running Test-Plan: ${tPlan}"
+        sh "java -version"
+        unstash name: "${JOB_CONFIG_YAML}"
+        sh """
+            echo "Before PWD"
+            pwd
+            cd /testgrid/testgrid-home/jobs/${PRODUCT}
+            cd ${SCENARIOS_LOCATION}
+            git clean -fd
+            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+            ./testgrid run-testplan --product ${PRODUCT} \
+                --file "/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}"
+            """
+    } catch (Exception err) {
+        echo "Error : ${err}"
+        currentBuild.result = 'UNSTABLE'
+    }
+    echo "RESULT: ${currentBuild.result}"
+
+    script {
+      loadProperties()
+     //Archive jtl files
+    def bucket= properties['AWS_S3_BUCKET_NAME']
+    if ( "${bucket}" == "null") {
+      bucket="unknown"
+    }
+    withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
+    // Upload artifacts to S3
+      s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/")
+    }
     }
 }
 pipeline {
     agent {
         node {
-            label ""
-            customWorkspace '/testgrid/testgrid-home/jobs/wso2am-intg'
+            label "${SLAVE_NAME}"
+            customWorkspace '/testgrid/testgrid-home/jobs/wso2am-intg-py-slave'
         }
     }
 
@@ -41,7 +78,7 @@ pipeline {
     }
 
     tools {
-        jdk 'jdk8'
+        jdk 'jdk8-slave1'
     }
 
     stages {
@@ -53,7 +90,7 @@ pipeline {
                 // Clone scenario repo
                 sh "mkdir -p ${SCENARIOS_LOCATION}"
                 dir("${SCENARIOS_LOCATION}"){
-                    git url: "${SCENARIOS_REPOSITORY}"
+                    git branch: 'master', url: "${SCENARIOS_REPOSITORY}"
                 }
 
                 // Clone infra repo
@@ -85,8 +122,7 @@ pipeline {
                 }
 
                 sh """
-                    echo 'jobName: ${PRODUCT}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo 'infrastructureRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
+                    echo 'infrastructureRepository: ${INFRA_LOCATION}/' > ${JOB_CONFIG_YAML_PATH}
                     echo 'deploymentRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'testgridYamlLocation: ${TESTGRID_YAML_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
@@ -120,45 +156,40 @@ pipeline {
             }
         }
 
-        stage('Test-plan-run') {
+        stage('parallel-run') {
             steps {
                 script {
-                    for (testplan in findFiles(glob: '**/test-plans/*.yaml')) {
-                        try {
-                            echo "Running Test-Plan: ${testplan.name}"
-                            sh "java -version"
-                            unstash name: "${JOB_CONFIG_YAML}"
-                            sh """
-                            cd ${SCENARIOS_LOCATION}
-                            git clean -fd
-                            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
-                            ./testgrid run-testplan --product ${PRODUCT} \
-                            --file "${PWD}/test-plans/${testplan.name}"
-                            """
-                        } catch (Exception err) {
-                            echo "Error : ${err}"
-                            currentBuild.result = 'UNSTABLE'
-                        }
-                        echo "RESULT: ${currentBuild.result}"
-
-                        script {
-                            loadProperties()
-                            // Archive jtl files
-                            def bucket= properties['AWS_S3_BUCKET_NAME']
-                            if ( "${bucket}" == "null") {
-                                bucket="unknown"
-                            }
-                            withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
-                                // Upload artifacts to S3
-                                s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/")
+                    def parallelExecCount = 3
+                    def tests = [:]
+                    def files = findFiles(glob: '**/test-plans/*.yaml')
+                    for (int f = 1; f < parallelExecCount+1; f++) {
+                        def executor = f
+                        tests["Executor-${f}"] = {
+                            node('slave1') {
+                                stage("Parallel Executor : ${executor}") {
+                                    script {
+                                        int processFileCount = files.length/parallelExecCount
+                                        if (executor == parallelExecCount){
+                                            for (int i = processFileCount * (executor - 1); i < files.length; i++) {
+                                                // Execution logic
+                                                runPlan(files[i], "node1")
+                                            }
+                                        } else {
+                                            for (int i = 0; i < processFileCount; i++) {
+                                                int fileNo = processFileCount * (executor - 1) + i
+                                                runPlan(files[fileNo], "node1")
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
+                    parallel tests
                 }
             }
         }
     }
-
 
     post {
         always {
@@ -179,7 +210,7 @@ pipeline {
                1. Needs TestSuit.txt and output.properties files in relevant scenario directory.
                2. DB needs to be updated on integration test result statues.
             */
-               sh """
+            sh """
                 cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
                 ./testgrid generate-email \
                 --product ${PRODUCT} \
@@ -197,11 +228,11 @@ pipeline {
                 }
                 //Send email for failed results.
                 if (fileExists('/testgrid/testgrid-home/${PRODUCT}/EmailReport.html')) {
-                     emailext mimeType: 'text/html',
-                     body: '${FILE,path="/testgrid/testgrid-home/${PRODUCT}/EmailReport.html"}',
-                     subject: '${PRODUCT} integration test failure!',
-                     to: 'kasung@wso2.com,pasinduj@wso2.com'
-                   }
+                    emailext mimeType: 'text/html',
+                            body: '${FILE,path="/testgrid/testgrid-home/${PRODUCT}/EmailReport.html"}',
+                            subject: '${PRODUCT} integration test failure!',
+                            to: 'kasung@wso2.com,pasinduj@wso2.com'
+                }
             }
             // Delete logs and reports after upload
             dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {

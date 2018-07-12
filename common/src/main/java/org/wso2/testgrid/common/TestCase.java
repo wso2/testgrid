@@ -140,16 +140,12 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     @Override
     public String toString() {
         String id = this.getId() != null ? this.getId() : "";
-        String createdTimestamp = this.getCreatedTimestamp() != null ? this.getCreatedTimestamp().toString() : "";
-        String modifiedTimestamp = this.getModifiedTimestamp() != null ? this.getModifiedTimestamp().toString() : "";
         return StringUtil.concatStrings("TestCase{",
                 "id='", id,
                 ", name='", name, "\'",
                 ", isSuccess='", isSuccess, "\'",
                 ", failureMessage='", failureMessage, "\'",
-                ", createdTimestamp='", createdTimestamp, "\'",
-                ", modifiedTimestamp='", modifiedTimestamp, "\'",
-                ", testScenario='", testScenario, "\'",
+                ", testScenario='", testScenario.getName(), "\'",
                 '}');
     }
 }

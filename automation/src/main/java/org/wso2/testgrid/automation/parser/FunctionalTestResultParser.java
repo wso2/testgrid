@@ -82,7 +82,7 @@ public class FunctionalTestResultParser extends ResultParser {
     /**
      * Here, you pass the results, find out all the test cases that has
      * executed. Then, these test cases are inserted into the db as child
-     * items of {@link TestScenario} via {@link #persistResults()}.
+     * items of {@link TestScenario} via {@link #archiveResults()}.
      *
      * Workflow:
      * <ul><li>
@@ -166,7 +166,7 @@ public class FunctionalTestResultParser extends ResultParser {
     }
 
     @Override
-    public void persistResults() throws ResultParserException {
+    public void archiveResults() throws ResultParserException {
         try {
             List<String> files = FileUtil.getFilesOnDirectory(this.testLocation, SCENARIO_RESULTS_FILTER_PATTERN);
             if (!files.isEmpty()) {
