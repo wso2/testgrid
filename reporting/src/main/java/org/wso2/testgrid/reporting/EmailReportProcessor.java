@@ -173,7 +173,7 @@ public class EmailReportProcessor {
         String outputPropertyFilePath = null;
         try {
             outputPropertyFilePath =
-                    TestGridUtil.deriveScenarioOutputPropertyFilePath(testPlan, false);
+                    TestGridUtil.deriveScenarioOutputPropertyFilePath(testPlan);
             PropertyFileReader propertyFileReader = new PropertyFileReader();
             String gitRevision = propertyFileReader.
                     getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION, outputPropertyFilePath);
