@@ -57,6 +57,6 @@ public abstract class ResultParser {
      * @throws ResultParserException failure during persisting.
      * @see org.wso2.testgrid.common.util.DataBucketsHelper
      */
-    public abstract void persistResults() throws ResultParserException;
+    public abstract void archiveResults() throws ResultParserException;
 }
 

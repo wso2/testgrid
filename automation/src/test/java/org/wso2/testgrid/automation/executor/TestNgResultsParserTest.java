@@ -18,8 +18,10 @@
 
 package org.wso2.testgrid.automation.executor;
 
+import org.apache.commons.io.FileUtils;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.automation.exception.ParserInitializationException;
@@ -28,6 +30,7 @@ import org.wso2.testgrid.automation.parser.ResultParser;
 import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.automation.parser.TestNgResultsParser;
 import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
@@ -45,10 +48,34 @@ import java.util.Optional;
 public class TestNgResultsParserTest {
 
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
+    private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
+    private TestPlan testPlan;
+    private TestScenario testScenario;
+    private Path testArtifactPath = Paths.get("src", "test", "resources", "artifacts");
+    ;
 
     @BeforeMethod
     public void init() {
         System.setProperty(TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY, TESTGRID_HOME);
+
+        testScenario = new TestScenario();
+        testScenario.setDir("scenarioDir");
+        testPlan = new TestPlan();
+        testPlan.setJobName("wso2");
+        ScenarioConfig scenarioConfig = new ScenarioConfig();
+        scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_INTEGRATION);
+        testPlan.setScenarioConfig(scenarioConfig);
+        testPlan.setScenarioTestsRepository("resources");
+        testScenario.setName("SolutionPattern22");
+        testScenario.setTestPlan(testPlan);
+        testPlan.setInfraParameters("{\"OS\": \"Ubuntu\"}");
+
+        Product product = new Product();
+        product.setName("wso2");
+        DeploymentPattern deploymentPatternDBEntry = new DeploymentPattern();
+        deploymentPatternDBEntry.setName("deployment-pattern");
+        deploymentPatternDBEntry.setProduct(product);
+        testPlan.setDeploymentPattern(deploymentPatternDBEntry);
         MockitoAnnotations.initMocks(this);
     }
 
@@ -59,22 +86,8 @@ public class TestNgResultsParserTest {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
-        TestScenario testScenario = new TestScenario();
-        testScenario.setDir("scenarioDir");
-        TestPlan testPlan = new TestPlan();
-        testPlan.setJobName("wso2");
-        ScenarioConfig scenarioConfig = new ScenarioConfig();
-        scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_INTEGRATION);
-        testPlan.setScenarioConfig(scenarioConfig);
-        testPlan.setScenarioTestsRepository("resources");
-        testScenario.setName("SolutionPattern22");
-        testScenario.setTestPlan(testPlan);
-        testPlan.setInfraParameters("{\"OS\": \"Ubuntu\"}");
-        DeploymentPattern deploymentPatternDBEntry = new DeploymentPattern();
-        deploymentPatternDBEntry.setName("deployment-pattern");
-        testPlan.setDeploymentPattern(deploymentPatternDBEntry);
 
-        final Path outputFile = DataBucketsHelper.getOutputLocation(testPlan)
+        final Path outputFile = DataBucketsHelper.getOutputLocation(testPlan).resolve(SUREFIRE_REPORTS_DIR)
                 .resolve(TestNgResultsParser.RESULTS_INPUT_FILE);
         copyTestngResultsXml(outputFile);
 
@@ -86,9 +99,32 @@ public class TestNgResultsParserTest {
         Assert.assertEquals(testScenario.getTestCases().size(), 5, "expected five test cases.");
     }
 
+    @Test
+    public void testArchiveResults() throws Exception {
+        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
+        Assert.assertTrue(parser.isPresent());
+        Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
+
+        final Path outputPath = DataBucketsHelper.getOutputLocation(testPlan);
+        FileUtils.copyDirectory(testArtifactPath.resolve(SUREFIRE_REPORTS_DIR).toFile(),
+                outputPath.resolve(SUREFIRE_REPORTS_DIR).toFile());
+        FileUtils.copyFile(testArtifactPath.resolve("automation.log").toFile(),
+                outputPath.resolve("automation.log").toFile());
+
+        parser.get().parseResults();
+        parser.get().archiveResults();
+        Assert.assertEquals(testScenario.getTestCases().size(), 5, "expected five test cases.");
+    }
+
     private void copyTestngResultsXml(Path outputLocation) throws IOException {
-        Files.copy(Paths.get("src", "test", "resources", TestNgResultsParser.RESULTS_INPUT_FILE),
+
+        Files.copy(testArtifactPath.resolve(SUREFIRE_REPORTS_DIR).resolve(TestNgResultsParser.RESULTS_INPUT_FILE),
                 outputLocation, StandardCopyOption.REPLACE_EXISTING);
     }
 
+    @AfterClass
+    public void tearDown() throws Exception {
+        final Path buildOutputsDir = DataBucketsHelper.getBuildOutputsDir(testPlan);
+        FileUtils.deleteQuietly(buildOutputsDir.toFile());
+    }
 }
