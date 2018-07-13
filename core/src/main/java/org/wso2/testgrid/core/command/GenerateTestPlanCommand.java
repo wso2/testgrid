@@ -69,7 +69,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.wso2.testgrid.common.TestGridConstants.FILE_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_JOB_DIR;
 
@@ -155,8 +154,7 @@ public class GenerateTestPlanCommand implements Command {
             throws IOException, CommandExecutionException, TestGridDAOException {
         JobConfigFile jobConfigFile = FileUtil.readYamlFile(jobConfigFilePath, JobConfigFile.class);
         Pattern pattern = Pattern.compile(StringUtil
-                .concatStrings(TestGridUtil.getTestGridHomePath(), FILE_SEPARATOR, TESTGRID_JOB_DIR, FILE_SEPARATOR,
-                        "*"));
+                .concatStrings(Paths.get(TestGridUtil.getTestGridHomePath(), TESTGRID_JOB_DIR).toString(), "*"));
         Matcher matcher = pattern.matcher(jobConfigFilePath);
         if (!matcher.find()) {
             Path directory = Paths.
@@ -180,8 +178,11 @@ public class GenerateTestPlanCommand implements Command {
     }
 
     private void processTestgridYaml(TestgridYaml testgridYaml, JobConfigFile jobConfigFile)
-            throws CommandExecutionException, IOException, TestGridDAOException {
-        // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
+            throws CommandExecutionException, TestGridDAOException {
+        if (!validateTestgridYaml(testgridYaml)) {
+            throw new CommandExecutionException(
+                    "Invalid tesgridYaml file is found,Please verify the content of the testgridYaml file");
+        }
         populateDefaults(testgridYaml);
         Set<InfrastructureCombination> combinations = infrastructureCombinationsProvider.getCombinations(testgridYaml);
         List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
@@ -627,5 +628,23 @@ public class GenerateTestPlanCommand implements Command {
         } else {
             return defaultYamlPath;
         }
+    }
+
+    /**
+     * Validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
+     * @param testgridYaml TestgridYaml object
+     * @return True or False, based on the validity of the testgridYaml
+     */
+    private boolean validateTestgridYaml(TestgridYaml testgridYaml) {
+        Boolean isValisTestgridYaml = true;
+        if (testgridYaml.getInfrastructureConfig().getProvisioners().isEmpty()) {
+            logger.error("testgridYaml doesn't contain at least single infra provisioner, Invalid testgridYaml");
+            isValisTestgridYaml = false;
+        }
+        if (testgridYaml.getScenarioConfig().getScenarios().isEmpty()) {
+            logger.error("testgridYaml doesn't contain at least single scenario, Invalid testgridYaml");
+            isValisTestgridYaml = false;
+        }
+        return isValisTestgridYaml;
     }
 }
