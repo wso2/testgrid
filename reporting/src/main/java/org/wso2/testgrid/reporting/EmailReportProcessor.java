@@ -28,7 +28,7 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.PropertyFileReader;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
-import org.wso2.testgrid.reporting.model.email.TestPlanResultSection;
+import org.wso2.testgrid.reporting.model.email.TPResultSection;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -69,32 +69,37 @@ public class EmailReportProcessor {
      * @param product product needing the results
      * @return list of test-plan sections
      */
-    public List<TestPlanResultSection> generatePerTestPlanSection(Product product, List<TestPlan> testPlans)
+    public List<TPResultSection> generatePerTestPlanSection(Product product, List<TestPlan> testPlans)
             throws ReportingException {
-        List<TestPlanResultSection> perTestPlanMap = new ArrayList<>();
+        List<TPResultSection> perTestPlanList = new ArrayList<>();
         String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.TESTGRID_HOST);
         String productName = product.getName();
         for (TestPlan testPlan : testPlans) {
             if (testPlan.getStatus().equals(Status.SUCCESS)) {
+                logger.debug(String.format("Testplan ,%s, status is set to success.Not including in email report. "
+                        + "Infra combination: %s", testPlan.getId(), testPlan.getInfraParameters()));
                 continue;
             }
             String deploymentPattern = testPlan.getDeploymentPattern().getName();
             String testPlanId = testPlan.getId();
-            TestPlanResultSection testPlanResultSection = new TestPlanResultSection();
-            testPlanResultSection.setDeployment(deploymentPattern);
-            testPlanResultSection.setInfraCombination(testPlan.getInfrastructureConfig().getParameters().toString());
-            try {
-                testPlanResultSection.setResult(getIntegrationTestLogResult(testPlan));
-            } catch (ReportingException e) {
-                logger.error("Integration test results of the test-plan with id " + testPlan.getId() +
-                        " is not added to the email-report due to a reporting exception occurred.", e.getMessage());
-            }
-            testPlanResultSection.setDashboardLink(Paths.get(
-                    testGridHost, productName, deploymentPattern, TEST_PLANS_URI, testPlanId).toString());
-            perTestPlanMap.add(testPlanResultSection);
+            final String infraCombination = testPlan.getInfrastructureConfig().getParameters().toString();
+            final String dashboardLink = String.join("/", testGridHost, productName, deploymentPattern,
+                    TEST_PLANS_URI, testPlanId);
+            TPResultSection testPlanResultSection = new TPResultSection.TPResultSectionBuilder(
+                    infraCombination, deploymentPattern, testPlan.getStatus())
+                    .jobName(productName)
+                    .dashboardLink(dashboardLink)
+                    .logLines(getIntegrationTestLogResult(testPlan))
+                    .totalTests(11) //todo
+                    .totalFailures(22)
+                    .totalErrors(33)
+                    .totalSkipped(44)
+                    .build();
+            //todo
+            perTestPlanList.add(testPlanResultSection);
         }
-        return perTestPlanMap;
+        return perTestPlanList;
     }
 
     /**
@@ -103,30 +108,30 @@ public class EmailReportProcessor {
      * @param testPlan test-plan
      * @return Summary of integration test results
      */
-    private String getIntegrationTestLogResult(TestPlan testPlan) throws ReportingException {
-        StringBuilder stringBuilder = new StringBuilder();
-        Path filePath;
-        filePath = Paths.get(TestGridUtil.deriveTestIntegrationLogFilePath(testPlan));
+    private List<String> getIntegrationTestLogResult(TestPlan testPlan) throws ReportingException {
+        Path filePath = Paths.get(TestGridUtil.deriveTestIntegrationLogFilePath(testPlan));
 
+        List<String> logLines = new ArrayList<>();
         if (Files.exists(filePath)) {
             try (BufferedReader bufferedReader = Files.newBufferedReader(filePath)) {
                 String currentLine;
-                int lineCount = 0;
                 while ((currentLine = bufferedReader.readLine()) != null) {
-                    stringBuilder.append(currentLine).append(HTML_LINE_SEPARATOR);
-                    if (++lineCount == 100) {
-                        stringBuilder.append(".........").append(HTML_LINE_SEPARATOR).append(".........")
-                                .append(HTML_LINE_SEPARATOR).append("(view complete log in detailed results..)");
+                    logLines.add(currentLine);
+                    if (logLines.size() == 100) {
+                        logLines.add("............");
+                        logLines.add("............");
+                        logLines.add("(view complete list of tests in testgrid-live..)");
                         break;
                     }
                 }
-                return stringBuilder.toString();
             } catch (IOException e) {
-                throw new ReportingException("Error occurred while reading integration-test log file to get" +
-                        " integration test results for test-plan with id " + testPlan.getId() + "of the product " +
-                        testPlan.getDeploymentPattern().getProduct().getName() + "having infra-combination as " +
-                        testPlan.getInfraParameters(), e);
+                logLines.add("Error occurred while reading surefire-reports..");
+                logger.error("Cannot add test results to email report. Error occurred while reading integration-test "
+                        + "log file to get" + " integration test results for test-plan with id " + testPlan.getId() +
+                        "of the product " + testPlan.getDeploymentPattern().getProduct().getName() + "having "
+                        + "infra-combination as " + testPlan.getInfraParameters(), e);
             }
+            return logLines;
         } else {
             if (testPlan.getStatus().equals(Status.SUCCESS) || testPlan.getStatus().equals(Status.FAIL)) {
                 logger.error("Integration-test log file does not exist at '" +
@@ -134,11 +139,13 @@ public class EmailReportProcessor {
                         + "with id '" + testPlan.getId() + "' of the product '" +
                         testPlan.getDeploymentPattern().getProduct().getName() + "' having infra-combination as " +
                         testPlan.getInfraParameters());
-                return "Integration test-log is missing. Please contact TestGrid administrator.";
+                logLines.add("Integration test-log is missing. Please contact TestGrid "
+                        + "administrator.");
             } else {
-                return "Test status is " + testPlan.getStatus() + ". Hence can not display the log.";
+                logLines.add("Test status is " + testPlan.getStatus() + ". Hence can not display the log.");
             }
         }
+        return logLines;
     }
 
     /**

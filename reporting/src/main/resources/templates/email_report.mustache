@@ -98,6 +98,14 @@
             font-size: 12px;
         }
 
+        .failure {
+            background-color: #fbce50;
+        }
+
+        .error {
+            background-color: #DD0000;
+        }
+
     </style>
 </head>
 <body>
@@ -133,13 +141,25 @@
                     <span class="testResultSubTitle">Deployment:</span>
                     <span>{{deployment}}</span>
                     <br/>
+                    <span class="testResultSubTitle">Status:</span>
+                    <span class="{{status}}">
+                        Tests run: {{totalTests}},
+                        Failures: {{totalFailures}},
+                        Errors: {{totalErrors}},
+                        Skipped: {{totalSkipped}}
+                    </span>
+                    <br/>
                     <br/>
                     <div class="consoleLog">
-                        {{{result}}}
+                        <span>Test failures/errors:</span><br/>
+                        <span>
+                            {{#logLines}}
+                                {{.}}<br/>
+                            {{/logLines}}</span>
                     </div>
                     <br/>
                     <span class="testResultSubTitle">Detailed results available @ </span>
-                    <span><a href="{{dashboardLink}}">TestGrid dashboard</a></span>
+                    <span><a href="{{dashboardLink}}">TestGrid build {{jobName}}</a></span>
                     <br/>
                 </td>
             </tr>
