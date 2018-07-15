@@ -21,7 +21,8 @@
 
 set -o xtrace
 
-echo "This is a Dummy Infrastructure destroy scripts!!"
+echo "Releasing infrastructure and deployment. Working dir: " `pwd`
 echo "Stopping and cleaning the IS server"
+echo "IMPORTANT: below commands will fail because of a working dir issue. We're working on fixing this!"
 bash ./wso2is-5.4.0/bin/wso2server.sh stop
 rm -rf wso2is-5.4.0
