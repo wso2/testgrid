@@ -195,16 +195,16 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * @return a list of {@link TestPlan}
      */
     public List<TestPlan> getLatestTestPlans(Product product) {
-        String sql = "select t.* from test_plan t inner join (select tp.infra_parameters, max(tp.modified_timestamp) AS"
-                + " time, dp.name , dp.id As dep_id from test_plan tp inner join deployment_pattern dp on "
-                + "tp.DEPLOYMENTPATTERN_id=dp.id  and tp.DEPLOYMENTPATTERN_id in "
-                + "(select id from deployment_pattern where PRODUCT_id= ? ) group by tp.infra_parameters,dp.id) as x "
-                + "on t.infra_parameters=x.infra_parameters AND t.modified_timestamp=x.time AND "
-                + "t.DEPLOYMENTPATTERN_id=x.dep_id;";
+        String sql = "select tp.* from test_plan tp inner join (Select distinct infra_parameters, max(test_run_number) "
+                + "as test_run_number from test_plan where  DEPLOYMENTPATTERN_id in (select id from deployment_pattern "
+                + "where PRODUCT_id= ?) group by infra_parameters) as rn on tp.infra_parameters=rn.infra_parameters and"
+                + " tp.test_run_number=rn.test_run_number and tp.DEPLOYMENTPATTERN_id in "
+                + "(select id from deployment_pattern where PRODUCT_id= ?);";
 
         @SuppressWarnings("unchecked")
         List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
                 .setParameter(1, product.getId())
+                .setParameter(2, product.getId())
                 .getResultList();
         return EntityManagerHelper.refreshResultList(entityManager, resultList);
     }
