@@ -339,13 +339,15 @@ public final class TestGridUtil {
 
     /**
      * Returns the absolute path of the integration test log file.
+     * This returns the ${data-bucket}/surefire-reports dir.
+     *
+     * The data-bucket dir is calculated via @{@link DataBucketsHelper#getOutputLocation(TestPlan)}.
      *
      * @param testPlan test-plan
-     * @return log file path
+     * @return surefire-reports dir location
      */
-    public static String deriveTestIntegrationLogFilePath(TestPlan testPlan) {
-        return Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(), SUREFIRE_REPORTS_DIR,
-                TestGridConstants.TEST_INTEGRATION_LOG_FILE_NAME).toString();
+    public static Path getSurefireReportsDir(TestPlan testPlan) {
+        return Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(), SUREFIRE_REPORTS_DIR);
     }
 
     /**

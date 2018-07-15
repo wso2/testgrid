@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="TestSuite" time="2,943.367" tests="668" errors="0" skipped="342" failures="219">
+  <properties>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+  </properties>
+  <testcase name="testVerifyLogs" classname="org.wso2.am.integration.tests.server.mgt.APIMgtServerStartupTestCase" time="75.14"/>
+  <testcase name="testOSGIUnsatisfiedComponents" classname="org.wso2.am.integration.tests.server.mgt.OSGIServerBundleStatusTestCase" time="10.317"/>
+  <testcase name="testInvalidLoginAsPublisherTestCase" classname="org.wso2.am.integration.tests.login.LoginValidationTestCase" time="1.12"/>
+  <testcase name="testInvalidLoginAsPublisherTestCase" classname="org.wso2.am.integration.tests.login.LoginValidationTestCase" time="0.546"/>
+  <testcase name="testInvalidLoginAsSubscriberTestCase" classname="org.wso2.am.integration.tests.login.LoginValidationTestCase" time="1.562"/>
+  <testcase name="testInvalidLoginAsSubscriberTestCase" classname="org.wso2.am.integration.tests.login.LoginValidationTestCase" time="1.446"/>
+  <testcase name="testLoginToStoreTestCase" classname="org.wso2.am.integration.tests.login.LoginValidationTestCase" time="4.746"/>
+  <testcase name="testLoginToStoreTestCase" classname="org.wso2.am.integration.tests.login.LoginValidationTestCase" time="3.246"/>
+  <testcase name="destroy" classname="org.wso2.am.integration.tests.throttling.ThrottlingTestCase" time="0">
+    <failure type="java.lang.NullPointerException:">java.lang.NullPointerException: null
+	at org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest.getStoreURLHttp(APIMIntegrationBaseTest.java:311)
+	at org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest.cleanUp(APIMIntegrationBaseTest.java:415)
+	at org.wso2.am.integration.tests.throttling.ThrottlingTestCase.destroy(ThrottlingTestCase.java:119)
+</failure>
+    <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== On test skipped org.wso2.am.integration.tests.throttling.ThrottlingTestCase.throttlingTestCase ===================
+]]></system-out>
+  </testcase>
+  <testcase name="initialize" classname="org.wso2.am.integration.tests.api.lifecycle.InvokeAPIUsingOldThrottlingWithWSClient" time="0.39">
+    <failure message="session creation error" type="org.wso2.am.integration.test.utils.APIManagerIntegrationTestException">org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: session creation error
+	at java.net.PlainSocketImpl.socketConnect(Native Method)
+	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:350)
+	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:206)
+	at org.wso2.carbon.integration.common.admin.client.AuthenticatorClient.login(AuthenticatorClient.java:59)
+	at org.wso2.carbon.integration.common.utils.LoginLogoutClient.login(LoginLogoutClient.java:70)
+	at org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest.createSession(APIMIntegrationBaseTest.java:260)
+	at org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest.init(APIMIntegrationBaseTest.java:148)
+	at org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest.init(APIMIntegrationBaseTest.java:95)
+	at org.wso2.am.integration.tests.api.lifecycle.InvokeAPIUsingOldThrottlingWithWSClient.initialize(InvokeAPIUsingOldThrottlingWithWSClient.java:72)
+</failure>
+    <system-out><![CDATA[INFO- [2018-07-10 07:15:43,869]  INFO - WebsocketEndpointManager Netty Listener starting on port 9599
+INFO- [2018-07-10 07:15:43,870]  INFO - InboundEndpoint Initializing Inbound Endpoint: SecureWebSocketEP
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - I/O exception (java.net.ConnectException) caught when processing request: Connection refused (Connection refused)
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - Retrying request
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - I/O exception (java.net.ConnectException) caught when processing request: Connection refused (Connection refused)
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - Retrying request
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - I/O exception (java.net.ConnectException) caught when processing request: Connection refused (Connection refused)
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - Retrying request
+INFO  [org.apache.axis2.transport.http.HTTPSender] - Unable to sendViaPost to url[https://localhost:9943/services/AuthenticationAdmin]
+java.net.ConnectException: Connection refused (Connection refused)
+]]></system-out>
+  </testcase>
+  <testcase name="testInvokingAPIWithOldThrottleUsingWSClient" classname="org.wso2.am.integration.tests.api.lifecycle.InvokeAPIUsingOldThrottlingWithWSClient" time="0">
+    <skipped/>
+    <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== Running the test method org.wso2.am.integration.tests.api.lifecycle.InvokeAPIUsingOldThrottlingWithWSClient.testInvokingAPIWithOldThrottleUsingWSClient ===================
+]]></system-out>
+  </testcase>
+  <testcase name="cleanUpArtifacts" classname="org.wso2.am.integration.tests.api.lifecycle.InvokeAPIUsingOldThrottlingWithWSClient" time="0">
+    <failure type="java.lang.NullPointerException:">java.lang.NullPointerException: null
+	at org.wso2.am.integration.tests.api.lifecycle.InvokeAPIUsingOldThrottlingWithWSClient.cleanUpArtifacts(InvokeAPIUsingOldThrottlingWithWSClient.java:132)
+</failure>
+    <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== On test skipped org.wso2.am.integration.tests.api.lifecycle.InvokeAPIUsingOldThrottlingWithWSClient.testInvokingAPIWithOldThrottleUsingWSClient ===================
+]]></system-out>
+  </testcase>
+  <testcase name="setEnvironment" classname="org.wso2.am.integration.tests.other.APIM4765ResourceOrderInSwagger" time="0.38">
+    <failure message="session creation error" type="org.wso2.am.integration.test.utils.APIManagerIntegrationTestException">org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: session creation error
+	at java.net.PlainSocketImpl.socketConnect(Native Method)
+	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:350)
+	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:206)
+	at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:188)
+	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:392)
+	at java.net.Socket.connect(Socket.java:589)
+	at sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:673)
+	at sun.reflect.GeneratedMethodAccessor4.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.apache.commons.httpclient.protocol.ReflectionSocketFactory.createSocket(ReflectionSocketFactory.java:140)
+	at org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory.createSocket(SSLProtocolSocketFactory.java:179)
+	at org.apache.commons.httpclient.HttpConnection.open(HttpConnection.java:707)
+	at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager$HttpConnectionAdapter.open(MultiThreadedHttpConnectionManager.java:1361)
+	at org.apache.commons.httpclient.HttpMethodDirector.executeWithRetry(HttpMethodDirector.java:387)
+	at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:171)
+	at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397)
+	at org.apache.axis2.transport.http.AbstractHTTPSender.executeMethod(AbstractHTTPSender.java:688)
+	at org.apache.axis2.transport.http.HTTPSender.sendViaPost(HTTPSender.java:199)
+	at org.apache.axis2.transport.http.HTTPSender.send(HTTPSender.java:81)
+	at org.apache.axis2.transport.http.CommonsHTTPTransportSender.writeMessageWithCommons(CommonsHTTPTransportSender.java:454)
+	at org.apache.axis2.transport.http.CommonsHTTPTransportSender.invoke(CommonsHTTPTransportSender.java:281)
+	at org.apache.axis2.engine.AxisEngine.send(AxisEngine.java:442)
+	at org.apache.axis2.description.OutInAxisOperationClient.send(OutInAxisOperation.java:430)
+	at org.apache.axis2.description.OutInAxisOperationClient.executeImpl(OutInAxisOperation.java:225)
+	at org.apache.axis2.client.OperationClient.execute(OperationClient.java:149)
+	at org.wso2.carbon.authenticator.stub.AuthenticationAdminStub.login(AuthenticationAdminStub.java:659)
+	at org.wso2.carbon.integration.common.admin.client.AuthenticatorClient.login(AuthenticatorClient.java:59)
+	at org.wso2.carbon.integration.common.utils.LoginLogoutClient.login(LoginLogoutClient.java:70)
+	at org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest.createSession(APIMIntegrationBaseTest.java:260)
+	at org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest.init(APIMIntegrationBaseTest.java:148)
+	at org.wso2.am.integration.tests.other.APIM4765ResourceOrderInSwagger.setEnvironment(APIM4765ResourceOrderInSwagger.java:62)
+</failure>
+    <system-out><![CDATA[INFO- [2018-07-10 07:15:46,948]  INFO - Andes Andes API initialised.
+INFO- [2018-07-10 07:15:47,039]  INFO - AndesChannel Channel created (ID: Internel_channel)
+INFO- [2018-07-10 07:15:47,054]  INFO - AndesKernelBoot Syncing exchanges, queues, bindings and subscriptions
+INFO- [2018-07-10 07:15:47,085]  INFO - Andes Starting Safe Zone Calculator for slots.
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - I/O exception (java.net.ConnectException) caught when processing request: Connection refused (Connection refused)
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - Retrying request
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - I/O exception (java.net.ConnectException) caught when processing request: Connection refused (Connection refused)
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - Retrying request
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - I/O exception (java.net.ConnectException) caught when processing request: Connection refused (Connection refused)
+INFO  [org.apache.commons.httpclient.HttpMethodDirector] - Retrying request
+INFO  [org.apache.axis2.transport.http.HTTPSender] - Unable to sendViaPost to url[https://localhost:9943/services/AuthenticationAdmin]
+java.net.ConnectException: Connection refused (Connection refused)
+	at java.net.PlainSocketImpl.socketConnect(Native Method)
+	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:350)
+	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:206)
+	at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:188)
+	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:392)
+	at ja   va.net.Socket.connect(Socket.java:589)
+	at sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:673)
+	at sun.reflect.GeneratedMethodAccessor4.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.apache.commons.httpclient.protocol.ReflectionSocketFactory.createSocket(ReflectionSocketFactory.java:140)
+	at org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory.createSocket(SSLProtocolSocketFactory.java:179)
+	at org.apache.commons.httpclient.HttpConnection.open(HttpConnection.java:707)
+	at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager$HttpConnectionAdapter.open(MultiThreadedHttpConnectionManager.java:1361)
+	at org.apache.commons.httpclient.HttpMethodDirector.executeWithRetry(HttpMethodDirector.java:387)
+	at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:171)
+	at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397)
+	at org.apache.axis2.transport.http.AbstractHTTPSender.executeMethod(AbstractHTTPSender.java:688)
+	at org.apache.axis2.transport.http.HTTPSender.sendViaPost(HTTPSender.java:199)
+	at org.apache.axis2.transport.http.HTTPSender.send(HTTPSender.java:81)
+	at org.apache.axis2.transport.http.CommonsHTTPTransportSender.writeMessageWithCommons(CommonsHTTPTransportSender.java:454)
+	at org.apache.axis2.transport.http.CommonsHTTPTransportSender.invoke(CommonsHTTPTransportSender.java:281)
+	at org.apache.axis2.engine.AxisEngine.send(AxisEngine.java:442)
+	at org.apache.axis2.description.OutInAxisOperationClient.send(OutInAxisOperation.java:430)
+	at org.apache.axis2.description.OutInAxisOperationClient.executeImpl(OutInAxisOperation.java:225)
+	at org.apache.axis2.client.OperationClient.execute(OperationClient.java:149)
+	at org.wso2.carbon.authenticator.stub.AuthenticationAdminStub.login(AuthenticationAdminStub.java:659)
+	at org.wso2.carbon.integration.common.admin.client.AuthenticatorClient.login(AuthenticatorClient.java:59)
+	at org.wso2.carbon.integration.common.utils.LoginLogoutClient.login(LoginLogoutClient.java:70)
+	at org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest.createSession(APIMIntegrationBaseTest.java:260)
+	at org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest.init(APIMIntegrationBaseTest.java:148)
+	at org.wso2.am.integration.tests.other.APIM4765ResourceOrderInSwagger.setEnvironment(APIM4765ResourceOrderInSwagger.java:62)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:80)
+	at org.testng.internal.Invoker.invokeConfigurationMethod(Invoker.java:525)
+	at org.testng.internal.Invoker.invokeConfigurations(Invoker.java:202)
+	at org.testng.internal.Invoker.invokeConfigurations(Invoker.java:130)
+	at org.testng.internal.TestMethodWorker.invokeBeforeClassMethods(TestMethodWorker.java:173)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:105)
+	at org.testng.TestRunner.runWorkers(TestRunner.java:1178)
+	at org.testng.TestRunner.privateRun(TestRunner.java:757)
+	at org.testng.TestRunner.run(TestRunner.java:608)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:334)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:240)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1158)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1083)
+	at org.testng.TestNG.run(TestNG.java:999)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:295)
+	at org.apache.maven.surefire.testng.TestNGXmlTestSuite.execute(TestNGXmlTestSuite.java:84)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:90)
+	at org.apache.maven.surefire.booter.ForkedBooter.invokeProviderInSameClassLoader(ForkedBooter.java:203)
+
+]]></system-out>
+  </testcase>
+  <testcase name="swaggerResourceOrderTest" classname="org.wso2.am.integration.tests.other.APIM4765ResourceOrderInSwagger" time="0">
+    <skipped/>
+    <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== Running the test method org.wso2.am.integration.tests.other.APIM4765ResourceOrderInSwagger.swaggerResourceOrderTest ===================
+]]></system-out>
+  </testcase>
+  <testcase name="destroy" classname="org.wso2.am.integration.tests.other.APIM4765ResourceOrderInSwagger" time="0">
+    <failure message="Unable to login to the store app " type="org.wso2.am.integration.test.utils.APIManagerIntegrationTestException">org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Unable to login to the store app 
+	at java.net.PlainSocketImpl.socketConnect(Native Method)
+	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:350)
+	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:206)
+	at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:188)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.sendPOSTMessage(HTTPSClientUtils.java:210)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.doPost(HTTPSClientUtils.java:78)
+	at org.wso2.am.integration.test.utils.http.HTTPSClientUtils.doPost(HTTPSClientUtils.java:150)
+	at org.wso2.am.integration.test.utils.clients.APIPublisherRestClient.changeAPILifeCycleStatus(APIPublisherRestClient.java:191)
+	at org.wso2.am.integration.tests.other.NotificationTestCase.notificationTestCase(NotificationTestCase.java:126)
+</failure>
+    <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== On test skipped org.wso2.am.integration.tests.other.APIStateChangeWorkflowTestCase.testWorkflowCallbackRestAPI ===================
+INFO  [org.wso2.am.integration.test.utils.clients.APIStoreRestClient] - Login to Store http://localhost:10263/ as the user admin
+INFO- [2018-07-10 07:29:08,584]  INFO - PermissionUpdater Permission cache updated for tenant -1234
+INFO- [2018-07-10 07:29:08,679]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 07:29:08,679+0000]
+INFO  [org.wso2.am.integration.test.utils.clients.APIPublisherRestClient] - Login to Publisher http://localhost:10263/ as the user admin
+INFO- [2018-07-10 07:29:09,012]  INFO - PermissionUpdater Permission cache updated for tenant -1234
+INFO- [2018-07-10 07:29:09,128]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 07:29:09,128+0000]
+INFO  [org.wso2.am.integration.test.utils.base.APIMIntegrationBaseTest] - Response Code : 200
+INFO  [org.wso2.am.integration.test.utils.clients.APIPublisherRestClient] - Login to Publisher http://localhost:10263/ as the user admin
+INFO- [2018-07-10 07:29:11,377]  INFO - PermissionUpdater Permission cache updated for tenant -1234
+INFO- [2018-07-10 07:29:11,509]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 07:29:11,509+0000]
+INFO- [2018-07-10 07:29:20,001]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 07:29:20,001+0000]
+INFO- [2018-07-10 07:29:20,194]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 07:29:20,194+0000]
+INFO- [2018-07-10 07:29:20,363]  INFO - DependencyTracker API : admin--NOTIFICATION_TEST_API:v1.0.0 was added to the Synapse configuration successfully
+INFO- [2018-07-10 07:29:20,364]  INFO - API Initializing API: admin--NOTIFICATION_TEST_API:v1.0.0
+INFO- [2018-07-10 07:29:20,586]  INFO - DependencyTracker Endpoint : NOTIFICATION_TEST_API--v1.0.0_APIproductionEndpoint was added to the Synapse configuration successfully
+INFO- [2018-07-10 07:29:23,161]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 07:29:23,160+0000]
+]]></system-out>
+  </testcase>
+  <testcase name="destroy" classname="org.wso2.am.integration.tests.other.NotificationTestCase" time="14.238">
+    <failure message="Unable to remove application - NOTIFICATION_TEST_APP. Error: No Session Cookie found. Please login first" type="org.wso2.am.integration.test.utils.APIManagerIntegrationTestException">org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Unable to remove application - NOTIFICATION_TEST_APP. Error: No Session Cookie found. Please login first
+	at org.wso2.am.integration.test.utils.clients.APIStoreRestClient.checkAuthentication(APIStoreRestClient.java:186)
+	at org.wso2.am.integration.test.utils.clients.APIStoreRestClient.removeApplication(APIStoreRestClient.java:523)
+	at org.wso2.am.integration.tests.other.NotificationTestCase.destroy(NotificationTestCase.java:230)
+</failure>
+    <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== On test failure org.wso2.am.integration.tests.other.NotificationTestCase.notificationTestCase ===================
+]]></system-out>
+  </testcase>
+  <testcase name="jsonToXmlTestCase" classname="org.wso2.am.integration.tests.json.ESBJAVA3380TestCase" time="0.417"/>
+  <testcase name="jsonToXmlTestCase" classname="org.wso2.am.integration.tests.json.ESBJAVA3380TestCase" time="0.058"/>
+  <testcase name="testAvailabilityOfTiersInAPIManagePageBeforeChangeTiersXML" classname="org.wso2.am.integration.tests.api.lifecycle.EditTiersXMLAndVerifyInPublisherTestCase" time="0">
+    <skipped/>
+    <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== On test failure org.wso2.am.integration.tests.api.lifecycle.EditTiersXMLAndVerifyInPublisherTestCase.testAvailabilityOfTiersInPermissionPageBeforeChangeTiersXML ===================
+]]></system-out>
+  </testcase>
+  <testcase name="testAvailabilityOfTiersInPermissionPageAfterChangeTiersXML" classname="org.wso2.am.integration.tests.api.lifecycle.EditTiersXMLAndVerifyInPublisherTestCase" time="0">
+    <skipped/>
+    <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== On test skipped org.wso2.am.integration.tests.api.lifecycle.EditTiersXMLAndVerifyInPublisherTestCase.testAvailabilityOfTiersInAPIManagePageBeforeChangeTiersXML ===================
+]]></system-out>
+  </testcase>
+  <testcase name="testAvailabilityOfTiersInAPIManagePageAfterChangeTiersXML" classname="org.wso2.am.integration.tests.api.lifecycle.EditTiersXMLAndVerifyInPublisherTestCase" time="0">
+    <skipped/>
+    <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== On test skipped org.wso2.am.integration.tests.api.lifecycle.EditTiersXMLAndVerifyInPublisherTestCase.testAvailabilityOfTiersInPermissionPageAfterChangeTiersXML ===================
+]]></system-out>
+  </testcase>
+  <testcase name="testSubscription" classname="org.wso2.am.integration.tests.restapi.testcases.SubscriptionTestCase" time="35.481"/>
+  <testcase name="testSubscription" classname="org.wso2.am.integration.tests.restapi.testcases.MultipleSubscriptionsTestCase" time="45.583"/>
+  <testcase name="testAPITags" classname="org.wso2.am.integration.tests.restapi.testcases.TagTestCase" time="15.461"/>
+  <testcase name="testTiers" classname="org.wso2.am.integration.tests.restapi.testcases.TierTestCase" time="6.988"/>
+  <testcase name="testAPILifecycle" classname="org.wso2.am.integration.tests.restapi.testcases.APILifecycleTestCase" time="33.473"/>
+  <testcase name="testSubscription" classname="org.wso2.am.integration.tests.restapi.testcases.OnHoldSubscriptionWorkflowIdTestCase" time="26.398"/>
+</testsuite>

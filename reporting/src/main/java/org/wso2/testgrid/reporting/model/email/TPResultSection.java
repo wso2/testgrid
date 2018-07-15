@@ -34,12 +34,13 @@ public class TPResultSection {
 
     private String jobName;
     private String dashboardLink;
-    private List<String> logLines;
+    private List<String> failureTests;
+    private List<String> errorTests;
 
-    private int totalTests;
-    private int totalFailures;
-    private int totalErrors;
-    private int totalSkipped;
+    private String totalTests;
+    private String totalFailures;
+    private String totalErrors;
+    private String totalSkipped;
 
     private TPResultSection(TPResultSectionBuilder builder) {
         this.infraCombination = builder.infraCombination;
@@ -48,7 +49,8 @@ public class TPResultSection {
 
         this.dashboardLink = builder.dashboardLink;
         this.jobName = builder.jobName;
-        this.logLines = builder.logLines;
+        this.failureTests = builder.failureTests;
+        this.errorTests = builder.errorTests;
 
         this.totalTests = builder.totalTests;
         this.totalFailures = builder.totalFailures;
@@ -68,10 +70,6 @@ public class TPResultSection {
         return dashboardLink;
     }
 
-    public int getTotalTests() {
-        return totalTests;
-    }
-
     public Status getStatus() {
         return status;
     }
@@ -80,20 +78,28 @@ public class TPResultSection {
         return jobName;
     }
 
-    public int getTotalFailures() {
+    public String getTotalTests() {
+        return totalTests;
+    }
+
+    public String getTotalFailures() {
         return totalFailures;
     }
 
-    public int getTotalErrors() {
+    public String getTotalErrors() {
         return totalErrors;
     }
 
-    public int getTotalSkipped() {
+    public String getTotalSkipped() {
         return totalSkipped;
     }
 
-    public List<String> getLogLines() {
-        return logLines;
+    public List<String> getFailureTests() {
+        return failureTests;
+    }
+
+    public List<String> getErrorTests() {
+        return errorTests;
     }
 
     /**
@@ -107,12 +113,13 @@ public class TPResultSection {
 
         private String jobName;
         private String dashboardLink;
-        private List<String> logLines;
+        private List<String> failureTests;
+        private List<String> errorTests;
 
-        private int totalTests;
-        private int totalFailures;
-        private int totalErrors;
-        private int totalSkipped;
+        private String totalTests;
+        private String totalFailures;
+        private String totalErrors;
+        private String totalSkipped;
 
         public TPResultSectionBuilder(String infraCombination, String deployment, Status status) {
             this.infraCombination = infraCombination;
@@ -138,28 +145,33 @@ public class TPResultSection {
             return this;
         }
 
-        public TPResultSectionBuilder totalTests(int totalTests) {
+        public TPResultSectionBuilder totalTests(String totalTests) {
             this.totalTests = totalTests;
             return this;
         }
 
-        public TPResultSectionBuilder totalFailures(int totalFailures) {
+        public TPResultSectionBuilder totalFailures(String totalFailures) {
             this.totalFailures = totalFailures;
             return this;
         }
 
-        public TPResultSectionBuilder totalErrors(int totalErrors) {
+        public TPResultSectionBuilder totalErrors(String totalErrors) {
             this.totalErrors = totalErrors;
             return this;
         }
 
-        public TPResultSectionBuilder totalSkipped(int totalSkipped) {
+        public TPResultSectionBuilder totalSkipped(String totalSkipped) {
             this.totalSkipped = totalSkipped;
             return this;
         }
 
-        public TPResultSectionBuilder logLines(List<String> logLines) {
-            this.logLines = logLines;
+        public TPResultSectionBuilder failureTests(List<String> failureTests) {
+            this.failureTests = failureTests;
+            return this;
+        }
+
+        public TPResultSectionBuilder errorTests(List<String> errorTests) {
+            this.errorTests = errorTests;
             return this;
         }
 

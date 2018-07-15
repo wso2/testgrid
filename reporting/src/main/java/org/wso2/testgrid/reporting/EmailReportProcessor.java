@@ -29,13 +29,13 @@ import org.wso2.testgrid.common.config.PropertyFileReader;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.model.email.TPResultSection;
+import org.wso2.testgrid.reporting.surefire.SurefireReporter;
+import org.wso2.testgrid.reporting.surefire.TestResult;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.wso2.testgrid.common.TestGridConstants.HTML_LINE_SEPARATOR;
@@ -48,6 +48,7 @@ import static org.wso2.testgrid.common.TestGridConstants.TEST_PLANS_URI;
  */
 public class EmailReportProcessor {
     private static final Logger logger = LoggerFactory.getLogger(EmailReportProcessor.class);
+    private static final int MAX_DISPLAY_TEST_COUNT = 20;
     private TestPlanUOW testPlanUOW;
 
     public EmailReportProcessor() {
@@ -77,75 +78,65 @@ public class EmailReportProcessor {
         String productName = product.getName();
         for (TestPlan testPlan : testPlans) {
             if (testPlan.getStatus().equals(Status.SUCCESS)) {
-                logger.debug(String.format("Testplan ,%s, status is set to success.Not including in email report. "
+                logger.debug(String.format("Test plan ,%s, status is set to success.Not including in email report. "
                         + "Infra combination: %s", testPlan.getId(), testPlan.getInfraParameters()));
                 continue;
             }
             String deploymentPattern = testPlan.getDeploymentPattern().getName();
             String testPlanId = testPlan.getId();
-            final String infraCombination = testPlan.getInfrastructureConfig().getParameters().toString();
+            final String infraCombination = testPlan.getInfraParameters();
             final String dashboardLink = String.join("/", testGridHost, productName, deploymentPattern,
                     TEST_PLANS_URI, testPlanId);
+
+            SurefireReporter surefireReporter = new SurefireReporter();
+            final TestResult report = surefireReporter.getReport(testPlan);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Test results of test plan '" + testPlan.getId() + "': " + report);
+            }
+
+            if ("?".equals(report.getTotalTests()) || "0".equals(report.getTotalTests())
+                    || report.getTotalTests().isEmpty()) {
+                final Path reportPath = Paths.get(TestGridUtil.getTestGridHomePath())
+                        .relativize(TestGridUtil.getSurefireReportsDir(testPlan));
+                logger.error("Integration-test log file does not exist at '" + reportPath
+                        + "' for test-plan: " + testPlan);
+            }
+
+            List<String> failureTests = getTrimmedTests(report.getFailureTests(), MAX_DISPLAY_TEST_COUNT);
+            List<String> errorTests = getTrimmedTests(report.getErrorTests(), MAX_DISPLAY_TEST_COUNT);
+
             TPResultSection testPlanResultSection = new TPResultSection.TPResultSectionBuilder(
                     infraCombination, deploymentPattern, testPlan.getStatus())
                     .jobName(productName)
                     .dashboardLink(dashboardLink)
-                    .logLines(getIntegrationTestLogResult(testPlan))
-                    .totalTests(11) //todo
-                    .totalFailures(22)
-                    .totalErrors(33)
-                    .totalSkipped(44)
+                    .failureTests(failureTests)
+                    .errorTests(errorTests)
+                    .totalTests(report.getTotalTests())
+                    .totalFailures(report.getTotalFailures())
+                    .totalErrors(report.getTotalErrors())
+                    .totalSkipped(report.getTotalSkipped())
                     .build();
-            //todo
             perTestPlanList.add(testPlanResultSection);
         }
         return perTestPlanList;
     }
 
-    /**
-     * Returns a summary of the integration test results of a given test-plan.
-     *
-     * @param testPlan test-plan
-     * @return Summary of integration test results
-     */
-    private List<String> getIntegrationTestLogResult(TestPlan testPlan) throws ReportingException {
-        Path filePath = Paths.get(TestGridUtil.deriveTestIntegrationLogFilePath(testPlan));
-
-        List<String> logLines = new ArrayList<>();
-        if (Files.exists(filePath)) {
-            try (BufferedReader bufferedReader = Files.newBufferedReader(filePath)) {
-                String currentLine;
-                while ((currentLine = bufferedReader.readLine()) != null) {
-                    logLines.add(currentLine);
-                    if (logLines.size() == 100) {
-                        logLines.add("............");
-                        logLines.add("............");
-                        logLines.add("(view complete list of tests in testgrid-live..)");
-                        break;
-                    }
-                }
-            } catch (IOException e) {
-                logLines.add("Error occurred while reading surefire-reports..");
-                logger.error("Cannot add test results to email report. Error occurred while reading integration-test "
-                        + "log file to get" + " integration test results for test-plan with id " + testPlan.getId() +
-                        "of the product " + testPlan.getDeploymentPattern().getProduct().getName() + "having "
-                        + "infra-combination as " + testPlan.getInfraParameters(), e);
-            }
-            return logLines;
-        } else {
-            if (testPlan.getStatus().equals(Status.SUCCESS) || testPlan.getStatus().equals(Status.FAIL)) {
-                logger.error("Integration-test log file does not exist at '" +
-                        Paths.get(TestGridUtil.getTestGridHomePath()).relativize(filePath) + "' for test-plan "
-                        + "with id '" + testPlan.getId() + "' of the product '" +
-                        testPlan.getDeploymentPattern().getProduct().getName() + "' having infra-combination as " +
-                        testPlan.getInfraParameters());
-                logLines.add("Integration test-log is missing. Please contact TestGrid "
-                        + "administrator.");
-            } else {
-                logLines.add("Test status is " + testPlan.getStatus() + ". Hence can not display the log.");
-            }
+    private List<String> getTrimmedTests(List<String> tests, int maxDisplayTestCount) {
+        if (tests.isEmpty()) {
+            return Collections.singletonList("no tests.");
         }
-        return logLines;
+
+        final int actualCount = tests.size();
+        int displayCount = tests.size();
+        displayCount = displayCount < maxDisplayTestCount ? displayCount : maxDisplayTestCount;
+
+        tests = new ArrayList<>(tests.subList(0, displayCount));
+        if (displayCount < actualCount) {
+            tests.add("............");
+            tests.add("............");
+            tests.add("(view complete list of tests (" + actualCount + ") in testgrid-live..)");
+        }
+        return tests;
     }
 
     /**

@@ -151,11 +151,20 @@
                     <br/>
                     <br/>
                     <div class="consoleLog">
-                        <span>Test failures/errors:</span><br/>
+                        <span>Test failures:</span><br/>
                         <span>
-                            {{#logLines}}
+                            {{#failureTests}}
                                 {{.}}<br/>
-                            {{/logLines}}</span>
+                            {{/failureTests}}
+                        </span><br/>
+
+                        <span>Test errors:</span><br/>
+                        <span>
+                            {{#errorTests}}
+                                {{.}}<br/>
+                            {{/errorTests}}
+                        </span>
+
                     </div>
                     <br/>
                     <span class="testResultSubTitle">Detailed results available @ </span>

@@ -296,6 +296,11 @@
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.maven.surefire</groupId>
+                <artifactId>surefire-report-parser</artifactId>
+                <version>${maven.surefire.version}</version>
+            </dependency>
             <!-- DAO dependencies -->
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
@@ -577,6 +582,7 @@
         <org.selenium.java.version>2.52.0</org.selenium.java.version>
         <org.selenium.html.driver.version>2.52.0</org.selenium.html.driver.version>
         <testng.version>6.11</testng.version>
+        <maven.surefire.version>2.22.0</maven.surefire.version>
         <!-- Apache commons dependencies-->
         <apache.commons.lang.version>3.4</apache.commons.lang.version>
         <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>

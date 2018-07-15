@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.reporting;
 
+import org.apache.commons.io.FileUtils;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -143,10 +144,9 @@ public class TestReportEngineTest {
         Files.createDirectories(testPlanFinalPath.getParent());
         Files.copy(testPlanPath, testPlanFinalPath, StandardCopyOption.REPLACE_EXISTING);
 
-        Path testSuiteTxtPath = Paths.get("src", "test", "resources", "surefire-reports", "TestSuite.txt");
-        Path testSuiteTxtFinalPath = Paths.get(TestGridUtil.deriveTestIntegrationLogFilePath(testPlan));
-        Files.createDirectories(testSuiteTxtFinalPath.getParent());
-        Files.copy(testSuiteTxtPath, testSuiteTxtFinalPath, StandardCopyOption.REPLACE_EXISTING);
+        Path testSuiteTxtPath = Paths.get("src", "test", "resources", "surefire-reports");
+        Path testSuiteTxtFinalPath = TestGridUtil.getSurefireReportsDir(testPlan);
+        FileUtils.copyDirectory(testSuiteTxtPath.toFile(), testSuiteTxtFinalPath.toFile());
     }
 
     @Test

@@ -158,15 +158,9 @@ public class Product extends AbstractUUIDEntity implements Serializable {
     @Override
     public String toString() {
         String id = this.getId() != null ? this.getId() : "";
-        String createdTimestamp = this.getCreatedTimestamp() != null ? this.getCreatedTimestamp().toString() : "";
-        String modifiedTimestamp = this.getModifiedTimestamp() != null ? this.getModifiedTimestamp().toString() : "";
         return StringUtil.concatStrings("Product{",
                 "id='", id, "\'",
                 ", name='", name, "\'",
-                ", createdTimestamp='", createdTimestamp, "\'",
-                ", modifiedTimestamp='", modifiedTimestamp, "\'",
-                ", lastSuccessTimestamp='", lastSuccessTimestamp, "\'",
-                ", lastFailureTimestamp='", lastFailureTimestamp, "\'",
                 '}');
     }
 }
