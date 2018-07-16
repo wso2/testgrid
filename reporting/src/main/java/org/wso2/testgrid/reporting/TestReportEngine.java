@@ -84,9 +84,8 @@ public class TestReportEngine {
     private static final String PERFORMANCE_REPORT = "PerformanceReport";
     private static final String RESULT_FOLDER = "Results";
     private static final String IMAGES_FOLDER = "img";
-
-    private TestPlanUOW testPlanUOW;
     private final EmailReportProcessor emailReportProcessor;
+    private TestPlanUOW testPlanUOW;
 
     public TestReportEngine(TestPlanUOW testPlanUOW, EmailReportProcessor emailReportProcessor) {
         this.testPlanUOW = testPlanUOW;
@@ -732,7 +731,8 @@ public class TestReportEngine {
     /**
      * Generate a HTML report which is used as the content of the email to be sent out to
      * relevant parties interested in TestGrid test job.
-     *  @param product   product needing the report.
+     *
+     * @param product   product needing the report.
      * @param workspace workspace containing the test-plan yamls
      */
     public Optional<Path> generateEmailReport(Product product, String workspace) throws ReportingException {
@@ -749,7 +749,7 @@ public class TestReportEngine {
                     throw new ReportingException(
                             "Test Plan File doesn't exist. File path is " + path.toAbsolutePath().toString());
                 }
-                logger.info("Test Plan File does exist " + path.toAbsolutePath().toString());
+                logger.info("A test plan file found at " + path.toAbsolutePath().toString());
                 TestPlan testPlanYaml = org.wso2.testgrid.common.util.FileUtil
                         .readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
                 Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanYaml.getId());
@@ -758,8 +758,10 @@ public class TestReportEngine {
                             TestGridUtil.deriveTestPlanDirName(testPlanById.get()));
                     testPlans.add(testPlanById.get());
                 } else {
-                    logger.error("TestPlan does not exist in the database for testplan id : "
-                            + testPlanById.get().getId());
+                    logger.error(String.format(
+                            "Inconsistent state: The test plan yaml with id '%s' has no entry in the database. "
+                                    + "Ignoring the test plan...",
+                            testPlanYaml.getId()));
                 }
             }
         } catch (IOException e) {
@@ -770,7 +772,7 @@ public class TestReportEngine {
         }
         //start email generation
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
-            logger.info("Latest build of " + product + "does not contain failed tests. " +
+            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. " +
                     "Hence skipping email-report generation..");
             return Optional.empty();
         }

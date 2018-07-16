@@ -24,7 +24,7 @@
 set -o xtrace
 
 echo "This is a Dummy Deployment creation scripts to deploy a standalone WSO2 Identity server"
-echo "Here the test infrastructure is your local machine."
+echo "Here the test infrastructure is your local machine. Working dir: " `pwd`
 #if you do not have a account, please create a account at https://wso2.com/
 DEPLOYMENT_EP_FILE_NAME=deployment_eps
 
@@ -32,6 +32,10 @@ DEPLOYMENT_EP_FILE_NAME=deployment_eps
 #curl -k https://product-dist.wso2.com/products/identity-server/5.4.0/wso2is-5.4.0.zip --user $WSO2_USER:$WSO2_PASSWORD -o is.zip
 
 echo "unzip the IS distribution"
+if [ ! -f wso2is-5.4.0.zip ]; then
+    >&2 echo "wso2is-5.4.0.zip file does not exist at: "  `pwd`
+    exit 1
+fi
 unzip -q -o wso2is-5.4.0.zip
 
 echo -n "Starting the IS server"

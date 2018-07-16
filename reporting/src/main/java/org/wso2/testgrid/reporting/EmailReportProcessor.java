@@ -28,11 +28,10 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.PropertyFileReader;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
-import org.wso2.testgrid.reporting.model.email.TestPlanResultSection;
+import org.wso2.testgrid.reporting.model.email.TPResultSection;
+import org.wso2.testgrid.reporting.surefire.SurefireReporter;
+import org.wso2.testgrid.reporting.surefire.TestResult;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -48,6 +47,7 @@ import static org.wso2.testgrid.common.TestGridConstants.TEST_PLANS_URI;
  */
 public class EmailReportProcessor {
     private static final Logger logger = LoggerFactory.getLogger(EmailReportProcessor.class);
+    private static final int MAX_DISPLAY_TEST_COUNT = 20;
     private TestPlanUOW testPlanUOW;
 
     public EmailReportProcessor() {
@@ -69,76 +69,76 @@ public class EmailReportProcessor {
      * @param product product needing the results
      * @return list of test-plan sections
      */
-    public List<TestPlanResultSection> generatePerTestPlanSection(Product product, List<TestPlan> testPlans)
+    public List<TPResultSection> generatePerTestPlanSection(Product product, List<TestPlan> testPlans)
             throws ReportingException {
-        List<TestPlanResultSection> perTestPlanMap = new ArrayList<>();
+        List<TPResultSection> perTestPlanList = new ArrayList<>();
         String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.TESTGRID_HOST);
         String productName = product.getName();
+        SurefireReporter surefireReporter = new SurefireReporter();
         for (TestPlan testPlan : testPlans) {
             if (testPlan.getStatus().equals(Status.SUCCESS)) {
+                logger.info(String.format("Test plan ,%s, status is set to success. Not adding to email report. "
+                        + "Infra combination: %s", testPlan.getId(), testPlan.getInfraParameters()));
                 continue;
             }
             String deploymentPattern = testPlan.getDeploymentPattern().getName();
             String testPlanId = testPlan.getId();
-            TestPlanResultSection testPlanResultSection = new TestPlanResultSection();
-            testPlanResultSection.setDeployment(deploymentPattern);
-            testPlanResultSection.setInfraCombination(testPlan.getInfrastructureConfig().getParameters().toString());
-            try {
-                testPlanResultSection.setResult(getIntegrationTestLogResult(testPlan));
-            } catch (ReportingException e) {
-                logger.error("Integration test results of the test-plan with id " + testPlan.getId() +
-                        " is not added to the email-report due to a reporting exception occurred.", e.getMessage());
+            final String infraCombination = testPlan.getInfraParameters();
+            final String dashboardLink = String.join("/", testGridHost, productName, deploymentPattern,
+                    TEST_PLANS_URI, testPlanId);
+
+            final TestResult report = surefireReporter.getReport(testPlan);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Test results of test plan '" + testPlan.getId() + "': " + report);
             }
-            testPlanResultSection.setDashboardLink(Paths.get(
-                    testGridHost, productName, deploymentPattern, TEST_PLANS_URI, testPlanId).toString());
-            perTestPlanMap.add(testPlanResultSection);
+
+            if ("?".equals(report.getTotalTests()) || "0".equals(report.getTotalTests())
+                    || report.getTotalTests().isEmpty()) {
+                final Path reportPath = Paths.get(TestGridUtil.getTestGridHomePath())
+                        .relativize(TestGridUtil.getSurefireReportsDir(testPlan));
+                logger.error("Integration-test log file does not exist at '" + reportPath
+                        + "' for test-plan: " + testPlan);
+            }
+
+            List<TestResult.TestCaseResult> failureTests = getTrimmedTests(report.getFailureTests(),
+                    MAX_DISPLAY_TEST_COUNT);
+            List<TestResult.TestCaseResult> errorTests = getTrimmedTests(report.getErrorTests(),
+                    MAX_DISPLAY_TEST_COUNT);
+
+            TPResultSection testPlanResultSection = new TPResultSection.TPResultSectionBuilder(
+                    infraCombination, deploymentPattern, testPlan.getStatus())
+                    .jobName(productName)
+                    .dashboardLink(dashboardLink)
+                    .failureTests(failureTests)
+                    .errorTests(errorTests)
+                    .totalTests(report.getTotalTests())
+                    .totalFailures(report.getTotalFailures())
+                    .totalErrors(report.getTotalErrors())
+                    .totalSkipped(report.getTotalSkipped())
+                    .build();
+            perTestPlanList.add(testPlanResultSection);
         }
-        return perTestPlanMap;
+        return perTestPlanList;
     }
 
-    /**
-     * Returns a summary of the integration test results of a given test-plan.
-     *
-     * @param testPlan test-plan
-     * @return Summary of integration test results
-     */
-    private String getIntegrationTestLogResult(TestPlan testPlan) throws ReportingException {
-        StringBuilder stringBuilder = new StringBuilder();
-        Path filePath;
-        filePath = Paths.get(TestGridUtil.deriveTestIntegrationLogFilePath(testPlan));
+    private List<TestResult.TestCaseResult> getTrimmedTests(List<TestResult.TestCaseResult> tests,
+            int maxDisplayTestCount) {
+        final int actualCount = tests.size();
+        int displayCount = tests.size();
+        displayCount = displayCount < maxDisplayTestCount ? displayCount : maxDisplayTestCount;
 
-        if (Files.exists(filePath)) {
-            try (BufferedReader bufferedReader = Files.newBufferedReader(filePath)) {
-                String currentLine;
-                int lineCount = 0;
-                while ((currentLine = bufferedReader.readLine()) != null) {
-                    stringBuilder.append(currentLine).append(HTML_LINE_SEPARATOR);
-                    if (++lineCount == 100) {
-                        stringBuilder.append(".........").append(HTML_LINE_SEPARATOR).append(".........")
-                                .append(HTML_LINE_SEPARATOR).append("(view complete log in detailed results..)");
-                        break;
-                    }
-                }
-                return stringBuilder.toString();
-            } catch (IOException e) {
-                throw new ReportingException("Error occurred while reading integration-test log file to get" +
-                        " integration test results for test-plan with id " + testPlan.getId() + "of the product " +
-                        testPlan.getDeploymentPattern().getProduct().getName() + "having infra-combination as " +
-                        testPlan.getInfraParameters(), e);
-            }
-        } else {
-            if (testPlan.getStatus().equals(Status.SUCCESS) || testPlan.getStatus().equals(Status.FAIL)) {
-                logger.error("Integration-test log file does not exist at '" +
-                        Paths.get(TestGridUtil.getTestGridHomePath()).relativize(filePath) + "' for test-plan "
-                        + "with id '" + testPlan.getId() + "' of the product '" +
-                        testPlan.getDeploymentPattern().getProduct().getName() + "' having infra-combination as " +
-                        testPlan.getInfraParameters());
-                return "Integration test-log is missing. Please contact TestGrid administrator.";
-            } else {
-                return "Test status is " + testPlan.getStatus() + ". Hence can not display the log.";
-            }
+        tests = new ArrayList<>(tests.subList(0, displayCount));
+        if (displayCount < actualCount) {
+            TestResult.TestCaseResult continuation = new TestResult.TestCaseResult();
+            continuation.setClassName("...");
+            TestResult.TestCaseResult allTestsInfo = new TestResult.TestCaseResult();
+            allTestsInfo.setClassName("(view complete list of tests (" + actualCount + ") in testgrid-live..)");
+            tests.add(continuation);
+            tests.add(continuation);
+            tests.add(allTestsInfo);
         }
+        return tests;
     }
 
     /**
