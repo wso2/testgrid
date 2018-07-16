@@ -30,8 +30,8 @@ public class TestResult {
     String totalErrors = "?";
     String totalSkipped = "?";
 
-    List<String> failureTests = Collections.emptyList();
-    List<String> errorTests = Collections.emptyList();
+    List<TestCaseResult> failureTests = Collections.emptyList();
+    List<TestCaseResult> errorTests = Collections.emptyList();
 
     public String getTotalTests() {
         return totalTests;
@@ -49,11 +49,11 @@ public class TestResult {
         return totalSkipped;
     }
 
-    public List<String> getFailureTests() {
+    public List<TestCaseResult> getFailureTests() {
         return failureTests;
     }
 
-    public List<String> getErrorTests() {
+    public List<TestCaseResult> getErrorTests() {
         return errorTests;
     }
 
@@ -67,5 +67,49 @@ public class TestResult {
                 ", failureTests=" + failureTests +
                 ", errorTests=" + errorTests +
                 '}';
+    }
+
+    /**
+     *  The processed summary of each test-case in the surefire-reports.
+     *  Each test-case has an associated class name, method name, along with
+     *  failure message. If historical data are available, each test-case may also
+     *  include for how-long this test case has been failing.
+     *
+     */
+    public static class TestCaseResult {
+        String className;
+        String methodName;
+        String failureMessage;
+        String failingSince;
+
+        public void setClassName(String className) {
+            this.className = className;
+        }
+
+        public String getClassName() {
+            return className;
+        }
+
+        public String getMethodName() {
+            return methodName;
+        }
+
+        public String getFailureMessage() {
+            return failureMessage;
+        }
+
+        public String getFailingSince() {
+            return failingSince;
+        }
+
+        @Override
+        public String toString() {
+            return "TestCaseResult{" +
+                    "className='" + className + '\'' +
+                    ", methodName='" + methodName + '\'' +
+                    ", failureMessage='" + failureMessage + '\'' +
+                    ", failingSince='" + failingSince + '\'' +
+                    "}\n";
+        }
     }
 }

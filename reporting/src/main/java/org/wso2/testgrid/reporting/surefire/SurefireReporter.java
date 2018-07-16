@@ -87,15 +87,23 @@ public class SurefireReporter {
         return testResult;
     }
 
-    private List<String> getTests(List<ReportTestCase> failureDetails, Predicate<? super ReportTestCase> filter) {
+    private List<TestResult.TestCaseResult> getTests(List<ReportTestCase> failureDetails,
+            Predicate<? super ReportTestCase> filter) {
         return failureDetails.parallelStream()
                 .filter(filter)
                 .map(tc -> {
                     String failureMsg = tc.getFailureMessage() == null ? "" : tc.getFailureMessage();
-                    int length = failureMsg.length() < FAILURE_MSG_LENGTH ? failureMsg.length() : FAILURE_MSG_LENGTH;
-                    failureMsg = failureMsg.substring(0, length);
-                    return tc.getClassName() + "#" + tc.getName() + " --- " + failureMsg + " --- since 0 days.";
-                }) // todo add historical data of the test cases.
+                    failureMsg = failureMsg.length() < FAILURE_MSG_LENGTH ?
+                            failureMsg
+                            : failureMsg.substring(0, FAILURE_MSG_LENGTH) + "...";
+                    TestResult.TestCaseResult tcr = new TestResult.TestCaseResult();
+                    tcr.className = tc.getClassName();
+                    tcr.methodName = tc.getName();
+                    tcr.failureMessage = failureMsg;
+                    tcr.failingSince = "0"; // todo add historical data of the test cases.
+
+                    return tcr;
+                })
                 .collect(Collectors.toList());
     }
 

@@ -35,7 +35,6 @@ import org.wso2.testgrid.reporting.surefire.TestResult;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.wso2.testgrid.common.TestGridConstants.HTML_LINE_SEPARATOR;
@@ -76,9 +75,10 @@ public class EmailReportProcessor {
         String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.TESTGRID_HOST);
         String productName = product.getName();
+        SurefireReporter surefireReporter = new SurefireReporter();
         for (TestPlan testPlan : testPlans) {
             if (testPlan.getStatus().equals(Status.SUCCESS)) {
-                logger.debug(String.format("Test plan ,%s, status is set to success.Not including in email report. "
+                logger.info(String.format("Test plan ,%s, status is set to success. Not adding to email report. "
                         + "Infra combination: %s", testPlan.getId(), testPlan.getInfraParameters()));
                 continue;
             }
@@ -88,7 +88,6 @@ public class EmailReportProcessor {
             final String dashboardLink = String.join("/", testGridHost, productName, deploymentPattern,
                     TEST_PLANS_URI, testPlanId);
 
-            SurefireReporter surefireReporter = new SurefireReporter();
             final TestResult report = surefireReporter.getReport(testPlan);
             if (logger.isDebugEnabled()) {
                 logger.debug("Test results of test plan '" + testPlan.getId() + "': " + report);
@@ -102,8 +101,10 @@ public class EmailReportProcessor {
                         + "' for test-plan: " + testPlan);
             }
 
-            List<String> failureTests = getTrimmedTests(report.getFailureTests(), MAX_DISPLAY_TEST_COUNT);
-            List<String> errorTests = getTrimmedTests(report.getErrorTests(), MAX_DISPLAY_TEST_COUNT);
+            List<TestResult.TestCaseResult> failureTests = getTrimmedTests(report.getFailureTests(),
+                    MAX_DISPLAY_TEST_COUNT);
+            List<TestResult.TestCaseResult> errorTests = getTrimmedTests(report.getErrorTests(),
+                    MAX_DISPLAY_TEST_COUNT);
 
             TPResultSection testPlanResultSection = new TPResultSection.TPResultSectionBuilder(
                     infraCombination, deploymentPattern, testPlan.getStatus())
@@ -121,20 +122,21 @@ public class EmailReportProcessor {
         return perTestPlanList;
     }
 
-    private List<String> getTrimmedTests(List<String> tests, int maxDisplayTestCount) {
-        if (tests.isEmpty()) {
-            return Collections.singletonList("no tests.");
-        }
-
+    private List<TestResult.TestCaseResult> getTrimmedTests(List<TestResult.TestCaseResult> tests,
+            int maxDisplayTestCount) {
         final int actualCount = tests.size();
         int displayCount = tests.size();
         displayCount = displayCount < maxDisplayTestCount ? displayCount : maxDisplayTestCount;
 
         tests = new ArrayList<>(tests.subList(0, displayCount));
         if (displayCount < actualCount) {
-            tests.add("............");
-            tests.add("............");
-            tests.add("(view complete list of tests (" + actualCount + ") in testgrid-live..)");
+            TestResult.TestCaseResult continuation = new TestResult.TestCaseResult();
+            continuation.setClassName("...");
+            TestResult.TestCaseResult allTestsInfo = new TestResult.TestCaseResult();
+            allTestsInfo.setClassName("(view complete list of tests (" + actualCount + ") in testgrid-live..)");
+            tests.add(continuation);
+            tests.add(continuation);
+            tests.add(allTestsInfo);
         }
         return tests;
     }

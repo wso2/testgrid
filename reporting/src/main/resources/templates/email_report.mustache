@@ -28,7 +28,7 @@
          */
         table.reportTable {
             font-family: sans-serif;
-            border: 1px solid #000000;
+            border: 0px solid #000000;
             background-color: #FFFFFF;
             width: 95%;
             text-align: left;
@@ -37,11 +37,11 @@
 
         table.reportTable td, table.reportTable th {
             border: 1px solid #000000;
-            padding: 10px 5px;
+            padding: 5px 5px;
         }
 
         table.reportTable tbody td {
-            font-size: 14px;
+            font-size: 12px;
         }
 
         table.reportTable tr:nth-child(even) {
@@ -151,18 +151,51 @@
                     <br/>
                     <br/>
                     <div class="consoleLog">
-                        <span>Test failures:</span><br/>
+                        <!--<span>Test failures:</span><br/>-->
                         <span>
-                            {{#failureTests}}
-                                {{.}}<br/>
-                            {{/failureTests}}
-                        </span><br/>
-
-                        <span>Test errors:</span><br/>
+                            <table class="reportTable">
+                                <thead>
+                                <tr>
+                                    <th>Test failures:</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#failureTests}}
+                                    <tr><td>
+                                        {{className}}{{#methodName}}#{{methodName}}{{/methodName}}<br/>
+                                        {{#failureMessage}}
+                                            <span style="padding-left:5em">- {{failureMessage}}</span>
+                                        {{/failureMessage}}
+                                    </td></tr>
+                                {{/failureTests}}
+                                {{^failureTests}}
+                                    <tr><td>no tests.</td></tr>
+                                {{/failureTests}}
+                                </tbody>
+                            </table>
+                        </span>
+                        <br/>
                         <span>
-                            {{#errorTests}}
-                                {{.}}<br/>
-                            {{/errorTests}}
+                            <table class="reportTable">
+                                <thead>
+                                <tr>
+                                    <th>Test errors:</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#errorTests}}
+                                    <tr><td>
+                                        {{className}}{{#methodName}}#{{methodName}}{{/methodName}}<br/>
+                                        {{#failureMessage}}
+                                            <span style="padding-left:5em">- {{failureMessage}}</span>
+                                        {{/failureMessage}}
+                                    </td></tr>
+                                {{/errorTests}}
+                                {{^errorTests}}
+                                    <tr><td>no tests.</td></tr>
+                                {{/errorTests}}
+                                </tbody>
+                            </table>
                         </span>
 
                     </div>

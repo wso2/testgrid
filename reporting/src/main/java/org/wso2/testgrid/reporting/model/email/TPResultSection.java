@@ -20,6 +20,7 @@
 package org.wso2.testgrid.reporting.model.email;
 
 import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.reporting.surefire.TestResult;
 
 import java.util.List;
 
@@ -34,8 +35,8 @@ public class TPResultSection {
 
     private String jobName;
     private String dashboardLink;
-    private List<String> failureTests;
-    private List<String> errorTests;
+    private List<TestResult.TestCaseResult> failureTests;
+    private List<TestResult.TestCaseResult> errorTests;
 
     private String totalTests;
     private String totalFailures;
@@ -94,11 +95,11 @@ public class TPResultSection {
         return totalSkipped;
     }
 
-    public List<String> getFailureTests() {
+    public List<TestResult.TestCaseResult> getFailureTests() {
         return failureTests;
     }
 
-    public List<String> getErrorTests() {
+    public List<TestResult.TestCaseResult> getErrorTests() {
         return errorTests;
     }
 
@@ -113,8 +114,8 @@ public class TPResultSection {
 
         private String jobName;
         private String dashboardLink;
-        private List<String> failureTests;
-        private List<String> errorTests;
+        private List<TestResult.TestCaseResult> failureTests;
+        private List<TestResult.TestCaseResult> errorTests;
 
         private String totalTests;
         private String totalFailures;
@@ -165,12 +166,12 @@ public class TPResultSection {
             return this;
         }
 
-        public TPResultSectionBuilder failureTests(List<String> failureTests) {
+        public TPResultSectionBuilder failureTests(List<TestResult.TestCaseResult> failureTests) {
             this.failureTests = failureTests;
             return this;
         }
 
-        public TPResultSectionBuilder errorTests(List<String> errorTests) {
+        public TPResultSectionBuilder errorTests(List<TestResult.TestCaseResult> errorTests) {
             this.errorTests = errorTests;
             return this;
         }
