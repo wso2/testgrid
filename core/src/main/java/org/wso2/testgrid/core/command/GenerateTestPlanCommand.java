@@ -512,19 +512,19 @@ public class GenerateTestPlanCommand implements Command {
                     List<TestScenario> modifiedTestScenarios = new ArrayList<>();
                     for (ConfigChangeSet configChangeSet : configChangeSets) {
                         for (TestScenario testScenario : scenarioConfig.getScenarios()) {
-                             TestScenario newTestScenario = new TestScenario();
-                             newTestScenario.setName(configChangeSet.getName() + ":" + testScenario.getName());
-                             newTestScenario.setDescription(testScenario.getDescription());
-                             newTestScenario.setDir(testScenario.getDir());
-                             newTestScenario.setIsPostScriptSuccessful(testScenario.isPostScriptSuccessful());
-                             newTestScenario.setIsPreScriptSuccessful(testScenario.isPreScriptSuccessful());
-                             newTestScenario.setStatus(testScenario.getStatus());
-                             newTestScenario.setTestPlan(testScenario.getTestPlan());
-                             newTestScenario.setConfigChangeSetName(configChangeSet.getName());
-                             newTestScenario.setConfigChangeSetDescription(configChangeSet.getDescription());
-                             newTestScenario.setSummaryGraphs(testScenario.getSummaryGraphs());
-                             newTestScenario.setTestCases(testScenario.getTestCases());
-                             modifiedTestScenarios.add(newTestScenario);
+                             TestScenario modifiedTestScenario = new TestScenario();
+                             modifiedTestScenario.setName(configChangeSet.getName() + ":" + testScenario.getName());
+                             modifiedTestScenario.setDescription(testScenario.getDescription());
+                             modifiedTestScenario.setDir(testScenario.getDir());
+                             modifiedTestScenario.setIsPostScriptSuccessful(testScenario.isPostScriptSuccessful());
+                             modifiedTestScenario.setIsPreScriptSuccessful(testScenario.isPreScriptSuccessful());
+                             modifiedTestScenario.setStatus(testScenario.getStatus());
+                             modifiedTestScenario.setTestPlan(testScenario.getTestPlan());
+                             modifiedTestScenario.setConfigChangeSetName(configChangeSet.getName());
+                             modifiedTestScenario.setConfigChangeSetDescription(configChangeSet.getDescription());
+                             modifiedTestScenario.setSummaryGraphs(testScenario.getSummaryGraphs());
+                             modifiedTestScenario.setTestCases(testScenario.getTestCases());
+                             modifiedTestScenarios.add(modifiedTestScenario);
                         }
                     }
                     testgridYaml.getScenarioConfig().setScenarios(modifiedTestScenarios);

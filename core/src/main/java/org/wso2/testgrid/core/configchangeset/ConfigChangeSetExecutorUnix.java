@@ -25,22 +25,25 @@ import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.core.TestPlanExecutor;
 import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -52,7 +55,7 @@ import java.util.List;
  */
 public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestPlanExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConfigChangeSetExecutorUnix.class);
     private static final String PRODUCT_HOME_ENV = "PRODUCT_HOME";
 
     /**
@@ -66,10 +69,9 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
     @Override
     public boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
                                         DeploymentCreationResult deploymentCreationResult, boolean isInit) {
-        try {
-            URL configChangeSetRepoPath = new URL(testPlan.getConfigChangeSetRepository());
-            String filePath = configChangeSetRepoPath.getPath();
-            String fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+        if (testPlan.getConfigChangeSetRepository() != null) {
+            Path configChangeSetRepoPath = Paths.get(testPlan.getConfigChangeSetRepository());
+            Path fileName = configChangeSetRepoPath.getFileName();
             String configChangeSetLocation = "./repos/" + fileName + "-master/config-sets/" + configChangeSet.getName();
             List<String> applyShellCommand = new ArrayList<String>();
             // Generate array of commands that need to be applied
@@ -94,9 +96,9 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
             }
 
             return applyShellCommandOnAgent(testPlan, applyShellCommand);
-        } catch (MalformedURLException e) {
+        } else {
             logger.error("Error parsing scenario repository path for ".
-                    concat(testPlan.getConfigChangeSetRepository()), e);
+                    concat(testPlan.getConfigChangeSetRepository()));
             return false;
         }
     }
@@ -134,12 +136,11 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
      * @return          True if execution success. Else, false
      */
     @Override
-    public boolean deInitConfigChangeSet(TestPlan testPlan) {
-        List<String> deInitShellCommand = new ArrayList<>();
-        deInitShellCommand.add("rm -rf repos");
-        return applyShellCommandOnAgent(testPlan, deInitShellCommand);
+    public boolean revertConfigChangeSet(TestPlan testPlan) {
+        List<String> revertShellCommand = new ArrayList<>();
+        revertShellCommand.add("rm -rf repos");
+        return applyShellCommandOnAgent(testPlan, revertShellCommand);
     }
-
 
     /**
      * Send an array of shell command to an agent
@@ -159,7 +160,8 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
         String authenticationToken = "Basic " + Base64.getEncoder().encodeToString(
                 authenticationString.getBytes(StandardCharsets.UTF_8));
         boolean executionStatus = true;
-        String agentLink = tinkererHost + "test-plan/" + testPlan.getId() + "/agents";
+        String agentLink = tinkererHost + "test-plan" + TestGridConstants.FILE_SEPARATOR + testPlan.getId() +
+                TestGridConstants.FILE_SEPARATOR + "agents";
         try {
             // Get list of agent for given test plan id
             Content agentResponse = Request.Get(agentLink)
@@ -193,7 +195,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                     logger.info("Agent code: " + code);
                     logger.info("Agent response: \n" + response);
                     // Agent code default is SHELL, if time out then, it return code as 408
-                    if (code.equals("408") || exitValue != 0) {
+                    if (code.equals(String.valueOf(HttpStatus.SC_REQUEST_TIMEOUT)) || exitValue != 0) {
                         executionStatus = false;
                         logger.error("Agent script execution failed with code " + code + " exit value " + exitValue);
                     }
@@ -222,8 +224,9 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
     private Content sendShellCommand(String tinkererHost, String authenticationKey, Agent agent, String script)
             throws ScenarioExecutorException {
         Content result;
-        String requestLink = tinkererHost + "test-plan/" + agent.getTestPlanId() +
-                "/agent/" + agent.getInstanceName() + "/operation";
+        String requestLink = tinkererHost + "test-plan" + TestGridConstants.FILE_SEPARATOR + agent.getTestPlanId() +
+                TestGridConstants.FILE_SEPARATOR + "agent" + TestGridConstants.FILE_SEPARATOR + agent.getInstanceName()
+                + TestGridConstants.FILE_SEPARATOR + "operation";
         try {
             result = Request.Post(requestLink).addHeader(HttpHeaders.AUTHORIZATION, authenticationKey)
                     .addHeader(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -231,7 +234,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                             execute().returnContent();
         } catch (IOException e) {
             throw new ScenarioExecutorException(StringUtil.concatStrings(
-                    "Send api request to the agent error occur for the ", requestLink), e);
+                    "Send api request to the agent error occur for the ", requestLink, agent.getAgentId()), e);
         }
         return result;
     }

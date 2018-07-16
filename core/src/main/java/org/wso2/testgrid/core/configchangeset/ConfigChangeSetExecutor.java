@@ -23,7 +23,7 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestPlan;
 
 /**
- * This is abstract class for config change set executor for difference OS's
+ * This is abstract class for config change set executor for difference OS's.
  */
 public abstract class ConfigChangeSetExecutor {
 
@@ -52,6 +52,6 @@ public abstract class ConfigChangeSetExecutor {
      * @param testPlan  The test plan
      * @return          True if execution success. Else, false
      */
-    public abstract boolean deInitConfigChangeSet(TestPlan testPlan);
+    public abstract boolean revertConfigChangeSet(TestPlan testPlan);
 
 }

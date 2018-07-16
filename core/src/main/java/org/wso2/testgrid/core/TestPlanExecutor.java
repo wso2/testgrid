@@ -334,10 +334,11 @@ public class TestPlanExecutor {
                             }
                         }
                         // Remove config set repos on agent
-                        configChangeSetExecutor.get().deInitConfigChangeSet(testPlan);
+                        configChangeSetExecutor.get().revertConfigChangeSet(testPlan);
                     }
                 } else {
-                    logger.error("Unable to find a Tinker Executor for OS category " + osCategory);
+                    logger.error("Unable to find a Tinker Executor for OS category " + osCategory +
+                            " for test plan id " + testPlan.getId() + testPlan.getInfraParameters());
                 }
             } else {
                 // Run test without config change set
@@ -372,7 +373,7 @@ public class TestPlanExecutor {
                     resultParser.archiveResults();
                 } catch (ResultParserException e) {
                     logger.error(String.format("Error parsing the results for the" +
-                            " scenario %s", testScenario.getName()));
+                            " scenario %s", testScenario.getName()), e);
                 }
             } else {
                 testScenario.setStatus(Status.ERROR);
