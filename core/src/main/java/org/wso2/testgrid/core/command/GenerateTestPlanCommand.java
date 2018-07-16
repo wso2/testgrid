@@ -28,8 +28,10 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
 import org.wso2.testgrid.common.config.JobConfigFile;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
@@ -636,15 +638,28 @@ public class GenerateTestPlanCommand implements Command {
      * @return True or False, based on the validity of the testgridYaml
      */
     private boolean validateTestgridYaml(TestgridYaml testgridYaml) {
-        Boolean isValisTestgridYaml = true;
-        if (testgridYaml.getInfrastructureConfig().getProvisioners().isEmpty()) {
-            logger.error("testgridYaml doesn't contain at least single infra provisioner, Invalid testgridYaml");
-            isValisTestgridYaml = false;
+        Boolean isValidTestgridYaml = true;
+        InfrastructureConfig infrastructureConfig = testgridYaml.getInfrastructureConfig();
+        ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
+        if (infrastructureConfig != null) {
+            if (infrastructureConfig.getProvisioners().isEmpty()) {
+                logger.error("testgrid.yaml doesn't contain at least single infra provisioner, Invalid testgrid.yaml");
+                isValidTestgridYaml = false;
+            }
+        } else {
+            logger.error("testgrid.yaml doesn't have defined the infra configuration, Invalid testgrid.yaml");
+            isValidTestgridYaml = false;
         }
-        if (testgridYaml.getScenarioConfig().getScenarios().isEmpty()) {
-            logger.error("testgridYaml doesn't contain at least single scenario, Invalid testgridYaml");
-            isValisTestgridYaml = false;
+        if (scenarioConfig != null) {
+            if (scenarioConfig.getScenarios().isEmpty()) {
+                logger.error("testgrid.yaml doesn't contain at least single scenario, Invalid testgrid.yaml");
+                isValidTestgridYaml = false;
+            }
+        } else {
+            logger.error("testgrid.yaml doesn't have defined the scenario configuration, Invalid testgrid.yaml");
+            isValidTestgridYaml = false;
         }
-        return isValisTestgridYaml;
+
+        return isValidTestgridYaml;
     }
 }

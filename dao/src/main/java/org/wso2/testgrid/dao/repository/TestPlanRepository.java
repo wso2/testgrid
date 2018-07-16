@@ -197,8 +197,9 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
     public List<TestPlan> getLatestTestPlans(Product product) {
         String sql = "select tp.* from test_plan tp inner join (Select distinct infra_parameters, max(test_run_number) "
                 + "as test_run_number from test_plan where  DEPLOYMENTPATTERN_id in (select id from deployment_pattern "
-                + "where PRODUCT_id= ?) group by infra_parameters) as rn on tp.infra_parameters=rn.infra_parameters and"
-                + " tp.test_run_number=rn.test_run_number and tp.DEPLOYMENTPATTERN_id in "
+                + "where PRODUCT_id= ?) group by infra_parameters) as latest_test_run_nums on "
+                + "tp.infra_parameters=latest_test_run_nums.infra_parameters and "
+                + "tp.test_run_number=latest_test_run_nums.test_run_number and tp.DEPLOYMENTPATTERN_id in "
                 + "(select id from deployment_pattern where PRODUCT_id= ?);";
 
         @SuppressWarnings("unchecked")
