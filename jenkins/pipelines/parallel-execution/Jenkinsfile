@@ -11,7 +11,7 @@ def uploadToS3() {
       bucket="unknown"
   }
   sh """
-      aws s3 sync ${TESTGRID_HOME}/jobs/${PRODUCT}/builds/ s3://${bucket}/artifacts/jobs/wso2am-intg/builds --include "*"
+      aws s3 sync ${PWD}/builds/ s3://${bucket}/artifacts/jobs/${PRODUCT}/builds --include "*"
       """
 }
 
@@ -22,15 +22,13 @@ def runPlan(tPlan, node) {
         echo "Running Test-Plan: ${tPlan}"
         sh "java -version"
         unstash name: "${JOB_CONFIG_YAML}"
-        dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
+        dir("${PWD}") {
           unstash name: "test-plans"
         }
         sh """
             echo "Before PWD"
             pwd
             cd /testgrid/testgrid-home/jobs/${PRODUCT}/${SCENARIOS_LOCATION}
-            # pwd
-            # cd ${SCENARIOS_LOCATION}
             git clean -fd
             cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
             ./testgrid run-testplan --product ${PRODUCT} \
@@ -43,7 +41,6 @@ def runPlan(tPlan, node) {
     echo "RESULT: ${currentBuild.result}"
 
     script {
-        // Archive artifacts
         loadProperties()
         uploadToS3()
     }
@@ -161,7 +158,7 @@ pipeline {
                         --product ${PRODUCT} \
                         --file ${JOB_CONFIG_YAML_PATH}
                     """
-                    dir("${TESTGRID_HOME}/jobs/${PRODUCT}"){
+                    dir("${PWD}"){
                       stash name: "test-plans", includes : "test-plans/**"
                     }
             }
@@ -234,13 +231,12 @@ pipeline {
                 """
            script {
                    sh """
-                   echo "/testgrid/testgrid-home/jobs/${PRODUCT}"
                    ls -al /testgrid/testgrid-home/jobs/${PRODUCT}
                    """
                    //Send email for failed results.
                    if (fileExists("/testgrid/testgrid-home/jobs/${PRODUCT}/builds/EmailReport.html")) {
                      def emailBody = readFile '/testgrid/testgrid-home/jobs/wso2am-intg/builds/EmailReport.html'
-                     mail (to: 'kasung@wso2.com, pasinduj@wso2.com, yasassri@wso2.com, lasanthad@wso2.com, sameeraw@wso2.com, asmaj@wso2.com, harshan@wso2.com',
+                     mail (to: 'testgrid@wso2.com, kasung@wso2.com, pasinduj@wso2.com, yasassri@wso2.com, lasanthad@wso2.com, sameeraw@wso2.com, asmaj@wso2.com, harshan@wso2.com',
                            subject: "'${env.JOB_NAME}' Integration Test Failure! #(${env.BUILD_NUMBER})",
                            body: "${emailBody}", mimeType: 'text/html'
                            );
@@ -254,11 +250,6 @@ pipeline {
                 find . -maxdepth 1 -type f \\( -name "*.log" -o -name "*.html" \\) -delete
                 """
             }
-
-//              emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
-
-// Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: 'harshan@wso2.com,kasung@wso2.com,asmaj@wso2.com,viduran@wso2.com,sameeraw@wso2.com,pasinduj@wso2.com'
-
         }
     }
 }
