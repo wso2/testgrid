@@ -85,8 +85,8 @@ public class EmailReportProcessor {
             String deploymentPattern = testPlan.getDeploymentPattern().getName();
             String testPlanId = testPlan.getId();
             final String infraCombination = testPlan.getInfraParameters();
-            final String dashboardLink = String.join("/", testGridHost, productName, deploymentPattern,
-                    TEST_PLANS_URI, testPlanId);
+            final String dashboardLink = Paths.
+                    get(testGridHost, productName, deploymentPattern, TEST_PLANS_URI, testPlanId).toString();
 
             final TestResult report = surefireReporter.getReport(testPlan);
             if (logger.isDebugEnabled()) {
