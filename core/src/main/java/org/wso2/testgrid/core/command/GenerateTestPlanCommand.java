@@ -183,7 +183,7 @@ public class GenerateTestPlanCommand implements Command {
             throws CommandExecutionException, TestGridDAOException {
         if (!validateTestgridYaml(testgridYaml)) {
             throw new CommandExecutionException(
-                    "Invalid tesgridYaml file is found,Please verify the content of the testgridYaml file");
+                    "Invalid tesgridYaml file is found. Please verify the content of the testgridYaml file");
         }
         populateDefaults(testgridYaml);
         Set<InfrastructureCombination> combinations = infrastructureCombinationsProvider.getCombinations(testgridYaml);
@@ -643,20 +643,20 @@ public class GenerateTestPlanCommand implements Command {
         ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
         if (infrastructureConfig != null) {
             if (infrastructureConfig.getProvisioners().isEmpty()) {
-                logger.error("testgrid.yaml doesn't contain at least single infra provisioner, Invalid testgrid.yaml");
+                logger.debug("testgrid.yaml doesn't contain at least single infra provisioner. Invalid testgrid.yaml");
                 isValidTestgridYaml = false;
             }
         } else {
-            logger.error("testgrid.yaml doesn't have defined the infra configuration, Invalid testgrid.yaml");
+            logger.debug("testgrid.yaml doesn't have defined the infra configuration. Invalid testgrid.yaml");
             isValidTestgridYaml = false;
         }
         if (scenarioConfig != null) {
             if (scenarioConfig.getScenarios().isEmpty()) {
-                logger.error("testgrid.yaml doesn't contain at least single scenario, Invalid testgrid.yaml");
+                logger.debug("testgrid.yaml doesn't contain at least single scenario. Invalid testgrid.yaml");
                 isValidTestgridYaml = false;
             }
         } else {
-            logger.error("testgrid.yaml doesn't have defined the scenario configuration, Invalid testgrid.yaml");
+            logger.debug("testgrid.yaml doesn't have defined the scenario configuration. Invalid testgrid.yaml");
             isValidTestgridYaml = false;
         }
 
