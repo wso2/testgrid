@@ -638,28 +638,27 @@ public class GenerateTestPlanCommand implements Command {
      * @return True or False, based on the validity of the testgridYaml
      */
     private boolean validateTestgridYaml(TestgridYaml testgridYaml) {
-        Boolean isValidTestgridYaml = true;
         InfrastructureConfig infrastructureConfig = testgridYaml.getInfrastructureConfig();
         ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
         if (infrastructureConfig != null) {
             if (infrastructureConfig.getProvisioners().isEmpty()) {
                 logger.debug("testgrid.yaml doesn't contain at least single infra provisioner. Invalid testgrid.yaml");
-                isValidTestgridYaml = false;
+                return false;
             }
         } else {
             logger.debug("testgrid.yaml doesn't have defined the infra configuration. Invalid testgrid.yaml");
-            isValidTestgridYaml = false;
+            return false;
         }
         if (scenarioConfig != null) {
             if (scenarioConfig.getScenarios().isEmpty()) {
                 logger.debug("testgrid.yaml doesn't contain at least single scenario. Invalid testgrid.yaml");
-                isValidTestgridYaml = false;
+                return false;
             }
         } else {
             logger.debug("testgrid.yaml doesn't have defined the scenario configuration. Invalid testgrid.yaml");
-            isValidTestgridYaml = false;
+            return false;
         }
 
-        return isValidTestgridYaml;
+        return true;
     }
 }
