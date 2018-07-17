@@ -380,7 +380,8 @@ public class TestPlanService {
             // Create scenario summary
             long totalSuccess = testCases.stream().filter(TestCase::isSuccess).count();
             long totalFailed = testCases.stream().filter(testCase -> !testCase.isSuccess()).count();
-            ScenarioSummary scenarioSummary = new ScenarioSummary(testScenario.getDescription(), totalSuccess,
+            ScenarioSummary scenarioSummary = new ScenarioSummary(testScenario.getDescription(),
+                    testScenario.getConfigChangeSetName() , testScenario.getConfigChangeSetDescription(), totalSuccess,
                     totalFailed, testScenario.getStatus(), testScenario.getName());
             scenarioSummaries.add(scenarioSummary);
 

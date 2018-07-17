@@ -29,6 +29,7 @@ import org.wso2.testgrid.automation.parser.ResultParser;
 import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.automation.report.ReportGenerator;
 import org.wso2.testgrid.automation.report.ReportGeneratorFactory;
+import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
@@ -51,6 +52,8 @@ import org.wso2.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.core.configchangeset.ConfigChangeSetExecutor;
+import org.wso2.testgrid.core.configchangeset.ConfigChangeSetFactory;
 import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -70,6 +73,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -89,6 +93,7 @@ public class TestPlanExecutor {
     public static final int LINE_LENGTH = 72;
     private static final Logger logger = LoggerFactory.getLogger(TestPlanExecutor.class);
     private static final int MAX_NAME_LENGTH = 52;
+    private static final int CONFIG_CHANGE_SET_RETRY_COUNT = 10;
     private TestScenarioUOW testScenarioUOW;
     private TestPlanUOW testPlanUOW;
     private ScenarioExecutor scenarioExecutor;
@@ -301,39 +306,72 @@ public class TestPlanExecutor {
                 }
             }
 
-
-            for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                try {
-                    scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
-                    Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
-                    if (parser.isPresent()) {
-                        try {
-                            ResultParser resultParser = parser.get();
-                            resultParser.parseResults();
-                            resultParser.archiveResults();
-                        } catch (ResultParserException e) {
-                            logger.error(String.format("Error parsing the results for the" +
-                                    " scenario %s", testScenario.getName()));
+            List<ConfigChangeSet> configChangeSetList = testPlan.getScenarioConfig().getConfigChangeSets();
+            // Run test with config change sets
+            if (configChangeSetList != null) {
+                OSCategory osCategory = getOSCatagory(testPlan.getInfraParameters());
+                Optional<ConfigChangeSetExecutor> configChangeSetExecutor =
+                        ConfigChangeSetFactory.getExecutor(osCategory);
+                if (configChangeSetExecutor.isPresent()) {
+                    // Initialize config set repos on agent
+                    boolean initConfigChangeSetSuccess = false;
+                    // retry till initialization success
+                    for (int retryCount = 0; retryCount <= CONFIG_CHANGE_SET_RETRY_COUNT; retryCount++) {
+                        if (configChangeSetExecutor.get().initConfigChangeSet(testPlan)) {
+                            initConfigChangeSetSuccess = true;
+                            break;
                         }
-                    } else {
-                        testScenario.setStatus(Status.ERROR);
-                        logger.error(String.format("Error parsing the results for the " +
-                                "scenario %s", testScenario.getName()));
+                        configChangeSetExecutor.get().deInitConfigChangeSet(testPlan);
                     }
-                } catch (ScenarioExecutorException e) {
-                    // we need to continue the rest of the tests irrespective of the exception thrown here.
-                    logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
-                            testScenario.getName(), "' in TestPlan\nCaused by "), e);
+                    if (initConfigChangeSetSuccess) {
+                        for (ConfigChangeSet configChangeSet : configChangeSetList) {
+                            logger.info("Start running config change set for " + configChangeSet.getName());
+                            // Apply config change set script on agent
+                            boolean applyConfigChangeSetSuccess = false;
+                            // Retry untill it get success
+                            for (int applyConfigRetryCount = 0; applyConfigRetryCount <= CONFIG_CHANGE_SET_RETRY_COUNT;
+                                 applyConfigRetryCount++) {
+                                if (configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
+                                        deploymentCreationResult)) {
+                                    applyConfigChangeSetSuccess = true;
+                                    break;
+                                }
+                                configChangeSetExecutor.get().revertConfigChangeSet(testPlan, configChangeSet,
+                                        deploymentCreationResult);
+                            }
+                            if (applyConfigChangeSetSuccess) {
+                                // Run test scenarios for relevant config change set
+                                for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                                    if (configChangeSet.getName().equals(testScenario.getConfigChangeSetName())) {
+                                        executeTestScenario(testScenario, deploymentCreationResult, testPlan);
+                                    }
+                                }
+                                // Revert config change set after running test scenarios
+                                // If revert back is not success then, break all test scenarios running
+                                if (!configChangeSetExecutor.get().revertConfigChangeSet(testPlan, configChangeSet,
+                                        deploymentCreationResult)) {
+                                    logger.info("Config change set revert script execution failed for " +
+                                            configChangeSet.getName() + ". Abort running test scenarios");
+                                    break;
+                                }
+                            } else {
+                                logger.warn("Unable to apply config change set " + configChangeSet.getName() +
+                                        " on test plan " + testPlan.getId());
+                            }
+                        }
+                        // Remove config set repos on agent
+                        configChangeSetExecutor.get().deInitConfigChangeSet(testPlan);
+                    }
+                } else {
+                    logger.error("Unable to find a Tinker Executor for OS category " + osCategory +
+                            " for test plan id " + testPlan.getId() + testPlan.getInfraParameters());
                 }
-                try {
-                    persistTestScenario(testScenario);
-                } catch (TestPlanExecutorException e) {
-                    logger.error(StringUtil.concatStrings(
-                            "Error occurred while persisting test scenario ", testScenario.getName()), e);
+            } else {
+                // Run test without config change set
+                for (TestScenario testScenario : testPlan.getTestScenarios()) {
+                    executeTestScenario(testScenario, deploymentCreationResult, testPlan);
                 }
-
             }
-
             // Run cleanup.sh in scenario repository
             runPostScenariosScripts(testPlan, deploymentCreationResult);
         } else {
@@ -342,6 +380,42 @@ public class TestPlanExecutor {
         }
     }
 
+    /**
+     * Execute given test scenario.
+     *
+     * @param testScenario the test scenario
+     * @param deploymentCreationResult the result of the previous build step
+     * @param testPlan the test plan
+     */
+    private void executeTestScenario(TestScenario testScenario, DeploymentCreationResult deploymentCreationResult,
+                                     TestPlan testPlan) {
+        try {
+            scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
+            Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
+            if (parser.isPresent()) {
+                try {
+                    ResultParser resultParser = parser.get();
+                    resultParser.parseResults();
+                    resultParser.archiveResults();
+                } catch (ResultParserException e) {
+                    logger.error("Error parsing the results for the scenario " + testScenario.getName(), e);
+                }
+            } else {
+                testScenario.setStatus(Status.ERROR);
+                logger.error("Error parsing the results for the scenario " + testScenario.getName());
+            }
+        } catch (ScenarioExecutorException e) {
+            // we need to continue the rest of the tests irrespective of the exception thrown here.
+            logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
+                    testScenario.getName(), "' in TestPlan\nCaused by "), e);
+        }
+        try {
+            persistTestScenario(testScenario);
+        } catch (TestPlanExecutorException e) {
+            logger.error(StringUtil.concatStrings(
+                    "Error occurred while persisting test scenario ", testScenario.getName()), e);
+        }
+    }
 
     /**
      * Creates the deployment in the provisioned infrastructure.

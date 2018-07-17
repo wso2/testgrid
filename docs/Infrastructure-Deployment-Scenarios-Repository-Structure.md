@@ -222,17 +222,11 @@ scenarioConfig:
         dir: scenario<string>
       - ...
     scenariosDir: <string>    <-- (optional)
-    config-change-sets:
+    configChangeSets:
       - name: config<string>
         description: <string>
-        applies-to:
-          - scenario<string>
-          - ...
       - name: config<string>
-          description: config<string>
-          excluded-from:
-            - scenario<string>
-            - ...
+        description: config<string>
 ```
 
 #### The testgrid.yaml for scenario test configuration v3:
@@ -245,17 +239,11 @@ scenarioConfig:
         dir: scenario<string>
       - ...
     scenariosDir: <string>    <-- (optional)
-    config-change-sets:
+    configChangeSets:
       - name: config<string>
         description: <string>
-        applies-to:
-          - scenario<string>
-          - ...
       - name: config<string>
-          description: config<string>
-          excluded-from:
-            - scenario<string>
-            - ...
+        description: config<string>
     scripts:
       -
         file: <name of infra creation file. eg. init.sh>
@@ -265,8 +253,6 @@ scenarioConfig:
         phase: DESTROY
 ```
 
-NOTE: 'applies-to' and 'excluded-from' are mutually exclusive.
-If neither are specified, all scenarios will be run for that config changeset
 
 'scenarios' and 'scenariosDir' are mutually exclusive. You can either list all
 scenarios one-by-one or point to the directory that contains all the scenarios.
@@ -279,16 +265,11 @@ scenarioConfig:
       description: Tests Identity Server's SAML SSO usecases.
       dir: scenarios/scenario01
     - ...
-  config-change-sets:
+  configChangeSet:
     - name: config01
       description: applies the cache-enabling config changeset into a deployment.
-      applies-to:
-        - scenario01
-        - scenario10
     - name: config02
       description: applies the facebook authenticator into a deployment.
-      excluded-from:
-        - scenario20
   scripts:
     -
       file: init.sh
@@ -310,9 +291,9 @@ The scenario test writers can place these product-level config change
 sets under the config-sets (or change-sets) directory in the scenario tests repository.
 Test writers can place any artifact
 and files under this directory. Only requirement from testgrid side is to
-have an entrypoint into this change-set, say, a shell script named **config.sh**.
+have an entrypoint into this change-set, say, a shell script named **apply-config.sh**.
 Then , during a test-run, Testgrid will archive the change-set content, upload it to each
-server and execute the entrypoint script: _config.sh_.
+server and execute the entrypoint script: _apply-config.sh_.
 
 More information on how these scenario test scripts are run in Testgrid and
 how you can test them locally can be found in the

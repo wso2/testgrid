@@ -27,11 +27,31 @@ public class OperationResponse extends Operation {
 
     private String response;
 
+    private int exitValue;
+
     public String getResponse() {
         return response;
     }
 
     public void setResponse(String response) {
         this.response = response;
+    }
+
+    /**
+     * Get the execution exitValue
+     *
+     * @return execution exitValue
+     */
+    public int getExitValue() {
+        return exitValue;
+    }
+
+    /**
+     * Set script execution exitValue
+     *
+     * @param exitValue execution exitValue
+     */
+    public void setExitValue(int exitValue) {
+        this.exitValue = exitValue;
     }
 }

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
@@ -30,6 +31,7 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
 import org.wso2.testgrid.common.config.JobConfigFile;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
@@ -340,6 +342,8 @@ public class GenerateTestPlanCommand implements Command {
         String infraRepositoryLocation = jobConfigFile.getInfrastructureRepository();
         String deployRepositoryLocation = jobConfigFile.getDeploymentRepository();
         String scenarioTestsRepositoryLocation = jobConfigFile.getScenarioTestsRepository();
+        String configChangeSetRepositoryLocation = jobConfigFile.getConfigChangeSetRepository();
+        String configChangeSetBranchName = jobConfigFile.getConfigChangeSetBranchName();
 
         StringBuilder testgridYamlBuilder = new StringBuilder();
         String ls = System.lineSeparator();
@@ -355,6 +359,12 @@ public class GenerateTestPlanCommand implements Command {
             }
             testgridYamlBuilder
                     .append(getTestgridYamlFor(getTestGridYamlLocation(scenarioTestsRepositoryLocation)))
+                    .append(ls);
+            testgridYamlBuilder
+                    .append(getTestgridYamlFor(getTestGridYamlLocation(configChangeSetRepositoryLocation)))
+                    .append(ls);
+            testgridYamlBuilder
+                    .append(getTestgridYamlFor(getTestGridYamlLocation(configChangeSetBranchName)))
                     .append(ls);
         } else {
             logger.warn(StringUtil.concatStrings(
@@ -397,6 +407,8 @@ public class GenerateTestPlanCommand implements Command {
         testgridYaml.setDeploymentRepository(jobConfigFile.getDeploymentRepository());
         testgridYaml.setScenarioTestsRepository(jobConfigFile.getScenarioTestsRepository());
         testgridYaml.setJobProperties(jobConfigFile.getProperties());
+        testgridYaml.setConfigChangeSetRepository(jobConfigFile.getConfigChangeSetRepository());
+        testgridYaml.setConfigChangeSetBranchName(jobConfigFile.getConfigChangeSetBranchName());
     }
 
     /**
@@ -498,12 +510,39 @@ public class GenerateTestPlanCommand implements Command {
                 Properties configAwareInfraCombination = toConfigAwareInfrastructureCombination(
                         combination.getParameters());
                 testPlan.getInfrastructureConfig().setParameters(configAwareInfraCombination);
+
+                ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
+                List<ConfigChangeSet> configChangeSets = scenarioConfig.getConfigChangeSets();
+                if (configChangeSets != null) {
+                    List<TestScenario> modifiedTestScenarios = new ArrayList<>();
+                    for (ConfigChangeSet configChangeSet : configChangeSets) {
+                        for (TestScenario testScenario : scenarioConfig.getScenarios()) {
+                             TestScenario modifiedTestScenario = new TestScenario();
+                             modifiedTestScenario.setName(configChangeSet.getName() + ":" + testScenario.getName());
+                             modifiedTestScenario.setDescription(testScenario.getDescription());
+                             modifiedTestScenario.setDir(testScenario.getDir());
+                             modifiedTestScenario.setIsPostScriptSuccessful(testScenario.isPostScriptSuccessful());
+                             modifiedTestScenario.setIsPreScriptSuccessful(testScenario.isPreScriptSuccessful());
+                             modifiedTestScenario.setStatus(testScenario.getStatus());
+                             modifiedTestScenario.setTestPlan(testScenario.getTestPlan());
+                             modifiedTestScenario.setConfigChangeSetName(configChangeSet.getName());
+                             modifiedTestScenario.setConfigChangeSetDescription(configChangeSet.getDescription());
+                             modifiedTestScenario.setSummaryGraphs(testScenario.getSummaryGraphs());
+                             modifiedTestScenario.setTestCases(testScenario.getTestCases());
+                             modifiedTestScenarios.add(modifiedTestScenario);
+                        }
+                    }
+                    testgridYaml.getScenarioConfig().setScenarios(modifiedTestScenarios);
+                }
+
                 testPlan.setScenarioConfig(testgridYaml.getScenarioConfig());
                 testPlan.setResultFormat(testgridYaml.getResultFormat());
 
                 testPlan.setInfrastructureRepository(testgridYaml.getInfrastructureRepository());
                 testPlan.setDeploymentRepository(testgridYaml.getDeploymentRepository());
                 testPlan.setScenarioTestsRepository(testgridYaml.getScenarioTestsRepository());
+                testPlan.setConfigChangeSetRepository(testgridYaml.getConfigChangeSetRepository());
+                testPlan.setConfigChangeSetBranchName(testgridYaml.getConfigChangeSetBranchName());
                 testConfigurations.add(testPlan);
             }
         }

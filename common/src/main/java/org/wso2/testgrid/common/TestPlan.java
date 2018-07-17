@@ -107,6 +107,12 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private Properties jobProperties = new Properties();
 
     @Transient
+    private String configChangeSetRepository;
+
+    @Transient
+    private String configChangeSetBranchName;
+
+    @Transient
     private ResultFormat resultFormat;
 
     @Transient
@@ -273,6 +279,42 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
+     * Return the path of config change set artifacts.
+     *
+     * @return the path of config change set artifacts.
+     */
+    public String getConfigChangeSetRepository() {
+        return configChangeSetRepository;
+    }
+
+    /**
+     * Sets the path of the config change set artifacts.
+     *
+     * @param configChangeSetRepository the path of config change set artifacts.
+     */
+    public void setConfigChangeSetRepository(String configChangeSetRepository) {
+        this.configChangeSetRepository = configChangeSetRepository;
+    }
+
+    /**
+     * Get config change set repository branch name
+     *
+     * @return
+     */
+    public String getConfigChangeSetBranchName() {
+        return configChangeSetBranchName;
+    }
+
+    /**
+     * Set config change set repository branch name
+     *
+     * @param configChangeSetBranchName
+     */
+    public void setConfigChangeSetBranchName(String configChangeSetBranchName) {
+        this.configChangeSetBranchName = configChangeSetBranchName;
+    }
+
+    /**
      * Returns the path of the test plans' infrastructure artifacts.
      *
      * @return the path of the test plans' infrastructure artifacts
@@ -381,6 +423,8 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     public TestPlan clone() {
         try {
             TestPlan testPlan = (TestPlan) super.clone();
+            testPlan.setConfigChangeSetRepository(configChangeSetRepository);
+            testPlan.setConfigChangeSetBranchName(configChangeSetBranchName);
             testPlan.setDeployerType(deployerType);
             testPlan.setDeploymentConfig(deploymentConfig);
             testPlan.setDeploymentPattern(deploymentPattern);
