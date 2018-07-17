@@ -93,6 +93,7 @@ public class TestPlanExecutor {
     public static final int LINE_LENGTH = 72;
     private static final Logger logger = LoggerFactory.getLogger(TestPlanExecutor.class);
     private static final int MAX_NAME_LENGTH = 52;
+    private static final int CONFIG_CHANGE_SET_RETRY_COUNT = 10;
     private TestScenarioUOW testScenarioUOW;
     private TestPlanUOW testPlanUOW;
     private ScenarioExecutor scenarioExecutor;
@@ -308,15 +309,35 @@ public class TestPlanExecutor {
             if (configChangeSetList != null) {
                 OSCategory osCategory = getOSCatagory(testPlan.getInfraParameters());
                 Optional<ConfigChangeSetExecutor> configChangeSetExecutor =
-                        ConfigChangeSetFactory.getExecuter(osCategory);
+                        ConfigChangeSetFactory.getExecutor(osCategory);
                 if (configChangeSetExecutor.isPresent()) {
                     // Initialize config set repos on agent
-                    if (configChangeSetExecutor.get().initConfigChangeSet(testPlan)) {
+                    boolean initConfigChangeSetSuccess = false;
+                    // retry till initialization success
+                    for (int retryCount = 0; retryCount <= CONFIG_CHANGE_SET_RETRY_COUNT; retryCount++) {
+                        if (configChangeSetExecutor.get().initConfigChangeSet(testPlan)) {
+                            initConfigChangeSetSuccess = true;
+                            break;
+                        }
+                        configChangeSetExecutor.get().deInitConfigChangeSet(testPlan);
+                    }
+                    if (initConfigChangeSetSuccess) {
                         for (ConfigChangeSet configChangeSet : configChangeSetList) {
                             logger.info("Start running config change set for " + configChangeSet.getName());
                             // Apply config change set script on agent
-                            if (configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
-                                            deploymentCreationResult, true)) {
+                            boolean applyConfigChangeSetSuccess = false;
+                            // Retry untill it get success
+                            for (int applyConfigRetryCount = 0; applyConfigRetryCount <= CONFIG_CHANGE_SET_RETRY_COUNT;
+                                 applyConfigRetryCount++) {
+                                if (configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
+                                        deploymentCreationResult)) {
+                                    applyConfigChangeSetSuccess = true;
+                                    break;
+                                }
+                                configChangeSetExecutor.get().revertConfigChangeSet(testPlan, configChangeSet,
+                                        deploymentCreationResult);
+                            }
+                            if (applyConfigChangeSetSuccess) {
                                 // Run test scenarios for relevant config change set
                                 for (TestScenario testScenario : testPlan.getTestScenarios()) {
                                     if (configChangeSet.getName().equals(testScenario.getConfigChangeSetName())) {
@@ -325,16 +346,19 @@ public class TestPlanExecutor {
                                 }
                                 // Revert config change set after running test scenarios
                                 // If revert back is not success then, break all test scenarios running
-                                if (!configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
-                                        deploymentCreationResult, false)) {
+                                if (!configChangeSetExecutor.get().revertConfigChangeSet(testPlan, configChangeSet,
+                                        deploymentCreationResult)) {
                                     logger.info("Config change set revert script execution failed for " +
                                             configChangeSet.getName() + ". Abort running test scenarios");
                                     break;
                                 }
+                            } else {
+                                logger.warn("Unable to apply config change set " + configChangeSet.getName() +
+                                        " on test plan " + testPlan.getId());
                             }
                         }
                         // Remove config set repos on agent
-                        configChangeSetExecutor.get().revertConfigChangeSet(testPlan);
+                        configChangeSetExecutor.get().deInitConfigChangeSet(testPlan);
                     }
                 } else {
                     logger.error("Unable to find a Tinker Executor for OS category " + osCategory +

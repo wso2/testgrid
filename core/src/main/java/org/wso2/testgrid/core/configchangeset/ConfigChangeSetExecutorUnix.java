@@ -32,11 +32,10 @@ import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.core.exception.ScenarioExecutorException;
+import org.wso2.testgrid.core.exception.ConfigChangeSetExecutorException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -59,42 +58,89 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
     private static final String PRODUCT_HOME_ENV = "PRODUCT_HOME";
 
     /**
-     * Apply config change set script before and after run test scenarios
+     * Apply config change set script before run test scenarios
      *
      * @param testPlan the test plan
      * @param configChangeSet   config change set
-     * @param isInit run apply config-script if true. else, run revert-config script
+     * @param deploymentCreationResult
      * @return execution passed or failed
      */
     @Override
     public boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
-                                        DeploymentCreationResult deploymentCreationResult, boolean isInit) {
+                                        DeploymentCreationResult deploymentCreationResult) {
+        if (testPlan.getConfigChangeSetRepository() != null) {
+            Path configChangeSetRepoPath = Paths.get(testPlan.getConfigChangeSetRepository());
+            Path fileName = configChangeSetRepoPath.getFileName();
+            // set default branch as master if not mention in testgrid.yaml
+            String branchName = "master";
+            if (testPlan.getConfigChangeSetBranchName() != null) {
+                branchName = testPlan.getConfigChangeSetBranchName();
+            } else {
+                logger.warn("Config change set repository branch name is not set. " +
+                        "Using default repository branch as master");
+            }
+            String configChangeSetLocation = "./repos/" + fileName + "-" + branchName + "/config-sets/" +
+                    configChangeSet.getName();
+            List<String> applyShellCommand = new ArrayList<String>();
+            // Generate array of commands that need to be applied
+
+            String productHomePath = System.getenv(PRODUCT_HOME_ENV);
+            if (productHomePath == null) {
+                logger.warn(PRODUCT_HOME_ENV +
+                        "  environment variable is not set. JMeter test executions may fail.");
+            } else {
+                configChangeSetLocation = "export productHome=" +
+                        productHomePath + " && " + configChangeSetLocation;
+            }
+            for (Host host : deploymentCreationResult.getHosts()) {
+                configChangeSetLocation = "export " + host.getLabel() + "=" + host.getIp() + " && " +
+                        configChangeSetLocation;
+            }
+            // run if config-init.sh exist
+            applyShellCommand.add(configChangeSetLocation.concat("/config-init.sh &>/dev/null"));
+            applyShellCommand.add(configChangeSetLocation.concat("/apply-config.sh &>/dev/null"));
+
+
+            return applyShellCommandOnAgent(testPlan, applyShellCommand);
+        } else {
+            logger.error("Error parsing scenario repository path for ".
+                    concat(testPlan.getConfigChangeSetRepository()));
+            return false;
+        }
+    }
+
+    /**
+     * Revert config change set script after run test scenarios
+     *
+     * @param testPlan the test plan
+     * @param configChangeSet the config change set
+     * @param deploymentCreationResult deployment creation result
+     * @return execution passed or failed
+     */
+    @Override
+    public boolean revertConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
+                                         DeploymentCreationResult deploymentCreationResult) {
         if (testPlan.getConfigChangeSetRepository() != null) {
             Path configChangeSetRepoPath = Paths.get(testPlan.getConfigChangeSetRepository());
             Path fileName = configChangeSetRepoPath.getFileName();
             String configChangeSetLocation = "./repos/" + fileName + "-master/config-sets/" + configChangeSet.getName();
             List<String> applyShellCommand = new ArrayList<String>();
             // Generate array of commands that need to be applied
-            if (isInit) {
-                String productHomePath = System.getenv(PRODUCT_HOME_ENV);
-                if (productHomePath == null) {
-                    logger.warn(PRODUCT_HOME_ENV +
-                            "  environment variable is not set. JMeter test executions may fail.");
-                } else {
-                    configChangeSetLocation = "export productHome=" +
-                            productHomePath + " && " + configChangeSetLocation;
-                }
-                for (Host host : deploymentCreationResult.getHosts()) {
-                    configChangeSetLocation = "export " + host.getLabel() + "=" + host.getIp() + " && " +
-                            configChangeSetLocation;
-                }
-                // run if config-init.sh exist
-                applyShellCommand.add(configChangeSetLocation.concat("/config-init.sh &>/dev/null"));
-                applyShellCommand.add(configChangeSetLocation.concat("/apply-config.sh &>/dev/null"));
-            } else {
-                applyShellCommand.add(configChangeSetLocation.concat("/revert-config.sh &>/dev/null"));
-            }
 
+            String productHomePath = System.getenv(PRODUCT_HOME_ENV);
+            if (productHomePath == null) {
+                logger.warn(PRODUCT_HOME_ENV +
+                        "  environment variable is not set. JMeter test executions may fail.");
+            } else {
+                configChangeSetLocation = "export productHome=" +
+                        productHomePath + " && " + configChangeSetLocation;
+            }
+            for (Host host : deploymentCreationResult.getHosts()) {
+                configChangeSetLocation = "export " + host.getLabel() + "=" + host.getIp() + " && " +
+                        configChangeSetLocation;
+            }
+            // Generate array of commands that need to be applied
+            applyShellCommand.add(configChangeSetLocation.concat("/revert-config.sh &>/dev/null"));
             return applyShellCommandOnAgent(testPlan, applyShellCommand);
         } else {
             logger.error("Error parsing scenario repository path for ".
@@ -136,7 +182,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
      * @return          True if execution success. Else, false
      */
     @Override
-    public boolean revertConfigChangeSet(TestPlan testPlan) {
+    public boolean deInitConfigChangeSet(TestPlan testPlan) {
         List<String> revertShellCommand = new ArrayList<>();
         revertShellCommand.add("rm -rf repos");
         return applyShellCommandOnAgent(testPlan, revertShellCommand);
@@ -160,8 +206,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
         String authenticationToken = "Basic " + Base64.getEncoder().encodeToString(
                 authenticationString.getBytes(StandardCharsets.UTF_8));
         boolean executionStatus = true;
-        String agentLink = tinkererHost + "test-plan" + TestGridConstants.FILE_SEPARATOR + testPlan.getId() +
-                TestGridConstants.FILE_SEPARATOR + "agents";
+        String agentLink = tinkererHost + "test-plan/" + testPlan.getId() + "/agents";
         try {
             // Get list of agent for given test plan id
             Content agentResponse = Request.Get(agentLink)
@@ -191,18 +236,19 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                     if (result.get("response") != null) {
                         response = result.get("response").getAsString();
                     }
-                    logger.info("Agent exit value: " + exitValue);
-                    logger.info("Agent code: " + code);
-                    logger.info("Agent response: \n" + response);
+                    logger.info("Agent exit value: " + exitValue + "\nAgent code: " + code + "\nAgent response: \n" +
+                            response + "\n for Agent with id " + agent.getAgentId() + " for command " +
+                            shellCommand + " test plan id " + testPlan.getId());
                     // Agent code default is SHELL, if time out then, it return code as 408
                     if (code.equals(String.valueOf(HttpStatus.SC_REQUEST_TIMEOUT)) || exitValue != 0) {
                         executionStatus = false;
-                        logger.error("Agent script execution failed with code " + code + " exit value " + exitValue);
+                        logger.error("Agent script execution failed with code " + code + " exit value " + exitValue +
+                                " for url " + tinkererHost);
                     }
                 }
             }
             return executionStatus;
-        } catch (ScenarioExecutorException e) {
+        } catch (ConfigChangeSetExecutorException e) {
             logger.error("Error in API call request to execute script ".concat(tinkererHost), e);
             return false;
         } catch (IOException e) {
@@ -219,21 +265,20 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
      * @param agent                 Agent details
      * @param script                Script that need to be executed
      * @return                      Shell execution output
-     * @throws ScenarioExecutorException          Request post exception
+     * @throws ConfigChangeSetExecutorException          Request post exception
      */
     private Content sendShellCommand(String tinkererHost, String authenticationKey, Agent agent, String script)
-            throws ScenarioExecutorException {
+            throws ConfigChangeSetExecutorException {
         Content result;
-        String requestLink = tinkererHost + "test-plan" + TestGridConstants.FILE_SEPARATOR + agent.getTestPlanId() +
-                TestGridConstants.FILE_SEPARATOR + "agent" + TestGridConstants.FILE_SEPARATOR + agent.getInstanceName()
-                + TestGridConstants.FILE_SEPARATOR + "operation";
+        String requestLink = tinkererHost + "test-plan/" + agent.getTestPlanId() + "/agent/" + agent.getInstanceName()
+                + "/operation";
         try {
             result = Request.Post(requestLink).addHeader(HttpHeaders.AUTHORIZATION, authenticationKey)
                     .addHeader(HttpHeaders.CONTENT_TYPE, "application/json")
                     .bodyString("{\"request\":\"" + script + "\",\"code\":\"SHELL\"}", ContentType.APPLICATION_JSON).
                             execute().returnContent();
         } catch (IOException e) {
-            throw new ScenarioExecutorException(StringUtil.concatStrings(
+            throw new ConfigChangeSetExecutorException(StringUtil.concatStrings(
                     "Send api request to the agent error occur for the ", requestLink, agent.getAgentId()), e);
         }
         return result;

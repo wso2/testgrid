@@ -343,6 +343,7 @@ public class GenerateTestPlanCommand implements Command {
         String deployRepositoryLocation = jobConfigFile.getDeploymentRepository();
         String scenarioTestsRepositoryLocation = jobConfigFile.getScenarioTestsRepository();
         String configChangeSetRepositoryLocation = jobConfigFile.getConfigChangeSetRepository();
+        String configChangeSetBranchName = jobConfigFile.getConfigChangeSetBranchName();
 
         StringBuilder testgridYamlBuilder = new StringBuilder();
         String ls = System.lineSeparator();
@@ -361,6 +362,9 @@ public class GenerateTestPlanCommand implements Command {
                     .append(ls);
             testgridYamlBuilder
                     .append(getTestgridYamlFor(getTestGridYamlLocation(configChangeSetRepositoryLocation)))
+                    .append(ls);
+            testgridYamlBuilder
+                    .append(getTestgridYamlFor(getTestGridYamlLocation(configChangeSetBranchName)))
                     .append(ls);
         } else {
             logger.warn(StringUtil.concatStrings(
@@ -404,6 +408,7 @@ public class GenerateTestPlanCommand implements Command {
         testgridYaml.setScenarioTestsRepository(jobConfigFile.getScenarioTestsRepository());
         testgridYaml.setJobProperties(jobConfigFile.getProperties());
         testgridYaml.setConfigChangeSetRepository(jobConfigFile.getConfigChangeSetRepository());
+        testgridYaml.setConfigChangeSetBranchName(jobConfigFile.getConfigChangeSetBranchName());
     }
 
     /**
@@ -537,6 +542,7 @@ public class GenerateTestPlanCommand implements Command {
                 testPlan.setDeploymentRepository(testgridYaml.getDeploymentRepository());
                 testPlan.setScenarioTestsRepository(testgridYaml.getScenarioTestsRepository());
                 testPlan.setConfigChangeSetRepository(testgridYaml.getConfigChangeSetRepository());
+                testPlan.setConfigChangeSetBranchName(testgridYaml.getConfigChangeSetBranchName());
                 testConfigurations.add(testPlan);
             }
         }

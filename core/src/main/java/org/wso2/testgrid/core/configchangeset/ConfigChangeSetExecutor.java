@@ -28,15 +28,26 @@ import org.wso2.testgrid.common.TestPlan;
 public abstract class ConfigChangeSetExecutor {
 
     /**
-     * Apply config change set script before and after run test scenarios
+     * Apply config change set script before run test scenarios
      *
      * @param testPlan the test plan
      * @param configChangeSet   config change set
-     * @param isInit run apply config-script if true. else, run revert-config script
+     * @param deploymentCreationResult
      * @return execution passed or failed
      */
     public abstract boolean applyConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
-                                                 DeploymentCreationResult deploymentCreationResult, boolean isInit);
+                                                 DeploymentCreationResult deploymentCreationResult);
+
+    /**
+     * Revert config change set script after run test scenarios
+     *
+     * @param testPlan
+     * @param configChangeSet
+     * @param deploymentCreationResult
+     * @return execution passed or failed
+     */
+    public abstract boolean revertConfigChangeSet(TestPlan testPlan, ConfigChangeSet configChangeSet,
+                                                  DeploymentCreationResult deploymentCreationResult);
 
     /**
      * Initialize agent before running config change set
@@ -52,6 +63,6 @@ public abstract class ConfigChangeSetExecutor {
      * @param testPlan  The test plan
      * @return          True if execution success. Else, false
      */
-    public abstract boolean revertConfigChangeSet(TestPlan testPlan);
+    public abstract boolean deInitConfigChangeSet(TestPlan testPlan);
 
 }

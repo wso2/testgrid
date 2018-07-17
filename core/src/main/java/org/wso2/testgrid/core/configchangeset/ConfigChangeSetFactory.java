@@ -38,12 +38,12 @@ public class ConfigChangeSetFactory {
      * @param osCategory type of agent OS as WINDOWS or UNIX
      * @return Object to run config change set commands
      */
-    public static Optional<ConfigChangeSetExecutor> getExecuter(TestPlanExecutor.OSCategory osCategory) {
+    public static Optional<ConfigChangeSetExecutor> getExecutor(TestPlanExecutor.OSCategory osCategory) {
         if (osCategory.equals(TestPlanExecutor.OSCategory.UNIX)) {
-            logger.info("OSCatagory is UNIX");
+            logger.debug("OSCatagory is UNIX");
             return Optional.of(new ConfigChangeSetExecutorUnix());
         } else if (osCategory.equals(TestPlanExecutor.OSCategory.WINDOWS)) {
-            logger.info("OSCatagory is WINDOWS");
+            logger.debug("OSCatagory is WINDOWS");
             return Optional.of(new ConfigChangeSetExecutorWindows());
         } else {
             return Optional.empty();
