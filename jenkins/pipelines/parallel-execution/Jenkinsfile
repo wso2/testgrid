@@ -1,7 +1,6 @@
 properties = null
-def SLAVE_NAME = "slave1"
 def loadProperties() {
-    node('slave1') {
+    node {
         properties = readProperties file: "${TESTGRID_HOME}/config.properties"
     }
 }
@@ -12,7 +11,7 @@ def uploadToS3() {
       bucket="unknown"
   }
   sh """
-      aws s3 sync ${TESTGRID_HOME}/jobs/ s3://${bucket}/artifacts --exclude "*" --include "*.log" --include "*.properties" --include "*.xml"
+      aws s3 sync ${TESTGRID_HOME}/jobs/${PRODUCT}/builds/ s3://${bucket}/artifacts/jobs/wso2am-intg/builds --include "*"
       """
 }
 
@@ -23,6 +22,9 @@ def runPlan(tPlan, node) {
         echo "Running Test-Plan: ${tPlan}"
         sh "java -version"
         unstash name: "${JOB_CONFIG_YAML}"
+        dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
+          unstash name: "test-plans"
+        }
         sh """
             echo "Before PWD"
             pwd
@@ -41,6 +43,7 @@ def runPlan(tPlan, node) {
     echo "RESULT: ${currentBuild.result}"
 
     script {
+        // Archive artifacts
         loadProperties()
         uploadToS3()
     }
@@ -48,7 +51,7 @@ def runPlan(tPlan, node) {
 pipeline {
     agent {
         node {
-            label "${SLAVE_NAME}"
+            label ""
             customWorkspace "/testgrid/testgrid-home/jobs/${JOB_BASE_NAME}"
         }
     }
@@ -142,6 +145,7 @@ pipeline {
                     echo '  gitBranch: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  sqlDriversLocationUnix: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  sqlDriversLocationWindows: ${SQL_DRIVERS_LOCATION_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  sshKeyFileLocation: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
 
@@ -157,6 +161,9 @@ pipeline {
                         --product ${PRODUCT} \
                         --file ${JOB_CONFIG_YAML_PATH}
                     """
+                    dir("${TESTGRID_HOME}/jobs/${PRODUCT}"){
+                      stash name: "test-plans", includes : "test-plans/**"
+                    }
             }
         }
 
@@ -169,7 +176,7 @@ pipeline {
                     for (int f = 1; f < parallelExecCount+1 && f <= files.length; f++) {
                         def executor = f
                         tests["Executor-${f}"] = {
-                            node('slave1') {
+                            node {
                                 stage("Parallel Executor : ${executor}") {
                                     script {
                                         int processFileCount = 0;
@@ -225,17 +232,22 @@ pipeline {
                 --product ${PRODUCT} \
                 --workspace ${PWD}
                 """
-            script {
-                //Send email for failed results.
-                if (fileExists('/testgrid/testgrid-home/jobs/${PRODUCT}/EmailReport.html')) {
-                    emailext mimeType: 'text/html',
-                            body: '${FILE,path="/testgrid/testgrid-home/jobs/${PRODUCT}/EmailReport.html"}',
-                            subject: '${PRODUCT} integration test failure!',
-                            to: 'kasung@wso2.com,pasinduj@wso2.com,yasassri@wso2.com'
-                } else {
-                  echo "No EmailReport.html file found!!"
+           script {
+                   sh """
+                   echo "/testgrid/testgrid-home/jobs/${PRODUCT}"
+                   ls -al /testgrid/testgrid-home/jobs/${PRODUCT}
+                   """
+                   //Send email for failed results.
+                   if (fileExists("/testgrid/testgrid-home/jobs/${PRODUCT}/builds/EmailReport.html")) {
+                     def emailBody = readFile '/testgrid/testgrid-home/jobs/wso2am-intg/builds/EmailReport.html'
+                     mail (to: 'kasung@wso2.com, pasinduj@wso2.com, yasassri@wso2.com, lasanthad@wso2.com, sameeraw@wso2.com, asmaj@wso2.com, harshan@wso2.com',
+                           subject: "'${env.JOB_NAME}' Integration Test Failure! #(${env.BUILD_NUMBER})",
+                           body: "${emailBody}", mimeType: 'text/html'
+                           );
+                   } else {
+                     echo "No EmailReport.html file found!!"
+                   }
                 }
-            }
             // Delete logs and reports after upload
             dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
                 sh """
