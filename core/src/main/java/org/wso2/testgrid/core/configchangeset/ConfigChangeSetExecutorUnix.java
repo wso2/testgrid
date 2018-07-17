@@ -123,7 +123,16 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
         if (testPlan.getConfigChangeSetRepository() != null) {
             Path configChangeSetRepoPath = Paths.get(testPlan.getConfigChangeSetRepository());
             Path fileName = configChangeSetRepoPath.getFileName();
-            String configChangeSetLocation = "./repos/" + fileName + "-master/config-sets/" + configChangeSet.getName();
+            // set default branch as master if not mention in testgrid.yaml
+            String branchName = "master";
+            if (testPlan.getConfigChangeSetBranchName() != null) {
+                branchName = testPlan.getConfigChangeSetBranchName();
+            } else {
+                logger.warn("Config change set repository branch name is not set. " +
+                        "Using default repository branch as master");
+            }
+            String configChangeSetLocation = "./repos/" + fileName + "-" + branchName
+                    + "/config-sets/" + configChangeSet.getName();
             List<String> applyShellCommand = new ArrayList<String>();
             // Generate array of commands that need to be applied
 
