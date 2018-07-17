@@ -237,8 +237,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                         response = result.get("response").getAsString();
                     }
                     logger.info("Agent exit value: " + exitValue + "\nAgent code: " + code + "\nAgent response: \n" +
-                            response + "\n for Agent with id " + agent.getAgentId() + " for command " +
-                            shellCommand + " test plan id " + testPlan.getId());
+                            response + "\n for Agent with id " + agent.getAgentId() + " test plan id " + testPlan.getId());
                     // Agent code default is SHELL, if time out then, it return code as 408
                     if (code.equals(String.valueOf(HttpStatus.SC_REQUEST_TIMEOUT)) || exitValue != 0) {
                         executionStatus = false;
