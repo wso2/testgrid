@@ -77,7 +77,8 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                 branchName = testPlan.getConfigChangeSetBranchName();
             } else {
                 logger.warn("Config change set repository branch name is not set. " +
-                        "Using default repository branch as master");
+                        "Using default repository branch as master for test plan id " + testPlan.getId() +
+                " config change set " + configChangeSet.getName());
             }
             String configChangeSetLocation = "./repos/" + fileName + "-" + branchName + "/config-sets/" +
                     configChangeSet.getName();
