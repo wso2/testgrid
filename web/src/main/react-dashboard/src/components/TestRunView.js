@@ -286,10 +286,9 @@ class TestRunView extends Component {
           <CardMedia>
             {(() => {
               if (this.state.runLogUrlStatus && this.state.runLogUrlStatus === HTTP_OK) {
-                console.log("ELSE");
                 return <Collapsible trigger="Test-Run log summary" lazyRender={true} triggerWhenOpen="Test-Run log summary >> ">
                   <div id="logConsoleFrame">
-                    <iframe id="logConsole" style={{
+                    <iframe id="logConsole" title={"Test-Run Log"} style={{
                       height: "500px",
                       width: "100%"
                     }} src={logAllContentUrl}></iframe>
