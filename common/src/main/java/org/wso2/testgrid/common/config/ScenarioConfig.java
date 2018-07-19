@@ -20,6 +20,7 @@
 package org.wso2.testgrid.common.config;
 
 
+import org.apache.commons.collections4.ListUtils;
 import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
@@ -55,7 +56,7 @@ public class ScenarioConfig implements Serializable {
     }
 
     public List<TestScenario> getScenarios() {
-        return scenarios;
+        return ListUtils.emptyIfNull(scenarios);
     }
 
     public void setScenarios(List<TestScenario> scenarios) {

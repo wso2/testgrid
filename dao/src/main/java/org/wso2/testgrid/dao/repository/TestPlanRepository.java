@@ -26,6 +26,7 @@ import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -195,18 +196,39 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * @return a list of {@link TestPlan}
      */
     public List<TestPlan> getLatestTestPlans(Product product) {
-        String sql = "select t.* from test_plan t inner join (select tp.infra_parameters, max(tp.modified_timestamp) AS"
-                + " time, dp.name , dp.id As dep_id from test_plan tp inner join deployment_pattern dp on "
-                + "tp.DEPLOYMENTPATTERN_id=dp.id  and tp.DEPLOYMENTPATTERN_id in "
-                + "(select id from deployment_pattern where PRODUCT_id= ? ) group by tp.infra_parameters,dp.id) as x "
-                + "on t.infra_parameters=x.infra_parameters AND t.modified_timestamp=x.time AND "
-                + "t.DEPLOYMENTPATTERN_id=x.dep_id;";
-
+        String deploymentIdsRetrievingQuery = "select id from deployment_pattern where PRODUCT_id= ?;";
         @SuppressWarnings("unchecked")
-        List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
-                .setParameter(1, product.getId())
-                .getResultList();
-        return EntityManagerHelper.refreshResultList(entityManager, resultList);
+        List<String> deploymentIds = (List<String>) entityManager
+                .createNativeQuery(deploymentIdsRetrievingQuery).setParameter(1, product.getId()).getResultList();
+
+        StringBuilder sql = new StringBuilder(
+                "select tp.* from test_plan tp inner join (Select distinct infra_parameters, max(test_run_number) "
+                        + "as test_run_number from test_plan where  DEPLOYMENTPATTERN_id in (");
+        if (deploymentIds.isEmpty()) {
+            return Collections.emptyList();
+        } else {
+            int deploymentIdLen = deploymentIds.size();
+            for (int i = 0; i < deploymentIdLen - 1; i++) {
+                sql.append("?, ");
+            }
+            sql.append("?) group by infra_parameters) as latest_test_run_nums on "
+                    + "tp.infra_parameters=latest_test_run_nums.infra_parameters and "
+                    + "tp.test_run_number=latest_test_run_nums.test_run_number and tp.DEPLOYMENTPATTERN_id in (");
+            for (int i = 0; i < deploymentIdLen - 1; i++) {
+                sql.append("?, ");
+            }
+            sql.append("?);");
+            Query query = entityManager.createNativeQuery(sql.toString(), TestPlan.class);
+            int index = 1;
+            for (int i = 0; i < 2; i++) {
+                for (String s : deploymentIds) {
+                    query.setParameter(index++, s);
+                }
+            }
+            @SuppressWarnings("unchecked")
+            List<TestPlan> resultList = (List<TestPlan>) query.getResultList();
+            return EntityManagerHelper.refreshResultList(entityManager, resultList);
+        }
     }
 
     /**
