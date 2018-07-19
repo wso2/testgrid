@@ -110,7 +110,7 @@ class TestRunView extends Component {
         return response.json();
       }).then(data => this.setState({
       testScenarioSummaries: data.scenarioSummaries,
-      scenarioTestCaseEntries: data.scenarioTestCaseEntries,
+      scenarioTestCaseEntries: data.scenarioTestCaseEntries
     }));
 
     if (currentInfra.testPlanStatus === FAIL || currentInfra.testPlanStatus === SUCCESS) {
