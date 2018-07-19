@@ -391,9 +391,17 @@ class TestRunView extends Component {
                             whiteSpace: "wrap",
                             textDecoration: "none"
                           }}><FlatButton class='view-history' data-tip={data.scenarioConfigChangeSetDescription}>
-                              <a href={"#" + data.scenarioDescription}>
-                                  {data.scenarioConfigChangeSetName + ":" + data.scenarioDescription}
-                              </a>
+                              {(() => {
+                                  if(data.scenarioConfigChangeSetName) {
+                                      return <a href={"#" + data.scenarioDescription}>
+                                          {data.scenarioConfigChangeSetName + ":" + data.scenarioDescription}
+                                      </a>
+                                  } else {
+                                      return <a href={"#" + data.scenarioDescription}>
+                                          {data.scenarioDescription}
+                                      </a>
+                                  }
+                              })()}
                           </FlatButton>
                           </td>
                           <td
