@@ -52,8 +52,7 @@ public class OperationExecutor {
 
         switch (operationRequest.getCode()) {
             case SHELL:
-                String response = executeCommand(operationRequest.getRequest());
-                operationResponse.setResponse(response);
+                operationResponse = executeCommand(operationRequest, operationResponse);
                 break;
             case PING:
                 operationResponse.setResponse("ACK");
@@ -62,11 +61,11 @@ public class OperationExecutor {
         operationResponseListener.sendResponse(operationResponse);
     }
 
-    private String executeCommand(String command) {
+    private OperationResponse executeCommand(OperationRequest operationRequest, OperationResponse operationResponse) {
         StringBuilder output = new StringBuilder();
         Process process;
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
+            ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", operationRequest.getRequest());
             process = processBuilder.start();
             process.waitFor();
             try (InputStreamReader inputStreamReader = new InputStreamReader(process.getInputStream(), UTF_8);
@@ -75,11 +74,14 @@ public class OperationExecutor {
                 readStream(errorStreamReader, output);
             }
         } catch (IOException | InterruptedException e) {
-            String message = "Error occurred when executing command: " + command;
+            String message = "Error occurred when executing command: " + operationRequest.getRequest();
             logger.error(message, e);
-            return message;
+            operationResponse.setResponse(message);
+            return operationResponse;
         }
-        return output.toString();
+        operationResponse.setExitValue(process.exitValue());
+        operationResponse.setResponse(output.toString());
+        return operationResponse;
     }
 
     private void readStream(InputStreamReader streamReader, StringBuilder output) throws IOException {

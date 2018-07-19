@@ -36,6 +36,8 @@ public class JobConfigFile {
     private String infrastructureRepository;
     private String deploymentRepository;
     private String scenarioTestsRepository;
+    private String configChangeSetRepository;
+    private String configChangeSetBranchName;
     private String keyFileLocation;
     private Properties properties;
 
@@ -87,6 +89,42 @@ public class JobConfigFile {
         this.scenarioTestsRepository = scenarioTestsRepository;
         this.scenariosTestRepository = scenarioTestsRepository;
         this.scenarioTestRepository = scenarioTestsRepository;
+    }
+
+    /**
+     * Get config change set repository
+     *
+     * @return the config change set repository
+     */
+    public String getConfigChangeSetRepository() {
+        return this.configChangeSetRepository;
+    }
+
+    /**
+     * Set config change set repository
+     *
+     * @param configChangeSetRepository the config chage set repository
+     */
+    public void setConfigChangeSetRepository(String configChangeSetRepository) {
+        this.configChangeSetRepository = configChangeSetRepository;
+    }
+
+    /**
+     * Get config change set repository branch name
+     *
+     * @return
+     */
+    public String getConfigChangeSetBranchName() {
+        return configChangeSetBranchName;
+    }
+
+    /**
+     * Set config change set repository branch name
+     *
+     * @param configChangeSetBranchName
+     */
+    public void setConfigChangeSetBranchName(String configChangeSetBranchName) {
+        this.configChangeSetBranchName = configChangeSetBranchName;
     }
 
     /**

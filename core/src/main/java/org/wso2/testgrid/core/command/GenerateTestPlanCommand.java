@@ -22,14 +22,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
 import org.wso2.testgrid.common.config.JobConfigFile;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
@@ -69,7 +72,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.wso2.testgrid.common.TestGridConstants.FILE_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_JOB_DIR;
 
@@ -155,8 +157,7 @@ public class GenerateTestPlanCommand implements Command {
             throws IOException, CommandExecutionException, TestGridDAOException {
         JobConfigFile jobConfigFile = FileUtil.readYamlFile(jobConfigFilePath, JobConfigFile.class);
         Pattern pattern = Pattern.compile(StringUtil
-                .concatStrings(TestGridUtil.getTestGridHomePath(), FILE_SEPARATOR, TESTGRID_JOB_DIR, FILE_SEPARATOR,
-                        "*"));
+                .concatStrings(Paths.get(TestGridUtil.getTestGridHomePath(), TESTGRID_JOB_DIR).toString(), "*"));
         Matcher matcher = pattern.matcher(jobConfigFilePath);
         if (!matcher.find()) {
             Path directory = Paths.
@@ -180,8 +181,11 @@ public class GenerateTestPlanCommand implements Command {
     }
 
     private void processTestgridYaml(TestgridYaml testgridYaml, JobConfigFile jobConfigFile)
-            throws CommandExecutionException, IOException, TestGridDAOException {
-        // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
+            throws CommandExecutionException, TestGridDAOException {
+        if (!validateTestgridYaml(testgridYaml)) {
+            throw new CommandExecutionException(
+                    "Invalid tesgridYaml file is found. Please verify the content of the testgridYaml file");
+        }
         populateDefaults(testgridYaml);
         Set<InfrastructureCombination> combinations = infrastructureCombinationsProvider.getCombinations(testgridYaml);
         List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
@@ -340,6 +344,8 @@ public class GenerateTestPlanCommand implements Command {
         String infraRepositoryLocation = jobConfigFile.getInfrastructureRepository();
         String deployRepositoryLocation = jobConfigFile.getDeploymentRepository();
         String scenarioTestsRepositoryLocation = jobConfigFile.getScenarioTestsRepository();
+        String configChangeSetRepositoryLocation = jobConfigFile.getConfigChangeSetRepository();
+        String configChangeSetBranchName = jobConfigFile.getConfigChangeSetBranchName();
 
         StringBuilder testgridYamlBuilder = new StringBuilder();
         String ls = System.lineSeparator();
@@ -355,6 +361,12 @@ public class GenerateTestPlanCommand implements Command {
             }
             testgridYamlBuilder
                     .append(getTestgridYamlFor(getTestGridYamlLocation(scenarioTestsRepositoryLocation)))
+                    .append(ls);
+            testgridYamlBuilder
+                    .append(getTestgridYamlFor(getTestGridYamlLocation(configChangeSetRepositoryLocation)))
+                    .append(ls);
+            testgridYamlBuilder
+                    .append(getTestgridYamlFor(getTestGridYamlLocation(configChangeSetBranchName)))
                     .append(ls);
         } else {
             logger.warn(StringUtil.concatStrings(
@@ -397,6 +409,8 @@ public class GenerateTestPlanCommand implements Command {
         testgridYaml.setDeploymentRepository(jobConfigFile.getDeploymentRepository());
         testgridYaml.setScenarioTestsRepository(jobConfigFile.getScenarioTestsRepository());
         testgridYaml.setJobProperties(jobConfigFile.getProperties());
+        testgridYaml.setConfigChangeSetRepository(jobConfigFile.getConfigChangeSetRepository());
+        testgridYaml.setConfigChangeSetBranchName(jobConfigFile.getConfigChangeSetBranchName());
     }
 
     /**
@@ -498,12 +512,39 @@ public class GenerateTestPlanCommand implements Command {
                 Properties configAwareInfraCombination = toConfigAwareInfrastructureCombination(
                         combination.getParameters());
                 testPlan.getInfrastructureConfig().setParameters(configAwareInfraCombination);
+
+                ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
+                List<ConfigChangeSet> configChangeSets = scenarioConfig.getConfigChangeSets();
+                if (configChangeSets != null) {
+                    List<TestScenario> modifiedTestScenarios = new ArrayList<>();
+                    for (ConfigChangeSet configChangeSet : configChangeSets) {
+                        for (TestScenario testScenario : scenarioConfig.getScenarios()) {
+                             TestScenario modifiedTestScenario = new TestScenario();
+                             modifiedTestScenario.setName(configChangeSet.getName() + ":" + testScenario.getName());
+                             modifiedTestScenario.setDescription(testScenario.getDescription());
+                             modifiedTestScenario.setDir(testScenario.getDir());
+                             modifiedTestScenario.setIsPostScriptSuccessful(testScenario.isPostScriptSuccessful());
+                             modifiedTestScenario.setIsPreScriptSuccessful(testScenario.isPreScriptSuccessful());
+                             modifiedTestScenario.setStatus(testScenario.getStatus());
+                             modifiedTestScenario.setTestPlan(testScenario.getTestPlan());
+                             modifiedTestScenario.setConfigChangeSetName(configChangeSet.getName());
+                             modifiedTestScenario.setConfigChangeSetDescription(configChangeSet.getDescription());
+                             modifiedTestScenario.setSummaryGraphs(testScenario.getSummaryGraphs());
+                             modifiedTestScenario.setTestCases(testScenario.getTestCases());
+                             modifiedTestScenarios.add(modifiedTestScenario);
+                        }
+                    }
+                    testgridYaml.getScenarioConfig().setScenarios(modifiedTestScenarios);
+                }
+
                 testPlan.setScenarioConfig(testgridYaml.getScenarioConfig());
                 testPlan.setResultFormat(testgridYaml.getResultFormat());
 
                 testPlan.setInfrastructureRepository(testgridYaml.getInfrastructureRepository());
                 testPlan.setDeploymentRepository(testgridYaml.getDeploymentRepository());
                 testPlan.setScenarioTestsRepository(testgridYaml.getScenarioTestsRepository());
+                testPlan.setConfigChangeSetRepository(testgridYaml.getConfigChangeSetRepository());
+                testPlan.setConfigChangeSetBranchName(testgridYaml.getConfigChangeSetBranchName());
                 testConfigurations.add(testPlan);
             }
         }
@@ -627,5 +668,35 @@ public class GenerateTestPlanCommand implements Command {
         } else {
             return defaultYamlPath;
         }
+    }
+
+    /**
+     * Validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
+     * @param testgridYaml TestgridYaml object
+     * @return True or False, based on the validity of the testgridYaml
+     */
+    private boolean validateTestgridYaml(TestgridYaml testgridYaml) {
+        InfrastructureConfig infrastructureConfig = testgridYaml.getInfrastructureConfig();
+        ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
+        if (infrastructureConfig != null) {
+            if (infrastructureConfig.getProvisioners().isEmpty()) {
+                logger.debug("testgrid.yaml doesn't contain at least single infra provisioner. Invalid testgrid.yaml");
+                return false;
+            }
+        } else {
+            logger.debug("testgrid.yaml doesn't have defined the infra configuration. Invalid testgrid.yaml");
+            return false;
+        }
+        if (scenarioConfig != null) {
+            if (scenarioConfig.getScenarios().isEmpty()) {
+                logger.debug("testgrid.yaml doesn't contain at least single scenario. Invalid testgrid.yaml");
+                return false;
+            }
+        } else {
+            logger.debug("testgrid.yaml doesn't have defined the scenario configuration. Invalid testgrid.yaml");
+            return false;
+        }
+
+        return true;
     }
 }

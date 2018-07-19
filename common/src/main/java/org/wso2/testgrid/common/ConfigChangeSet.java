@@ -20,11 +20,8 @@
 package org.wso2.testgrid.common;
 
 import java.io.Serializable;
-import java.util.List;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 
@@ -44,9 +41,6 @@ public class ConfigChangeSet extends AbstractUUIDEntity implements Serializable 
     @Column(name = "description", nullable = false)
     private String description;
 
-    @OneToMany(mappedBy = "appliesTo", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<String> appliesTo;
-
     public String getDescription() {
         return description;
     }
@@ -61,14 +55,6 @@ public class ConfigChangeSet extends AbstractUUIDEntity implements Serializable 
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<String> getAppliesTo() {
-        return appliesTo;
-    }
-
-    public void setAppliesTo(List<String> appliesTo) {
-        this.appliesTo = appliesTo;
     }
 }
 
