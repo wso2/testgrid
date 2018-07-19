@@ -110,7 +110,7 @@ class TestRunView extends Component {
         return response.json();
       }).then(data => this.setState({
       testScenarioSummaries: data.scenarioSummaries,
-      scenarioTestCaseEntries: data.scenarioTestCaseEntries
+      scenarioTestCaseEntries: data.scenarioTestCaseEntries,
     }));
 
     if (currentInfra.testPlanStatus === FAIL || currentInfra.testPlanStatus === SUCCESS) {
@@ -377,9 +377,17 @@ class TestRunView extends Component {
                             whiteSpace: "wrap",
                             textDecoration: "none"
                           }}><FlatButton class='view-history' data-tip={data.scenarioConfigChangeSetDescription}>
-                              <a href={"#" + data.scenarioDescription}>
-                                  {data.scenarioConfigChangeSetName + ":" + data.scenarioDescription}
-                              </a>
+                              {(() => {
+                                  if(data.scenarioConfigChangeSetName) {
+                                      return <a href={"#" + data.scenarioDescription}>
+                                          {data.scenarioConfigChangeSetName + ":" + data.scenarioDescription}
+                                      </a>
+                                  } else {
+                                      return <a href={"#" + data.scenarioDescription}>
+                                          {data.scenarioDescription}
+                                      </a>
+                                  }
+                              })()}
                           </FlatButton>
                           </td>
                           <td
