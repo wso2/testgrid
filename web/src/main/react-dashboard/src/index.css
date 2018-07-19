@@ -37,3 +37,43 @@ body {
 .table td, .table th {
 	vertical-align: middle;
 }
+
+.Collapsible {
+    border-radius: 8px;
+}
+
+.Collapsible__contentInner {
+    padding: 10px;
+}
+
+.Collapsible__trigger {
+    display: block;
+    font-weight: bold;
+    text-decoration: none;
+    position: relative;
+    border: 1px solid white;
+    padding: 10px 10px 10px 20px;
+    background: grey;
+    color: white;
+    cursor: pointer;
+}
+
+.Collapsible__trigger:hover {
+    background: darkgrey;
+}
+
+.CustomTriggerCSS {
+    background-color: lightcoral;
+    transition: background-color 200ms ease;
+}
+
+.CustomTriggerCSS--open {
+    background-color: darkslateblue;
+}
+
+.Collapsible__custom-sibling {
+    padding: 5px;
+    font-size: 12px;
+    background-color: #CBB700;
+    color: black;
+}

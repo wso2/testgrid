@@ -38,7 +38,6 @@ import org.wso2.testgrid.web.bean.TestCaseEntry;
 import org.wso2.testgrid.web.bean.TestExecutionSummary;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.bean.TestPlanStatus;
-import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 import org.wso2.testgrid.web.plugins.AWSArtifactReader;
@@ -62,6 +61,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -177,12 +177,62 @@ public class TestPlanService {
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
                     getProperty(ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+            return Response.status(Response.Status.OK).entity(artifactDownloadable.getArtifactStream(bucketKey))
+                    .build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "' ";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (ArtifactReaderException e) {
+            String msg = "Error occurred when reading the artifact.";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(e.getMessage())
+                            .setDescription(e.getMessage()).build()).build();
+        }
+    }
 
-            // If truncated the input stream will be maximum of 200kb
-            TruncatedInputStreamData truncatedInputStreamData = truncate ?
-                                                                artifactDownloadable.readArtifact(bucketKey, 200) :
-                                                                artifactDownloadable.readArtifact(bucketKey);
-            return Response.status(Response.Status.OK).entity(truncatedInputStreamData).build();
+    /**
+     * Verify if the log content of the given test plan exists.
+     *
+     * @param id       test plan id to get the specific log
+     * @return The requested Test-Plan
+     */
+    @HEAD
+    @Path("/log/{id}")
+    public Response isLogContentExist(@PathParam("id") String id) {
+        try {
+            // Get test plan
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            Optional<TestPlan> optionalTestPlan = testPlanUOW.getTestPlanById(id);
+            if (!optionalTestPlan.isPresent()) {
+                String msg = "No test plan found for the given id " + id;
+                logger.error(msg);
+                return Response.serverError()
+                        .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+            }
+            TestPlan testPlan = optionalTestPlan.get();
+
+            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan);
+            String bucketKey = Paths
+                    .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
+            // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
+            // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
+            ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
+                    getProperty(ConfigurationProperties.AWS_REGION_NAME),
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+            if (artifactDownloadable.isArtifactExist(bucketKey)) {
+                return Response.status(Response.Status.OK).entity("The artifact exists in the remote storage").build();
+            }
+            return Response.status(Response.Status.NOT_FOUND).
+                        entity("Couldn't found the Artifact in the remote location").build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlan by id : '" + id + "' ";
             logger.error(msg, e);
