@@ -199,7 +199,6 @@ class TestRunView extends Component {
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
     const logAllContentUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
       window.location.href.split("/").pop() + "?truncate=" + false;
-    let isFailedTestsTitleAdded = false;
     return (
       <div>
         <Snackbar
@@ -463,7 +462,6 @@ class TestRunView extends Component {
                       {/*Detailed Report for failed test cases*/}
                       {this.state.scenarioTestCaseEntries.map((data, index) => {
                         if (data.testCaseEntries.length > 0) {
-                          isFailedTestsTitleAdded = true;
                           return (
                             <div style={{padding: "10px"}}>
                               <h4 style={{color: "#e46226"}}>
@@ -521,7 +519,7 @@ class TestRunView extends Component {
                               <br/>
                             </div>)
                         } else {
-                          return ("")
+                          return <div style={{padding: "10px"}}>No failed tests..</div>
                         }
                       })}
                     </div>;
