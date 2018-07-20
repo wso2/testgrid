@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
@@ -278,7 +279,7 @@ public class TestReportEngine {
 
         // Fail list
         List<ReportElement> failList = distinctElements.stream()
-                .filter(reportElement -> !reportElement.isTestSuccess())
+                .filter(ReportElement::isTestFail)
                 .collect(Collectors.toList());
 
         // Success list
@@ -321,7 +322,7 @@ public class TestReportEngine {
 
         // Fail list
         List<ReportElement> failList = distinctElements.stream()
-                .filter(reportElement -> !reportElement.isTestSuccess())
+                .filter(ReportElement::isTestFail)
                 .collect(Collectors.toList());
 
         // Success list
@@ -365,7 +366,7 @@ public class TestReportEngine {
 
         // Fail list
         List<ReportElement> failList = distinctElements.stream()
-                .filter(reportElement -> !reportElement.isTestSuccess())
+                .filter(ReportElement::isTestFail)
                 .collect(Collectors.toList());
 
         // Success list
@@ -542,7 +543,7 @@ public class TestReportEngine {
      */
     private List<ReportElement> filterSuccessReportElements(List<ReportElement> reportElements) {
         return reportElements.stream()
-                .filter(reportElement -> !reportElement.isTestSuccess())
+                .filter(ReportElement::isTestFail)
                 .collect(Collectors.toList());
     }
 
@@ -704,14 +705,13 @@ public class TestReportEngine {
         // Test case can be null if the infra fails.
         if (testCase != null) {
             reportElement.setTestCase(testCase.getName());
-            reportElement.setTestSuccess(testCase.isSuccess());
-
-            if (!testCase.isSuccess()) {
+            reportElement.setTestSuccess(testCase.getStatus());
+            if (Status.FAIL.equals(testCase.getStatus())) {
                 reportElement.setTestCaseFailureMessage(testCase.getFailureMessage());
             }
         } else {
             reportElement.setTestCase("");
-            reportElement.setTestSuccess(false);
+            reportElement.setTestSuccess(Status.FAIL);
         }
         return reportElement;
     }

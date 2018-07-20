@@ -632,11 +632,11 @@ public class TestPlanExecutor {
     private void persistTestScenario(TestScenario testScenario) throws TestPlanExecutorException {
         //Persist test scenario
         try {
-            if (testScenario.getTestCases().size() == 0) {
+            if (testScenario.getTestCases().isEmpty()) {
                 testScenario.setStatus(Status.ERROR);
             } else {
                 for (TestCase testCase : testScenario.getTestCases()) {
-                    if (!testCase.isSuccess()) {
+                    if (Status.FAIL.equals(testCase.getStatus())) {
                         testScenario.setStatus(Status.FAIL);
                         break;
                     } else {
@@ -730,7 +730,7 @@ public class TestPlanExecutor {
                 .filter(ts -> ts.getStatus() != Status.SUCCESS)
                 .map(TestScenario::getTestCases)
                 .flatMap(Collection::stream)
-                .filter(tc -> !tc.isSuccess())
+                .filter(tc -> Status.FAIL.equals(tc.getStatus()))
                 .forEachOrdered(
                         tc -> {
                             failedTestCaseCount.incrementAndGet();
@@ -792,4 +792,3 @@ public class TestPlanExecutor {
     }
 
 }
-
