@@ -96,11 +96,11 @@ public class TestNgResultsParserTest {
         Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
 
         parser.get().parseResults();
-        Assert.assertEquals(testScenario.getTestCases().size(), 16, "generated test cases does not match.");
+        Assert.assertEquals(testScenario.getTestCases().size(), 9, "generated test cases does not match.");
         final long successTestCases = testScenario.getTestCases().stream().filter(TestCase::isSuccess).count();
         final long failureTestCases = testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count();
-        Assert.assertEquals(successTestCases, 9, "success test cases does not match.");
-        Assert.assertEquals(failureTestCases, 7, "failure test cases does not match.");
+        Assert.assertEquals(successTestCases, 6, "success test cases does not match.");
+        Assert.assertEquals(failureTestCases, 3, "failure test cases does not match.");
 
     }
 
@@ -118,11 +118,11 @@ public class TestNgResultsParserTest {
 
         parser.get().parseResults();
         parser.get().archiveResults();
-        Assert.assertEquals(testScenario.getTestCases().size(), 16, "generated test cases does not match.");
+        Assert.assertEquals(testScenario.getTestCases().size(), 9, "generated test cases does not match.");
         final long successTestCases = testScenario.getTestCases().stream().filter(TestCase::isSuccess).count();
         final long failureTestCases = testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count();
-        Assert.assertEquals(successTestCases, 9, "success test cases does not match.");
-        Assert.assertEquals(failureTestCases, 7, "failure test cases does not match.");
+        Assert.assertEquals(successTestCases, 6, "success test cases does not match.");
+        Assert.assertEquals(failureTestCases, 3, "failure test cases does not match.");
 
     }
 
