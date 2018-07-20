@@ -3,12 +3,12 @@
         <!-- Status -->
         <td>
             <center>
-                {{#isTestSuccess}}
+                {{#status}}
                     <i class="fas fa-check-circle"></i>
-                {{/isTestSuccess}}
-                {{^isTestSuccess}}
+                {{/status}}
+                {{^status}}
                     <i class="fas fa-times-circle"></i>
-                {{/isTestSuccess}}
+                {{/status}}
             </center>
         </td>
 
@@ -24,28 +24,28 @@
 
         <!-- Scenario -->
         {{^isGroupByScenario}}
-            {{#isTestSuccess}}
+            {{#status}}
                 <td class="successText">{{scenarioDescription}}</td>
-            {{/isTestSuccess}}
-            {{^isTestSuccess}}
+            {{/status}}
+            {{^status}}
                 <td class="errorText">{{scenarioDescription}}</td>
-            {{/isTestSuccess}}
+            {{/status}}
         {{/isGroupByScenario}}
 
         <!-- Test case -->
-        {{#isTestSuccess}}
+        {{#status}}
             <td class="successText">{{testCase}}</td>
-        {{/isTestSuccess}}
-        {{^isTestSuccess}}
+        {{/status}}
+        {{^status}}
             <td class="errorText">{{testCase}}</td>
-        {{/isTestSuccess}}
+        {{/status}}
 
         <!-- Failure message -->
-        {{#isTestSuccess}}
+        {{#status}}
             <td class="successText"></td>
-        {{/isTestSuccess}}
-        {{^isTestSuccess}}
+        {{/status}}
+        {{^status}}
             <td class="errorText">{{testCaseFailureMessage}}</td>
-        {{/isTestSuccess}}
+        {{/status}}
     </tr>
 {{/parsedReportElements}}

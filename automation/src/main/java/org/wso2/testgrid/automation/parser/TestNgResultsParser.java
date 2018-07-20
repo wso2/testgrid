@@ -21,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ResultParserException;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
@@ -147,7 +148,7 @@ public class TestNgResultsParser extends ResultParser {
                 }
                 logger.info(String.format("Found total of %s test cases. %s test cases has failed.", testScenario
                                 .getTestCases().size(),
-                        testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count()));
+                        testScenario.getTestCases().stream().filter(tc -> Status.FAIL.equals(tc.getStatus())).count()));
             } catch (IOException | XMLStreamException e) {
                 logger.error("Error while parsing testng-results.xml at " + resultsFile + " for " +
                         testScenario.getName(), e);
@@ -216,6 +217,7 @@ public class TestNgResultsParser extends ResultParser {
         return testCases;
     }
 
+<<<<<<< HEAD
     /**
      * Reads the text content data inside the <failure></failure> element and builds the
      * error message.
@@ -235,9 +237,47 @@ public class TestNgResultsParser extends ResultParser {
             }
         }
         return builder.toString();
+=======
+    private TestCase readTestMethod(String classNameStr, StartElement element) {
+        final Iterator attrs = element.getAttributes();
+        Status status = null;  // null means 'SKIP' for now. true/false for PASS/FAIL.
+        String name = "unknown";
+        String description = "";
+        while (attrs.hasNext()) {
+            final Attribute attr = (Attribute) attrs.next();
+            if ("status".equals(attr.getName().getLocalPart())) {
+                switch (attr.getValue()) {
+                case "PASS":
+                    status = Status.SUCCESS;
+                    break;
+                case "FAIL":
+                    status = Status.FAIL;
+                    break;
+                default:
+                    status = Status.SKIP; //handle the skipped case
+                    description += " :: " + attr.getValue();
+                    break;
+                }
+            }
+            if ("name".equals(attr.getName().getLocalPart())) {
+                name = attr.getValue();
+            }
+            if ("description".equals(attr.getName().getLocalPart())) {
+                description = description.isEmpty() ? attr.getValue() : attr.getValue() + description;
+            }
+        }
+        if (status == null) { // it's a skipped test!
+            // TODO we need to properly handle Skipped test cases.
+            name = name + " :: SKIPPED!";
+            status = Status.SKIP;
+        }
+        //todo capture failure message
+        return buildTestCase(classNameStr + "." + name, status, description);
+
+>>>>>>> Modify is_success field in the test_case table
     }
 
-    private TestCase buildTestCase(String className, boolean isSuccess, String failureMessage) {
+    private TestCase buildTestCase(String className, Status isSuccess, String failureMessage) {
         TestCase testCase = new TestCase();
         testCase.setTestScenario(this.testScenario);
         testCase.setName(className);
@@ -319,4 +359,3 @@ public class TestNgResultsParser extends ResultParser {
 
     }
 }
-
