@@ -97,13 +97,15 @@ public class TestNgResultsParserTest {
 
         parser.get().parseResults();
         Assert.assertEquals(testScenario.getTestCases().size(), 9, "generated test cases does not match.");
-        final long successTestCases = testScenario.getTestCases().stream().filter(tc -> Status.SUCCESS.equals(tc.getStatus())).count();
-        final long failureTestCases = testScenario.getTestCases().stream().filter(tc -> Status.FAIL.equals(tc.getStatus())).count();
+        final long successTestCases = testScenario.getTestCases().stream()
+                .filter(tc -> Status.SUCCESS.equals(tc.getStatus())).count();
+        final long failureTestCases = testScenario.getTestCases().stream()
+                .filter(tc -> Status.FAIL.equals(tc.getStatus())).count();
         final long skipTestCases = testScenario.getTestCases().stream()
                 .filter(tc -> Status.SKIP.equals(tc.getStatus())).count();
         Assert.assertEquals(successTestCases, 6, "success test cases does not match.");
-        Assert.assertEquals(failureTestCases, 3, "failure test cases does not match.");
-        Assert.assertEquals(skipTestCases, 5, "skip test cases does not match.");
+        Assert.assertEquals(failureTestCases, 2, "failure test cases does not match.");
+        Assert.assertEquals(skipTestCases, 1, "skip test cases does not match.");
     }
 
     @Test
@@ -121,10 +123,12 @@ public class TestNgResultsParserTest {
         parser.get().parseResults();
         parser.get().archiveResults();
         Assert.assertEquals(testScenario.getTestCases().size(), 9, "generated test cases does not match.");
-        final long successTestCases = testScenario.getTestCases().stream().filter(tc -> Status.SUCCESS.equals(tc.getStatus())).count();
-        final long failureTestCases = testScenario.getTestCases().stream().filter(tc -> Status.FAIL.equals(tc.getStatus())).count();
+        final long successTestCases = testScenario.getTestCases().stream()
+                .filter(tc -> Status.SUCCESS.equals(tc.getStatus())).count();
+        final long failureTestCases = testScenario.getTestCases().stream()
+                .filter(tc -> Status.FAIL.equals(tc.getStatus())).count();
         Assert.assertEquals(successTestCases, 6, "success test cases does not match.");
-        Assert.assertEquals(failureTestCases, 3, "failure test cases does not match.");
+        Assert.assertEquals(failureTestCases, 2, "failure test cases does not match.");
     }
 
     private void copyTestngResultsXml(Path outputLocation) throws IOException {

@@ -69,11 +69,9 @@ public class TestNgResultsParser extends ResultParser {
     public static final String RESULTS_TEST_SUITE_FILE = "TEST-TestSuite.xml";
     private static final String[] ARCHIVABLE_FILES = new String[] { "surefire-reports", "automation.log" };
     private static final Logger logger = LoggerFactory.getLogger(TestNgResultsParser.class);
-    private static final String TOTAL = "total";
-    private static final String FAILED = "failed";
-    private static final String PASSED = "passed";
+    private static final String TEST_CASE = "testcase";
+    private static final String FAILED = "failure";
     private static final String SKIPPED = "skipped";
-    private final XMLInputFactory factory = XMLInputFactory.newInstance();
 
     /**
      * This constructor is used to create a {@link TestNgResultsParser} object with the
@@ -193,23 +191,22 @@ public class TestNgResultsParser extends ResultParser {
         List<TestCase> testCases = new ArrayList<>();
         while (eventReader.hasNext()) {
             XMLEvent event = eventReader.nextEvent();
-            if (event.getEventType() == XMLStreamConstants.END_ELEMENT &&
-                    event.asEndElement().getName().getLocalPart().equals("testcase")) {
-                TestCase testCase = buildTestCase(classNameStr, Boolean.TRUE, "");
+            if (event.getEventType() == XMLStreamConstants.END_ELEMENT && TEST_CASE
+                    .equals(event.asEndElement().getName().getLocalPart())) {
+                TestCase testCase = buildTestCase(classNameStr, Status.SUCCESS, "");
                 testCases.add(testCase);
                 break;
             }
-            if (event.getEventType() == XMLStreamConstants.START_ELEMENT &&
-                    event.asStartElement().getName().getLocalPart().equals("skipped")) {
-                //TODO add new state SKIPPED in the testcase/TestGrid and set to that state
-                TestCase testCase = buildTestCase(classNameStr, Boolean.FALSE, "Test Skipped");
+            if (event.getEventType() == XMLStreamConstants.START_ELEMENT && SKIPPED
+                    .equals(event.asStartElement().getName().getLocalPart())) {
+                TestCase testCase = buildTestCase(classNameStr, Status.SKIP, "Test Skipped");
                 testCases.add(testCase);
                 break;
             }
-            if (event.getEventType() == XMLStreamConstants.START_ELEMENT &&
-                    event.asStartElement().getName().getLocalPart().equals("failure")) {
+            if (event.getEventType() == XMLStreamConstants.START_ELEMENT && FAILED
+                    .equals(event.asStartElement().getName().getLocalPart())) {
                 String failureMessage = readFailureMessage(eventReader);
-                TestCase testCase = buildTestCase(classNameStr, Boolean.FALSE, failureMessage);
+                TestCase testCase = buildTestCase(classNameStr, Status.FAIL, failureMessage);
                 testCases.add(testCase);
                 break;
             }
@@ -217,7 +214,6 @@ public class TestNgResultsParser extends ResultParser {
         return testCases;
     }
 
-<<<<<<< HEAD
     /**
      * Reads the text content data inside the <failure></failure> element and builds the
      * error message.
@@ -237,44 +233,6 @@ public class TestNgResultsParser extends ResultParser {
             }
         }
         return builder.toString();
-=======
-    private TestCase readTestMethod(String classNameStr, StartElement element) {
-        final Iterator attrs = element.getAttributes();
-        Status status = null;  // null means 'SKIP' for now. true/false for PASS/FAIL.
-        String name = "unknown";
-        String description = "";
-        while (attrs.hasNext()) {
-            final Attribute attr = (Attribute) attrs.next();
-            if ("status".equals(attr.getName().getLocalPart())) {
-                switch (attr.getValue()) {
-                case "PASS":
-                    status = Status.SUCCESS;
-                    break;
-                case "FAIL":
-                    status = Status.FAIL;
-                    break;
-                default:
-                    status = Status.SKIP; //handle the skipped case
-                    description += " :: " + attr.getValue();
-                    break;
-                }
-            }
-            if ("name".equals(attr.getName().getLocalPart())) {
-                name = attr.getValue();
-            }
-            if ("description".equals(attr.getName().getLocalPart())) {
-                description = description.isEmpty() ? attr.getValue() : attr.getValue() + description;
-            }
-        }
-        if (status == null) { // it's a skipped test!
-            // TODO we need to properly handle Skipped test cases.
-            name = name + " :: SKIPPED!";
-            status = Status.SKIP;
-        }
-        //todo capture failure message
-        return buildTestCase(classNameStr + "." + name, status, description);
-
->>>>>>> Modify is_success field in the test_case table
     }
 
     private TestCase buildTestCase(String className, Status isSuccess, String failureMessage) {
