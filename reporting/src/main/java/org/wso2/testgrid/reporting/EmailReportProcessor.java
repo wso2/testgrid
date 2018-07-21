@@ -29,6 +29,8 @@ import org.wso2.testgrid.common.config.PropertyFileReader;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.model.email.TPResultSection;
+import org.wso2.testgrid.reporting.summary.InfrastructureBuildStatus;
+import org.wso2.testgrid.reporting.summary.InfrastructureSummaryReporter;
 import org.wso2.testgrid.reporting.surefire.SurefireReporter;
 import org.wso2.testgrid.reporting.surefire.TestResult;
 
@@ -36,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.testgrid.common.TestGridConstants.HTML_LINE_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.TEST_PLANS_URI;
@@ -87,6 +90,7 @@ public class EmailReportProcessor {
             final String infraCombination = testPlan.getInfraParameters();
             final String dashboardLink = String.join("/", testGridHost, productName, deploymentPattern,
                     TEST_PLANS_URI, testPlanId);
+
 
             final TestResult report = surefireReporter.getReport(testPlan);
             if (logger.isDebugEnabled()) {
@@ -202,5 +206,9 @@ public class EmailReportProcessor {
             }
         }
         return false;
+    }
+
+    public Map<String, InfrastructureBuildStatus> getSummaryTable(List<TestPlan> testPlans) {
+        return new InfrastructureSummaryReporter().getSummaryTable(testPlans);
     }
 }
