@@ -328,13 +328,16 @@ public final class TestGridUtil {
      * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/test-run.log
      *
      * @param testPlan test-plan
+     * @param truncated whether the truncated log or the raw log file
      * @return log file path
      */
-    public static String deriveTestRunLogFilePath(TestPlan testPlan) {
+    public static String deriveTestRunLogFilePath(TestPlan testPlan, Boolean truncated) {
         String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
+        String fileName = truncated ?
+                TestGridConstants.TRUNCATED_TESTRUN_LOG_FILE_NAME : TestGridConstants.TESTRUN_LOG_FILE_NAME;
         return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
-                testPlanDirName, TestGridConstants.TESTRUN_LOG_FILE_NAME).toString();
+                testPlanDirName, fileName).toString();
     }
 
     /**

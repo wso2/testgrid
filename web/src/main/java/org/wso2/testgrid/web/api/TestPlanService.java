@@ -169,7 +169,7 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
 
-            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan);
+            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan, truncate);
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
@@ -207,7 +207,7 @@ public class TestPlanService {
      */
     @HEAD
     @Path("/log/{id}")
-    public Response isLogContentExist(@PathParam("id") String id) {
+    public Response isLogContentExist(@PathParam("id") String id, @QueryParam("truncate") boolean truncate) {
         try {
             // Get test plan
             TestPlanUOW testPlanUOW = new TestPlanUOW();
@@ -220,7 +220,7 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
 
-            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan);
+            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan, true);
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
