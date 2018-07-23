@@ -38,11 +38,15 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -497,5 +501,36 @@ public final class TestGridUtil {
             s3BucketName = TestGridConstants.AMAZON_S3_DEFAULT_BUCKET_NAME;
         }
         return String.join("/", TestGridConstants.AMAZON_S3_URL, s3BucketName);
+    }
+
+    /**
+     * Returns the MD5 hash value of a given file.
+     *
+     * @param filePath path to file
+     * @return md5 hash String
+     * @throws IOException if file not found
+     * @throws NoSuchAlgorithmException id retrieving the MessageDigest instance failss
+     */
+    public static String getHashValue(Path filePath) throws IOException, NoSuchAlgorithmException {
+        MessageDigest complete;
+        byte[] buf;
+        try (InputStream fis = new FileInputStream(filePath.toFile())) {
+            buf = new byte[1024];
+            complete = MessageDigest.getInstance("MD5");
+            int n;
+            do {
+                n = fis.read(buf);
+                if (n > 0) {
+                    complete.update(buf, 0, n);
+                }
+            } while (n != -1);
+            fis.close();
+        }
+        buf = complete.digest();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (byte aBuf : buf) {
+            stringBuilder.append(Integer.toString((aBuf & 0xff) + 0x100, 16).substring(1));
+        }
+        return stringBuilder.toString();
     }
 }

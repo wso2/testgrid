@@ -50,6 +50,16 @@
             <artifactId>org.wso2.testgrid.common</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.logging</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
@@ -97,6 +107,14 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.dao</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
         </dependency>
     </dependencies>
 </project>

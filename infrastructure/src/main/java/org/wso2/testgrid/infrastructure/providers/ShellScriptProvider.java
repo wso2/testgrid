@@ -20,6 +20,7 @@ package org.wso2.testgrid.infrastructure.providers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
@@ -139,8 +140,8 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir)
-            throws TestGridInfrastructureException {
+    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
+                           DeploymentPattern deploymentPattern) throws TestGridInfrastructureException {
         String testPlanLocation = Paths.get(infraRepoDir).toString();
 
         logger.info("Destroying test environment...");

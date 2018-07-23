@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 public class TestGridConstants {
 
     public static final String TESTGRID_YAML = "testgrid.yaml";
+    public static final String AWS_LIMITS_YAML = "awsLimits.yaml";
     public static final String DEBUG_MODE = "DEBUG_MODE";
     public static final String TEST_PLAN_YAML_PREFIX = "test-plan";
 
