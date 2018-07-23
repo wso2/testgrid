@@ -22,6 +22,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.dto.TestCaseFailureResultDTO;
 import org.wso2.testgrid.dao.repository.TestPlanRepository;
 
 import java.sql.Timestamp;
@@ -179,5 +180,27 @@ public class TestPlanUOW {
      */
     public List<TestPlan> getTestPlansOlderThan(String duration, String timeUnit) {
         return testPlanRepository.getTestPlanOlderThan(duration, timeUnit);
+    }
+
+
+    /**
+     * Returns the test plans older than a specified period of time.
+     * This will be used to resolve the statuses of testplans with erroneous statuses.
+     *
+     * @return a List of TestPlans corresponding to the query
+     */
+    public List<String> getTestExecutionSummary(List<String> tpIds) {
+        return testPlanRepository.getTestExecutionSummaryByTPId(tpIds);
+    }
+
+
+    /**
+     * Returns the test plans older than a specified period of time.
+     * This will be used to resolve the statuses of testplans with erroneous statuses.
+     *
+     * @return a List of TestPlans corresponding to the query
+     */
+    public List<TestCaseFailureResultDTO> getTestFailureSummary(List<String> tpId) {
+        return testPlanRepository.getTestFailureSummaryByTPId(tpId);
     }
 }
