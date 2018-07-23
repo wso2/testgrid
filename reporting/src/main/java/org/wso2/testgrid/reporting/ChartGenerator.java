@@ -16,9 +16,7 @@ import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.TestGridConstants;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -31,12 +29,11 @@ import javax.imageio.ImageIO;
 public class ChartGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(ChartGenerator.class);
-    private static String chartGenLocation = System.getenv(TestGridConstants.TESTGRID_HOME_ENV);
-    private static String summaryChartFileName = "summary.png";
-    private static String historyChartFileName = "history.png";
+    private static  final String summaryChartFileName = "summary.png";
+    private static final String historyChartFileName = "history.png";
+    private String chartGenLocation;
 
     public ChartGenerator(String chartGenLocation) {
-
         new JFXPanel();
         this.chartGenLocation = chartGenLocation;
     }
@@ -111,44 +108,44 @@ public class ChartGenerator {
         genChart(stackedBarChart, 800, 800, historyChartFileName);
     }
 
-    /**
-     * Generate the test failure summary table for failed test cases.
-     *
-     * @return a html table with contents.
-     */
-    public String generaeSummaryTable() {
-
-        // Color pallet is used to inject colors to differentiate the testcase rows.
-        String[] colorPallette = new String[]{"#b2ad7f", "#a2b9bc", "#d6cbd3", "#bdcebe", "#e3eaa7", "#e6e2d3",
-                "#dac292", "#c6bcb6", "#b7d7e8", "#b8a9c9", "#f2ae72"};
-
-        StringBuilder tableContent =  new StringBuilder();
-        tableContent.append("<table>");
-        tableContent.append("<tr>");
-        tableContent.append("<th>Failing Test Case</th>");
-        tableContent.append("<th>OS</th>");
-        tableContent.append("<th>JDK</th>");
-        tableContent.append("<th>DB</th>");
-        tableContent.append("</tr>");
-        // loop the content
-//        for testcase
-//                for OS
-//                    for JDK
-//                        for DB
-        tableContent.append("</table>");
-        return null;
-    }
+//    /**
+//     * Generate the test failure summary table for failed test cases.
+//     *
+//     * @return a html table with contents.
+//     */
+//    public String generaeSummaryTable() {
+//
+//        // Color pallet is used to inject colors to differentiate the testcase rows.
+//        String[] colorPallette = new String[]{"#b2ad7f", "#a2b9bc", "#d6cbd3", "#bdcebe", "#e3eaa7", "#e6e2d3",
+//                "#dac292", "#c6bcb6", "#b7d7e8", "#b8a9c9", "#f2ae72"};
+//
+//        StringBuilder tableContent =  new StringBuilder();
+//        tableContent.append("<table>");
+//        tableContent.append("<tr>");
+//        tableContent.append("<th>Failing Test Case</th>");
+//        tableContent.append("<th>OS</th>");
+//        tableContent.append("<th>JDK</th>");
+//        tableContent.append("<th>DB</th>");
+//        tableContent.append("</tr>");
+//        // loop the content
+////        for testcase
+////                for OS
+////                    for JDK
+////                        for DB
+//        tableContent.append("</table>");
+//        return null;
+//    }
 
     /**
      * Returns the chart generation location.
      *
      * @return chart generation dir
      */
-    public static String getChartGenLocation() {
+    public String getChartGenLocation() {
         return chartGenLocation;
     }
 
-    private static void genChart(Chart chart, int width, int height, String fileName) {
+    private void genChart(Chart chart, int width, int height, String fileName) {
         Platform.runLater(() -> {
             Stage stage = new Stage();
             Scene scene = new Scene(chart, width, height);
@@ -159,7 +156,7 @@ public class ChartGenerator {
         });
     }
 
-    private static void writeImage(WritableImage image, String fileName) {
+    private void writeImage(WritableImage image, String fileName) {
 
         File file = new File(Paths.get(chartGenLocation, fileName).toString());
         try {
