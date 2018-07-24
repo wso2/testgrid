@@ -753,8 +753,10 @@ public class TestReportEngine {
             return Optional.empty();
         }
 
-        Map<String, InfrastructureBuildStatus> summary = emailReportProcessor.getSummaryTable(testPlans);
-        logger.info(summary + "");
+        Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
+                .getSummaryTable(testPlans);
+        postProcessSummaryTable(testCaseInfraSummaryMap);
+        logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
 
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         Map<String, Object> report = new HashMap<>();
@@ -763,6 +765,7 @@ public class TestReportEngine {
         report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
         report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
+        report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
         perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
         String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
 
@@ -772,6 +775,10 @@ public class TestReportEngine {
         Path reportPath = Paths.get(testGridHome, relativeFilePath);
         writeToFile(reportPath.toString(), htmlString);
         return Optional.of(reportPath);
+    }
+
+    private void postProcessSummaryTable(Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap) {
+
     }
 
     private List<TestPlan> getTestPlans(String workspace, Path testPlansDir) throws ReportingException {

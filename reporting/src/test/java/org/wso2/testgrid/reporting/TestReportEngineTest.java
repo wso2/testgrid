@@ -26,10 +26,10 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
-import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.common.TestPlan;
 
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
@@ -42,11 +42,23 @@ public class TestReportEngineTest extends BaseClass {
 
     private static final Logger logger = LoggerFactory.getLogger(TestReportEngineTest.class);
 
-    @Test
-    public void generateEmailReport() throws TestGridDAOException, ReportingException {
+    @Test(dataProvider = "testPlanInputsNum")
+    public void generateEmailReport(String testNum) throws Exception {
+        logger.info("---- Running " + testNum);
+
+        List<TestPlan> testPlans = getTestPlansFor(testNum);
+
         when(testPlanUOW.getLatestTestPlans(Matchers.any(Product.class)))
-                .thenReturn(Collections.singletonList(testPlan));
-        when(testPlanUOW.getTestPlanById("abc")).thenReturn(Optional.of(testPlan));
+                .thenReturn(testPlans);
+        when(testPlanUOW.getTestPlanById("abc")).thenReturn(Optional.of(testPlans.get(0)));
+        when(testPlanUOW.getTestPlanById(Matchers.anyString())).thenAnswer(
+                inv -> {
+                    final String testPlanId = inv.getArgumentAt(0, String.class);
+                    if (testPlanId.equals("abc")) {
+                        return Optional.of(testPlans.get(0));
+                    }
+                    return Optional.of(testPlans.get(Integer.valueOf(testPlanId)));
+                });
         when(testPlanUOW.getCurrentStatus(product)).thenReturn(Status.FAIL);
 
         final TestReportEngine testReportEngine = new TestReportEngine(testPlanUOW,
@@ -54,6 +66,6 @@ public class TestReportEngineTest extends BaseClass {
         final Optional<Path> path = testReportEngine.generateEmailReport(product, productDir.toString());
         Assert.assertTrue(path.isPresent(), "Email report generation has failed. File path is empty.");
         logger.info("email report file: " + path.get());
-
     }
+
 }

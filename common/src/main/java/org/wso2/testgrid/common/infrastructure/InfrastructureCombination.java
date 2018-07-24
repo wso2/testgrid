@@ -82,8 +82,8 @@ public class InfrastructureCombination implements Cloneable {
 
     @Override
     public String toString() {
-        return "InfrastructureCombination{\n" +
-                "parameters=" + parameters +
+        return "InfraCombination{\n" +
+                parameters +
                 "\n}";
     }
 }

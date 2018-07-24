@@ -18,42 +18,84 @@
 
 package org.wso2.testgrid.reporting.summary;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * todo.
+ * Bean object that store the Success/Failed/Unknown infrastructures
+ * of a given test case.
+ *
  */
 public class InfrastructureBuildStatus {
-    private List<String> successStatus;
+
+    private List<String> successInfra = new ArrayList<>();
+
     /**
-     * todo
+     * The list of failed infras. If the given test case fails only
+     * in environments with two or more infras, then those are designated as
+     * "associated infras". So, those are added together.
+     *
      */
-    private List<List<String>> failedStatus;
+    private List<List<String>> failedInfra = new ArrayList<>();
+    private List<String> unknownInfra = new ArrayList<>();
 
-    public List<String> getSuccessStatus() {
-        return successStatus;
+    public List<String> getSuccessInfra() {
+        return successInfra;
     }
 
-    public void setSuccessStatus(List<String> successStatus) {
-        this.successStatus = successStatus;
+    public void addSuccessInfra(String successInfra) {
+        this.successInfra.add(successInfra);
     }
 
-    public List<List<String>> getFailedStatus() {
-        return failedStatus;
+    public List<List<String>> getFailedInfra() {
+        return failedInfra;
     }
 
-    public void setFailedStatus(List<List<String>> failedStatus) {
-        this.failedStatus = failedStatus;
+    /**
+     * Returns infrastructure that lead to test failures independent of other infras.
+     *
+     * Associated failed infras refer to cases where the test-case only fail when the environment
+     * contain all these infras.
+     *
+     * Unassociated failed infras refer to cases where the test-case will fail on the given infra
+     * independent of other infra.
+     *
+     * @return unassociated failed infra
+     */
+    public List<String> getUnassociatedFailedInfra() {
+        List<String> unassociatedFailedInfra = new ArrayList<>();
+        for (List<String> failedInfraCombination : failedInfra) {
+            if (failedInfraCombination.size() == 1) {
+                unassociatedFailedInfra.add(failedInfraCombination.get(0));
+            }
+        }
+        return unassociatedFailedInfra;
     }
 
-    public List<String> getUnknownStatus() {
-        return unknownStatus;
+    /**
+     * add a failed infra, or a list of associated infras.
+     * DO NOT use this method to add infras that are failing independently. For that case,
+     * call this method repeatedly for each infra.
+     *
+     * @param failedAssociatedInfras associated infras that are failing.
+     */
+    public void addFailedInfra(String... failedAssociatedInfras) {
+        this.failedInfra.add(Arrays.asList(failedAssociatedInfras));
     }
 
-    public void setUnknownStatus(List<String> unknownStatus) {
-        this.unknownStatus = unknownStatus;
+    public List<String> getUnknownInfra() {
+        return unknownInfra;
     }
 
-    private List<String> unknownStatus;
+    public void addUnknownInfra(String unknownInfra) {
+        this.unknownInfra.add(unknownInfra);
+    }
 
+    @Override
+    public String toString() {
+        return "success=" + successInfra +
+                ", failed=" + failedInfra +
+                ", unknown=" + unknownInfra;
+    }
 }

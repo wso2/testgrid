@@ -91,7 +91,6 @@ public class EmailReportProcessor {
             final String dashboardLink = String.join("/", testGridHost, productName, deploymentPattern,
                     TEST_PLANS_URI, testPlanId);
 
-
             final TestResult report = surefireReporter.getReport(testPlan);
             if (logger.isDebugEnabled()) {
                 logger.debug("Test results of test plan '" + testPlan.getId() + "': " + report);
@@ -208,6 +207,11 @@ public class EmailReportProcessor {
         return false;
     }
 
+    /**
+     * @see InfrastructureSummaryReporter#getSummaryTable(List)
+     * @param testPlans the test plans for which we need to generate the summary
+     * @return summary table
+     */
     public Map<String, InfrastructureBuildStatus> getSummaryTable(List<TestPlan> testPlans) {
         return new InfrastructureSummaryReporter().getSummaryTable(testPlans);
     }

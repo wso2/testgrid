@@ -414,7 +414,6 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
                 ", status='", status, "\'",
                 ", testRunNumber='", testRunNumber, "\'",
                 ", deploymentPattern='", deploymentPattern, "\'",
-                ", product='", deploymentPattern.getProduct().getName(), "\'",
                 ", infraCombination='", infraParameters, "\'",
                 '}');
     }
