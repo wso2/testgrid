@@ -21,6 +21,7 @@ package org.wso2.testgrid.web.api;
 import org.apache.hc.core5.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
@@ -428,18 +429,19 @@ public class TestPlanService {
 
             // TODO: change backend design to store these info within the db to reduce UI latency.
             // Create scenario summary
-            long totalSuccess = testCases.stream().filter(TestCase::isSuccess).count();
-            long totalFailed = testCases.stream().filter(testCase -> !testCase.isSuccess()).count();
+            long totalSuccess = testCases.stream().filter(testCase -> Status.SUCCESS.equals(testCase.getStatus()))
+                    .count();
+            long totalFailed = testCases.stream().filter(testCase -> Status.FAIL.equals(testCase.getStatus())).count();
             ScenarioSummary scenarioSummary = new ScenarioSummary(testScenario.getDescription(),
-                    testScenario.getConfigChangeSetName() , testScenario.getConfigChangeSetDescription(), totalSuccess,
+                    testScenario.getConfigChangeSetName(), testScenario.getConfigChangeSetDescription(), totalSuccess,
                     totalFailed, testScenario.getStatus(), testScenario.getName());
             scenarioSummaries.add(scenarioSummary);
 
             // Create test case entries for failed tests
             List<TestCaseEntry> failedTestCaseEntries = testCases.stream()
-                    .filter(testCase -> !testCase.isSuccess())
+                    .filter(testCase -> Status.FAIL.equals(testCase.getStatus()))
                     .map(testCase -> new TestCaseEntry(testCase.getName(), testCase.getFailureMessage(),
-                            testCase.isSuccess())
+                            testCase.getStatus())
                     )
                     .collect(Collectors.toList());
             scenarioTestCaseEntries.add(new ScenarioTestCaseEntry(
