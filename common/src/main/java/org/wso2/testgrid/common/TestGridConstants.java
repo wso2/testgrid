@@ -70,6 +70,7 @@ public class TestGridConstants {
     public static final String TEST_PLANS_URI = "test-plans";
     public static final String HTML_LINE_SEPARATOR = "<br/>";
     public static final String TESTGRID_EMAIL_REPORT_NAME = "EmailReport.html";
+    public static final String TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME = "SummarizedEmailReport.html";
 
     public static final String SHELL_SUFFIX = ".sh";
     public static final String PRE_STRING = "pre-scenario-steps";

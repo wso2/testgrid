@@ -20,6 +20,7 @@ package org.wso2.testgrid.reporting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
@@ -36,6 +37,9 @@ import org.wso2.testgrid.reporting.model.PerAxisHeader;
 import org.wso2.testgrid.reporting.model.PerAxisSummary;
 import org.wso2.testgrid.reporting.model.Report;
 import org.wso2.testgrid.reporting.model.ReportElement;
+import org.wso2.testgrid.reporting.model.email.BuildExecutionSummary;
+import org.wso2.testgrid.reporting.model.email.BuildFailureSummary;
+import org.wso2.testgrid.reporting.model.email.TestCaseResultSection;
 import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
@@ -58,6 +62,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_EMAIL_REPORT_NAME;
+import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME;
+import static org.wso2.testgrid.common.util.FileUtil.writeToFile;
 import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
 import static org.wso2.testgrid.reporting.AxisColumn.INFRASTRUCTURE;
 import static org.wso2.testgrid.reporting.AxisColumn.SCENARIO;
@@ -74,8 +80,10 @@ public class TestReportEngine {
     private static final String REPORT_MUSTACHE = "report.mustache";
     private static final String PERFORMANCE_REPORT_MUSTACHE = "performance_report.mustache";
     private static final String EMAIL_REPORT_MUSTACHE = "email_report.mustache";
+    private static final String SUMMARIZED_EMAIL_REPORT_MUSTACHE = "summarized_email_report.mustache";
     private static final String REPORT_TEMPLATE_KEY = "parsedReport";
     private static final String PER_TEST_PLAN_TEMPLATE_KEY = "perTestPlan";
+    private static final String PER_TEST_CASE_TEMPLATE_KEY = "perTestCase";
     private static final String PRODUCT_STATUS_TEMPLATE_KEY = "productTestStatus";
     private static final String PRODUCT_NAME_TEMPLATE_KEY = "productName";
     private static final String GIT_BUILD_DETAILS_TEMPLATE_KEY = "gitBuildDetails";
@@ -739,27 +747,7 @@ public class TestReportEngine {
      * @param workspace workspace containing the test-plan yamls
      */
     public Optional<Path> generateEmailReport(Product product, String workspace) throws ReportingException {
-        List<TestPlan> testPlans = new ArrayList<>();
-        try {
-            List<String> testPlanIds = FileUtil.getTestPlanIdByReadingTGYaml(workspace);
-            for (String testPlanId : testPlanIds) {
-                Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanId);
-                if (testPlanById.isPresent()) {
-                    logger.info("Derived test plan dir in email phase : " + TestGridUtil
-                            .deriveTestPlanDirName(testPlanById.get()));
-                    testPlans.add(testPlanById.get());
-                } else {
-                    logger.error(String.format(
-                            "Inconsistent state: The test plan yaml with id '%s' has no entry in the database. "
-                                    + "Ignoring the test plan...", testPlanId));
-                }
-            }
-        } catch (TestGridDAOException e) {
-            throw new ReportingException("Error occurred while getting the test plan from database ", e);
-        } catch (TestGridException e) {
-            throw new ReportingException(
-                    "Error occurred while getting the test plan id by reading test grid yaml files ", e);
-        }
+        List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
         //start email generation
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
@@ -782,5 +770,96 @@ public class TestReportEngine {
         Path reportPath = Paths.get(testGridHome, relativeFilePath);
         writeHTMLToFile(reportPath, htmlString);
         return Optional.of(reportPath);
+    }
+
+    /**
+     * Generate a summarized HTML report which is used as the content of the email to be sent out to
+     * relevant parties interested in TestGrid test job.
+     *
+     * @param product   product needing the report
+     * @param workspace workspace containing the test-plan yamls
+     * @return {@link Path} of the created  report
+     */
+    public Optional<Path> generateSummarizedEmailReport(Product product, String workspace)
+            throws ReportingException, TestGridException {
+
+        List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
+
+        //start email generation
+        if (!emailReportProcessor.hasFailedTests(testPlans)) {
+            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
+                        + "Hence skipping email-report generation..");
+            return Optional.empty();
+        }
+        GraphDataProvider graphDataProvider = new GraphDataProvider();
+
+        List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
+        Map<String, Object> results = new HashMap<>();
+
+        List<TestCaseResultSection> resultList = new ArrayList<>();
+
+        for (BuildFailureSummary summary : failureSummary) {
+            TestCaseResultSection resultSection = new TestCaseResultSection();
+            resultSection.setTestCaseName(summary.getTestCaseName());
+            resultSection.setTestCaseDescription(summary.getTestCaseDescription());
+            List<InfraCombination> combinations = summary.getInfraCombinations();
+            resultSection.setTestCaseExecutedOS(combinations.get(0).getOs());
+            resultSection.setTestCaseExecutedJDK(combinations.get(0).getJdk());
+            resultSection.setTestCaseExecutedDB(combinations.get(0).getDbEngine());
+
+            if (combinations.size() > 1) {
+                resultSection.setInfraCombinations(combinations.subList(1, combinations.size()));
+            }
+            resultList.add(resultSection);
+        }
+
+        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
+
+        results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
+        results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
+        results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
+        results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
+        String htmlString = renderer.render(SUMMARIZED_EMAIL_REPORT_MUSTACHE, results);
+
+        // Write to HTML file
+        String relativeFilePath = TestGridUtil
+                .deriveTestGridLogFilePath(product.getName(), TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME);
+        String testGridHome = TestGridUtil.getTestGridHomePath();
+        Path reportPath = Paths.get(testGridHome, relativeFilePath);
+        writeToFile(reportPath.toString(), htmlString);
+
+        // Generating the charts
+        BuildExecutionSummary summary = graphDataProvider.getTestExecutionSummary(workspace);
+        ChartGenerator chartGenerator = new ChartGenerator(reportPath.toString());
+        chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
+                .getSkippedTestPlans());
+
+        return Optional.of(reportPath);
+    }
+
+    //
+    private List<TestPlan> getTestPlansInWorkspace(String workspace) throws ReportingException {
+        List<TestPlan> testPlans = new ArrayList<>();
+        try {
+            List<String> testPlanIds = FileUtil.getTestPlanIdByReadingTGYaml(workspace);
+            for (String testPlanId : testPlanIds) {
+                Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanId);
+                if (testPlanById.isPresent()) {
+                    logger.info("Derived test plan dir in email phase : " + TestGridUtil
+                            .deriveTestPlanDirName(testPlanById.get()));
+                    testPlans.add(testPlanById.get());
+                } else {
+                    logger.error(String.format(
+                            "Inconsistent state: The test plan yaml with id '%s' has no entry in the database. "
+                            + "Ignoring the test plan...", testPlanId));
+                }
+            }
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occurred while getting the test plan from database ", e);
+        } catch (TestGridException e) {
+            throw new ReportingException(
+                    "Error occurred while getting the test plan id by reading test grid yaml files ", e);
+        }
+    return testPlans;
     }
 }

@@ -24,7 +24,9 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 /**
- * This class is responsib;e generating the necessary charts fot the email report.
+ * This class is responsible for generating the necessary charts for the email report.
+ *
+ * @since 1.0.0
  */
 public class ChartGenerator {
 
@@ -39,14 +41,14 @@ public class ChartGenerator {
     }
 
     /**
-     * Generatees a pie chart with the summary test results of the current build.
+     * Generates a pie chart with the summary test results of the current build.
      *
      * @param passedCount  passed test count
      * @param failedCount  failed test count
      * @param skippedCount skipped test count
      * @throws IOException if the chart cannot be written into a file
      */
-    public void generateSummaryChart(int passedCount, int failedCount, int skippedCount) throws IOException {
+    public void generateSummaryChart(int passedCount, int failedCount, int skippedCount) {
 
         ObservableList<PieChart.Data> pieChartData =
                 FXCollections.observableArrayList(
@@ -54,7 +56,7 @@ public class ChartGenerator {
                         new PieChart.Data("Skipped", skippedCount),
                         new PieChart.Data("Passed", passedCount));
         final PieChart chart = new PieChart(pieChartData);
-        chart.setTitle("Test Failure Summary");
+        chart.setTitle("Build Failure Summary by Test Plans");
         genChart(chart, 500, 500, summaryChartFileName);
     }
 
@@ -108,43 +110,23 @@ public class ChartGenerator {
         genChart(stackedBarChart, 800, 800, historyChartFileName);
     }
 
-//    /**
-//     * Generate the test failure summary table for failed test cases.
-//     *
-//     * @return a html table with contents.
-//     */
-//    public String generaeSummaryTable() {
-//
-//        // Color pallet is used to inject colors to differentiate the testcase rows.
-//        String[] colorPallette = new String[]{"#b2ad7f", "#a2b9bc", "#d6cbd3", "#bdcebe", "#e3eaa7", "#e6e2d3",
-//                "#dac292", "#c6bcb6", "#b7d7e8", "#b8a9c9", "#f2ae72"};
-//
-//        StringBuilder tableContent =  new StringBuilder();
-//        tableContent.append("<table>");
-//        tableContent.append("<tr>");
-//        tableContent.append("<th>Failing Test Case</th>");
-//        tableContent.append("<th>OS</th>");
-//        tableContent.append("<th>JDK</th>");
-//        tableContent.append("<th>DB</th>");
-//        tableContent.append("</tr>");
-//        // loop the content
-////        for testcase
-////                for OS
-////                    for JDK
-////                        for DB
-//        tableContent.append("</table>");
-//        return null;
-//    }
-
     /**
      * Returns the chart generation location.
      *
-     * @return chart generation dir
+     * @return chart generation directory
      */
     public String getChartGenLocation() {
         return chartGenLocation;
     }
 
+    /**
+     * Generates the chart and writes to an image.
+     *
+     * @param chart to be rendered
+     * @param width with of the chart in pixels
+     * @param height height of the  chart in pixels
+     * @param fileName of the written image
+     */
     private void genChart(Chart chart, int width, int height, String fileName) {
         Platform.runLater(() -> {
             Stage stage = new Stage();
@@ -156,13 +138,18 @@ public class ChartGenerator {
         });
     }
 
+    /**
+     * Writes the {@link WritableImage} to a file.
+     *
+     * @param image {@link WritableImage} which is written the given file
+     * @param fileName file name of the image to be written
+     */
     private void writeImage(WritableImage image, String fileName) {
-
         File file = new File(Paths.get(chartGenLocation, fileName).toString());
         try {
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
         } catch (IOException e) {
-                logger.error("Error occured while writing the chart image", e);
+                logger.error("Error occurred while writing the chart image", e);
         }
     }
 }
