@@ -42,6 +42,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -63,15 +64,20 @@ public class GraphDataProvider {
      * testgrid yaml files which contains in the current workspace.
      *
      * @param workspace   current workspace
-     * @throws TestGridException thrown when getting test plan ids by reading test plan yaml files
+     * @throws ReportingException thrown when getting test plan ids by reading test plan yaml files
      */
-    public List<BuildFailureSummary> getTestFailureSummary(String workspace) throws TestGridException {
-        List<TestCaseFailureResultDTO> testFailureSummary = testPlanUOW
-                .getTestFailureSummary(FileUtil.getTestPlanIdByReadingTGYaml(workspace));
-        if (testFailureSummary.isEmpty()) {
-            return Collections.emptyList();
+    public List<BuildFailureSummary> getTestFailureSummary(String workspace) throws ReportingException {
+        List<TestCaseFailureResultDTO> testFailureSummary;
+        try {
+            testFailureSummary = testPlanUOW
+                    .getTestFailureSummary(FileUtil.getTestPlanIdByReadingTGYaml(workspace));
+            if (testFailureSummary.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return processTestFailureSummary(testFailureSummary);
+        } catch (TestGridException e) {
+            throw new ReportingException("Error occurred while reading yaml files in the TG home", e);
         }
-        return processTestFailureSummary(testFailureSummary);
     }
 
     /**
@@ -112,44 +118,48 @@ public class GraphDataProvider {
      * Provide test execution summary for a given build job..
      *
      * @param workspace   current workspace
-     * @throws TestGridException thrown when error on getting test plan ids by reading testgrid yaml files located
+     * @throws ReportingException thrown when error on getting test plan ids by reading testgrid yaml files located
      * in the current workspace.
      */
-    public BuildExecutionSummary getTestExecutionSummary(String workspace) throws TestGridException {
+    public BuildExecutionSummary getTestExecutionSummary(String workspace) throws ReportingException {
         int passedTestPlans = 0;
         int failedTestPlans = 0;
         int skippedTestPlans = 0;
-        List<String> testExecutionSummary = testPlanUOW
-                .getTestExecutionSummary(FileUtil.getTestPlanIdByReadingTGYaml(workspace));
-        BuildExecutionSummary testExecutionSummaryData = new BuildExecutionSummary();
-        if (testExecutionSummary.isEmpty()) {
-            throw new TestGridException("Couldn't find test plan status for given test plan ids");
-        }
-
-        for (String status : testExecutionSummary) {
-            if (Status.SUCCESS.toString().equals(status)) {
-                passedTestPlans++;
-            } else if (Status.FAIL.toString().equals(status)) {
-                failedTestPlans++;
-            } else {
-                skippedTestPlans++;
+        List<String> testExecutionSummary;
+        try {
+            testExecutionSummary = testPlanUOW
+                    .getTestExecutionSummary(FileUtil.getTestPlanIdByReadingTGYaml(workspace));
+            BuildExecutionSummary testExecutionSummaryData = new BuildExecutionSummary();
+            if (testExecutionSummary.isEmpty()) {
+                throw new ReportingException("Couldn't find test plan status for given test plan ids");
             }
+
+            for (String status : testExecutionSummary) {
+                if (Status.SUCCESS.toString().equals(status)) {
+                    passedTestPlans++;
+                } else if (Status.FAIL.toString().equals(status)) {
+                    failedTestPlans++;
+                } else {
+                    skippedTestPlans++;
+                }
+            }
+            testExecutionSummaryData.setPassedTestPlans(passedTestPlans);
+            testExecutionSummaryData.setFailedTestPlans(failedTestPlans);
+            testExecutionSummaryData.setSkippedTestPlans(skippedTestPlans);
+            return testExecutionSummaryData;
+        } catch (TestGridException e) {
+            throw new ReportingException("Error occurred while reading yaml files in the TG home", e);
         }
-        testExecutionSummaryData.setPassedTestPlans(passedTestPlans);
-        testExecutionSummaryData.setFailedTestPlans(failedTestPlans);
-        testExecutionSummaryData.setSkippedTestPlans(skippedTestPlans);
-        return testExecutionSummaryData;
     }
 
     /**
      * Provide history of the test execution summary for a given build job..
      *
-     * @throws TestGridException thrown when error on getting test plan ids by reading testgrid yaml files located
      * in the current workspace.
      */
-    public List<BuildExecutionSummary> getTestExecutionHistory(String productId) {
+    public Map<String, BuildExecutionSummary> getTestExecutionHistory(String productId) {
 
-        List<BuildExecutionSummary> buildExecutionSummariesHistory = new ArrayList<>();
+        Map<String, BuildExecutionSummary> buildExecutionSummariesHistory = new TreeMap<>();
 
         LocalTime midnight = LocalTime.MIDNIGHT;
         LocalDate timeZone = LocalDate.now(ZoneId.of("UTC"));
@@ -200,7 +210,7 @@ public class GraphDataProvider {
             buildExecutionSummary.setPassedTestPlans(passedTestPlans);
             buildExecutionSummary.setFailedTestPlans(failedTestPlans);
             buildExecutionSummary.setSkippedTestPlans(skippedTestPlans);
-            buildExecutionSummariesHistory.add(buildExecutionSummary);
+            buildExecutionSummariesHistory.put(to, buildExecutionSummary);
             todayMidnight = todayMidnight.minusDays(1);
         }
         return buildExecutionSummariesHistory;
