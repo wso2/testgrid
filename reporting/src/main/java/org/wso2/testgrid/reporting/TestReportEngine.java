@@ -63,7 +63,6 @@ import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_EMAIL_REPORT_NAME;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME;
-import static org.wso2.testgrid.common.util.FileUtil.writeToFile;
 import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
 import static org.wso2.testgrid.reporting.AxisColumn.INFRASTRUCTURE;
 import static org.wso2.testgrid.reporting.AxisColumn.SCENARIO;
@@ -780,8 +779,7 @@ public class TestReportEngine {
      * @param workspace workspace containing the test-plan yamls
      * @return {@link Path} of the created  report
      */
-    public Optional<Path> generateSummarizedEmailReport(Product product, String workspace)
-            throws ReportingException, TestGridException {
+    public Optional<Path> generateSummarizedEmailReport(Product product, String workspace) throws ReportingException {
 
         List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
 
@@ -792,17 +790,16 @@ public class TestReportEngine {
             return Optional.empty();
         }
         GraphDataProvider graphDataProvider = new GraphDataProvider();
-
         List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
-        Map<String, Object> results = new HashMap<>();
 
+        Map<String, Object> results = new HashMap<>();
         List<TestCaseResultSection> resultList = new ArrayList<>();
 
-        for (BuildFailureSummary summary : failureSummary) {
+        for (BuildFailureSummary buildFailureSummary : failureSummary) {
             TestCaseResultSection resultSection = new TestCaseResultSection();
-            resultSection.setTestCaseName(summary.getTestCaseName());
-            resultSection.setTestCaseDescription(summary.getTestCaseDescription());
-            List<InfraCombination> combinations = summary.getInfraCombinations();
+            resultSection.setTestCaseName(buildFailureSummary.getTestCaseName());
+            resultSection.setTestCaseDescription(buildFailureSummary.getTestCaseDescription());
+            List<InfraCombination> combinations = buildFailureSummary.getInfraCombinations();
             resultSection.setTestCaseExecutedOS(combinations.get(0).getOs());
             resultSection.setTestCaseExecutedJDK(combinations.get(0).getJdk());
             resultSection.setTestCaseExecutedDB(combinations.get(0).getDbEngine());
@@ -826,18 +823,20 @@ public class TestReportEngine {
                 .deriveTestGridLogFilePath(product.getName(), TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME);
         String testGridHome = TestGridUtil.getTestGridHomePath();
         Path reportPath = Paths.get(testGridHome, relativeFilePath);
-        writeToFile(reportPath.toString(), htmlString);
-
-        // Generating the charts
-        BuildExecutionSummary summary = graphDataProvider.getTestExecutionSummary(workspace);
-        ChartGenerator chartGenerator = new ChartGenerator(reportPath.toString());
-        chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
-                .getSkippedTestPlans());
+        writeHTMLToFile(reportPath, htmlString);
+        // Generating the charts required for the email
+        generateSummarizedCharts(workspace, reportPath.getParent().toString());
 
         return Optional.of(reportPath);
     }
 
-    //
+    /**
+     * Returns a list of {@link TestPlan} for a given workspace.
+     *
+     * @param workspace build workspace
+     * @return a list of {@link TestPlan} in the given workspace
+     * @throws ReportingException if {@link TestGridDAOException} or {@link TestGridException} occurs
+     */
     private List<TestPlan> getTestPlansInWorkspace(String workspace) throws ReportingException {
         List<TestPlan> testPlans = new ArrayList<>();
         try {
@@ -856,10 +855,30 @@ public class TestReportEngine {
             }
         } catch (TestGridDAOException e) {
             throw new ReportingException("Error occurred while getting the test plan from database ", e);
-        } catch (TestGridException e) {
+            } catch (TestGridException e) {
             throw new ReportingException(
                     "Error occurred while getting the test plan id by reading test grid yaml files ", e);
         }
     return testPlans;
+    }
+
+    /**
+     * Generate summarized charts for the summary email.
+     *
+     * @param workspace curent workspace of the build
+     * @param chartGenLocation location where charts should be generated
+     */
+    private void generateSummarizedCharts(String workspace, String chartGenLocation) throws ReportingException {
+        GraphDataProvider dataProvider = new GraphDataProvider();
+        logger.info(StringUtil
+                .concatStrings("Generating Charts with workspace : ", workspace, " at ", chartGenLocation));
+        BuildExecutionSummary summary =  dataProvider.getTestExecutionSummary(workspace);
+        ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
+
+        // Generating the charts
+        chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
+                .getSkippedTestPlans());
+        // Generate history chart
+        //chartGenerator.generateResultHistoryChart("","");
     }
 }
