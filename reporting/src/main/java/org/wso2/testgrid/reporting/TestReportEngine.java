@@ -24,6 +24,8 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -36,7 +38,6 @@ import org.wso2.testgrid.reporting.model.ReportElement;
 import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
-import org.wso2.testgrid.reporting.util.FileUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,13 +55,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_EMAIL_REPORT_NAME;
 import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
 import static org.wso2.testgrid.reporting.AxisColumn.INFRASTRUCTURE;
 import static org.wso2.testgrid.reporting.AxisColumn.SCENARIO;
-import static org.wso2.testgrid.reporting.util.FileUtil.writeToFile;
 
 /**
  * This class is responsible for generating the test reports.
@@ -105,7 +104,8 @@ public class TestReportEngine {
      * @param groupBy     columns to group by
      * @throws ReportingException thrown when error on generating test report
      */
-    public void generateReport(Product product, boolean showSuccess, String groupBy) throws ReportingException {
+    public void generateReport(Product product, boolean showSuccess, String groupBy)
+            throws ReportingException {
         AxisColumn uniqueAxisColumn = getGroupByColumn(groupBy);
 
         // Construct report elements
@@ -165,7 +165,6 @@ public class TestReportEngine {
             throw new ReportingException(String.format("Error while prepering the report for Product %s"
                     , report.getProductName()), e);
         }
-
     }
 
     /**
@@ -725,7 +724,11 @@ public class TestReportEngine {
      */
     private void writeHTMLToFile(Path filePath, String htmlString) throws ReportingException {
         logger.info("Writing test results to file: " + filePath.toString());
-        FileUtil.writeToFile(filePath.toAbsolutePath().toString(), htmlString);
+        try {
+            FileUtil.writeToFile(filePath.toAbsolutePath().toString(), htmlString);
+        } catch (TestGridException e) {
+            throw new ReportingException("Error occurred while writing email report to a html file ", e);
+        }
     }
 
     /**
@@ -737,43 +740,30 @@ public class TestReportEngine {
      */
     public Optional<Path> generateEmailReport(Product product, String workspace) throws ReportingException {
         List<TestPlan> testPlans = new ArrayList<>();
-        Path source = Paths.get(workspace, "test-plans");
-        if (!Files.exists(source)) {
-            logger.error("Test-plans dir does not exist: " + source);
-            return Optional.empty();
-        }
-        try (Stream<Path> stream = Files.list(source).filter(Files::isRegularFile)) {
-            List<Path> paths = stream.sorted().collect(Collectors.toList());
-            for (Path path : paths) {
-                if (!path.toFile().exists()) {
-                    throw new ReportingException(
-                            "Test Plan File doesn't exist. File path is " + path.toAbsolutePath().toString());
-                }
-                logger.info("A test plan file found at " + path.toAbsolutePath().toString());
-                TestPlan testPlanYaml = org.wso2.testgrid.common.util.FileUtil
-                        .readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
-                Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanYaml.getId());
+        try {
+            List<String> testPlanIds = FileUtil.getTestPlanIdByReadingTGYaml(workspace);
+            for (String testPlanId : testPlanIds) {
+                Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanId);
                 if (testPlanById.isPresent()) {
-                    logger.info("Derived test plan dir in email phase : " +
-                            TestGridUtil.deriveTestPlanDirName(testPlanById.get()));
+                    logger.info("Derived test plan dir in email phase : " + TestGridUtil
+                            .deriveTestPlanDirName(testPlanById.get()));
                     testPlans.add(testPlanById.get());
                 } else {
                     logger.error(String.format(
                             "Inconsistent state: The test plan yaml with id '%s' has no entry in the database. "
-                                    + "Ignoring the test plan...",
-                            testPlanYaml.getId()));
+                                    + "Ignoring the test plan...", testPlanId));
                 }
             }
-        } catch (IOException e) {
-            throw new ReportingException("Error occurred while reading the test-plan yamls in workspace "
-                    + workspace, e);
         } catch (TestGridDAOException e) {
             throw new ReportingException("Error occurred while getting the test plan from database ", e);
+        } catch (TestGridException e) {
+            throw new ReportingException(
+                    "Error occurred while getting the test plan id by reading test grid yaml files ", e);
         }
         //start email generation
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
-            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. " +
-                    "Hence skipping email-report generation..");
+            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
+                    + "Hence skipping email-report generation..");
             return Optional.empty();
         }
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
@@ -790,7 +780,7 @@ public class TestReportEngine {
         String relativeFilePath = TestGridUtil.deriveTestGridLogFilePath(product.getName(), TESTGRID_EMAIL_REPORT_NAME);
         String testGridHome = TestGridUtil.getTestGridHomePath();
         Path reportPath = Paths.get(testGridHome, relativeFilePath);
-        writeToFile(reportPath.toString(), htmlString);
+        writeHTMLToFile(reportPath, htmlString);
         return Optional.of(reportPath);
     }
 }
