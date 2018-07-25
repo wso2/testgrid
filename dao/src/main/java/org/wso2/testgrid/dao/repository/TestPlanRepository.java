@@ -339,4 +339,28 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         List<String> statuses = (List<String>) query.getResultList();
         return statuses;
     }
+
+    /**
+     * This method returns the history of test execution summary for given product.
+     *
+     * @param productId id of the product
+     * @param from starting point of the considering time range
+     * @param to end point of the considering time range
+     * @return a List of {@link TestPlan} representing executed test plans of a given product for a given time range
+     */
+    public List<TestPlan> getTestExecutionHistory(String productId, String from, String to) {
+        String sql = "select tp.* from test_plan tp inner join (Select distinct infra_parameters from test_plan where  "
+                + "DEPLOYMENTPATTERN_id in (select id from deployment_pattern where PRODUCT_id=?)) as rn on "
+                + "tp.infra_parameters=rn.infra_parameters and tp.DEPLOYMENTPATTERN_id "
+                + "in (select id from deployment_pattern where PRODUCT_id=?) and modified_timestamp between ? and ?;";
+
+        @SuppressWarnings("unchecked")
+        List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, productId)
+                .setParameter(2, productId)
+                .setParameter(3, from)
+                .setParameter(4, to)
+                .getResultList();
+        return EntityManagerHelper.refreshResultList(entityManager, resultList);
+        }
 }

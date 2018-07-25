@@ -25,6 +25,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -33,6 +34,11 @@ import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.model.email.BuildExecutionSummary;
 import org.wso2.testgrid.reporting.model.email.BuildFailureSummary;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,9 +51,8 @@ import java.util.TreeMap;
  */
 public class GraphDataProvider {
     private TestPlanUOW testPlanUOW;
-    private int passedTestPlans = 0;
-    private int failedTestPlans = 0;
-    private int skippedTestPlans = 0;
+    private static final int MAXIMUM_TIME_RANGE = 30;
+    private static final int TEST_EXECUTION_HISTORY_RANGE = 7;
 
     public GraphDataProvider() {
         this.testPlanUOW = new TestPlanUOW();
@@ -111,6 +116,9 @@ public class GraphDataProvider {
      * in the current workspace.
      */
     public BuildExecutionSummary getTestExecutionSummary(String workspace) throws TestGridException {
+        int passedTestPlans = 0;
+        int failedTestPlans = 0;
+        int skippedTestPlans = 0;
         List<String> testExecutionSummary = testPlanUOW
                 .getTestExecutionSummary(FileUtil.getTestPlanIdByReadingTGYaml(workspace));
         BuildExecutionSummary testExecutionSummaryData = new BuildExecutionSummary();
@@ -120,16 +128,81 @@ public class GraphDataProvider {
 
         for (String status : testExecutionSummary) {
             if (Status.SUCCESS.toString().equals(status)) {
-                this.passedTestPlans++;
+                passedTestPlans++;
             } else if (Status.FAIL.toString().equals(status)) {
-                this.failedTestPlans++;
+                failedTestPlans++;
             } else {
-                this.skippedTestPlans++;
+                skippedTestPlans++;
             }
         }
-        testExecutionSummaryData.setPassedTestPlans(this.passedTestPlans);
-        testExecutionSummaryData.setFailedTestPlans(this.failedTestPlans);
-        testExecutionSummaryData.setSkippedTestPlans(this.skippedTestPlans);
+        testExecutionSummaryData.setPassedTestPlans(passedTestPlans);
+        testExecutionSummaryData.setFailedTestPlans(failedTestPlans);
+        testExecutionSummaryData.setSkippedTestPlans(skippedTestPlans);
         return testExecutionSummaryData;
+    }
+
+    /**
+     * Provide history of the test execution summary for a given build job..
+     *
+     * @throws TestGridException thrown when error on getting test plan ids by reading testgrid yaml files located
+     * in the current workspace.
+     */
+    public List<BuildExecutionSummary> getTestExecutionHistory(String productId) {
+
+        List<BuildExecutionSummary> buildExecutionSummariesHistory = new ArrayList<>();
+
+        LocalTime midnight = LocalTime.MIDNIGHT;
+        LocalDate timeZone = LocalDate.now(ZoneId.of("UTC"));
+        LocalDateTime todayMidnight = LocalDateTime.of(timeZone, midnight);
+
+        for (int i = 0; i < MAXIMUM_TIME_RANGE; i++) {
+            if (TEST_EXECUTION_HISTORY_RANGE == buildExecutionSummariesHistory.size()) {
+                break;
+            }
+            String from = todayMidnight.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String to = todayMidnight.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            TreeMap<String, TestPlan> testExecutionHistory = new TreeMap<>();
+            BuildExecutionSummary buildExecutionSummary = new BuildExecutionSummary();
+            List<TestPlan> filteredTestPlanHistory;
+
+            int passedTestPlans = 0;
+            int failedTestPlans = 0;
+            int skippedTestPlans = 0;
+
+            List<TestPlan> testPlanHistory = testPlanUOW.getTestExecutionHistory(productId, from, to);
+
+            if (testPlanHistory.isEmpty()) {
+                todayMidnight = todayMidnight.minusDays(1);
+                continue;
+            }
+
+            for (TestPlan testplan : testPlanHistory) {
+                String key = testplan.getInfraParameters();
+                if (testExecutionHistory.containsKey(key)) {
+                    if (testplan.getTestRunNumber() > testExecutionHistory.get(key).getTestRunNumber()) {
+                        testExecutionHistory.replace(key, testplan);
+                    }
+                } else {
+                    testExecutionHistory.put(testplan.getInfraParameters(), testplan);
+                }
+            }
+
+            filteredTestPlanHistory = new ArrayList<>(testExecutionHistory.values());
+            for (TestPlan testplan : filteredTestPlanHistory) {
+                if (Status.SUCCESS.equals(testplan.getStatus())) {
+                    passedTestPlans++;
+                } else if (Status.FAIL.equals(testplan.getStatus())) {
+                    failedTestPlans++;
+                } else {
+                    skippedTestPlans++;
+                }
+            }
+            buildExecutionSummary.setPassedTestPlans(passedTestPlans);
+            buildExecutionSummary.setFailedTestPlans(failedTestPlans);
+            buildExecutionSummary.setSkippedTestPlans(skippedTestPlans);
+            buildExecutionSummariesHistory.add(buildExecutionSummary);
+            todayMidnight = todayMidnight.minusDays(1);
+        }
+        return buildExecutionSummariesHistory;
     }
 }

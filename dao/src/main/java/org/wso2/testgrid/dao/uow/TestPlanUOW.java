@@ -182,7 +182,6 @@ public class TestPlanUOW {
         return testPlanRepository.getTestPlanOlderThan(duration, timeUnit);
     }
 
-
     /**
      * Returns the test plan statuses for given test plan ids.
      *
@@ -192,7 +191,6 @@ public class TestPlanUOW {
         return testPlanRepository.getTestExecutionSummaryByTPId(tpIds);
     }
 
-
     /**
      * Returns the representation of failed test cases with test case name, description and infra combination for given
      * test plan ids. (I.e for a given build job)
@@ -201,5 +199,14 @@ public class TestPlanUOW {
      */
     public List<TestCaseFailureResultDTO> getTestFailureSummary(List<String> tpIds) {
         return testPlanRepository.getTestFailureSummaryByTPId(tpIds);
+    }
+
+    /**
+     * Returns the representation of test execution history for q given product in a given time range
+     *
+     * @return a List of TestPlan which represent executed test plans in the given time range for a given product.
+     */
+    public List<TestPlan> getTestExecutionHistory(String productId, String from, String to) {
+        return testPlanRepository.getTestExecutionHistory(productId, from, to);
     }
 }
