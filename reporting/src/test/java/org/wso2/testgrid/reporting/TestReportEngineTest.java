@@ -36,7 +36,6 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -151,7 +150,7 @@ public class TestReportEngineTest {
     }
 
     @Test
-    public void generateEmailReport() throws TestGridDAOException, ReportingException, TestGridException {
+    public void generateEmailReport() throws TestGridDAOException, ReportingException {
         when(testPlanUOW.getLatestTestPlans(Matchers.any(Product.class)))
                 .thenReturn(Collections.singletonList(testPlan));
         when(testPlanUOW.getTestPlanById("abc")).thenReturn(Optional.of(testPlan));

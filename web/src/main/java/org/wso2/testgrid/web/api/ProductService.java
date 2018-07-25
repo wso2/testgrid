@@ -29,7 +29,6 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.AxisColumn;
-import org.wso2.testgrid.reporting.GraphDataProvider;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.ProductStatus;
 import org.wso2.testgrid.web.plugins.AWSArtifactReader;
@@ -130,8 +129,6 @@ public class ProductService {
                 status.setLastFailureTimestamp(product.getLastFailureTimestamp());
                 status.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());
                 list.add(status);
-//                GraphDataProvider gp = new GraphDataProvider();
-//                gp.getTestExecutionHistory("1d68c7b1-210f-4794-a8a4-58e798155905");
             }
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the Product statuses ";
