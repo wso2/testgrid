@@ -64,7 +64,10 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     @Column(name = "failure_message", length = 20000)
     private String failureMessage;
 
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = TestScenario.class, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false,
+               cascade = CascadeType.ALL,
+               targetEntity = TestScenario.class,
+               fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumn(name = "TESTSCENARIO_id", referencedColumnName = "id")
     private TestScenario testScenario;
 

@@ -127,11 +127,7 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
 
     @Override
     public String toString() {
-        return "InfrastructureParameter{" +
-                "name='" + name + '\'' +
-                ", type='" + type + '\'' +
-                ", readyForTestGrid=" + readyForTestGrid +
-                "}\n";
+        return type + "='" + name + '\'';
     }
 
     @Override

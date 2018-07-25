@@ -37,6 +37,7 @@ import org.wso2.testgrid.reporting.model.ReportElement;
 import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
+import org.wso2.testgrid.reporting.summary.InfrastructureBuildStatus;
 import org.wso2.testgrid.reporting.util.FileUtil;
 
 import java.io.IOException;
@@ -736,14 +737,54 @@ public class TestReportEngine {
      * @param workspace workspace containing the test-plan yamls
      */
     public Optional<Path> generateEmailReport(Product product, String workspace) throws ReportingException {
-        List<TestPlan> testPlans = new ArrayList<>();
-        Path source = Paths.get(workspace, "test-plans");
-        if (!Files.exists(source)) {
-            logger.error("Test-plans dir does not exist: " + source);
+        Path testPlansDir = Paths.get(workspace, "test-plans");
+        if (!Files.exists(testPlansDir)) {
+            logger.error("Test-plans dir does not exist: " + testPlansDir);
             return Optional.empty();
         }
-        try (Stream<Path> stream = Files.list(source).filter(Files::isRegularFile)) {
-            List<Path> paths = stream.sorted().collect(Collectors.toList());
+        List<TestPlan> testPlans = getTestPlans(workspace, testPlansDir);
+        //start email generation
+        if (!emailReportProcessor.hasFailedTests(testPlans)) {
+            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. " +
+                    "Hence skipping email-report generation..");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Skipped email-report generation for test-plans: " + testPlans);
+            }
+            return Optional.empty();
+        }
+
+        Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
+                .getSummaryTable(testPlans);
+        postProcessSummaryTable(testCaseInfraSummaryMap);
+        logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
+
+        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
+        Map<String, Object> report = new HashMap<>();
+        Map<String, Object> perSummariesMap = new HashMap<>();
+        report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
+        report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
+        report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
+        report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
+        report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
+        perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
+        String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
+
+        // Write to HTML file
+        String relativeFilePath = TestGridUtil.deriveTestGridLogFilePath(product.getName(), TESTGRID_EMAIL_REPORT_NAME);
+        String testGridHome = TestGridUtil.getTestGridHomePath();
+        Path reportPath = Paths.get(testGridHome, relativeFilePath);
+        writeToFile(reportPath.toString(), htmlString);
+        return Optional.of(reportPath);
+    }
+
+    private void postProcessSummaryTable(Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap) {
+
+    }
+
+    private List<TestPlan> getTestPlans(String workspace, Path testPlansDir) throws ReportingException {
+        List<TestPlan> testPlans = new ArrayList<>();
+        try (Stream<Path> testPlansStream = Files.list(testPlansDir).filter(Files::isRegularFile)) {
+            List<Path> paths = testPlansStream.sorted().collect(Collectors.toList());
             for (Path path : paths) {
                 if (!path.toFile().exists()) {
                     throw new ReportingException(
@@ -770,27 +811,6 @@ public class TestReportEngine {
         } catch (TestGridDAOException e) {
             throw new ReportingException("Error occurred while getting the test plan from database ", e);
         }
-        //start email generation
-        if (!emailReportProcessor.hasFailedTests(testPlans)) {
-            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. " +
-                    "Hence skipping email-report generation..");
-            return Optional.empty();
-        }
-        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
-        Map<String, Object> report = new HashMap<>();
-        Map<String, Object> perSummariesMap = new HashMap<>();
-        report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
-        report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
-        report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
-        report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
-        perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
-        String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
-
-        // Write to HTML file
-        String relativeFilePath = TestGridUtil.deriveTestGridLogFilePath(product.getName(), TESTGRID_EMAIL_REPORT_NAME);
-        String testGridHome = TestGridUtil.getTestGridHomePath();
-        Path reportPath = Paths.get(testGridHome, relativeFilePath);
-        writeToFile(reportPath.toString(), htmlString);
-        return Optional.of(reportPath);
+        return testPlans;
     }
 }
