@@ -78,7 +78,6 @@ public class GraphDataProvider {
         } catch (TestGridException e) {
             throw new ReportingException("Error occurred while reading yaml files in the TG home", e);
         }
-
     }
 
     /**
@@ -161,7 +160,6 @@ public class GraphDataProvider {
     public Map<String, BuildExecutionSummary> getTestExecutionHistory(String productId) {
 
         Map<String, BuildExecutionSummary> buildExecutionSummariesHistory = new TreeMap<>();
-
 
         LocalTime midnight = LocalTime.MIDNIGHT;
         LocalDate timeZone = LocalDate.now(ZoneId.of("UTC"));
