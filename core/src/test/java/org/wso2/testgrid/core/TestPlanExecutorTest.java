@@ -74,21 +74,21 @@ public class TestPlanExecutorTest {
         s2.setStatus(Status.FAIL);
 
         TestCase tc = new TestCase();
-        tc.setSuccess(Status.SUCCESS);
+        tc.setSuccess(true);
         tc.setFailureMessage("success");
         tc.setName("Sample Testcase 01");
         tc.setTestScenario(s);
         s.addTestCase(tc);
 
         tc = new TestCase();
-        tc.setSuccess(Status.FAIL);
+        tc.setSuccess(false);
         tc.setFailureMessage("fail");
         tc.setName("Sample Testcase 02");
         tc.setTestScenario(s2);
         s2.addTestCase(tc);
 
         tc = new TestCase();
-        tc.setSuccess(Status.FAIL);
+        tc.setSuccess(false);
         tc.setFailureMessage("fail");
         tc.setName("Sample Testcase 03");
         tc.setTestScenario(s2);

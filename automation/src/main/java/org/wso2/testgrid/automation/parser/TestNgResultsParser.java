@@ -21,7 +21,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ResultParserException;
-import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
@@ -69,9 +68,11 @@ public class TestNgResultsParser extends ResultParser {
     public static final String RESULTS_TEST_SUITE_FILE = "TEST-TestSuite.xml";
     private static final String[] ARCHIVABLE_FILES = new String[] { "surefire-reports", "automation.log" };
     private static final Logger logger = LoggerFactory.getLogger(TestNgResultsParser.class);
-    private static final String TEST_CASE = "testcase";
-    private static final String FAILED = "failure";
+    private static final String TOTAL = "total";
+    private static final String FAILED = "failed";
+    private static final String PASSED = "passed";
     private static final String SKIPPED = "skipped";
+    private final XMLInputFactory factory = XMLInputFactory.newInstance();
 
     /**
      * This constructor is used to create a {@link TestNgResultsParser} object with the
@@ -146,7 +147,7 @@ public class TestNgResultsParser extends ResultParser {
                 }
                 logger.info(String.format("Found total of %s test cases. %s test cases has failed.", testScenario
                                 .getTestCases().size(),
-                        testScenario.getTestCases().stream().filter(tc -> Status.FAIL.equals(tc.getStatus())).count()));
+                        testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count()));
             } catch (IOException | XMLStreamException e) {
                 logger.error("Error while parsing testng-results.xml at " + resultsFile + " for " +
                         testScenario.getName(), e);
@@ -191,22 +192,23 @@ public class TestNgResultsParser extends ResultParser {
         List<TestCase> testCases = new ArrayList<>();
         while (eventReader.hasNext()) {
             XMLEvent event = eventReader.nextEvent();
-            if (event.getEventType() == XMLStreamConstants.END_ELEMENT && TEST_CASE
-                    .equals(event.asEndElement().getName().getLocalPart())) {
-                TestCase testCase = buildTestCase(classNameStr, Status.SUCCESS, "");
+            if (event.getEventType() == XMLStreamConstants.END_ELEMENT &&
+                    event.asEndElement().getName().getLocalPart().equals("testcase")) {
+                TestCase testCase = buildTestCase(classNameStr, Boolean.TRUE, "");
                 testCases.add(testCase);
                 break;
             }
-            if (event.getEventType() == XMLStreamConstants.START_ELEMENT && SKIPPED
-                    .equals(event.asStartElement().getName().getLocalPart())) {
-                TestCase testCase = buildTestCase(classNameStr, Status.SKIP, "Test Skipped");
+            if (event.getEventType() == XMLStreamConstants.START_ELEMENT &&
+                    event.asStartElement().getName().getLocalPart().equals("skipped")) {
+                //TODO add new state SKIPPED in the testcase/TestGrid and set to that state
+                TestCase testCase = buildTestCase(classNameStr, Boolean.FALSE, "Test Skipped");
                 testCases.add(testCase);
                 break;
             }
-            if (event.getEventType() == XMLStreamConstants.START_ELEMENT && FAILED
-                    .equals(event.asStartElement().getName().getLocalPart())) {
+            if (event.getEventType() == XMLStreamConstants.START_ELEMENT &&
+                    event.asStartElement().getName().getLocalPart().equals("failure")) {
                 String failureMessage = readFailureMessage(eventReader);
-                TestCase testCase = buildTestCase(classNameStr, Status.FAIL, failureMessage);
+                TestCase testCase = buildTestCase(classNameStr, Boolean.FALSE, failureMessage);
                 testCases.add(testCase);
                 break;
             }
@@ -235,7 +237,7 @@ public class TestNgResultsParser extends ResultParser {
         return builder.toString();
     }
 
-    private TestCase buildTestCase(String className, Status isSuccess, String failureMessage) {
+    private TestCase buildTestCase(String className, boolean isSuccess, String failureMessage) {
         TestCase testCase = new TestCase();
         testCase.setTestScenario(this.testScenario);
         testCase.setName(className);
@@ -317,3 +319,4 @@ public class TestNgResultsParser extends ResultParser {
 
     }
 }
+

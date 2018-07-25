@@ -57,12 +57,7 @@ public enum Status {
     /**
      * Entity execution is incomplete.
      */
-    INCOMPLETE("INCOMPLETE"),
-
-    /**
-     * Entity execution is skipped.
-     */
-    SKIP("SKIP");
+    INCOMPLETE("INCOMPLETE");
 
     private final String status;
 

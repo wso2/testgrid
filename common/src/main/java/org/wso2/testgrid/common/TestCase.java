@@ -23,8 +23,6 @@ import java.io.Serializable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
@@ -48,7 +46,7 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
      * Column names of the table.
      */
     public static final String NAME_COLUMN = "name";
-    public static final String IS_SUCCESS_COLUMN = "status";
+    public static final String IS_SUCCESS_COLUMN = "isSuccess";
     public static final String FAILURE_MESSAGE_COLUMN = "failureMessage";
     public static final String TEST_SCENARIO_COLUMN = "testScenario";
 
@@ -57,9 +55,8 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
     @Column(name = "test_name", nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 50)
-    private Status status;
+    @Column(name = "is_success", nullable = false)
+    private boolean isSuccess;
 
     @Column(name = "failure_message", length = 20000)
     private String failureMessage;
@@ -91,8 +88,8 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
      *
      * @return {@code true} if the test case is successful, {@code false} otherwise
      */
-    public Status getStatus() {
-        return status;
+    public boolean isSuccess() {
+        return isSuccess;
     }
 
     /**
@@ -100,8 +97,8 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
      *
      * @param success whether the test is successful or failed
      */
-    public void setSuccess(Status success) {
-        status = success;
+    public void setSuccess(boolean success) {
+        isSuccess = success;
     }
 
     /**
@@ -146,7 +143,7 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
         return StringUtil.concatStrings("TestCase{",
                 "id='", id,
                 ", name='", name, "\'",
-                ", status='", status, "\'",
+                ", isSuccess='", isSuccess, "\'",
                 ", failureMessage='", failureMessage, "\'",
                 ", testScenario='", testScenario.getName(), "\'",
                 '}');
