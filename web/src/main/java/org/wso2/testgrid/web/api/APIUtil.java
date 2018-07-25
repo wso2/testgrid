@@ -213,7 +213,7 @@ class APIUtil {
         if (testCase != null) {
             testCaseBean.setId(testCase.getId());
             testCaseBean.setName(testCase.getName());
-            testCaseBean.setStatus(testCase.getStatus());
+            testCaseBean.setSuccess(testCase.isSuccess());
             testCaseBean.setModifiedTimestamp(testCase.getModifiedTimestamp());
             testCaseBean.setCreatedTimestamp(testCase.getCreatedTimestamp());
             testCaseBean.setErrorMsg(testCase.getFailureMessage());

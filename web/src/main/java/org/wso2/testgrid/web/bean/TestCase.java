@@ -18,8 +18,6 @@
 
 package org.wso2.testgrid.web.bean;
 
-import org.wso2.testgrid.common.Status;
-
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -33,7 +31,7 @@ public class TestCase {
     private String errorMsg;
     private Timestamp createdTimestamp;
     private Timestamp modifiedTimestamp;
-    private Status status;
+    private boolean isSuccess;
 
     /**
      * Returns the id of the test-case.
@@ -114,21 +112,21 @@ public class TestCase {
     }
 
     /**
-     * Returns the status of the test-case.
+     * Returns the isSuccess of the test-case.
      *
      * @return {@code true} if the test is success, {@code false} otherwise
      */
-    public Status getStatus() {
-        return status;
+    public boolean isSuccess() {
+        return isSuccess;
     }
 
     /**
-     * Sets the status of the test-case.
+     * Sets the isSuccess of the test-case.
      *
-     * @param status test-case getStatus
+     * @param success test-case isSuccess
      */
-    public void setStatus(Status status) {
-        this.status = status;
+    public void setSuccess(boolean success) {
+        this.isSuccess = success;
     }
 
     /**

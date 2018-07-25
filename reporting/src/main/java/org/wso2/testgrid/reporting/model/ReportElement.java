@@ -17,7 +17,6 @@
  */
 package org.wso2.testgrid.reporting.model;
 
-import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.reporting.AxisColumn;
 
 /**
@@ -35,7 +34,7 @@ public class ReportElement {
     private String scenarioDescription;
     private String testCase;
     private String testCaseFailureMessage;
-    private Status isTestSuccess;
+    private boolean isTestSuccess;
 
     /**
      * Constructs an instance of {@link ReportElement} for the given parameters.
@@ -144,16 +143,7 @@ public class ReportElement {
      * @return {@code true} if the test case is successful, {@code false} otherwise
      */
     public boolean isTestSuccess() {
-        return Status.SUCCESS.equals(isTestSuccess);
-    }
-
-    /**
-     * Returns whether the test case is successful or not.
-     *
-     * @return {@code true} if the test case is successful, {@code false} otherwise
-     */
-    public boolean isTestFail() {
-        return Status.FAIL.equals(isTestSuccess);
+        return isTestSuccess;
     }
 
     /**
@@ -161,7 +151,7 @@ public class ReportElement {
      *
      * @param testSuccess whether the test case is successful or not.
      */
-    public void setTestSuccess(Status testSuccess) {
+    public void setTestSuccess(boolean testSuccess) {
         isTestSuccess = testSuccess;
     }
 

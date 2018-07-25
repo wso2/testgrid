@@ -17,8 +17,6 @@
  */
 package org.wso2.testgrid.web.bean;
 
-import org.wso2.testgrid.common.Status;
-
 /**
  * Bean class for managing information related to test case.
  *
@@ -28,19 +26,19 @@ public class TestCaseEntry {
 
     private final String testCase;
     private final String failureMessage;
-    private final Status status;
+    private final boolean isTestSuccess;
 
     /**
      * Constructs an instance of {@link TestCaseEntry}
      *
      * @param testCase       test case name
      * @param failureMessage test case failure message
-     * @param status  whether the test case is successful or not
+     * @param isTestSuccess  whether the test case is successful or not
      */
-    public TestCaseEntry(String testCase, String failureMessage, Status status) {
+    public TestCaseEntry(String testCase, String failureMessage, boolean isTestSuccess) {
         this.testCase = testCase;
         this.failureMessage = failureMessage;
-        this.status = status;
+        this.isTestSuccess = isTestSuccess;
     }
 
     /**
@@ -62,12 +60,12 @@ public class TestCaseEntry {
     }
 
     /**
-     * Returns status of the test case.
+     * Returns whether the test case is successful or not.
      *
-     * @return 'SUCCESS' if the test case is success,return 'FALSE' if the test case is failed,otherwise returns 'SKIP'
+     * @return {@code true} if the test case is success, {@code false} otherwise
      */
-    public Status getTestStatus() {
-        return status;
+    public boolean isTestSuccess() {
+        return isTestSuccess;
     }
 
     @Override
@@ -75,7 +73,7 @@ public class TestCaseEntry {
         return "TestCaseEntry{" +
                "testCase='" + testCase + '\'' +
                ", failureMessage='" + failureMessage + '\'' +
-               ", status='" + status + '\'' +
+               ", isTestSuccess='" + isTestSuccess + '\'' +
                '}';
     }
 }
