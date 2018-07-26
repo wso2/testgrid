@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.testgrid.common;
+package org.wso2.testgrid.reporting.model.email;
 
 /**
  * This defines s single infra combination.

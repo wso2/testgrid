@@ -18,8 +18,6 @@
 
 package org.wso2.testgrid.reporting.model.email;
 
-import org.wso2.testgrid.common.InfraCombination;
-
 import java.util.ArrayList;
 import java.util.List;
 

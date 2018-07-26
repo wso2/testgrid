@@ -23,7 +23,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
@@ -34,6 +33,7 @@ import org.wso2.testgrid.dao.dto.TestCaseFailureResultDTO;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.model.email.BuildExecutionSummary;
 import org.wso2.testgrid.reporting.model.email.BuildFailureSummary;
+import org.wso2.testgrid.reporting.model.email.InfraCombination;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -55,6 +55,10 @@ public class GraphDataProvider {
     private TestPlanUOW testPlanUOW;
     private static final int MAXIMUM_TIME_RANGE = 30;
     private static final int TEST_EXECUTION_HISTORY_RANGE = 7;
+    private static final String OPERATING_SYSTEM = "OS";
+    private static final String JDK = "JDK";
+    private static final String DATABASE_ENGINE = "DBEngine";
+    private static final String DATABASE_ENGINE_VERSION = "DBEngineVersion";
 
     public GraphDataProvider() {
         this.testPlanUOW = new TestPlanUOW();
@@ -98,11 +102,11 @@ public class GraphDataProvider {
             String testName = testFailure.getName();
             JsonElement jelem = gson.fromJson(testFailure.getInfraParameters(), JsonElement.class);
             JsonObject jobj = jelem.getAsJsonObject();
-            infraCombination.setOs(StringUtil
-                    .concatStrings(jobj.get("OS").getAsString(), " - ", jobj.get("OSVersion").getAsString()));
-            infraCombination.setJdk(jobj.get("JDK").getAsString());
-            infraCombination.setDbEngine(StringUtil.concatStrings(jobj.get("DBEngine").getAsString(), " - ",
-                    jobj.get("DBEngineVersion").getAsString()));
+            infraCombination.setOs(StringUtil.concatStrings(jobj.get(OPERATING_SYSTEM).getAsString(), " - ",
+                    jobj.get("OSVersion").getAsString()));
+            infraCombination.setJdk(jobj.get(JDK).getAsString());
+            infraCombination.setDbEngine(StringUtil.concatStrings(jobj.get(DATABASE_ENGINE).getAsString(), " - ",
+                    jobj.get(DATABASE_ENGINE_VERSION).getAsString()));
             if (testFailureSummaryMap.containsKey(testName)) {
                 testFailureSummaryMap.get(testName).getInfraCombinations().add(infraCombination);
             } else {
