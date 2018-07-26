@@ -26,8 +26,12 @@ import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.dto.TestCaseFailureResultDTO;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -298,24 +302,22 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * @param testPlanIds test plan ids
      * @return a List of {@link TestCaseFailureResultDTO} representing the test case failure results for a given build
      */
-    public List<TestCaseFailureResultDTO> getTestFailureSummaryByTPId(List<String> testPlanIds) {
+    public List<TestCaseFailureResultDTO> getTestFailureSummaryByTPId(List<String> testPlanIds)
+            throws TestGridDAOException {
         StringBuilder sql = new StringBuilder("select tp.infra_parameters as infraParametrs , failed_tc.test_name as "
-                + "testName, failed_tc.failure_message as failureMessage from test_plan tp join (select tc.test_name, "
+                + "name, failed_tc.failure_message as failureMessage from test_plan tp join (select tc.test_name, "
                 + "tc.failure_message, ts.TESTPLAN_id  from test_case tc inner join test_scenario ts on "
                 + "ts.id=tc.TESTSCENARIO_id and tc.status = 'FAIL' and ts.TESTPLAN_id in (");
         for (int i = 0; i < testPlanIds.size() - 1; i++) {
             sql.append("?, ");
         }
         sql.append("?)) failed_tc on tp.id = failed_tc.TESTPLAN_id;");
-        Query query = entityManager.createNativeQuery(sql.toString(), "TestCaseFailureResult");
+        Query query = entityManager.createNativeQuery(sql.toString());
         int index = 1;
         for (String s : testPlanIds) {
             query.setParameter(index++, s);
         }
-        @SuppressWarnings("unchecked")
-        List<TestCaseFailureResultDTO> testCaseFailureResultDTO = (List<TestCaseFailureResultDTO>) query
-                .getResultList();
-        return testCaseFailureResultDTO;
+        return getResultList(query, TestCaseFailureResultDTO.class);
     }
 
     /**
@@ -363,4 +365,39 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 .getResultList();
         return EntityManagerHelper.refreshResultList(entityManager, resultList);
         }
+
+    public static <T> T map(Class<T> type, Object[] tuple) throws TestGridDAOException {
+        List<Class<?>> tupleTypes = new ArrayList<>();
+        for (Object field : tuple) {
+            tupleTypes.add(field.getClass());
+        }
+
+        Constructor<T> ctor;
+        try {
+            ctor = type.getConstructor(tupleTypes.toArray(new Class<?>[tuple.length]));
+            return ctor.newInstance(tuple);
+        } catch (NoSuchMethodException e) {
+            throw new TestGridDAOException("ss", e);
+        } catch (InstantiationException e) {
+            throw new TestGridDAOException("ssaa", e);
+        } catch (IllegalAccessException e) {
+            throw new TestGridDAOException("ssdddd", e);
+        } catch (InvocationTargetException e) {
+            throw new TestGridDAOException("ssrrrrrr", e);
+        }
+
+    }
+
+    public static <T> List<T> map(Class<T> type, List<Object[]> records) throws TestGridDAOException {
+        List<T> result = new LinkedList<>();
+        for (Object[] record : records) {
+            result.add(map(type, record));
+        }
+        return result;
+    }
+
+    public static <T> List<T> getResultList(Query query, Class<T> type) throws TestGridDAOException {
+        @SuppressWarnings("unchecked") List<Object[]> records = query.getResultList();
+        return map(type, records);
+    }
 }

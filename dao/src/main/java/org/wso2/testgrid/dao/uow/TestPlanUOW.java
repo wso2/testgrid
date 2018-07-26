@@ -197,7 +197,7 @@ public class TestPlanUOW {
      *
      * @return a List of TestCaseFailureResultDTO which represent test cases failure for given test plan ids.
      */
-    public List<TestCaseFailureResultDTO> getTestFailureSummary(List<String> tpIds) {
+    public List<TestCaseFailureResultDTO> getTestFailureSummary(List<String> tpIds) throws TestGridDAOException {
         return testPlanRepository.getTestFailureSummaryByTPId(tpIds);
     }
 

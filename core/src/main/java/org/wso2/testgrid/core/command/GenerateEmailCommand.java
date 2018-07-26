@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
@@ -53,7 +52,7 @@ public class GenerateEmailCommand implements Command {
     private String workspace = "";
 
     @Override
-    public void execute() throws CommandExecutionException, TestGridException {
+    public void execute() throws CommandExecutionException {
         Product product = getProduct(productName);
         try {
             TestReportEngine testReportEngine = new TestReportEngine();
