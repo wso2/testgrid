@@ -877,13 +877,14 @@ public class TestReportEngine {
         String testGridHome = TestGridUtil.getTestGridHomePath();
         Path reportPath = Paths.get(testGridHome, relativeFilePath);
         writeHTMLToFile(reportPath, htmlString);
+        Path reportParentPath = reportPath.getParent();
+
         // Generating the charts required for the email
-        //todo need to fix properly
-        try {
-            generateSummarizedCharts(workspace, reportPath.getParent().toString(), product.getId());
-        } catch (NullPointerException e) {
-            throw new ReportingException("Null point exception occured");
+        if (reportParentPath == null) {
+            throw new ReportingException(
+                    "Couldn't find the parent of the report path: " + reportPath.toAbsolutePath().toString());
         }
+        generateSummarizedCharts(workspace, reportParentPath.toString(), product.getId());
         return Optional.of(reportPath);
     }
 
@@ -923,14 +924,14 @@ public class TestReportEngine {
      * Generate summarized charts for the summary email.
      *  @param workspace curent workspace of the build
      * @param chartGenLocation location where charts should be generated
-     * @param id
+     * @param id product id
      */
     private void generateSummarizedCharts(String workspace, String chartGenLocation, String id)
             throws ReportingException {
         GraphDataProvider dataProvider = new GraphDataProvider();
-        logger.info(StringUtil
-                .concatStrings("Generating Charts with workspace : ", workspace, " at ", chartGenLocation));
-        BuildExecutionSummary summary =  dataProvider.getTestExecutionSummary(workspace);
+        logger.info(StringUtil.concatStrings("Generating Charts with workspace : ", workspace, " at ",
+                chartGenLocation));
+        BuildExecutionSummary summary = dataProvider.getTestExecutionSummary(workspace);
         ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
 
         // Generating the charts
