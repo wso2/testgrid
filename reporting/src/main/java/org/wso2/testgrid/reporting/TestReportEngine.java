@@ -43,6 +43,7 @@ import org.wso2.testgrid.reporting.model.email.TestCaseResultSection;
 import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
+import org.wso2.testgrid.reporting.summary.InfrastructureBuildStatus;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,9 +61,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_EMAIL_REPORT_NAME;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME;
+import static org.wso2.testgrid.common.util.FileUtil.writeToFile;
 import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
 import static org.wso2.testgrid.reporting.AxisColumn.INFRASTRUCTURE;
 import static org.wso2.testgrid.reporting.AxisColumn.SCENARIO;
@@ -732,7 +735,7 @@ public class TestReportEngine {
     private void writeHTMLToFile(Path filePath, String htmlString) throws ReportingException {
         logger.info("Writing test results to file: " + filePath.toString());
         try {
-            FileUtil.writeToFile(filePath.toAbsolutePath().toString(), htmlString);
+            writeToFile(filePath.toAbsolutePath().toString(), htmlString);
         } catch (TestGridException e) {
             throw new ReportingException("Error occurred while writing email report to a html file ", e);
         }
@@ -746,13 +749,26 @@ public class TestReportEngine {
      * @param workspace workspace containing the test-plan yamls
      */
     public Optional<Path> generateEmailReport(Product product, String workspace) throws ReportingException {
-        List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
-        //start email generation
-        if (!emailReportProcessor.hasFailedTests(testPlans)) {
-            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
-                    + "Hence skipping email-report generation..");
+        Path testPlansDir = Paths.get(workspace, "test-plans");
+        if (!Files.exists(testPlansDir)) {
+            logger.error("Test-plans dir does not exist: " + testPlansDir);
             return Optional.empty();
         }
+        List<TestPlan> testPlans = getTestPlans(workspace, testPlansDir);
+        //start email generation
+        if (!emailReportProcessor.hasFailedTests(testPlans)) {
+            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. " +
+                    "Hence skipping email-report generation..");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Skipped email-report generation for test-plans: " + testPlans);
+            }
+            return Optional.empty();
+        }
+
+        Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
+                .getSummaryTable(testPlans);
+        postProcessSummaryTable(testCaseInfraSummaryMap);
+        logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         Map<String, Object> report = new HashMap<>();
         Map<String, Object> perSummariesMap = new HashMap<>();
@@ -769,6 +785,43 @@ public class TestReportEngine {
         Path reportPath = Paths.get(testGridHome, relativeFilePath);
         writeHTMLToFile(reportPath, htmlString);
         return Optional.of(reportPath);
+    }
+
+    private void postProcessSummaryTable(Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap) {
+
+    }
+
+    private List<TestPlan> getTestPlans(String workspace, Path testPlansDir) throws ReportingException {
+        List<TestPlan> testPlans = new ArrayList<>();
+        try (Stream<Path> testPlansStream = Files.list(testPlansDir).filter(Files::isRegularFile)) {
+            List<Path> paths = testPlansStream.sorted().collect(Collectors.toList());
+            for (Path path : paths) {
+                if (!path.toFile().exists()) {
+                    throw new ReportingException(
+                            "Test Plan File doesn't exist. File path is " + path.toAbsolutePath().toString());
+                }
+                logger.info("A test plan file found at " + path.toAbsolutePath().toString());
+                TestPlan testPlanYaml = org.wso2.testgrid.common.util.FileUtil
+                        .readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
+                Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanYaml.getId());
+                if (testPlanById.isPresent()) {
+                    logger.info("Derived test plan dir in email phase : " +
+                            TestGridUtil.deriveTestPlanDirName(testPlanById.get()));
+                    testPlans.add(testPlanById.get());
+                } else {
+                    logger.error(String.format(
+                            "Inconsistent state: The test plan yaml with id '%s' has no entry in the database. "
+                                    + "Ignoring the test plan...",
+                            testPlanYaml.getId()));
+                }
+            }
+        } catch (IOException e) {
+            throw new ReportingException("Error occurred while reading the test-plan yamls in workspace "
+                    + workspace, e);
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occurred while getting the test plan from database ", e);
+        }
+        return testPlans;
     }
 
     /**

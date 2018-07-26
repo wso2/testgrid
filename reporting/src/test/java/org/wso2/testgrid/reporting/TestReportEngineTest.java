@@ -18,22 +18,16 @@
 
 package org.wso2.testgrid.reporting;
 
-import org.apache.commons.io.FileUtils;
 import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
-import org.wso2.testgrid.common.TestCase;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+<<<<<<< HEAD
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.TestGridException;
@@ -43,15 +37,12 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestCaseUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
+=======
+>>>>>>> upstream/master
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 
 import static org.mockito.Mockito.when;
 
@@ -59,23 +50,17 @@ import static org.mockito.Mockito.when;
  * Tests the summary log that gets printed at the end.
  */
 @PowerMockIgnore({ "javax.management.*", "javax.script.*", "org.apache.logging.log4j.*" })
-public class TestReportEngineTest {
+public class TestReportEngineTest extends BaseClass {
 
     private static final Logger logger = LoggerFactory.getLogger(TestReportEngineTest.class);
-    private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
 
-    @Mock
-    private TestScenarioUOW testScenarioUOW;
-    @Mock
-    private TestPlanUOW testPlanUOW;
-    @Mock
-    private TestCaseUOW testCaseUOW;
+    @Test(dataProvider = "testPlanInputsNum")
+    public void generateEmailReport(String testNum) throws Exception {
+        logger.info("---- Running " + testNum);
 
-    private Product product;
-    private TestPlan testPlan;
-    private Path productDir;
-    private String testPlanId = "abc";
+        List<TestPlan> testPlans = getTestPlansFor(testNum);
 
+<<<<<<< HEAD
     @BeforeMethod
     public void init() throws Exception {
         System.setProperty(TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY, TESTGRID_HOME);
@@ -152,9 +137,19 @@ public class TestReportEngineTest {
 
     @Test
     public void generateEmailReport() throws TestGridDAOException, ReportingException, TestGridException {
+=======
+>>>>>>> upstream/master
         when(testPlanUOW.getLatestTestPlans(Matchers.any(Product.class)))
-                .thenReturn(Collections.singletonList(testPlan));
-        when(testPlanUOW.getTestPlanById("abc")).thenReturn(Optional.of(testPlan));
+                .thenReturn(testPlans);
+        when(testPlanUOW.getTestPlanById("abc")).thenReturn(Optional.of(testPlans.get(0)));
+        when(testPlanUOW.getTestPlanById(Matchers.anyString())).thenAnswer(
+                inv -> {
+                    final String testPlanId = inv.getArgumentAt(0, String.class);
+                    if (testPlanId.equals("abc")) {
+                        return Optional.of(testPlans.get(0));
+                    }
+                    return Optional.of(testPlans.get(Integer.valueOf(testPlanId)));
+                });
         when(testPlanUOW.getCurrentStatus(product)).thenReturn(Status.FAIL);
 
         final TestReportEngine testReportEngine = new TestReportEngine(testPlanUOW,
@@ -162,6 +157,6 @@ public class TestReportEngineTest {
         final Optional<Path> path = testReportEngine.generateEmailReport(product, productDir.toString());
         Assert.assertTrue(path.isPresent(), "Email report generation has failed. File path is empty.");
         logger.info("email report file: " + path.get());
-
     }
+
 }

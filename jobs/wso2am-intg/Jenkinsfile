@@ -4,6 +4,26 @@ def loadProperties() {
         properties = readProperties file: "${TESTGRID_HOME}/config.properties"
     }
 }
+
+def truncateTestRunLogs(){
+    //As the truncation, 10 lines from the begining, 25 lines before/after Reactor Summary and last 50 lines of the
+    //test-run.log are considered.
+    sh """
+    if [ -d "builds" ]; then
+        for file in builds/*/test-run.log ; do
+            truncatedFile=\$(dirname \$file)/truncated-\$(basename \$file);
+            head -n 10 \$file > \$truncatedFile;
+            printf "......\n.....\n..(Skipping logs)..\n.....\n......\n" >> \$truncatedFile;
+            grep -B 25 -A 25 -a "Reactor Summary" \$file >> \$truncatedFile || true;
+            printf "......\n.....\n..(Skipping logs)..\n.....\n......\n" >> \$truncatedFile;
+            tail -n 50 \$file >> \$truncatedFile;
+        done
+    else
+        echo no logs found to truncate!
+    fi
+   """
+}
+
 pipeline {
     agent {
         node {
@@ -187,6 +207,7 @@ pipeline {
                 """
             script {
                 // Archive artifacts
+                truncateTestRunLogs()
                 loadProperties()
                 def bucket= properties['AWS_S3_BUCKET_NAME']
                 if ( "${bucket}" == "null") {

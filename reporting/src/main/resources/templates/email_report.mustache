@@ -99,11 +99,15 @@
         }
 
         .failure {
-            background-color: #fbce50;
+            background-color: red;
         }
 
         .error {
-            background-color: #DD0000;
+            background-color: darkred;
+        }
+
+        .success {
+            background-color: limegreen;
         }
 
     </style>
@@ -129,6 +133,59 @@
             <br/>
             <div><em>{{{gitBuildDetails}}}</em></div>
             <br/>
+
+            <!-- Start of test-case-vs-infrastructure success/failure summary table. -->
+            <div class="consoleLog">
+                <span>Test failure summary:</span><br/>
+                <span>
+                <table class="reportTable">
+                    <thead>
+                    <tr>
+                        <th>Test case:</th>
+                        <th colspan="???">Fails on:</th>
+                        <th colspan="????">Passes on:</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#testCaseInfraSummaryTable}}
+                        <tr>
+                            <td>{{key}}</td>
+                            {{#value}}
+                                <td>
+                                <table>
+                                <tr>
+                                    {{#failedInfra}}
+                                        {{#.}}
+                                            <td class="failure">
+                                                {{.}}
+                                            </td>
+                                        {{/.}}
+                                    {{/failedInfra}}
+                                </tr>
+                                </table>
+                                </td>
+                                <td>
+                                    <table>
+                                    <tr>
+                                        {{#successInfra}}
+                                            <td class="success">
+                                                {{.}}
+                                            </td>
+                                        {{/successInfra}}
+                                    </tr>
+                                    </table>
+                                </td>
+                            {{/value}}
+                        </tr>
+                    {{/testCaseInfraSummaryTable}}
+                    {{^testCaseInfraSummaryTable}}
+                        <tr><td>no information available.</td></tr>
+                    {{/testCaseInfraSummaryTable}}
+                    </tbody>
+                </table>
+                </span>
+            </div>
+            <br/>
             <span class="testResultSubTitle">Tests are failing in following environments:-</span>
             <!--Start of per test-plan-->
         <table class="reportTable">
@@ -150,6 +207,8 @@
                     </span>
                     <br/>
                     <br/>
+
+
                     <div class="consoleLog">
                         <!--<span>Test failures:</span><br/>-->
                         <span>

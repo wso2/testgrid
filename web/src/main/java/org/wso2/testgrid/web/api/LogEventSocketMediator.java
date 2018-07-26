@@ -132,7 +132,7 @@ public class LogEventSocketMediator {
     private Path getLogFilePath(TestPlan testPlan) throws TestGridException {
         //Create logging directory
         return Paths.get(TestGridUtil.getTestGridHomePath(),
-                TestGridUtil.deriveTestRunLogFilePath(testPlan));
+                TestGridUtil.deriveTestRunLogFilePath(testPlan, false));
     }
 
     /**

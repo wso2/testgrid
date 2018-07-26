@@ -50,7 +50,7 @@ class TestRunView extends Component {
       inputStreamSize: "",
       showLogDownloadErrorDialog: false,
       currentInfra: null,
-      runLogUrlStatus:null
+      TruncatedRunLogUrlStatus:null
     };
   }
 
@@ -181,7 +181,8 @@ class TestRunView extends Component {
   }
 
   checkIfTestRunLogExists() {
-    const path = TESTGRID_CONTEXT + '/api/test-plans/log/' + window.location.href.split("/").pop();
+    const path = TESTGRID_CONTEXT + '/api/test-plans/log/' + window.location.href.split("/").pop() +
+      "?truncate=" + true;
     fetch(path, {
       method: "HEAD",
       credentials: 'same-origin',
@@ -191,7 +192,7 @@ class TestRunView extends Component {
     })
       .then(this.handleError)
       .then(response => {
-        this.setState({runLogUrlStatus:response.status});
+        this.setState({TruncatedRunLogUrlStatus:response.status});
       })
   }
 
@@ -199,6 +200,8 @@ class TestRunView extends Component {
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
     const logAllContentUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
       window.location.href.split("/").pop() + "?truncate=" + false;
+    const turncatedRunLogUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
+      window.location.href.split("/").pop() + "?truncate=" + true;
     return (
       <div>
         <Snackbar
@@ -546,13 +549,13 @@ class TestRunView extends Component {
               })()}
             </Collapsible>
             {(() => {
-              if (this.state.runLogUrlStatus && this.state.runLogUrlStatus === HTTP_OK) {
+              if (this.state.TruncatedRunLogUrlStatus && this.state.TruncatedRunLogUrlStatus === HTTP_OK) {
                 return <Collapsible trigger="Test-Run log summary" lazyRender={true} triggerWhenOpen="Test-Run log summary >> ">
                   <div id="logConsoleFrame">
                     <iframe id="logConsole" title={"Test-Run Log"} style={{
                       height: "500px",
                       width: "100%"
-                    }} src={logAllContentUrl}></iframe>
+                    }} src={turncatedRunLogUrl}></iframe>
                   </div>
                 </Collapsible>;
               }

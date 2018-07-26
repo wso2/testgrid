@@ -42,6 +42,7 @@ public class TestGridConstants {
     public static final String TESTGRID_COMPRESSED_FILE_EXT = ".zip";
 
     public static final String TESTRUN_LOG_FILE_NAME = "test-run.log";
+    public static final String TRUNCATED_TESTRUN_LOG_FILE_NAME = "truncated-test-run.log";
     public static final String TEST_INTEGRATION_LOG_FILE_NAME = "TestSuite.txt";
     public static final String TESTGRID_BUILDS_DIR = "builds";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
