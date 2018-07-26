@@ -30,7 +30,8 @@
             font-family: sans-serif;
             border: 0px solid #000000;
             background-color: #FFFFFF;
-            width: 95%;
+            width: 90%;
+            table-layout: fixed;
             text-align: left;
             border-collapse: collapse;
         }
@@ -42,6 +43,7 @@
 
         table.reportTable tbody td {
             font-size: 12px;
+            word-break: break-word;
         }
 
         table.reportTable tr:nth-child(even) {
@@ -94,10 +96,11 @@
 
         .testResultSubTitle {
             font-family: sans-serif;
-            font-size: 17px;
+            font-size: 23px;
             line-height: 20px;
             font-weight: bold;
             color: #e46226;
+            padding: 5px;
         }
 
         .consoleLog {
@@ -118,7 +121,7 @@
 <body>
   <table width="600" border="0" cellspacing="0" cellpadding="0" valign='top'>
   <td><img src="http://cdn.wso2.com/wso2/newsletter/images/nl-2017/nl2017-wso2-logo-wb.png" alt="WSO2"></td>
-  <td><h1>TestGrid <span style="color: #e46226;">Test Execution Results</span></h1></td>
+  <td><h1>TestGrid <span style="color: #e46226;"> : Test Execution Results</span></h1></td>
   </table>
   <hr>
     <div style="margin: auto; background-color: #ffffff;">
@@ -129,7 +132,7 @@
                         <table>
                             <tr>
                                 <td style="font-family: arial; font-size: 16px; line-height: 24px; text-align: center;">
-                                    <span class ="mainTitle">{{productName}} integration tests {{productTestStatus}}!</span><br/>
+                                    <span class ="mainTitle">{{productName}} integration tests FAILED!</span><br/>
                                 </td>
                             </tr>
                         </table>
@@ -140,7 +143,7 @@
             <div><em>{{{gitBuildDetails}}}</em></div>
             <br/>
             <span class="testResultSubTitle" align="center">Test Result Summary</span>
-            <br/><br/>
+            <p/><p/>
             <table>
                 <tr>
                     <td valign="top" style="padding:0 10px 10px 5px">
@@ -153,15 +156,17 @@
             </table>
             <br/>
             <span class="testResultSubTitle">Testcase Failure Summary Table</span>
-            <br/>
+            <p/><p/>
           <table class="reportTable">
+          <thead>
            <tr>
-              <th>Failed Test Case</th>
-              <th>Description</th>
+              <th width="25%">Failed Test Case</th>
+              <th width="45%">Failure Message</th>
               <th>OS</th>
               <th>JDK</th>
               <th>DB</th>
            </tr>
+           <thead>
            <tbody>
               {{#perTestCase}}
               <tr bgcolor="{{rowColor}}">
