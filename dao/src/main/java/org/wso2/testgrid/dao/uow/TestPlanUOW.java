@@ -188,7 +188,7 @@ public class TestPlanUOW {
      * @return a List of Test Plan statuses.
      */
     public List<String> getTestExecutionSummary(List<String> tpIds) {
-        return testPlanRepository.getTestExecutionSummaryByTPId(tpIds);
+        return testPlanRepository.getTestPlanStatuses(tpIds);
     }
 
     /**
