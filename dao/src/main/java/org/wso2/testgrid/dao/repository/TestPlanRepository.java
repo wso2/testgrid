@@ -366,38 +366,49 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         return EntityManagerHelper.refreshResultList(entityManager, resultList);
         }
 
-    public static <T> T map(Class<T> type, Object[] tuple) throws TestGridDAOException {
-        List<Class<?>> tupleTypes = new ArrayList<>();
-        for (Object field : tuple) {
-            tupleTypes.add(field.getClass());
-        }
-
-        Constructor<T> ctor;
-        try {
-            ctor = type.getConstructor(tupleTypes.toArray(new Class<?>[tuple.length]));
-            return ctor.newInstance(tuple);
-        } catch (NoSuchMethodException e) {
-            throw new TestGridDAOException("ss", e);
-        } catch (InstantiationException e) {
-            throw new TestGridDAOException("ssaa", e);
-        } catch (IllegalAccessException e) {
-            throw new TestGridDAOException("ssdddd", e);
-        } catch (InvocationTargetException e) {
-            throw new TestGridDAOException("ssrrrrrr", e);
-        }
-
-    }
-
-    public static <T> List<T> map(Class<T> type, List<Object[]> records) throws TestGridDAOException {
+    /**
+     * This method is responsible to map list of objects to a given class.
+     *
+     * @param type    Mapping class
+     * @param records lst of objects that are mapping to instance of the given class
+     * @return a List of mapped objects
+     */
+    public static <T> List<T> mapObject(Class<T> type, List<Object[]> records) throws TestGridDAOException {
         List<T> result = new LinkedList<>();
         for (Object[] record : records) {
-            result.add(map(type, record));
+            List<Class<?>> tupleTypes = new ArrayList<>();
+            for (Object field : record) {
+                //if a filed contains null value assign empty string. If null values in the either infra_combination
+                // column or test case name column or test case description column, null value could be passed to here.
+                if (field == null) {
+                    field = "";
+                }
+                tupleTypes.add(field.getClass());
+            }
+            Constructor<T> ctor;
+            try {
+                ctor = type.getConstructor(tupleTypes.toArray(new Class<?>[record.length]));
+                result.add(ctor.newInstance(record));
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
+                    InstantiationException e) {
+                throw new TestGridDAOException("Error occured while mapping object to TestCaseFailureResultDTO object",
+                        e);
+            }
+
         }
         return result;
     }
 
-    public static <T> List<T> getResultList(Query query, Class<T> type) throws TestGridDAOException {
-        @SuppressWarnings("unchecked") List<Object[]> records = query.getResultList();
-        return map(type, records);
+    /**
+     * This method is responsible to execute the native query and return mapped oject to a given class.
+     *
+     * @param query native query
+     * @param type  class of the mapping object
+     * @return a List of mapped objects
+     */
+    private static <T> List<T> getResultList(Query query, Class<T> type) throws TestGridDAOException {
+        @SuppressWarnings("unchecked")
+        List<Object[]> records = query.getResultList();
+        return mapObject(type, records);
     }
 }
