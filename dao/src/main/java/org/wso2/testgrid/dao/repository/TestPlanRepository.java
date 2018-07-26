@@ -304,9 +304,9 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      */
     public List<TestCaseFailureResultDTO> getTestFailureSummaryByTPId(List<String> testPlanIds)
             throws TestGridDAOException {
-        StringBuilder sql = new StringBuilder("select tp.infra_parameters as infraParametrs , failed_tc.test_name as "
-                + "name, failed_tc.failure_message as failureMessage from test_plan tp join (select tc.test_name, "
-                + "tc.failure_message, ts.TESTPLAN_id  from test_case tc inner join test_scenario ts on "
+        StringBuilder sql = new StringBuilder("select failed_tc.test_name as name, failed_tc.failure_message as "
+                + "failureMessage, tp.infra_parameters as infraParametrs from test_plan tp join (select tc"
+                + ".test_name, tc.failure_message, ts.TESTPLAN_id  from test_case tc inner join test_scenario ts on "
                 + "ts.id=tc.TESTSCENARIO_id and tc.status = 'FAIL' and ts.TESTPLAN_id in (");
         for (int i = 0; i < testPlanIds.size() - 1; i++) {
             sql.append("?, ");
@@ -331,7 +331,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         for (int i = 0; i < testPlanIds.size() - 1; i++) {
             sql.append("?, ");
         }
-        sql.append("?):");
+        sql.append("?);");
         Query query = entityManager.createNativeQuery(sql.toString());
         int index = 1;
         for (String s : testPlanIds) {

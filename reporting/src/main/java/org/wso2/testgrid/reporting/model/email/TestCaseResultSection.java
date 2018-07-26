@@ -14,7 +14,7 @@ public class TestCaseResultSection {
     private String testCaseExecutedOS;
     private String testCaseExecutedJDK;
     private String testCaseExecutedDB;
-    int rowSpan;
+    int rowSpan = -1;
 
     List<InfraCombination> infraCombinations;
 

@@ -806,6 +806,7 @@ public class TestReportEngine {
 
             if (combinations.size() > 1) {
                 resultSection.setInfraCombinations(combinations.subList(1, combinations.size()));
+                resultSection.setRowSpan(combinations.size());
             }
             resultList.add(resultSection);
         }
@@ -827,11 +828,10 @@ public class TestReportEngine {
         // Generating the charts required for the email
         //todo need to fix properly
         try {
-            generateSummarizedCharts(workspace, reportPath.getParent().toString());
+            generateSummarizedCharts(workspace, reportPath.getParent().toString(), product.getId());
         } catch (NullPointerException e) {
             throw new ReportingException("Null point exception occured");
         }
-
         return Optional.of(reportPath);
     }
 
@@ -869,11 +869,12 @@ public class TestReportEngine {
 
     /**
      * Generate summarized charts for the summary email.
-     *
-     * @param workspace curent workspace of the build
+     *  @param workspace curent workspace of the build
      * @param chartGenLocation location where charts should be generated
+     * @param id
      */
-    private void generateSummarizedCharts(String workspace, String chartGenLocation) throws ReportingException {
+    private void generateSummarizedCharts(String workspace, String chartGenLocation, String id)
+            throws ReportingException {
         GraphDataProvider dataProvider = new GraphDataProvider();
         logger.info(StringUtil
                 .concatStrings("Generating Charts with workspace : ", workspace, " at ", chartGenLocation));
@@ -881,9 +882,10 @@ public class TestReportEngine {
         ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
 
         // Generating the charts
-        chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
-                .getSkippedTestPlans());
+       // chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
+             //   .getSkippedTestPlans());
+
         // Generate history chart
-        //chartGenerator.generateResultHistoryChart("","");
+       // chartGenerator.generateResultHistoryChart(dataProvider.getTestExecutionHistory(id));
     }
 }
