@@ -25,6 +25,8 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -34,11 +36,14 @@ import org.wso2.testgrid.reporting.model.PerAxisHeader;
 import org.wso2.testgrid.reporting.model.PerAxisSummary;
 import org.wso2.testgrid.reporting.model.Report;
 import org.wso2.testgrid.reporting.model.ReportElement;
+import org.wso2.testgrid.reporting.model.email.BuildExecutionSummary;
+import org.wso2.testgrid.reporting.model.email.BuildFailureSummary;
+import org.wso2.testgrid.reporting.model.email.InfraCombination;
+import org.wso2.testgrid.reporting.model.email.TestCaseResultSection;
 import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
 import org.wso2.testgrid.reporting.renderer.Renderable;
 import org.wso2.testgrid.reporting.renderer.RenderableFactory;
 import org.wso2.testgrid.reporting.summary.InfrastructureBuildStatus;
-import org.wso2.testgrid.reporting.util.FileUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,10 +64,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_EMAIL_REPORT_NAME;
+import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME;
+import static org.wso2.testgrid.common.util.FileUtil.writeToFile;
 import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
 import static org.wso2.testgrid.reporting.AxisColumn.INFRASTRUCTURE;
 import static org.wso2.testgrid.reporting.AxisColumn.SCENARIO;
-import static org.wso2.testgrid.reporting.util.FileUtil.writeToFile;
 
 /**
  * This class is responsible for generating the test reports.
@@ -76,8 +82,10 @@ public class TestReportEngine {
     private static final String REPORT_MUSTACHE = "report.mustache";
     private static final String PERFORMANCE_REPORT_MUSTACHE = "performance_report.mustache";
     private static final String EMAIL_REPORT_MUSTACHE = "email_report.mustache";
+    private static final String SUMMARIZED_EMAIL_REPORT_MUSTACHE = "summarized_email_report.mustache";
     private static final String REPORT_TEMPLATE_KEY = "parsedReport";
     private static final String PER_TEST_PLAN_TEMPLATE_KEY = "perTestPlan";
+    private static final String PER_TEST_CASE_TEMPLATE_KEY = "perTestCase";
     private static final String PRODUCT_STATUS_TEMPLATE_KEY = "productTestStatus";
     private static final String PRODUCT_NAME_TEMPLATE_KEY = "productName";
     private static final String GIT_BUILD_DETAILS_TEMPLATE_KEY = "gitBuildDetails";
@@ -107,7 +115,8 @@ public class TestReportEngine {
      * @param groupBy     columns to group by
      * @throws ReportingException thrown when error on generating test report
      */
-    public void generateReport(Product product, boolean showSuccess, String groupBy) throws ReportingException {
+    public void generateReport(Product product, boolean showSuccess, String groupBy)
+            throws ReportingException {
         AxisColumn uniqueAxisColumn = getGroupByColumn(groupBy);
 
         // Construct report elements
@@ -167,7 +176,6 @@ public class TestReportEngine {
             throw new ReportingException(String.format("Error while prepering the report for Product %s"
                     , report.getProductName()), e);
         }
-
     }
 
     /**
@@ -726,7 +734,11 @@ public class TestReportEngine {
      */
     private void writeHTMLToFile(Path filePath, String htmlString) throws ReportingException {
         logger.info("Writing test results to file: " + filePath.toString());
-        FileUtil.writeToFile(filePath.toAbsolutePath().toString(), htmlString);
+        try {
+            writeToFile(filePath.toAbsolutePath().toString(), htmlString);
+        } catch (TestGridException e) {
+            throw new ReportingException("Error occurred while writing email report to a html file ", e);
+        }
     }
 
     /**
@@ -757,7 +769,6 @@ public class TestReportEngine {
                 .getSummaryTable(testPlans);
         postProcessSummaryTable(testCaseInfraSummaryMap);
         logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
-
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         Map<String, Object> report = new HashMap<>();
         Map<String, Object> perSummariesMap = new HashMap<>();
@@ -765,7 +776,6 @@ public class TestReportEngine {
         report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
         report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
-        report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
         perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
         String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
 
@@ -773,7 +783,7 @@ public class TestReportEngine {
         String relativeFilePath = TestGridUtil.deriveTestGridLogFilePath(product.getName(), TESTGRID_EMAIL_REPORT_NAME);
         String testGridHome = TestGridUtil.getTestGridHomePath();
         Path reportPath = Paths.get(testGridHome, relativeFilePath);
-        writeToFile(reportPath.toString(), htmlString);
+        writeHTMLToFile(reportPath, htmlString);
         return Optional.of(reportPath);
     }
 
@@ -812,5 +822,122 @@ public class TestReportEngine {
             throw new ReportingException("Error occurred while getting the test plan from database ", e);
         }
         return testPlans;
+    }
+
+    /**
+     * Generate a summarized HTML report which is used as the content of the email to be sent out to
+     * relevant parties interested in TestGrid test job.
+     *
+     * @param product   product needing the report
+     * @param workspace workspace containing the test-plan yamls
+     * @return {@link Path} of the created  report
+     */
+    public Optional<Path> generateSummarizedEmailReport(Product product, String workspace) throws ReportingException {
+
+        List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
+        //start email generation
+        if (!emailReportProcessor.hasFailedTests(testPlans)) {
+            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
+                        + "Hence skipping email-report generation..");
+            return Optional.empty();
+        }
+        GraphDataProvider graphDataProvider = new GraphDataProvider();
+        List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
+
+        Map<String, Object> results = new HashMap<>();
+        List<TestCaseResultSection> resultList = new ArrayList<>();
+
+        for (BuildFailureSummary buildFailureSummary : failureSummary) {
+            TestCaseResultSection resultSection = new TestCaseResultSection();
+            resultSection.setTestCaseName(buildFailureSummary.getTestCaseName());
+            resultSection.setTestCaseDescription(buildFailureSummary.getTestCaseDescription());
+            List<InfraCombination> combinations = buildFailureSummary.getInfraCombinations();
+            resultSection.setTestCaseExecutedOS(combinations.get(0).getOs());
+            resultSection.setTestCaseExecutedJDK(combinations.get(0).getJdk());
+            resultSection.setTestCaseExecutedDB(combinations.get(0).getDbEngine());
+
+            if (combinations.size() > 1) {
+                resultSection.setInfraCombinations(combinations.subList(1, combinations.size()));
+                resultSection.setRowSpan(combinations.size());
+            }
+            resultList.add(resultSection);
+        }
+
+        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
+
+        results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
+        results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
+        results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
+        results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
+        String htmlString = renderer.render(SUMMARIZED_EMAIL_REPORT_MUSTACHE, results);
+
+        // Write to HTML file
+        String relativeFilePath = TestGridUtil
+                .deriveTestGridLogFilePath(product.getName(), TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME);
+        String testGridHome = TestGridUtil.getTestGridHomePath();
+        Path reportPath = Paths.get(testGridHome, relativeFilePath);
+        writeHTMLToFile(reportPath, htmlString);
+        Path reportParentPath = reportPath.getParent();
+
+        // Generating the charts required for the email
+        if (reportParentPath == null) {
+            throw new ReportingException(
+                    "Couldn't find the parent of the report path: " + reportPath.toAbsolutePath().toString());
+        }
+        generateSummarizedCharts(workspace, reportParentPath.toString(), product.getId());
+        return Optional.of(reportPath);
+    }
+
+    /**
+     * Returns a list of {@link TestPlan} for a given workspace.
+     *
+     * @param workspace build workspace
+     * @return a list of {@link TestPlan} in the given workspace
+     * @throws ReportingException if {@link TestGridDAOException} or {@link TestGridException} occurs
+     */
+    private List<TestPlan> getTestPlansInWorkspace(String workspace) throws ReportingException {
+        List<TestPlan> testPlans = new ArrayList<>();
+        try {
+            List<String> testPlanIds = FileUtil.getTestPlanIdByReadingTGYaml(workspace);
+            for (String testPlanId : testPlanIds) {
+                Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanId);
+                if (testPlanById.isPresent()) {
+                    logger.info("Derived test plan dir in email phase : " + TestGridUtil
+                            .deriveTestPlanDirName(testPlanById.get()));
+                    testPlans.add(testPlanById.get());
+                } else {
+                    logger.error(String.format(
+                            "Inconsistent state: The test plan yaml with id '%s' has no entry in the database. "
+                                    + "Ignoring the test plan...", testPlanId));
+                }
+            }
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occurred while getting the test plan from database ", e);
+        } catch (TestGridException e) {
+            throw new ReportingException(
+                    "Error occurred while getting the test plan id by reading test grid yaml files ", e);
+        }
+    return testPlans;
+    }
+
+    /**
+     * Generate summarized charts for the summary email.
+     * @param workspace curent workspace of the build
+     * @param chartGenLocation location where charts should be generated
+     * @param id product id
+     */
+    private void generateSummarizedCharts(String workspace, String chartGenLocation, String id)
+            throws ReportingException {
+        GraphDataProvider dataProvider = new GraphDataProvider();
+        logger.info(StringUtil.concatStrings("Generating Charts with workspace : ", workspace, " at ",
+                chartGenLocation));
+        BuildExecutionSummary summary = dataProvider.getTestExecutionSummary(workspace);
+        ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
+
+        // Generating the charts
+        chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
+                .getSkippedTestPlans());
+        // Generate history chart
+        chartGenerator.generateResultHistoryChart(dataProvider.getTestExecutionHistory(id));
     }
 }

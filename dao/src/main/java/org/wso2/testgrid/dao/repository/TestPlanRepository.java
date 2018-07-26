@@ -24,9 +24,14 @@ import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.dto.TestCaseFailureResultDTO;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -289,5 +294,121 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
                 .getResultList();
         return EntityManagerHelper.refreshResultList(entityManager, resultList);
+    }
+
+    /**
+     * This method returns test failure summary for given test plan ids. (i.e for a given build job).
+     *
+     * @param testPlanIds test plan ids
+     * @return a List of {@link TestCaseFailureResultDTO} representing the test case failure results for a given build
+     */
+    public List<TestCaseFailureResultDTO> getTestFailureSummaryByTPId(List<String> testPlanIds)
+            throws TestGridDAOException {
+        StringBuilder sql = new StringBuilder("select failed_tc.test_name as name, failed_tc.failure_message as "
+                + "failureMessage, tp.infra_parameters as infraParametrs from test_plan tp join (select tc"
+                + ".test_name, tc.failure_message, ts.TESTPLAN_id  from test_case tc inner join test_scenario ts on "
+                + "ts.id=tc.TESTSCENARIO_id and tc.status = 'FAIL' and ts.TESTPLAN_id in (");
+        for (int i = 0; i < testPlanIds.size() - 1; i++) {
+            sql.append("?, ");
+        }
+        sql.append("?)) failed_tc on tp.id = failed_tc.TESTPLAN_id;");
+        Query query = entityManager.createNativeQuery(sql.toString());
+        int index = 1;
+        for (String s : testPlanIds) {
+            query.setParameter(index++, s);
+        }
+        return getResultList(query, TestCaseFailureResultDTO.class);
+    }
+
+    /**
+     * This method returns the test execution summary for given test plan ids(i.e for a given build job).
+     *
+     * @param testPlanIds test plan ids of a specific build job
+     * @return a List of {@link String} representing statuses of given test plans
+     */
+    public List<String> getTestPlanStatuses(List<String> testPlanIds) {
+        StringBuilder sql = new StringBuilder("select status from test_plan where id in (");
+        for (int i = 0; i < testPlanIds.size() - 1; i++) {
+            sql.append("?, ");
+        }
+        sql.append("?);");
+        Query query = entityManager.createNativeQuery(sql.toString());
+        int index = 1;
+        for (String s : testPlanIds) {
+            query.setParameter(index++, s);
+        }
+        @SuppressWarnings("unchecked")
+        List<String> statuses = (List<String>) query.getResultList();
+        return statuses;
+    }
+
+    /**
+     * This method returns the history of test execution summary for given product.
+     *
+     * @param productId id of the product
+     * @param from starting point of the considering time range
+     * @param to end point of the considering time range
+     * @return a List of {@link TestPlan} representing executed test plans of a given product for a given time range
+     */
+    public List<TestPlan> getTestExecutionHistory(String productId, String from, String to) {
+        String sql = "select tp.* from test_plan tp inner join (Select distinct infra_parameters from test_plan where  "
+                + "DEPLOYMENTPATTERN_id in (select id from deployment_pattern where PRODUCT_id=?)) as rn on "
+                + "tp.infra_parameters=rn.infra_parameters and tp.DEPLOYMENTPATTERN_id "
+                + "in (select id from deployment_pattern where PRODUCT_id=?) and modified_timestamp between ? and ?;";
+
+        @SuppressWarnings("unchecked")
+        List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, productId)
+                .setParameter(2, productId)
+                .setParameter(3, from)
+                .setParameter(4, to)
+                .getResultList();
+        return EntityManagerHelper.refreshResultList(entityManager, resultList);
+        }
+
+    /**
+     * This method is responsible to map list of objects to a given class.
+     *
+     * @param type    Mapping class
+     * @param records lst of objects that are mapping to instance of the given class
+     * @return a List of mapped objects
+     */
+    public static <T> List<T> mapObject(Class<T> type, List<Object[]> records) throws TestGridDAOException {
+        List<T> result = new LinkedList<>();
+        for (Object[] record : records) {
+            List<Class<?>> tupleTypes = new ArrayList<>();
+            for (Object field : record) {
+                //if a filed contains null value assign empty string. If null values in the either infra_combination
+                // column or test case name column or test case description column, null value could be passed to here.
+                if (field == null) {
+                    field = "";
+                }
+                tupleTypes.add(field.getClass());
+            }
+            Constructor<T> ctor;
+            try {
+                ctor = type.getConstructor(tupleTypes.toArray(new Class<?>[record.length]));
+                result.add(ctor.newInstance(record));
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
+                    InstantiationException e) {
+                throw new TestGridDAOException("Error occured while mapping object to TestCaseFailureResultDTO object",
+                        e);
+            }
+
+        }
+        return result;
+    }
+
+    /**
+     * This method is responsible to execute the native query and return mapped oject to a given class.
+     *
+     * @param query native query
+     * @param type  class of the mapping object
+     * @return a List of mapped objects
+     */
+    private static <T> List<T> getResultList(Query query, Class<T> type) throws TestGridDAOException {
+        @SuppressWarnings("unchecked")
+        List<Object[]> records = query.getResultList();
+        return mapObject(type, records);
     }
 }

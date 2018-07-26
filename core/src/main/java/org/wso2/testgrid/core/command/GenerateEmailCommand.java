@@ -56,8 +56,14 @@ public class GenerateEmailCommand implements Command {
         Product product = getProduct(productName);
         try {
             TestReportEngine testReportEngine = new TestReportEngine();
-            final Optional<Path> path = testReportEngine.generateEmailReport(product, workspace);
-            path.ifPresent(p -> logger.info("Written the email report body contents to: " + p));
+            // Generating the summary report
+            final Optional<Path> summarizedReportPath = testReportEngine.generateSummarizedEmailReport(product,
+                    workspace);
+            summarizedReportPath.ifPresent(p -> logger.info("Written the summarized email " +
+                                                            "report body contents to: " + p));
+
+            final Optional<Path> reportPath = testReportEngine.generateEmailReport(product, workspace);
+            reportPath.ifPresent(p -> logger.info("Written the email report body contents to: " + p));
         } catch (ReportingException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error occurred when generating email report for {" +

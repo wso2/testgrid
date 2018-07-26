@@ -22,6 +22,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.dto.TestCaseFailureResultDTO;
 import org.wso2.testgrid.dao.repository.TestPlanRepository;
 
 import java.sql.Timestamp;
@@ -179,5 +180,33 @@ public class TestPlanUOW {
      */
     public List<TestPlan> getTestPlansOlderThan(String duration, String timeUnit) {
         return testPlanRepository.getTestPlanOlderThan(duration, timeUnit);
+    }
+
+    /**
+     * Returns the test plan statuses for given test plan ids.
+     *
+     * @return a List of Test Plan statuses.
+     */
+    public List<String> getTestExecutionSummary(List<String> tpIds) {
+        return testPlanRepository.getTestPlanStatuses(tpIds);
+    }
+
+    /**
+     * Returns the representation of failed test cases with test case name, description and infra combination for given
+     * test plan ids. (I.e for a given build job)
+     *
+     * @return a List of TestCaseFailureResultDTO which represent test cases failure for given test plan ids.
+     */
+    public List<TestCaseFailureResultDTO> getTestFailureSummary(List<String> tpIds) throws TestGridDAOException {
+        return testPlanRepository.getTestFailureSummaryByTPId(tpIds);
+    }
+
+    /**
+     * Returns the representation of test execution history for q given product in a given time range
+     *
+     * @return a List of TestPlan which represent executed test plans in the given time range for a given product.
+     */
+    public List<TestPlan> getTestExecutionHistory(String productId, String from, String to) {
+        return testPlanRepository.getTestExecutionHistory(productId, from, to);
     }
 }

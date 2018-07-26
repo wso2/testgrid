@@ -47,7 +47,6 @@ public class TestReportEngineTest extends BaseClass {
         logger.info("---- Running " + testNum);
 
         List<TestPlan> testPlans = getTestPlansFor(testNum);
-
         when(testPlanUOW.getLatestTestPlans(Matchers.any(Product.class)))
                 .thenReturn(testPlans);
         when(testPlanUOW.getTestPlanById("abc")).thenReturn(Optional.of(testPlans.get(0)));
@@ -67,5 +66,4 @@ public class TestReportEngineTest extends BaseClass {
         Assert.assertTrue(path.isPresent(), "Email report generation has failed. File path is empty.");
         logger.info("email report file: " + path.get());
     }
-
 }
