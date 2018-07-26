@@ -326,7 +326,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * @param testPlanIds test plan ids of a specific build job
      * @return a List of {@link String} representing statuses of given test plans
      */
-    public List<String> getTestExecutionSummaryByTPId(List<String> testPlanIds) {
+    public List<String> getTestPlanStatuses(List<String> testPlanIds) {
         StringBuilder sql = new StringBuilder("select status from test_plan where id in (");
         for (int i = 0; i < testPlanIds.size() - 1; i++) {
             sql.append("?, ");

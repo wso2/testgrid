@@ -20,7 +20,6 @@ package org.wso2.testgrid.reporting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeploymentPattern;
-import org.wso2.testgrid.common.InfraCombination;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
@@ -39,6 +38,7 @@ import org.wso2.testgrid.reporting.model.Report;
 import org.wso2.testgrid.reporting.model.ReportElement;
 import org.wso2.testgrid.reporting.model.email.BuildExecutionSummary;
 import org.wso2.testgrid.reporting.model.email.BuildFailureSummary;
+import org.wso2.testgrid.reporting.model.email.InfraCombination;
 import org.wso2.testgrid.reporting.model.email.TestCaseResultSection;
 import org.wso2.testgrid.reporting.model.performance.PerformanceReport;
 import org.wso2.testgrid.reporting.renderer.Renderable;
@@ -922,7 +922,7 @@ public class TestReportEngine {
 
     /**
      * Generate summarized charts for the summary email.
-     *  @param workspace curent workspace of the build
+     * @param workspace curent workspace of the build
      * @param chartGenLocation location where charts should be generated
      * @param id product id
      */
