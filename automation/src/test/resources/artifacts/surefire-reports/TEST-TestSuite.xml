@@ -71,7 +71,7 @@
 ]]></system-out>
     </testcase>
     <testcase name="destroy" classname="org.wso2.am.integration.tests.other.APIMANAGER3226APINameWithDifferentCaseTestCase" time="9.081">
-        <failure message="Unable to get API - echo. Error: Read timed out" type="org.wso2.am.integration.test.utils.APIManagerIntegrationTestException">org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Unable to get API - echo. Error: Read timed out
+        <failure type="org.wso2.am.integration.test.utils.APIManagerIntegrationTestException">org.wso2.am.integration.test.utils.APIManagerIntegrationTestException: Unable to get API - echo. Error: Read timed out
             at java.net.SocketInputStream.socketRead0(Native Method)
             at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
             at java.net.SocketInputStream.read(SocketInputStream.java:171)
@@ -115,8 +115,11 @@ INFO  [org.wso2.carbon.automation.extensions.servers.utils.ServerLogReader] - [2
 ]]></system-out>
     </testcase>
     <testcase name="destroy" classname="org.wso2.am.integration.tests.other.APIMANAGER3226APINameWithDifferentCaseTestCase" time="0.001">
-        <failure type="java.lang.NullPointerException:">java.lang.NullPointerException: null
-            at org.wso2.am.integration.tests.other.APIMANAGER3226APINameWithDifferentCaseTestCase.destroy(APIMANAGER3226APINameWithDifferentCaseTestCase.java:98)
+        <failure message="Access token response contains errors. expected:&lt;false&gt; but was:&lt;true&gt;" type="java.lang.AssertionError">java.lang.AssertionError: Access token response contains errors. expected:&lt;false&gt; but was:&lt;true&gt;
+            at org.testng.Assert.fail(Assert.java:89)
+            at org.testng.Assert.failNotEquals(Assert.java:489)
+            at org.testng.Assert.assertFalse(Assert.java:58)
+            at org.wso2.identity.integration.test.oauth2.OAuth2IDTokenEncryptionTestCase.testAuthCodeGrantSendGetTokensPost(OAuth2IDTokenEncryptionTestCase.java:253)
         </failure>
         <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== On test skipped org.wso2.am.integration.tests.other.APIMANAGER3226APINameWithDifferentCaseTestCase.testValidateAddAPIsWithDifferentCase ===================
 ]]></system-out>
