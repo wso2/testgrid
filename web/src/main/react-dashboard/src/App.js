@@ -36,7 +36,7 @@ import {Provider} from 'react-redux';
 import testGrid from './reducers/testGrid.js';
 import {persistStore, persistCombineReducers} from 'redux-persist';
 import {PersistGate} from 'redux-persist/es/integration/react';
-import storage from 'redux-persist/es/storage';
+import storage from 'redux-persist/lib/storage/session';
 import Drawer from 'material-ui/Drawer';
 import MenuItem from 'material-ui/MenuItem';
 import IconButton from 'material-ui/IconButton';
