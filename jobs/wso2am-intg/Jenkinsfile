@@ -12,7 +12,7 @@
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
- * specific language governming permissions and limitations
+ * specific language governing permissions and limitations
  * under the License.
  */
 
@@ -53,7 +53,7 @@ def truncateTestRunLog() {
 
 def runPlan(tPlan, node) {
     name = getParameters("/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}")
-    notifyBuild("STARTED","parallel \n Infra : " + name,"#build_status_verbose")
+    notifyBuild("STARTED", "parallel \n Infra : " + name, "#build_status_verbose")
     echo "Executing Test Plan : ${tPlan} On node : ${node}"
     try {
         echo "Running Test-Plan: ${tPlan}"
@@ -62,7 +62,6 @@ def runPlan(tPlan, node) {
         dir("${PWD}") {
             unstash name: "test-plans"
         }
-
 
         sh """
             echo "Before PWD"
@@ -73,11 +72,12 @@ def runPlan(tPlan, node) {
             ./testgrid run-testplan --product ${PRODUCT} \
             --file "/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}"
             """
-        // sh "echo This is a test"
 
     } catch (Exception err) {
         echo "Error : ${err}"
         currentBuild.result = 'UNSTABLE'
+    } finally {
+        notifyBuild(currentBuild.result, "Parallel \n Infra : " + name, "#build_status_verbose")
     }
     echo "RESULT: ${currentBuild.result}"
 
@@ -149,6 +149,8 @@ pipeline {
             steps {
                 script {
                     try {
+                        notifyBuild('STARTED', "Initiation", "#build_status_verbose")
+                        notifyBuild('STARTED', "Initiation", "#build_status")
                         echo pwd()
                         deleteDir()
 
@@ -190,47 +192,23 @@ pipeline {
                     echo 'infrastructureRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'deploymentRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo 'testgridYamlLocation: ${TESTGRID_YAML_LOCATION}' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
+                    echo 'testgridYamlLocation: ${TESTGRID_YAML_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'properties:' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  PRODUCT_GIT_URL: ${PRODUCT_GIT_URL}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  PRODUCT_GIT_BRANCH: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  PRODUCT_DIST_DOWNLOAD_API: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
-                    echo '  SQL_DRIVERS_LOCATION_UNIX: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
-                    echo '  SSH_KEY_LOCATION: ${PWD}/workspace/testgrid-key.pem' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
-                    echo '  REMOTE_WORKSPACE_DIR_UNIX: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
-                    echo '  REMOTE_WORKSPACE_DIR_WINDOWS: ${REMOTE_WORKSPACE_DIR_WINDOWS}' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
+                    echo '  PRODUCT_DIST_DOWNLOAD_API: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  SQL_DRIVERS_LOCATION_UNIX: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  SSH_KEY_LOCATION: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  REMOTE_WORKSPACE_DIR_UNIX: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  REMOTE_WORKSPACE_DIR_WINDOWS: ${REMOTE_WORKSPACE_DIR_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  gitURL: ${PRODUCT_GIT_URL}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  gitBranch: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
-                    echo '  sqlDriversLocationUnix: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
-                    echo '  sqlDriversLocationWindows: ${SQL_DRIVERS_LOCATION_WINDOWS}' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
-                    echo '  sshKeyFileLocation: ${PWD}/workspace/testgrid-key.pem' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
-                    echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
-                    echo '  buidType: abcd' >> ${
-                            JOB_CONFIG_YAML_PATH
-                        }
+                    echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  sqlDriversLocationUnix: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  sqlDriversLocationWindows: ${SQL_DRIVERS_LOCATION_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  sshKeyFileLocation: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  buidType: abcd' >> ${JOB_CONFIG_YAML_PATH}
 
                     echo The job-config.yaml:
                     cat ${JOB_CONFIG_YAML_PATH}
@@ -249,6 +227,8 @@ pipeline {
                         }
                     } catch (e) {
                         currentBuild.result = "FAILED"
+                    } finally {
+                        notifyBuild(currentBuild.result, "preparation", "#build_status_verbose")
                     }
                 }
             }
@@ -296,6 +276,7 @@ pipeline {
                     parallel tests
                     }catch(e){
                         currentBuild.result = "FAILED"
+                        notifyBuild(currentBuild.result, "Parallel", "#build_status_verbose")
                     }
                 }
             }
@@ -337,7 +318,7 @@ pipeline {
                         //Send email for failed results.
                         if (fileExists("/testgrid/testgrid-home/jobs/${PRODUCT}/builds/SummarizedEmailReport.html")) {
                             def emailBody = readFile "/testgrid/testgrid-home/jobs/wso2am-intg/builds/SummarizedEmailReport.html"
-                            emailext(to: 'lasanthad@wso2.com,yasassri@wso2.com',
+                            emailext(to: 'builder@wso2.org, kasung@wso2.com, pasinduj@wso2.com, yasassri@wso2.com, lasanthad@wso2.com, sameeraw@wso2.com, asmaj@wso2.com, harshan@wso2.com',
                                     subject: "'${env.JOB_NAME}' Integration Test Failure! #(${env.BUILD_NUMBER})",
                                     body: "${emailBody}", mimeType: 'text/html', attachmentsPattern: "/testgrid/testgrid-home/jobs/${PRODUCT}/builds/*.png"
                             );
@@ -353,6 +334,9 @@ pipeline {
                     }
                 } catch (e) {
                     currentBuild.result = "FAILED"
+                } finally {
+                    notifyBuild(currentBuild.result, "completed", "#build_status")
+                    notifyBuild(currentBuild.result, "completed", "#build_status_verbose")
                 }
             }
         }
@@ -360,3 +344,31 @@ pipeline {
     }
 }
 
+def notifyBuild(String buildStatus = 'STARTED', phase, channel) {
+    // build status of null means successful
+    buildStatus = buildStatus ?: 'SUCCESS'
+
+    // Default values
+    def colorName = 'RED'
+    def colorCode = '#FF0000'
+    def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
+    def summary = "${subject} (${env.RUN_DISPLAY_URL}) in phase : $phase"
+
+    // Override default values based on build status
+    if (buildStatus == 'STARTED') {
+        color = 'BLUE'
+        colorCode = '#003EFF'
+    } else if (buildStatus == 'SUCCESS') {
+        color = 'GREEN'
+        colorCode = '#00FF00'
+    } else if (buildStatus == 'UNSTABLE') {
+        color = "YELLOW"
+        colorCode = "#FFFF00"
+    } else {
+        color = 'RED'
+        colorCode = '#FF0000'
+    }
+
+    // Send notifications
+    slackSend(channel: channel, color: colorCode, message: summary)
+}
