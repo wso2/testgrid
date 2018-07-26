@@ -79,7 +79,7 @@ public class GraphDataProvider {
         } catch (TestGridException e) {
             throw new ReportingException("Error occurred while reading yaml files in the TG home", e);
         } catch (TestGridDAOException e) {
-            throw new ReportingException("Error occurred while reading yaml files in the TG home", e);
+            throw new ReportingException("Error occurred while getting test failure summary from the database", e);
         }
     }
 

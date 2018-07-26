@@ -52,6 +52,8 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
+
 /**
  * Utility class for handling file operations.
  *
@@ -225,7 +227,7 @@ public class FileUtil {
      */
     public static List<String> getTestPlanIdByReadingTGYaml(String workspace) throws TestGridException {
         List<String> testPlanIds = new ArrayList<>();
-        Path source = Paths.get(workspace, "test-plans");
+        Path source = Paths.get(workspace, PRODUCT_TEST_PLANS_DIR);
         if (!Files.exists(source)) {
             logger.error("Test-plans dir does not exist: " + source);
             return Collections.emptyList();
