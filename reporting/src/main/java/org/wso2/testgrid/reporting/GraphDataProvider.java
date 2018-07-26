@@ -29,6 +29,7 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.dto.TestCaseFailureResultDTO;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.model.email.BuildExecutionSummary;
@@ -77,6 +78,8 @@ public class GraphDataProvider {
             return processTestFailureSummary(testFailureSummary);
         } catch (TestGridException e) {
             throw new ReportingException("Error occurred while reading yaml files in the TG home", e);
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occurred while reading yaml files in the TG home", e);
         }
     }
 
@@ -92,7 +95,7 @@ public class GraphDataProvider {
             BuildFailureSummary buildFailureSummaryData = new BuildFailureSummary();
             Gson gson = new GsonBuilder().create();
             InfraCombination infraCombination = new InfraCombination();
-            String testName = testFailure.getTestName();
+            String testName = testFailure.getName();
             JsonElement jelem = gson.fromJson(testFailure.getInfraParameters(), JsonElement.class);
             JsonObject jobj = jelem.getAsJsonObject();
             infraCombination.setOs(StringUtil

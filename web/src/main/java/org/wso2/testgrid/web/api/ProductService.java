@@ -29,7 +29,6 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.AxisColumn;
-import org.wso2.testgrid.reporting.GraphDataProvider;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.ProductStatus;
 import org.wso2.testgrid.web.plugins.AWSArtifactReader;

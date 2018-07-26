@@ -18,37 +18,29 @@
 
 package org.wso2.testgrid.dao.dto;
 
-import javax.persistence.ColumnResult;
-import javax.persistence.ConstructorResult;
-import javax.persistence.SqlResultSetMapping;
-
 /**
  * Defines a model object of test case failure results.
  *
  * @since 1.0.0
  */
-@SqlResultSetMapping(name = "TestCaseFailureResult", classes = {
-        @ConstructorResult(targetClass = TestCaseFailureResultDTO.class, columns = { @ColumnResult(name = "testName"),
-                @ColumnResult(name = "failureMessage"),
-                @ColumnResult(name = "infraParameters") }) })
 public class TestCaseFailureResultDTO {
 
-    private String testName;
+    private String name;
     private String failureMessage;
     private String infraParameters;
 
     public TestCaseFailureResultDTO(String testname, String failureMessage, String infraParameters) {
-        this.testName = testname;
+        this.name = testname;
         this.failureMessage = failureMessage;
         this.infraParameters = infraParameters;
     }
 
-    public String getTestName() {
-        return testName;
+    public String getName() {
+        return name;
     }
 
-    public void setTestName(String testName) {
-        this.testName = testName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getFailureMessage() {

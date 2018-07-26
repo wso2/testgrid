@@ -825,7 +825,12 @@ public class TestReportEngine {
         Path reportPath = Paths.get(testGridHome, relativeFilePath);
         writeHTMLToFile(reportPath, htmlString);
         // Generating the charts required for the email
-        generateSummarizedCharts(workspace, reportPath.getParent().toString());
+        //todo need to fix properly
+        try {
+            generateSummarizedCharts(workspace, reportPath.getParent().toString());
+        } catch (NullPointerException e) {
+            throw new ReportingException("Null point exception occured");
+        }
 
         return Optional.of(reportPath);
     }
@@ -850,12 +855,12 @@ public class TestReportEngine {
                 } else {
                     logger.error(String.format(
                             "Inconsistent state: The test plan yaml with id '%s' has no entry in the database. "
-                            + "Ignoring the test plan...", testPlanId));
+                                    + "Ignoring the test plan...", testPlanId));
                 }
             }
         } catch (TestGridDAOException e) {
             throw new ReportingException("Error occurred while getting the test plan from database ", e);
-            } catch (TestGridException e) {
+        } catch (TestGridException e) {
             throw new ReportingException(
                     "Error occurred while getting the test plan id by reading test grid yaml files ", e);
         }
