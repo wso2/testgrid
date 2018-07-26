@@ -57,6 +57,7 @@ public class ChartGenerator {
                         new PieChart.Data("Skipped", skippedCount),
                         new PieChart.Data("Passed", passedCount));
         final PieChart chart = new PieChart(pieChartData);
+        chart.setAnimated(false);
         chart.setTitle("Build Failure Summary by Test Plans");
         genChart(chart, 500, 500, summaryChartFileName);
     }

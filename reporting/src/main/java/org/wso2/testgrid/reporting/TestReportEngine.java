@@ -835,7 +835,6 @@ public class TestReportEngine {
     public Optional<Path> generateSummarizedEmailReport(Product product, String workspace) throws ReportingException {
 
         List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
-
         //start email generation
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
@@ -935,10 +934,9 @@ public class TestReportEngine {
         ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
 
         // Generating the charts
-       // chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
-             //   .getSkippedTestPlans());
-
+        chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
+                .getSkippedTestPlans());
         // Generate history chart
-       // chartGenerator.generateResultHistoryChart(dataProvider.getTestExecutionHistory(id));
+        chartGenerator.generateResultHistoryChart(dataProvider.getTestExecutionHistory(id));
     }
 }
