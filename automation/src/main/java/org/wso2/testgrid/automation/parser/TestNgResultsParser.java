@@ -72,6 +72,7 @@ public class TestNgResultsParser extends ResultParser {
     private static final String TEST_CASE = "testcase";
     private static final String FAILED = "failure";
     private static final String SKIPPED = "skipped";
+    private static final int ERROR_LINE_LIMIT = 2;
 
     /**
      * This constructor is used to create a {@link TestNgResultsParser} object with the
@@ -205,7 +206,16 @@ public class TestNgResultsParser extends ResultParser {
             }
             if (event.getEventType() == XMLStreamConstants.START_ELEMENT && FAILED
                     .equals(event.asStartElement().getName().getLocalPart())) {
-                String failureMessage = readFailureMessage(eventReader);
+                String failureMessage = "unknown";
+                Iterator attributes = event.asStartElement().getAttributes();
+                failureMessage = readFailureMessage(eventReader);
+                while (attributes.hasNext()) {
+                    Attribute attribute = (Attribute) attributes.next();
+                    if (attribute.getName().getLocalPart().equals("message")) {
+                        failureMessage = attribute.getValue();
+                        break;
+                    }
+                }
                 TestCase testCase = buildTestCase(classNameStr, Status.FAIL, failureMessage);
                 testCases.add(testCase);
                 break;
@@ -224,7 +234,7 @@ public class TestNgResultsParser extends ResultParser {
      */
     private String readFailureMessage(XMLEventReader eventReader) throws XMLStreamException {
         StringBuilder builder = new StringBuilder();
-        while (eventReader.hasNext()) {
+        for (int i = 0; i < ERROR_LINE_LIMIT; i++) {
             XMLEvent xmlEvent = eventReader.nextEvent();
             if (xmlEvent.isCharacters()) {
                 builder.append(xmlEvent.asCharacters().getData());
