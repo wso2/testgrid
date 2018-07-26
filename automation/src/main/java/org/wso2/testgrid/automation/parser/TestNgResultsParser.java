@@ -70,6 +70,7 @@ public class TestNgResultsParser extends ResultParser {
     private static final String[] ARCHIVABLE_FILES = new String[] { "surefire-reports", "automation.log" };
     private static final Logger logger = LoggerFactory.getLogger(TestNgResultsParser.class);
     private static final String TEST_CASE = "testcase";
+    private static final String MESSAGE = "message";
     private static final String FAILED = "failure";
     private static final String SKIPPED = "skipped";
     private static final int ERROR_LINE_LIMIT = 2;
@@ -211,7 +212,7 @@ public class TestNgResultsParser extends ResultParser {
                 failureMessage = readFailureMessage(eventReader);
                 while (attributes.hasNext()) {
                     Attribute attribute = (Attribute) attributes.next();
-                    if (attribute.getName().getLocalPart().equals("message")) {
+                    if (MESSAGE.equals(attribute.getName().getLocalPart())) {
                         failureMessage = attribute.getValue();
                         break;
                     }
