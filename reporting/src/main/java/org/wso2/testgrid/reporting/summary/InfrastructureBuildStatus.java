@@ -18,6 +18,8 @@
 
 package org.wso2.testgrid.reporting.summary;
 
+import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +31,7 @@ import java.util.List;
  */
 public class InfrastructureBuildStatus {
 
-    private List<String> successInfra = new ArrayList<>();
+    private List<InfrastructureParameter> successInfra = new ArrayList<>();
 
     /**
      * The list of failed infras. If the given test case fails only
@@ -37,18 +39,18 @@ public class InfrastructureBuildStatus {
      * "associated infras". So, those are added together.
      *
      */
-    private List<List<String>> failedInfra = new ArrayList<>();
-    private List<String> unknownInfra = new ArrayList<>();
+    private List<List<InfrastructureParameter>> failedInfra = new ArrayList<>();
+    private List<InfrastructureParameter> unknownInfra = new ArrayList<>();
 
-    public List<String> getSuccessInfra() {
+    public List<InfrastructureParameter> getSuccessInfra() {
         return successInfra;
     }
 
-    public void addSuccessInfra(String successInfra) {
+    public void addSuccessInfra(InfrastructureParameter successInfra) {
         this.successInfra.add(successInfra);
     }
 
-    public List<List<String>> getFailedInfra() {
+    public List<List<InfrastructureParameter>> getFailedInfra() {
         return failedInfra;
     }
 
@@ -63,9 +65,9 @@ public class InfrastructureBuildStatus {
      *
      * @return unassociated failed infra
      */
-    public List<String> getUnassociatedFailedInfra() {
-        List<String> unassociatedFailedInfra = new ArrayList<>();
-        for (List<String> failedInfraCombination : failedInfra) {
+    public List<InfrastructureParameter> getUnassociatedFailedInfra() {
+        List<InfrastructureParameter> unassociatedFailedInfra = new ArrayList<>();
+        for (List<InfrastructureParameter> failedInfraCombination : failedInfra) {
             if (failedInfraCombination.size() == 1) {
                 unassociatedFailedInfra.add(failedInfraCombination.get(0));
             }
@@ -80,22 +82,23 @@ public class InfrastructureBuildStatus {
      *
      * @param failedAssociatedInfras associated infras that are failing.
      */
-    public void addFailedInfra(String... failedAssociatedInfras) {
+    public void addFailedInfra(InfrastructureParameter... failedAssociatedInfras) {
         this.failedInfra.add(Arrays.asList(failedAssociatedInfras));
     }
 
-    public List<String> getUnknownInfra() {
+    public List<InfrastructureParameter> getUnknownInfra() {
         return unknownInfra;
     }
 
-    public void addUnknownInfra(String unknownInfra) {
+    public void addUnknownInfra(InfrastructureParameter unknownInfra) {
         this.unknownInfra.add(unknownInfra);
     }
 
     @Override
     public String toString() {
-        return "success=" + successInfra +
+        return "{success=" + successInfra +
                 ", failed=" + failedInfra +
-                ", unknown=" + unknownInfra;
+                ", unknown=" + unknownInfra +
+                '}';
     }
 }

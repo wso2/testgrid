@@ -96,15 +96,19 @@ public class TestReportEngine {
     private static final String IMAGES_FOLDER = "img";
     private final EmailReportProcessor emailReportProcessor;
     private TestPlanUOW testPlanUOW;
+    private final GraphDataProvider graphDataProvider;
 
-    public TestReportEngine(TestPlanUOW testPlanUOW, EmailReportProcessor emailReportProcessor) {
+    public TestReportEngine(TestPlanUOW testPlanUOW, EmailReportProcessor emailReportProcessor, GraphDataProvider
+            graphDataProvider) {
         this.testPlanUOW = testPlanUOW;
         this.emailReportProcessor = emailReportProcessor;
+        this.graphDataProvider = graphDataProvider;
     }
 
     public TestReportEngine() {
         testPlanUOW = new TestPlanUOW();
         emailReportProcessor = new EmailReportProcessor();
+        graphDataProvider = new GraphDataProvider();
     }
 
     /**
@@ -776,6 +780,7 @@ public class TestReportEngine {
         report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
         report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
+        report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
         perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
         String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
 
@@ -800,7 +805,9 @@ public class TestReportEngine {
                     throw new ReportingException(
                             "Test Plan File doesn't exist. File path is " + path.toAbsolutePath().toString());
                 }
-                logger.info("A test plan file found at " + path.toAbsolutePath().toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("A test plan file found at " + path.toAbsolutePath().toString());
+                }
                 TestPlan testPlanYaml = org.wso2.testgrid.common.util.FileUtil
                         .readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
                 Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanYaml.getId());
@@ -841,7 +848,6 @@ public class TestReportEngine {
                         + "Hence skipping email-report generation..");
             return Optional.empty();
         }
-        GraphDataProvider graphDataProvider = new GraphDataProvider();
         List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
 
         Map<String, Object> results = new HashMap<>();
@@ -863,12 +869,18 @@ public class TestReportEngine {
             resultList.add(resultSection);
         }
 
+        Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
+                .getSummaryTable(testPlans);
+        postProcessSummaryTable(testCaseInfraSummaryMap);
+
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
 
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
         results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
+        results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
+        results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
         String htmlString = renderer.render(SUMMARIZED_EMAIL_REPORT_MUSTACHE, results);
 
         // Write to HTML file
@@ -928,17 +940,16 @@ public class TestReportEngine {
      */
     private void generateSummarizedCharts(String workspace, String chartGenLocation, String id)
             throws ReportingException {
-        GraphDataProvider dataProvider = new GraphDataProvider();
         logger.info(StringUtil.concatStrings("Generating Charts with workspace : ", workspace, " at ",
                 chartGenLocation));
-        BuildExecutionSummary summary = dataProvider.getTestExecutionSummary(workspace);
+        BuildExecutionSummary summary = graphDataProvider.getTestExecutionSummary(workspace);
         try {
             ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
             // Generating the charts
             chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
                     .getSkippedTestPlans());
             // Generate history chart
-            chartGenerator.generateResultHistoryChart(dataProvider.getTestExecutionHistory(id));
+            chartGenerator.generateResultHistoryChart(graphDataProvider.getTestExecutionHistory(id));
             chartGenerator.stopApplication();
         } catch (UnsupportedOperationException e) {
             logger.error("Unexpected error occurred during chart generation ", e);

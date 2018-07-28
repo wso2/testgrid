@@ -58,15 +58,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 /**
  * Base test class for reporting module.
- *
  */
 public class BaseClass {
 
@@ -81,15 +78,14 @@ public class BaseClass {
     protected TestCaseUOW testCaseUOW;
 
     protected Product product;
-    //    protected List<TestPlan> testPlans;
     protected Path productDir;
     protected String testPlanId = "abc";
 
     @DataProvider
     public static Object[][] testPlanInputsNum() {
         return new Object[][] {
-                new Object[] { "01" },
-                new Object[] { "02" }
+                new Object[] { "02" },
+                new Object[] { "01" }
         };
     }
 
@@ -204,6 +200,7 @@ public class BaseClass {
         List<InfrastructureParameter> oses = new ArrayList<>();
         oses.add(getInfrastructureParameterFor("OS", "CentOS"));
         oses.add(getInfrastructureParameterFor("OS", "Windows"));
+        oses.add(getInfrastructureParameterFor("OS", "Ubuntu"));
 
         List<InfrastructureParameter> dbs = new ArrayList<>();
         dbs.add(getInfrastructureParameterFor("DBEngine", "Oracle"));
@@ -213,11 +210,11 @@ public class BaseClass {
         List<InfrastructureParameter> jdks = new ArrayList<>();
         jdks.add(getInfrastructureParameterFor("JDK", "ORACLE_JDK8"));
         jdks.add(getInfrastructureParameterFor("JDK", "OPEN_JDK8"));
+        jdks.add(getInfrastructureParameterFor("JDK", "IBM_JDK8"));
 
         final List<InfrastructureCombination> infraCombinations = getInfraCombinationsFor(oses, dbs, jdks);
-        Assert.assertEquals(infraCombinations.size(), 12, "Infra comb generation error.");
-        final Map<InfrastructureCombination, TestScenario> testCases = getTestCasesFor(infraCombinations);
-        List<TestPlan> testPlans = getTestPlansFor(testCases);
+        Assert.assertEquals(infraCombinations.size(), 27, "Infra comb generation error.");
+        List<TestPlan> testPlans = getTestPlansFor(infraCombinations);
 
         Files.createDirectories(getTestPlansPath());
         Yaml yaml = new Yaml(new NullRepresenter());
@@ -232,38 +229,65 @@ public class BaseClass {
 
     /**
      * Generate the test-plans for the given infrastructure combination list.
-     *
      */
-    private Map<InfrastructureCombination, TestScenario> getTestCasesFor(
-            List<InfrastructureCombination> infraCombinations) {
-        Map<InfrastructureCombination, TestScenario> testCases = new HashMap<>();
-
+    private void addTestCasesFor(InfrastructureCombination infraCombination, TestScenario ts) {
         //test case T1 fails only on CentOS.
-        for (InfrastructureCombination infraCombination : infraCombinations) {
-            TestCase t1 = new TestCase();
-            t1.setName("T1");
-            if (infraCombination.getParameters().stream().anyMatch(p -> p.getName().equals("CentOS"))) {
-                t1.setSuccess(Status.FAIL);
-                t1.setFailureMessage("I fail on CentOS");
-            } else {
-                t1.setSuccess(Status.SUCCESS);
-                t1.setFailureMessage("Success. I only fail on CentOS.");
-            }
-
-            TestScenario s = new TestScenario();
-            s.setName("Integration tests");
-            s.setStatus(t1.getStatus());
-            s.addTestCase(t1);
-            t1.setTestScenario(s);
-            testCases.put(infraCombination, s);
+        ts.setStatus(Status.SUCCESS);
+        if (infraCombination.getParameters().stream().anyMatch(p -> p.getName().equals("CentOS"))) {
+            TestCase tc = createTestScenarioFor("CentOS-PaginationCountTestCase", Status.FAIL,
+                    "I fail on CentOS");
+            ts.addTestCase(tc);
+            tc.setTestScenario(ts);
+            ts.setStatus(tc.getStatus());
+        } else {
+            TestCase tc = createTestScenarioFor("CentOS-PaginationCountTestCase", Status.SUCCESS,
+                    "Success. I only fail on CentOS.");
+            ts.addTestCase(tc);
+            tc.setTestScenario(ts);
         }
 
-        return testCases;
+        //test case 2 - fails only on Oracle
+        if (infraCombination.getParameters().stream().anyMatch(p -> p.getName().equals("Oracle"))) {
+            TestCase tc = createTestScenarioFor("Oracle-APINameWithDifferentCaseTestCase", Status.FAIL,
+                    "I fail on Oracle");
+            ts.addTestCase(tc);
+            tc.setTestScenario(ts);
+            ts.setStatus(tc.getStatus());
+        } else {
+            TestCase tc = createTestScenarioFor("Oracle-APINameWithDifferentCaseTestCase", Status.SUCCESS,
+                    "I only fail on Oracle");
+            ts.addTestCase(tc);
+            tc.setTestScenario(ts);
+        }
+
+        //test case 3 - fails on centos and open jdk
+        if (infraCombination.getParameters().stream()
+                .filter(p -> p.getName().equals("CentOS") || p.getName().equals("OPEN_JDK8"))
+                .count() == 2) {
+            TestCase tc = createTestScenarioFor("CentOS-OPEN_JDK8-APIInvocationStatPublisherTestCase", Status.FAIL,
+                    "I fail on CentOS + OPEN_JDK8 environments.");
+            ts.addTestCase(tc);
+            tc.setTestScenario(ts);
+            ts.setStatus(tc.getStatus());
+        } else {
+            TestCase tc = createTestScenarioFor("CentOS-OPEN_JDK8-APIInvocationStatPublisherTestCase", Status.SUCCESS,
+                    "I passed.");
+            ts.addTestCase(tc);
+            tc.setTestScenario(ts);
+        }
+
+    }
+
+    private TestCase createTestScenarioFor(String name, Status status, String failureMessage) {
+        TestCase t1 = new TestCase();
+        t1.setName(name);
+        t1.setSuccess(status);
+        t1.setFailureMessage(failureMessage);
+        return t1;
     }
 
     /**
      * Get list of infra combinations for the OS, DB, and JDK input parameters.
-     *
      */
     private List<InfrastructureCombination> getInfraCombinationsFor(List<InfrastructureParameter> oses,
             List<InfrastructureParameter> dbs,
@@ -290,17 +314,20 @@ public class BaseClass {
     /**
      * Get the list of test plans for the infra combinations that are populated with @{@link TestScenario}s
      *
-     * @param testScenarios list of test scenarios.
+     * @param infrastructureCombinations list of test scenarios.
      * @return the test plans
      */
-    private List<TestPlan> getTestPlansFor(Map<InfrastructureCombination, TestScenario> testScenarios)
+    private List<TestPlan> getTestPlansFor(List<InfrastructureCombination> infrastructureCombinations)
             throws JsonProcessingException {
         List<TestPlan> testPlans = new ArrayList<>();
-        int i = 0;
-        for (InfrastructureCombination infrastructureCombination : testScenarios.keySet()) {
+        for (int i = 0; i < infrastructureCombinations.size(); i++) {
+            InfrastructureCombination infrastructureCombination = infrastructureCombinations.get(i);
+            TestScenario ts = new TestScenario();
+            ts.setName("Integration tests");
+            addTestCasesFor(infrastructureCombination, ts);
 
             TestPlan testPlan = new TestPlan();
-            testPlan.setStatus(testScenarios.get(infrastructureCombination).getStatus());
+            testPlan.setStatus(ts.getStatus());
             testPlan.setId(i + "");
 
             InfrastructureConfig infraConfig = new InfrastructureConfig();
@@ -315,15 +342,14 @@ public class BaseClass {
                     .writeValueAsString(props);
             testPlan.setInfraParameters(jsonInfraParams);
 
-            testPlan.setTestScenarios(Collections.singletonList(testScenarios.get(infrastructureCombination)));
-            testScenarios.get(infrastructureCombination).setTestPlan(testPlan);
+            testPlan.setTestScenarios(Collections.singletonList(ts));
+            ts.setTestPlan(testPlan);
 
             DeploymentPattern dp = new DeploymentPattern();
             dp.setName("dp");
             dp.setProduct(product);
             testPlan.setDeploymentPattern(dp);
             testPlans.add(testPlan);
-            i++;
         }
 
         return testPlans;
@@ -331,7 +357,6 @@ public class BaseClass {
 
     /**
      * When persisting yaml test plans, skip any field that is null.
-     *
      */
     private static class NullRepresenter extends Representer {
 

@@ -195,8 +195,9 @@ public class TestPlanExecutor {
             ReportGenerator reportGenerator = ReportGeneratorFactory.getReportGenerator(testPlan);
             reportGenerator.generateReport();
         } catch (ReportGeneratorNotFoundException e) {
-            logger.error("Error occurred while finding a report generator " +
-                    " for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName(), e);
+            logger.error("Could not find a report generator " +
+                    " for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName() +
+                    ". Test type: " + testPlan.getScenarioConfig().getTestType());
         } catch (ReportGeneratorInitializingException e) {
             logger.error("Error while initializing the report generators  " +
                     "for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName(), e);
