@@ -135,6 +135,14 @@ public class ChartGenerator {
         return chartGenLocation;
     }
 
+
+    /**
+     * Stops the running Application, guarantees that Application Thread is terminated.
+     */
+    public void stopApplication() {
+        Platform.exit();
+    }
+
     /**
      * Generates the chart and writes to an image.
      *

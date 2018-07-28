@@ -932,12 +932,17 @@ public class TestReportEngine {
         logger.info(StringUtil.concatStrings("Generating Charts with workspace : ", workspace, " at ",
                 chartGenLocation));
         BuildExecutionSummary summary = dataProvider.getTestExecutionSummary(workspace);
-        ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
+        try {
+            ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
+            // Generating the charts
+            chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
+                    .getSkippedTestPlans());
+            // Generate history chart
+            chartGenerator.generateResultHistoryChart(dataProvider.getTestExecutionHistory(id));
+            chartGenerator.stopApplication();
+        } catch (UnsupportedOperationException e) {
+            logger.error("Unexpected error occurred during chart generation ", e);
+        }
 
-        // Generating the charts
-        chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
-                .getSkippedTestPlans());
-        // Generate history chart
-        chartGenerator.generateResultHistoryChart(dataProvider.getTestExecutionHistory(id));
     }
 }
