@@ -45,16 +45,17 @@ public class InfrastructureSummaryReporterTest extends BaseClass {
     public void testGetSummaryTable(String testPlanInputsNum) throws Exception {
 
         List<TestPlan> testPlans = getTestPlansFor(testPlanInputsNum);
-        final InfrastructureSummaryReporter summaryReporter = new InfrastructureSummaryReporter();
+        final InfrastructureSummaryReporter summaryReporter = new InfrastructureSummaryReporter(
+                infrastructureParameterUOW);
         final Map<String, InfrastructureBuildStatus> summaryTable = summaryReporter.getSummaryTable(testPlans);
 
         if (testPlanInputsNum.equals("02")) {
-            Assert.assertEquals(summaryTable.size(), 3);
+            Assert.assertEquals(summaryTable.size(), 4);
             final InfrastructureBuildStatus buildStatus = summaryTable.values().iterator().next();
             Assert.assertEquals(buildStatus.getUnknownInfra().size(), 0, "Summary with unknown status found. " +
                     buildStatus.getUnknownInfra());
             final List<List<InfrastructureParameter>> failedInfra01 = buildStatus.getFailedInfra();
-            final List<InfrastructureParameter> unassociatedFailedInfra = buildStatus.getUnassociatedFailedInfra();
+            final List<InfrastructureParameter> unassociatedFailedInfra = buildStatus.retrieveUnassociatedFailedInfra();
 
             Assert.assertEquals(unassociatedFailedInfra.size(), buildStatus.getFailedInfra().size(), "All failed infra "
                     + "should be unassociated infras.");

@@ -762,7 +762,7 @@ public class TestReportEngine {
         //start email generation
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. " +
-                    "Hence skipping email-report generation..");
+                    "Hence skipping email-report generation. Total test-plans: " + testPlans.size());
             if (logger.isDebugEnabled()) {
                 logger.debug("Skipped email-report generation for test-plans: " + testPlans);
             }
@@ -771,13 +771,16 @@ public class TestReportEngine {
 
         Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
                 .getSummaryTable(testPlans);
+        final String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testCaseInfraSummaryMap);
         postProcessSummaryTable(testCaseInfraSummaryMap);
+
         logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         Map<String, Object> report = new HashMap<>();
         Map<String, Object> perSummariesMap = new HashMap<>();
         report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
+        report.put("testedInfrastructures", testedInfrastructures);
         report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
         report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
@@ -792,8 +795,15 @@ public class TestReportEngine {
         return Optional.of(reportPath);
     }
 
-    private void postProcessSummaryTable(Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap) {
-
+    /**
+     * We do not need the test cases that has been success in all the infra combinations.
+     *
+     */
+    private void postProcessSummaryTable(Map<String, InfrastructureBuildStatus> testCaseInfraBuildStatusMap) {
+        // remove success test cases
+        testCaseInfraBuildStatusMap.entrySet()
+                .removeIf(s -> s.getValue().getFailedInfra().size() == 0
+                        && s.getValue().getUnknownInfra().size() == 0);
     }
 
     private List<TestPlan> getTestPlans(String workspace, Path testPlansDir) throws ReportingException {
@@ -812,9 +822,10 @@ public class TestReportEngine {
                         .readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
                 Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanYaml.getId());
                 if (testPlanById.isPresent()) {
+                    TestPlan mergedTestPlan = TestGridUtil.mergeTestPlans(testPlanYaml, testPlanById.get(), false);
                     logger.info("Derived test plan dir in email phase : " +
-                            TestGridUtil.deriveTestPlanDirName(testPlanById.get()));
-                    testPlans.add(testPlanById.get());
+                            TestGridUtil.deriveTestPlanDirName(mergedTestPlan));
+                    testPlans.add(mergedTestPlan);
                 } else {
                     logger.error(String.format(
                             "Inconsistent state: The test plan yaml with id '%s' has no entry in the database. "
@@ -845,7 +856,7 @@ public class TestReportEngine {
         //start email generation
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
-                        + "Hence skipping email-report generation..");
+                        + "Hence skipping email-report generation. Total test-plans: " + testPlans.size());
             return Optional.empty();
         }
         List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
@@ -871,12 +882,14 @@ public class TestReportEngine {
 
         Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
                 .getSummaryTable(testPlans);
+        final String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testCaseInfraSummaryMap);
         postProcessSummaryTable(testCaseInfraSummaryMap);
 
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
 
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
+        results.put("testedInfrastructures", testedInfrastructures);
         results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);

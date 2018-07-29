@@ -107,7 +107,7 @@ public class RunTestPlanCommand implements Command {
             Optional<TestPlan> testPlanEntity = testPlanUOW.getTestPlanById(testPlan.getId());
             if (testPlanEntity.isPresent()) {
                 //Merge properties from persisted test plan to test plan config
-                testPlan = this.mergeTestPlans(testPlan, testPlanEntity.get());
+                testPlan = TestGridUtil.mergeTestPlans(testPlan, testPlanEntity.get(), true);
 
                 // Test plan status should be changed to running and persisted
                 testPlan.setStatus(Status.RUNNING);
@@ -129,20 +129,6 @@ public class RunTestPlanCommand implements Command {
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error in obtaining persisted TestPlan from database.", e);
         }
-    }
-
-    /**
-     * Copies non existing properties from a persisted test plan to a test plan object generated from the config.
-     *
-     * @param testPlanConfig    an instance of test plan which is generated from the config
-     * @param testPlanPersisted an instance of test plan which is persisted in the db
-     * @return an instance of {@link TestPlan} with merged properties
-     */
-    private TestPlan mergeTestPlans(TestPlan testPlanConfig, TestPlan testPlanPersisted) {
-        testPlanConfig.setInfraParameters(testPlanPersisted.getInfraParameters());
-        testPlanConfig.setDeploymentPattern(testPlanPersisted.getDeploymentPattern());
-        testPlanConfig.setTestScenarios(testPlanPersisted.getTestScenarios());
-        return testPlanConfig;
     }
 
     /**

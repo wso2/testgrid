@@ -38,8 +38,11 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
+import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 import org.wso2.testgrid.dao.uow.TestCaseUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
@@ -61,6 +64,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.when;
 
 /**
  * Base test class for reporting module.
@@ -74,6 +80,8 @@ public class BaseClass {
     protected TestScenarioUOW testScenarioUOW;
     @Mock
     protected TestPlanUOW testPlanUOW;
+    @Mock
+    protected InfrastructureParameterUOW infrastructureParameterUOW;
     @Mock
     protected TestCaseUOW testCaseUOW;
 
@@ -102,6 +110,7 @@ public class BaseClass {
         product.setName(productName);
         productDir = Paths.get(TESTGRID_HOME).resolve("jobs").resolve(productName);
         Files.createDirectories(productDir);
+
 
     }
 
@@ -132,10 +141,10 @@ public class BaseClass {
         return testPlans;
     }
 
-    protected List<TestPlan> prepareTestNum01() throws IOException {
+    protected List<TestPlan> prepareTestNum01() throws IOException, TestGridDAOException {
         logger.info("--- Preparing data provider 01 ---");
         TestPlan testPlan = new TestPlan();
-        testPlan.setInfraParameters("{\"OSVersion\":\"2016\",\"JDK\":\"ORACLE_JDK8\",\"OS\":\"Windows\","
+        testPlan.setInfraParameters("{\"OSVersion\":\"7.4\",\"JDK\":\"ORACLE_JDK8\",\"OS\":\"CentOS\","
                 + "\"DBEngineVersion\":\"5.7\",\"DBEngine\":\"mysql\"}");
         testPlan.setStatus(Status.FAIL);
         testPlan.setId(testPlanId);
@@ -148,6 +157,7 @@ public class BaseClass {
         p.setProperty("JDK", "ORACLE_JDK8");
         infraConfig.setParameters(p);
         testPlan.setInfrastructureConfig(infraConfig);
+        testPlan.setInfraParameters(TestGridUtil.convertToJsonString(p));
 
         TestScenario s = new TestScenario();
         s.setName("Sample scenario 01");
@@ -192,10 +202,19 @@ public class BaseClass {
         Path testSuiteTxtFinalPath = TestGridUtil.getSurefireReportsDir(testPlan);
         FileUtils.copyDirectory(testSuiteTxtPath.toFile(), testSuiteTxtFinalPath.toFile());
 
+
+        when(infrastructureParameterUOW.getValueSet()).thenReturn(p.entrySet().stream()
+                .map(e -> {
+                    final InfrastructureParameter ip = new InfrastructureParameter((String) e.getValue(),
+                            (String) e.getKey(), "", true);
+                    return new InfrastructureValueSet((String) e.getKey(), Collections.singleton(ip));
+                })
+                .collect(Collectors.toSet()));
+
         return Collections.singletonList(testPlan);
     }
 
-    public List<TestPlan> prepareTestNum02() throws Exception {
+    private List<TestPlan> prepareTestNum02() throws Exception {
         logger.info("--- Preparing data provider 02 ---");
         List<InfrastructureParameter> oses = new ArrayList<>();
         oses.add(getInfrastructureParameterFor("OS", "CentOS"));
@@ -223,6 +242,13 @@ public class BaseClass {
             Writer writer = Files.newBufferedWriter(testPlansPath);
             yaml.dump(testPlans.get(i), writer);
         }
+
+        InfrastructureValueSet osSet = new InfrastructureValueSet("OS", new HashSet<>(oses));
+        InfrastructureValueSet dbSet = new InfrastructureValueSet("DBEngine", new HashSet<>(dbs));
+        InfrastructureValueSet jdkSet = new InfrastructureValueSet("JDK", new HashSet<>(jdks));
+        final HashSet<InfrastructureValueSet> infrastructureValueSets = new HashSet<>(
+                Arrays.asList(osSet, dbSet, jdkSet));
+        when(infrastructureParameterUOW.getValueSet()).thenReturn(infrastructureValueSets);
 
         return testPlans;
     }
@@ -260,6 +286,12 @@ public class BaseClass {
             tc.setTestScenario(ts);
         }
 
+        //test case 4 - i pass everywhere
+        TestCase ptc = createTestScenarioFor("Success-ESBJAVA3380TestCase", Status.SUCCESS,
+                "I passed.");
+        ts.addTestCase(ptc);
+        ptc.setTestScenario(ts);
+
         //test case 3 - fails on centos and open jdk
         if (infraCombination.getParameters().stream()
                 .filter(p -> p.getName().equals("CentOS") || p.getName().equals("OPEN_JDK8"))
@@ -275,7 +307,6 @@ public class BaseClass {
             ts.addTestCase(tc);
             tc.setTestScenario(ts);
         }
-
     }
 
     private TestCase createTestScenarioFor(String name, Status status, String failureMessage) {

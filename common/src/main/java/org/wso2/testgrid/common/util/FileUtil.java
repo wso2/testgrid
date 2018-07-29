@@ -234,12 +234,12 @@ public class FileUtil {
         }
         try (Stream<Path> stream = Files.list(source).filter(Files::isRegularFile)) {
             List<Path> paths = stream.sorted().collect(Collectors.toList());
+            logger.info("Test plans found at " + paths);
             for (Path path : paths) {
                 if (!path.toFile().exists()) {
                     throw new IOException(
                             "Test Plan File doesn't exist. File path is " + path.toAbsolutePath().toString());
                 }
-                logger.info("A test plan file found at " + path.toAbsolutePath().toString());
                 TestPlan testPlanYaml = org.wso2.testgrid.common.util.FileUtil
                         .readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
                 testPlanIds.add(testPlanYaml.getId());

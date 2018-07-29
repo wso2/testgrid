@@ -65,7 +65,7 @@ public class InfrastructureBuildStatus {
      *
      * @return unassociated failed infra
      */
-    public List<InfrastructureParameter> getUnassociatedFailedInfra() {
+    public List<InfrastructureParameter> retrieveUnassociatedFailedInfra() {
         List<InfrastructureParameter> unassociatedFailedInfra = new ArrayList<>();
         for (List<InfrastructureParameter> failedInfraCombination : failedInfra) {
             if (failedInfraCombination.size() == 1) {

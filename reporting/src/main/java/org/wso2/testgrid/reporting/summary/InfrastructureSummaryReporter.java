@@ -25,12 +25,18 @@ import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
+import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
+import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +52,15 @@ import java.util.stream.Collectors;
 public class InfrastructureSummaryReporter {
 
     private static final Logger logger = LoggerFactory.getLogger(InfrastructureSummaryReporter.class);
+    private final InfrastructureParameterUOW infrastructureParameterUOW;
+
+    public InfrastructureSummaryReporter() {
+        infrastructureParameterUOW = new InfrastructureParameterUOW();
+    }
+
+    public InfrastructureSummaryReporter(InfrastructureParameterUOW infrastructureParameterUOW) {
+        this.infrastructureParameterUOW = infrastructureParameterUOW;
+    }
 
     /**
      * This generates the infrastructure summary report table that shows
@@ -75,10 +90,10 @@ public class InfrastructureSummaryReporter {
     /**
      * Calculate the infrastructure success/failure status of the given test case.
      *
-     * @param testCase the test case
-     * @param testPlans test plans that contain test cases
+     * @param testCase                    the test case
+     * @param testPlans                   test plans that contain test cases
      * @param testCaseInfraBuildStatusMap the result map
-     * @param infraScores the success and failure counts of each infrastructure for the given test case.
+     * @param infraScores                 the success and failure counts of each infrastructure for the given test case.
      */
     private void calculateInfraStatusOf(String testCase, List<TestPlan> testPlans,
             Map<String, InfrastructureBuildStatus> testCaseInfraBuildStatusMap,
@@ -107,7 +122,14 @@ public class InfrastructureSummaryReporter {
         if (allSuccessInfrasFound) {
             List<TestPlan> testPlansWithoutAllSuccessInfra = testPlans.stream()
                     .filter(tp -> infraBuildStatus.getSuccessInfra().stream()
-                            .noneMatch(ip -> tp.getInfraParameters().contains("\"" + ip.getName() + "\"")))
+                            .noneMatch(sip -> {
+                                final Map<String, String> infraParamsStr = TestGridUtil
+                                        .parseInfraParametersString(tp.getInfraParameters());
+                                final InfrastructureParameter oneSubInfraParam = sip
+                                        .getProcessedSubInfrastructureParameters().get(0);
+                                final String s = infraParamsStr.get(oneSubInfraParam.getType());
+                                return s != null && s.equals(oneSubInfraParam.getName());
+                            }))
                     .collect(Collectors.toList());
             if (testPlansWithoutAllSuccessInfra.isEmpty()) {
                 return;
@@ -125,8 +147,8 @@ public class InfrastructureSummaryReporter {
      * handle the infra build status of a given test case for a failed infra.
      * The test case must have been failed in all the test plans that contain this infra.
      *
-     * @param infra the infrastructure that has failure
-     * @param infraScores the infra scores of a given test case
+     * @param infra            the infrastructure that has failure
+     * @param infraScores      the infra scores of a given test case
      * @param infraBuildStatus infrastructure build status that needs to be populated.
      */
     private void handleBuildStatusOfFailedInfra(InfrastructureParameter infra, InfrastructureScores infraScores,
@@ -189,7 +211,7 @@ public class InfrastructureSummaryReporter {
         //map between test-case and its infrastructure-scores
         TestCaseInfrastructureScoreTable tcInfraScoreTable = new TestCaseInfrastructureScoreTable();
         for (TestPlan testPlan : testPlans) {
-            final Properties infraParams = testPlan.getInfrastructureConfig().getParameters();
+            final List<InfrastructureParameter> infraParams = getInfraParams(testPlan);
             //for each test case, T1
             for (TestScenario testScenario : testPlan.getTestScenarios()) {
                 for (TestCase testCase : testScenario.getTestCases()) {
@@ -205,26 +227,58 @@ public class InfrastructureSummaryReporter {
     }
 
     /**
+     * Read the infra params from the infrastructure_parameter db table, and return
+     * the list of infra params used in the given test plan.
+     *
+     */
+    private List<InfrastructureParameter> getInfraParams(TestPlan testPlan) {
+        List<InfrastructureParameter> infraParams = new ArrayList<>();
+        try {
+            final Set<InfrastructureValueSet> valueSets = infrastructureParameterUOW.getValueSet();
+
+            final String infraParameters = testPlan.getInfraParameters();
+
+            final Map<String, String> infraParamsStr = TestGridUtil.parseInfraParametersString(infraParameters);
+            for (InfrastructureValueSet valueSet : valueSets) {
+                final String infraName = infraParamsStr.get(valueSet.getType());
+                final Optional<InfrastructureParameter> infraParam = valueSet.getValues().stream()
+                        .filter(param -> param.getName().equals(infraName) || param
+                                .getProcessedSubInfrastructureParameters().stream().anyMatch(sip -> sip.getName()
+                                        .equals(infraName)))
+                        .findAny(); //todo simplify the logic after infra_parameter table fix
+                if (infraParam.isPresent()) {
+                    infraParam.get().transform();
+                    infraParams.add(infraParam.get());
+                } else {
+                    logger.warn("Inconsistent state: Could not find InfrastructureParameter db entry for the " +
+                            infraName + ". ValueSet: " + valueSet);
+                }
+            }
+            return infraParams;
+        } catch (TestGridDAOException e) {
+            logger.error(e.getMessage(), e);
+            return Collections.emptyList();
+        }
+
+    }
+
+    /**
      * Calculate the scores in each infra for a given test-case of a given test-plan.
      *
-     * @param tc            given test case.
      * @param infraParams   the infra params
+     * @param tc            given test case.
      * @param infraScoreMap The infrastructures and their scores for a given test case
      */
-    private void addScores(Properties infraParams, TestCase tc, InfrastructureScores infraScoreMap) {
-        @SuppressWarnings("unchecked")
-        final Enumeration<String> infraIt = (Enumeration<String>) infraParams.propertyNames();
-        while (infraIt.hasMoreElements()) {
-            final String infraType = infraIt.nextElement();
-            final String infraName = infraParams.getProperty(infraType);
-            InfrastructureParameter infraParam = new InfrastructureParameter(infraName, infraType, "", true);
+    private void addScores(List<InfrastructureParameter> infraParams, TestCase tc, InfrastructureScores infraScoreMap) {
+        for (InfrastructureParameter infraParam : infraParams) {
             Score score = infraScoreMap.getScore(infraParam);
+
             if (tc.getStatus() == Status.SUCCESS) {
                 score.success++;
             } else if (tc.getStatus() == Status.FAIL) {
                 score.failed++;
-            } else {
-                logger.warn("This test status, " + tc.getStatus() + ", is unaccounted for: " + tc);
+            } else if (tc.getStatus() == Status.SKIP) {
+                score.skipped++;
             }
             //todo take care of other test statuses
 
@@ -237,8 +291,10 @@ public class InfrastructureSummaryReporter {
     public static class TestCaseInfrastructureScoreTable {
         Map<String, InfrastructureScores> tcInfraScores = new HashMap<>();
 
-        public InfrastructureScores add(String tc, InfrastructureParameter infra, Score score) {
-            return tcInfraScores.computeIfAbsent(tc, k -> new InfrastructureScores());
+        public void add(String tc, InfrastructureParameter infra, Score score) {
+            final InfrastructureScores infrastructureScores = tcInfraScores
+                    .computeIfAbsent(tc, k -> new InfrastructureScores());
+            infrastructureScores.putScore(infra, score);
         }
 
         public InfrastructureScores get(String tc) {
@@ -286,6 +342,7 @@ public class InfrastructureSummaryReporter {
     public static class Score {
         private int success = 0;
         private int failed = 0;
+        private int skipped = 0;
 
         @Override
         public String toString() {

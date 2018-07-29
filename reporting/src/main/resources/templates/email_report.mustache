@@ -64,6 +64,14 @@
             border-left: none;
         }
 
+        table[class="MainContainer"], td[class="cell"] {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        table.testcaseInfraSummaryTable {
+            table-layout: auto;
+        }
         /*
         Titles
          */
@@ -134,16 +142,16 @@
             <div><em>{{{gitBuildDetails}}}</em></div>
             <br/>
 
-            <!-- Start of test-case-vs-infrastructure success/failure summary table. -->
-            <div class="consoleLog">
-                <span>Test failure summary:</span><br/>
-                <span>
-                <table class="reportTable">
+        <!-- Start of test-case-vs-infrastructure success/failure summary table. -->
+        <div class="consoleLog">
+            <span>Failing test cases and infrastructures:</span><br/>
+            <span>
+                <table class="reportTable testcaseInfraSummaryTable">
                     <thead>
                     <tr>
                         <th>Test case:</th>
-                        <th colspan="???">Fails on:</th>
-                        <th colspan="????">Passes on:</th>
+                        <th>Fails on:</th>
+                        <th>Passes on:</th>
                     </tr>
                     </thead>
                     <tbody>

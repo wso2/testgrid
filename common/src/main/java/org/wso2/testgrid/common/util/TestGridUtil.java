@@ -148,6 +148,36 @@ public final class TestGridUtil {
     }
 
     /**
+     * Parse the infra param string of {@link TestPlan#getInfraParameters()} into a map of key-value pairs.
+     *
+     * @param infraParams the {@link TestPlan#getInfraParameters()}
+     * @return Map of key-value pair where key == infra type, and value == infra value.
+     */
+    public static Map<String, String> parseInfraParametersString(String infraParams) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(infraParams, new TypeReference<Map<String, String>>() {
+            });
+        } catch (IOException e) {
+            logger.error("Error while parsing infra parameters", e);
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * transform the properties object into a json string.
+     *
+     */
+    public static String convertToJsonString(Properties properties) {
+        try {
+            return new ObjectMapper().writeValueAsString(properties);
+        } catch (JsonProcessingException e) {
+            logger.error("Error while transforming to json string", e);
+            return null;
+        }
+    }
+
+    /**
      * Returns a UUID specific to the infra parameters.
      *
      * @param infraParams infra parameters to get the UUID
@@ -235,6 +265,40 @@ public final class TestGridUtil {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error in preparing a JSON object from the given test plan infra " +
                             "parameters: ", testPlan.getInfrastructureConfig().getParameters()), e);
+        }
+    }
+
+
+    /**
+     * Copies non existing properties from a persisted test plan to a test plan object generated from the config.
+     *
+     * @param testPlanConfig    an instance of test plan which is generated from the config
+     * @param testPlanPersisted an instance of test plan which is persisted in the db
+     * @return an instance of {@link TestPlan} with merged properties
+     */
+    public static TestPlan mergeTestPlans(TestPlan testPlanConfig, TestPlan testPlanPersisted, boolean
+            addToConfigYaml) {
+        //todo: addToConfigYaml param is required because our current merging logic is incomplete.
+        if (addToConfigYaml) {
+            testPlanConfig.setInfraParameters(testPlanPersisted.getInfraParameters());
+            testPlanConfig.setDeploymentPattern(testPlanPersisted.getDeploymentPattern());
+            testPlanConfig.setTestScenarios(testPlanPersisted.getTestScenarios());
+            return testPlanConfig;
+        } else {
+            testPlanPersisted.setDeployerType(testPlanConfig.getDeployerType());
+            testPlanPersisted.setInfrastructureConfig(testPlanConfig.getInfrastructureConfig());
+            testPlanPersisted.setDeploymentConfig(testPlanConfig.getDeploymentConfig());
+            testPlanPersisted.setScenarioConfig(testPlanConfig.getScenarioConfig());
+            testPlanPersisted.setJobName(testPlanConfig.getJobName());
+            testPlanPersisted.setInfrastructureRepository(testPlanConfig.getInfrastructureRepository());
+            testPlanPersisted.setDeploymentRepository(testPlanConfig.getDeploymentRepository());
+            testPlanPersisted.setScenarioTestsRepository(testPlanConfig.getScenarioTestsRepository());
+            testPlanPersisted.setJobProperties(testPlanConfig.getJobProperties());
+            testPlanPersisted.setConfigChangeSetRepository(testPlanConfig.getConfigChangeSetRepository());
+            testPlanPersisted.setConfigChangeSetBranchName(testPlanConfig.getConfigChangeSetBranchName());
+            testPlanPersisted.setResultFormat(testPlanConfig.getResultFormat());
+            testPlanPersisted.setKeyFileLocation(testPlanConfig.getKeyFileLocation());
+            return testPlanPersisted;
         }
     }
 
