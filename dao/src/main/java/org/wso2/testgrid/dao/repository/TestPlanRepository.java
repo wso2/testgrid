@@ -317,7 +317,10 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         for (String s : testPlanIds) {
             query.setParameter(index++, s);
         }
-        return getResultList(query, TestCaseFailureResultDTO.class);
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> records = query.getResultList();
+        return mapObject(TestCaseFailureResultDTO.class, records);
     }
 
     /**
@@ -397,18 +400,5 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
 
         }
         return result;
-    }
-
-    /**
-     * This method is responsible to execute the native query and return mapped oject to a given class.
-     *
-     * @param query native query
-     * @param type  class of the mapping object
-     * @return a List of mapped objects
-     */
-    private static <T> List<T> getResultList(Query query, Class<T> type) throws TestGridDAOException {
-        @SuppressWarnings("unchecked")
-        List<Object[]> records = query.getResultList();
-        return mapObject(type, records);
     }
 }

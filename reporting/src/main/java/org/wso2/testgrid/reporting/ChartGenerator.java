@@ -35,11 +35,14 @@ import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.reporting.model.email.BuildExecutionSummary;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
 
@@ -66,15 +69,22 @@ public class ChartGenerator {
      * @param passedCount  passed test count
      * @param failedCount  failed test count
      * @param skippedCount skipped test count
-     * @throws IOException if the chart cannot be written into a file
      */
     public void generateSummaryChart(int passedCount, int failedCount, int skippedCount) {
-
-        ObservableList<PieChart.Data> pieChartData =
-                FXCollections.observableArrayList(
-                        new PieChart.Data("Failed", failedCount),
-                        new PieChart.Data("Skipped", skippedCount),
-                        new PieChart.Data("Passed", passedCount));
+        List<PieChart.Data> data = new ArrayList<>();
+        if (failedCount > 0) {
+            data.add(new PieChart.Data(StringUtil.concatStrings("Failed (", Integer.toString(failedCount), ")"),
+                    failedCount));
+        }
+        if (skippedCount > 0) {
+            data.add(new PieChart.Data(StringUtil.concatStrings("Skipped (", Integer.toString(skippedCount), ")"),
+                    skippedCount));
+        }
+        if (passedCount > 0) {
+            data.add(new PieChart.Data(StringUtil.concatStrings("Passed (", Integer.toString(passedCount), ")"),
+                    passedCount));
+        }
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(data);
         final PieChart chart = new PieChart(pieChartData);
         chart.setAnimated(false);
         chart.setTitle("Build Failure Summary by Test Plans");
@@ -106,8 +116,8 @@ public class ChartGenerator {
 
         // Setting series names
         seriesSet[0].setName("Build Failed Combinations");
-        seriesSet[1].setName("Build Passed Combinations");
-        seriesSet[2].setName("Infra Failed Combinations");
+        seriesSet[1].setName("Infra Failed Combinations");
+        seriesSet[2].setName("Build Passed Combinations");
         // Setting space between the bars
         stackedBarChart.setCategoryGap(50);
         //Setting the title of the bar chart.
@@ -115,8 +125,8 @@ public class ChartGenerator {
 
         dataSet.forEach((key, summary) -> {
             seriesSet[0].getData().add(new XYChart.Data<>(key, summary.getFailedTestPlans()));
-            seriesSet[1].getData().add(new XYChart.Data<>(key, summary.getPassedTestPlans()));
-            seriesSet[2].getData().add(new XYChart.Data<>(key, summary.getSkippedTestPlans()));
+            seriesSet[1].getData().add(new XYChart.Data<>(key, summary.getSkippedTestPlans()));
+            seriesSet[2].getData().add(new XYChart.Data<>(key, summary.getPassedTestPlans()));
         });
 
         // Adding the series to the chart

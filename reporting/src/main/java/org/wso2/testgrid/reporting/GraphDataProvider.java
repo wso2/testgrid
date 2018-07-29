@@ -122,7 +122,7 @@ public class GraphDataProvider {
     }
 
     /**
-     * Provide test execution summary for a given build job..
+     * Provide test execution summary for a given build job.
      *
      * @param workspace   current workspace
      * @throws ReportingException thrown when error on getting test plan ids by reading testgrid yaml files located
@@ -150,6 +150,10 @@ public class GraphDataProvider {
                     skippedTestPlans++;
                 }
             }
+            if (skippedTestPlans == 0 && failedTestPlans == 0 && passedTestPlans == 0) {
+                throw new ReportingException(
+                        "Could't find test plan statues for the build job. Please contact the administrator");
+            }
             testExecutionSummaryData.setPassedTestPlans(passedTestPlans);
             testExecutionSummaryData.setFailedTestPlans(failedTestPlans);
             testExecutionSummaryData.setSkippedTestPlans(skippedTestPlans);
@@ -160,9 +164,9 @@ public class GraphDataProvider {
     }
 
     /**
-     * Provide history of the test execution summary for a given build job..
+     * Provide history of the test execution summary for a given build job.
      *
-     * in the current workspace.
+     * @param productId product id.
      */
     public Map<String, BuildExecutionSummary> getTestExecutionHistory(String productId) {
 
@@ -176,9 +180,8 @@ public class GraphDataProvider {
             if (TEST_EXECUTION_HISTORY_RANGE == buildExecutionSummariesHistory.size()) {
                 break;
             }
-            String from = todayMidnight.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            String to = todayMidnight.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            TreeMap<String, TestPlan> testExecutionHistory = new TreeMap<>();
+            String from = todayMidnight.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String to = todayMidnight.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             BuildExecutionSummary buildExecutionSummary = new BuildExecutionSummary();
             List<TestPlan> filteredTestPlanHistory;
 
@@ -187,24 +190,12 @@ public class GraphDataProvider {
             int skippedTestPlans = 0;
 
             List<TestPlan> testPlanHistory = testPlanUOW.getTestExecutionHistory(productId, from, to);
-
             if (testPlanHistory.isEmpty()) {
                 todayMidnight = todayMidnight.minusDays(1);
                 continue;
             }
+            filteredTestPlanHistory = filterTestPlanHistory(testPlanHistory);
 
-            for (TestPlan testplan : testPlanHistory) {
-                String key = testplan.getInfraParameters();
-                if (testExecutionHistory.containsKey(key)) {
-                    if (testplan.getTestRunNumber() > testExecutionHistory.get(key).getTestRunNumber()) {
-                        testExecutionHistory.replace(key, testplan);
-                    }
-                } else {
-                    testExecutionHistory.put(testplan.getInfraParameters(), testplan);
-                }
-            }
-
-            filteredTestPlanHistory = new ArrayList<>(testExecutionHistory.values());
             for (TestPlan testplan : filteredTestPlanHistory) {
                 if (Status.SUCCESS.equals(testplan.getStatus())) {
                     passedTestPlans++;
@@ -217,9 +208,30 @@ public class GraphDataProvider {
             buildExecutionSummary.setPassedTestPlans(passedTestPlans);
             buildExecutionSummary.setFailedTestPlans(failedTestPlans);
             buildExecutionSummary.setSkippedTestPlans(skippedTestPlans);
-            buildExecutionSummariesHistory.put(to, buildExecutionSummary);
+            buildExecutionSummariesHistory.put(from.replace(" 00:00:00", ""), buildExecutionSummary);
             todayMidnight = todayMidnight.minusDays(1);
         }
         return buildExecutionSummariesHistory;
+    }
+
+    /**
+     * This method is capable to filter retrieved test plans history for given product Id and time range and return
+     * unique list.
+     *
+     * @param testPlanHistory history of the test plans for given product id and time range
+     */
+    private List<TestPlan> filterTestPlanHistory(List<TestPlan> testPlanHistory) {
+        TreeMap<String, TestPlan> testExecutionHistory = new TreeMap<>();
+        for (TestPlan testplan : testPlanHistory) {
+            String key = testplan.getInfraParameters();
+            if (testExecutionHistory.containsKey(key)) {
+                if (testplan.getTestRunNumber() > testExecutionHistory.get(key).getTestRunNumber()) {
+                    testExecutionHistory.replace(key, testplan);
+                }
+            } else {
+                testExecutionHistory.put(testplan.getInfraParameters(), testplan);
+            }
+        }
+        return new ArrayList<>(testExecutionHistory.values());
     }
 }
