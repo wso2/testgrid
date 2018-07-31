@@ -23,12 +23,14 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.reporting.BaseClass;
 
 import java.util.List;
 import java.util.Map;
 
 /**
+ *  Tests @{@link InfrastructureSummaryReporter}.
  *
  */
 public class InfrastructureSummaryReporterTest extends BaseClass {
@@ -43,30 +45,30 @@ public class InfrastructureSummaryReporterTest extends BaseClass {
     public void testGetSummaryTable(String testPlanInputsNum) throws Exception {
 
         List<TestPlan> testPlans = getTestPlansFor(testPlanInputsNum);
-        final InfrastructureSummaryReporter summaryReporter = new InfrastructureSummaryReporter();
+        final InfrastructureSummaryReporter summaryReporter = new InfrastructureSummaryReporter(
+                infrastructureParameterUOW);
         final Map<String, InfrastructureBuildStatus> summaryTable = summaryReporter.getSummaryTable(testPlans);
 
         if (testPlanInputsNum.equals("02")) {
-            Assert.assertEquals(summaryTable.size(), 1);
+            Assert.assertEquals(summaryTable.size(), 4);
             final InfrastructureBuildStatus buildStatus = summaryTable.values().iterator().next();
             Assert.assertEquals(buildStatus.getUnknownInfra().size(), 0, "Summary with unknown status found. " +
                     buildStatus.getUnknownInfra());
-            final List<List<String>> failedInfra01 = buildStatus.getFailedInfra();
-            final List<String> unassociatedFailedInfra = buildStatus.getUnassociatedFailedInfra();
+            final List<List<InfrastructureParameter>> failedInfra01 = buildStatus.getFailedInfra();
+            final List<InfrastructureParameter> unassociatedFailedInfra = buildStatus.retrieveUnassociatedFailedInfra();
 
             Assert.assertEquals(unassociatedFailedInfra.size(), buildStatus.getFailedInfra().size(), "All failed infra "
                     + "should be unassociated infras.");
             Assert.assertEquals(buildStatus.getFailedInfra().size(), 1);
             Assert.assertEquals(unassociatedFailedInfra.size(), 1);
-            Assert.assertEquals(unassociatedFailedInfra.get(0), "CentOS", "Cummary table's "
+            Assert.assertEquals(unassociatedFailedInfra.get(0).getName(), "CentOS", "Summary table's "
                     + "failed infra result validation failed.");
 
-            //        Assert.assertEquals(buildStatus.getSuccessInfra().size(), 6);
-
-            final List<String> failedAssociatedInfras = failedInfra01.get(0);
+            final List<InfrastructureParameter> failedAssociatedInfras = failedInfra01.get(0);
             Assert.assertEquals(failedAssociatedInfras.size(), 1);
-            String failedInfra = failedAssociatedInfras.get(0);
-            Assert.assertEquals(failedInfra, "CentOS", "Could not detect the actual reason for test failures.");
+            InfrastructureParameter failedInfra = failedAssociatedInfras.get(0);
+            Assert.assertEquals(failedInfra.getName(), "CentOS",
+                    "Could not detect the actual reason for test failures.");
 
         }
     }

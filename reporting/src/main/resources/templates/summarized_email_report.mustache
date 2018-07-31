@@ -73,6 +73,9 @@
         		height:auto !important;
         	}
 
+        table.testcaseInfraSummaryTable {
+            table-layout: auto;
+        }
         /*
         Titles
          */
@@ -109,11 +112,17 @@
         }
 
         .failure {
-            background-color: #fbce50;
+            color: black;
+            font-weight: bold;
+            background: repeating-radial-gradient(circle, yellow, #ffd840);
         }
 
         .error {
-            background-color: #DD0000;
+            background-color: darkred;
+        }
+
+        .success {
+            background-color: limegreen;
         }
 
     </style>
@@ -141,6 +150,7 @@
             </table>
             <br/>
             <div><em>{{{gitBuildDetails}}}</em></div>
+            <div>Tested Infrastructures: <br/> <em>{{{testedInfrastructures}}}</em></div>
             <br/>
             <span class="testResultSubTitle" align="center">Test Result Summary</span>
             <p/><p/>
@@ -155,6 +165,59 @@
                 </tr>
             </table>
             <br/>
+
+        <!-- Start of test-case-vs-infrastructure success/failure summary table. -->
+        <span class="testResultSubTitle" align="center">Test cases vs suspected culprits (beta)</span><p/>
+        <div class="consoleLog">
+            <span>
+                <table class="reportTable testcaseInfraSummaryTable">
+                    <thead>
+                    <tr>
+                        <th>Test case</th>
+                        <th>Suspected Infrastructure Culprits</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#testCaseInfraSummaryTable}}
+                        <tr>
+                            <td>{{key}}</td>
+                            {{#value}}
+                                <td>
+                                <table>
+                                <tr>
+                                    {{#failedInfra}}
+                                        {{#.}}
+                                            <td class="failure">
+                                                {{.}}
+                                            </td>
+                                        {{/.}}
+                                    {{/failedInfra}}
+                                </tr>
+                                </table>
+                                <!--</td>-->
+                                <!--<td>-->
+                                    <!--<table>-->
+                                    <!--<tr>-->
+                                        <!--{{#successInfra}}-->
+                                            <!--<td class="success">-->
+                                                <!--{{.}}-->
+                                            <!--</td>-->
+                                        <!--{{/successInfra}}-->
+                                    <!--</tr>-->
+                                    <!--</table>-->
+                                <!--</td>-->
+                            {{/value}}
+                        </tr>
+                    {{/testCaseInfraSummaryTable}}
+                    {{^testCaseInfraSummaryTable}}
+                        <tr><td>no information available.</td></tr>
+                    {{/testCaseInfraSummaryTable}}
+                    </tbody>
+                </table>
+                </span>
+        </div>
+        <br/>
+
             <span class="testResultSubTitle">Testcase Failure Summary Table</span>
             <p/><p/>
           <table class="reportTable">

@@ -140,8 +140,10 @@ public class TestNgResultsParser extends ResultParser {
                         if (startElement.getName().getLocalPart().equals("testcase")) {
                             final String classNameStr = getClassName(startElement);
                             List<TestCase> testCases = getTestCasesFor(classNameStr, eventReader);
-                            logger.info(String.format("Found %s test cases in class '%s'", testCases.size(),
-                                    classNameStr));
+                            if (logger.isDebugEnabled()) {
+                                logger.debug(String.format("Found %s test cases in class '%s'", testCases.size(),
+                                        classNameStr));
+                            }
                             testCases.stream().forEachOrdered(tc -> testScenario.addTestCase(tc));
                         }
                     }

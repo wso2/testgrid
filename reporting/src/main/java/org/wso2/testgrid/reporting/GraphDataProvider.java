@@ -64,6 +64,10 @@ public class GraphDataProvider {
         this.testPlanUOW = new TestPlanUOW();
     }
 
+    public GraphDataProvider(TestPlanUOW testPlanUOW) {
+        this.testPlanUOW = testPlanUOW;
+    }
+
     /**
      * Provides the test failure summary for a given build job. Test Plan ids of the build job is retrieved by reading
      * testgrid yaml files which contains in the current workspace.

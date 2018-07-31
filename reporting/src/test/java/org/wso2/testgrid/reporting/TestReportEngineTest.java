@@ -31,7 +31,9 @@ import org.wso2.testgrid.common.TestPlan;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -59,11 +61,25 @@ public class TestReportEngineTest extends BaseClass {
                     return Optional.of(testPlans.get(Integer.valueOf(testPlanId)));
                 });
         when(testPlanUOW.getCurrentStatus(product)).thenReturn(Status.FAIL);
+        when(testPlanUOW.getTestExecutionSummary(any())).thenReturn(testPlans.stream().map(tp -> tp.getStatus()
+                .toString()).collect(Collectors.toList()));
 
         final TestReportEngine testReportEngine = new TestReportEngine(testPlanUOW,
-                new EmailReportProcessor(testPlanUOW));
-        final Optional<Path> path = testReportEngine.generateEmailReport(product, productDir.toString());
+                new EmailReportProcessor(testPlanUOW, infrastructureParameterUOW), new GraphDataProvider(testPlanUOW));
+        Optional<Path> path = testReportEngine.generateEmailReport(product, productDir.toString());
         Assert.assertTrue(path.isPresent(), "Email report generation has failed. File path is empty.");
         logger.info("email report file: " + path.get());
+
+        if (testNum.equals("02")) {
+            //We can only handle maximum of one data provider for chart generation code.
+            //TODO: this was done because one JVM can only call JAVAFX Platform.exit() once.
+            // See @ChartGenerator#stopApplication
+
+            path = testReportEngine.generateSummarizedEmailReport(product, productDir.toString());
+            Assert.assertTrue(path.isPresent(), "Email report generation has failed. File path is empty.");
+            logger.info("v2 email report file: " + path.get());
+
+        }
+
     }
 }

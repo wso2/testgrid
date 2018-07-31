@@ -19,7 +19,7 @@
 package org.wso2.testgrid.reporting.model.email;
 
 /**
- * This defines s single infra combination.
+ * This defines a single infra combination.
  *
  * @since 1.0.0
  */
