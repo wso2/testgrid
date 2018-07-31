@@ -1,255 +1,361 @@
 properties = null
+
 def loadProperties() {
-    node {
-        properties = readProperties file: "${TESTGRID_HOME}/config.properties"
-    }
+  node {
+    properties = readProperties file: "${TESTGRID_HOME}/config.properties"
+  }
 }
 
 def uploadToS3() {
-  def bucket= properties['AWS_S3_BUCKET_NAME']
-  if ( "${bucket}" == "null") {
-      bucket="unknown"
+  script {
+    loadProperties()
+  }
+  def bucket = properties['AWS_S3_BUCKET_NAME']
+  if ("${bucket}" == "null") {
+    bucket = "unknown"
   }
   sh """
       aws s3 sync ${PWD}/builds/ s3://${bucket}/artifacts/jobs/${PRODUCT}/builds --include "*"
       """
 }
 
-def runPlan(tPlan, node) {
-    echo "Executing Test Plan : ${tPlan} On node : ${node}"
-
-    try {
-        echo "Running Test-Plan: ${tPlan}"
-        sh "java -version"
-        unstash name: "${JOB_CONFIG_YAML}"
-        dir("${PWD}") {
-          unstash name: "test-plans"
-        }
-        sh """
-            echo "Before PWD"
-            pwd
-            cd /testgrid/testgrid-home/jobs/${PRODUCT}/${SCENARIOS_LOCATION}
-            git clean -fd
-            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
-            ./testgrid run-testplan --product ${PRODUCT} \
-             --file "/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}"
-            """
-    } catch (Exception err) {
-        echo "Error : ${err}"
-        currentBuild.result = 'UNSTABLE'
-    }
-    echo "RESULT: ${currentBuild.result}"
-
-    script {
-        loadProperties()
-        uploadToS3()
-    }
+def truncateTestRunLog() {
+  sh """
+    if [ -d "${TESTGRID_HOME}/jobs/${PRODUCT}/builds" ]; then
+      for file in ${TESTGRID_HOME}${PRODUCT}/builds/*/test-run.log ; do
+        truncatedFile=\$(dirname \$file)/truncated-\$(basename \$file);
+        head -n 10 \$file > \$truncatedFile;
+        printf "......\n.....\n..(Skipping logs)..\n.....\n......\n" >> \$truncatedFile;
+        grep -B 25 -A 25 -a "Reactor Summary" \$file >> \$truncatedFile || true;
+        printf "......\n.....\n..(Skipping logs)..\n.....\n......\n" >> \$truncatedFile;
+        tail -n 50 \$file >> \$truncatedFile;
+      done
+    else
+        echo no logs found to truncate!
+    fi
+   """
 }
+
+def runPlan(tPlan, node) {
+  name = getParameters("/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}")
+  notifyBuild("STARTED", "parallel \n Infra : " + name, "#build_status_verbose")
+  echo "Executing Test Plan : ${tPlan} On node : ${node}"
+  try {
+    echo "Running Test-Plan: ${tPlan}"
+    sh "java -version"
+    unstash name: "${JOB_CONFIG_YAML}"
+    dir("${PWD}") {
+      unstash name: "test-plans"
+    }
+    sh """
+      echo "Before PWD"
+      pwd
+      cd ${PWD}/${SCENARIOS_LOCATION}
+      git clean -fd
+      cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+      ./testgrid run-testplan --product ${PRODUCT} \
+      --file "${PWD}/${tPlan}"
+      """
+    script {
+      truncateTestRunLog()
+    }
+  } catch (Exception err) {
+    echo "Error : ${err}"
+    currentBuild.result = 'UNSTABLE'
+  } finally {
+    notifyBuild(currentBuild.result, "Parallel \n Infra : " + name, "#build_status_verbose")
+  }
+  echo "RESULT: ${currentBuild.result}"
+
+  script {
+    uploadToS3()
+  }
+}
+
+
+def getParameters(file) {
+  def tpyaml = readFile(file)
+  def m = tpyaml =~ /(parameters:)([A-z \n:'0-9\.-]*)(provisioners)/
+  // echo tpyaml
+  def params = m[0][2].trim().split('\n')
+  // echo Long.toString(params.size())
+  def name = ""
+  params = params.sort()
+  for (String s : params) {
+    name += s.split(":")[1]
+  }
+  echo "This is the name" + name
+  return name
+}
+
 pipeline {
-    agent {
-        node {
-            label ""
-            customWorkspace "/testgrid/testgrid-home/jobs/${JOB_BASE_NAME}"
-        }
+  agent {
+    node {
+      label ""
+      customWorkspace "/testgrid/testgrid-home/jobs/${JOB_BASE_NAME}"
     }
+  }
 
-    environment {
-        TESTGRID_NAME = 'WSO2-TestGrid'
-        TESTGRID_DIST_LOCATION = '/testgrid/testgrid-home/testgrid-dist/'
-        TESTGRID_HOME='/testgrid/testgrid-home/'
+  environment {
+    TESTGRID_NAME = 'WSO2-TestGrid'
+    TESTGRID_DIST_LOCATION = '/testgrid/testgrid-home/testgrid-dist/'
+    TESTGRID_HOME = '/testgrid/testgrid-home/'
 
-        PRODUCT = "${JOB_BASE_NAME}"
-        INFRASTRUCTURE_REPOSITORY='https://github.com/wso2/testgrid'
-        DEPLOYMENT_REPOSITORY='https://github.com/wso2/testgrid'
-        SCENARIOS_REPOSITORY='https://github.com/wso2/apim-test-integration.git'
+    PRODUCT = "${JOB_BASE_NAME}"
+    INFRASTRUCTURE_REPOSITORY = 'https://github.com/wso2/testgrid'
+    DEPLOYMENT_REPOSITORY = 'https://github.com/wso2/testgrid'
+    SCENARIOS_REPOSITORY = 'https://github.com/wso2/apim-test-integration.git'
 
-        INFRA_LOCATION="workspace/testgrid"
-        DEPLOYMENT_LOCATION="workspace/testgrid"
-        SCENARIOS_LOCATION="workspace/apim-test-integration"
-        TESTGRID_YAML_LOCATION="${INFRA_LOCATION}/jobs/${PRODUCT}/testgrid.yaml"
+    INFRA_LOCATION = "workspace/testgrid"
+    DEPLOYMENT_LOCATION = "workspace/testgrid"
+    SCENARIOS_LOCATION = "workspace/apim-test-integration"
+    TESTGRID_YAML_LOCATION = "${INFRA_LOCATION}/jobs/${PRODUCT}/testgrid.yaml"
 
-        AWS_ACCESS_KEY_ID=credentials('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY=credentials('AWS_SECRET_ACCESS_KEY')
-        tomcatUsername=credentials('TOMCAT_USERNAME')
-        tomcatPassword=credentials('TOMCAT_PASSWORD')
-        PWD=pwd()
-        JOB_CONFIG_YAML = "job-config.yaml"
-        JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
+    AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+    tomcatUsername = credentials('TOMCAT_USERNAME')
+    tomcatPassword = credentials('TOMCAT_PASSWORD')
+    PWD = pwd()
+    JOB_CONFIG_YAML = "job-config.yaml"
+    JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
 
-        PRODUCT_GIT_URL="${PRODUCT_GIT_URL}"
-        PRODUCT_GIT_BRANCH="${PRODUCT_GIT_BRANCH}"
-        PRODUCT_DIST_DOWNLOAD_API="${PRODUCT_DIST_DOWNLOAD_API}"
-    }
+    PRODUCT_GIT_URL = "${PRODUCT_GIT_URL}"
+    PRODUCT_GIT_BRANCH = "${PRODUCT_GIT_BRANCH}"
+    PRODUCT_DIST_DOWNLOAD_API = "${PRODUCT_DIST_DOWNLOAD_API}"
+  }
 
-    tools {
-        jdk 'jdk8-slave1'
-    }
+  tools {
+    jdk 'jdk8'
+  }
 
-    stages {
-        stage('Preparation') {
-            steps {
-                echo pwd()
-                deleteDir()
+  stages {
+    stage('Preparation') {
+      steps {
+        script {
+          try {
+            notifyBuild('STARTED', "Initiation", "#build_status_verbose")
+            notifyBuild('STARTED', "Initiation", "#build_status")
+            echo pwd()
+            deleteDir()
 
-                // Clone scenario repo
-                sh "mkdir -p ${SCENARIOS_LOCATION}"
-                dir("${SCENARIOS_LOCATION}"){
-                    git branch: 'master', url: "${SCENARIOS_REPOSITORY}"
-                }
-
-                // Clone infra repo
-                sh "mkdir -p ${INFRA_LOCATION}"
-                dir("${INFRA_LOCATION}"){
-                    git branch: 'master', url:"${INFRASTRUCTURE_REPOSITORY}"
-                }
-                writeFile file: "${INFRA_LOCATION}/deploy.sh", text: '#!/bin/sh'
-
-                sh """
-                    echo ${TESTGRID_NAME}
-                    cd ${TESTGRID_DIST_LOCATION}
-                    cd ${TESTGRID_NAME}
-
-                    sed -i 's/-Xms256m -Xmx1024m/-Xmx2G -Xms2G/g' testgrid
-                    """
-
-                // Get testgrid.yaml from jenkins managed files
-                configFileProvider(
-                        [configFile(fileId: "${PRODUCT}-testgrid-yaml", targetLocation:
-                                "${TESTGRID_YAML_LOCATION}")]) {
-                }
-
-                configFileProvider([configFile(fileId: '3a63892b-06b8-483a-8a0d-74dffaf69c3d', targetLocation: 'workspace/testgrid-key.pem', variable: 'TESTGRIDKEY')]) {
-                    sh """
-                        echo 'keyFileLocation: workspace/testgrid-key.pem' > ${JOB_CONFIG_YAML_PATH}
-                        chmod 400 workspace/testgrid-key.pem
-                        """
-                }
-
-                sh """
-                    echo 'infrastructureRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
-                    echo 'deploymentRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
-                    echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo 'testgridYamlLocation: ${TESTGRID_YAML_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo 'properties:' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  PRODUCT_GIT_URL: ${PRODUCT_GIT_URL}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  PRODUCT_GIT_BRANCH: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  PRODUCT_DIST_DOWNLOAD_API: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  SQL_DRIVERS_LOCATION_UNIX: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  SSH_KEY_LOCATION: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  REMOTE_WORKSPACE_DIR_UNIX: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  REMOTE_WORKSPACE_DIR_WINDOWS: ${REMOTE_WORKSPACE_DIR_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  gitURL: ${PRODUCT_GIT_URL}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  gitBranch: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  sqlDriversLocationUnix: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  sqlDriversLocationWindows: ${SQL_DRIVERS_LOCATION_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  sshKeyFileLocation: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
-                    echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
-
-                    echo The job-config.yaml:
-                    cat ${JOB_CONFIG_YAML_PATH}
-                    """
-
-                stash name: "${JOB_CONFIG_YAML}", includes : "${JOB_CONFIG_YAML}"
-
-                sh """
-                    cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
-                    ./testgrid generate-test-plan \
-                        --product ${PRODUCT} \
-                        --file ${JOB_CONFIG_YAML_PATH}
-                    """
-                    dir("${PWD}"){
-                      stash name: "test-plans", includes : "test-plans/**"
-                    }
+            // Clone scenario repo
+            sh "mkdir -p ${SCENARIOS_LOCATION}"
+            dir("${SCENARIOS_LOCATION}") {
+              git branch: 'master', url: "${SCENARIOS_REPOSITORY}"
             }
-        }
 
-        stage('parallel-run') {
-            steps {
-                script {
-                    def parallelExecCount = 12
-                    def tests = [:]
-                    def files = findFiles(glob: '**/test-plans/*.yaml')
-                    for (int f = 1; f < parallelExecCount+1 && f <= files.length; f++) {
-                        def executor = f
-                        tests["Executor-${f}"] = {
-                            node {
-                                stage("Parallel Executor : ${executor}") {
-                                    script {
-                                        int processFileCount = 0;
-                                        if (files.length < parallelExecCount) {
-                                          processFileCount = 1;
-                                        } else {
-                                          processFileCount = files.length/parallelExecCount;
-                                        }
-                                        if (executor == parallelExecCount) {
-                                            for (int i = processFileCount * (executor - 1); i < files.length; i++) {
-                                                // Execution logic
-                                                runPlan(files[i], "node1")
-                                            }
-                                          } else {
-                                            for (int i = 0; i <  processFileCount; i++) {
-                                                int fileNo = processFileCount * (executor - 1) + i
-                                                runPlan(files[fileNo], "node1")
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    parallel tests
-                }
+            // Clone infra repo
+            sh "mkdir -p ${INFRA_LOCATION}"
+            dir("${INFRA_LOCATION}") {
+              git branch: 'master', url: "${INFRASTRUCTURE_REPOSITORY}"
             }
-        }
-    }
+            writeFile file: "${INFRA_LOCATION}/deploy.sh", text: '#!/bin/sh'
 
-    post {
-        always {
             sh """
+              echo ${TESTGRID_NAME}
+              cd ${TESTGRID_DIST_LOCATION}
+              cd ${TESTGRID_NAME}
+
+              sed -i 's/-Xms256m -Xmx1024m/-Xmx2G -Xms2G/g' testgrid
+              """
+
+            // Get testgrid.yaml from jenkins managed files
+            configFileProvider(
+                    [configFile(fileId: "${PRODUCT}-testgrid-yaml", targetLocation:
+                            "${TESTGRID_YAML_LOCATION}")]) {
+            }
+
+            configFileProvider([configFile(fileId: '3a63892b-06b8-483a-8a0d-74dffaf69c3d', targetLocation: 'workspace/testgrid-key.pem', variable: 'TESTGRIDKEY')]) {
+              sh """
+                echo 'keyFileLocation: workspace/testgrid-key.pem' > ${JOB_CONFIG_YAML_PATH}
+                chmod 400 workspace/testgrid-key.pem
+                """
+            }
+
+            sh """
+              echo 'infrastructureRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
+              echo 'deploymentRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
+              echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
+              echo 'testgridYamlLocation: ${TESTGRID_YAML_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
+              echo 'properties:' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  PRODUCT_GIT_URL: ${PRODUCT_GIT_URL}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  PRODUCT_GIT_BRANCH: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  PRODUCT_DIST_DOWNLOAD_API: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  SQL_DRIVERS_LOCATION_UNIX: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  SSH_KEY_LOCATION: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  REMOTE_WORKSPACE_DIR_UNIX: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  REMOTE_WORKSPACE_DIR_WINDOWS: ${REMOTE_WORKSPACE_DIR_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  gitURL: ${PRODUCT_GIT_URL}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  gitBranch: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  sqlDriversLocationUnix: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  sqlDriversLocationWindows: ${SQL_DRIVERS_LOCATION_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  sshKeyFileLocation: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  buidType: abcd' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  runOnBranch: "false"' >> ${JOB_CONFIG_YAML_PATH}
+
+              echo The job-config.yaml:
+              cat ${JOB_CONFIG_YAML_PATH}
+              """
+
+            stash name: "${JOB_CONFIG_YAML}", includes: "${JOB_CONFIG_YAML}"
+
+            sh """
+              cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+              ./testgrid generate-test-plan \
+                  --product ${PRODUCT} \
+                  --file ${JOB_CONFIG_YAML_PATH}
+              """
+            dir("${PWD}") {
+              stash name: "test-plans", includes: "test-plans/**"
+            }
+          } catch (e) {
+            currentBuild.result = "FAILED"
+          } finally {
+            notifyBuild(currentBuild.result, "preparation", "#build_status_verbose")
+          }
+        }
+      }
+
+    }
+
+    stage('parallel-run') {
+      steps {
+        script {
+          def name = "unknown"
+          try {
+            def parallelExecCount = 12
+            def tests = [:]
+            def files = findFiles(glob: '**/test-plans/*.yaml')
+            for (int f = 1; f < parallelExecCount + 1 && f <= files.length; f++) {
+              def executor = f
+              name = getParameters("${PWD}/test-plans/" + files[f - 1].name)
+              echo name
+              tests["${name}"] = {
+                node {
+                  stage("Parallel Executor : ${executor}") {
+                    script {
+                      int processFileCount = 0;
+                      if (files.length < parallelExecCount) {
+                        processFileCount = 1;
+                      } else {
+                        processFileCount = files.length / parallelExecCount;
+                      }
+                      if (executor == parallelExecCount) {
+                        for (int i = processFileCount * (executor - 1); i < files.length; i++) {
+                          // Execution logic
+                          runPlan(files[i], "node1")
+                        }
+                      } else {
+                        for (int i = 0; i < processFileCount; i++) {
+                          int fileNo = processFileCount * (executor - 1) + i
+                          runPlan(files[fileNo], "node1")
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            parallel tests
+          } catch (e) {
+            currentBuild.result = "FAILED"
+            notifyBuild(currentBuild.result, "Parallel", "#build_status_verbose")
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      script {
+        try {
+          sh """
             cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
             ./testgrid finalize-run-testplan \
             --product ${PRODUCT} --workspace ${PWD}
             """
 
-            sh """
+          sh """
              cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
             ./testgrid generate-report \
             --product ${PRODUCT} \
             --groupBy scenario
             """
-            // Generate email-able report
-            /* Prereq:
-               1. Needs TestSuit.txt and output.properties files in relevant scenario directory.
-               2. DB needs to be updated on integration test result statues.
-            */
-            sh """
+          // Generate email-able report
+          /* Prereq:
+         1. Needs TestSuit.txt and output.properties files in relevant scenario directory.
+         2. DB needs to be updated on integration test result statues.
+      */
+          sh """
                 cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+                export DISPLAY=:95.0
                 ./testgrid generate-email \
                 --product ${PRODUCT} \
                 --workspace ${PWD}
                 """
-           script {
-                   sh """
-                   ls -al /testgrid/testgrid-home/jobs/${PRODUCT}
+          script {
+            sh """
+                   echo "${PWD}"
+                   ls -al "${PWD}"
                    """
-                   //Send email for failed results.
-                   if (fileExists("/testgrid/testgrid-home/jobs/${PRODUCT}/builds/EmailReport.html")) {
-                     def emailBody = readFile '/testgrid/testgrid-home/jobs/wso2am-intg/builds/EmailReport.html'
-                     mail (to: 'testgrid@wso2.com, kasung@wso2.com, pasinduj@wso2.com, yasassri@wso2.com, lasanthad@wso2.com, sameeraw@wso2.com, asmaj@wso2.com, harshan@wso2.com',
-                           subject: "'${env.JOB_NAME}' Integration Test Failure! #(${env.BUILD_NUMBER})",
-                           body: "${emailBody}", mimeType: 'text/html'
-                           );
-                   } else {
-                     echo "No EmailReport.html file found!!"
-                   }
-                }
-            // Delete logs and reports after upload
-            dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
-                sh """
-                find . -maxdepth 1 -type f \\( -name "*.log" -o -name "*.html" \\) -delete
-                """
+            //Send email for failed results.
+            if (fileExists("${PWD}/builds/SummarizedEmailReport.html")) {
+              def emailBody = readFile "${PWD}/builds/SummarizedEmailReport.html"
+              emailext(to: 'lasanthad@wso2.com,yasassri@wso2.com,kasung@wso2.com',
+                      subject: "'${env.JOB_NAME}' Integration Test Failure! #(${env.BUILD_NUMBER})",
+                      body: "${emailBody}", mimeType: 'text/html', attachmentsPattern: "**/builds/*.png"
+              );
+            } else {
+              echo "No SummarizedEmailReport.html file found!!"
             }
+          }
+          // Delete logs and reports after upload
+          //     dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
+          //         sh """
+          // find . -maxdepth 1 -type f \\( -name "*.log" -o -name "*.html" \\) -delete
+          // """
+          //     }
+        } catch (e) {
+          currentBuild.result = "FAILED"
+        } finally {
+          notifyBuild(currentBuild.result, "completed", "#build_status")
+          notifyBuild(currentBuild.result, "completed", "#build_status_verbose")
         }
+      }
     }
+
+  }
+}
+
+def notifyBuild(String buildStatus = 'STARTED', phase, channel) {
+  // build status of null means successful
+  buildStatus = buildStatus ?: 'SUCCESS'
+
+  // Default values
+  def colorName = 'RED'
+  def colorCode = '#FF0000'
+  def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
+  def summary = "${subject} (${env.RUN_DISPLAY_URL}) in phase : $phase"
+
+  // Override default values based on build status
+  if (buildStatus == 'STARTED') {
+    color = 'BLUE'
+    colorCode = '#003EFF'
+  } else if (buildStatus == 'SUCCESS') {
+    color = 'GREEN'
+    colorCode = '#00FF00'
+  } else if (buildStatus == 'UNSTABLE') {
+    color = "YELLOW"
+    colorCode = "#FFFF00"
+  } else {
+    color = 'RED'
+    colorCode = '#FF0000'
+  }
+
+  // Send notifications
+  slackSend(channel: channel, color: colorCode, message: summary)
+
 }
