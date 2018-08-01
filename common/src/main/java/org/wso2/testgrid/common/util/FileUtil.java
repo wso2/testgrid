@@ -234,7 +234,11 @@ public class FileUtil {
         }
         try (Stream<Path> stream = Files.list(source).filter(Files::isRegularFile)) {
             List<Path> paths = stream.sorted().collect(Collectors.toList());
-            logger.info("Test plans found at " + paths);
+            if (paths.isEmpty()) {
+                logger.warn("No test plans were found at " + source);
+            } else {
+                logger.info("Test plans found at " + paths);
+            }
             for (Path path : paths) {
                 if (!path.toFile().exists()) {
                     throw new IOException(

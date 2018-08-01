@@ -885,8 +885,10 @@ public class TestReportEngine {
         final String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testCaseInfraSummaryMap);
         postProcessSummaryTable(testCaseInfraSummaryMap);
 
-        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
+        String productName = product.getName();
+        final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
 
+        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
         results.put("testedInfrastructures", testedInfrastructures);
@@ -894,6 +896,8 @@ public class TestReportEngine {
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
         results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
+        results.put("jobName", productName);
+        results.put("dashboardURL", dashboardURL);
         String htmlString = renderer.render(SUMMARIZED_EMAIL_REPORT_MUSTACHE, results);
 
         // Write to HTML file

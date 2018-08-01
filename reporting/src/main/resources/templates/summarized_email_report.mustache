@@ -114,7 +114,7 @@
         .failure {
             color: black;
             font-weight: bold;
-            background: repeating-radial-gradient(circle, yellow, #ffd840);
+            background: repeating-radial-gradient(circle, #f0f000, #f3cf3d);
         }
 
         .error {
@@ -149,7 +149,8 @@
                 </tr>
             </table>
             <br/>
-            <div><em>{{{gitBuildDetails}}}</em></div>
+            <div>{{{gitBuildDetails}}}</div>
+            <div>Detailed results: <a href="{{dashboardURL}}">{{jobName}} :: TestGrid Dashboard</a></div>
             <div>Tested Infrastructures: <br/> <em>{{{testedInfrastructures}}}</em></div>
             <br/>
             <span class="testResultSubTitle" align="center">Test Result Summary</span>
@@ -167,7 +168,8 @@
             <br/>
 
         <!-- Start of test-case-vs-infrastructure success/failure summary table. -->
-        <span class="testResultSubTitle" align="center">Test cases vs suspected culprits (beta)</span><p/>
+        <span class="testResultSubTitle" align="center">Test cases vs Suspected Infrastructure Culprits (beta)
+        </span><p/>
         <div class="consoleLog">
             <span>
                 <table class="reportTable testcaseInfraSummaryTable">

@@ -31,6 +31,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
@@ -468,5 +469,18 @@ public final class TestGridUtil {
     public static boolean isDebugMode(TestPlan testPlan) {
         final String debugMode = testPlan.getJobProperties().getProperty(TestGridConstants.DEBUG_MODE);
         return Boolean.valueOf(debugMode);
+    }
+
+    /**
+     * Generate the Dashboard URL for the given product/job name.
+     * Ex. https://testgrid-live.private.wso2.com/wso2am-intg
+     *
+     * @param productName the job name
+     * @return the dashboard url of the given job
+     */
+    public static String getDashboardURLFor(String productName) {
+        String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.TESTGRID_HOST);
+        return String.join("/", testGridHost, productName);
     }
 }
