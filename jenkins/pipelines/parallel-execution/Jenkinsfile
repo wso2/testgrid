@@ -22,7 +22,8 @@ def uploadToS3() {
 def truncateTestRunLog() {
   sh """
     if [ -d "${TESTGRID_HOME}/jobs/${PRODUCT}/builds" ]; then
-      for file in ${TESTGRID_HOME}${PRODUCT}/builds/*/test-run.log ; do
+        cd ${TESTGRID_HOME}/jobs/${PRODUCT}
+        for file in builds/*/test-run.log ; do
         truncatedFile=\$(dirname \$file)/truncated-\$(basename \$file);
         head -n 10 \$file > \$truncatedFile;
         printf "......\n.....\n..(Skipping logs)..\n.....\n......\n" >> \$truncatedFile;
@@ -304,12 +305,18 @@ pipeline {
             //Send email for failed results.
             if (fileExists("${PWD}/builds/SummarizedEmailReport.html")) {
               def emailBody = readFile "${PWD}/builds/SummarizedEmailReport.html"
-              emailext(to: 'lasanthad@wso2.com,yasassri@wso2.com,kasung@wso2.com',
+                            emailext(to: "${EMAIL_TO_LIST},kasung@wso2.com,lasanthad@wso2.com,yasassri@wso2.com",
                       subject: "'${env.JOB_NAME}' Integration Test Failure! #(${env.BUILD_NUMBER})",
                       body: "${emailBody}", mimeType: 'text/html', attachmentsPattern: "**/builds/*.png"
               );
             } else {
               echo "No SummarizedEmailReport.html file found!!"
+              emailext(to: 'builder@wso2.org,lasanthad@wso2.com,yasassri@wso2.com,kasung@wso2.com',
+                      subject: "'${env.JOB_NAME}'#(${env.BUILD_NUMBER}) - SummarizedEmailReport.html file not found",
+                      body: "Could not find the summarized email report ${env.BUILD_URL}. This is an error in " +
+                              "testgrid.",
+                      mimeType: 'text/html', attachmentsPattern: "**/builds/*.png"
+              )
             }
           }
           // Delete logs and reports after upload
