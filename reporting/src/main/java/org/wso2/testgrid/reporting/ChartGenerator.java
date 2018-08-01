@@ -32,7 +32,6 @@ import javafx.scene.chart.PieChart;
 import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.image.WritableImage;
-import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -72,23 +71,18 @@ public class ChartGenerator {
      */
     public void generateSummaryChart(int passedCount, int failedCount, int skippedCount) {
         List<PieChart.Data> data = new ArrayList<>();
-        if (failedCount > 0) {
-            data.add(new PieChart.Data(StringUtil.concatStrings("Failed (", Integer.toString(failedCount), ")"),
+            data.add(new PieChart.Data(StringUtil.concatStrings("Test Failures (", Integer.toString(failedCount), ")"),
                     failedCount));
-        }
-        if (skippedCount > 0) {
-            data.add(new PieChart.Data(StringUtil.concatStrings("Skipped (", Integer.toString(skippedCount), ")"),
-                    skippedCount));
-        }
-        if (passedCount > 0) {
-            data.add(new PieChart.Data(StringUtil.concatStrings("Passed (", Integer.toString(passedCount), ")"),
+            data.add(new PieChart.Data(StringUtil.concatStrings("Infrastructure Errors (", Integer.toString
+                    (skippedCount), ")"), skippedCount));
+            data.add(new PieChart.Data(StringUtil.concatStrings("Tests Passed (", Integer.toString(passedCount), ")"),
                     passedCount));
-        }
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(data);
         final PieChart chart = new PieChart(pieChartData);
         chart.setAnimated(false);
-        chart.setTitle("Build Failure Summary by Test Plans");
-        genChart(chart, 500, 500, summaryChartFileName);
+        chart.setLabelsVisible(true);
+        chart.setTitle("Build Failure Summary by Infrastructure Combinations");
+        genChart(chart, 600, 600, summaryChartFileName, "styles/summary.css");
     }
 
     /**
@@ -133,7 +127,7 @@ public class ChartGenerator {
         for (XYChart.Series series : seriesSet) {
             stackedBarChart.getData().add(series);
         }
-        genChart(stackedBarChart, 800, 800, historyChartFileName);
+        genChart(stackedBarChart, 800, 800, historyChartFileName, "");
     }
 
     /**
@@ -160,12 +154,14 @@ public class ChartGenerator {
      * @param width with of the chart in pixels
      * @param height height of the  chart in pixels
      * @param fileName of the written image
+     * @param styleSheet A custom stylesheet to be applied to the charts
      */
-    private void genChart(Chart chart, int width, int height, String fileName) {
+    private void genChart(Chart chart, int width, int height, String fileName, String styleSheet) {
         Platform.runLater(() -> {
-            Stage stage = new Stage();
             Scene scene = new Scene(chart, width, height);
-            stage.setScene(scene);
+            if (styleSheet != null && !styleSheet.isEmpty()) {
+                scene.getStylesheets().add(styleSheet);
+            }
             WritableImage img = new WritableImage(width, height);
             scene.snapshot(img);
             writeImage(img, fileName);
