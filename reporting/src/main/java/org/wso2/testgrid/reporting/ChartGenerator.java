@@ -127,7 +127,7 @@ public class ChartGenerator {
         for (XYChart.Series series : seriesSet) {
             stackedBarChart.getData().add(series);
         }
-        genChart(stackedBarChart, 800, 800, historyChartFileName, "");
+        genChart(stackedBarChart, 800, 800, historyChartFileName, "styles/summary.css");
     }
 
     /**

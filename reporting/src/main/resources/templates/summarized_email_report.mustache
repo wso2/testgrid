@@ -172,24 +172,25 @@
         </span><p/>
         <div class="consoleLog">
             <span>
-                <table class="reportTable testcaseInfraSummaryTable">
+                <!-- Inline styles are added to fix email forwarding issue -->
+                <table class="reportTable" style="border: 1px solid black; border-collapse:collapse; table-layout: auto;">
                     <thead>
-                    <tr>
-                        <th>Test case</th>
-                        <th>Suspected Infrastructure Culprits</th>
+                    <tr style="border: 1px solid black;">
+                        <th width="40%" style="border: 1px solid black;">Test case</th>
+                        <th style="border: 1px solid black;">Suspected Infrastructure Culprits</th>
                     </tr>
                     </thead>
                     <tbody>
                     {{#testCaseInfraSummaryTable}}
-                        <tr>
-                            <td>{{key}}</td>
+                        <tr style="border: 1px solid black;">
+                            <td style="border: 1px solid black;">{{key}}</td>
                             {{#value}}
-                                <td>
-                                <table>
-                                <tr>
+                                <td style="border: 1px solid black;">
+                                <table style="border: 1px solid black;">
+                                <tr style="border: 1px solid black;">
                                     {{#failedInfra}}
                                         {{#.}}
-                                            <td class="failure">
+                                            <td style="font-weight: bold; background: repeating-radial-gradient(circle, #f0f000, #f3cf3d); border: 1px solid black;">
                                                 {{.}}
                                             </td>
                                         {{/.}}
@@ -212,7 +213,7 @@
                         </tr>
                     {{/testCaseInfraSummaryTable}}
                     {{^testCaseInfraSummaryTable}}
-                        <tr><td>no information available.</td></tr>
+                        <tr style="border: 1px solid black;"><td style="border: 1px solid black;">no information available.</td></tr>
                     {{/testCaseInfraSummaryTable}}
                     </tbody>
                 </table>
@@ -222,30 +223,30 @@
 
             <span class="testResultSubTitle">Testcase Failure Summary Table</span>
             <p/><p/>
-          <table class="reportTable">
+          <table class="reportTable" style="border: 1px solid black; border-collapse:collapse;">
           <thead>
-           <tr>
-              <th width="25%">Failed Test Case</th>
-              <th width="45%">Failure Message</th>
-              <th>OS</th>
-              <th>JDK</th>
-              <th>DB</th>
+           <tr style="border: 1px solid black;">
+              <th width="25%" style="border: 1px solid black;">Failed Test Case</th>
+              <th width="45%" style="border: 1px solid black;">Failure Message</th>
+              <th style="border: 1px solid black;">OS</th>
+              <th style="border: 1px solid black;">JDK</th>
+              <th style="border: 1px solid black;">DB</th>
            </tr>
            <thead>
            <tbody>
               {{#perTestCase}}
-              <tr bgcolor="{{rowColor}}">
-                 <td rowspan="{{rowSpan}}">{{testCaseName}}</td>
-                 <td rowspan="{{rowSpan}}">{{testCaseDescription}}</td>
-                 <td>{{testCaseExecutedOS}}</td>
-                 <td>{{testCaseExecutedJDK}}</td>
-                 <td>{{testCaseExecutedDB}}</td>
+              <tr bgcolor="{{rowColor}}" style="border: 1px solid black;">
+                 <td rowspan="{{rowSpan}}" style="border: 1px solid black;">{{testCaseName}}</td>
+                 <td rowspan="{{rowSpan}}" style="border: 1px solid black;">{{testCaseDescription}}</td>
+                 <td style="border: 1px solid black;">{{testCaseExecutedOS}}</td>
+                 <td style="border: 1px solid black;">{{testCaseExecutedJDK}}</td>
+                 <td style="border: 1px solid black;">{{testCaseExecutedDB}}</td>
               </tr>
               {{#infraCombinations}}
-              <tr bgcolor="{{rowColor}}">
-                 <td>{{os}}</td>
-                 <td>{{jdk}}</td>
-                 <td>{{dbEngine}}</td>
+              <tr bgcolor="{{rowColor}}" style="border: 1px solid black;">
+                 <td style="border: 1px solid black;">{{os}}</td>
+                 <td style="border: 1px solid black;">{{jdk}}</td>
+                 <td style="border: 1px solid black;">{{dbEngine}}</td>
               </tr>
               {{/infraCombinations}}
             {{/perTestCase}}
