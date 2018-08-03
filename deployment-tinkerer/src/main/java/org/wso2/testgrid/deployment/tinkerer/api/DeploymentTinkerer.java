@@ -18,15 +18,19 @@
 
 package org.wso2.testgrid.deployment.tinkerer.api;
 
+import org.glassfish.jersey.server.ChunkedOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.ShellExecutor;
+import org.wso2.testgrid.common.agentoperation.OperationRequest;
+import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.deployment.tinkerer.SessionManager;
 import org.wso2.testgrid.deployment.tinkerer.beans.ErrorResponse;
-import org.wso2.testgrid.deployment.tinkerer.beans.OperationRequest;
+import org.wso2.testgrid.deployment.tinkerer.exception.AgentHandleException;
 import org.wso2.testgrid.deployment.tinkerer.exception.DeploymentTinkererException;
+import org.wso2.testgrid.deployment.tinkerer.utils.AgentHandler;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 import org.wso2.testgrid.deployment.tinkerer.utils.SSHHelper;
 
@@ -102,6 +106,33 @@ public class DeploymentTinkerer {
     }
 
     /**
+     * Send operation to agent and get response as stream.
+     *
+     * @param testPlanId       - Test plan id of the target agent.
+     * @param instanceName     - Instance Name of the target agent.
+     * @param operationRequest - Operation request.
+     * @return The operation response.
+     */
+    @POST
+    @Path("test-plan/{testPlanId}/agent/{instanceName}/stream-shell")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public ChunkedOutput<String> sendStreamingOperation(@PathParam("testPlanId") String testPlanId,
+                                                        @PathParam("instanceName") String instanceName,
+                                                        OperationRequest operationRequest) {
+        final ChunkedOutput<String> output = new ChunkedOutput<String>(String.class);
+        logger.info("Operation request received " + operationRequest.toJSON());
+        AgentHandler agentHandler = new AgentHandler(output, operationRequest, testPlanId,
+                instanceName);
+        try {
+            agentHandler.startSendCommand();
+            SessionManager.getAgentObserver().addObserver(agentHandler);
+        } catch (AgentHandleException e) {
+            logger.error("Error while sending command to the Agent for test plan " + testPlanId, e);
+        }
+        return output;
+    }
+
+    /**
      * Send operation to agent and get response.
      *
      * @param testPlanId       - Test plan id of the target agent.
@@ -116,14 +147,33 @@ public class DeploymentTinkerer {
                                   @PathParam("instanceName") String instanceName, OperationRequest operationRequest) {
         SessionManager sessionManager = SessionManager.getInstance();
         Agent agent = sessionManager.getAgent(testPlanId, instanceName);
+        OperationSegment operationSegment =  new OperationSegment();
+        operationSegment.setResponse("");
         if (agent != null && sessionManager.hasAgentSession(agent.getAgentId())) {
             Session wsSession = sessionManager.getAgentSession(agent.getAgentId());
             try {
-                operationRequest.setOperationId(UUID.randomUUID().toString());
+                // Set default operation id if not exist
+                if (operationRequest.getOperationId().equals("")) {
+                    operationRequest.setOperationId(UUID.randomUUID().toString());
+                }
+                // Create new operation queue
+                sessionManager.addNewOperationQueue(operationRequest.getOperationId(), operationRequest.getCode(),
+                        agent.getAgentId());
+                // Send command to agent through the socket
                 wsSession.getBasicRemote().sendText(operationRequest.toJSON());
+                operationSegment.setOperationId(operationRequest.getOperationId());
                 long initTime = Calendar.getInstance().getTimeInMillis();
-                while (!sessionManager.hasOperationResponse(operationRequest.getOperationId())) {
+                while (true) {
+                    OperationSegment tempOperationSegment = sessionManager.dequeueOperationQueueMessages(
+                            operationRequest.getOperationId());
+                    operationSegment.setResponse(operationSegment.getResponse().
+                            concat(tempOperationSegment.getResponse()));
                     long currentTime = Calendar.getInstance().getTimeInMillis();
+                    if (tempOperationSegment.getCompleted()) {
+                        operationSegment.setCompleted(true);
+                        operationSegment.setExitValue(tempOperationSegment.getExitValue());
+                        break;
+                    }
                     if (initTime + Constants.OPERATION_TIMEOUT < currentTime) {
                         String message = "Operation timed out for agent: " + agent.getAgentId();
                         logger.error(message);
@@ -133,7 +183,7 @@ public class DeploymentTinkerer {
                         return Response.status(Response.Status.REQUEST_TIMEOUT).entity(errorResponse).build();
                     }
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(Constants.AGENT_WAIT_TIMEOUT);
                     } catch (InterruptedException ignore) {
                     }
                 }
@@ -146,7 +196,7 @@ public class DeploymentTinkerer {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
             }
             return Response.status(Response.Status.OK)
-                    .entity(sessionManager.retrieveOperationResponse(operationRequest.getOperationId())).build();
+                    .entity(operationSegment).build();
         } else {
             ErrorResponse errorResponse = new ErrorResponse();
             errorResponse.setCode(Response.Status.NOT_FOUND.getStatusCode());
@@ -169,7 +219,7 @@ public class DeploymentTinkerer {
                                @PathParam("instanceName") String instanceName,
                                OperationRequest operationRequest) {
         //get POST body data
-        Map<String, String> data = operationRequest.getData();
+        Map<String, String> data = operationRequest.getMetaData();
         SessionManager sessionManager = SessionManager.getInstance();
         Agent agent = sessionManager.getAgent(testPlanId, instanceName);
 
