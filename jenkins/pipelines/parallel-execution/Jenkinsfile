@@ -103,13 +103,7 @@ pipeline {
     TESTGRID_HOME = '/testgrid/testgrid-home/'
 
     PRODUCT = "${JOB_BASE_NAME}"
-    INFRASTRUCTURE_REPOSITORY = 'https://github.com/wso2/testgrid'
-    DEPLOYMENT_REPOSITORY = 'https://github.com/wso2/testgrid'
-    SCENARIOS_REPOSITORY = 'https://github.com/wso2/apim-test-integration.git'
 
-    INFRA_LOCATION = "workspace/testgrid"
-    DEPLOYMENT_LOCATION = "workspace/testgrid"
-    SCENARIOS_LOCATION = "workspace/apim-test-integration"
     TESTGRID_YAML_LOCATION = "${INFRA_LOCATION}/jobs/${PRODUCT}/testgrid.yaml"
 
     AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
@@ -183,6 +177,7 @@ pipeline {
               echo '  PRODUCT_GIT_BRANCH: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
               echo '  PRODUCT_DIST_DOWNLOAD_API: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
               echo '  SQL_DRIVERS_LOCATION_UNIX: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  SQL_DRIVERS_LOCATION_WINDOWS: ${SQL_DRIVERS_LOCATION_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
               echo '  SSH_KEY_LOCATION: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
               echo '  REMOTE_WORKSPACE_DIR_UNIX: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
               echo '  REMOTE_WORKSPACE_DIR_WINDOWS: ${REMOTE_WORKSPACE_DIR_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
@@ -193,7 +188,9 @@ pipeline {
               echo '  sqlDriversLocationWindows: ${SQL_DRIVERS_LOCATION_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
               echo '  sshKeyFileLocation: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
               echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
-              echo '  buidType: abcd' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  LATEST_PRODUCT_RELEASE_API: ${LATEST_PRODUCT_RELEASE_API}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  LATEST_PRODUCT_BUILD_ARTIFACTS_API: ${LATEST_PRODUCT_BUILD_ARTIFACTS_API}' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  TEST_MODE: SNAPSHOT' >> ${JOB_CONFIG_YAML_PATH}
               echo '  runOnBranch: "false"' >> ${JOB_CONFIG_YAML_PATH}
 
               echo The job-config.yaml:
@@ -305,13 +302,13 @@ pipeline {
             //Send email for failed results.
             if (fileExists("${PWD}/builds/SummarizedEmailReport.html")) {
               def emailBody = readFile "${PWD}/builds/SummarizedEmailReport.html"
-                            emailext(to: "${EMAIL_TO_LIST},kasung@wso2.com,lasanthad@wso2.com,yasassri@wso2.com",
+              emailext(to: "${EMAIL_TO_LIST},kasung@wso2.com,lasanthad@wso2.com,yasassri@wso2.com",
                       subject: "'${env.JOB_NAME}' Integration Test Failure! #(${env.BUILD_NUMBER})",
                       body: "${emailBody}", mimeType: 'text/html', attachmentsPattern: "**/builds/*.png"
               );
             } else {
               echo "No SummarizedEmailReport.html file found!!"
-              emailext(to: 'builder@wso2.org,lasanthad@wso2.com,yasassri@wso2.com,kasung@wso2.com',
+              emailext(to: 'sameeraw@wso2.com,lasanthad@wso2.com,yasassri@wso2.com,kasung@wso2.com',
                       subject: "'${env.JOB_NAME}'#(${env.BUILD_NUMBER}) - SummarizedEmailReport.html file not found",
                       body: "Could not find the summarized email report ${env.BUILD_URL}. This is an error in " +
                               "testgrid.",
