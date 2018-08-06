@@ -174,7 +174,7 @@ public class SessionManager {
      * @param operationId   operation id of relevant OperationQueue
      * @return  OparationQueue for the relevant operation id
      */
-    public OperationQueue getOperationRequest(String operationId) {
+    public synchronized OperationQueue getOperationRequest(String operationId) {
         Optional<Map.Entry<String, OperationQueue>> operationOptional = operationQueueMap.entrySet().stream()
                 .filter(entry -> {
                     OperationQueue operationQueue = entry.getValue();
@@ -191,7 +191,7 @@ public class SessionManager {
      *
      * @return      operationQueueMap
      */
-    public static Map<String, OperationQueue> getOperationQueueMap() {
+    public static synchronized Map<String, OperationQueue> getOperationQueueMap() {
         return operationQueueMap;
     }
 
@@ -253,7 +253,7 @@ public class SessionManager {
      * @param operationId   The operation id
      * @return      has new messages
      */
-    public boolean hasMessageQueueResponse(String operationId) {
+    public synchronized boolean hasMessageQueueResponse(String operationId) {
         OperationQueue operationQueue = operationQueueMap.get(operationId);
         if (operationQueue != null) {
             if (operationQueue.getMessageQueue().size() > 0) {

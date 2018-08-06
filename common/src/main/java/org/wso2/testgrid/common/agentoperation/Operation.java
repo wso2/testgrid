@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Tinkerer operation class to handle response from and to Tinkerer message queue.
  */
-public class Operation {
+public abstract class Operation {
 
     private String operationId;
 

@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.ShellExecutor;
+import org.wso2.testgrid.common.agentoperation.Operation;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
@@ -30,7 +31,7 @@ import org.wso2.testgrid.deployment.tinkerer.SessionManager;
 import org.wso2.testgrid.deployment.tinkerer.beans.ErrorResponse;
 import org.wso2.testgrid.deployment.tinkerer.exception.AgentHandleException;
 import org.wso2.testgrid.deployment.tinkerer.exception.DeploymentTinkererException;
-import org.wso2.testgrid.deployment.tinkerer.utils.AgentHandler;
+import org.wso2.testgrid.deployment.tinkerer.utils.AgentStreamHandler;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 import org.wso2.testgrid.deployment.tinkerer.utils.SSHHelper;
 
@@ -121,17 +122,62 @@ public class DeploymentTinkerer {
                                                         OperationRequest operationRequest) {
         final ChunkedOutput<String> output = new ChunkedOutput<String>(String.class);
         logger.info("Operation request received " + operationRequest.toJSON());
-        AgentHandler agentHandler = new AgentHandler(output, operationRequest, testPlanId,
+        AgentStreamHandler agentStreamHandler = new AgentStreamHandler(output, operationRequest, testPlanId,
                 instanceName);
         try {
-            agentHandler.startSendCommand();
-            SessionManager.getAgentObserver().addObserver(agentHandler);
+            agentStreamHandler.startSendCommand();
+            SessionManager.getAgentObserver().addObserver(agentStreamHandler);
         } catch (AgentHandleException e) {
             logger.error("Error while sending command to the Agent for test plan " + testPlanId, e);
         }
         return output;
     }
 
+    /**
+     * Abort running operation on agent by using operation id
+     *
+     * @param testPlanId            The test plan id
+     * @param instanceName          The instance name
+     * @param operationRequest      Operation request
+     * @return                      Operation response
+     */
+    @POST
+    @Path("test-plan/{testPlanId}/agent/{instanceName}/abort")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response abortOperation(@PathParam("testPlanId") String testPlanId,
+                                  @PathParam("instanceName") String instanceName, OperationRequest operationRequest) {
+        Response responseToSend = Response.status(Response.Status.OK).build();
+        SessionManager sessionManager = SessionManager.getInstance();
+        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
+        if (agent != null) {
+            if (sessionManager.hasAgentSession(agent.getAgentId())) {
+                AgentStreamHandler agentStreamHandler = new AgentStreamHandler();
+                OperationSegment operationSegmentReturn = new OperationSegment();
+                operationSegmentReturn.setCode(Operation.OperationCode.ABORT);
+                operationSegmentReturn.setCompleted(true);
+                operationSegmentReturn.setOperationId(operationRequest.getOperationId());
+                operationSegmentReturn.setExitValue(0);
+                if (agentStreamHandler.abortOperation(operationRequest.getOperationId(), agent.getAgentId())) {
+                    responseToSend = Response.status(Response.Status.OK).entity(operationSegmentReturn).build();
+                } else {
+                    responseToSend = Response.status(Response.Status.INTERNAL_SERVER_ERROR).
+                            entity(operationSegmentReturn).build();
+                }
+            } else {
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setCode(Response.Status.NOT_FOUND.getStatusCode());
+                errorResponse.setMessage("Agent not found with given ID " + agent.getAgentId());
+                responseToSend = Response.status(Response.Status.NOT_FOUND).entity(errorResponse).build();
+            }
+        } else {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setCode(Response.Status.NOT_FOUND.getStatusCode());
+            errorResponse.setMessage("No agent found, Agent is null for test plan id" + testPlanId);
+            responseToSend = Response.status(Response.Status.NOT_FOUND).entity(errorResponse).build();
+        }
+
+        return responseToSend;
+    }
     /**
      * Send operation to agent and get response.
      *

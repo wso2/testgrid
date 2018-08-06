@@ -27,6 +27,7 @@ import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Calendar;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -39,13 +40,15 @@ public class OperationExecutor extends Thread {
 
     private static final Logger logger = LoggerFactory.getLogger(OperationExecutor.class);
 
+    private static final int MAX_EXECUTION_TIME_OUT = 500;      //  Maximum waiting time out between process output
+
     private OperationResponseListener operationResponseListener;
     private volatile boolean abortExecution = false;
     private OperationRequest operationRequest;
     private OperationSegment operationSegment;
 
     /**
-     * Constructor of the OperationExecutor to initialize object
+     * Constructor of the OperationExecutor to initialize object.
      *
      * @param operationResponseListener     Response write buffer
      */
@@ -56,7 +59,7 @@ public class OperationExecutor extends Thread {
     }
 
     /**
-     * Set default operation details
+     * Set default operation details.
      *
      * @param operationRequest      The operation request
      * @param operationSegment      The operation segment
@@ -66,8 +69,7 @@ public class OperationExecutor extends Thread {
         this.operationSegment = operationSegment;
     }
     /**
-     * Execute command send from the Tinkerer on current agent
-     *
+     * Execute command send from the Tinkerer on current agent.
      */
     public void run() {
         Process process;
@@ -88,7 +90,7 @@ public class OperationExecutor extends Thread {
     }
 
     /**
-     * Read result of InputStreamReader which is output of process execution
+     * Read result of InputStreamReader which is output of process execution.
      *
      * @param inputStreamReader     Output stream of the process execution
      * @param errorStreamReader     Error stream of the process execution
@@ -107,7 +109,7 @@ public class OperationExecutor extends Thread {
     }
 
     /**
-     * Read streaming buffer of process to get execution result
+     * Read streaming buffer of process to get execution result.
      *
      * @param reader                BufferedReader of the process
      * @param operationSegment     Response to send to Tinkerer
@@ -120,10 +122,12 @@ public class OperationExecutor extends Thread {
         String output = "";
         int lineCount = 0;
         int maximumLineCount = 10;
+        long initTime  = Calendar.getInstance().getTimeInMillis();
         try {
             while ((line = reader.readLine()) != null) {
                 synchronized (this) {
                     if (this.abortExecution) {
+                        logger.info("Abort executing operation for operation id " + operationSegment.getOperationId());
                         process.destroy();
                         process.waitFor();
                         operationSegment.setCompleted(true);
@@ -133,7 +137,10 @@ public class OperationExecutor extends Thread {
                         return;
                     }
                     lineCount++;
-                    if (lineCount >= maximumLineCount) {
+                    // Send response as chunks
+                    if (lineCount >= maximumLineCount ||
+                            initTime + MAX_EXECUTION_TIME_OUT < Calendar.getInstance().getTimeInMillis()) {
+                        initTime = Calendar.getInstance().getTimeInMillis();
                         output = output.concat(line);
                         lineCount = 0;
                         operationSegment.setCompleted(false);
@@ -146,6 +153,7 @@ public class OperationExecutor extends Thread {
                     }
                 }
             }
+            // If read error stream then complete the message and send the final result
             if (isError) {
                 operationSegment.setCompleted(true);
                 operationSegment.setExitValue(process.exitValue());
@@ -160,7 +168,7 @@ public class OperationExecutor extends Thread {
     }
 
     /**
-     * Set current thread to abort executing operation
+     * Set current thread to abort executing operation.
      *
      * @param abortExecution        Abort state
      */
@@ -169,7 +177,7 @@ public class OperationExecutor extends Thread {
     }
 
     /**
-     * Send response back to the tinkerer
+     * Send response back to the tinkerer.
      *
      * @param operationSegment      Response segment to send
      */

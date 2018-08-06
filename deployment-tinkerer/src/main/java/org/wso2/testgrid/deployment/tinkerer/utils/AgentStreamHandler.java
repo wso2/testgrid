@@ -36,13 +36,18 @@ import javax.websocket.Session;
 /**
  * Handle sending shell script operation to the agent and stream result back to the test runner.
  */
-public class AgentHandler implements Observer {
-    private static final Logger logger = LoggerFactory.getLogger(AgentHandler.class);
+public class AgentStreamHandler implements Observer {
+    private static final Logger logger = LoggerFactory.getLogger(AgentStreamHandler.class);
     private ChunkedOutput<String> output;
     private OperationRequest operationRequest;
     private String testPlanId;
     private String instanceName;
 
+    /**
+     * Default constructor to handle command in agent.
+     */
+    public AgentStreamHandler() {
+    }
     /**
      * Agent handler constructor to initialize streaming object.
      *
@@ -51,8 +56,8 @@ public class AgentHandler implements Observer {
      * @param testPlanId    The test plan id
      * @param instanceName  The instant name
      */
-    public AgentHandler(ChunkedOutput<String> output, OperationRequest operationRequest, String testPlanId,
-                        String instanceName) {
+    public AgentStreamHandler(ChunkedOutput<String> output, OperationRequest operationRequest, String testPlanId,
+                              String instanceName) {
         this.output = output;
         this.operationRequest = operationRequest;
         this.testPlanId = testPlanId;
@@ -60,7 +65,7 @@ public class AgentHandler implements Observer {
     }
 
     /**
-     * Send command to the Agent and wait for response from the agent
+     * Send command to the Agent and wait for response from the agent.
      *
      * @throws AgentHandleException
      */
@@ -70,10 +75,9 @@ public class AgentHandler implements Observer {
         if (agent != null && sessionManager.hasAgentSession(agent.getAgentId())) {
             Session wsSession = sessionManager.getAgentSession(agent.getAgentId());
             try {
-                sendMessageToAgent(operationRequest, wsSession, agent.getAgentId());
+                sendOperationToAgent(operationRequest, wsSession, agent.getAgentId());
                 logger.info("Generate new message queue with id: " + operationRequest.getOperationId() + " code: " +
                         operationRequest.getCode() + " command: " + operationRequest.getRequest());
-
             } catch (IOException e) {
                 throw new AgentHandleException("Error while sending command to agent " + operationRequest.getRequest() +
                         " on agent " + agent.getAgentId() + " instant name " +
@@ -113,18 +117,19 @@ public class AgentHandler implements Observer {
                 resultOperation.setCompleted(true);
                 resultOperation.setExitValue(operationSegment.getExitValue());
                 sessionManager.removeOperationQueueMessages(this.operationRequest.getOperationId());
+                sessionManager.getAgentObserver().deleteObserver(this);
                 this.output.write(resultOperation.toJSON() + "\r\n");
                 this.output.close();
             }
             // Send response only if it contain response
             if (!resultOperation.getResponse().equals("")) {
-                logger.info("Sending result segment to test runner " + agent.getAgentId() +
+                logger.debug("Sending result segment to test runner " + agent.getAgentId() +
                         " for test plan " + testPlanId);
                 this.output.write(resultOperation.toJSON() + "\r\n");
                 resultOperation.setResponse("");
             }
         } catch (IOException e) {
-            logger.error("Error while executing command " + operationRequest.getRequest() +
+            logger.warn("Error while writing result to the output. " + operationRequest.getRequest() +
                     " on agent " + agent.getAgentId() + " for test plan " + testPlanId + " instant name " +
                     this.instanceName, e);
             try {
@@ -138,17 +143,43 @@ public class AgentHandler implements Observer {
     }
 
     /**
-     * Send command to the agent through the given web socket session
+     * Send command to the agent through the given web socket session.
      *
      * @param operationRequest      The operation request
      * @param session               The session to agent
      * @param agentId       The agent id
      * @throws IOException
      */
-    public void sendMessageToAgent (OperationRequest operationRequest,
+    public void sendOperationToAgent (OperationRequest operationRequest,
                                     Session session, String agentId) throws IOException {
         SessionManager sessionManager = SessionManager.getInstance();
         sessionManager.addNewOperationQueue(operationRequest.getOperationId(), operationRequest.getCode(), agentId);
         session.getBasicRemote().sendText(operationRequest.toJSON());
+    }
+
+    /**
+     * Send command to agent to abort executing process.
+     *
+     * @param operationId       The operation id to abort
+     * @param agentId           Agent id
+     * @return                  True if success, else false.
+     */
+    public boolean abortOperation(String operationId, String agentId) {
+        SessionManager sessionManager = SessionManager.getInstance();
+        if (sessionManager.getOperationRequest(operationId) != null) {
+            Session session = sessionManager.getAgentSession(agentId);
+            OperationRequest abortOperationRequest = new OperationRequest();
+            abortOperationRequest.setOperationId(operationId);
+            abortOperationRequest.setCode(OperationRequest.OperationCode.ABORT);
+            try {
+                session.getBasicRemote().sendText(abortOperationRequest.toJSON());
+            } catch (IOException e) {
+                logger.error("Error occurred while sending abort operation to agent " + agentId, e);
+                return false;
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 }
