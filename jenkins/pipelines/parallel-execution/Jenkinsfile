@@ -195,7 +195,7 @@ pipeline {
               echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
               echo '  LATEST_PRODUCT_RELEASE_API: ${LATEST_PRODUCT_RELEASE_API}' >> ${JOB_CONFIG_YAML_PATH}
               echo '  LATEST_PRODUCT_BUILD_ARTIFACTS_API: ${LATEST_PRODUCT_BUILD_ARTIFACTS_API}' >> ${JOB_CONFIG_YAML_PATH}
-              echo '  TEST_MODE: SNAPSHOT' >> ${JOB_CONFIG_YAML_PATH}
+              echo '  TEST_MODE: ${TEST_MODE} >> ${JOB_CONFIG_YAML_PATH}
               echo '  runOnBranch: "false"' >> ${JOB_CONFIG_YAML_PATH}
 
               echo The job-config.yaml:
