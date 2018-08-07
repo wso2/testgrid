@@ -483,4 +483,19 @@ public final class TestGridUtil {
                 ConfigurationProperties.TESTGRID_HOST);
         return String.join("/", testGridHost, productName);
     }
+
+    /**
+     * Generate the S3 bucket URL for the current environment.
+     * Ex. https://s3.amazonaws.com/bucket1
+     *
+     * @return the S3 bucket url of the environment
+     */
+    public static String getS3BucketURL() {
+        String s3BucketName = ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.AWS_S3_BUCKET_NAME);
+        if (StringUtil.isStringNullOrEmpty(s3BucketName)) {
+            s3BucketName = TestGridConstants.AMAZON_S3_DEFAULT_BUCKET_NAME;
+        }
+        return String.join("/", TestGridConstants.AMAZON_S3_URL, s3BucketName);
+    }
 }

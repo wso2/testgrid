@@ -88,6 +88,8 @@ public class TestReportEngine {
     private static final String PER_TEST_CASE_TEMPLATE_KEY = "perTestCase";
     private static final String PRODUCT_STATUS_TEMPLATE_KEY = "productTestStatus";
     private static final String PRODUCT_NAME_TEMPLATE_KEY = "productName";
+    private static final String SUMMARY_CHART_TEMPLATE_KEY = "summaryChart";
+    private static final String HISTORY_CHART_TEMPLATE_KEY = "historyChart";
     private static final String GIT_BUILD_DETAILS_TEMPLATE_KEY = "gitBuildDetails";
     private static final String HTML_EXTENSION = ".html";
 
@@ -887,12 +889,18 @@ public class TestReportEngine {
 
         String productName = product.getName();
         final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
+        final String summaryChartURL = String.join("/", TestGridUtil.getS3BucketURL(),
+                productName, "summary.png");
+        final String historyChartURL = String.join("/", TestGridUtil.getS3BucketURL(),
+                productName, "history.png");
 
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
         results.put("testedInfrastructures", testedInfrastructures);
         results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
+        results.put(SUMMARY_CHART_TEMPLATE_KEY, summaryChartURL);
+        results.put(HISTORY_CHART_TEMPLATE_KEY, historyChartURL);
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
         results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
