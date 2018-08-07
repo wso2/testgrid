@@ -890,9 +890,9 @@ public class TestReportEngine {
         String productName = product.getName();
         final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
         final String summaryChartURL = String.join("/", TestGridUtil.getS3BucketURL(),
-                productName, "summary.png");
+                "charts", productName, "summary.png");
         final String historyChartURL = String.join("/", TestGridUtil.getS3BucketURL(),
-                productName, "history.png");
+                "charts", productName, "history.png");
 
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());

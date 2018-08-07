@@ -1,4 +1,5 @@
 properties = null
+bucket = null
 
 def loadProperties() {
   node {
@@ -6,16 +7,19 @@ def loadProperties() {
   }
 }
 
+def setS3BucketName() {
+      script {
+        loadProperties()
+      }
+      bucket = properties['AWS_S3_BUCKET_NAME']
+      if ("${bucket}" == "null") {
+        bucket = "unknown"
+      }
+}
+
 def uploadToS3() {
-  script {
-    loadProperties()
-  }
-  def bucket = properties['AWS_S3_BUCKET_NAME']
-  if ("${bucket}" == "null") {
-    bucket = "unknown"
-  }
   sh """
-      aws s3 sync ${PWD}/builds/ s3://${bucket}/artifacts/jobs/${PRODUCT}/builds --include "*"
+      aws s3 sync ${TESTGRID_HOME}/jobs/${PRODUCT}/builds/ s3://${bucket}/artifacts/jobs/${PRODUCT}/builds --include "*"
       """
 }
 
@@ -23,7 +27,7 @@ def truncateTestRunLog() {
   sh """
     if [ -d "${TESTGRID_HOME}/jobs/${PRODUCT}/builds" ]; then
         cd ${TESTGRID_HOME}/jobs/${PRODUCT}
-        for file in builds/*/test-run.log ; do
+      for file in builds/*/test-run.log ; do
         truncatedFile=\$(dirname \$file)/truncated-\$(basename \$file);
         head -n 10 \$file > \$truncatedFile;
         printf "......\n.....\n..(Skipping logs)..\n.....\n......\n" >> \$truncatedFile;
@@ -128,6 +132,7 @@ pipeline {
       steps {
         script {
           try {
+            setS3BucketName()
             notifyBuild('STARTED', "Initiation", "#build_status_verbose")
             notifyBuild('STARTED', "Initiation", "#build_status")
             echo pwd()
@@ -270,6 +275,7 @@ pipeline {
     always {
       script {
         try {
+          loadProperties()
           sh """
             cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
             ./testgrid finalize-run-testplan \
@@ -289,22 +295,20 @@ pipeline {
       */
           sh """
                 cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
-                export DISPLAY=:95.0
                 ./testgrid generate-email \
                 --product ${PRODUCT} \
                 --workspace ${PWD}
+
+                aws s3 sync ${TESTGRID_HOME}/jobs/${PRODUCT}/builds/ s3://${bucket}/charts/${PRODUCT}/ --include "*.png" --acl public-read
                 """
           script {
-            sh """
-                   echo "${PWD}"
-                   ls -al "${PWD}"
-                   """
+
             //Send email for failed results.
             if (fileExists("${PWD}/builds/SummarizedEmailReport.html")) {
               def emailBody = readFile "${PWD}/builds/SummarizedEmailReport.html"
               emailext(to: "${EMAIL_TO_LIST},kasung@wso2.com,lasanthad@wso2.com,yasassri@wso2.com",
                       subject: "'${env.JOB_NAME}' Integration Test Failure! #(${env.BUILD_NUMBER})",
-                      body: "${emailBody}", mimeType: 'text/html', attachmentsPattern: "**/builds/*.png"
+                      body: "${emailBody}", mimeType: 'text/html'
               );
             } else {
               echo "No SummarizedEmailReport.html file found!!"
