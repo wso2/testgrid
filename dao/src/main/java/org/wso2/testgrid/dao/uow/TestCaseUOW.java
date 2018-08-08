@@ -79,7 +79,7 @@ public class TestCaseUOW {
     @SuppressWarnings("unchecked")
     public boolean isExistsFailedTests(TestScenario testScenario) throws TestGridDAOException {
         List<Object> resultObject = testCaseRepository.executeTypedQuery("SELECT * FROM test_case "
-                + "WHERE TESTSCENARIO_id = '" + testScenario.getId() + "' AND is_success = FALSE;");
+                + "WHERE TESTSCENARIO_id = '" + testScenario.getId() + "' AND status = FAIL;");
 
         return resultObject.isEmpty();
     }

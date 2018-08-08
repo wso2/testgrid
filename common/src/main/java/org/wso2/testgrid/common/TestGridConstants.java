@@ -42,6 +42,7 @@ public class TestGridConstants {
     public static final String TESTGRID_COMPRESSED_FILE_EXT = ".zip";
 
     public static final String TESTRUN_LOG_FILE_NAME = "test-run.log";
+    public static final String TRUNCATED_TESTRUN_LOG_FILE_NAME = "truncated-test-run.log";
     public static final String TEST_INTEGRATION_LOG_FILE_NAME = "TestSuite.txt";
     public static final String TESTGRID_BUILDS_DIR = "builds";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
@@ -70,9 +71,12 @@ public class TestGridConstants {
     public static final String TEST_PLANS_URI = "test-plans";
     public static final String HTML_LINE_SEPARATOR = "<br/>";
     public static final String TESTGRID_EMAIL_REPORT_NAME = "EmailReport.html";
+    public static final String TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME = "SummarizedEmailReport.html";
 
     public static final String SHELL_SUFFIX = ".sh";
     public static final String PRE_STRING = "pre-scenario-steps";
     public static final String POST_STRING = "post-scenario-steps";
     public static final String SCENARIO_SCRIPT = "run-scenario.sh";
+    public static final String AMAZON_S3_URL = "https://s3.amazonaws.com";
+    public static final String AMAZON_S3_DEFAULT_BUCKET_NAME = "unknown";
 }

@@ -21,11 +21,13 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ResultParserException;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.File;
@@ -64,13 +66,14 @@ import javax.xml.stream.events.XMLEvent;
 public class TestNgResultsParser extends ResultParser {
 
     public static final String RESULTS_INPUT_FILE = "testng-results.xml";
+    public static final String RESULTS_TEST_SUITE_FILE = "TEST-TestSuite.xml";
     private static final String[] ARCHIVABLE_FILES = new String[] { "surefire-reports", "automation.log" };
     private static final Logger logger = LoggerFactory.getLogger(TestNgResultsParser.class);
-    private static final String TOTAL = "total";
-    private static final String FAILED = "failed";
-    private static final String PASSED = "passed";
+    private static final String TEST_CASE = "testcase";
+    private static final String MESSAGE = "message";
+    private static final String FAILED = "failure";
     private static final String SKIPPED = "skipped";
-    private final XMLInputFactory factory = XMLInputFactory.newInstance();
+    private static final int ERROR_LINE_LIMIT = 2;
 
     /**
      * This constructor is used to create a {@link TestNgResultsParser} object with the
@@ -84,31 +87,32 @@ public class TestNgResultsParser extends ResultParser {
     }
 
     /**
-     * <pre>
-     * <testng-results skipped="2" failed="1" total="17" passed="14">
-     *  <reporter-output>
-     *  </reporter-output>
-     *  <suite name="apim-automation-tests-suite-1"
-     *          duration-ms="41210" started-at="2018-06-28T10:16:25Z" finished-at="2018-06-28T10:17:06Z">
-     *      <test name="apim-startup-tests" duration-ms="15825"
-     *          started-at="2018-06-28T10:16:50Z" finished-at="2018-06-28T10:17:06Z">
-     *      <class name="org.wso2.am.integration.tests.server.mgt.APIMgtServerStartupTestCase">
-     *      <test-method status="PASS" signature="setEnvironment()" name="setEnvironment" is-config="true"
-     *          duration-ms="98" started-at="2018-06-28T10:16:24Z" finished-at="2018-06-28T10:16:25Z">
-     *      </test-method>
-     *      <test-method status="PASS" signature="testVerifyLogs()" name="testVerifyLogs" duration-ms="600"
-     *          started-at="2018-06-28T10:16:50Z" description="verify server startup errors"
-     *          finished-at="2018-06-28T10:16:51Z">
-     *      </test-method>
-     *      <test-method status="PASS" signature="disconnectFromOSGiConsole()" name="disconnectFromOSGiConsole"
-     *          is-config="true" duration-ms="1" started-at="2018-06-28T10:17:01Z" finished-at="2018-06-28T10:17:01Z">
-     *      </test-method>
-     *      </class>
-     *   </suite>
-     *  </testng-results>
-     * </pre>
-     * <p>
-     * one test class == one testgrid testcase.
+     * <testcase name="testExecute" classname="org.wso2.testgrid.core.command.RunTestPlanCommandTest"
+     * time="0.105"/>
+     * <testcase name="testGetCombinations" classname="org.wso2.testgrid.infrastructure
+     * .InfrastructureCombinationsProviderTest" time="0.023"/>
+     * <testcase name="testValidateAddAPIsWithDifferentCase" classname="org.wso2.am.integration.tests
+     * .other.APIMANAGER3226APINameWithDifferentCaseTestCase" time="0">
+     * <skipped/>
+     * <system-out><![CDATA[INFO  [org.wso2.carbon.automation.engine.testlisteners
+     * .TestManagerListener] - =================== Running the test method org.wso2.am.integration.tests.other
+     * .APIMANAGER3226APINameWithDifferentCaseTestCase.testValidateAddAPIsWithDifferentCase ===================
+     * ]]></system-out>
+     * </testcase>
+     * <testcase name="destroy" classname="org.wso2.am.integration.tests.other
+     * .APIMANAGER3226APINameWithDifferentCaseTestCase" time="9.081">
+     * <failure message="Unable to get API - echo. Error: Read timed out" type="org.wso2.am.integration
+     * .test.utils.APIManagerIntegrationTestException">org.wso2.am.integration.test.utils
+     * .APIManagerIntegrationTestException: Unable to get API - echo. Error: Read timed out
+     * at java.net.SocketInputStream.socketRead0(Native Method)
+     * at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+     * at java.net.SocketInputStream.read(SocketInputStream.java:171)
+     * at java.net.SocketInputStream.read(SocketInputStream.java:141)
+     * at org.apache.http.impl.io.SessionInputBufferImpl.streamRead(SessionInputBufferImpl.java:136)
+     * at org.apache.http.impl.io.SessionInputBufferImpl.fillBuffer(SessionInputBufferImpl.java:152)
+     * </failure>
+     * </testcase>
+     * one test testcase element == one testgrid testcase.
      *
      * @throws ResultParserException parsing error
      */
@@ -118,7 +122,7 @@ public class TestNgResultsParser extends ResultParser {
         Set<Path> inputFiles = getResultInputFiles(dataBucket);
 
         final Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
-        logger.info("Found testng-results.xml result files at: " + inputFiles.stream().map
+        logger.info("Found TEST-TestSuite.xml result files at: " + inputFiles.stream().map
                 (outputLocation::relativize).collect(Collectors.toSet()));
         for (Path resultsFile : inputFiles) {
             try (final InputStream stream = Files.newInputStream(resultsFile, StandardOpenOption.READ)) {
@@ -133,18 +137,20 @@ public class TestNgResultsParser extends ResultParser {
                     XMLEvent event = eventReader.nextEvent();
                     if (event.getEventType() == XMLStreamConstants.START_ELEMENT) {
                         StartElement startElement = event.asStartElement();
-                        if (startElement.getName().getLocalPart().equals("class")) {
+                        if (startElement.getName().getLocalPart().equals("testcase")) {
                             final String classNameStr = getClassName(startElement);
                             List<TestCase> testCases = getTestCasesFor(classNameStr, eventReader);
-                            logger.info(String.format("Found %s test cases in class '%s'", testCases.size(),
-                                    classNameStr));
+                            if (logger.isDebugEnabled()) {
+                                logger.debug(String.format("Found %s test cases in class '%s'", testCases.size(),
+                                        classNameStr));
+                            }
                             testCases.stream().forEachOrdered(tc -> testScenario.addTestCase(tc));
                         }
                     }
                 }
                 logger.info(String.format("Found total of %s test cases. %s test cases has failed.", testScenario
                                 .getTestCases().size(),
-                        testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count()));
+                        testScenario.getTestCases().stream().filter(tc -> Status.FAIL.equals(tc.getStatus())).count()));
             } catch (IOException | XMLStreamException e) {
                 logger.error("Error while parsing testng-results.xml at " + resultsFile + " for " +
                         testScenario.getName(), e);
@@ -163,8 +169,14 @@ public class TestNgResultsParser extends ResultParser {
         final Iterator attributes = classElement.getAttributes();
         while (attributes.hasNext()) {
             Attribute att = (Attribute) attributes.next();
+            if (att.getName().getLocalPart().equals("classname")) {
+                String[] split = att.getValue().split("\\.");
+                //get the class name from fully qualified class name
+                classNameStr = split[split.length - 1];
+            }
             if (att.getName().getLocalPart().equals("name")) {
-                classNameStr = att.getValue();
+                classNameStr = StringUtil
+                        .concatStrings(classNameStr, "#", att.getValue());
             }
         }
         return classNameStr;
@@ -183,64 +195,60 @@ public class TestNgResultsParser extends ResultParser {
         List<TestCase> testCases = new ArrayList<>();
         while (eventReader.hasNext()) {
             XMLEvent event = eventReader.nextEvent();
-            if (event.getEventType() == XMLStreamConstants.END_ELEMENT &&
-                    event.asEndElement().getName().getLocalPart().equals("class")) {
+            if (event.getEventType() == XMLStreamConstants.END_ELEMENT && TEST_CASE
+                    .equals(event.asEndElement().getName().getLocalPart())) {
+                TestCase testCase = buildTestCase(classNameStr, Status.SUCCESS, "");
+                testCases.add(testCase);
                 break;
             }
-            if (event.getEventType() == XMLStreamConstants.START_ELEMENT) {
-                final StartElement element = event.asStartElement();
-                if (element.getName().getLocalPart().equals("test-method")) {
-                    final TestCase testCase = readTestMethod(classNameStr, element);
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Test case found : " + testCase + " for scenario: " + testScenario);
+            if (event.getEventType() == XMLStreamConstants.START_ELEMENT && SKIPPED
+                    .equals(event.asStartElement().getName().getLocalPart())) {
+                TestCase testCase = buildTestCase(classNameStr, Status.SKIP, "Test Skipped");
+                testCases.add(testCase);
+                break;
+            }
+            if (event.getEventType() == XMLStreamConstants.START_ELEMENT && FAILED
+                    .equals(event.asStartElement().getName().getLocalPart())) {
+                String failureMessage = "unknown";
+                Iterator attributes = event.asStartElement().getAttributes();
+                failureMessage = readFailureMessage(eventReader);
+                while (attributes.hasNext()) {
+                    Attribute attribute = (Attribute) attributes.next();
+                    if (MESSAGE.equals(attribute.getName().getLocalPart())) {
+                        failureMessage = attribute.getValue();
+                        break;
                     }
-                    testCases.add(testCase);
                 }
+                TestCase testCase = buildTestCase(classNameStr, Status.FAIL, failureMessage);
+                testCases.add(testCase);
+                break;
             }
         }
         return testCases;
     }
 
-    private TestCase readTestMethod(String classNameStr, StartElement element) {
-        final Iterator attrs = element.getAttributes();
-        Boolean status = null;  // null means 'SKIP' for now. true/false for PASS/FAIL.
-        String name = "unknown";
-        String description = "";
-        while (attrs.hasNext()) {
-            final Attribute attr = (Attribute) attrs.next();
-            if ("status".equals(attr.getName().getLocalPart())) {
-                switch (attr.getValue()) {
-                case "PASS":
-                    status = Boolean.TRUE;
-                    break;
-                case "FAIL":
-                    status = Boolean.FALSE;
-                    break;
-                default:
-                    status = Boolean.FALSE; //handle the skipped case
-                    description += " :: " + attr.getValue();
-                    break;
-                }
-            }
-            if ("name".equals(attr.getName().getLocalPart())) {
-                name = attr.getValue();
-            }
-            if ("description".equals(attr.getName().getLocalPart())) {
-                description = description.isEmpty() ? attr.getValue() : attr.getValue() + description;
+    /**
+     * Reads the text content data inside the <failure></failure> element and builds the
+     * error message.
+     *
+     * @param eventReader XMLEventReader
+     * @return error message
+     * @throws XMLStreamException when theres an error reading the XML events
+     */
+    private String readFailureMessage(XMLEventReader eventReader) throws XMLStreamException {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < ERROR_LINE_LIMIT; i++) {
+            XMLEvent xmlEvent = eventReader.nextEvent();
+            if (xmlEvent.isCharacters()) {
+                builder.append(xmlEvent.asCharacters().getData());
+            } else {
+                break;
             }
         }
-        if (status == null) { // it's a skipped test!
-            // TODO we need to properly handle Skipped test cases.
-            name = name + " :: SKIPPED!";
-            status = Boolean.FALSE;
-        }
-        final TestCase testCase = buildTestCase(classNameStr + "." + name, status,
-                description); //todo capture failure message
-        return testCase;
-
+        return builder.toString();
     }
 
-    private TestCase buildTestCase(String className, boolean isSuccess, String failureMessage) {
+    private TestCase buildTestCase(String className, Status isSuccess, String failureMessage) {
         TestCase testCase = new TestCase();
         testCase.setTestScenario(this.testScenario);
         testCase.setName(className);
@@ -250,11 +258,11 @@ public class TestNgResultsParser extends ResultParser {
     }
 
     /**
-     * Searches the provided path for files named "testng-results.xml",
+     * Searches the provided path for files named "TEST-TestSuite.xml",
      * and returns the list of paths.
      *
      * @param dataBucket the data bucket folder where build artifacts are located.
-     * @return list of paths of testng-results.xml.
+     * @return list of paths of TEST-TestSuite.xml.
      */
     private Set<Path> getResultInputFiles(Path dataBucket) {
         try {
@@ -266,14 +274,13 @@ public class TestNgResultsParser extends ResultParser {
                 if (Files.isDirectory(file)) {
                     final Set<Path> anInputFilesList = getResultInputFiles(file);
                     inputFiles.addAll(anInputFilesList);
-                } else if (RESULTS_INPUT_FILE.equals(fileName.toString())) {
+                } else if (RESULTS_TEST_SUITE_FILE.equals(fileName.toString())) {
                     inputFiles.add(file);
                 }
             }
-
             return inputFiles;
         } catch (IOException e) {
-            logger.error("Error while reading " + RESULTS_INPUT_FILE + " in " + dataBucket, e);
+            logger.error("Error while reading " + RESULTS_TEST_SUITE_FILE + " in " + dataBucket, e);
             return Collections.emptySet();
         }
     }
@@ -323,4 +330,3 @@ public class TestNgResultsParser extends ResultParser {
 
     }
 }
-

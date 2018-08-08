@@ -31,7 +31,7 @@ import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.automation.parser.TestNgResultsParser;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
-import org.wso2.testgrid.common.TestCase;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
@@ -96,12 +96,16 @@ public class TestNgResultsParserTest {
         Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
 
         parser.get().parseResults();
-        Assert.assertEquals(testScenario.getTestCases().size(), 16, "generated test cases does not match.");
-        final long successTestCases = testScenario.getTestCases().stream().filter(TestCase::isSuccess).count();
-        final long failureTestCases = testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count();
-        Assert.assertEquals(successTestCases, 9, "success test cases does not match.");
-        Assert.assertEquals(failureTestCases, 7, "failure test cases does not match.");
-
+        Assert.assertEquals(testScenario.getTestCases().size(), 9, "generated test cases does not match.");
+        final long successTestCases = testScenario.getTestCases().stream()
+                .filter(tc -> Status.SUCCESS.equals(tc.getStatus())).count();
+        final long failureTestCases = testScenario.getTestCases().stream()
+                .filter(tc -> Status.FAIL.equals(tc.getStatus())).count();
+        final long skipTestCases = testScenario.getTestCases().stream()
+                .filter(tc -> Status.SKIP.equals(tc.getStatus())).count();
+        Assert.assertEquals(successTestCases, 6, "success test cases does not match.");
+        Assert.assertEquals(failureTestCases, 2, "failure test cases does not match.");
+        Assert.assertEquals(skipTestCases, 1, "skip test cases does not match.");
     }
 
     @Test
@@ -118,12 +122,13 @@ public class TestNgResultsParserTest {
 
         parser.get().parseResults();
         parser.get().archiveResults();
-        Assert.assertEquals(testScenario.getTestCases().size(), 16, "generated test cases does not match.");
-        final long successTestCases = testScenario.getTestCases().stream().filter(TestCase::isSuccess).count();
-        final long failureTestCases = testScenario.getTestCases().stream().filter(tc -> !tc.isSuccess()).count();
-        Assert.assertEquals(successTestCases, 9, "success test cases does not match.");
-        Assert.assertEquals(failureTestCases, 7, "failure test cases does not match.");
-
+        Assert.assertEquals(testScenario.getTestCases().size(), 9, "generated test cases does not match.");
+        final long successTestCases = testScenario.getTestCases().stream()
+                .filter(tc -> Status.SUCCESS.equals(tc.getStatus())).count();
+        final long failureTestCases = testScenario.getTestCases().stream()
+                .filter(tc -> Status.FAIL.equals(tc.getStatus())).count();
+        Assert.assertEquals(successTestCases, 6, "success test cases does not match.");
+        Assert.assertEquals(failureTestCases, 2, "failure test cases does not match.");
     }
 
     private void copyTestngResultsXml(Path outputLocation) throws IOException {

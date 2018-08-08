@@ -19,13 +19,23 @@
 
 package org.wso2.testgrid.common.infrastructure;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.AbstractUUIDEntity;
+import org.wso2.testgrid.common.TestGridError;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 /**
@@ -45,8 +55,9 @@ import javax.persistence.UniqueConstraint;
         }
 )
 public class InfrastructureParameter extends AbstractUUIDEntity implements
-        Serializable, Comparable<InfrastructureParameter> {
+        Serializable, Comparable<InfrastructureParameter>, Cloneable {
 
+    private static final Logger logger = LoggerFactory.getLogger(InfrastructureParameter.class);
     public static final String INFRASTRUCTURE_PARAMETER_NAME_COLUMN = "name";
 
     /**
@@ -71,6 +82,14 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
 
     @Column(name = "ready_for_testgrid")
     private boolean readyForTestGrid;
+
+    /**
+     * This is processed format of the {@link #properties} field.
+     * This does not have a setter method since it can be calculated via the {@link #properties} field.
+     *
+     */
+    @Transient
+    private List<InfrastructureParameter> subInfrastructureParameters = null;
 
     public InfrastructureParameter(String name, String type, String properties, boolean readyForTestGrid) {
         this.name = name;
@@ -125,13 +144,43 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
         this.readyForTestGrid = readyForTestGrid;
     }
 
+    /**
+     * Processes the {@link #properties} field, and generate a list of sub infrastructure parameters.
+     *
+     * @return list of sub infra parameters
+     */
+    public List<InfrastructureParameter> getProcessedSubInfrastructureParameters() {
+        if (subInfrastructureParameters == null) {
+            subInfrastructureParameters = new ArrayList<>();
+            try {
+                Properties properties = new Properties();
+                properties.load(new StringReader(this.getProperties()));
+
+                for (Map.Entry entry : properties.entrySet()) {
+                    String name = (String) entry.getValue();
+                    String type = (String) entry.getKey();
+                    String regex = "[\\w,-\\.@:]*";
+                    if (type.isEmpty() || !type.matches(regex)
+                            || name.isEmpty() || !name.matches(regex)) {
+                        continue;
+                    }
+                    InfrastructureParameter infraParameter = new InfrastructureParameter();
+                    infraParameter.setName(name);
+                    infraParameter.setType(type);
+                    infraParameter.setReadyForTestGrid(true);
+                    infraParameter.setProperties(this.getProperties());
+                    subInfrastructureParameters.add(infraParameter);
+                }
+            } catch (IOException e) {
+                logger.warn("Error while loading the infrastructure parameter's properties string for: " + this);
+            }
+        }
+        return subInfrastructureParameters;
+    }
+
     @Override
     public String toString() {
-        return "InfrastructureParameter{" +
-                "name='" + name + '\'' +
-                ", type='" + type + '\'' +
-                ", readyForTestGrid=" + readyForTestGrid +
-                "}\n";
+        return type + "='" + name + '\'';
     }
 
     @Override
@@ -192,4 +241,59 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
         return result;
     }
 
+    @Override
+    public InfrastructureParameter clone() {
+        try {
+            final InfrastructureParameter clone = (InfrastructureParameter) super.clone();
+            clone.name = this.name;
+            clone.type = this.type;
+            clone.readyForTestGrid = this.readyForTestGrid;
+            clone.properties = this.properties;
+            clone.subInfrastructureParameters = this.subInfrastructureParameters;
+            return clone;
+
+        } catch (CloneNotSupportedException e) {
+            throw new TestGridError("Since the super class of this object is java.lang.Object that supports cloning, "
+                    + "this failure condition should never happen unless a serious system error occurred.", e);
+        }
+    }
+
+    @Transient
+    private boolean transformed = false;
+    /**
+     *
+     * TODO: This is a temporary method until we fix the infrastructure_parameter table
+     * to contain uniquely distinguishable 'name' column.
+     * Right now, even the type=name pair is also taken as a infrastructure value.
+     * This is not a good design.
+     *
+     */
+    public synchronized void transform() {
+        if (transformed) {
+            return;
+        }
+        final String newName = getProcessedInfraParamName();
+        final InfrastructureParameter clone = this.clone();
+        clone.subInfrastructureParameters = null;
+        this.subInfrastructureParameters.add(clone);
+        this.name = newName;
+        this.transformed = true;
+    }
+
+
+    /**
+     * The @{@link InfrastructureParameter#getName()} is supposed to provide a fully-qualified name
+     * that can uniquely identify an infra. But that's not the case right now.
+     *
+     * Following is a working around to provide better display output.
+     *
+     */
+    private String getProcessedInfraParamName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getName());
+        for (InfrastructureParameter subParam : this.getProcessedSubInfrastructureParameters()) {
+            sb.append(" - ").append(subParam.getName());
+        }
+        return sb.toString();
+    }
 }

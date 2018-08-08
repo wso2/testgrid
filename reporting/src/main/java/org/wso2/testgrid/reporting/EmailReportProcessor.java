@@ -26,16 +26,24 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.PropertyFileReader;
+import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.reporting.model.email.TPResultSection;
+import org.wso2.testgrid.reporting.summary.InfrastructureBuildStatus;
+import org.wso2.testgrid.reporting.summary.InfrastructureSummaryReporter;
 import org.wso2.testgrid.reporting.surefire.SurefireReporter;
 import org.wso2.testgrid.reporting.surefire.TestResult;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.HTML_LINE_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.TEST_PLANS_URI;
@@ -48,10 +56,14 @@ import static org.wso2.testgrid.common.TestGridConstants.TEST_PLANS_URI;
 public class EmailReportProcessor {
     private static final Logger logger = LoggerFactory.getLogger(EmailReportProcessor.class);
     private static final int MAX_DISPLAY_TEST_COUNT = 20;
+    private final InfrastructureSummaryReporter infrastructureSummaryReporter;
     private TestPlanUOW testPlanUOW;
+    private InfrastructureParameterUOW infrastructureParameterUOW;
 
     public EmailReportProcessor() {
         this.testPlanUOW = new TestPlanUOW();
+        this.infrastructureParameterUOW = new InfrastructureParameterUOW();
+        this.infrastructureSummaryReporter = new InfrastructureSummaryReporter(infrastructureParameterUOW);
     }
 
     /**
@@ -59,8 +71,10 @@ public class EmailReportProcessor {
      *
      * @param testPlanUOW the TestPlanUOW
      */
-    EmailReportProcessor(TestPlanUOW testPlanUOW) {
+    EmailReportProcessor(TestPlanUOW testPlanUOW, InfrastructureParameterUOW infrastructureParameterUOW) {
         this.testPlanUOW = testPlanUOW;
+        this.infrastructureParameterUOW = infrastructureParameterUOW;
+        this.infrastructureSummaryReporter = new InfrastructureSummaryReporter(infrastructureParameterUOW);
     }
 
     /**
@@ -202,5 +216,48 @@ public class EmailReportProcessor {
             }
         }
         return false;
+    }
+
+    /**
+     * @see InfrastructureSummaryReporter#getSummaryTable(List)
+     * @param testPlans the test plans for which we need to generate the summary
+     * @return summary table
+     */
+    public Map<String, InfrastructureBuildStatus> getSummaryTable(List<TestPlan> testPlans) {
+        return infrastructureSummaryReporter.getSummaryTable(testPlans);
+    }
+
+    /**
+     * Get the tested infrastructures as a html string content.
+     *
+     * @param testCaseInfraSummaryMap the summary map
+     */
+    public String getTestedInfrastructures(Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap) {
+        final Set<InfrastructureParameter> s = testCaseInfraSummaryMap.values().stream()
+                .map(InfrastructureBuildStatus::getSuccessInfra)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+        final Set<InfrastructureParameter> f = testCaseInfraSummaryMap.values().stream()
+                .map(InfrastructureBuildStatus::getFailedInfra)
+                .flatMap(Collection::stream)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+        final Set<InfrastructureParameter> u = testCaseInfraSummaryMap.values().stream()
+                .map(InfrastructureBuildStatus::getUnknownInfra)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+
+        s.addAll(f);
+        s.addAll(u);
+        final Map<String, List<InfrastructureParameter>> infraGroupedByType = s.stream()
+                .collect(Collectors.groupingBy(InfrastructureParameter::getType));
+        final String infraStr = "{<br/>" + infraGroupedByType.entrySet().stream()
+                .map(entry -> "&nbsp;&nbsp;<b>" + entry.getKey() + "</b> : " +
+                        entry.getValue().stream()
+                                .map(InfrastructureParameter::getName)
+                                .collect(Collectors.joining(", ")))
+                .collect(Collectors.joining(", <br/>")) + "<br/>}";
+        return infraStr;
+
     }
 }

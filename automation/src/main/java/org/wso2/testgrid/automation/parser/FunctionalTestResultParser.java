@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.JTLResultParserException;
 import org.wso2.testgrid.automation.exception.ResultParserException;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
@@ -196,7 +197,13 @@ public class FunctionalTestResultParser extends ResultParser {
             if (TEST_NAME_ATTRIBUTE.equals(attribute.getName().getLocalPart())) {
                 testCase.setName(attribute.getValue());
             } else if (TEST_SUCCESS_ATTRIBUTE.equals(attribute.getName().getLocalPart())) {
-                testCase.setSuccess(Boolean.valueOf(attribute.getValue()));
+                if (Boolean.valueOf(attribute.getValue())) {
+                    testCase.setSuccess(Status.SUCCESS);
+                } else if (!Boolean.valueOf(attribute.getValue())) {
+                    testCase.setSuccess(Status.FAIL);
+                } else {
+                    testCase.setSuccess(Status.SKIP);
+                }
             }
         }
         return testCase;
