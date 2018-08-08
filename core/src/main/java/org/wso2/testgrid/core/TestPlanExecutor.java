@@ -30,6 +30,7 @@ import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.automation.report.ReportGenerator;
 import org.wso2.testgrid.automation.report.ReportGeneratorFactory;
 import org.wso2.testgrid.common.ConfigChangeSet;
+import org.wso2.testgrid.common.DashboardSetup;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
@@ -64,6 +65,7 @@ import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 import org.wso2.testgrid.tinkerer.TinkererClient;
 import org.wso2.testgrid.tinkerer.TinkererClientFactory;
 import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
+
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -124,6 +126,12 @@ public class TestPlanExecutor {
         // Provision infrastructure
         InfrastructureProvisionResult infrastructureProvisionResult = provisionInfrastructure(infrastructureConfig,
                 testPlan);
+
+        //setup product performance dashboard
+        if (infrastructureProvisionResult.isSuccess()) {
+            DashboardSetup dashboardSetup = new DashboardSetup(testPlan.getId());
+            dashboardSetup.initDashboard();
+        }
 
         // Create and set deployment.
         DeploymentCreationResult deploymentCreationResult = createDeployment(testPlan,

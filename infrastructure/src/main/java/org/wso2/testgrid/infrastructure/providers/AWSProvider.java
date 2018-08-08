@@ -178,8 +178,7 @@ public class AWSProvider implements InfrastructureProvider {
             final List<Parameter> populatedExpectedParameters = getParameters(script, expectedParameters,
                     infrastructureConfig, testPlan.getId());
             stackRequest.setParameters(populatedExpectedParameters);
-
-            logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", stackName,
+            logger.info(StringUtil.concatStrings("Creation of CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
             final long start = System.currentTimeMillis();
             CreateStackResult stack = cloudFormation.createStack(stackRequest);
@@ -360,7 +359,8 @@ public class AWSProvider implements InfrastructureProvider {
                 String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.AWS_REGION_NAME);
                 String customScript = "/opt/testgrid/agent/init.sh " + deploymentTinkererEP + " " + awsRegion +
-                        " " + testPlanId + " aws " + deploymentTinkererUserName + " " + deploymentTinkererPassword;
+                        " " + testPlanId + " aws " + deploymentTinkererUserName + " " + deploymentTinkererPassword +
+                        "\n" + "/opt/testgrid/agent/telegraf_setup.sh " + testPlanId;
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);
                 cfCompatibleParameters.add(awsParameter);
