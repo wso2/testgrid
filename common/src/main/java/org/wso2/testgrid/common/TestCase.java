@@ -154,4 +154,21 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
                 ", testScenario='", testScenario.getName(), "\'",
                 '}');
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !TestCase.class.isAssignableFrom(obj.getClass())) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        TestCase testCase = (TestCase) obj;
+        return this.name.equals(testCase.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.name.hashCode();
+    }
 }

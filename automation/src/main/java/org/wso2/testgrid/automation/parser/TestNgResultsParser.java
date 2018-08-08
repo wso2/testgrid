@@ -148,6 +148,31 @@ public class TestNgResultsParser extends ResultParser {
                         }
                     }
                 }
+                //start processing duplicate testcase names
+                List<TestCase> testCases = testScenario.getTestCases();
+                Set<TestCase> allCases = new HashSet<>();
+                //Get a list of duplicate test cases
+                List<TestCase> duplicates = testCases.stream()
+                        .filter(testCase -> !allCases.add(testCase))
+                        .collect(Collectors.toList());
+                List<TestCase> renamedTestCases = testCases
+                        .stream()
+                        .map(testCase -> {
+                            int suffix = 1;
+                            if (duplicates.contains(testCase)) {
+                                TestCase tempTestCase = new TestCase();
+                                tempTestCase.setName(testCase.getName());
+                                //add a suffix to the duplicate test case names
+                                while (testCases.contains(tempTestCase)) {
+                                    tempTestCase.setName(StringUtil
+                                            .concatStrings(testCase.getName(), "#data_provider_", suffix));
+                                    suffix++;
+                                }
+                                testCase.setName(tempTestCase.getName());
+                            }
+                            return testCase;
+                        }).collect(Collectors.toList());
+                testScenario.setTestCases(renamedTestCases);
                 logger.info(String.format("Found total of %s test cases. %s test cases has failed.", testScenario
                                 .getTestCases().size(),
                         testScenario.getTestCases().stream().filter(tc -> Status.FAIL.equals(tc.getStatus())).count()));
