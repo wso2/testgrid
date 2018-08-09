@@ -27,6 +27,7 @@ import org.influxdb.InfluxDBFactory;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.IOException;
@@ -38,10 +39,14 @@ import java.io.UnsupportedEncodingException;
 public class DashboardSetup {
 
     private static final Logger logger = LoggerFactory.getLogger(DashboardSetup.class);
-    private String restUrl = "http://ec2-54-167-98-19.compute-1.amazonaws.com";
-    private String username = "wso2";
-    private String password = "wso2123";
-    private String apikey = "Bearer eyJrIjoiZlZlVDNWMXZFbzdZdGp6R3NMaWlvdmRaRE5sYjFuWXkiLCJuIjoid3NvMiIsImlkIjoxfQ==";
+    private String restUrl = "http://" +
+            ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.PERFORMANCE_DASHBOARD_URL);
+    private String username =
+            ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_USER);
+    private String password =
+            ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_PASS);
+    private String apikey =
+            ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.GRAFANA_APIKEY);
     private String testplanID;
 
     public DashboardSetup(String testplanID) {
@@ -49,7 +54,7 @@ public class DashboardSetup {
     }
 
     /**
-     * this method will create a DB in influxDB and add a new Data source to grafana
+     * This method will create a DB in influxDB and add a new Data source to grafana
      */
     public void initDashboard() {
         // create influxDB database according to tp_id
@@ -59,20 +64,22 @@ public class DashboardSetup {
             influxDB.createDatabase(dbName);
             influxDB.close();
         } catch (AssertionError e) {
-            logger.error(StringUtil.concatStrings("Cannot create a new Database: ", e));
+            logger.error(StringUtil.concatStrings("Cannot create a new Database: \n", e));
+        } catch (IllegalArgumentException e) {
+            logger.error(StringUtil.concatStrings("INFLUXDB_USER and INFLUXDB_PASS cannot be empty: \n", e));
         }
         // add a new data source to grafana
         HttpPost httpPost = createConnectivity(restUrl, apikey);
         executeReq(getDataSource(testplanID), httpPost);
 
     }
+
     /**
      * This method creates a json string that describes the grafana datasource
      *
      * @param name name of the data source that need to be created which is test plan ID
      * @return string of jason string of the data source
      */
-
     private String getDataSource(String name) {
 
         JSONObject user = new JSONObject();
@@ -81,8 +88,9 @@ public class DashboardSetup {
         user.put("url", "http://localhost:8086");
         user.put("access", "proxy");
         user.put("basicAuth", false);
-        user.put("password", "wso2123");
-        user.put("user", "telegraf");
+        user.put("password", ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.INFLUXDB_PASS));
+        user.put("user", ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_USER));
         user.put("database", name);
 
         return user.toString();
@@ -95,18 +103,16 @@ public class DashboardSetup {
      * @param apikey APIkey of the grafana server
      * @return return a http post request
      */
-
     private HttpPost createConnectivity(String restUrl, String apikey) {
         HttpPost post = new HttpPost(restUrl + ":3000/api/datasources/");
         post.setHeader("AUTHORIZATION", apikey);
         post.setHeader("Content-Type", "application/json");
         post.setHeader("Accept", "application/json");
-        //post.setHeader("X-Stream" , "true");
         return post;
     }
 
     /**
-     * this command will handle the posting http request to REST  api
+     * This command will handle the posting http request to REST  api
      * @param jsonData json string of the data source
      * @param httpPost post request with authentication
      */
@@ -118,20 +124,19 @@ public class DashboardSetup {
         } catch (IOException e) {
             logger.error(StringUtil.concatStrings("ioException occured while sending http request : ", e));
         } catch (Exception e) {
-            logger.error(StringUtil.concatStrings("ioException occured while sending http request : ", e));
+            logger.error(StringUtil.concatStrings("Exception occured while sending http request : ", e));
         } finally {
             httpPost.releaseConnection();
         }
     }
 
     /**
-     * this method will execute the post request
+     * This method will execute the post request
      * @param jsonData json string of the data source
      * @param httpPost post request with authentication
-     * @throws UnsupportedEncodingException
-     * @throws IOException
+     * @throws UnsupportedEncodingException thown when an error with api key
+     * @throws IOException thrown when error in connection
      */
-
     private void executeHttpRequest(String jsonData,  HttpPost httpPost)  throws UnsupportedEncodingException,
             IOException {
         httpPost.setEntity(new StringEntity(jsonData));

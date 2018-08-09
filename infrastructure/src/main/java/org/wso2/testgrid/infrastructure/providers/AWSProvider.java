@@ -358,9 +358,14 @@ public class AWSProvider implements InfrastructureProvider {
                         ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
                 String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.AWS_REGION_NAME);
-                String customScript = "/opt/testgrid/agent/init.sh " + deploymentTinkererEP + " " + awsRegion +
-                        " " + testPlanId + " aws " + deploymentTinkererUserName + " " + deploymentTinkererPassword +
-                        "\n" + "/opt/testgrid/agent/telegraf_setup.sh " + testPlanId;
+                String customScript = StringUtil.concatStrings("/opt/testgrid/agent/init.sh ",
+                        deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName, " ",
+                        deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ", testPlanId, " ",
+                        ConfigurationContext.getProperty
+                                (ConfigurationContext.ConfigurationProperties.PERFORMANCE_DASHBOARD_URL), ":8086 ",
+                        ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_USER),
+                        " ", ConfigurationContext.getProperty(ConfigurationContext.
+                                ConfigurationProperties.INFLUXDB_PASS));
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);
                 cfCompatibleParameters.add(awsParameter);
