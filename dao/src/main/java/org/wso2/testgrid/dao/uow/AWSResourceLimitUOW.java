@@ -18,15 +18,13 @@
 package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
-import org.wso2.testgrid.common.infrastructure.DeploymentPatternResourceUsage;
+import org.wso2.testgrid.common.infrastructure.AWSResourceRequirement;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.repository.AWSResourceLimitsRepository;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /**
@@ -47,64 +45,13 @@ public class AWSResourceLimitUOW {
     }
 
     /**
-     * This method persists a {@link AWSResourceLimit} to the database.
+     * Returns all the entries from the AWSResourceLimit table.
      *
-     * @param awsResource    an instance of AWSResourceLimit
-     * @return persisted {@link AWSResourceLimit} instance
-     * @throws TestGridDAOException thrown when error on persisting the object
+     * @return List all the entries from the table matching the given entity type
+     * @throws TestGridDAOException thrown when error on searching for entity
      */
-    public AWSResourceLimit persistAWSResource(AWSResourceLimit awsResource) throws TestGridDAOException {
-
-        Optional<AWSResourceLimit> awsResourceLimitOptional = getAWSResource(awsResource);
-        if (awsResourceLimitOptional.isPresent()) {
-            return awsResourceLimitOptional.get();
-        }
-
-        // Persist resource limits if it doesn't exist already.
-        return awsResourceLimitsRepository.persist(awsResource);
-    }
-
-    /**
-     * This method updates an existing {@link AWSResourceLimit} in the database.
-     *
-     * @param awsResource    an instance of AWSResourceLimit to update
-     * @return persisted {@link AWSResourceLimit} instance
-     * @throws TestGridDAOException thrown when error on persisting the object
-     */
-    public AWSResourceLimit updateAWSResource(AWSResourceLimit awsResource) throws TestGridDAOException {
-        return awsResourceLimitsRepository.persist(awsResource);
-    }
-
-    /**
-     * Returns a List of {@link AWSResourceLimit}.
-     *
-     * @return a List of all available {@link AWSResourceLimit}
-     */
-    public List<AWSResourceLimit> getAllAWSResource() throws TestGridDAOException {
+    public List<AWSResourceLimit> findAll() throws TestGridDAOException {
         return awsResourceLimitsRepository.findAll();
-    }
-
-    /**
-     * Returns a {@link AWSResourceLimit} instance if exists.
-     *
-     * @param awsResource aws resource object
-     *
-     * @return matching {@link AWSResourceLimit} instance
-     * @throws TestGridDAOException thrown when error on retrieving results
-     */
-    public Optional<AWSResourceLimit> getAWSResource(AWSResourceLimit awsResource)
-            throws TestGridDAOException {
-        // Search criteria parameters
-        Map<String, Object> params = new HashMap<>();
-        params.put(AWSResourceLimit.REGION_COLUMN, awsResource.getRegion());
-        params.put(AWSResourceLimit.SERVICE_NAME_COLUMN, awsResource.getServiceName());
-        params.put(AWSResourceLimit.LIMIT_NAME_COLUMN, awsResource.getLimitName());
-
-        List<AWSResourceLimit> optionalAwsResource = awsResourceLimitsRepository.findByFields(params);
-        if (optionalAwsResource.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(optionalAwsResource.get(0));
     }
 
     /**
@@ -115,35 +62,43 @@ public class AWSResourceLimitUOW {
      * @return matching distinct {@link AWSResourceLimit} instances
      * @throws TestGridDAOException thrown when error on retrieving results
      */
-    public Optional<List<AWSResourceLimit>> getAWSResourceByFields(Map<String, Object> params)
+    public List<AWSResourceLimit> findByFields(Map<String, Object> params)
             throws TestGridDAOException {
-
-        List<AWSResourceLimit> optionalAwsResource = awsResourceLimitsRepository.findByFields(params);
-        if (optionalAwsResource.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(optionalAwsResource);
+        return awsResourceLimitsRepository.findByFields(params);
     }
 
     /**
-     * Returns a list of distinct AWS regions.
+     * Return an available region on AWS for the given resource requirements
      *
-     * @return matching distinct AWS regions
-     * @throws TestGridDAOException thrown when error on retrieving results
+     * @param resourceRequirements AWS resource requirement list
+     * @return available AWS region
+     * @throws TestGridDAOException thrown when error on retrieving region
      */
-    public Optional<List<String>> getAWSRegions()
-            throws TestGridDAOException {
-        // Search criteria parameters
-
-        List<String> regions = awsResourceLimitsRepository.findRegions();
-        if (regions.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(regions);
+    public String getAvailableRegion(List<AWSResourceRequirement> resourceRequirements) throws TestGridDAOException {
+        return awsResourceLimitsRepository.getAvailableRegion(resourceRequirements);
     }
 
-    public AWSResourceLimit getAvailableResource (DeploymentPatternResourceUsage resourceUsage, String region)
+    /**
+     * Persist initial resource limits for all AWS resources given in awsLimits.yaml.
+     *
+     * @param awsResourceLimitsList list of aws resources
+     * @return persisted AWS resource limits list
+     * @throws TestGridDAOException if persisting resources to database fails
+     */
+    public List<AWSResourceLimit> persistInitialLimits(
+            List<AWSResourceLimit> awsResourceLimitsList) throws TestGridDAOException {
+        return awsResourceLimitsRepository.persistInitialLimits(awsResourceLimitsList);
+    }
+
+    /**
+     * Release acquired resources.
+     *
+     * @param awsResourceRequirementList aws resource requirement list
+     * @param region region to release resources from
+     * @throws TestGridDAOException if persisting resourced fails
+     */
+    public void releaseResources(List<AWSResourceRequirement> awsResourceRequirementList, String region)
             throws TestGridDAOException {
-        return awsResourceLimitsRepository.getAvailableResource(resourceUsage, region);
+        awsResourceLimitsRepository.releaseResources(awsResourceRequirementList, region);
     }
 }

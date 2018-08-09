@@ -31,9 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.testgrid.common.infrastructure.DeploymentPatternResourceUsage;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.dao.TestGridDAOException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,8 +48,6 @@ public class StackCreationWaiter {
 
     private static final Logger logger = LoggerFactory.getLogger(StackCreationWaiter.class);
 
-    private String availableRegion;
-
     /**
      * Periodically checks for the status of stack creation until a defined timeout.
      *
@@ -66,52 +62,6 @@ public class StackCreationWaiter {
         Awaitility.with().pollInterval(timeOutBuilder.getPollInterval(), timeOutBuilder.getPollUnit()).await().
                 atMost(timeOutBuilder.getTimeOut(), timeOutBuilder.getTimeOutUnit())
                 .until(new StackCreationVerifier(stackName, cloudFormation));
-    }
-
-    public void waitForAvailableRegion(
-            List<DeploymentPatternResourceUsage> resourceRequirements, TimeOutBuilder timeOutBuilder)
-            throws ConditionTimeoutException, TestGridInfrastructureException, TestGridDAOException {
-        AWSResourceManager awsResourceManager = new AWSResourceManager();
-        if (awsResourceManager.getAvailableRegion(resourceRequirements) != null) {
-            availableRegion = awsResourceManager.getAvailableRegion(resourceRequirements);
-
-        } else {
-            logger.info("Waiting for an available region...");
-            Awaitility.with().pollInterval(timeOutBuilder.getPollInterval(), timeOutBuilder.getPollUnit()).await().
-                    atMost(timeOutBuilder.getTimeOut(), timeOutBuilder.getTimeOutUnit())
-                    .until(new RegionAvailabilityVerifier(resourceRequirements));
-        }
-    }
-
-    public String getAvailableRegion() {
-        return availableRegion;
-    }
-
-    /**
-     * Inner class for the callable implementation used by awaitility to determine the
-     * condition of the stack.
-     */
-    private class RegionAvailabilityVerifier implements Callable<Boolean> {
-        private List<DeploymentPatternResourceUsage> deploymentPatternResourceRequirements;
-
-        /**String
-         * Constructs the StackCreationVerifier object with stackname and cloudformation.
-         *
-         * @param resourceRequirements required aws resource counts
-         */
-        RegionAvailabilityVerifier(List<DeploymentPatternResourceUsage> resourceRequirements) {
-            this.deploymentPatternResourceRequirements = resourceRequirements;
-        }
-
-        @Override
-        public Boolean call() throws Exception {
-            AWSResourceManager awsResourceManager = new AWSResourceManager();
-            if (awsResourceManager.getAvailableRegion(deploymentPatternResourceRequirements) != null) {
-                availableRegion = awsResourceManager.getAvailableRegion(deploymentPatternResourceRequirements);
-                return true;
-            }
-            return false;
-        }
     }
 
     /**

@@ -18,33 +18,35 @@
 package org.wso2.testgrid.infrastructure.providers.aws;
 
 import com.amazonaws.services.cloudformation.model.StackEvent;
-import org.json.JSONObject;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TimeOutBuilder;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
-import org.wso2.testgrid.common.infrastructure.DeploymentPatternResourceUsage;
+import org.wso2.testgrid.common.infrastructure.AWSResourceRequirement;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.AWSResourceLimitUOW;
-import org.wso2.testgrid.dao.uow.DeploymentPatternResourceUsageUOW;
-import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
+import org.wso2.testgrid.dao.uow.AWSResourceRequirementUOW;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.amazonaws.services.cloudformation.model.ResourceStatus.CREATE_COMPLETE;
 
@@ -57,238 +59,278 @@ public class AWSResourceManager {
 
     private static final Logger logger = LoggerFactory.getLogger(AWSResourceManager.class);
 
-    private AWSResourceLimitUOW awsResourceUOW;
+    private static final String AWS_REGION_PARAMETER = "region";
     private static final String EC2_RESOURCE_IDENTIFIER = "AWS::EC2::Instance";
     private static final String VPC_RESOURCE_IDENTIFIER = "AWS::EC2::VPC";
     private static final String EC2_SERVICE_NAME = "ec2";
     private static final String NETWORKING_SERVICE_NAME = "networking";
     private static final String VPC_LIMIT_NAME = "vpc";
 
-    public AWSResourceManager() {
-        awsResourceUOW = new AWSResourceLimitUOW();
-    }
+    private static final int REGION_WAIT_TIMEOUT = 12;
+    private static final TimeUnit REGION_WAIT_TIMEOUT_UNIT = TimeUnit.HOURS;
+    private static final int REGION_WAIT_POLL_INTERVAL = 1;
+    private static final TimeUnit REGION_WAIT_POLL_UNIT = TimeUnit.MINUTES;
 
     /**
      * Parses the limits.yaml and returns the AWS resources and limits.
      * This is used to populate the initial AWSResourceLimits
      *
-     * @param limitFilePath path to limits.yaml file
-     * @return AWSResourceLimits instance
-     * @throws IOException if reading limits.yaml fails
+     * @param limitsFilePath path to limits.yaml file
+     * @throws TestGridDAOException if
      * @throws TestGridInfrastructureException if error occurs while retrieving AWS resource limits
      */
-    public AWSResourceLimit getInitialResourceLimits(Path limitFilePath) throws TestGridInfrastructureException {
+    public List<AWSResourceLimit> populateInitialResourceLimits(Path limitsFilePath)
+            throws TestGridInfrastructureException, TestGridDAOException {
+
+        if (!limitsFilePath.toFile().exists()) {
+            logger.warn(limitsFilePath.toString() + " file not found.");
+            return null;
+        }
+        Yaml yaml;
         String yamlContent;
         try {
-            yamlContent = new String(Files.readAllBytes(limitFilePath), StandardCharsets.UTF_8);
+            yaml = new Yaml();
+            yamlContent = new String(Files.readAllBytes(limitsFilePath), StandardCharsets.UTF_8);
+            Map<String, Object> awsResourceLimits = yaml.load(yamlContent);
+
+            if (awsResourceLimits == null || awsResourceLimits.isEmpty()) {
+                logger.warn("Error occurred while parsing" + limitsFilePath.toString());
+                return null;
+            }
+            List<AWSResourceLimit> awsResourceLimitList = parseAWSLimits(awsResourceLimits);
+            AWSResourceLimitUOW awsResourceLimitsUOW = new AWSResourceLimitUOW();
+            return awsResourceLimitsUOW.persistInitialLimits(awsResourceLimitList);
         } catch (IOException e) {
-            throw new TestGridRuntimeException("Error while reading yaml content.");
+            throw new TestGridInfrastructureException("Error while trying to get aws resource limits.", e);
         }
-        Representer representer = new Representer();
-
-        // Skip missing properties in testgrid.yaml
-        representer.getPropertyUtils().setSkipMissingProperties(true);
-        AWSResourceLimit awsResourceLimits = new Yaml(new Constructor(AWSResourceLimit.class), representer)
-                .loadAs(yamlContent, AWSResourceLimit.class);
-        if (awsResourceLimits == null) {
-            throw new TestGridInfrastructureException(
-                    "Error occurred while parsing" + limitFilePath.toString());
-        }
-        return awsResourceLimits;
     }
 
     /**
-     * Retrieves and available region to run a test plan.
+     * Checks the database if resource requirements are already available for the given cloudformation
+     * script.
+     * If available, acquires and returns an available region. Else, the default region
+     * specified in config.properties is returned.
      *
-     * @param resourceRequirements resources requirements of a test plan
-     * @return available region
-     * @throws TestGridDAOException if retrieving information from the database failed
+     * @param testPlan test plan to create the stack for
+     * @return available AWS region
+     * @throws TestGridDAOException if persisting to database fails
+     * @throws TestGridInfrastructureException if retrieving the hash of cloudformation fails
      */
-    public String getAvailableRegion(List<DeploymentPatternResourceUsage> resourceRequirements)
-            throws TestGridDAOException {
+    public String requestAvailableRegion(TestPlan testPlan) throws
+            TestGridDAOException, TestGridInfrastructureException {
 
-        if (!awsResourceUOW.getAWSRegions().isPresent()) {
-            throw new TestGridDAOException("No AWS region information found in the database");
+        AWSResourceLimitUOW awsResourceLimitUOW = new AWSResourceLimitUOW();
+        if (awsResourceLimitUOW.findAll().isEmpty()) {
+            String region = ConfigurationContext.getProperty(
+                    ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME);
+            logger.info("No AWS limits information found in the database. " +
+                    "Test plan will be run in " + region);
+            return region;
         }
-        List<String> regions = awsResourceUOW.getAWSRegions().get();
-        for (String region : regions) {
-            boolean isRegionAvailable = true;
-            for (DeploymentPatternResourceUsage resourceRequirement : resourceRequirements) {
-                AWSResourceLimit awsResourceLimit = awsResourceUOW.getAvailableResource(resourceRequirement, region);
-                if (awsResourceLimit == null) {
-                    isRegionAvailable = false;
-                    break;
-                }
-            }
-            if (isRegionAvailable) {
-                return region;
-            }
+
+        Path cfnFilePath = Paths.get(
+                testPlan.getInfrastructureRepository(),
+                testPlan.getInfrastructureConfig().getProvisioners().get(0).getScripts().get(0).getFile());
+
+        List<AWSResourceRequirement> resourceRequirements;
+        try {
+            resourceRequirements = getResourceRequirements(TestGridUtil.getHashValue(cfnFilePath));
+        } catch (IOException | NoSuchAlgorithmException e) {
+            throw new TestGridInfrastructureException("Error while retrieving the MD5 checksum of cfn.", e);
         }
-        return null;
+        if (resourceRequirements.isEmpty()) {
+            String region = ConfigurationContext.getProperty(
+                    ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME);
+            logger.info("No resource requirement information found in the database. " +
+                    "Test plan will be run in " + region);
+            return region;
+        } else {
+            TimeOutBuilder regionTimeOutBuilder = new TimeOutBuilder(REGION_WAIT_TIMEOUT, REGION_WAIT_TIMEOUT_UNIT,
+                    REGION_WAIT_POLL_INTERVAL, REGION_WAIT_POLL_UNIT);
+            AWSRegionWaiter awsRegionWaiter = new AWSRegionWaiter();
+            String region = awsRegionWaiter.waitForAvailableRegion(resourceRequirements, regionTimeOutBuilder);
+            logger.info("Acquired resources for test plan: " + testPlan.toString());
+
+            // Update last_accessed_timestamp to current timestamp
+            AWSResourceRequirementUOW awsResourceRequirementUOW = new AWSResourceRequirementUOW();
+            for (AWSResourceRequirement resourceRequirement : resourceRequirements) {
+                resourceRequirement.setLastAccessedTimestamp(new Timestamp(System.currentTimeMillis()));
+                awsResourceRequirementUOW.persist(resourceRequirement);
+            }
+            return region;
+        }
     }
 
     /**
-     * Allocates the required resources for a test plan.
+     * Called when a AWS stack creation has been completed. Persists resourse requirements to the database
+     * if they are not already available.
      *
-     * @param resourceRequirements resourde requirements of a test plan
-     * @param region region to allocate resources from
-     * @throws TestGridDAOException if retrieving information from the database failed
+     * @param testPlan test plan of which the stack was created
+     * @param stackEventList list of stack events to identfy resource requirements
+     * @throws TestGridDAOException if persistence fails
+     * @throws TestGridInfrastructureException if retrieving md5 hash fails
      */
-    public void allocateResources(List<DeploymentPatternResourceUsage> resourceRequirements, String region)
-            throws TestGridDAOException {
-        logger.info("Allocating resources for test plan...");
-        for (DeploymentPatternResourceUsage resourceRequirement : resourceRequirements) {
+    public void notifyStackCreation(TestPlan testPlan, List<StackEvent> stackEventList)
+            throws TestGridDAOException, TestGridInfrastructureException {
+        String region = testPlan.getInfrastructureConfig().getProvisioners().get(0).getScripts().get(0)
+                .getInputParameters().getProperty(AWS_REGION_PARAMETER);
+
+        /*
+        * Persist AWS resource requirements only if it is the first test plan for
+        * deployment pattern or if the cloudformation script has changed
+        */
+        if (region.equals(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME))) {
+            Path cfnFilePath = Paths.get(
+                    testPlan.getInfrastructureRepository(),
+                    testPlan.getInfrastructureConfig().getProvisioners().get(0).getScripts().get(0).getFile());
+            AWSResourceRequirementUOW awsResourceRequirementUOW = new AWSResourceRequirementUOW();
+            try {
+                List<AWSResourceRequirement> resourceRequirements =
+                        createRequiredResourcesList(stackEventList, TestGridUtil.getHashValue(cfnFilePath));
+                awsResourceRequirementUOW.persistResourceRequirements(resourceRequirements);
+            } catch (IOException | NoSuchAlgorithmException e) {
+                throw new TestGridInfrastructureException(
+                        "Error while retrieving the MD5 hash of cloudformation script", e);
+            }
+        }
+    }
+
+    /**
+     * Called when a created stack has been deleted. Releases the acquired resources when notified.
+     *
+     * @param testPlan test plan of which the stack has been deleted
+     * @param region region the stack was running
+     * @throws TestGridDAOException if persistence to database fails
+     * @throws TestGridInfrastructureException if retrieving md5 hash fails
+     */
+    public void notifyStackDeletion(TestPlan testPlan, String region) throws
+            TestGridDAOException, TestGridInfrastructureException {
+        if (!region.equals(ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME))) {
+            logger.info("Releasing resources from test plan " + testPlan.toString());
+            AWSResourceRequirementUOW awsResourceRequirementUOW = new AWSResourceRequirementUOW();
+            AWSResourceLimitUOW awsResourceLimitUOW = new AWSResourceLimitUOW();
+            Path cfnFilePath = Paths.get(
+                    testPlan.getInfrastructureRepository(),
+                    testPlan.getInfrastructureConfig().getProvisioners().get(0).getScripts().get(0).getFile());
             Map<String, Object> params = new HashMap<>();
-            params.put(AWSResourceLimit.REGION_COLUMN, region);
-            Optional<List<AWSResourceLimit>> awsResourceLimits = awsResourceUOW.getAWSResourceByFields(params);
-            for (AWSResourceLimit awsResourceLimit : awsResourceLimits.get()) {
-                if (resourceRequirement.getServiceName().equals(awsResourceLimit.getServiceName())
-                        && resourceRequirement.getLimitName().equals(awsResourceLimit.getLimitName())) {
-                    awsResourceLimit.setCurrentUsage(
-                            awsResourceLimit.getCurrentUsage() + resourceRequirement.getRequiredCount());
-                    if (awsResourceUOW.updateAWSResource(awsResourceLimit) == null) {
-                        throw new TestGridDAOException(
-                                "Error occurred while allocating AWS resources. Updating the database failed.");
-                    }
-                }
+            try {
+                params.put(AWSResourceRequirement.MD5_HASH_COLUMN, TestGridUtil.getHashValue(cfnFilePath));
+            } catch (IOException | NoSuchAlgorithmException e) {
+                throw new TestGridInfrastructureException(
+                        "Error while retrieving the MD5 hash of cloudformation script", e);
             }
+            awsResourceLimitUOW.releaseResources(awsResourceRequirementUOW.findByFields(params), region);
         }
     }
 
     /**
-     * Releases the allocated resources of a test plan.
+     * Parses the given list of resources and returns a list of {@link AWSResourceLimit}.
      *
-     * @param resourceRequirements resource requirements
-     * @param region region to release the resources
-     * @throws TestGridDAOException if retrieving information from the database failed
+     * @param awsResourceLimitsMap aws resource limits ArrayList
+     * @return list of {@link AWSResourceLimit}
      */
-    public void releaseResources(List<DeploymentPatternResourceUsage> resourceRequirements, String region)
-            throws TestGridDAOException {
-        logger.info("Releasing resources from test plan...");
-        for (DeploymentPatternResourceUsage resourceRequirement : resourceRequirements) {
-            Map<String, Object> params = new HashMap<>();
-            params.put(AWSResourceLimit.REGION_COLUMN, region);
-            List<AWSResourceLimit> awsResourceLimits = awsResourceUOW.getAWSResourceByFields(params).get();
-            for (AWSResourceLimit awsResourceLimit : awsResourceLimits) {
-                if (resourceRequirement.getServiceName().equals(awsResourceLimit.getServiceName())
-                        && resourceRequirement.getLimitName().equals(awsResourceLimit.getLimitName())) {
-                    awsResourceLimit.setCurrentUsage(
-                            awsResourceLimit.getCurrentUsage() - resourceRequirement.getRequiredCount());
-                    if (awsResourceUOW.updateAWSResource(awsResourceLimit) == null) {
-                        throw new TestGridDAOException(
-                                "Error occurred while releasing AWS resources. Updating the database failed.");
-                    }
-                }
-            }
-        }
+    private List<AWSResourceLimit> parseAWSLimits(Map<String, Object> awsResourceLimitsMap) {
+        List<AWSResourceLimit> awsResourceLimitsList = new ArrayList<>();
+        ArrayList limits = (ArrayList) awsResourceLimitsMap.get("maxLimits");
+        limits.forEach((key) -> {
+            Map regionItem = (LinkedHashMap) key;
+            regionItem.forEach((regionKey, value) -> {
+                Map regionInfo = (LinkedHashMap) regionItem.get(regionKey);
+                String regionName = regionInfo.get("name").toString();
+                ArrayList services = (ArrayList) regionInfo.get("services");
+                services.forEach((service) -> {
+                    String serviceName = ((LinkedHashMap) service).get("serviceName").toString();
+                    ArrayList serviceLimits = (ArrayList) ((LinkedHashMap) service).get("serviceLimits");
+                    serviceLimits.forEach((limit) -> {
+                        String limitName = ((LinkedHashMap) limit).get("limitName").toString();
+                        int maxAllowedLimit = (int) ((LinkedHashMap) limit).get("maxAllowedLimit");
+
+                        //Create an AWSResourceLimit
+                        AWSResourceLimit awsResourceLimits = new AWSResourceLimit();
+                        awsResourceLimits.setRegion(regionName);
+                        awsResourceLimits.setServiceName(serviceName);
+                        awsResourceLimits.setLimitName(limitName);
+                        awsResourceLimits.setMaxAllowedLimit(maxAllowedLimit);
+                        awsResourceLimitsList.add(awsResourceLimits);
+                    });
+                });
+            });
+        });
+        return awsResourceLimitsList;
     }
 
     /**
      * Obtains the resource requirements for a particular test plan based on its deployment pattern.
-     * @param deploymentPattern deployment pattern of th test plan
-     * @return an optional list of {@link DeploymentPatternResourceUsage}
+     *
+     * @param cfnMD5Hash MD5 hash value of the cloudformation script
+     * @return an optional list of {@link AWSResourceRequirement}
      * @throws TestGridDAOException if retrieving information from the database failed
      */
-    public Optional<List<DeploymentPatternResourceUsage>> getResourceRequirements(DeploymentPattern deploymentPattern)
+    private List<AWSResourceRequirement> getResourceRequirements(String cfnMD5Hash)
             throws TestGridDAOException {
-
-        DeploymentPatternResourceUsageUOW testPlanResourceUsageUOW = new DeploymentPatternResourceUsageUOW();
+        AWSResourceRequirementUOW awsResourceRequirementUOW = new AWSResourceRequirementUOW();
         Map<String, Object> params = new HashMap<>();
-        params.put(DeploymentPatternResourceUsage.DEPLOYMENT_PATTERN_COLUMN, deploymentPattern);
-        return testPlanResourceUsageUOW.getDeploymentPatternResourceUsageByFields(params);
-
+        params.put(AWSResourceRequirement.MD5_HASH_COLUMN, cfnMD5Hash);
+        return awsResourceRequirementUOW.findByFields(params);
     }
 
     /**
-     * Persist resource requirements of a given deployment pattern. This will be used after the first test plan of
-     * the given deployment pattern is run or if the md5 of the CFN of the deployement pattern has changed.
+     * Creates a list of required resources using the stack events list.
      *
-     * @param stackEventsList the list of events in the created stack used identify resource requirements
-     * @param deploymentPattern deployment pattern of the test plan ran
-     * @param filePath path to CFN script
-     * @return if persisting resource requirements succeeded or not
-     * @throws TestGridDAOException if persisting to database fails
-     * @throws IOException if retrieving CFN hash fails
-     * @throws NoSuchAlgorithmException if retrieving CFN hash fails
+     * @param stackEventList list of stack events
+     * @param cfnMD5hash MD5 of the cloudformation script
+     * @return list of required resources
      */
-    public boolean persistResourceRequirements(
-            List<StackEvent> stackEventsList, DeploymentPattern deploymentPattern, Path filePath)
-            throws TestGridDAOException, IOException, NoSuchAlgorithmException {
-
-        List<DeploymentPatternResourceUsage> resourceUsageList = new ArrayList<>();
-        DeploymentPatternResourceUsageUOW deploymentPatternResourceUsageUOW = new DeploymentPatternResourceUsageUOW();
-        Optional<List<DeploymentPatternResourceUsage>> existingResourceUsages =
-                deploymentPatternResourceUsageUOW.getResourceUsages(deploymentPattern);
-
-        //Get resource list if already exists
-        if (existingResourceUsages.isPresent() && !existingResourceUsages.get().isEmpty()) {
-            //Set the required resource count to zero
-            resetResourceRequirements(existingResourceUsages.get());
-            resourceUsageList = existingResourceUsages.get();
-        }
-        for (StackEvent stackEvent : stackEventsList) {
-            DeploymentPatternResourceUsage resourceUsage = new DeploymentPatternResourceUsage();
-            resourceUsage.setDeploymentPattern(deploymentPattern);
+    private List<AWSResourceRequirement> createRequiredResourcesList(
+            List<StackEvent> stackEventList, String cfnMD5hash) {
+        List<AWSResourceRequirement> resourceRequirementList = new ArrayList<>();
+        AWSResourceRequirement resourceRequirement;
+        for (StackEvent stackEvent : stackEventList) {
+            resourceRequirement = new AWSResourceRequirement();
+            resourceRequirement.setCfnMD5Hash(cfnMD5hash);
 
             if (EC2_RESOURCE_IDENTIFIER.equalsIgnoreCase(stackEvent.getResourceType()) &&
                     String.valueOf(CREATE_COMPLETE).equals(stackEvent.getResourceStatus())) {
                 //Parse resource properties to get limit name
                 String eventProperties = stackEvent.getResourceProperties();
-                final JSONObject jsonObject = new JSONObject(eventProperties);
-                String limitName = jsonObject.getString("InstanceType");
+                JsonParser parser = new JsonParser();
+                JsonElement element = parser.parse(eventProperties);
+                String limitName = element.getAsJsonObject().get("InstanceType").getAsString();
 
-                resourceUsage.setServiceName(EC2_SERVICE_NAME);
-                resourceUsage.setLimitName(limitName);
+                resourceRequirement.setServiceName(EC2_SERVICE_NAME);
+                resourceRequirement.setLimitName(limitName);
+                resourceRequirementList.add(resourceRequirement);
 
-                //Add resource usages to a list if does not contain already
-                if (resourceUsageList.isEmpty()
-                        || !isListContainResource(resourceUsageList, resourceUsage)) {
-                    resourceUsage.setRequiredCount(1);
-                    resourceUsageList.add(resourceUsage);
+                //Add resource requirement to the list if does not contain already
+                if (resourceRequirementList.isEmpty()
+                        || !isListContainResource(resourceRequirementList, resourceRequirement)) {
+                    resourceRequirement.setRequiredCount(1);
+                    resourceRequirementList.add(resourceRequirement);
                 }
 
             } else if (VPC_RESOURCE_IDENTIFIER.equalsIgnoreCase(stackEvent.getResourceType())) {
-                resourceUsage.setServiceName(NETWORKING_SERVICE_NAME);
-                resourceUsage.setLimitName(VPC_LIMIT_NAME);
+                resourceRequirement.setServiceName(NETWORKING_SERVICE_NAME);
+                resourceRequirement.setLimitName(VPC_LIMIT_NAME);
 
-                //Add resource usages to a list if does not contain already
-                if (resourceUsageList.isEmpty()
-                        || !isListContainResource(resourceUsageList, resourceUsage)) {
-                    resourceUsage.setRequiredCount(1);
-                    resourceUsageList.add(resourceUsage);
+                //Add resource requirement to the list if does not contain already
+                if (resourceRequirementList.isEmpty()
+                        || !isListContainResource(resourceRequirementList, resourceRequirement)) {
+                    resourceRequirement.setRequiredCount(1);
+                    resourceRequirementList.add(resourceRequirement);
                 }
             }
         }
-
-        DeploymentPatternUOW deploymentPatternUOW = new DeploymentPatternUOW();
-        JSONObject hashValue = new JSONObject();
-        hashValue.put(DeploymentPattern.MD5_HASH_PROPERTY, TestGridUtil.getHashValue(filePath));
-        deploymentPattern.setProperties(hashValue.toString());
-
-        if (deploymentPatternUOW.updateDeploymentPattern(deploymentPattern) == null) {
-            throw new TestGridDAOException("Error occurred while persisting the MD5 hash of deployment pattern.");
-        }
-        for (DeploymentPatternResourceUsage resourceUsage : resourceUsageList) {
-            if (deploymentPatternResourceUsageUOW.persist(resourceUsage) != null) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void resetResourceRequirements(List<DeploymentPatternResourceUsage> existingResourceUsages) {
-        for (DeploymentPatternResourceUsage resourceUsage : existingResourceUsages) {
-            resourceUsage.setRequiredCount(0);
-        }
+        return resourceRequirementList;
     }
 
     private boolean isListContainResource(
-            List<DeploymentPatternResourceUsage> resourceUsageList, DeploymentPatternResourceUsage resourceUsage) {
-        for (DeploymentPatternResourceUsage deploymentPatternResourceUsage : resourceUsageList) {
-            if (deploymentPatternResourceUsage.getServiceName().equals(resourceUsage.getServiceName())
-            && deploymentPatternResourceUsage.getLimitName().equals(resourceUsage.getLimitName())) {
-                deploymentPatternResourceUsage.setRequiredCount(deploymentPatternResourceUsage.getRequiredCount() + 1);
+            List<AWSResourceRequirement> resourceRequirementList, AWSResourceRequirement resourceRequirement) {
+        for (AWSResourceRequirement awsResourceRequirement : resourceRequirementList) {
+            if (awsResourceRequirement.getServiceName().equals(resourceRequirement.getServiceName())
+            && awsResourceRequirement.getLimitName().equals(resourceRequirement.getLimitName())) {
+                awsResourceRequirement.setRequiredCount(awsResourceRequirement.getRequiredCount() + 1);
                 return true;
             }
         }

@@ -18,16 +18,12 @@
 package org.wso2.testgrid.common.infrastructure;
 
 import org.wso2.testgrid.common.AbstractUUIDEntity;
-import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
-import javax.persistence.CascadeType;
+import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 /**
@@ -36,21 +32,19 @@ import javax.persistence.Table;
  * based on its deployment pattern to provision infrastructure on AWS.
  */
 @Entity
-@Table(name = DeploymentPatternResourceUsage.DEPLOYMENT_PATTERN_RESOURCE_USAGE_TABLE)
-public class DeploymentPatternResourceUsage extends AbstractUUIDEntity implements Serializable {
+@Table(name = AWSResourceRequirement.AWS_RESOURCE_REQUIREMENT_TABLE)
+public class AWSResourceRequirement extends AbstractUUIDEntity implements Serializable {
 
     /**
-     * DeploymentPatternResourceUsage table name.
+     * AWSResourceRequirement table name.
      */
-    static final String DEPLOYMENT_PATTERN_RESOURCE_USAGE_TABLE = "deployment_pattern_resource_usage";
-    public static final String DEPLOYMENT_PATTERN_COLUMN = "deploymentPattern";
+    static final String AWS_RESOURCE_REQUIREMENT_TABLE = "aws_resource_requirement";
+    public static final String MD5_HASH_COLUMN = "cfnMD5Hash";
 
     private static final long serialVersionUID = -4345126378695708155L;
 
-    @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = DeploymentPattern.class,
-            fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumn(name = "DEPLOYMENTPATTERN_id", referencedColumnName = ID_COLUMN)
-    private DeploymentPattern deploymentPattern;
+    @Column(name = "cfn_md5_hash", nullable = false)
+    private String cfnMD5Hash;
 
     @Column(name = "service_name", nullable = false)
     private String serviceName;
@@ -58,47 +52,51 @@ public class DeploymentPatternResourceUsage extends AbstractUUIDEntity implement
     @Column(name = "limit_name", nullable = false)
     private String limitName;
 
-    @Column(name = "required_count")
+    @Column(name = "required_count", nullable = false)
     private int requiredCount;
 
-    public DeploymentPattern getDeploymentPattern() {
+    @Column(name = "last_accessed_timestamp", nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    private Timestamp lastAccessedTimestamp;
 
-        return deploymentPattern;
+    public String getCfnMD5Hash() {
+        return cfnMD5Hash;
     }
 
-    public void setDeploymentPattern(DeploymentPattern deploymentPattern) {
-
-        this.deploymentPattern = deploymentPattern;
+    public void setCfnMD5Hash(String cfnMD5Hash) {
+        this.cfnMD5Hash = cfnMD5Hash;
     }
 
     public String getServiceName() {
-
         return serviceName;
     }
 
     public void setServiceName(String serviceName) {
-
         this.serviceName = serviceName;
     }
 
     public String getLimitName() {
-
         return limitName;
     }
 
     public void setLimitName(String limitName) {
-
         this.limitName = limitName;
     }
 
     public int getRequiredCount() {
-
         return requiredCount;
     }
 
     public void setRequiredCount(int requiredCount) {
-
         this.requiredCount = requiredCount;
+    }
+
+    public Timestamp getLastAccessedTimestamp() {
+        return new Timestamp(lastAccessedTimestamp.getTime());
+    }
+
+    public void setLastAccessedTimestamp(Timestamp lastAccessedTimestamp) {
+        this.lastAccessedTimestamp = new Timestamp(lastAccessedTimestamp.getTime());;
     }
 
     @Override
@@ -106,12 +104,13 @@ public class DeploymentPatternResourceUsage extends AbstractUUIDEntity implement
         String id = this.getId() != null ? this.getId() : "";
         String createdTimestamp = this.getCreatedTimestamp() != null ? this.getCreatedTimestamp().toString() : "";
         String modifiedTimestamp = this.getModifiedTimestamp() != null ? this.getModifiedTimestamp().toString() : "";
-        return StringUtil.concatStrings("DeploymentPatternResourceUsage{",
+        return StringUtil.concatStrings("AWSResourceRequirement{",
                 "id='", id,
-                ", deploymentPattern='", deploymentPattern, "\'",
+                ", cfnMD5Hash='", cfnMD5Hash, "\'",
                 ", serviceName='", serviceName, "\'",
                 ", limitName='", limitName, "\'",
                 ", requiredCount='", requiredCount, "\'",
+                ", lastAccessedTimestamp='", lastAccessedTimestamp, "\'",
                 ", createdTimestamp='", createdTimestamp, "\'",
                 ", modifiedTimestamp='", modifiedTimestamp, "\'",
                 '}');

@@ -17,17 +17,16 @@
  */
 package org.wso2.testgrid.dao.repository;
 
-import com.google.common.collect.LinkedListMultimap;
 import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
-import org.wso2.testgrid.common.infrastructure.DeploymentPatternResourceUsage;
+import org.wso2.testgrid.common.infrastructure.AWSResourceRequirement;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.dao.EntityManagerHelper;
-import org.wso2.testgrid.dao.SortOrder;
 import org.wso2.testgrid.dao.TestGridDAOException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 
 /**
  * Repository class for {@link AWSResourceLimit} table.
@@ -98,21 +97,10 @@ public class AWSResourceLimitsRepository extends AbstractRepository<AWSResourceL
         return super.findAll(AWSResourceLimit.class);
     }
 
-    /**
-     * Returns a list of {@link AWSResourceLimit} instances ordered accordingly by the given fields.
-     *
-     * @param params parameters (map of field name and values) for obtaining the result list
-     * @param fields map of fields [Ascending / Descending, Field name> to sort ascending or descending
-     * @return a list of {@link AWSResourceLimit} instances for the matched criteria ordered accordingly by the
-     * given fields
-     */
-    public List<AWSResourceLimit> orderByFields(Map<String, Object> params,
-                                                LinkedListMultimap<SortOrder, String> fields) {
-        return super.orderByFields(AWSResourceLimit.class, params, fields);
-    }
 
     /**
-     * Returns the list of distinct AWS regions available in the database
+     * Returns the list of distinct AWS regions available in the database.
+     *
      * @return String List of distinct regions
      * @throws TestGridDAOException
      */
@@ -129,31 +117,118 @@ public class AWSResourceLimitsRepository extends AbstractRepository<AWSResourceL
     }
 
     /**
-     * Returns a {@link AWSResourceLimit} in a particular region if available
-     * @param resourceUsage an instance of {@link DeploymentPatternResourceUsage}
-     * @param region an AWS region
-     * @return an instance of {@link AWSResourceLimit}
-     * @throws TestGridDAOException
+     * Returns an available region for the test plan.
+     *
+     * @param resourceRequirements list of AWS resource requirements
+     * @return available region
+     * @throws TestGridDAOException if persistence to database fails
      */
-    public AWSResourceLimit getAvailableResource(DeploymentPatternResourceUsage resourceUsage, String region)
-            throws TestGridDAOException {
-        String queryStr = "SELECT * from aws_resource_limit where service_name=? AND " +
-                "limit_name=? AND region=? AND (max_allowed_limit-current_usage) >= ?;";
+    public String getAvailableRegion(List<AWSResourceRequirement> resourceRequirements) throws TestGridDAOException {
+        boolean isRegionAvailable;
+
+        String selectQuery = "SELECT * from aws_resource_limit where service_name=? AND " +
+                "limit_name=? AND region=? AND (max_allowed_limit - current_usage) >= ? FOR UPDATE;";
+        String updateQuery = "UPDATE aws_resource_limit a SET a.current_usage = a.current_usage + ? " +
+                "WHERE a.service_name=? AND a.limit_name=? AND a.region=?";
+        List resultList;
+        EntityTransaction transaction;
         try {
-            @SuppressWarnings("unchecked")
-            List resultList = entityManager.createNativeQuery(queryStr, AWSResourceLimit.class)
-                    .setParameter(1, resourceUsage.getServiceName())
-                    .setParameter(2, resourceUsage.getLimitName())
-                    .setParameter(3, region)
-                    .setParameter(4, resourceUsage.getRequiredCount())
-                    .getResultList();
-            if (!resultList.isEmpty()) {
-                return (AWSResourceLimit) EntityManagerHelper.refreshResult(entityManager, resultList.get(0));
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            List<String> regions = findRegions();
+            for (String region : regions) {
+                isRegionAvailable = true;
+                for (AWSResourceRequirement resourceRequirement : resourceRequirements) {
+                    resultList = entityManager.createNativeQuery(selectQuery, AWSResourceLimit.class)
+                            .setParameter(1, resourceRequirement.getServiceName())
+                            .setParameter(2, resourceRequirement.getLimitName())
+                            .setParameter(3, region)
+                            .setParameter(4, resourceRequirement.getRequiredCount())
+                            .getResultList();
+
+                    //Go to next region if a service is not available
+                    if (resultList.isEmpty()) {
+                        isRegionAvailable = false;
+                        break;
+                    }
+                }
+                //Acquire resources if region is available
+                if (isRegionAvailable) {
+                    for (AWSResourceRequirement resourceRequirement : resourceRequirements) {
+                        entityManager.createNativeQuery(updateQuery)
+                                .setParameter(1, resourceRequirement.getRequiredCount())
+                                .setParameter(2, resourceRequirement.getServiceName())
+                                .setParameter(3, resourceRequirement.getLimitName())
+                                .setParameter(4, region)
+                                .executeUpdate();
+                    }
+                    transaction.commit();
+                    return region;
+                }
             }
-            return null;
         } catch (Exception e) {
-            throw new TestGridDAOException(StringUtil.concatStrings("Error on executing the native SQL " +
-                    "query [", queryStr, "]"), e);
+            throw new TestGridDAOException("Error while executing query on database. ", e);
+        }
+        transaction.commit();
+        return null;
+    }
+
+    /**
+     * Persists initial AWS resource limits.
+     *
+     * @param awsResourceLimitsList list of all available resources with their maximum limits
+     * @return list of persisted resources
+     * @throws TestGridDAOException if persistence fails
+     */
+    public List<AWSResourceLimit> persistInitialLimits(
+            List<AWSResourceLimit> awsResourceLimitsList) throws TestGridDAOException {
+        EntityTransaction transaction;
+
+        try {
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            for (AWSResourceLimit awsResourceLimit : awsResourceLimitsList) {
+                Map<String, Object> params = new HashMap<>();
+                params.put(AWSResourceLimit.REGION_COLUMN, awsResourceLimit.getRegion());
+                params.put(AWSResourceLimit.SERVICE_NAME_COLUMN, awsResourceLimit.getServiceName());
+                params.put(AWSResourceLimit.LIMIT_NAME_COLUMN, awsResourceLimit.getLimitName());
+                if (findByFields(params).isEmpty()) {
+                    entityManager.persist(awsResourceLimit);
+                }
+            }
+            transaction.commit();
+            return awsResourceLimitsList;
+        } catch (Exception e) {
+            throw new TestGridDAOException("Error while executing query on database. ", e);
+        }
+    }
+
+    /**
+     * Releases acquired AWS resources.
+     *
+     * @param resourceRequirements list of resources to release
+     * @param region AWS region to release from
+     * @throws TestGridDAOException if persistence to database fails
+     */
+    public void releaseResources(List<AWSResourceRequirement> resourceRequirements, String region)
+            throws TestGridDAOException {
+        String updateQuery = "UPDATE aws_resource_limit a SET a.current_usage = a.current_usage - ? " +
+                "WHERE a.service_name=? AND a.limit_name=? AND a.region=?";
+        EntityTransaction transaction;
+        try {
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            for (AWSResourceRequirement resourceRequirement : resourceRequirements) {
+                entityManager.createNativeQuery(updateQuery)
+                        .setParameter(1, resourceRequirement.getRequiredCount())
+                        .setParameter(2, resourceRequirement.getServiceName())
+                        .setParameter(3, resourceRequirement.getLimitName())
+                        .setParameter(4, region)
+                        .executeUpdate();
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            throw new TestGridDAOException("Error while executing native query on database. ", e);
         }
     }
 }

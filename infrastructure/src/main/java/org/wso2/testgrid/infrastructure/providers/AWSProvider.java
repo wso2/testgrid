@@ -39,10 +39,8 @@ import com.amazonaws.waiters.WaiterParameters;
 import com.amazonaws.waiters.WaiterUnrecoverableException;
 
 import org.awaitility.core.ConditionTimeoutException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
@@ -53,7 +51,7 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
-import org.wso2.testgrid.common.infrastructure.DeploymentPatternResourceUsage;
+import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -71,7 +69,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -91,14 +88,11 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String AWS_REGION_PARAMETER = "region";
     private static final String CUSTOM_USER_DATA = "CustomUserData";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
+    private AWSResourceManager awsResourceManager;
     private static final int TIMEOUT = 30;
     private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
     private static final int POLL_INTERVAL = 1;
     private static final TimeUnit POLL_UNIT = TimeUnit.MINUTES;
-    private static final int REGION_WAIT_TIMEOUT = 12;
-    private static final TimeUnit REGION_WAIT_TIMEOUT_UNIT = TimeUnit.HOURS;
-    private static final int REGION_WAIT_POLL_INTERVAL = 1;
-    private static final TimeUnit REGION_WAIT_POLL_UNIT = TimeUnit.MINUTES;
 
     @Override
     public String getProviderName() {
@@ -118,11 +112,16 @@ public class AWSProvider implements InfrastructureProvider {
     @Override
     public void init(TestPlan testPlan) throws TestGridInfrastructureException {
         cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
-
-        //Set default region specified in config.properties to test plan
-        testPlan.getInfrastructureConfig().getProvisioners().get(0).getScripts().get(0)
-                .getInputParameters().setProperty(AWS_REGION_PARAMETER,
-                ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME));
+        awsResourceManager = new AWSResourceManager();
+        try {
+            Path limitsYamlPath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.AWS_LIMITS_YAML);
+            List<AWSResourceLimit> awsResourceLimits = awsResourceManager.populateInitialResourceLimits(limitsYamlPath);
+            if (awsResourceLimits == null || awsResourceLimits.isEmpty()) {
+                logger.warn("Could not populate AWS resource limits. ");
+            }
+        } catch (TestGridDAOException e) {
+            throw new TestGridInfrastructureException("Error while retrieving aws limits.", e);
+        }
     }
 
     @Override
@@ -153,11 +152,11 @@ public class AWSProvider implements InfrastructureProvider {
 
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
-                           DeploymentPattern deploymentPattern) throws TestGridInfrastructureException {
+                           TestPlan testPlan) throws TestGridInfrastructureException {
         try {
             for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
                 if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
-                    return doRelease(infrastructureConfig, script.getName(), deploymentPattern);
+                    return doRelease(infrastructureConfig, script.getName(), testPlan);
                 }
             }
             throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
@@ -194,46 +193,15 @@ public class AWSProvider implements InfrastructureProvider {
 
             stackRequest.setTemplateBody(file);
 
-            //Get resource requirements for test plan
-            AWSResourceManager awsResourceManager = new AWSResourceManager();
-            Optional<List<DeploymentPatternResourceUsage>> resourceRequirementsOptional =
-                    awsResourceManager.getResourceRequirements(testPlan.getDeploymentPattern());
+            region = awsResourceManager.requestAvailableRegion(testPlan);
+            //Set region to test plan
+            infrastructureConfig.getProvisioners().get(0).getScripts().get(0).getInputParameters()
+                    .setProperty(AWS_REGION_PARAMETER, region);
 
-            boolean isFirstRunOrHashChanged = false;
-            if (resourceRequirementsOptional.isPresent() && !resourceRequirementsOptional.get().isEmpty()) {
-
-                //Parse resource properties to get MD5 hash
-                String deploymentProps = resourceRequirementsOptional.get().get(0)
-                        .getDeploymentPattern().getProperties();
-                final JSONObject jsonObject = new JSONObject(deploymentProps);
-                String cfnHash = jsonObject.getString(DeploymentPattern.MD5_HASH_PROPERTY);
-
-                // Check if the file has changed using the hash values
-                if (cfnHash.equals(TestGridUtil.getHashValue(cfnFilePath))) {
-                    TimeOutBuilder regionTimeOutBuilder = new TimeOutBuilder(
-                            REGION_WAIT_TIMEOUT, REGION_WAIT_TIMEOUT_UNIT,
-                            REGION_WAIT_POLL_INTERVAL, REGION_WAIT_POLL_UNIT);
-                    stackCreationWaiter.waitForAvailableRegion(
-                            resourceRequirementsOptional.get(), regionTimeOutBuilder);
-                    region = stackCreationWaiter.getAvailableRegion();
-                    if (region == null) {
-                        throw new TestGridInfrastructureException(
-                                "Error occurred while waiting for an available region. Region is null");
-                    }
-                    infrastructureConfig.getProvisioners().get(0)
-                            .getScripts().get(0).getInputParameters().setProperty(AWS_REGION_PARAMETER, region);
-                    awsResourceManager.allocateResources(resourceRequirementsOptional.get(), region);
-
-                } else {
-                    logger.info("Cloudformation file has been changed. " +
-                            "Stack will be created in the default region specified in config.properties");
-                    isFirstRunOrHashChanged = true;
-                }
-            } else {
-                isFirstRunOrHashChanged = true;
-                logger.info("Running the first test plan for the deployment pattern. " +
-                        "Stack will be created in the default region");
-            }
+            cloudFormation = AmazonCloudFormationClientBuilder.standard()
+                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                    .withRegion(region)
+                    .build();
 
             final List<Parameter> populatedExpectedParameters = getParameters(script, expectedParameters,
                     infrastructureConfig, testPlan.getId());
@@ -256,19 +224,13 @@ public class AWSProvider implements InfrastructureProvider {
             logger.info(StringUtil.concatStrings("Stack : ", stackName, ", with ID : ", stack.getStackId(),
                     " creation completed in ", duration, "."));
 
-            // Persist resource usage details if it is the first test plan for the deployment pattern
-            // or the hash values are different
-            if (isFirstRunOrHashChanged) {
-                DescribeStackEventsRequest describeStackEventsRequest = new DescribeStackEventsRequest()
-                        .withStackName(stackName);
-                DescribeStackEventsResult describeStackEventsResult = cloudFormation.
-                        describeStackEvents(describeStackEventsRequest);
+            DescribeStackEventsRequest describeStackEventsRequest = new DescribeStackEventsRequest()
+                    .withStackName(stackName);
+            DescribeStackEventsResult describeStackEventsResult = cloudFormation.
+                    describeStackEvents(describeStackEventsRequest);
 
-                if (!awsResourceManager.persistResourceRequirements(describeStackEventsResult.getStackEvents(),
-                        testPlan.getDeploymentPattern(), cfnFilePath)) {
-                    throw new TestGridInfrastructureException("Error while persisting resource requirements.");
-                }
-            }
+            //Notify AWSResourceManager about stack creation completion
+            awsResourceManager.notifyStackCreation(testPlan, describeStackEventsResult.getStackEvents());
 
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(stack.getStackId());
@@ -324,8 +286,6 @@ public class AWSProvider implements InfrastructureProvider {
                     StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
         } catch (TestGridDAOException e) {
             throw new TestGridInfrastructureException("Error occurred while retrieving resource requirements", e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new TestGridInfrastructureException("Error while getting MD5 hash value of cfn", e);
         }
     }
 
@@ -365,7 +325,7 @@ public class AWSProvider implements InfrastructureProvider {
      * @throws InterruptedException            when there is an interruption while waiting for the result.
      */
     private boolean doRelease(
-            InfrastructureConfig infrastructureConfig, String stackName, DeploymentPattern deploymentPattern)
+            InfrastructureConfig infrastructureConfig, String stackName, TestPlan testPlan)
             throws TestGridInfrastructureException, InterruptedException, TestGridDAOException {
         Path configFilePath;
         String region = infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
@@ -379,10 +339,10 @@ public class AWSProvider implements InfrastructureProvider {
         deleteStackRequest.setStackName(stackName);
         stackdestroy.deleteStack(deleteStackRequest);
         logger.info(StringUtil.concatStrings("Stack : ", stackName, " is handed over for deletion!"));
+
+        //Notify AWSResourceManager about stack destruction to release acquired resources
         AWSResourceManager awsResourceManager = new AWSResourceManager();
-        Optional<List<DeploymentPatternResourceUsage>> resourceRequirementsOptional =
-                awsResourceManager.getResourceRequirements(deploymentPattern);
-        awsResourceManager.releaseResources(resourceRequirementsOptional.get(), region);
+        awsResourceManager.notifyStackDeletion(testPlan, region);
 
         boolean waitForStackDeletion = Boolean.parseBoolean(ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.WAIT_FOR_STACK_DELETION));
@@ -394,6 +354,7 @@ public class AWSProvider implements InfrastructureProvider {
                 describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()
                         .withStackName(stackName)));
             } catch (WaiterUnrecoverableException e) {
+
                 throw new TestGridInfrastructureException("Error occurred while waiting for Stack :"
                                                           + stackName + " deletion !");
             }

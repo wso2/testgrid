@@ -508,8 +508,8 @@ public final class TestGridUtil {
      *
      * @param filePath path to file
      * @return md5 hash String
-     * @throws IOException if file not found
-     * @throws NoSuchAlgorithmException id retrieving the MessageDigest instance failss
+     * @throws IOException if file reading fails
+     * @throws NoSuchAlgorithmException if hash generation fails
      */
     public static String getHashValue(Path filePath) throws IOException, NoSuchAlgorithmException {
         MessageDigest complete;
@@ -532,5 +532,25 @@ public final class TestGridUtil {
             stringBuilder.append(Integer.toString((aBuf & 0xff) + 0x100, 16).substring(1));
         }
         return stringBuilder.toString();
+    }
+
+    /**
+     * Returns the number in fibonacci series for a given position.
+     *
+     * @param index position to get the number from fibinacci series
+     * @return the number pertaining to the position
+     */
+    public static int fibonacci(int index) {
+        int series[] = new int[index + 1];
+
+        // 1st and 2nd elements in the series are 1 and 1 respectively
+        series[0] = 1;
+        series[1] = 1;
+
+        // Add the previous 2 numbers in the series and store in array
+        for (int i = 2; i <= index; i++) {
+            series[i] = series[i - 1] + series[i - 2];
+        }
+        return series[index];
     }
 }

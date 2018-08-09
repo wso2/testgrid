@@ -21,11 +21,10 @@ package org.wso2.testgrid.common.infrastructure;
 import org.wso2.testgrid.common.AbstractUUIDEntity;
 import org.wso2.testgrid.common.util.StringUtil;
 
-import java.util.ArrayList;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.Transient;
+
 
 /**
  * Represents a AWS resource and its maximum limit in a particular AWS region.
@@ -62,67 +61,44 @@ public class AWSResourceLimit extends AbstractUUIDEntity {
     @Column(name = "current_usage", nullable = false)
     private int currentUsage;
 
-    @Transient
-    private ArrayList maxLimits;
-
     public String getRegion() {
-
         return region;
     }
 
     public void setRegion(String region) {
-
         this.region = region;
     }
 
     public String getServiceName() {
-
         return serviceName;
     }
 
     public void setServiceName(String serviceName) {
-
         this.serviceName = serviceName;
     }
 
     public String getLimitName() {
-
         return limitName;
     }
 
     public void setLimitName(String limitName) {
-
         this.limitName = limitName;
     }
 
     public int getMaxAllowedLimit() {
-
         return maxAllowedLimit;
     }
 
     public void setMaxAllowedLimit(int maxAllowedLimit) {
-
         this.maxAllowedLimit = maxAllowedLimit;
     }
 
     public int getCurrentUsage() {
-
         return currentUsage;
     }
 
     public void setCurrentUsage(int currentUsage) {
-
         this.currentUsage = currentUsage;
-    }
-
-    public ArrayList getMaxLimits() {
-
-        return maxLimits;
-    }
-
-    public void setMaxLimits(ArrayList maxLimits) {
-
-        this.maxLimits = maxLimits;
     }
 
     @Override

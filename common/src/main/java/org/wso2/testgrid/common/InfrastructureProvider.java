@@ -71,7 +71,7 @@ public interface InfrastructureProvider {
      * @return boolean status of the operation
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure destroy process.
      */
-    boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir, DeploymentPattern deploymentPattern)
+    boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir, TestPlan testPlan)
             throws TestGridInfrastructureException;
 
 }

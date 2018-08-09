@@ -37,21 +37,17 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.exception.TestGridRuntimeException;
-import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.AWSResourceLimitUOW;
 import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
-import org.wso2.testgrid.infrastructure.providers.aws.AWSResourceManager;
 import org.wso2.testgrid.logging.plugins.LogFilePathLookup;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -69,9 +65,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -145,9 +139,6 @@ public class GenerateTestPlanCommand implements Command {
             LogFilePathLookup.setLogFilePath(
                     TestGridUtil.deriveTestGridLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
 
-            if (!populateAWSLimits(Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.AWS_LIMITS_YAML))) {
-                throw new CommandExecutionException("Error occurred while populating AWS resource limits");
-            }
             if (StringUtils.isNotEmpty(jobConfigFilePath)) {
                 processTestgridConfiguration(jobConfigFilePath);
                 return;
@@ -159,82 +150,7 @@ public class GenerateTestPlanCommand implements Command {
                     .concatStrings("Error in reading file ", testgridYamlLocation), e);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error while reading value-sets from the database.", e);
-        } catch (TestGridInfrastructureException e) {
-            throw new CommandExecutionException("Error occurred ");
         }
-    }
-
-    /**
-     * Populates and persists initial AWS resource limits using a the given limits yaml file.
-     *
-     * @param limitsYamlPath path to awsLimits.yaml
-     * @return if persistence succeeded or failed
-     * @throws IOException if retrieving the yaml file failed
-     * @throws TestGridInfrastructureException if retrieving AWS limits failed
-     * @throws TestGridDAOException if persisting AWS resource limits failed
-     */
-    private boolean populateAWSLimits(Path limitsYamlPath) throws
-            TestGridInfrastructureException, TestGridDAOException, CommandExecutionException {
-        if (!limitsYamlPath.toFile().exists()) {
-            throw new CommandExecutionException("Unable to locate " + limitsYamlPath);
-        }
-        AWSResourceManager awsResourceManager = new AWSResourceManager();
-        ArrayList limits = awsResourceManager.getInitialResourceLimits(limitsYamlPath).getMaxLimits();
-        List<AWSResourceLimit> awsResourceLimitsList = parseAWSLimits(limits);
-        return persistAWSResourceLimits(awsResourceLimitsList);
-    }
-
-    /**
-     * Persists a given list of AWS resource limits to database.
-     *
-     * @param awsResourceLimitsList list of AWS resources with their limits
-     * @return true if persistence succeeds/false if persistence fails
-     * @throws TestGridDAOException thrown when an error occurs in persisting
-     */
-    private boolean persistAWSResourceLimits(List<AWSResourceLimit> awsResourceLimitsList) throws TestGridDAOException {
-        AWSResourceLimitUOW awsResourceLimitsUOW = new AWSResourceLimitUOW();
-        if (awsResourceLimitsList.isEmpty()) {
-            return false;
-        }
-        for (AWSResourceLimit awsResourceLimits : awsResourceLimitsList) {
-            awsResourceLimitsUOW.persistAWSResource(awsResourceLimits);
-        }
-        return true;
-    }
-
-    /**
-     * Parses the given list of resources and returns a list of {@link AWSResourceLimit}.
-     *
-     * @param limits aws resource limits ArrayList
-     * @return list of {@link AWSResourceLimit}
-     */
-    private List<AWSResourceLimit> parseAWSLimits(ArrayList limits) {
-        List<AWSResourceLimit> awsResourceLimitsList = new ArrayList<>();
-        limits.forEach((key) -> {
-            Map regionItem = (LinkedHashMap) key;
-            regionItem.forEach((regionKey, value) -> {
-                Map regionInfo = (LinkedHashMap) regionItem.get(regionKey);
-                String regionName = regionInfo.get("name").toString();
-                ArrayList services = (ArrayList) regionInfo.get("services");
-                services.forEach((service) -> {
-                    String serviceName = ((LinkedHashMap) service).get("serviceName").toString();
-                    ArrayList serviceLimits = (ArrayList) ((LinkedHashMap) service).get("serviceLimits");
-                    serviceLimits.forEach((limit) -> {
-                        String limitName = ((LinkedHashMap) limit).get("limitName").toString();
-                        int maxAllowedLimit = (int) ((LinkedHashMap) limit).get("maxAllowedLimit");
-
-                        //Create instance of AWSResourceLimitsRepository
-                        AWSResourceLimit awsResourceLimits = new AWSResourceLimit();
-                        awsResourceLimits.setRegion(regionName);
-                        awsResourceLimits.setServiceName(serviceName);
-                        awsResourceLimits.setLimitName(limitName);
-                        awsResourceLimits.setMaxAllowedLimit(maxAllowedLimit);
-                        awsResourceLimitsList.add(awsResourceLimits);
-                    });
-                });
-            });
-        });
-        return awsResourceLimitsList;
     }
 
     private void processTestgridConfiguration(String jobConfigFilePath)

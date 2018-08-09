@@ -574,7 +574,7 @@ public class TestPlanExecutor {
             InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                     .getInfrastructureProvider(infrastructureConfig);
             infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository(),
-                    testPlan.getDeploymentPattern());
+                    testPlan);
             // Destroy additional infra created for test execution
             infrastructureProvider.cleanup(testPlan);
         } catch (TestGridInfrastructureException e) {

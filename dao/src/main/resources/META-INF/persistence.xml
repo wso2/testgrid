@@ -28,7 +28,7 @@
         <class>org.wso2.testgrid.common.TestScenario</class>
         <class>org.wso2.testgrid.common.TestCase</class>
         <class>org.wso2.testgrid.common.infrastructure.AWSResourceLimit</class>
-        <class>org.wso2.testgrid.common.infrastructure.DeploymentPatternResourceUsage</class>
+        <class>org.wso2.testgrid.common.infrastructure.AWSResourceRequirement</class>
         <properties>
             <property name="javax.persistence.jdbc.url"
                       value="jdbc:mysql://localhost:3306/testgriddb"/>

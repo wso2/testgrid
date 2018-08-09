@@ -55,6 +55,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.dao</artifactId>
+        </dependency>
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <scope>test</scope>
@@ -109,12 +113,8 @@
             <artifactId>awaitility</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.testgrid</groupId>
-            <artifactId>org.wso2.testgrid.dao</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
     </dependencies>
 </project>
