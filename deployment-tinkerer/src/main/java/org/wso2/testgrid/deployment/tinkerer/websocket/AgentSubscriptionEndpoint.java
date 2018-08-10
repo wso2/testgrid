@@ -69,14 +69,15 @@ public class AgentSubscriptionEndpoint extends SubscriptionEndpoint {
         super.onMessage(session, message, agentId);
         OperationSegment operationSegment = new Gson().fromJson(message, OperationSegment.class);
         logger.info("Message receive from agent: " + agentId + " with operation id " +
-                operationSegment.getOperationId() + " and code " + operationSegment.getCode());
+                operationSegment.getOperationId() + " code " + operationSegment.getCode() + " exitValue " +
+         operationSegment.getExitValue() + " completed " + operationSegment.getCompleted());
         OperationQueue operationQueue = SessionManager.getOperationQueueMap().get(operationSegment.getOperationId());
         if (operationQueue != null) {
             operationQueue.addMessage(operationSegment);
-            logger.info("Message with size " + operationSegment.getResponse().length() +
+            logger.debug("Message with size " + operationSegment.getResponse().length() +
                     " added to the message queue with operation id " + operationSegment.getOperationId());
         }
-        SessionManager.getAgentObserver().notifyObservable();
+        SessionManager.getAgentObservable().notifyObservable(null);
     }
 
     /**

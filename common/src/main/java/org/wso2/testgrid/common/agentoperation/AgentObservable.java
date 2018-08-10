@@ -16,20 +16,21 @@
  * under the License.
  */
 
-package org.wso2.testgrid.deployment.tinkerer.utils;
+package org.wso2.testgrid.common.agentoperation;
 
 import java.util.Observable;
 
 /**
- * Observable class to notify agent handler to send messages.
+ * Observable class to handle common observable operation on subscribed observers.
  */
-public class AgentObserver extends Observable {
+public class AgentObservable extends Observable {
     /**
      * Notify observers that new message has been received
+     *
+     * @param arg       The message to be send to subscribers
      */
-    public void notifyObservable() {
+    public void notifyObservable(Object arg) {
         setChanged();
-        notifyObservers();
+        notifyObservers(arg);
     }
 }
-

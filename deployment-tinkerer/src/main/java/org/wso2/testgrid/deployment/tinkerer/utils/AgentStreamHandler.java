@@ -42,6 +42,7 @@ public class AgentStreamHandler implements Observer {
     private OperationRequest operationRequest;
     private String testPlanId;
     private String instanceName;
+    private String agentId;
 
     /**
      * Default constructor to handle command in agent.
@@ -62,6 +63,9 @@ public class AgentStreamHandler implements Observer {
         this.operationRequest = operationRequest;
         this.testPlanId = testPlanId;
         this.instanceName = instanceName;
+        SessionManager sessionManager = SessionManager.getInstance();
+        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
+        this.agentId = agent.getAgentId();
     }
 
     /**
@@ -97,7 +101,6 @@ public class AgentStreamHandler implements Observer {
     @Override
     public void update(Observable o, Object arg) {
         SessionManager sessionManager = SessionManager.getInstance();
-        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
         OperationSegment resultOperation = new OperationSegment();
         resultOperation.setResponse("");
         try {
@@ -105,6 +108,11 @@ public class AgentStreamHandler implements Observer {
             OperationSegment operationSegment = sessionManager.
                     dequeueOperationQueueMessages(this.operationRequest.getOperationId());
             // Append dequeue result to the result
+            if (operationSegment == null) {
+                logger.info("No operation found for operation id " + this.operationRequest.getOperationId()
+                        + " on " + this.agentId + " for test plan " + testPlanId);
+                return;
+            }
             resultOperation.setResponse(
                     resultOperation.getResponse().concat(operationSegment.getResponse()));
             resultOperation.setOperationId(this.operationRequest.getOperationId());
@@ -113,30 +121,32 @@ public class AgentStreamHandler implements Observer {
             // Check if operation execution completed
             if (operationSegment.getCompleted()) {
                 logger.info("Operation execution completed for operation id " + this.operationRequest.getOperationId()
-                        + " on " + agent.getAgentId() + " for test plan " + testPlanId);
+                        + " on " + this.agentId + " for test plan " + this.testPlanId);
                 resultOperation.setCompleted(true);
                 resultOperation.setExitValue(operationSegment.getExitValue());
                 sessionManager.removeOperationQueueMessages(this.operationRequest.getOperationId());
-                sessionManager.getAgentObserver().deleteObserver(this);
+                sessionManager.getAgentObservable().deleteObserver(this);
                 this.output.write(resultOperation.toJSON() + "\r\n");
                 this.output.close();
+                return;
             }
             // Send response only if it contain response
             if (!resultOperation.getResponse().equals("")) {
-                logger.debug("Sending result segment to test runner " + agent.getAgentId() +
+                logger.debug("Sending result segment to test runner " + this.agentId +
                         " for test plan " + testPlanId);
                 this.output.write(resultOperation.toJSON() + "\r\n");
                 resultOperation.setResponse("");
             }
         } catch (IOException e) {
             logger.warn("Error while writing result to the output. " + operationRequest.getRequest() +
-                    " on agent " + agent.getAgentId() + " for test plan " + testPlanId + " instant name " +
+                    " on agent " + this.agentId + " for test plan " + testPlanId + " instant name " +
                     this.instanceName, e);
+            abortOperation(this.operationRequest.getOperationId(), this.agentId);
             try {
                 this.output.close();
             } catch (IOException errorOutput) {
                 logger.error("Error while close output connection " + operationRequest.getRequest() +
-                        " on agent " + agent.getAgentId() + " for test plan " + testPlanId + " instant name " +
+                        " on agent " + this.agentId + " for test plan " + testPlanId + " instant name " +
                         this.instanceName, errorOutput);
             }
         }
@@ -168,16 +178,27 @@ public class AgentStreamHandler implements Observer {
         SessionManager sessionManager = SessionManager.getInstance();
         if (sessionManager.getOperationRequest(operationId) != null) {
             Session session = sessionManager.getAgentSession(agentId);
-            OperationRequest abortOperationRequest = new OperationRequest();
-            abortOperationRequest.setOperationId(operationId);
-            abortOperationRequest.setCode(OperationRequest.OperationCode.ABORT);
-            try {
-                session.getBasicRemote().sendText(abortOperationRequest.toJSON());
-            } catch (IOException e) {
-                logger.error("Error occurred while sending abort operation to agent " + agentId, e);
+            if (session != null) {
+                OperationRequest abortOperationRequest = new OperationRequest();
+                abortOperationRequest.setOperationId(operationId);
+                abortOperationRequest.setCode(OperationRequest.OperationCode.ABORT);
+                try {
+                    session.getBasicRemote().sendText(abortOperationRequest.toJSON());
+                } catch (IOException e) {
+                    logger.error("Error occurred while sending abort operation to agent " + agentId, e);
+                    SessionManager.getOperationQueueMap().get(operationId).setOperationAsCompleted(1);
+                    SessionManager.getAgentObservable().notifyObservable(null);
+                    return false;
+                }
+                return true;
+            } else {
+                // If socket connection break remove the message queue
+                logger.info("No session found to sending abort message to agent " + agentId);
+                SessionManager.getOperationQueueMap().get(operationId).setOperationAsCompleted(1);
+                SessionManager.getAgentObservable().notifyObservable(null);
                 return false;
             }
-            return true;
+
         } else {
             return false;
         }

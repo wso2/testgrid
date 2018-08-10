@@ -25,14 +25,15 @@ import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.auth.Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.agent.OperationExecutor;
+import org.wso2.testgrid.agent.AgentStreamObserver;
+import org.wso2.testgrid.agent.AgentStreamReader;
+import org.wso2.testgrid.agent.listeners.OperationResponseListener;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -53,7 +54,6 @@ import javax.websocket.Session;
 public class ClientEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientEndpoint.class);
-    private static volatile Map<String, OperationExecutor> operationExecutorHashMap = new HashMap<>();
 
     private ExecutorService executorService;
     private Session userSession = null;
@@ -157,29 +157,37 @@ public class ClientEndpoint {
         OperationSegment operationSegment = new OperationSegment();
         operationSegment.setOperationId(operationRequest.getOperationId());
         operationSegment.setCode(operationRequest.getCode());
-        OperationExecutor operationExecutor = new OperationExecutor(response -> {
+        OperationResponseListener listener = response -> {
             // send message to web socket
             if (logger.isDebugEnabled()) {
                 logger.debug("Sending message: " + response.toJSON());
             }
             sendMessage(response.toJSON());
-        });
+        };
+        AgentStreamReader agentStreamReader = new AgentStreamReader(listener,
+                operationRequest.getOperationId());
         switch (operationRequest.getCode()) {
             case SHELL:
-                operationExecutor.setOperationDetails(operationRequest, operationSegment);
-                operationExecutorHashMap.put(operationRequest.getOperationId(), operationExecutor);
-                executorService.submit(() -> operationExecutor.start());
+                try {
+                    agentStreamReader.executeCommand(operationRequest.getRequest());
+                } catch (CommandExecutionException e) {
+                    logger.info("Error while executing command for operation " + operationRequest.getOperationId(), e);
+                }
                 break;
             case PING:
                 operationSegment.setResponse("ACK");
                 operationSegment.setCompleted(true);
-                executorService.submit(() -> operationExecutor.sendResponse(operationSegment));
+                executorService.submit(() -> agentStreamReader.sendResponse(operationSegment));
                 break;
             case ABORT:
-                OperationExecutor operationExecutorAbort = operationExecutorHashMap.
-                        get(operationRequest.getOperationId());
-                if (operationExecutorAbort != null) {
-                    operationExecutorAbort.setAbortExecution(true);
+                AgentStreamObserver agentStreamObserver =
+                        AgentStreamReader.getObserverHashMapById(operationRequest.getOperationId());
+                if (agentStreamObserver != null) {
+                    agentStreamObserver.setAbortExecution(true);
+                    agentStreamObserver.update(null, null);
+                } else {
+                    logger.info("No operation with given id found to abort execution " +
+                            operationRequest.getOperationId());
                 }
                 break;
             default:

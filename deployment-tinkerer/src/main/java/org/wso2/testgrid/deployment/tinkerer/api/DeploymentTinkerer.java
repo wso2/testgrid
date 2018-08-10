@@ -126,7 +126,7 @@ public class DeploymentTinkerer {
                 instanceName);
         try {
             agentStreamHandler.startSendCommand();
-            SessionManager.getAgentObserver().addObserver(agentStreamHandler);
+            SessionManager.getAgentObservable().addObserver(agentStreamHandler);
         } catch (AgentHandleException e) {
             logger.error("Error while sending command to the Agent for test plan " + testPlanId, e);
         }
@@ -146,6 +146,7 @@ public class DeploymentTinkerer {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response abortOperation(@PathParam("testPlanId") String testPlanId,
                                   @PathParam("instanceName") String instanceName, OperationRequest operationRequest) {
+        logger.info("Operation request received " + operationRequest.toJSON());
         Response responseToSend = Response.status(Response.Status.OK).build();
         SessionManager sessionManager = SessionManager.getInstance();
         Agent agent = sessionManager.getAgent(testPlanId, instanceName);
@@ -210,14 +211,20 @@ public class DeploymentTinkerer {
                 operationSegment.setOperationId(operationRequest.getOperationId());
                 long initTime = Calendar.getInstance().getTimeInMillis();
                 while (true) {
+                    long currentTime = Calendar.getInstance().getTimeInMillis();
                     OperationSegment tempOperationSegment = sessionManager.dequeueOperationQueueMessages(
                             operationRequest.getOperationId());
-                    operationSegment.setResponse(operationSegment.getResponse().
-                            concat(tempOperationSegment.getResponse()));
-                    long currentTime = Calendar.getInstance().getTimeInMillis();
-                    if (tempOperationSegment.getCompleted()) {
+                    if (tempOperationSegment != null) {
+                        operationSegment.setResponse(operationSegment.getResponse().
+                                concat(tempOperationSegment.getResponse()));
+                        if (tempOperationSegment.getCompleted()) {
+                            operationSegment.setCompleted(true);
+                            operationSegment.setExitValue(tempOperationSegment.getExitValue());
+                            break;
+                        }
+                    } else {
                         operationSegment.setCompleted(true);
-                        operationSegment.setExitValue(tempOperationSegment.getExitValue());
+                        operationSegment.setExitValue(1);
                         break;
                     }
                     if (initTime + Constants.OPERATION_TIMEOUT < currentTime) {

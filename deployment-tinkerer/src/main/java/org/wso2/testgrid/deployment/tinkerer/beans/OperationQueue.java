@@ -82,8 +82,7 @@ public class OperationQueue {
      */
     public void addMessage(OperationSegment operationSegment) {
         if (operationSegment.getCompleted()) {
-            this.completed = true;
-            this.exitValue = operationSegment.getExitValue();
+            setOperationAsCompleted(operationSegment.getExitValue());
         }
         if (this.persisted) {
             persistMessage(operationSegment.getResponse());
@@ -148,7 +147,6 @@ public class OperationQueue {
         }
         this.messageQueue = new LinkedList<>();
         this.contentLength = 0;
-        this.lastUpdatedTime = Calendar.getInstance().getTimeInMillis();
         this.lastConsumedTime = Calendar.getInstance().getTimeInMillis();
     }
 
@@ -330,5 +328,15 @@ public class OperationQueue {
      */
     public void setAgentId(String agentId) {
         this.agentId = agentId;
+    }
+
+    /**
+     * Set current operation as completed.
+     *
+     * @param exitValue     The exit value
+     */
+    public void setOperationAsCompleted(int exitValue) {
+        this.completed = true;
+        this.exitValue = exitValue;
     }
 }

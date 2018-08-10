@@ -22,12 +22,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Agent;
+import org.wso2.testgrid.common.agentoperation.AgentObservable;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationQueue;
 import org.wso2.testgrid.deployment.tinkerer.providers.InfraProviderFactory;
 import org.wso2.testgrid.deployment.tinkerer.providers.Provider;
-import org.wso2.testgrid.deployment.tinkerer.utils.AgentObserver;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -53,7 +53,7 @@ public class SessionManager {
     private static volatile Map<String, Session> agentSessions = new HashMap<>();
     private static volatile Map<String, Agent> agents = new HashMap<>();
     private static volatile Map<String, OperationQueue> operationQueueMap = new HashMap<>();
-    private static volatile AgentObserver agentObserver = new AgentObserver();
+    private static volatile AgentObservable agentObservable = new AgentObservable();
 
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private SessionManager() {
@@ -243,8 +243,10 @@ public class SessionManager {
         if (operationQueue != null) {
             operationQueueMap.get(operationId).resetMessageQueue();
             operationQueueMap.get(operationId).updateLastConsumedTime();
+            return operationSegment;
+        } else {
+            return null;
         }
-        return operationSegment;
     }
 
     /**
@@ -280,8 +282,8 @@ public class SessionManager {
      *
      * @return  agent observer
      */
-    public static AgentObserver getAgentObserver() {
-        return agentObserver;
+    public static AgentObservable getAgentObservable() {
+        return agentObservable;
     }
 }
 
