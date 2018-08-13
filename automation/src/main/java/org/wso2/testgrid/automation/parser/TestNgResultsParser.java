@@ -40,9 +40,11 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -150,29 +152,16 @@ public class TestNgResultsParser extends ResultParser {
                 }
                 //start processing duplicate testcase names
                 List<TestCase> testCases = testScenario.getTestCases();
-                Set<TestCase> allCases = new HashSet<>();
-                //Get a list of duplicate test cases
-                List<TestCase> duplicates = testCases.stream()
-                        .filter(testCase -> !allCases.add(testCase))
-                        .collect(Collectors.toList());
-                List<TestCase> renamedTestCases = testCases
-                        .stream()
-                        .map(testCase -> {
-                            int suffix = 1;
-                            if (duplicates.contains(testCase)) {
-                                TestCase tempTestCase = new TestCase();
-                                tempTestCase.setName(testCase.getName());
-                                //add a suffix to the duplicate test case names
-                                while (testCases.contains(tempTestCase)) {
-                                    tempTestCase.setName(StringUtil
-                                            .concatStrings(testCase.getName(), "#data_provider_", suffix));
-                                    suffix++;
-                                }
-                                testCase.setName(tempTestCase.getName());
-                            }
-                            return testCase;
-                        }).collect(Collectors.toList());
-                testScenario.setTestCases(renamedTestCases);
+                Map<String, TestCase> finalTestCases = new HashMap<>();
+                for (TestCase testCase : testCases) {
+                    int suffix = 1;
+                    while (finalTestCases.containsKey(testCase.getName())) {
+                        testCase.setName(StringUtil
+                                .concatStrings(testCase.getName(), "#data_provider_", suffix));
+                        suffix++;
+                    }
+                    finalTestCases.put(testCase.getName(), testCase);
+                }
                 logger.info(String.format("Found total of %s test cases. %s test cases has failed.", testScenario
                                 .getTestCases().size(),
                         testScenario.getTestCases().stream().filter(tc -> Status.FAIL.equals(tc.getStatus())).count()));
