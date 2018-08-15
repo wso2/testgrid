@@ -178,8 +178,7 @@ public class AWSProvider implements InfrastructureProvider {
             final List<Parameter> populatedExpectedParameters = getParameters(script, expectedParameters,
                     infrastructureConfig, testPlan.getId());
             stackRequest.setParameters(populatedExpectedParameters);
-
-            logger.info(StringUtil.concatStrings("Creating CloudFormation Stack '", stackName,
+            logger.info(StringUtil.concatStrings("Creation of CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
             final long start = System.currentTimeMillis();
             CreateStackResult stack = cloudFormation.createStack(stackRequest);
@@ -359,8 +358,14 @@ public class AWSProvider implements InfrastructureProvider {
                         ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
                 String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.AWS_REGION_NAME);
-                String customScript = "/opt/testgrid/agent/init.sh " + deploymentTinkererEP + " " + awsRegion +
-                        " " + testPlanId + " aws " + deploymentTinkererUserName + " " + deploymentTinkererPassword;
+                String customScript = StringUtil.concatStrings("/opt/testgrid/agent/init.sh ",
+                        deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName, " ",
+                        deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ", testPlanId, " ",
+                        ConfigurationContext.getProperty
+                                (ConfigurationContext.ConfigurationProperties.PERFORMANCE_DASHBOARD_URL), ":8086 ",
+                        ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_USER),
+                        " ", ConfigurationContext.getProperty(ConfigurationContext.
+                                ConfigurationProperties.INFLUXDB_PASS));
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);
                 cfCompatibleParameters.add(awsParameter);

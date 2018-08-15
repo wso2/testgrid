@@ -566,6 +566,17 @@
                 <artifactId>velocity</artifactId>
                 <version>${apache.velocity.version}</version>
             </dependency>
+            <!--product metrics dashboard dependencies-->
+            <dependency>
+                <groupId>org.influxdb</groupId>
+                <artifactId>influxdb-java</artifactId>
+                <version>${org.influxdb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.googlecode.json-simple</groupId>
+                <artifactId>json-simple</artifactId>
+                <version>${json-simple.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -623,5 +634,7 @@
         <commons.validator.version>1.6</commons.validator.version>
         <google.gson.version>2.2.4</google.gson.version>
         <glassfish.tyrus.version>1.13.1</glassfish.tyrus.version>
+        <org.influxdb.version>2.5</org.influxdb.version>
+        <json-simple.version>1.1</json-simple.version>
     </properties>
 </project>
