@@ -66,7 +66,6 @@ import org.wso2.testgrid.tinkerer.TinkererClient;
 import org.wso2.testgrid.tinkerer.TinkererClientFactory;
 import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;

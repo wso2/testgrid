@@ -20,6 +20,7 @@ package org.wso2.testgrid.common;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.influxdb.InfluxDB;
@@ -98,7 +99,7 @@ public class DashboardSetup {
     }
 
     /**
-     * this method will create the header of the POST request
+     * This method will create the header of the POST request
      * @param restUrl url of the grafana server
      * @param apikey APIkey of the grafana server
      * @return return a http post request
@@ -106,8 +107,8 @@ public class DashboardSetup {
     private HttpPost createConnectivity(String restUrl, String apikey) {
         HttpPost post = new HttpPost(restUrl + ":3000/api/datasources/");
         post.setHeader("AUTHORIZATION", apikey);
-        post.setHeader("Content-Type", "application/json");
-        post.setHeader("Accept", "application/json");
+        post.setHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+        post.setHeader("Accept", ContentType.APPLICATION_JSON.toString());
         return post;
     }
 
