@@ -21,15 +21,16 @@ package org.wso2.testgrid.deployment.tinkerer;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.deployment.tinkerer.beans.Operation;
-import org.wso2.testgrid.deployment.tinkerer.beans.OperationRequest;
+import org.wso2.testgrid.common.agentoperation.OperationRequest;
+import org.wso2.testgrid.deployment.tinkerer.beans.OperationQueue;
+import org.wso2.testgrid.deployment.tinkerer.utils.AgentStreamHandler;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.servlet.ServletContextEvent;
@@ -49,6 +50,8 @@ public class AppServletContextListener implements ServletContextListener {
 
     private Timer heartBeatTimer;
 
+    private Timer messageQueueTimer;
+
     /**
      * Receives notification that the web application initialization
      * process is starting.
@@ -64,7 +67,13 @@ public class AppServletContextListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent contextEvent) {
         TimerTask hbTimerTask = new HeartBeatTimerTask();
         heartBeatTimer = new Timer(true);
-        heartBeatTimer.scheduleAtFixedRate(hbTimerTask, Constants.HEARTBEAT_INTERVAL, Constants.HEARTBEAT_INTERVAL);
+        heartBeatTimer.scheduleAtFixedRate(hbTimerTask,
+                Constants.PING_HEARTBEAT_INTERVAL, Constants.PING_HEARTBEAT_INTERVAL);
+        // Manage message queue
+        TimerTask messageQueueTask = new MessageQueueScheduler();
+        messageQueueTimer = new Timer(true);
+        messageQueueTimer.scheduleAtFixedRate(messageQueueTask, Constants.MESSAGE_QUEUE_INTERVAL,
+                Constants.MESSAGE_QUEUE_INTERVAL);
     }
 
     /**
@@ -108,13 +117,14 @@ public class AppServletContextListener implements ServletContextListener {
         private void sendHeartBeat(SessionManager sessionManager, String agentId) {
             Runnable hbTask = () -> {
                 Session wsSession = sessionManager.getAgentSession(agentId);
+                OperationRequest operationRequest = new OperationRequest();
+                operationRequest.setCode(OperationRequest.OperationCode.PING);
                 try {
-                    OperationRequest operationRequest = new OperationRequest();
-                    operationRequest.setCode(Operation.OperationCode.PING);
-                    operationRequest.setOperationId(UUID.randomUUID().toString());
+                    sessionManager.addNewOperationQueue(operationRequest.getOperationId(),
+                            operationRequest.getCode(), agentId);
                     wsSession.getBasicRemote().sendText(operationRequest.toJSON());
                     long initTime = Calendar.getInstance().getTimeInMillis();
-                    while (!sessionManager.hasOperationResponse(operationRequest.getOperationId())) {
+                    while (!sessionManager.hasMessageQueueResponse(operationRequest.getOperationId())) {
                         long currentTime = Calendar.getInstance().getTimeInMillis();
                         if (initTime + (Constants.OPERATION_TIMEOUT / 2) < currentTime) {
                             if (wsSession.isOpen()) {
@@ -131,8 +141,8 @@ public class AppServletContextListener implements ServletContextListener {
                             break;
                         }
                     }
-                    if (sessionManager.hasOperationResponse(operationRequest.getOperationId())) {
-                        sessionManager.removeOperationResponse(operationRequest.getOperationId());
+                    if (sessionManager.hasMessageQueueResponse(operationRequest.getOperationId())) {
+                        sessionManager.removeOperationQueueMessages(operationRequest.getOperationId());
                     }
                 } catch (IOException e) {
                     String message = "Error occurred while sending heartbeat to agent: " + agentId;
@@ -140,6 +150,54 @@ public class AppServletContextListener implements ServletContextListener {
                 }
             };
             executorService.submit(hbTask);
+        }
+    }
+
+    /**
+     * Inner class to maintain the message queue. This will persist message queue if it overflow.
+     * Abort execution if it idle for a given time.
+     */
+    static final class MessageQueueScheduler extends TimerTask {
+        /**
+         * Regular inspection cycle of maintaining message queue.
+         */
+        @Override
+        public void run() {
+            for (Map.Entry<String, OperationQueue> operationQueueEntry : SessionManager.getOperationQueueMap()
+                    .entrySet()) {
+                long currentTime = Calendar.getInstance().getTimeInMillis();
+                OperationQueue operationQueue = operationQueueEntry.getValue();
+                final SessionManager sessionManager = SessionManager.getInstance();
+                String deleteOperationId = operationQueue.getOperationId();
+                // If message exist for more longer without consume after the abort operation then remove it from
+                // the message queue
+                long consumeTimeout = Constants.MAX_LAST_CONSUME_TIMEOUT + Constants.MESSAGE_QUEUE_INTERVAL;
+                long updateTimeout = Constants.MAX_LAST_UPDATED_TIMEOUT + Constants.MESSAGE_QUEUE_INTERVAL;
+                if ((operationQueue.getLastConsumedTime() + consumeTimeout < currentTime ||
+                        operationQueue.getLastUpdatedTime() + updateTimeout < currentTime) &&
+                        operationQueue.getCode().equals(OperationRequest.OperationCode.SHELL)) {
+                    logger.warn("Operation time out for operation " + deleteOperationId + " " +
+                            operationQueue.getCode() + " deleting message queue");
+                    sessionManager.removeOperationQueueMessages(deleteOperationId);
+                    break;
+                }
+                // Abort operation execution if agent idle or test executor not retrieving back for a given timeout
+                if ((operationQueue.getLastConsumedTime() + Constants.MAX_LAST_CONSUME_TIMEOUT < currentTime ||
+                        operationQueue.getLastUpdatedTime() + Constants.MAX_LAST_UPDATED_TIMEOUT < currentTime) &&
+                        operationQueue.getCode().equals(OperationRequest.OperationCode.SHELL)) {
+                    logger.warn("Operation time out for operation " + deleteOperationId + " " +
+                            operationQueue.getCode() + " Aborting execution operation");
+                    AgentStreamHandler agentStreamHandler = new AgentStreamHandler();
+                    agentStreamHandler.abortOperation(deleteOperationId, operationQueue.getAgentId());
+                    break;
+                }
+                // Persist message queue into a file if it overflow
+                if (operationQueue.getContentLength() > Constants.MAX_QUEUE_CONTENT_LENGTH) {
+                    logger.info("Message overflow for operation " + operationQueue.getOperationId() +
+                            " Start persist message queue into file");
+                    operationQueue.persistOperationQueue();
+                }
+            }
         }
     }
 }

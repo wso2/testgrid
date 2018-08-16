@@ -102,5 +102,10 @@
             <artifactId>annotations</artifactId>
             <scope>compile</scope>
         </dependency>
+        <!-- TestGrid dependencies -->
+        <dependency>
+            <groupId>org.wso2.testgrid</groupId>
+            <artifactId>org.wso2.testgrid.common</artifactId>
+        </dependency>
     </dependencies>
 </project>

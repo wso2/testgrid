@@ -11,27 +11,26 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 
-package org.wso2.testgrid.agent.beans;
+package org.wso2.testgrid.common.agentoperation;
+
+import java.util.Observable;
 
 /**
- * This class holds operation request data.
- *
- * @since 1.0.0
+ * Observable class to handle common observable operation on subscribed observers.
  */
-public class OperationRequest extends Operation {
-
-    private String request;
-
-    public String getRequest() {
-        return request;
-    }
-
-    public void setRequest(String request) {
-        this.request = request;
+public class AgentObservable extends Observable {
+    /**
+     * Notify observers that new message has been received
+     *
+     * @param arg       The message to be send to subscribers
+     */
+    public void notifyObservable(Object arg) {
+        setChanged();
+        notifyObservers(arg);
     }
 }

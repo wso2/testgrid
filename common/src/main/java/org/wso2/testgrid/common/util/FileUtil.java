@@ -28,6 +28,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -118,6 +120,32 @@ public class FileUtil {
         } catch (IOException e) {
             throw new TestGridException(StringUtil.concatStrings("Error in writing file ", fileName), e);
         }
+    }
+
+    /**
+     * Read content from a given file
+     *
+     * @param filePath          The file path to write
+     * @param fileName          name of the file
+     * @return                  File content
+     * @throws TestGridException    Throw when file reading error
+     */
+    public static String readFile(String filePath, String fileName) throws TestGridException {
+        StringBuilder out = new StringBuilder();
+        try {
+            String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
+            try (InputStream fis = new FileInputStream(new File(fileAbsolutePath));
+                InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
+                int data = reader.read();
+                while (data != -1) {
+                    out.append((char) data);
+                    data = reader.read();
+                }
+            }
+        } catch (IOException e) {
+            throw new TestGridException(StringUtil.concatStrings("Error in writing file ", fileName), e);
+        }
+        return out.toString();
     }
 
     /**
