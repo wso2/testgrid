@@ -204,7 +204,6 @@ class TestRunView extends Component {
       window.location.href.split("/").pop() + "?truncate=" + false;
     const turncatedRunLogUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
       window.location.href.split("/").pop() + "?truncate=" + true;
-    //const PERFDASH_URL =  window.alert(this.href.substr(this.href.lastIndexOf('/') + 1))
     const PERFDASH_URL = "http://ec2-34-232-211-33.compute-1.amazonaws.com:3000/d/kMopgVtmz/wso2-product-performance-metrics?refresh=10s&orgId=1&var-TestPlan=" + lastURLSegment + "&var-VM=All&from=now-1h&to=now"
     return (
       <div>
