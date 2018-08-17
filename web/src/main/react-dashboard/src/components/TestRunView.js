@@ -38,8 +38,6 @@ import {HTTP_OK} from "../constants";
  */
 class TestRunView extends Component {
 
-
-
   constructor(props) {
     super(props);
     this.state = {
@@ -197,8 +195,6 @@ class TestRunView extends Component {
         this.setState({TruncatedRunLogUrlStatus:response.status});
       })
   }
-
-
 
   render() {
     var pageURL = window.location.href;
