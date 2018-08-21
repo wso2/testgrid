@@ -139,8 +139,8 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir)
-            throws TestGridInfrastructureException {
+    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
+                           TestPlan testPlan) throws TestGridInfrastructureException {
         String testPlanLocation = Paths.get(infraRepoDir).toString();
 
         logger.info("Destroying test environment...");

@@ -27,8 +27,6 @@ import com.amazonaws.services.ec2.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridConstants;
-import org.wso2.testgrid.common.config.ConfigurationContext;
-import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -53,10 +51,11 @@ public class AMIMapper {
     private static final String AMI_TAG_OS = "OS";
     private static final String AMI_TAG_OS_VERSION = "OSVersion";
     private static final String AMI_TAG_AGENT_READY = "AGENT_READY";
+    private String region;
 
     private final AmazonEC2 amazonEC2;
 
-    public AMIMapper() throws TestGridInfrastructureException {
+    public AMIMapper(String allocatedRegion) throws TestGridInfrastructureException {
         Path configFilePath = Paths.get(TestGridUtil.getTestGridHomePath(),
                 TestGridConstants.TESTGRID_CONFIG_FILE);
         if (!Files.exists(configFilePath)) {
@@ -65,9 +64,10 @@ public class AMIMapper {
                             " Unable to obtain AWS credentials. Check if the file exists in " +
                             configFilePath.toFile().toString());
         }
+        this.region = allocatedRegion;
         amazonEC2 = AmazonEC2ClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                .withRegion(ConfigurationContext.getProperty(ConfigurationProperties.AWS_REGION_NAME))
+                .withRegion(region)
                 .build();
     }
 

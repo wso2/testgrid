@@ -131,4 +131,16 @@ public class DeploymentPatternUOW {
             TestGridDAOException {
         return deploymentPatternRepository.findFailedTestCounts(productId, date);
     }
+
+    /**
+     * This method persists a {@link Product} to the database.
+     *
+     * @param deploymentPattern deployment pattern to update
+     *
+     * @return persisted {@link Product} instance
+     * @throws TestGridDAOException thrown when error on persisting the object
+     */
+    public DeploymentPattern updateDeploymentPattern(DeploymentPattern deploymentPattern) throws TestGridDAOException {
+        return deploymentPatternRepository.persist(deploymentPattern);
+    }
 }

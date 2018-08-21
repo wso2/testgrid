@@ -60,8 +60,8 @@ public class OpenStackProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir) throws
-            TestGridInfrastructureException {
+    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
+                           TestPlan testPlan) throws TestGridInfrastructureException {
         return false;
     }
 }

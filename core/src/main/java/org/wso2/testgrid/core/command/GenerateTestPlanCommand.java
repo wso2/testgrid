@@ -273,7 +273,7 @@ public class GenerateTestPlanCommand implements Command {
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error while retrieving deployment pattern for { product: ", product,
-                            ", deploymentPatternName: ", deploymentPatternName, "}"));
+                            ", deploymentPatternName: ", deploymentPatternName, "}"), e);
         }
     }
 
