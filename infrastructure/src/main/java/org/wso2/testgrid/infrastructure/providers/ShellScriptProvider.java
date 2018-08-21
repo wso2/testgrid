@@ -28,6 +28,7 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
@@ -115,7 +116,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
             final String workspace = TestGridUtil.getTestRunWorkspace(testPlan, false).toString();
             inputParameters.setProperty(WORKSPACE, workspace);
             // TODO: this is deprecated.
-            inputParameters.setProperty(OUTPUT_DIR, workspace);
+            inputParameters.setProperty(OUTPUT_DIR, DataBucketsHelper.getOutputLocation(testPlan).toString());
 
             String parameterString = TestGridUtil.getParameterString(null, inputParameters);
             ShellExecutor executor = new ShellExecutor(null);
