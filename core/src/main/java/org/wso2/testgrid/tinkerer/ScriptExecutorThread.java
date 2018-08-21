@@ -26,14 +26,13 @@ import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Calendar;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 
-import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY;
 
 /**
  * Thread to stream data from tinkerer and dump result into a file.
@@ -42,11 +41,13 @@ public class ScriptExecutorThread extends Thread {
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptExecutorThread.class);
 
+    public static final int MAX_BUFFER_IDLE_TIME = 900000;  // Maximum waiting time to update message queue
+
     private Response response;
     private Path testGridShellStreamPath;
     private String operationId;
-    private boolean isCompleted;
-    private int exitValue;
+    private volatile boolean isCompleted;
+    private volatile int exitValue;
 
     /**
      * Initialize streaming thread with operation details.
@@ -54,19 +55,19 @@ public class ScriptExecutorThread extends Thread {
      * @param operationId          The operation id
      * @param response              Response from the tinkerer
      */
-    public ScriptExecutorThread(String operationId, Response response) {
+    public ScriptExecutorThread(String operationId, Response response, Path filePath) {
         this.operationId = operationId;
         this.response = response;
-        this.testGridShellStreamPath = Paths.get(System.getProperty(TESTGRID_HOME_SYSTEM_PROPERTY), "shell");
+        this.testGridShellStreamPath = filePath;
         this.isCompleted = false;
         this.exitValue = 0;
-        // Create folder to store result in testgrid home if it not already exist
-        if (!Files.exists(this.testGridShellStreamPath)) {
-            boolean fileStatus = new File(this.testGridShellStreamPath.toString()).mkdirs();
-            if (!fileStatus) {
-                logger.error("Unable to create new directory for operation id " + this.operationId);
-            }
+        try {
+            Files.createFile(filePath);
+        } catch (IOException e) {
+            logger.error("Error while creating file for operation id " + this.operationId + " path " +
+                    this.testGridShellStreamPath.toString(), e);
         }
+
     }
 
     /**
@@ -78,14 +79,22 @@ public class ScriptExecutorThread extends Thread {
         ChunkedInput<String> input = this.response.readEntity(new ChunkObject());
         String chunk;
         OperationSegment operationSegment = new OperationSegment();
+        long initTime = Calendar.getInstance().getTimeInMillis();
         while ((chunk = input.read()) != null) {
+            long currentTime = Calendar.getInstance().getTimeInMillis();
+            if (initTime + MAX_BUFFER_IDLE_TIME < currentTime) {
+                logger.warn("Execution time out for operation " + this.operationId);
+                break;
+            }
             operationSegment = gson.fromJson(chunk, OperationSegment.class);
             writeDataToFile(operationSegment);
         }
-        this.isCompleted = true;
-        this.exitValue = operationSegment.getExitValue();
-        logger.info("Streaming success with exit value " + operationSegment.getExitValue() + " for operation " +
-        this.operationId);
+        synchronized (this) {
+            this.isCompleted = true;
+            this.exitValue = operationSegment.getExitValue();
+            logger.info("Streaming success with exit value " + operationSegment.getExitValue() + " for operation " +
+                    this.operationId);
+        }
     }
 
     /**
@@ -95,8 +104,7 @@ public class ScriptExecutorThread extends Thread {
      */
     private void writeDataToFile(OperationSegment operationSegment) {
         try {
-            FileUtil.saveFile(operationSegment.getResponse(), this.testGridShellStreamPath.toString(),
-                    operationSegment.getOperationId().concat(".log"));
+            FileUtil.saveFile(operationSegment.getResponse(), this.testGridShellStreamPath.toString(), true);
         } catch (TestGridException e) {
             logger.error("Unable Write data into a file for operation id " + operationSegment.getOperationId(), e);
         }
@@ -107,7 +115,7 @@ public class ScriptExecutorThread extends Thread {
      *
      * @return      The exit value
      */
-    public int getExitValue() {
+    public synchronized int getExitValue() {
         return exitValue;
     }
 
@@ -116,7 +124,7 @@ public class ScriptExecutorThread extends Thread {
      *
      * @return      Execution completed of not completed
      */
-    public boolean isCompleted() {
+    public synchronized boolean isCompleted() {
         return isCompleted;
     }
 

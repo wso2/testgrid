@@ -22,7 +22,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
-import org.wso2.testgrid.deployment.tinkerer.beans.OperationQueue;
+import org.wso2.testgrid.deployment.tinkerer.beans.OperationMessage;
 import org.wso2.testgrid.deployment.tinkerer.utils.AgentStreamHandler;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 
@@ -163,39 +163,32 @@ public class AppServletContextListener implements ServletContextListener {
          */
         @Override
         public void run() {
-            for (Map.Entry<String, OperationQueue> operationQueueEntry : SessionManager.getOperationQueueMap()
+            for (Map.Entry<String, OperationMessage> operationQueueEntry : SessionManager.getOperationQueueMap()
                     .entrySet()) {
                 long currentTime = Calendar.getInstance().getTimeInMillis();
-                OperationQueue operationQueue = operationQueueEntry.getValue();
+                OperationMessage operationMessage = operationQueueEntry.getValue();
                 final SessionManager sessionManager = SessionManager.getInstance();
-                String deleteOperationId = operationQueue.getOperationId();
+                String deleteOperationId = operationMessage.getOperationId();
                 // If message exist for more longer without consume after the abort operation then remove it from
                 // the message queue
                 long consumeTimeout = Constants.MAX_LAST_CONSUME_TIMEOUT + Constants.MESSAGE_QUEUE_INTERVAL;
                 long updateTimeout = Constants.MAX_LAST_UPDATED_TIMEOUT + Constants.MESSAGE_QUEUE_INTERVAL;
-                if ((operationQueue.getLastConsumedTime() + consumeTimeout < currentTime ||
-                        operationQueue.getLastUpdatedTime() + updateTimeout < currentTime) &&
-                        operationQueue.getCode().equals(OperationRequest.OperationCode.SHELL)) {
+                if ((operationMessage.getLastConsumedTime() + consumeTimeout < currentTime ||
+                        operationMessage.getLastUpdatedTime() + updateTimeout < currentTime)) {
                     logger.warn("Operation time out for operation " + deleteOperationId + " " +
-                            operationQueue.getCode() + " deleting message queue");
+                            operationMessage.getCode() + " deleting message queue");
                     sessionManager.removeOperationQueueMessages(deleteOperationId);
                     break;
                 }
                 // Abort operation execution if agent idle or test executor not retrieving back for a given timeout
-                if ((operationQueue.getLastConsumedTime() + Constants.MAX_LAST_CONSUME_TIMEOUT < currentTime ||
-                        operationQueue.getLastUpdatedTime() + Constants.MAX_LAST_UPDATED_TIMEOUT < currentTime) &&
-                        operationQueue.getCode().equals(OperationRequest.OperationCode.SHELL)) {
+                if ((operationMessage.getLastConsumedTime() + Constants.MAX_LAST_CONSUME_TIMEOUT < currentTime ||
+                        operationMessage.getLastUpdatedTime() + Constants.MAX_LAST_UPDATED_TIMEOUT < currentTime) &&
+                        operationMessage.getCode().equals(OperationRequest.OperationCode.SHELL)) {
                     logger.warn("Operation time out for operation " + deleteOperationId + " " +
-                            operationQueue.getCode() + " Aborting execution operation");
+                            operationMessage.getCode() + " Aborting execution operation");
                     AgentStreamHandler agentStreamHandler = new AgentStreamHandler();
-                    agentStreamHandler.abortOperation(deleteOperationId, operationQueue.getAgentId());
+                    agentStreamHandler.abortOperation(deleteOperationId, operationMessage.getAgentId());
                     break;
-                }
-                // Persist message queue into a file if it overflow
-                if (operationQueue.getContentLength() > Constants.MAX_QUEUE_CONTENT_LENGTH) {
-                    logger.info("Message overflow for operation " + operationQueue.getOperationId() +
-                            " Start persist message queue into file");
-                    operationQueue.persistOperationQueue();
                 }
             }
         }

@@ -115,22 +115,27 @@ public class DeploymentTinkerer {
      * @return The operation response.
      */
     @POST
-    @Path("test-plan/{testPlanId}/agent/{instanceName}/stream-shell")
+    @Path("test-plan/{testPlanId}/agent/{instanceName}/stream-operation")
     @Consumes(MediaType.APPLICATION_JSON)
     public ChunkedOutput<String> sendStreamingOperation(@PathParam("testPlanId") String testPlanId,
                                                         @PathParam("instanceName") String instanceName,
                                                         OperationRequest operationRequest) {
-        final ChunkedOutput<String> output = new ChunkedOutput<String>(String.class);
+        final ChunkedOutput<String> streamingBuffer = new ChunkedOutput<String>(String.class);
         logger.info("Operation request received " + operationRequest.toJSON());
-        AgentStreamHandler agentStreamHandler = new AgentStreamHandler(output, operationRequest, testPlanId,
+        AgentStreamHandler agentStreamHandler = new AgentStreamHandler(streamingBuffer, operationRequest, testPlanId,
                 instanceName);
         try {
             agentStreamHandler.startSendCommand();
             SessionManager.getAgentObservable().addObserver(agentStreamHandler);
         } catch (AgentHandleException e) {
             logger.error("Error while sending command to the Agent for test plan " + testPlanId, e);
+            try {
+                streamingBuffer.close();
+            } catch (IOException ioe) {
+                logger.error("Error while closing output stream for test plan " + testPlanId, ioe);
+            }
         }
-        return output;
+        return streamingBuffer;
     }
 
     /**

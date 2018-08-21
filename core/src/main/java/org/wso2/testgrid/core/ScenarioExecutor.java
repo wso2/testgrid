@@ -143,7 +143,7 @@ public class ScenarioExecutor {
             List<String> files = FileUtil.getFilesOnDirectory(
                     directory + FILE_SEPARATOR + JMETER_FOLDER, JMETER_FILE_FILTER_PATTERN);
             files.sort(Comparator.naturalOrder());
-            FileUtil.saveFile(prepareScriptContent(files), directory, "run-scenario.sh");
+            FileUtil.saveFile(prepareScriptContent(files), directory, "run-scenario.sh", false);
         } catch (TestGridException e) {
             throw new ScenarioExecutorException(StringUtil
                     .concatStrings("Exception occurred while creating run-scenario.sh file in directory ",

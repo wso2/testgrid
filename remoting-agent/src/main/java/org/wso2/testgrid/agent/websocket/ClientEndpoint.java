@@ -181,7 +181,7 @@ public class ClientEndpoint {
                 break;
             case ABORT:
                 AgentStreamObserver agentStreamObserver =
-                        AgentStreamReader.getObserverHashMapById(operationRequest.getOperationId());
+                        AgentStreamReader.getAgentStreamObserverById(operationRequest.getOperationId());
                 if (agentStreamObserver != null) {
                     agentStreamObserver.setAbortExecution(true);
                     agentStreamObserver.update(null, null);

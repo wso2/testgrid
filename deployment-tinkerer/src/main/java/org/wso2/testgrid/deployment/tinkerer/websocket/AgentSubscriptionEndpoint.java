@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.deployment.tinkerer.SessionManager;
-import org.wso2.testgrid.deployment.tinkerer.beans.OperationQueue;
+import org.wso2.testgrid.deployment.tinkerer.beans.OperationMessage;
 import org.wso2.testgrid.deployment.tinkerer.utils.HttpSessionConfigurator;
 
 import javax.websocket.CloseReason;
@@ -70,14 +70,15 @@ public class AgentSubscriptionEndpoint extends SubscriptionEndpoint {
         OperationSegment operationSegment = new Gson().fromJson(message, OperationSegment.class);
         logger.info("Message receive from agent: " + agentId + " with operation id " +
                 operationSegment.getOperationId() + " code " + operationSegment.getCode() + " exitValue " +
-         operationSegment.getExitValue() + " completed " + operationSegment.getCompleted());
-        OperationQueue operationQueue = SessionManager.getOperationQueueMap().get(operationSegment.getOperationId());
-        if (operationQueue != null) {
-            operationQueue.addMessage(operationSegment);
+                operationSegment.getExitValue() + " completed " + operationSegment.getCompleted());
+        OperationMessage operationMessage = SessionManager.getOperationQueueMap().
+                get(operationSegment.getOperationId());
+        if (operationMessage != null) {
+            operationMessage.addMessage(operationSegment);
             logger.debug("Message with size " + operationSegment.getResponse().length() +
                     " added to the message queue with operation id " + operationSegment.getOperationId());
         }
-        SessionManager.getAgentObservable().notifyObservable(null);
+        SessionManager.getAgentObservable().notifyObservable(operationSegment.getOperationId());
     }
 
     /**

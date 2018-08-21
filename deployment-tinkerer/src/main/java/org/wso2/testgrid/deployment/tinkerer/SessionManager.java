@@ -25,7 +25,7 @@ import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.agentoperation.AgentObservable;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
-import org.wso2.testgrid.deployment.tinkerer.beans.OperationQueue;
+import org.wso2.testgrid.deployment.tinkerer.beans.OperationMessage;
 import org.wso2.testgrid.deployment.tinkerer.providers.InfraProviderFactory;
 import org.wso2.testgrid.deployment.tinkerer.providers.Provider;
 
@@ -52,13 +52,13 @@ public class SessionManager {
     private static final SessionManager sessionManager = new SessionManager();
     private static volatile Map<String, Session> agentSessions = new HashMap<>();
     private static volatile Map<String, Agent> agents = new HashMap<>();
-    private static volatile Map<String, OperationQueue> operationQueueMap = new HashMap<>();
+    private static volatile Map<String, OperationMessage> operationMessageMap = new HashMap<>();
     private static volatile AgentObservable agentObservable = new AgentObservable();
 
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     private SessionManager() {
         // Create folder to store overflow execution result in testgrid home if it not already exist
-        Path persistedFilePath = Paths.get(OperationQueue.PERSISTED_FILE_PATH);
+        Path persistedFilePath = Paths.get(OperationMessage.PERSISTED_FILE_PATH);
         if (!Files.exists(persistedFilePath)) {
             boolean fileStatus = new File(persistedFilePath.toString()).mkdirs();
             if (!fileStatus) {
@@ -174,12 +174,12 @@ public class SessionManager {
      * @param operationId   operation id of relevant OperationQueue
      * @return  OparationQueue for the relevant operation id
      */
-    public synchronized OperationQueue getOperationRequest(String operationId) {
-        Optional<Map.Entry<String, OperationQueue>> operationOptional = operationQueueMap.entrySet().stream()
+    public synchronized OperationMessage getOperationRequest(String operationId) {
+        Optional<Map.Entry<String, OperationMessage>> operationOptional = operationMessageMap.entrySet().stream()
                 .filter(entry -> {
-                    OperationQueue operationQueue = entry.getValue();
-                    if (operationQueue != null && operationId != null) {
-                        return operationId.equals(operationQueue.getOperationId());
+                    OperationMessage operationMessage = entry.getValue();
+                    if (operationMessage != null && operationId != null) {
+                        return operationId.equals(operationMessage.getOperationId());
                         }
                         return false;
                     }).findFirst();
@@ -187,16 +187,16 @@ public class SessionManager {
     }
 
     /**
-     * Get operationQueueMap
+     * Get operationMessageMap
      *
-     * @return      operationQueueMap
+     * @return      operationMessageMap
      */
-    public static synchronized Map<String, OperationQueue> getOperationQueueMap() {
-        return operationQueueMap;
+    public static synchronized Map<String, OperationMessage> getOperationQueueMap() {
+        return operationMessageMap;
     }
 
     /**
-     * Add new Operation queue to the operationQueueMap
+     * Add new Operation queue to the operationMessageMap
      *
      * @param operationId   operation id for the new message queue
      * @param code          Type of the operation
@@ -204,8 +204,8 @@ public class SessionManager {
      */
     public synchronized void addNewOperationQueue(String operationId, OperationRequest.OperationCode code,
                                                   String agentId) {
-        OperationQueue operationQueue = new OperationQueue(operationId, code, agentId);
-        operationQueueMap.put(operationId, operationQueue);
+        OperationMessage operationMessage = new OperationMessage(operationId, code, agentId);
+        operationMessageMap.put(operationId, operationMessage);
     }
 
     /**
@@ -217,14 +217,14 @@ public class SessionManager {
     public OperationSegment getOperationQueueMessages(String operationId) {
         String returnMessage = "";
         OperationSegment tempOperationSegment = new OperationSegment();
-        OperationQueue operationQueue = getOperationRequest(operationId);
-        if (operationQueue != null) {
-            for (String operationSegment : operationQueue.getMessageQueue()) {
+        OperationMessage operationMessage = getOperationRequest(operationId);
+        if (operationMessage != null) {
+            for (String operationSegment : operationMessage.getMessageQueue()) {
                 returnMessage = returnMessage.concat(operationSegment);
             }
-            tempOperationSegment.setCompleted(operationQueue.isCompleted());
-            tempOperationSegment.setExitValue(operationQueue.getExitValue());
-            tempOperationSegment.setCode(operationQueue.getCode());
+            tempOperationSegment.setCompleted(operationMessage.isCompleted());
+            tempOperationSegment.setExitValue(operationMessage.getExitValue());
+            tempOperationSegment.setCode(operationMessage.getCode());
             tempOperationSegment.setOperationId(operationId);
         }
         tempOperationSegment.setResponse(returnMessage);
@@ -232,17 +232,17 @@ public class SessionManager {
     }
 
     /**
-     * Dequeue all new messages from operationQueueMap if any new messages are available
+     * Dequeue all new messages from operationMessageMap if any new messages are available
      *
      * @param operationId   operation id to select message queue
      * @return
      */
     public synchronized OperationSegment dequeueOperationQueueMessages(String operationId) {
         OperationSegment operationSegment = getOperationQueueMessages(operationId);
-        OperationQueue operationQueue = operationQueueMap.get(operationId);
-        if (operationQueue != null) {
-            operationQueueMap.get(operationId).resetMessageQueue();
-            operationQueueMap.get(operationId).updateLastConsumedTime();
+        OperationMessage operationMessage = operationMessageMap.get(operationId);
+        if (operationMessage != null) {
+            operationMessageMap.get(operationId).resetMessageQueue();
+            operationMessageMap.get(operationId).updateLastConsumedTime();
             return operationSegment;
         } else {
             return null;
@@ -256,9 +256,9 @@ public class SessionManager {
      * @return      has new messages
      */
     public synchronized boolean hasMessageQueueResponse(String operationId) {
-        OperationQueue operationQueue = operationQueueMap.get(operationId);
-        if (operationQueue != null) {
-            if (operationQueue.getMessageQueue().size() > 0) {
+        OperationMessage operationMessage = operationMessageMap.get(operationId);
+        if (operationMessage != null) {
+            if (operationMessage.getMessageQueue().size() > 0) {
                 return true;
             } else {
                 return false;
@@ -269,12 +269,16 @@ public class SessionManager {
     }
 
     /**
-     * Remove message queue from operationQueueMap by using operation id
+     * Remove message queue from operationMessageMap by using operation id
      *
      * @param operationId   operation id for relevant message queue
      */
     public synchronized void removeOperationQueueMessages(String operationId) {
-        operationQueueMap.remove(operationId);
+        OperationMessage operationMessage = operationMessageMap.get(operationId);
+        if (operationMessage != null) {
+            operationMessage.removePersistedFile();
+            operationMessageMap.remove(operationId);
+        }
     }
 
     /**

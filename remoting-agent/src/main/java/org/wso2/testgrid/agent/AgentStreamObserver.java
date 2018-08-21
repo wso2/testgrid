@@ -35,14 +35,14 @@ import java.util.Observer;
  */
 public class AgentStreamObserver implements Observer {
 
-    private static final int MAX_LINE_COUNT = 10;
+    private static final int MAX_CONTENT_SIZE = 1024;
     private static final long MAX_EXECUTION_TIME_OUT = 500;
     private static final Logger logger = LoggerFactory.getLogger(AgentStreamObserver.class);
 
     private String operationId;
     private OperationResponseListener operationResponseListener;
     private Process process;
-    private int lineCount;
+    private long resultSize;
     private AgentObservable agentObservable;
     private volatile boolean oneProcessCompleted = false;
     private volatile long initTime;
@@ -50,7 +50,7 @@ public class AgentStreamObserver implements Observer {
     private volatile boolean abortExecution = false;
 
     /**
-     * Initialize object constructor
+     * Initialize object constructor.
      *
      * @param operationResponseListener         Send response back to the Tinkerer
      * @param operationId                       The operation id
@@ -61,7 +61,7 @@ public class AgentStreamObserver implements Observer {
                                Process process, AgentObservable agentObservable) {
         this.operationResponseListener = operationResponseListener;
         this.operationId = operationId;
-        this.lineCount = 0;
+        this.resultSize = 0;
         this.initTime = Calendar.getInstance().getTimeInMillis();
         this.process = process;
         this.agentObservable = agentObservable;
@@ -69,7 +69,7 @@ public class AgentStreamObserver implements Observer {
 
     /**
      * Handle response from the command execution thread and send response as segment
-     * To the tinkerer
+     * To the tinkerer.
      *
      * @param o                 Observable object
      * @param arg               Shell execution result
@@ -77,8 +77,11 @@ public class AgentStreamObserver implements Observer {
     @Override
     public synchronized void update(Observable o, Object arg) {
         String shellResult = (String) arg;
-        this.lineCount++;
+        if (shellResult != null) {
+            this.resultSize += shellResult.length();
+        }
         if (arg == null || this.abortExecution) {
+
             if (this.abortExecution && process.isAlive()) {
                 process.destroy();
             }
@@ -96,17 +99,17 @@ public class AgentStreamObserver implements Observer {
                 finalOperationSegment.setResponse(this.shellLog);
                 finalOperationSegment.setCode(OperationSegment.OperationCode.SHELL);
                 this.agentObservable.deleteObserver(this);
-                AgentStreamReader.removeObserverHashMapById(this.operationId);
+                AgentStreamReader.removeAgentStreamObserverById(this.operationId);
                 this.operationResponseListener.sendResponse(finalOperationSegment);
             }
             this.oneProcessCompleted = true;
             return;
         }
-        if (lineCount >= MAX_LINE_COUNT ||
+        if (this.resultSize >= MAX_CONTENT_SIZE ||
                 initTime + MAX_EXECUTION_TIME_OUT < Calendar.getInstance().getTimeInMillis()) {
             initTime = Calendar.getInstance().getTimeInMillis();
             this.shellLog = this.shellLog.concat(shellResult);
-            lineCount = 0;
+            this.resultSize = 0;
             OperationSegment operationSegment = new OperationSegment();
             operationSegment.setOperationId(this.operationId);
             operationSegment.setCompleted(false);
@@ -121,7 +124,7 @@ public class AgentStreamObserver implements Observer {
     }
 
     /**
-     * Set abort execution state
+     * Set abort execution state.
      *
      * @param abortExecution        True if abort execution
      */

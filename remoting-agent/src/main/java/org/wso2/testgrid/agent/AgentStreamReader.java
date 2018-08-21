@@ -84,7 +84,7 @@ public class AgentStreamReader {
      * @param operationId       Operation id of the observer
      * @return                  Instance of AgentStreamObserver
      */
-    public static AgentStreamObserver getObserverHashMapById(String operationId) {
+    public static AgentStreamObserver getAgentStreamObserverById(String operationId) {
         return observerHashMap.get(operationId);
     }
 
@@ -93,7 +93,7 @@ public class AgentStreamReader {
      *
      * @param operationId       The operation id of the observer to remove
      */
-    public static void removeObserverHashMapById(String operationId) {
+    public static void removeAgentStreamObserverById(String operationId) {
         observerHashMap.remove(operationId);
     }
 

@@ -25,6 +25,7 @@ import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,22 +38,22 @@ import java.util.Queue;
 /**
  * Hold list of operation result which were executed on agent.
  */
-public class OperationQueue {
+public class OperationMessage {
 
-    private static final Logger logger = LoggerFactory.getLogger(OperationQueue.class);
-    public static final String PERSISTED_FILE_PATH = "/tmp/testgrid/";
+    private static final Logger logger = LoggerFactory.getLogger(OperationMessage.class);
+    public static final String PERSISTED_FILE_PATH = System.getProperty("java.io.tmpdir");
 
     private String operationId;
     private String agentId;
-    private Queue<String> messageQueue;
     private OperationRequest.OperationCode code;
-    private boolean completed;
-    private int exitValue;
-    private double contentLength;
-    private long createdTime;
-    private long lastUpdatedTime;
-    private long lastConsumedTime;
-    private boolean persisted;
+    private volatile Queue<String> messageQueue;
+    private volatile boolean completed;
+    private volatile int exitValue;
+    private volatile double contentLength;
+    private volatile long createdTime;
+    private volatile long lastUpdatedTime;
+    private volatile long lastConsumedTime;
+    private volatile boolean persisted;
 
     /**
      * Create new operation queue and initialize with operation id and code.
@@ -61,7 +62,7 @@ public class OperationQueue {
      * @param code          Type of the operation
      * @param agentId       The id of the agent operation executing on
      */
-    public OperationQueue(String operationId, OperationRequest.OperationCode code, String agentId) {
+    public OperationMessage(String operationId, OperationRequest.OperationCode code, String agentId) {
         this.operationId = operationId;
         this.agentId = agentId;
         this.messageQueue = new LinkedList<>();
@@ -80,7 +81,7 @@ public class OperationQueue {
      *
      * @param operationSegment  operation segment to add
      */
-    public void addMessage(OperationSegment operationSegment) {
+    public synchronized void addMessage(OperationSegment operationSegment) {
         if (operationSegment.getCompleted()) {
             setOperationAsCompleted(operationSegment.getExitValue());
         }
@@ -90,6 +91,12 @@ public class OperationQueue {
             this.messageQueue.add(operationSegment.getResponse());
             this.contentLength += operationSegment.getResponse().length();
         }
+        // Persist message queue into a file if it overflow
+        if (this.contentLength > Constants.MAX_QUEUE_CONTENT_LENGTH) {
+            logger.info("Message overflow for operation " + this.operationId +
+                    " Start persist message queue into a file");
+            persistOperationQueue();
+        }
         this.lastUpdatedTime = Calendar.getInstance().getTimeInMillis();;
     }
 
@@ -98,7 +105,7 @@ public class OperationQueue {
      *
      * @return      The operation id
      */
-    public String getOperationId() {
+    public synchronized String getOperationId() {
         return operationId;
     }
 
@@ -107,7 +114,7 @@ public class OperationQueue {
      *
      * @param operationId   The operation queue
      */
-    public void setOperationId(String operationId) {
+    public synchronized void setOperationId(String operationId) {
         this.operationId = operationId;
     }
 
@@ -116,7 +123,7 @@ public class OperationQueue {
      *
      * @return  The message queue
      */
-    public Queue<String> getMessageQueue() {
+    public synchronized Queue<String> getMessageQueue() {
         if (this.persisted) {
             recoverOperationQueue();
         }
@@ -128,7 +135,7 @@ public class OperationQueue {
      *
      * @param messageQueue  The message queue
      */
-    public void setMessageQueue(Queue<String> messageQueue) {
+    public synchronized void setMessageQueue(Queue<String> messageQueue) {
         if (this.persisted) {
             removePersistedFile();
         }
@@ -141,7 +148,7 @@ public class OperationQueue {
      * Reset message queue with empty message queue
      *
      */
-    public void resetMessageQueue() {
+    public synchronized void resetMessageQueue() {
         if (this.persisted) {
             removePersistedFile();
         }
@@ -164,7 +171,7 @@ public class OperationQueue {
      *
      * @return  Last updated time in milliseconds
      */
-    public long getLastUpdatedTime() {
+    public synchronized long getLastUpdatedTime() {
         return this.lastUpdatedTime;
     }
 
@@ -172,14 +179,14 @@ public class OperationQueue {
      * Get when last message was dequeue
      * @return      Last consumed time in millisecond
      */
-    public long getLastConsumedTime() {
+    public synchronized long getLastConsumedTime() {
         return lastConsumedTime;
     }
 
     /**
      * Update the last consume time to current time
      */
-    public void updateLastConsumedTime() {
+    public synchronized void updateLastConsumedTime() {
         this.lastConsumedTime = Calendar.getInstance().getTimeInMillis();
     }
 
@@ -206,7 +213,7 @@ public class OperationQueue {
      *
      * @return      Length of the message queue
      */
-    public double getContentLength() {
+    public synchronized double getContentLength() {
         return contentLength;
     }
 
@@ -215,7 +222,7 @@ public class OperationQueue {
      *
      * @return      Content length
      */
-    public double calculateContentLength() {
+    private synchronized double calculateContentLength() {
         double sizeOfContent = 0;
         for (String operationSegment : this.messageQueue) {
             sizeOfContent += operationSegment.length();
@@ -229,7 +236,7 @@ public class OperationQueue {
      *
      * @return      true if success, else false
      */
-    public boolean persistOperationQueue() {
+    public synchronized boolean persistOperationQueue() {
         String dataToWrite = "";
         for (String dataSegment : messageQueue) {
             dataToWrite = dataToWrite.concat(dataSegment);
@@ -244,9 +251,9 @@ public class OperationQueue {
      * @return              true if success, else false
      */
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
-    private boolean persistMessage(String message) {
+    private synchronized boolean persistMessage(String message) {
         try {
-            FileUtil.saveFile(message, PERSISTED_FILE_PATH, this.operationId.concat(".txt"));
+            FileUtil.saveFile(message, PERSISTED_FILE_PATH, this.operationId.concat(".txt"), true);
             this.messageQueue = new LinkedList<>();
             this.lastUpdatedTime = Calendar.getInstance().getTimeInMillis();;
             this.contentLength = 0;
@@ -264,7 +271,7 @@ public class OperationQueue {
      * @return      true if success, else false
      */
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
-    public boolean recoverOperationQueue() {
+    private synchronized boolean recoverOperationQueue() {
         try {
             String persistedResult = FileUtil.readFile(PERSISTED_FILE_PATH, this.operationId.concat(".txt"));
             double contentLength = persistedResult.length();
@@ -283,7 +290,7 @@ public class OperationQueue {
      * @return      true if success, else false
      */
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
-    public boolean removePersistedFile() {
+    public synchronized boolean removePersistedFile() {
         Path filePath = Paths.get(PERSISTED_FILE_PATH, this.operationId.concat(".txt"));
         try {
             Files.delete(filePath);
@@ -299,7 +306,7 @@ public class OperationQueue {
      *
      * @return      Completed state
      */
-    public boolean isCompleted() {
+    public synchronized boolean isCompleted() {
         return completed;
     }
 
@@ -308,7 +315,7 @@ public class OperationQueue {
      *
      * @return      The exit value
      */
-    public int getExitValue() {
+    public synchronized int getExitValue() {
         return exitValue;
     }
 
@@ -335,7 +342,7 @@ public class OperationQueue {
      *
      * @param exitValue     The exit value
      */
-    public void setOperationAsCompleted(int exitValue) {
+    public synchronized void setOperationAsCompleted(int exitValue) {
         this.completed = true;
         this.exitValue = exitValue;
     }

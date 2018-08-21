@@ -100,15 +100,30 @@ public class FileUtil {
      * @param content  content to write in the file
      * @param filePath location to save the file
      * @param fileName name of the file
+     * @param append   true if append, false if overwrite
      * @throws TestGridException thrown when error on persisting file
      */
-    public static void saveFile(String content, String filePath, String fileName) throws TestGridException {
+    public static void saveFile(String content, String filePath, String fileName, boolean append)
+            throws TestGridException {
         String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
-        try (OutputStream outputStream = new FileOutputStream(fileAbsolutePath);
-                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+        saveFile(content, fileAbsolutePath, append);
+    }
+
+    /**
+     * Saves the content to a file with the given file path.
+     *
+     * @param content       The content to save into file
+     * @param filePath      Whole file path to write
+     * @param append        true if append, false if overwrite
+     * @throws TestGridException    thrown when error on persisting file
+     */
+    public static void saveFile(String content, String filePath, boolean append) throws TestGridException {
+        try (OutputStream outputStream = new FileOutputStream(filePath, append);
+             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
             outputStreamWriter.write(content);
         } catch (IOException e) {
-            throw new TestGridException(StringUtil.concatStrings("Error in writing file ", fileName), e);
+            throw new TestGridException(StringUtil.concatStrings("Error while writing data to a file ",
+                    filePath), e);
         }
     }
 
