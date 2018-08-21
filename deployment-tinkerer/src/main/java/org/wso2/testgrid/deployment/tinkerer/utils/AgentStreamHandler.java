@@ -77,7 +77,6 @@ public class AgentStreamHandler implements Observer {
     public void startSendCommand() throws AgentHandleException {
         SessionManager sessionManager = SessionManager.getInstance();
 
-        //todo change to instance role, and return type to list of agents.
         Agent agent = sessionManager.getAgent(testPlanId, instanceName);
         if (agent != null && sessionManager.hasAgentSession(agent.getAgentId())) {
             Session wsSession = sessionManager.getAgentSession(agent.getAgentId());

@@ -19,17 +19,22 @@
 package org.wso2.testgrid.tinkerer;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -136,12 +141,66 @@ public class TinkererSDK {
     }
 
     /**
+     * Get a list of agent for given set of test plans
+     *
+     * @return      List of agents for given test plan id
+     */
+    @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
+    public List<Agent> getAgentListForTestPlan() {
+        Client client = ClientBuilder.newClient();
+
+        Response response = client.target(tinkererHost + "test-plan/" + this.testPlanId)
+                .path("agents")
+                .request()
+                .header(HttpHeaders.AUTHORIZATION, this.authenticationToken)
+                .get();
+        Type listType =  new TypeToken<List<Agent>>() { }.getType();
+        return new Gson().fromJson(response.readEntity(String.class), listType);
+    }
+
+    /**
      * Set Tinkerer host
      *
      * @param tinkererHost  The Tinkerer host
      */
     public void setTinkererHost(String tinkererHost) {
         this.tinkererHost = tinkererHost;
+    }
+
+    /**
+     * Get a list of all agents from Tinkerer
+     *
+     * @return      List of all Tinkerer agents
+     */
+    public List<Agent> getAllAgentList() {
+        Client client = ClientBuilder.newClient();
+        Response response = client.target(tinkererHost)
+                .path("agents")
+                .request()
+                .header(HttpHeaders.AUTHORIZATION, this.authenticationToken)
+                .get();
+        Type listType =  new TypeToken<List<Agent>>() { }.getType();
+        return new Gson().fromJson(response.readEntity(String.class), listType);
+    }
+
+    public List<String> getAllTestPlanIds() {
+        Client client = ClientBuilder.newClient();
+        Response response = client.target(tinkererHost)
+                .path("test-plans")
+                .request()
+                .header(HttpHeaders.AUTHORIZATION, this.authenticationToken)
+                .get();
+        Type listType =  new TypeToken<List<String>>() { }.getType();
+        return new Gson().fromJson(response.readEntity(String.class), listType);
+    }
+
+    /**
+     * Set test plan id.
+     *
+     * @param testPlanId    The test plan id
+     */
+    public void setTestPlanId(String testPlanId) {
+        this.testPlanId = testPlanId;
     }
 }
 
