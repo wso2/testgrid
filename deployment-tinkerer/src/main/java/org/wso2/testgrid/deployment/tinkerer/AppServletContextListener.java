@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.deployment.tinkerer.beans.OperationMessage;
-import org.wso2.testgrid.deployment.tinkerer.utils.AgentStreamHandler;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 
 import java.io.IOException;

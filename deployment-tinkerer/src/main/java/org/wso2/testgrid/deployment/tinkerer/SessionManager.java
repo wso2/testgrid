@@ -114,16 +114,15 @@ public class SessionManager {
     /**
      * Get the agent by specifying the test plan id and instance name.
      *
-     * @param testPlanId   - Test plan id which spawned the agent.
-     * @param instanceName - Name of the Instance which contains the agent.
+     * @param agentId   The agent id
      * @return the unique agent if exists, null otherwise.
      */
-    public Agent getAgent(String testPlanId, String instanceName) {
+    public Agent getAgent(String agentId) {
         Optional<Map.Entry<String, Agent>> agentOptional = agents.entrySet().stream()
                 .filter(entry -> {
                     Agent agent = entry.getValue();
-                    if (agent != null && testPlanId != null && instanceName != null) {
-                        return testPlanId.equals(agent.getTestPlanId()) && instanceName.equals(agent.getInstanceName());
+                    if (agent != null && agentId != null) {
+                        return agentId.equals(agent.getAgentId());
                     }
                     return false;
                 }).findFirst();

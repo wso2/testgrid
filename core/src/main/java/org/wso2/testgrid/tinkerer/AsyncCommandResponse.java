@@ -41,11 +41,12 @@ import java.nio.file.Paths;
  */
 public class AsyncCommandResponse extends CommandResponse {
 
-    private static final Logger logger = LoggerFactory.getLogger(TinkererSDK.class);
+    private static final Logger logger = LoggerFactory.getLogger(AsyncCommandResponse.class);
 
     private String filePath;
     private ScriptExecutorThread scriptExecutorThread;
     private BufferedReader bufferedReader;
+    private boolean hasMoreContent = true;
 
     /**
      * Constructor to handle async output from Tinkerer
@@ -70,12 +71,18 @@ public class AsyncCommandResponse extends CommandResponse {
         try {
             InputStream inputStream = new FileInputStream(new File(this.filePath));
             this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-
                 public String readLine() throws IOException {
                     String result;
-                    do {
+                    if (isCompleted()) {
                         result = super.readLine();
-                    } while (result == null && hasMoreContent());
+                        if (result == null) {
+                            setHasMoreContent(false);
+                        }
+                    } else {
+                        do {
+                            result = super.readLine();
+                        } while (result == null);
+                    }
                     return result;
                 }
             };
@@ -88,10 +95,28 @@ public class AsyncCommandResponse extends CommandResponse {
     /**
      * Check if more content available to read.
      *
-     * @return
+     * @return          has more content
      */
     public boolean hasMoreContent() {
-        return !scriptExecutorThread.isCompleted();
+        return this.hasMoreContent;
+    }
+
+    /**
+     * Set if more content available to read
+     *
+     * @param hasMoreContent        has more content
+     */
+    public void setHasMoreContent(boolean hasMoreContent) {
+        this.hasMoreContent = hasMoreContent;
+    }
+
+    /**
+     * Check if execution completed
+     *
+     * @return  is operation running completed
+     */
+    public boolean isCompleted() {
+        return scriptExecutorThread.isCompleted();
     }
 
     /**
@@ -108,19 +133,17 @@ public class AsyncCommandResponse extends CommandResponse {
     /**
      * Close buffer and remove persisted stream result from file.
      */
-    public void endReadStream() {
+    public void endReadStream() throws TinkererOperationException {
         try {
             this.bufferedReader.close();
-
         } catch (IOException e) {
-            logger.error("Error while closing buffer for " + this.filePath);
+            throw new TinkererOperationException("Error while closing buffer for " + this.filePath);
         }
         try {
             Files.delete(Paths.get(this.filePath));
         } catch (IOException e) {
-            logger.error("Error while removing file " + this.filePath);
+            throw new TinkererOperationException("Error while removing file " + this.filePath);
         }
-
     }
 
     /**

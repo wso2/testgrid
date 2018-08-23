@@ -25,6 +25,7 @@ import java.util.UUID;
  */
 public class OperationRequest extends Operation {
     private String request;
+    private String agentId;
 
     /**
      * Default constructor to create operation request
@@ -39,10 +40,12 @@ public class OperationRequest extends Operation {
      *
      * @param request       Command to send
      * @param code          Type of the operation
+     * @param agentId       The agent id
      */
-    public OperationRequest(String request, OperationCode code) {
+    public OperationRequest(String request, OperationCode code, String agentId) {
         super();
         this.request = request;
+        this.agentId = agentId;
         this.setCode(code);
     }
 
@@ -62,5 +65,23 @@ public class OperationRequest extends Operation {
      */
     public void setRequest(String request) {
         this.request = request;
+    }
+
+    /**
+     * Set agent id which run command
+     *
+     * @param agentId       The agent id
+     */
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
+    }
+
+    /**
+     * Get agent id which running command
+     *
+     * @return      The agent id
+     */
+    public String getAgentId() {
+        return agentId;
     }
 }

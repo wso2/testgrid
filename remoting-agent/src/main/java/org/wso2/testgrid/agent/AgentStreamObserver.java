@@ -76,12 +76,34 @@ public class AgentStreamObserver implements Observer {
      */
     @Override
     public synchronized void update(Observable o, Object arg) {
-        String shellResult = (String) arg;
-        if (shellResult != null) {
-            this.resultSize += shellResult.length();
+        StreamResponse streamResponse = (StreamResponse) arg;
+        if (!streamResponse.isCompleted()) {
+            this.resultSize += streamResponse.getResponse().length();
         }
-        if (arg == null || this.abortExecution) {
-
+        if (streamResponse.isCompleted()) {
+            // Response send back after input stream read complete
+            if (this.oneProcessCompleted) {
+                OperationSegment finalOperationSegment = new OperationSegment();
+                finalOperationSegment.setOperationId(this.operationId);
+                finalOperationSegment.setCompleted(true);
+                finalOperationSegment.setResponse(this.shellLog.concat(streamResponse.getResponse()));
+                finalOperationSegment.setCode(OperationSegment.OperationCode.SHELL);
+                this.agentObservable.deleteObserver(this);
+                AgentStreamReader.removeAgentStreamObserverById(this.operationId);
+                try {
+                    process.waitFor();
+                    finalOperationSegment.setExitValue(process.exitValue());
+                    this.operationResponseListener.sendResponse(finalOperationSegment);
+                } catch (InterruptedException e) {
+                    logger.error("Error while waiting for process stop for operation " + this.operationId);
+                    finalOperationSegment.setExitValue(0);
+                    this.operationResponseListener.sendResponse(finalOperationSegment);
+                }
+                return;
+            }
+            this.oneProcessCompleted = true;
+        }
+        if (this.abortExecution) {
             if (this.abortExecution && process.isAlive()) {
                 process.destroy();
             }
@@ -90,25 +112,21 @@ public class AgentStreamObserver implements Observer {
             } catch (InterruptedException e) {
                 logger.error("Error while waiting to stop process for operation id " + this.operationId);
             }
-            // Response send back after first thread completed
-            if (!oneProcessCompleted) {
-                OperationSegment finalOperationSegment = new OperationSegment();
-                finalOperationSegment.setOperationId(this.operationId);
-                finalOperationSegment.setCompleted(true);
-                finalOperationSegment.setExitValue(process.exitValue());
-                finalOperationSegment.setResponse(this.shellLog);
-                finalOperationSegment.setCode(OperationSegment.OperationCode.SHELL);
-                this.agentObservable.deleteObserver(this);
-                AgentStreamReader.removeAgentStreamObserverById(this.operationId);
-                this.operationResponseListener.sendResponse(finalOperationSegment);
-            }
-            this.oneProcessCompleted = true;
+            OperationSegment finalOperationSegment = new OperationSegment();
+            finalOperationSegment.setOperationId(this.operationId);
+            finalOperationSegment.setCompleted(true);
+            finalOperationSegment.setExitValue(process.exitValue());
+            finalOperationSegment.setResponse(this.shellLog.concat(streamResponse.getResponse()));
+            finalOperationSegment.setCode(OperationSegment.OperationCode.SHELL);
+            this.agentObservable.deleteObserver(this);
+            AgentStreamReader.removeAgentStreamObserverById(this.operationId);
+            this.operationResponseListener.sendResponse(finalOperationSegment);
             return;
         }
         if (this.resultSize >= MAX_CONTENT_SIZE ||
                 initTime + MAX_EXECUTION_TIME_OUT < Calendar.getInstance().getTimeInMillis()) {
             initTime = Calendar.getInstance().getTimeInMillis();
-            this.shellLog = this.shellLog.concat(shellResult);
+            this.shellLog = this.shellLog.concat(streamResponse.getResponse());
             this.resultSize = 0;
             OperationSegment operationSegment = new OperationSegment();
             operationSegment.setOperationId(this.operationId);
@@ -119,7 +137,9 @@ public class AgentStreamObserver implements Observer {
             operationResponseListener.sendResponse(operationSegment);
             this.shellLog = "";
         } else {
-            this.shellLog = this.shellLog.concat(shellResult.concat(System.lineSeparator()));
+            if (!streamResponse.getResponse().isEmpty()) {
+                this.shellLog = this.shellLog.concat(streamResponse.getResponse().concat(System.lineSeparator()));
+            }
         }
     }
 

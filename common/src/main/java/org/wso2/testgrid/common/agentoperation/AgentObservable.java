@@ -25,12 +25,12 @@ import java.util.Observable;
  */
 public class AgentObservable extends Observable {
     /**
-     * Notify observers that new message has been received
+     * Notify observers that new message has been received.
      *
-     * @param arg       The message to be send to subscribers
+     * @param message       The message to be send to subscribers
      */
-    public void notifyObservable(Object arg) {
+    public void notifyObservable(Object message) {
         setChanged();
-        notifyObservers(arg);
+        notifyObservers(message);
     }
 }

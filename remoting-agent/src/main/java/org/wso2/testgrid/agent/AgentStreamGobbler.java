@@ -33,23 +33,26 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * Thread to read stream output of the command execution and update observers.
  */
 class AgentStreamGobbler extends Thread {
-    InputStream inputStream;
-    AgentObservable agentObservable;
+    private InputStream inputStream;
+    private AgentObservable agentObservable;
+    private StreamResponse.StreamType streamType;
     private static final Logger logger = LoggerFactory.getLogger(AgentStreamGobbler.class);
 
     /**
      * Constructor to initialize object.
      *
+     * @param streamType            Type of stream
      * @param inputStream           Streaming output of the command execution
      * @param agentObservable       Observable waiting for logs
      */
-    AgentStreamGobbler(InputStream inputStream, AgentObservable agentObservable) {
+    AgentStreamGobbler(StreamResponse.StreamType streamType, InputStream inputStream, AgentObservable agentObservable) {
+        this.streamType = streamType;
         this.inputStream = inputStream;
         this.agentObservable = agentObservable;
     }
 
     /**
-     * Read stream and notify observers with the logs
+     * Read stream and notify observers with the logs.
      */
     @Override
     public void run() {
@@ -57,12 +60,23 @@ class AgentStreamGobbler extends Thread {
             InputStreamReader inputStreamReader = new InputStreamReader(this.inputStream, UTF_8);
             BufferedReader br = new BufferedReader(inputStreamReader);
             String line = "";
-            while ((line = br.readLine()) != null) {
-                this.agentObservable.notifyObservable(line);
+            // Small wait to sync two threads
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                logger.error("Error while waiting stream reader thread");
             }
-            this.agentObservable.notifyObservable(null);
+            while ((line = br.readLine()) != null) {
+                StreamResponse streamResponse = new StreamResponse(line, false, this.streamType);
+                logger.info("Read line: " + line);
+                this.agentObservable.notifyObservable(streamResponse);
+            }
+            StreamResponse streamResponse = new StreamResponse("", true, this.streamType);
+            this.agentObservable.notifyObservable(streamResponse);
         } catch (IOException e) {
-            logger.info("Error while reading stream ", e);
+            logger.error("Error while reading stream ", e);
+            StreamResponse streamResponse = new StreamResponse("", true, this.streamType);
+            this.agentObservable.notifyObservable(streamResponse);
         }
     }
 }

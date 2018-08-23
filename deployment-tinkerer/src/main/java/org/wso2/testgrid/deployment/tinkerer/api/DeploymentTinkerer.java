@@ -27,11 +27,11 @@ import org.wso2.testgrid.common.agentoperation.Operation;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.deployment.tinkerer.AgentStreamHandler;
 import org.wso2.testgrid.deployment.tinkerer.SessionManager;
 import org.wso2.testgrid.deployment.tinkerer.beans.ErrorResponse;
 import org.wso2.testgrid.deployment.tinkerer.exception.AgentHandleException;
 import org.wso2.testgrid.deployment.tinkerer.exception.DeploymentTinkererException;
-import org.wso2.testgrid.deployment.tinkerer.utils.AgentStreamHandler;
 import org.wso2.testgrid.deployment.tinkerer.utils.Constants;
 import org.wso2.testgrid.deployment.tinkerer.utils.SSHHelper;
 
@@ -109,30 +109,26 @@ public class DeploymentTinkerer {
     /**
      * Send operation to agent and get response as stream.
      *
-     * @param testPlanId       - Test plan id of the target agent.
-     * @param instanceName     - Instance Name of the target agent.
      * @param operationRequest - Operation request.
      * @return The operation response.
      */
     @POST
-    @Path("test-plan/{testPlanId}/agent/{instanceName}/stream-operation")
+    @Path("stream-operation")
     @Consumes(MediaType.APPLICATION_JSON)
-    public ChunkedOutput<String> sendStreamingOperation(@PathParam("testPlanId") String testPlanId,
-                                                        @PathParam("instanceName") String instanceName,
-                                                        OperationRequest operationRequest) {
+    public ChunkedOutput<String> sendStreamingOperation(OperationRequest operationRequest) {
         final ChunkedOutput<String> streamingBuffer = new ChunkedOutput<String>(String.class);
         logger.info("Operation request received " + operationRequest.toJSON());
-        AgentStreamHandler agentStreamHandler = new AgentStreamHandler(streamingBuffer, operationRequest, testPlanId,
-                instanceName);
+        AgentStreamHandler agentStreamHandler = new AgentStreamHandler(streamingBuffer, operationRequest,
+                operationRequest.getAgentId());
         try {
             agentStreamHandler.startSendCommand();
             SessionManager.getAgentObservable().addObserver(agentStreamHandler);
         } catch (AgentHandleException e) {
-            logger.error("Error while sending command to the Agent for test plan " + testPlanId, e);
+            logger.error("Error while sending command to the Agent for agent " + operationRequest.getAgentId(), e);
             try {
                 streamingBuffer.close();
             } catch (IOException ioe) {
-                logger.error("Error while closing output stream for test plan " + testPlanId, ioe);
+                logger.error("Error while closing output stream for agent " + operationRequest.getAgentId(), ioe);
             }
         }
         return streamingBuffer;
@@ -141,20 +137,17 @@ public class DeploymentTinkerer {
     /**
      * Abort running operation on agent by using operation id
      *
-     * @param testPlanId            The test plan id
-     * @param instanceName          The instance name
      * @param operationRequest      Operation request
      * @return                      Operation response
      */
     @POST
-    @Path("test-plan/{testPlanId}/agent/{instanceName}/abort")
+    @Path("abort")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response abortOperation(@PathParam("testPlanId") String testPlanId,
-                                  @PathParam("instanceName") String instanceName, OperationRequest operationRequest) {
+    public Response abortOperation(OperationRequest operationRequest) {
         logger.info("Operation request received " + operationRequest.toJSON());
         Response responseToSend = Response.status(Response.Status.OK).build();
         SessionManager sessionManager = SessionManager.getInstance();
-        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
+        Agent agent = sessionManager.getAgent(operationRequest.getAgentId());
         if (agent != null) {
             if (sessionManager.hasAgentSession(agent.getAgentId())) {
                 AgentStreamHandler agentStreamHandler = new AgentStreamHandler();
@@ -178,7 +171,7 @@ public class DeploymentTinkerer {
         } else {
             ErrorResponse errorResponse = new ErrorResponse();
             errorResponse.setCode(Response.Status.NOT_FOUND.getStatusCode());
-            errorResponse.setMessage("No agent found, Agent is null for test plan id" + testPlanId);
+            errorResponse.setMessage("No agent found, Agent is null for " + operationRequest.getAgentId());
             responseToSend = Response.status(Response.Status.NOT_FOUND).entity(errorResponse).build();
         }
 
@@ -187,18 +180,15 @@ public class DeploymentTinkerer {
     /**
      * Send operation to agent and get response.
      *
-     * @param testPlanId       - Test plan id of the target agent.
-     * @param instanceName     - Instance Name of the target agent.
      * @param operationRequest - Operation request.
      * @return The operation response.
      */
     @POST
-    @Path("test-plan/{testPlanId}/agent/{instanceName}/operation")
+    @Path("operation")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response sendOperation(@PathParam("testPlanId") String testPlanId,
-                                  @PathParam("instanceName") String instanceName, OperationRequest operationRequest) {
+    public Response sendOperation(OperationRequest operationRequest) {
         SessionManager sessionManager = SessionManager.getInstance();
-        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
+        Agent agent = sessionManager.getAgent(operationRequest.getAgentId());
         OperationSegment operationSegment =  new OperationSegment();
         operationSegment.setResponse("");
         if (agent != null && sessionManager.hasAgentSession(agent.getAgentId())) {
@@ -266,20 +256,15 @@ public class DeploymentTinkerer {
     /**
      * Downloads a file from the given source to the destination.
      * The destination path must be a location in the host machine.
-     *
-     * @param testPlanId   TestPlanID for the instance where source is located
-     * @param instanceName Name of the instance where source is located
      */
     @POST
-    @Path("test-plan/{testPlanId}/agent/{instanceName}/stream-file")
+    @Path("stream-file")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response streamFile(@PathParam("testPlanId") String testPlanId,
-                               @PathParam("instanceName") String instanceName,
-                               OperationRequest operationRequest) {
+    public Response streamFile(OperationRequest operationRequest) {
         //get POST body data
         Map<String, String> data = operationRequest.getMetaData();
         SessionManager sessionManager = SessionManager.getInstance();
-        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
+        Agent agent = sessionManager.getAgent(operationRequest.getAgentId());
 
         if (data != null) {
             String sshKey = data.get("key");

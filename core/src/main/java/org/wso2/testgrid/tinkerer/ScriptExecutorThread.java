@@ -54,6 +54,7 @@ public class ScriptExecutorThread extends Thread {
      *
      * @param operationId          The operation id
      * @param response              Response from the tinkerer
+     * @param filePath              File path to store result
      */
     public ScriptExecutorThread(String operationId, Response response, Path filePath) {
         this.operationId = operationId;
@@ -80,8 +81,9 @@ public class ScriptExecutorThread extends Thread {
         String chunk;
         OperationSegment operationSegment = new OperationSegment();
         long initTime = Calendar.getInstance().getTimeInMillis();
+        long currentTime;
         while ((chunk = input.read()) != null) {
-            long currentTime = Calendar.getInstance().getTimeInMillis();
+            currentTime = Calendar.getInstance().getTimeInMillis();
             if (initTime + MAX_BUFFER_IDLE_TIME < currentTime) {
                 logger.warn("Execution time out for operation " + this.operationId);
                 break;
@@ -120,7 +122,7 @@ public class ScriptExecutorThread extends Thread {
     }
 
     /**
-     * Get is operation running completed in current operation.
+     * Get operation execution status is completed or not.
      *
      * @return      Execution completed of not completed
      */

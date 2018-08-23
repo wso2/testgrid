@@ -68,8 +68,10 @@ public class AgentStreamReader {
                     this.operationId, process, agentObservable);
             observerHashMap.put(this.operationId, agentStreamObserver);
             agentObservable.addObserver(agentStreamObserver);
-            AgentStreamGobbler errorGobbler = new AgentStreamGobbler(process.getErrorStream(), agentObservable);
-            AgentStreamGobbler outputGobbler = new AgentStreamGobbler(process.getInputStream(), agentObservable);
+            AgentStreamGobbler errorGobbler = new AgentStreamGobbler(StreamResponse.StreamType.ERROR,
+                    process.getErrorStream(), agentObservable);
+            AgentStreamGobbler outputGobbler = new AgentStreamGobbler(StreamResponse.StreamType.INPUT,
+                    process.getInputStream(), agentObservable);
             outputGobbler.start();
             errorGobbler.start();
         } catch (IOException e) {

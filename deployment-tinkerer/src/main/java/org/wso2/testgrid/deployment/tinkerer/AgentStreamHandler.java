@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.testgrid.deployment.tinkerer.utils;
+package org.wso2.testgrid.deployment.tinkerer;
 
 import org.glassfish.jersey.server.ChunkedOutput;
 import org.slf4j.Logger;
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
-import org.wso2.testgrid.deployment.tinkerer.SessionManager;
 import org.wso2.testgrid.deployment.tinkerer.exception.AgentHandleException;
 
 
@@ -34,15 +33,12 @@ import java.util.Observer;
 import javax.websocket.Session;
 
 /**
- * todo move file to outside the util
  * Handle sending shell script operation to the agent and stream result back to the test runner.
  */
 public class AgentStreamHandler implements Observer {
     private static final Logger logger = LoggerFactory.getLogger(AgentStreamHandler.class);
     private ChunkedOutput<String> streamingBuffer;
     private OperationRequest operationRequest;
-    private String testPlanId;
-    private String instanceName;
     private String agentId;
 
     /**
@@ -55,18 +51,12 @@ public class AgentStreamHandler implements Observer {
      *
      * @param streamingBuffer ChunkedOutput buffer to write back result
      * @param operationRequest Request from the test runner
-     * @param testPlanId    The test plan id
-     * @param instanceName  The instant name
      */
     public AgentStreamHandler(ChunkedOutput<String> streamingBuffer, OperationRequest operationRequest,
-                              String testPlanId, String instanceName) {
+                              String agentId) {
         this.streamingBuffer = streamingBuffer;
         this.operationRequest = operationRequest;
-        this.testPlanId = testPlanId;
-        this.instanceName = instanceName;
-        SessionManager sessionManager = SessionManager.getInstance();
-        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
-        this.agentId = agent.getAgentId();
+        this.agentId = agentId;
     }
 
     /**
@@ -77,7 +67,7 @@ public class AgentStreamHandler implements Observer {
     public void startSendCommand() throws AgentHandleException {
         SessionManager sessionManager = SessionManager.getInstance();
 
-        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
+        Agent agent = sessionManager.getAgent(this.agentId);
         if (agent != null && sessionManager.hasAgentSession(agent.getAgentId())) {
             Session wsSession = sessionManager.getAgentSession(agent.getAgentId());
             try {
@@ -88,8 +78,7 @@ public class AgentStreamHandler implements Observer {
                         operationRequest.getCode() + " command: " + operationRequest.getRequest());
             } catch (IOException e) {
                 throw new AgentHandleException("Error while sending command to agent " + operationRequest.getRequest() +
-                        " on agent " + agent.getAgentId() + " instant name " +
-                        this.instanceName, e);
+                        " on agent " + agent.getAgentId(), e);
             }
         }
     }
@@ -116,7 +105,7 @@ public class AgentStreamHandler implements Observer {
                 // Append dequeue result to the result
                 if (operationSegment == null) {
                     logger.info("No operation found for operation id " + this.operationRequest.getOperationId()
-                            + " on " + this.agentId + " for test plan " + testPlanId);
+                            + " on " + this.agentId);
                     return;
                 }
                 resultOperation.setResponse(
@@ -127,8 +116,7 @@ public class AgentStreamHandler implements Observer {
                 // Check if operation execution completed
                 if (operationSegment.getCompleted()) {
                     logger.info("Operation execution completed for operation id " +
-                            this.operationRequest.getOperationId() + " on " + this.agentId + " for test plan " +
-                            this.testPlanId);
+                            this.operationRequest.getOperationId() + " on " + this.agentId);
                     resultOperation.setCompleted(true);
                     resultOperation.setExitValue(operationSegment.getExitValue());
                     sessionManager.removeOperationQueueMessages(this.operationRequest.getOperationId());
@@ -139,22 +127,19 @@ public class AgentStreamHandler implements Observer {
                 }
                 // Send response only if it contain response
                 if (!resultOperation.getResponse().equals("")) {
-                    logger.debug("Sending result segment to test runner " + this.agentId +
-                            " for test plan " + testPlanId);
+                    logger.debug("Sending result segment to test runner " + this.agentId);
                     this.streamingBuffer.write(resultOperation.toJSON() + "\r\n");
                     resultOperation.setResponse("");
                 }
             } catch (IOException e) {
                 logger.warn("Error while writing result to the output. " + operationRequest.getRequest() +
-                        " on agent " + this.agentId + " for test plan " + testPlanId + " instant name " +
-                        this.instanceName, e);
+                        " on agent " + this.agentId, e);
                 abortOperation(this.operationRequest.getOperationId(), this.agentId);
                 try {
                     this.streamingBuffer.close();
                 } catch (IOException errorOutput) {
                     logger.error("Error while close output connection " + operationRequest.getRequest() +
-                            " on agent " + this.agentId + " for test plan " + testPlanId + " instant name " +
-                            this.instanceName, errorOutput);
+                            " on agent " + this.agentId, errorOutput);
                 }
             }
         }

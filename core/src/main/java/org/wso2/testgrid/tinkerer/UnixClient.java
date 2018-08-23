@@ -83,8 +83,7 @@ public class UnixClient extends TinkererClient {
 
             String productBasePath = "";
             String logLocation = "";
-            String operationPath = this.getTinkererBase() + "test-plan/" + agent.getTestPlanId()
-                    + "/agent/" + agent.getInstanceName() + "/operation";
+            String operationPath = this.getTinkererBase() + "operation";
             if (TestGridConstants.TEST_TYPE_FUNCTIONAL.equals(testType)) {
                 //get the carbon.home from the instance where the product is running
                 String content = "";
@@ -92,6 +91,7 @@ public class UnixClient extends TinkererClient {
                     Map<String, Object> payload = new HashMap<>();
                     payload.put("code", "SHELL");
                     payload.put("request", "ps -ef | grep 'carbon.home'");
+                    payload.put("agentId", agent.getAgentId());
                     Response execute = Request.Post(operationPath).setHeader
                             (HttpHeaders.CONTENT_TYPE, "application/json")
                             .setHeader(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder()
@@ -149,6 +149,7 @@ public class UnixClient extends TinkererClient {
                 Map<String, Object> payload = new HashMap<>();
                 payload.put("code", "SHELL");
                 payload.put("request", "ls " + logLocation);
+                payload.put("agentId", agent.getAgentId());
                 Response logFiles = Request.Post(operationPath).setHeader(HttpHeaders.CONTENT_TYPE, "application/json")
                         .setHeader(HttpHeaders.AUTHORIZATION,
                                 "Basic " + Base64.getEncoder().encodeToString(
@@ -192,10 +193,10 @@ public class UnixClient extends TinkererClient {
                         String destination = Paths.get(TestGridUtil.deriveLogDownloadLocation(testPlan), logFileName)
                                 .toString();
                         String bastianIP = deploymentCreationResult.getBastianIP();
-                        String downloadPath = this.getTinkererBase() + "test-plan/" + agent.getTestPlanId() +
-                                "/agent/" + agent.getInstanceName() + "/stream-file";
+                        String downloadPath = this.getTinkererBase() + "stream-file";
                         Map<String, Object> payload = new HashMap<>();
                         payload.put("code", "STREAM_FILE");
+                        payload.put("agentId", agent.getAgentId());
                         Map<String, Object> subPayload = new HashMap<>();
                         subPayload.put("key", key);
                         subPayload.put("source", source);

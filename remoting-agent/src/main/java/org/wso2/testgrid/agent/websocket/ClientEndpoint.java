@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.agent.AgentStreamObserver;
 import org.wso2.testgrid.agent.AgentStreamReader;
+import org.wso2.testgrid.agent.StreamResponse;
 import org.wso2.testgrid.agent.listeners.OperationResponseListener;
 import org.wso2.testgrid.common.agentoperation.OperationRequest;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
@@ -184,7 +185,9 @@ public class ClientEndpoint {
                         AgentStreamReader.getAgentStreamObserverById(operationRequest.getOperationId());
                 if (agentStreamObserver != null) {
                     agentStreamObserver.setAbortExecution(true);
-                    agentStreamObserver.update(null, null);
+                    StreamResponse streamResponse = new StreamResponse("", true,
+                            StreamResponse.StreamType.INPUT);
+                    agentStreamObserver.update(null, streamResponse);
                 } else {
                     logger.info("No operation with given id found to abort execution " +
                             operationRequest.getOperationId());
