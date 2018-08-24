@@ -36,6 +36,7 @@ import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.deployment.DeploymentUtil;
@@ -82,7 +83,7 @@ public class ShellDeployer implements Deployer {
             Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
             logger.info("Performing the Deployment " + deployment.getName());
             String infraArtifact = StringUtil
-                    .concatStrings(infrastructureProvisionResult.getResultLocation(),
+                    .concatStrings(DataBucketsHelper.getOutputLocation(testPlan),
                             File.separator, "k8s.properties");
             inputParameters = getInputParameters(testPlan, deployment);
             String parameterString = TestGridUtil.getParameterString(infraArtifact, inputParameters);

@@ -25,10 +25,13 @@ import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
 import com.amazonaws.services.cloudformation.model.DeleteStackResult;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsResult;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.TemplateParameter;
 import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
@@ -48,11 +51,14 @@ import org.testng.annotations.Test;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
+import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
+import org.wso2.testgrid.infrastructure.providers.aws.AWSResourceManager;
 import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.File;
@@ -74,7 +80,7 @@ import java.util.Set;
 @PowerMockIgnore({"javax.net.ssl.*", "javax.security.*"})
 @PrepareForTest({
                         AWSProvider.class, AmazonCloudFormationClientBuilder.class
-                        , AmazonCloudFormation.class, AwsClientBuilder.class
+                        , AmazonCloudFormation.class, AwsClientBuilder.class, ConfigurationContext.class
                 })
 public class AWSProviderTest extends PowerMockTestCase {
 
@@ -88,6 +94,7 @@ public class AWSProviderTest extends PowerMockTestCase {
 
     private TestPlan testPlan;
     private static final String scenarioRepo = Paths.get("src/test/resources/scenarios").toString();
+    AWSResourceManager awsResourceManagerMock;
 
     @BeforeMethod (description = "Creates a dummy testplan before running a test.")
     public void setUp() throws Exception {
@@ -110,20 +117,32 @@ public class AWSProviderTest extends PowerMockTestCase {
         testPlan.setScenarioConfig(scenarioConfig);
         testPlan.setScenarioTestsRepository(scenarioRepo);
         testPlan.setInfraParameters("{\"OS\": \"Ubuntu\"}");
+
+        awsResourceManagerMock = Mockito.mock(AWSResourceManager.class);
+        PowerMockito.whenNew(AWSResourceManager.class).withNoArguments().thenReturn(awsResourceManagerMock);
     }
 
     @Test(description = "This test case tests creation of AWSProvider object when AWS credentials are " +
             "set correctly.")
     public void testManagerCreation() throws Exception {
         //set environment variables for
+        String patternName = "single-node";
         Map<String, String> map = new HashMap<>();
         map.put(AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
         map.put(AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
         set(map);
         AMIMapper awsAMIMapper = Mockito.mock(AMIMapper.class);
         PowerMockito.whenNew(AMIMapper.class).withAnyArguments().thenReturn(awsAMIMapper);
+        PowerMockito.mockStatic(ConfigurationContext.class);
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME)).thenReturn("us-east-1");
+        Mockito.when(awsResourceManagerMock.populateInitialResourceLimits(Mockito.any()))
+                .thenReturn(Collections.singletonList(Mockito.mock(AWSResourceLimit.class)));
 
         AWSProvider awsProvider = new AWSProvider();
+        InfrastructureConfig infrastructureConfig = getDummyInfrastructureConfig(patternName);
+        testPlan.setInfrastructureConfig(infrastructureConfig);
+
         awsProvider.init(testPlan);
         Assert.assertNotNull(awsProvider);
         unset(map.keySet());
@@ -148,6 +167,8 @@ public class AWSProviderTest extends PowerMockTestCase {
         Stack stack = new Stack();
         stack.setStackName(mockStackName);
 
+        StackEvent stackEvent = Mockito.mock(StackEvent.class);
+
         TemplateParameter parameter = new TemplateParameter().withParameterKey("AMI").withParameterKey("abc-1234");
 
         Output output = new Output();
@@ -163,6 +184,9 @@ public class AWSProviderTest extends PowerMockTestCase {
         ValidateTemplateResult validateTemplateResult = Mockito.mock(ValidateTemplateResult.class);
         Mockito.when(validateTemplateResult.getParameters()).thenReturn(Collections.singletonList(parameter));
 
+        DescribeStackEventsResult describeStackEventsResultMock = Mockito.mock(DescribeStackEventsResult.class);
+        Mockito.when(describeStackEventsResultMock.getStackEvents()).thenReturn(Collections.singletonList(stackEvent));
+
         AmazonCloudFormationClientBuilder cloudFormationClientBuilderMock = PowerMockito
                 .mock(AmazonCloudFormationClientBuilder.class);
         AmazonCloudFormation cloudFormation = Mockito.mock(AmazonCloudFormation.class);
@@ -176,6 +200,8 @@ public class AWSProviderTest extends PowerMockTestCase {
                 .thenReturn(Mockito.mock(CreateStackResult.class));
         Mockito.when(cloudFormation.describeStacks(Mockito.any(DescribeStacksRequest.class)))
                 .thenReturn(describeStacksResultMock);
+        Mockito.when(cloudFormation.describeStackEvents(Mockito.any(DescribeStackEventsRequest.class)))
+                .thenReturn(describeStackEventsResultMock);
         PowerMockito.when(cloudFormationClientBuilderMock.withRegion(Mockito.anyString()))
                 .thenReturn(cloudFormationClientBuilderMock);
         PowerMockito.when(cloudFormationClientBuilderMock.withCredentials(Mockito.
@@ -187,11 +213,16 @@ public class AWSProviderTest extends PowerMockTestCase {
         StackCreationWaiter validatorMock = Mockito.mock(StackCreationWaiter.class);
         PowerMockito.whenNew(StackCreationWaiter.class).withAnyArguments().thenReturn(validatorMock);
 
+        Mockito.when(awsResourceManagerMock.requestAvailableRegion(Mockito.any(TestPlan.class)))
+                .thenReturn("us-east-2");
+        Mockito.when(awsResourceManagerMock.populateInitialResourceLimits(Mockito.any()))
+                .thenReturn(Collections.singletonList(Mockito.mock(AWSResourceLimit.class)));
+
         AWSProvider awsProvider = new AWSProvider();
-        awsProvider.init(testPlan);
         testPlan.setJobName("wso2");
         testPlan.setInfrastructureConfig(infrastructureConfig);
         testPlan.setInfrastructureRepository(resourcePath.getAbsolutePath());
+        awsProvider.init(testPlan);
         InfrastructureProvisionResult provisionResult = awsProvider
                 .provision(testPlan);
 
@@ -210,6 +241,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         script.setName(mockStackName);
         Properties scriptParameters = new Properties();
         scriptParameters.setProperty("EC2KeyPair", "test-grid.key");
+        scriptParameters.setProperty("region", "us-east-1");
         script.setInputParameters(scriptParameters);
 
         InfrastructureConfig infrastructureConfig = new InfrastructureConfig();
@@ -223,6 +255,9 @@ public class AWSProviderTest extends PowerMockTestCase {
     @Test(description = "This test case tests destroying infrastructure given a already built stack name.")
     public void destroyInfrastructureTest() throws Exception {
         String patternName = "single-node";
+        DeploymentPattern deploymentPattern = new DeploymentPattern();
+        deploymentPattern.setName(patternName);
+        deploymentPattern.setId("123");
 
         //set environment variables for
         Map<String, String> map = new HashMap<>();
@@ -264,10 +299,17 @@ public class AWSProviderTest extends PowerMockTestCase {
         Mockito.when(waiterMock.stackDeleteComplete()).thenReturn(mock);
         PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
 
+        PowerMockito.mockStatic(ConfigurationContext.class);
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME)).thenReturn("us-east-1");
+        Mockito.when(awsResourceManagerMock.populateInitialResourceLimits(Mockito.any()))
+                .thenReturn(Collections.singletonList(Mockito.mock(AWSResourceLimit.class)));
+
         AWSProvider awsProvider = new AWSProvider();
+        testPlan.setInfrastructureConfig(dummyInfrastructureConfig);
         awsProvider.init(testPlan);
-        boolean released = awsProvider.release(dummyInfrastructureConfig, resourcePath
-                .getAbsolutePath());
+        boolean released = awsProvider.release(
+                dummyInfrastructureConfig, resourcePath.getAbsolutePath(), testPlan);
 
         Assert.assertTrue(released);
         unset(map.keySet());

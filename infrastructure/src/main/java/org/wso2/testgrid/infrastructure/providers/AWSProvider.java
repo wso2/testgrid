@@ -23,6 +23,8 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsRequest;
+import com.amazonaws.services.cloudformation.model.DescribeStackEventsResult;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
@@ -35,6 +37,7 @@ import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
 import com.amazonaws.waiters.WaiterUnrecoverableException;
+
 import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,12 +51,15 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
+import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
+import org.wso2.testgrid.infrastructure.providers.aws.AWSResourceManager;
 import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.FileOutputStream;
@@ -82,7 +88,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String AWS_REGION_PARAMETER = "region";
     private static final String CUSTOM_USER_DATA = "CustomUserData";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
-    private AMIMapper amiMapper;
+    private AWSResourceManager awsResourceManager;
     private static final int TIMEOUT = 30;
     private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
     private static final int POLL_INTERVAL = 1;
@@ -106,7 +112,16 @@ public class AWSProvider implements InfrastructureProvider {
     @Override
     public void init(TestPlan testPlan) throws TestGridInfrastructureException {
         cfScriptPreprocessor = new CloudFormationScriptPreprocessor();
-        amiMapper = new AMIMapper();
+        awsResourceManager = new AWSResourceManager();
+        try {
+            Path limitsYamlPath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.AWS_LIMITS_YAML);
+            List<AWSResourceLimit> awsResourceLimits = awsResourceManager.populateInitialResourceLimits(limitsYamlPath);
+            if (awsResourceLimits == null || awsResourceLimits.isEmpty()) {
+                logger.warn("Could not populate AWS resource limits. ");
+            }
+        } catch (TestGridDAOException e) {
+            throw new TestGridInfrastructureException("Error while retrieving aws limits.", e);
+        }
     }
 
     @Override
@@ -136,27 +151,27 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir)
-            throws TestGridInfrastructureException {
+    public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
+                           TestPlan testPlan) throws TestGridInfrastructureException {
         try {
             for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
                 if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
-                    return doRelease(infrastructureConfig, script.getName());
+                    return doRelease(infrastructureConfig, script.getName(), testPlan);
                 }
             }
             throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
         } catch (InterruptedException e) {
             throw new TestGridInfrastructureException("Error while waiting for CloudFormation stack to destroy", e);
+        } catch (TestGridDAOException e) {
+            throw new TestGridInfrastructureException("Error while updating released resources in the database.", e);
         }
     }
 
     private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
         Script script, TestPlan testPlan) throws TestGridInfrastructureException {
-        String region = infrastructureConfig.getProvisioners().get(0)
-                .getScripts().get(0).getInputParameters().getProperty(AWS_REGION_PARAMETER);
-
-            Path configFilePath;
-        configFilePath = TestGridUtil.getConfigFilePath();
+        Path configFilePath = TestGridUtil.getConfigFilePath();
+        String region = infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
+                .getInputParameters().getProperty(AWS_REGION_PARAMETER);
         AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)
@@ -165,9 +180,11 @@ public class AWSProvider implements InfrastructureProvider {
         String stackName = getValidatedStackName(script.getName());
         CreateStackRequest stackRequest = new CreateStackRequest();
         stackRequest.setStackName(stackName);
+        StackCreationWaiter stackCreationWaiter = new StackCreationWaiter();
         try {
-            String file = new String(Files.readAllBytes(Paths.get(testPlan.getInfrastructureRepository(),
-                    script.getFile())), StandardCharsets.UTF_8);
+            Path cfnFilePath = Paths.get(testPlan.getInfrastructureRepository(),
+                    script.getFile());
+            String file = new String(Files.readAllBytes(cfnFilePath), StandardCharsets.UTF_8);
             file = cfScriptPreprocessor.process(file);
             ValidateTemplateRequest validateTemplateRequest = new ValidateTemplateRequest();
             validateTemplateRequest.withTemplateBody(file);
@@ -175,6 +192,17 @@ public class AWSProvider implements InfrastructureProvider {
             List<TemplateParameter> expectedParameters = validationResult.getParameters();
 
             stackRequest.setTemplateBody(file);
+
+            region = awsResourceManager.requestAvailableRegion(testPlan);
+            //Set region to test plan
+            infrastructureConfig.getProvisioners().get(0).getScripts().get(0).getInputParameters()
+                    .setProperty(AWS_REGION_PARAMETER, region);
+
+            cloudFormation = AmazonCloudFormationClientBuilder.standard()
+                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                    .withRegion(region)
+                    .build();
+
             final List<Parameter> populatedExpectedParameters = getParameters(script, expectedParameters,
                     infrastructureConfig, testPlan.getId());
             stackRequest.setParameters(populatedExpectedParameters);
@@ -185,19 +213,24 @@ public class AWSProvider implements InfrastructureProvider {
             if (logger.isDebugEnabled()) {
                 logger.info(StringUtil.concatStrings("Stack configuration created for name ", stackName));
             }
+
             logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName,
                     ", Infrastructure: ", infrastructureConfig.getParameters()));
-            StackCreationWaiter stackCreationValidator = new StackCreationWaiter();
-            try {
-                TimeOutBuilder stackTimeOut = new TimeOutBuilder(TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
-                stackCreationValidator.waitForStack(stackName, cloudFormation, stackTimeOut);
-            } catch (ConditionTimeoutException e) {
-                throw new TestGridInfrastructureException(
-                        StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
-            }
+
+            TimeOutBuilder stackTimeOut = new TimeOutBuilder(TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
+            stackCreationWaiter.waitForStack(stackName, cloudFormation, stackTimeOut);
+
             final String duration = StringUtil.getHumanReadableTimeDiff(System.currentTimeMillis() - start);
             logger.info(StringUtil.concatStrings("Stack : ", stackName, ", with ID : ", stack.getStackId(),
                     " creation completed in ", duration, "."));
+
+            DescribeStackEventsRequest describeStackEventsRequest = new DescribeStackEventsRequest()
+                    .withStackName(stackName);
+            DescribeStackEventsResult describeStackEventsResult = cloudFormation.
+                    describeStackEvents(describeStackEventsRequest);
+
+            //Notify AWSResourceManager about stack creation completion
+            awsResourceManager.notifyStackCreation(testPlan, describeStackEventsResult.getStackEvents());
 
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(stack.getStackId());
@@ -248,6 +281,11 @@ public class AWSProvider implements InfrastructureProvider {
 
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
+        } catch (ConditionTimeoutException e) {
+            throw new TestGridInfrastructureException(
+                    StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
+        } catch (TestGridDAOException e) {
+            throw new TestGridInfrastructureException("Error occurred while retrieving resource requirements", e);
         }
     }
 
@@ -286,19 +324,25 @@ public class AWSProvider implements InfrastructureProvider {
      * @throws TestGridInfrastructureException when AWS error occurs in deletion process.
      * @throws InterruptedException            when there is an interruption while waiting for the result.
      */
-    private boolean doRelease(InfrastructureConfig infrastructureConfig, String stackName) throws
-            TestGridInfrastructureException, InterruptedException {
+    private boolean doRelease(
+            InfrastructureConfig infrastructureConfig, String stackName, TestPlan testPlan)
+            throws TestGridInfrastructureException, InterruptedException, TestGridDAOException {
         Path configFilePath;
+        String region = infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
+                .getInputParameters().getProperty(AWS_REGION_PARAMETER);
         configFilePath = TestGridUtil.getConfigFilePath();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                .withRegion(infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
-                        .getInputParameters().getProperty(AWS_REGION_PARAMETER))
+                .withRegion(region)
                 .build();
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(stackName);
         stackdestroy.deleteStack(deleteStackRequest);
         logger.info(StringUtil.concatStrings("Stack : ", stackName, " is handed over for deletion!"));
+
+        //Notify AWSResourceManager about stack destruction to release acquired resources
+        AWSResourceManager awsResourceManager = new AWSResourceManager();
+        awsResourceManager.notifyStackDeletion(testPlan, region);
 
         boolean waitForStackDeletion = Boolean.parseBoolean(ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.WAIT_FOR_STACK_DELETION));
@@ -310,6 +354,7 @@ public class AWSProvider implements InfrastructureProvider {
                 describeStacksRequestWaiter.run(new WaiterParameters<>(new DescribeStacksRequest()
                         .withStackName(stackName)));
             } catch (WaiterUnrecoverableException e) {
+
                 throw new TestGridInfrastructureException("Error occurred while waiting for Stack :"
                                                           + stackName + " deletion !");
             }
@@ -392,6 +437,8 @@ public class AWSProvider implements InfrastructureProvider {
 
     private String getAMIParameterValue(InfrastructureConfig infrastructureConfig)
             throws TestGridInfrastructureException {
+        AMIMapper amiMapper = new AMIMapper(infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
+                .getInputParameters().getProperty(AWS_REGION_PARAMETER));
         return amiMapper.getAMIFor(infrastructureConfig.getParameters());
     }
 }

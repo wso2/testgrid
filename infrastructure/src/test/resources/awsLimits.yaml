@@ -1,0 +1,60 @@
+# Sample awsLimits.yaml file
+# This file should be created in $TESTGRID_HOME in dev an prod environment
+# One region should only be added in one environment
+
+maxLimits:
+  - region:
+      name: us-east-1
+      services:
+        - serviceName: ec2
+          serviceLimits:
+            - limitName: m3.xlarge
+              maxAllowedLimit: 100
+        - serviceName: networking
+          serviceLimits:
+            - limitName: VPC
+              maxAllowedLimit: 100
+  - region:
+      name: us-west-1
+      services:
+        - serviceName: ec2
+          serviceLimits:
+            - limitName: m3.xlarge
+              maxAllowedLimit: 100
+        - serviceName: networking
+          serviceLimits:
+            - limitName: vpc
+              maxAllowedLimit: 100
+  - region:
+      name: us-west-2
+      services:
+        - serviceName: ec2
+          serviceLimits:
+            - limitName: m3.xlarge
+              maxAllowedLimit: 100
+        - serviceName: networking
+          serviceLimits:
+            - limitName: vpc
+              maxAllowedLimit: 100
+  - region:
+      name: ap-southeast-1
+      services:
+        - serviceName: ec2
+          serviceLimits:
+            - limitName: m3.xlarge
+              maxAllowedLimit: 100
+        - serviceName: networking
+          serviceLimits:
+            - limitName: vpc
+              maxAllowedLimit: 100
+  - region:
+      name: ap-southeast-2
+      services:
+        - serviceName: ec2
+          serviceLimits:
+            - limitName: m3.xlarge
+              maxAllowedLimit: 100
+        - serviceName: networking
+          serviceLimits:
+            - limitName: vpc
+              maxAllowedLimit: 100
