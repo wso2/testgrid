@@ -197,11 +197,17 @@ class TestRunView extends Component {
   }
 
   render() {
+    var pageURL = window.location.href;
+    var lastURLSegment = pageURL.substr(pageURL.lastIndexOf('/') + 1);
+    var dash_segmented_pathArray = pageURL.split( '/' );
+    var colon_segmented_pathArray = dash_segmented_pathArray[2].split(':');
+    const PERFDASH_URL = "https://" + colon_segmented_pathArray[0] + ":3000/d/kMopgVtmz/wso2-product-performance-metrics?orgId=1&var-TestPlan=" + lastURLSegment + "&var-VM=All&from=now%2FM&to=now%2FM";
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
     const logAllContentUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
       window.location.href.split("/").pop() + "?truncate=" + false;
     const turncatedRunLogUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
       window.location.href.split("/").pop() + "?truncate=" + true;
+
     return (
       <div>
         <Snackbar
@@ -547,6 +553,15 @@ class TestRunView extends Component {
                     </div>;
                 }
               })()}
+            </Collapsible>
+            <Collapsible trigger="Performance Data" lazyRender={true} triggerWhenOpen="Performance Data>>" >
+             {(() => {
+                return <div>
+                  <br/>
+                  <iframe src= {PERFDASH_URL} height="1500" width="1200" title="perfmetrics"></iframe>
+                  <br/>
+                  </div>
+             })()}
             </Collapsible>
             {(() => {
               if (this.state.TruncatedRunLogUrlStatus && this.state.TruncatedRunLogUrlStatus === HTTP_OK) {
