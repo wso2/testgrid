@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TinkererCommands;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -72,6 +73,26 @@ public class DashboardSetup {
         // add a new data source to grafana
         HttpPost httpPost = createConnectivity(restUrl, apikey);
         executeReq(getDataSource(testplanID), httpPost);
+
+        try {
+            Agent[] allVMs = TinkererCommands.getAgents(testplanID);
+            logger.info("VMs running: " + allVMs.length);
+            String shellCommand;git
+            for (Agent vm :allVMs) {
+                shellCommand = "sed -i 's/wso2_sever/" + vm.getInstanceName() + "/g' /etc/telegraf/telegraf.conf";
+                logger.info(StringUtil.concatStrings("agent: ", vm.getInstanceName(), "Shell Command: ",
+                        shellCommand));
+                TinkererCommands.sendShellCommand(vm, shellCommand);
+                shellCommand = "sudo systemctl start telegraf";
+                logger.info(StringUtil.concatStrings("agent: ", vm.getInstanceName(), "Shell Command: ",
+                        shellCommand));
+                TinkererCommands.sendShellCommand(vm, shellCommand);
+            }
+        } catch (Exception e) {
+            logger.error("Error occurred while configuring Performance Dashboard : \n" + e.toString());
+        }
+
+
 
     }
 
