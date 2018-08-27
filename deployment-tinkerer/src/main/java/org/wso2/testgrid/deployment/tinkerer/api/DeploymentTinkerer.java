@@ -180,15 +180,18 @@ public class DeploymentTinkerer {
     /**
      * Send operation to agent and get response.
      *
+     * @param testPlanId       - Test plan id of the target agent.
+     * @param instanceName     - Instance Name of the target agent.
      * @param operationRequest - Operation request.
      * @return The operation response.
      */
     @POST
-    @Path("operation")
+    @Path("test-plan/{testPlanId}/agent/{instanceName}/operation")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response sendOperation(OperationRequest operationRequest) {
+    public Response sendOperation(@PathParam("testPlanId") String testPlanId,
+                                  @PathParam("instanceName") String instanceName, OperationRequest operationRequest) {
         SessionManager sessionManager = SessionManager.getInstance();
-        Agent agent = sessionManager.getAgent(operationRequest.getAgentId());
+        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
         OperationSegment operationSegment =  new OperationSegment();
         operationSegment.setResponse("");
         if (agent != null && sessionManager.hasAgentSession(agent.getAgentId())) {
@@ -256,15 +259,20 @@ public class DeploymentTinkerer {
     /**
      * Downloads a file from the given source to the destination.
      * The destination path must be a location in the host machine.
+     *
+     * @param testPlanId   TestPlanID for the instance where source is located
+     * @param instanceName Name of the instance where source is located
      */
     @POST
-    @Path("stream-file")
+    @Path("test-plan/{testPlanId}/agent/{instanceName}/stream-file")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response streamFile(OperationRequest operationRequest) {
+    public Response streamFile(@PathParam("testPlanId") String testPlanId,
+                               @PathParam("instanceName") String instanceName,
+                               OperationRequest operationRequest) {
         //get POST body data
         Map<String, String> data = operationRequest.getMetaData();
         SessionManager sessionManager = SessionManager.getInstance();
-        Agent agent = sessionManager.getAgent(operationRequest.getAgentId());
+        Agent agent = sessionManager.getAgent(testPlanId, instanceName);
 
         if (data != null) {
             String sshKey = data.get("key");

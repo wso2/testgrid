@@ -109,10 +109,13 @@ public class TinkererSDK {
      * Send shell command as http request to the Tinkerer and get back the result as synced response.
      *
      * @param agentId   id of the agent to send command
+     * @param testPlanId    The test plan id
+     * @param instantName   The instant name
      * @param command   command to execute
      * @return  Response handler as Sync response
      */
-    public SyncCommandResponse executeCommandSync(String agentId, String command) {
+    public SyncCommandResponse executeCommandSync(String agentId, String testPlanId, String instantName,
+                                                  String command) {
         Client client = ClientBuilder.newClient();
         String operationId = UUID.randomUUID().toString();
         OperationRequest operationRequest = new OperationRequest(command,
@@ -121,7 +124,8 @@ public class TinkererSDK {
         Gson gson = new Gson();
         String jsonRequest = gson.toJson(operationRequest);
         logger.debug("Sending sync commands to " + this.tinkererHost + " agent " + agentId);
-        Response response = client.target(this.tinkererHost)
+        Response response = client.target(this.tinkererHost + "test-plan/" + testPlanId
+                + "/agent/" + instantName)
                 .path("operation")
                 .request()
                 .header(HttpHeaders.AUTHORIZATION, this.authenticationToken)
