@@ -66,7 +66,7 @@ class TestRunView extends Component {
       currentInfra.testPlanStatus = this.props.active.reducer.currentInfra.testPlanStatus;
       this.getReportData(currentInfra);
       this.setState({currentInfra: currentInfra});
-      this.getgrafanaUrl(currentInfra.testPlanId);
+      this.getGrafanaUrl(currentInfra.testPlanId);
     } else {
       let url = TESTGRID_CONTEXT + "/api/test-plans/" + currentUrl.pop();
       fetch(url, {
@@ -86,7 +86,7 @@ class TestRunView extends Component {
         this.props.active.reducer.currentInfra = currentInfra;
         this.getReportData(currentInfra);
         this.setState({currentInfra: currentInfra});
-        this.getgrafanaUrl(currentInfra.testPlanId);
+        this.getGrafanaUrl(currentInfra.testPlanId);
       });
     }
 
@@ -200,7 +200,7 @@ class TestRunView extends Component {
       })
   }
 
-  async getgrafanaUrl(testid){
+  async getGrafanaUrl(testid){
     const grafanaUrl = TESTGRID_CONTEXT + '/api/test-plans/perf-url/' + testid;
     const fetchResult = fetch(grafanaUrl, {
                             method: "GET",
@@ -210,9 +210,8 @@ class TestRunView extends Component {
                             }
                        }).then(this.handleError);
      const response = await fetchResult;
-     const urldata = await response.text();
-     console.log("new" + urldata);
-     this.setState({grafanaUrl: urldata});
+     const urlData = await response.text();
+     this.setState({grafanaUrl: urlData});
 
   }
 
@@ -221,9 +220,9 @@ class TestRunView extends Component {
     var pageURL = window.location.href;
     const PERFDASH_URL = this.state.grafanaUrl
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
-    const logUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' + pageURL.split("/").pop()
-    const logAllContentUrl = logUrl + "?truncate=" + false;
-    const turncatedRunLogUrl = logUrl + "?truncate=" + true;
+    const logUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' + pageURL.split("/").pop() + "?truncate=";
+    const logAllContentUrl = logUrl + false;
+    const turncatedRunLogUrl = logUrl + true;
 
     return (
       <div>

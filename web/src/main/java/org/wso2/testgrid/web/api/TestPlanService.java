@@ -296,11 +296,9 @@ public class TestPlanService {
     @Path("/perf-url/{id}")
     public Response getGrafanaURL(@PathParam("id") String id) {
         try {
-
             String dashURL = ConfigurationContext.getProperty(ConfigurationProperties.GRAFANA_URL) +
                     "&from=now%2FM&to=now%2FM&var-VM=All&var-TestPlan=" + id;
             return Response.status(Response.Status.OK).entity(dashURL).build();
-
         } catch (Exception e) {
             String msg = "Error occurred while fetching the Grafana dashboard url by id : '" + id + "'";
             logger.error(msg, e);
