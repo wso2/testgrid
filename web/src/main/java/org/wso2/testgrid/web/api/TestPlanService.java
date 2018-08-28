@@ -29,6 +29,7 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
@@ -280,6 +281,36 @@ public class TestPlanService {
             return Response.status(Response.Status.OK).entity(testExecutionSummary).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
+     * Returns the product performance dashboard url for the given test plan id
+     *
+     * @param id test plan id
+     * @return The requested roduct performance dashboard url for the test plan
+     */
+    @GET
+    @Path("/perf-url/{id}")
+    public Response getGrafanaURL(@PathParam("id") String id) {
+        try {
+
+            String dashURL = ConfigurationContext.getProperty(ConfigurationProperties.GRAFANA_URL) +
+                    "&from=now%2FM&to=now%2FM&var-VM=All&var-TestPlan=" + id;
+            if (StringUtil.isStringNullOrEmpty(dashURL)) {
+                String msg = "No test plan found for the given id " + id;
+                logger.error(msg);
+                dashURL = "https://testgrid-live-dev.private.wso2.com:3000/d/kMopgVtmz/wso2-product-performance-" +
+                        "metrics?orgId=1&from=now%2FM&to=now%2FM&var-VM=All&var-TestPlan=" + id;
+                return Response.status(Response.Status.OK).entity(dashURL).build();
+            } else {
+                return Response.status(Response.Status.OK).entity(dashURL).build();
+            }
+        } catch (Exception e) {
+            String msg = "Error occurred while fetching the Grafana dashboard url by id : '" + id + "'";
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();

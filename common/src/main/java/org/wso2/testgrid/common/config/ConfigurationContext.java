@@ -151,7 +151,7 @@ public class ConfigurationContext {
         WAIT_FOR_STACK_DELETION("WAIT_FOR_STACK_DELETION"),
 
         /**
-         * URL of InfluxDB datab
+         * URL of InfluxDB data base
          */
         PERFORMANCE_DASHBOARD_URL("PERFORMANCE_DASHBOARD_URL"),
 
@@ -168,7 +168,12 @@ public class ConfigurationContext {
         /**
          * Grafana api Key
          */
-        GRAFANA_APIKEY("GRAFANA_APIKEY");
+        GRAFANA_APIKEY("GRAFANA_APIKEY"),
+
+        /**
+         * Grafana Dashboard URL
+         */
+        GRAFANA_URL("GRAFANA_URL");
 
 
 
