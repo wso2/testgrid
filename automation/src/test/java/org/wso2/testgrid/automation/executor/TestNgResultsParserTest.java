@@ -76,6 +76,8 @@ public class TestNgResultsParserTest {
         deploymentPatternDBEntry.setName("deployment-pattern");
         deploymentPatternDBEntry.setProduct(product);
         testPlan.setDeploymentPattern(deploymentPatternDBEntry);
+        testPlan.setWorkspace(Paths.get(TESTGRID_HOME, TestGridConstants.TESTGRID_JOB_DIR,
+                product.getName()).toString());
         MockitoAnnotations.initMocks(this);
     }
 

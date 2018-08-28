@@ -11,7 +11,7 @@ deploymentConfig:
       name: deploy-
       phase: CREATE
       type: SHELL
-deploymentRepository: ./src/test/resources/workspace/deployment
+deploymentRepository: workspace/deployment
 id: abc
 infrastructureConfig:
   containerOrchestrationEngine: None
@@ -35,10 +35,10 @@ infrastructureConfig:
       name: destroy-
       phase: DESTROY
       type: SHELL
-infrastructureRepository: ./src/test/resources/workspace/infrastructure
+infrastructureRepository: workspace/infrastructure
 jobProperties:
   PROPERTY1: value1
-keyFileLocation: ./src/test/resources/workspace/testkey.pem
+keyFileLocation: workspace/testkey.pem
 scenarioConfig:
   scenarios:
   - description: Test Scenario
@@ -48,7 +48,8 @@ scenarioConfig:
     testCases: [
       ]
   testType: FUNCTIONAL
-scenarioTestsRepository: ./src/test/resources/workspace/scenarioTests
+scenarioTestsRepository: workspace/scenarioTests
 testRunNumber: 1
 testScenarios: [
   ]
+workspace: <workspace-to-be-added-at-runtime>

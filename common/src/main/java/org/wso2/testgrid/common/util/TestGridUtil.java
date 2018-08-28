@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeploymentPattern;
-import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
@@ -36,7 +35,6 @@ import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
-import org.wso2.testgrid.common.exception.TestGridException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -108,48 +106,13 @@ public final class TestGridUtil {
     }
 
     /**
-     * Returns the directory location where the test-plans are stored.
+     * Returns the directory location where the test-plan requests are stored.
      *
-     * @return path of the test plans directory
+     * @return path of the test plan requests directory
      * @throws IOException thrown when error on calculating test plan artifacts directory
      */
-    public static Path getTestPlanDirectory() throws IOException {
+    public static Path getTestPlanRequestDirectory() throws IOException {
         return Paths.get(getTestGridHomePath(), "test-plans");
-    }
-
-    /**
-     * Returns the directory location where the test run artifacts resides relative to testgrid.home.
-     *
-     * @param testPlan test plan for getting the test run artifacts location
-     * @return path of the test run artifacts
-     * @throws TestGridException thrown when error on calculating test run artifacts directory
-     */
-    public static Path getTestRunWorkspace(TestPlan testPlan) throws TestGridException {
-        return getTestRunWorkspace(testPlan, true);
-    }
-
-    /**
-     * Returns the directory location where the test run artifacts resides.
-     *
-     * @param testPlan test plan for getting the test run artifacts location
-     * @param relative Whether the path need to be returned relative to testgrid.home or not.
-     * @return path of the test run artifacts
-     */
-    public static Path getTestRunWorkspace(TestPlan testPlan, boolean relative) {
-        DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
-        Product product = deploymentPattern.getProduct();
-        int testRunNumber = testPlan.getTestRunNumber();
-
-        String productDir = product.getName();
-        String deploymentDir = deploymentPattern.getName();
-        String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
-
-        String dirPrefix = "";
-        if (!relative) {
-            dirPrefix = getTestGridHomePath();
-        }
-
-        return Paths.get(dirPrefix, productDir, deploymentDir, infraDir, String.valueOf(testRunNumber));
     }
 
     /**
@@ -385,8 +348,7 @@ public final class TestGridUtil {
     }
 
     public static Path getTestScenarioArtifactPath(TestScenario testScenario) {
-        String productName = testScenario.getTestPlan().getDeploymentPattern().getProduct().getName();
-        return Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR, productName,
+        return Paths.get(testScenario.getTestPlan().getWorkspace(),
                 TestGridConstants.TESTGRID_BUILDS_DIR, deriveTestPlanDirName(testScenario.getTestPlan()),
                 testScenario.getDir());
     }
@@ -394,18 +356,17 @@ public final class TestGridUtil {
     /**
      * Returns the path of the test-run log file.
      * <p>
-     * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/test-run.log
+     * <TestPlan Workspace>/builds/#depl_name#_#infra-uuid#_#test-run-num#/test-run.log
      *
      * @param testPlan test-plan
      * @param truncated whether the truncated log or the raw log file
      * @return log file path
      */
     public static String deriveTestRunLogFilePath(TestPlan testPlan, Boolean truncated) {
-        String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
         String fileName = truncated ?
                 TestGridConstants.TRUNCATED_TESTRUN_LOG_FILE_NAME : TestGridConstants.TESTRUN_LOG_FILE_NAME;
-        return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
+        return Paths.get(testPlan.getWorkspace(), TestGridConstants.TESTGRID_BUILDS_DIR,
                 testPlanDirName, fileName).toString();
     }
 
@@ -429,9 +390,8 @@ public final class TestGridUtil {
      * @return File download location path
      */
     public static String deriveLogDownloadLocation(TestPlan testPlan) {
-        String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
-        return Paths.get(getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR, productName,
+        return Paths.get(testPlan.getWorkspace(),
                 TestGridConstants.TESTGRID_BUILDS_DIR, testPlanDirName).toString();
     }
 
@@ -486,21 +446,6 @@ public final class TestGridUtil {
         String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.TESTGRID_HOST);
         return String.join("/", testGridHost, productName);
-    }
-
-    /**
-     * Generate the S3 bucket URL for the current environment.
-     * Ex. https://s3.amazonaws.com/bucket1
-     *
-     * @return the S3 bucket url of the environment
-     */
-    public static String getS3BucketURL() {
-        String s3BucketName = ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.AWS_S3_BUCKET_NAME);
-        if (StringUtil.isStringNullOrEmpty(s3BucketName)) {
-            s3BucketName = TestGridConstants.AMAZON_S3_DEFAULT_BUCKET_NAME;
-        }
-        return String.join("/", TestGridConstants.AMAZON_S3_URL, s3BucketName);
     }
 
     /**

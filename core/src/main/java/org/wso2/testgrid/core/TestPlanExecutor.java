@@ -68,6 +68,7 @@ import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -125,7 +126,6 @@ public class TestPlanExecutor {
         // Provision infrastructure
         InfrastructureProvisionResult infrastructureProvisionResult = provisionInfrastructure(infrastructureConfig,
                 testPlan);
-
         //setup product performance dashboard
         if (infrastructureProvisionResult.isSuccess()) {
             DashboardSetup dashboardSetup = new DashboardSetup(testPlan.getId());
@@ -536,10 +536,12 @@ public class TestPlanExecutor {
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
         final Properties jobProperties = testPlan.getJobProperties();
+        final String keyFileLocation = testPlan.getKeyFileLocation();
         final Properties infraParameters = testPlan.getInfrastructureConfig().getParameters();
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
             jobProperties.store(os, null);
             infraParameters.store(os, null);
+            os.write((TestGridConstants.KEY_FILE_LOCATION + "=" + keyFileLocation).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
         }

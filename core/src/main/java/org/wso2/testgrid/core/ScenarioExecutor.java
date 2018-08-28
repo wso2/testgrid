@@ -101,6 +101,7 @@ public class ScenarioExecutor {
             testScenario.setTestPlan(testPlan);
             testScenario.setStatus(Status.RUNNING);
             testScenario = persistTestScenario(testScenario);
+            testScenario.getTestPlan().setWorkspace(testPlan.getWorkspace());
 
             // Create run-scenario.sh file if it's missing.
             if (!Files.exists(Paths.get(

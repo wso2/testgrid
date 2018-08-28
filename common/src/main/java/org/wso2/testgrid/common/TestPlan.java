@@ -17,12 +17,16 @@
  */
 package org.wso2.testgrid.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.Serializable;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -46,6 +50,7 @@ import javax.persistence.Transient;
 @Entity
 @Table(name = TestPlan.TEST_PLAN_TABLE)
 public class TestPlan extends AbstractUUIDEntity implements Serializable, Cloneable {
+    private static final Logger logger = LoggerFactory.getLogger(TestPlan.class);
 
     /**
      * TestPlan table name.
@@ -117,6 +122,10 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     @Transient
     private String keyFileLocation;
+
+    @Transient
+    private String workspace = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR,
+            "sample-product").toString();
 
     /**
      * Returns the status of the infrastructure.
@@ -451,6 +460,18 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     public void setJobName(String jobName) {
         this.jobName = jobName;
+    }
+
+    public String getWorkspace() {
+        if (workspace.contains("sample-product")) {
+            logger.warn("Testplan does not stick to a workspace directory. Hence a default value is referred as" +
+                    workspace);
+        }
+        return workspace;
+    }
+
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
     }
 
     /**

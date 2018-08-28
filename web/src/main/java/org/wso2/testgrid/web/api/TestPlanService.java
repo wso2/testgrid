@@ -29,6 +29,7 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
@@ -169,8 +170,7 @@ public class TestPlanService {
                         .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
             }
             TestPlan testPlan = optionalTestPlan.get();
-
-            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan, truncate);
+            String logFileDir = S3StorageUtil.deriveTestRunLogFilePath(testPlan, truncate);
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
@@ -221,7 +221,7 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
 
-            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan, true);
+            String logFileDir = S3StorageUtil.deriveTestRunLogFilePath(testPlan, true);
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
@@ -382,7 +382,7 @@ public class TestPlanService {
      *                           3.If the YAML file already exists.
      */
     private void persistAsYamlFile(TestPlanRequest testPlanRequest) throws TestGridException, IOException {
-        java.nio.file.Path path = TestGridUtil.getTestPlanDirectory().resolve(testPlanRequest.getTestPlanName());
+        java.nio.file.Path path = TestGridUtil.getTestPlanRequestDirectory().resolve(testPlanRequest.getTestPlanName());
 
         if (!Files.exists(path)) {
             try {
