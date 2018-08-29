@@ -407,7 +407,7 @@ public class AWSProvider implements InfrastructureProvider {
                         deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName, " ",
                         deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ", testPlanId, " ",
                         ConfigurationContext.getProperty
-                                (ConfigurationContext.ConfigurationProperties.PERFORMANCE_DASHBOARD_URL), ":8086 ",
+                                (ConfigurationContext.ConfigurationProperties.INFLUXDB_URL), ":8086 ",
                         ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_USER),
                         " ", ConfigurationContext.getProperty(ConfigurationContext.
                                 ConfigurationProperties.INFLUXDB_PASS));
