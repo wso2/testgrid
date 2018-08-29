@@ -170,7 +170,7 @@ public class TestPlanService {
                         .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
             }
             TestPlan testPlan = optionalTestPlan.get();
-            String logFileDir = S3StorageUtil.deriveTestRunLogFilePath(testPlan, truncate);
+            String logFileDir = S3StorageUtil.getS3LocationForTestRunLogFile(testPlan, truncate);
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
@@ -221,7 +221,7 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
 
-            String logFileDir = S3StorageUtil.deriveTestRunLogFilePath(testPlan, true);
+            String logFileDir = S3StorageUtil.getS3LocationForTestRunLogFile(testPlan, true);
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.

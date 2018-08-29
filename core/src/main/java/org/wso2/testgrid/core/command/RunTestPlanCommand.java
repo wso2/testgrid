@@ -151,17 +151,17 @@ public class RunTestPlanCommand implements Command {
     private void resolvePaths(TestPlan testPlan) {
         //infra
         Path repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getInfrastructureRepository());
-        testPlan.setInfrastructureRepository(resolvePath(repoPath, testPlan));
+        testPlan.setInfrastructureRepository(resolvePath(repoPath));
         //deploy
         repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getDeploymentRepository());
-        testPlan.setDeploymentRepository(resolvePath(repoPath, testPlan));
+        testPlan.setDeploymentRepository(resolvePath(repoPath));
         //scenarios
         repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getScenarioTestsRepository());
-        testPlan.setScenarioTestsRepository(resolvePath(repoPath, testPlan));
+        testPlan.setScenarioTestsRepository(resolvePath(repoPath));
         //keyfile
         if (testPlan.getKeyFileLocation() != null) {
             repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getKeyFileLocation());
-            testPlan.setKeyFileLocation(resolvePath(repoPath, testPlan));
+            testPlan.setKeyFileLocation(resolvePath(repoPath));
         }
     }
 
@@ -170,16 +170,12 @@ public class RunTestPlanCommand implements Command {
      * the iobConfigYaml.
      *
      * @param path          The path to resolve
-     * @param testPlan the testPlan.yaml bean
      * @return the resolved path
      * @throws TestGridRuntimeException if the resolved path does not exist.
      */
-    private String resolvePath(Path path, TestPlan testPlan) {
+    private String resolvePath(Path path) {
         path = path.toAbsolutePath().normalize();
         if (!Files.exists(path)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("TestPlanFile: " + testPlan);
-            }
             throw new TestGridRuntimeException("Path '" + path.toString() + "' does not exist.");
         }
         return path.toString();

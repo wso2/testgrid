@@ -135,10 +135,10 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         testPlan.setDeploymentPattern(deploymentPattern);
         testPlan.setInfraParameters(infraParamsString);
         testPlan.setDeployerType(TestPlan.DeployerType.SHELL);
-        testPlan.setScenarioTestsRepository(workspaceDir + "/workspace/scenarioTests");
-        testPlan.setInfrastructureRepository(workspaceDir + "/workspace/infrastructure");
-        testPlan.setDeploymentRepository(workspaceDir + "/workspace/deployment");
-        testPlan.setKeyFileLocation(workspaceDir + "/workspace/testkey.pem");
+        testPlan.setScenarioTestsRepository(Paths.get(workspaceDir, "/workspace/scenarioTests").toString());
+        testPlan.setInfrastructureRepository(Paths.get(workspaceDir, "/workspace/infrastructure").toString());
+        testPlan.setDeploymentRepository(Paths.get(workspaceDir, "/workspace/deployment").toString());
+        testPlan.setKeyFileLocation(Paths.get(workspaceDir, "/workspace/testkey.pem").toString());
         testPlan.setWorkspace(workspaceDir);
 
         when(testScenarioUOW.persistTestScenario(any(TestScenario.class))).thenAnswer(invocation -> invocation
@@ -178,9 +178,10 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
     }
 
     private void copyWorkspaceArtifacts() throws IOException {
-        String resourceDir = "./src/test/resources/workspace";
-            FileUtils.copyDirectory(new File(resourceDir), new File(workspaceDir + "/workspace"));
-            logger.info("Copying necessary artifacts to workspace " + workspaceDir + "/workspace");
+        String resourceDir = Paths.get("./src", "test", "resources", "workspace").toString();
+        String destinationDir = Paths.get(workspaceDir, "/workspace").toString();
+            FileUtils.copyDirectory(new File(resourceDir), new File(destinationDir));
+            logger.info("Copying necessary artifacts to directory: " + destinationDir);
     }
 
     private void doMock() throws TestGridDAOException, TestAutomationException {

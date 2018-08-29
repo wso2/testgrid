@@ -22,7 +22,7 @@ public final class S3StorageUtil {
      * @param truncated whether the truncated log or the raw log file
      * @return log file path
      */
-    public static String deriveTestRunLogFilePath(TestPlan testPlan, Boolean truncated) {
+    public static String getS3LocationForTestRunLogFile(TestPlan testPlan, Boolean truncated) {
         String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
         String fileName = truncated ?

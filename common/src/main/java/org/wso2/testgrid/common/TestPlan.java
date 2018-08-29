@@ -462,12 +462,31 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
         this.jobName = jobName;
     }
 
+    /**
+     * Return the workspace of the TestPlan.
+     * If the workspace is not set it will be derived as below;
+     *      1. Derived using the job-name
+     *      2. If job-name is not set, derive using product-name
+     *      3. If both (1) and (2) is not possible, consider job directory as "product-<random-number>"
+     *      (The random directory will be generated only one-time and will be used as its workspace from there onwards.)
+     */
     public String getWorkspace() {
-        if (workspace.contains("sample-product")) {
-            logger.warn("Testplan does not stick to a workspace directory. Hence a default value is referred as" +
-                    workspace);
+        if (StringUtil.isStringNullOrEmpty(workspace)) {
+            String jobDir = getJobName();
+            if (StringUtil.isStringNullOrEmpty(jobDir)) {
+                if (getDeploymentPattern() != null && getDeploymentPattern().getProduct() != null) {
+                    jobDir = getDeploymentPattern().getProduct().getName();
+                }
+                if (StringUtil.isStringNullOrEmpty(jobDir)) {
+                    jobDir = "product-" + StringUtil.generateRandomString(5);
+                }
+            }
+            this.setWorkspace(Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR,
+                    jobDir).toString());
+            logger.warn("Test-plan " + this.toString() + " does not stick to a workspace directory. " +
+                    "Hence the directory '" + workspace + "' is set as workspace and will be used from here onwards.");
         }
-        return workspace;
+            return workspace;
     }
 
     public void setWorkspace(String workspace) {
