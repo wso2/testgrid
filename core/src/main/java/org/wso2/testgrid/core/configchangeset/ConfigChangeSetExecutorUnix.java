@@ -36,7 +36,6 @@ import org.wso2.testgrid.tinkerer.AsyncCommandResponse;
 import org.wso2.testgrid.tinkerer.TinkererSDK;
 import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -272,10 +271,9 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
         AsyncCommandResponse response = tinkererSDK.
                 executeCommandAsync(agent.getAgentId(), script);
         try {
-            BufferedReader bufferedReader = response.startReadStream();
             String line;
             while (response.hasMoreContent()) {
-                line = bufferedReader.readLine();
+                line = response.readLines();
                 logger.info(line);
             }
             response.endReadStream();
@@ -283,9 +281,6 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
             throw new ConfigChangeSetExecutorException(StringUtil.concatStrings(
                     "Error while start reading persisted file for the operation ",
                     response.getOperationId()), e);
-        } catch (IOException e) {
-            throw new ConfigChangeSetExecutorException("Error while reading persisted file for the operation "
-                    + response.getOperationId(), e);
         }
         return response.getExitValue();
     }

@@ -37,8 +37,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -52,7 +50,6 @@ public class TinkererSDK {
 
     private static final Logger logger = LoggerFactory.getLogger(TinkererSDK.class);
 
-    private static final int MAX_NUMBER_OF_THREAD = 10;
     private String tinkererHost;
     private String authenticationToken;
 
@@ -95,12 +92,12 @@ public class TinkererSDK {
                 .header(HttpHeaders.AUTHORIZATION, this.authenticationToken)
                 .post(Entity.entity(jsonRequest,
                         MediaType.APPLICATION_JSON));
-        Path filePath = Paths.get(System.getProperty("java.io.tmpdir"), operationId.concat(".txt"));
+        Path filePath = Paths.get(System.getProperty("java.io.tmpdir"));
         ScriptExecutorThread scriptExecutorThread = new ScriptExecutorThread(operationRequest.getOperationId()
                 , response, filePath);
-        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_NUMBER_OF_THREAD);
-        threadPool.execute(scriptExecutorThread);
-        AsyncCommandResponse asyncCommandResponse = new AsyncCommandResponse(filePath, scriptExecutorThread);
+        scriptExecutorThread.start();
+        AsyncCommandResponse asyncCommandResponse = new AsyncCommandResponse(operationId,
+                filePath, scriptExecutorThread);
         asyncCommandResponse.setOperationId(operationRequest.getOperationId());
         return asyncCommandResponse;
     }

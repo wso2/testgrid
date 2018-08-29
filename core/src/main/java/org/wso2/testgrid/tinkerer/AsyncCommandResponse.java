@@ -18,21 +18,12 @@
 
 package org.wso2.testgrid.tinkerer;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -45,51 +36,20 @@ public class AsyncCommandResponse extends CommandResponse {
 
     private String filePath;
     private ScriptExecutorThread scriptExecutorThread;
-    private BufferedReader bufferedReader;
-    private boolean hasMoreContent = true;
+    private String operationId;
+    private int contentCount = 0;
 
     /**
      * Constructor to handle async output from Tinkerer
      *
-     * @param filePath
-     * @param scriptExecutorThread
+     * @param operationId   The operation id
+     * @param filePath          The file path to persist data
+     * @param scriptExecutorThread      Streaming thread pointer
      */
-    AsyncCommandResponse(Path filePath, ScriptExecutorThread scriptExecutorThread) {
+    AsyncCommandResponse(String operationId, Path filePath, ScriptExecutorThread scriptExecutorThread) {
+        this.operationId = operationId;
         this.filePath = filePath.toString();
         this.scriptExecutorThread = scriptExecutorThread;
-        this.bufferedReader = null;
-    }
-
-    /**
-     *  Start read stream from file
-     *
-     * @return  BufferedReader output
-     * @throws TinkererOperationException  File reading error exceptions
-     */
-    @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
-    public BufferedReader startReadStream() throws TinkererOperationException {
-        try {
-            InputStream inputStream = new FileInputStream(new File(this.filePath));
-            this.bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-                public String readLine() throws IOException {
-                    String result;
-                    if (isCompleted()) {
-                        result = super.readLine();
-                        if (result == null) {
-                            setHasMoreContent(false);
-                        }
-                    } else {
-                        do {
-                            result = super.readLine();
-                        } while (result == null);
-                    }
-                    return result;
-                }
-            };
-        } catch (FileNotFoundException e) {
-            throw new TinkererOperationException("File did not found " + this.filePath, e);
-        }
-        return this.bufferedReader;
     }
 
     /**
@@ -98,17 +58,45 @@ public class AsyncCommandResponse extends CommandResponse {
      * @return          has more content
      */
     public boolean hasMoreContent() {
-        return this.hasMoreContent;
+        if (isCompleted() && (this.contentCount == this.scriptExecutorThread.getSegmentCount())) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**
-     * Set if more content available to read
+     * Read next section of result log from the file
      *
-     * @param hasMoreContent        has more content
+     * @return      Result segment
      */
-    public void setHasMoreContent(boolean hasMoreContent) {
-        this.hasMoreContent = hasMoreContent;
+    public String readLines() {
+        String fileName = this.operationId.
+                concat("_".concat(Integer.toString(this.contentCount + 1)).concat(".txt"));
+        String fileToRead = Paths.get(this.filePath, fileName).toString();
+        String result = "";
+        while (true) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                logger.error("Error while waiting to read logs", e);
+            }
+            if (FileUtil.isFileExist(fileToRead)) {
+                break;
+            }
+            if (!hasMoreContent()) {
+                return "";
+            }
+        }
+        try {
+            result = FileUtil.readFile(filePath, fileName);
+        } catch (TestGridException e) {
+            logger.info("Error while reading file", e);
+        }
+        this.contentCount++;
+        return result;
     }
+
 
     /**
      * Check if execution completed
@@ -131,18 +119,18 @@ public class AsyncCommandResponse extends CommandResponse {
     }
 
     /**
-     * Close buffer and remove persisted stream result from file.
+     * Remove persisted stream result from file.
      */
     public void endReadStream() throws TinkererOperationException {
-        try {
-            this.bufferedReader.close();
-        } catch (IOException e) {
-            throw new TinkererOperationException("Error while closing buffer for " + this.filePath);
-        }
-        try {
-            Files.delete(Paths.get(this.filePath));
-        } catch (IOException e) {
-            throw new TinkererOperationException("Error while removing file " + this.filePath);
+        for (int fileCount = 1; fileCount <= this.contentCount; fileCount++) {
+            String fileName = this.operationId.
+                    concat("_".concat(Integer.toString(fileCount)).concat(".txt"));
+            String fileToDelete = Paths.get(this.filePath, fileName).toString();
+            try {
+                FileUtil.removeFile(fileToDelete);
+            } catch (TestGridException e) {
+                logger.error("Error while deleting file ", e);
+            }
         }
     }
 

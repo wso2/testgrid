@@ -26,9 +26,8 @@ import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Calendar;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -48,6 +47,7 @@ public class ScriptExecutorThread extends Thread {
     private String operationId;
     private volatile boolean isCompleted;
     private volatile int exitValue;
+    private int segmentCount;
 
     /**
      * Initialize streaming thread with operation details.
@@ -62,13 +62,7 @@ public class ScriptExecutorThread extends Thread {
         this.testGridShellStreamPath = filePath;
         this.isCompleted = false;
         this.exitValue = 0;
-        try {
-            Files.createFile(filePath);
-        } catch (IOException e) {
-            logger.error("Error while creating file for operation id " + this.operationId + " path " +
-                    this.testGridShellStreamPath.toString(), e);
-        }
-
+        this.segmentCount = 0;
     }
 
     /**
@@ -83,13 +77,16 @@ public class ScriptExecutorThread extends Thread {
         long initTime = Calendar.getInstance().getTimeInMillis();
         long currentTime;
         while ((chunk = input.read()) != null) {
-            currentTime = Calendar.getInstance().getTimeInMillis();
-            if (initTime + MAX_BUFFER_IDLE_TIME < currentTime) {
-                logger.warn("Execution time out for operation " + this.operationId);
-                break;
+            synchronized (this) {
+                currentTime = Calendar.getInstance().getTimeInMillis();
+                if (initTime + MAX_BUFFER_IDLE_TIME < currentTime) {
+                    logger.warn("Execution time out for operation " + this.operationId);
+                    break;
+                }
+                operationSegment = gson.fromJson(chunk, OperationSegment.class);
+                writeDataToFile(operationSegment, this.segmentCount + 1);
+                this.segmentCount++;
             }
-            operationSegment = gson.fromJson(chunk, OperationSegment.class);
-            writeDataToFile(operationSegment);
         }
         synchronized (this) {
             this.isCompleted = true;
@@ -103,10 +100,13 @@ public class ScriptExecutorThread extends Thread {
      * Write command execution result into a file.
      *
      * @param operationSegment      The response to write
+     * @param segmentId             Segment id to write
      */
-    private void writeDataToFile(OperationSegment operationSegment) {
+    private void writeDataToFile(OperationSegment operationSegment, int segmentId) {
+        String fileToWrite = Paths.get(this.testGridShellStreamPath.toString(),
+                this.operationId.concat("_".concat(Integer.toString(segmentId)).concat(".txt"))).toString();
         try {
-            FileUtil.saveFile(operationSegment.getResponse(), this.testGridShellStreamPath.toString(), true);
+            FileUtil.saveFile(operationSegment.getResponse(), fileToWrite, false);
         } catch (TestGridException e) {
             logger.error("Unable Write data into a file for operation id " + operationSegment.getOperationId(), e);
         }
@@ -134,4 +134,13 @@ public class ScriptExecutorThread extends Thread {
      * Inner class to generate jersey client with GenericType.
      */
     static class ChunkObject extends GenericType<ChunkedInput<String>> { }
+
+    /**
+     * Get current read Segment count
+     *
+     * @return  Current segment count
+     */
+    public synchronized int getSegmentCount() {
+        return segmentCount;
+    }
 }

@@ -128,6 +128,31 @@ public class FileUtil {
     }
 
     /**
+     * Check if file exist in given file path
+     *
+     * @param filePath      The file path
+     * @return              True if file exist
+     */
+    public static boolean isFileExist(String filePath) {
+        File fileToCheck = new File(filePath);
+        return fileToCheck.exists();
+    }
+
+    /**
+     * Remove file if exist by given file path
+     *
+     * @param filePath              File path to remove
+     * @throws TestGridException    File deleting exception
+     */
+    public static void removeFile(String filePath) throws TestGridException {
+        try {
+            Files.deleteIfExists(Paths.get(filePath));
+        } catch (IOException e) {
+            throw new TestGridException("Error while deleting file " + filePath, e);
+        }
+    }
+
+    /**
      * Read content from a given file
      *
      * @param filePath          The file path to write

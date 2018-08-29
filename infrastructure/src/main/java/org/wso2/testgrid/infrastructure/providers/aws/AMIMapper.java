@@ -53,6 +53,7 @@ public class AMIMapper {
     private static final String AMI_TAG_OS = "OS";
     private static final String AMI_TAG_OS_VERSION = "OSVersion";
     private static final String AMI_TAG_AGENT_READY = "AGENT_READY";
+    private static final String AMI_TAG_TESTGRID_ENVIRONMENT = "TESTGRID_ENVIRONMENT";
 
     private final AmazonEC2 amazonEC2;
 
@@ -145,6 +146,14 @@ public class AMIMapper {
             }
         }
         lookupParams.setProperty(AMI_TAG_AGENT_READY, "true");
+        String environment = ConfigurationContext.
+                getProperty(ConfigurationProperties.TESTGRID_ENVIRONMENT);
+        if (!environment.isEmpty()) {
+            logger.info("Setting up AMI environment as " + environment);
+            lookupParams.setProperty(AMI_TAG_TESTGRID_ENVIRONMENT, environment);
+        } else {
+            logger.warn("Execution environment of TESTGRID_ENVIRONMENT is not set in config.properties.");
+        }
         return lookupParams;
     }
 
