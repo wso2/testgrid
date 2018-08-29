@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,7 +44,7 @@ public class ScriptExecutorThread extends Thread {
     public static final int MAX_BUFFER_IDLE_TIME = 900000;  // Maximum waiting time to update message queue
 
     private Response response;
-    private Path testGridShellStreamPath;
+    private Path testgridShellStreamPath;
     private String operationId;
     private volatile boolean isCompleted;
     private volatile int exitValue;
@@ -59,7 +60,7 @@ public class ScriptExecutorThread extends Thread {
     public ScriptExecutorThread(String operationId, Response response, Path filePath) {
         this.operationId = operationId;
         this.response = response;
-        this.testGridShellStreamPath = filePath;
+        this.testgridShellStreamPath = filePath;
         this.isCompleted = false;
         this.exitValue = 0;
         this.segmentCount = 0;
@@ -103,8 +104,8 @@ public class ScriptExecutorThread extends Thread {
      * @param segmentId             Segment id to write
      */
     private void writeDataToFile(OperationSegment operationSegment, int segmentId) {
-        String fileToWrite = Paths.get(this.testGridShellStreamPath.toString(),
-                this.operationId.concat("_".concat(Integer.toString(segmentId)).concat(".txt"))).toString();
+        String fileToWrite = Paths.get(this.testgridShellStreamPath.toString(), StringUtil.
+                concatStrings(this.operationId, "_", Integer.toString(segmentId), ".txt")).toString();
         try {
             FileUtil.saveFile(operationSegment.getResponse(), fileToWrite, false);
         } catch (TestGridException e) {

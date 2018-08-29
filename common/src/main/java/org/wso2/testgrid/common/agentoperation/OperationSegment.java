@@ -66,7 +66,7 @@ public class OperationSegment extends Operation {
     }
 
     /**
-     * Get is operation execution completed
+     * Check operation execution state is completed or not
      *
      * @return      Completed state
      */

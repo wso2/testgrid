@@ -157,6 +157,7 @@ public class AppServletContextListener implements ServletContextListener {
      * Abort execution if it idle for a given time.
      */
     static final class MessageQueueScheduler extends TimerTask {
+
         /**
          * Regular inspection cycle of maintaining message queue.
          */
@@ -180,9 +181,10 @@ public class AppServletContextListener implements ServletContextListener {
                     break;
                 }
                 // Abort operation execution if agent idle or test executor not retrieving back for a given timeout
-                if ((operationMessage.getLastConsumedTime() + Constants.MAX_LAST_CONSUME_TIMEOUT < currentTime ||
-                        operationMessage.getLastUpdatedTime() + Constants.MAX_LAST_UPDATED_TIMEOUT < currentTime) &&
-                        operationMessage.getCode().equals(OperationRequest.OperationCode.SHELL)) {
+                long lastConsumedTime = operationMessage.getLastConsumedTime() + Constants.MAX_LAST_CONSUME_TIMEOUT;
+                long lastUpdatedTime = operationMessage.getLastUpdatedTime() + Constants.MAX_LAST_UPDATED_TIMEOUT;
+                if ((lastConsumedTime < currentTime || lastUpdatedTime < currentTime) &&
+                        OperationRequest.OperationCode.SHELL.equals(operationMessage.getCode())) {
                     logger.warn("Operation time out for operation " + deleteOperationId + " " +
                             operationMessage.getCode() + " Aborting execution operation");
                     AgentStreamHandler agentStreamHandler = new AgentStreamHandler();

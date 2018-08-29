@@ -145,7 +145,7 @@ public class DeploymentTinkerer {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response abortOperation(OperationRequest operationRequest) {
         logger.info("Operation request received " + operationRequest.toJSON());
-        Response responseToSend = Response.status(Response.Status.OK).build();
+        Response responseToSend;
         SessionManager sessionManager = SessionManager.getInstance();
         Agent agent = sessionManager.getAgent(operationRequest.getAgentId());
         if (agent != null) {

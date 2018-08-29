@@ -120,7 +120,6 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>annotations</artifactId>
-            <scope>compile</scope>
         </dependency>
         <!-- Test dependencies -->
         <dependency>

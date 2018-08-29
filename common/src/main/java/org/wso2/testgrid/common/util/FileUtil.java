@@ -144,8 +144,7 @@ public class FileUtil {
      * @return              True if file exist
      */
     public static boolean isFileExist(String filePath) {
-        File fileToCheck = new File(filePath);
-        return fileToCheck.exists();
+        return Files.exists(Paths.get(filePath));
     }
 
     /**

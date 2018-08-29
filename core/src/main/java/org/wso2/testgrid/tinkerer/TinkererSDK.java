@@ -85,7 +85,7 @@ public class TinkererSDK {
         operationRequest.setOperationId(operationId);
         Gson gson = new Gson();
         String jsonRequest = gson.toJson(operationRequest);
-        logger.debug("Sending async commands to " + this.tinkererHost  + " agent " + agentId);
+        logger.info("Sending async commands to " + this.tinkererHost  + " agent " + agentId);
         Response response = client.target(this.tinkererHost)
                 .path("stream-operation")
                 .request()
@@ -120,7 +120,7 @@ public class TinkererSDK {
         operationRequest.setOperationId(operationId);
         Gson gson = new Gson();
         String jsonRequest = gson.toJson(operationRequest);
-        logger.debug("Sending sync commands to " + this.tinkererHost + " agent " + agentId);
+        logger.info("Sending sync commands to " + this.tinkererHost + " agent " + agentId);
         Response response = client.target(this.tinkererHost + "test-plan/" + testPlanId
                 + "/agent/" + instantName)
                 .path("operation")

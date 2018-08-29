@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
 import java.nio.file.Path;
@@ -71,8 +72,8 @@ public class AsyncCommandResponse extends CommandResponse {
      * @return      Result segment
      */
     public String readLines() {
-        String fileName = this.operationId.
-                concat("_".concat(Integer.toString(this.contentCount + 1)).concat(".txt"));
+        String fileName = StringUtil.concatStrings(this.operationId, "_",
+                Integer.toString(this.contentCount + 1), ".txt");
         String fileToRead = Paths.get(this.filePath, fileName).toString();
         String result = "";
         while (true) {
@@ -123,8 +124,8 @@ public class AsyncCommandResponse extends CommandResponse {
      */
     public void endReadStream() throws TinkererOperationException {
         for (int fileCount = 1; fileCount <= this.contentCount; fileCount++) {
-            String fileName = this.operationId.
-                    concat("_".concat(Integer.toString(fileCount)).concat(".txt"));
+            String fileName = StringUtil.concatStrings(this.operationId, "_",
+                    Integer.toString(fileCount), ".txt");
             String fileToDelete = Paths.get(this.filePath, fileName).toString();
             try {
                 FileUtil.removeFile(fileToDelete);

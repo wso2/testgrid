@@ -45,6 +45,7 @@ public class AgentStreamHandler implements Observer {
      * Default constructor to handle command in agent.
      */
     public AgentStreamHandler() {
+
     }
     /**
      * Agent handler constructor to initialize streaming object.
@@ -88,8 +89,8 @@ public class AgentStreamHandler implements Observer {
      * If new messages available for this object with given operation id then, send result data back to the test plan
      * executor.
      *
-     * @param o
-     * @param arg
+     * @param o     Observable notifier object
+     * @param arg   Updated message queue operation id
      */
     @Override
     public void update(Observable o, Object arg) {
