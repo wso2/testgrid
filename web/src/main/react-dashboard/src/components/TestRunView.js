@@ -50,7 +50,8 @@ class TestRunView extends Component {
       inputStreamSize: "",
       showLogDownloadErrorDialog: false,
       currentInfra: null,
-      TruncatedRunLogUrlStatus:null
+      TruncatedRunLogUrlStatus:null,
+      grafanaUrl: ""
     };
   }
 
@@ -65,6 +66,7 @@ class TestRunView extends Component {
       currentInfra.testPlanStatus = this.props.active.reducer.currentInfra.testPlanStatus;
       this.getReportData(currentInfra);
       this.setState({currentInfra: currentInfra});
+      this.getGrafanaUrl(currentInfra.testPlanId);
     } else {
       let url = TESTGRID_CONTEXT + "/api/test-plans/" + currentUrl.pop();
       fetch(url, {
@@ -83,9 +85,11 @@ class TestRunView extends Component {
         currentInfra.testPlanStatus = data.status;
         this.props.active.reducer.currentInfra = currentInfra;
         this.getReportData(currentInfra);
-        this.setState({currentInfra: currentInfra})
+        this.setState({currentInfra: currentInfra});
+        this.getGrafanaUrl(currentInfra.testPlanId);
       });
     }
+
     this.checkIfTestRunLogExists();
   }
 
@@ -196,12 +200,30 @@ class TestRunView extends Component {
       })
   }
 
+  async getGrafanaUrl(testid){
+    const grafanaUrl = TESTGRID_CONTEXT + '/api/test-plans/perf-url/' + testid;
+    const fetchResult = fetch(grafanaUrl, {
+                            method: "GET",
+                            credentials: 'same-origin',
+                            headers: {
+                            'Accept': 'application/json'
+                            }
+                       }).then(this.handleError);
+     const response = await fetchResult;
+     const urlData = await response.text();
+     this.setState({grafanaUrl: urlData});
+
+  }
+
+
   render() {
+    var pageURL = window.location.href;
+    const PERFDASH_URL = this.state.grafanaUrl
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
-    const logAllContentUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
-      window.location.href.split("/").pop() + "?truncate=" + false;
-    const turncatedRunLogUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' +
-      window.location.href.split("/").pop() + "?truncate=" + true;
+    const logUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' + pageURL.split("/").pop() + "?truncate=";
+    const logAllContentUrl = logUrl + false;
+    const turncatedRunLogUrl = logUrl + true;
+
     return (
       <div>
         <Snackbar
@@ -548,10 +570,20 @@ class TestRunView extends Component {
                 }
               })()}
             </Collapsible>
+            <Collapsible trigger="Performance Data" lazyRender={true} triggerWhenOpen="Performance Data>>" >
+             {(() => {
+                return <div>
+                  <br/>
+                  <iframe src= {PERFDASH_URL} height="1500" width="1200" title="perfmetrics"></iframe>
+                  <br/>
+                  </div>
+             })()}
+            </Collapsible>
             {(() => {
               if (this.state.TruncatedRunLogUrlStatus && this.state.TruncatedRunLogUrlStatus === HTTP_OK) {
                 return <Collapsible trigger="Test-Run log summary" lazyRender={true} triggerWhenOpen="Test-Run log summary >> ">
                   <div id="logConsoleFrame">
+
                     <iframe id="logConsole" title={"Test-Run Log"} style={{
                       height: "500px",
                       width: "100%"
