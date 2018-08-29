@@ -27,6 +27,7 @@ import com.amazonaws.services.ec2.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -147,7 +148,7 @@ public class AMIMapper {
         }
         lookupParams.setProperty(AMI_TAG_AGENT_READY, "true");
         String environment = ConfigurationContext.
-                getProperty(ConfigurationProperties.TESTGRID_ENVIRONMENT);
+                getProperty(ConfigurationContext.ConfigurationProperties.TESTGRID_ENVIRONMENT);
         if (!environment.isEmpty()) {
             logger.info("Setting up AMI environment as " + environment);
             lookupParams.setProperty(AMI_TAG_TESTGRID_ENVIRONMENT, environment);
