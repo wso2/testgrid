@@ -1,69 +1,173 @@
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 properties = null
+
 def loadProperties() {
     node {
         properties = readProperties file: "${TESTGRID_HOME}/config.properties"
     }
 }
+
+def uploadToS3() {
+    def bucket = properties['AWS_S3_BUCKET_NAME']
+    if ("${bucket}" == "null") {
+        bucket = "unknown"
+    }
+    sh """
+      aws s3 sync ${PWD}/builds/ s3://${bucket}/artifacts/jobs/${PRODUCT}/builds --include "*"
+      """
+}
+
+def truncateTestRunLog() {
+    sh """
+    if [ -d "${TESTGRID_HOME}/jobs/${PRODUCT}/builds" ]; then
+        for file in ${TESTGRID_HOME}${PRODUCT}/builds/*/test-run.log ; do
+            truncatedFile=\$(dirname \$file)/truncated-\$(basename \$file);
+            head -n 10 \$file > \$truncatedFile;
+            printf "......\n.....\n..(Skipping logs)..\n.....\n......\n" >> \$truncatedFile;
+            grep -B 25 -A 25 -a "Reactor Summary" \$file >> \$truncatedFile || true;
+            printf "......\n.....\n..(Skipping logs)..\n.....\n......\n" >> \$truncatedFile;
+            tail -n 50 \$file >> \$truncatedFile;
+        done
+    else
+        echo no logs found to truncate!
+    fi
+   """
+}
+
+def runPlan(tPlan, node) {
+    name = getParameters("/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}")
+    notifyBuild("STARTED", "parallel \n Infra : " + name, "#build_status_verbose")
+    echo "Executing Test Plan : ${tPlan} On node : ${node}"
+    try {
+        echo "Running Test-Plan: ${tPlan}"
+        sh "java -version"
+        unstash name: "${JOB_CONFIG_YAML}"
+        dir("${PWD}") {
+            unstash name: "test-plans"
+        }
+
+        sh """
+            echo "Before PWD"
+            pwd
+            cd /testgrid/testgrid-home/jobs/${PRODUCT}/${SCENARIOS_LOCATION}
+            git clean -fd
+            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
+            ./testgrid run-testplan --product ${PRODUCT} \
+            --file "/testgrid/testgrid-home/jobs/${PRODUCT}/${tPlan}"
+            """
+
+    } catch (Exception err) {
+        echo "Error : ${err}"
+        currentBuild.result = 'UNSTABLE'
+    } finally {
+        notifyBuild(currentBuild.result, "Parallel \n Infra : " + name, "#build_status_verbose")
+    }
+    echo "RESULT: ${currentBuild.result}"
+
+    script {
+        truncateTestRunLog()
+        loadProperties()
+        uploadToS3()
+    }
+}
+
+
+def getParameters(file) {
+    def tpyaml = readFile(file)
+    def m = tpyaml =~ /(parameters:)([A-z \n:'0-9\.-]*)(provisioners)/
+    // echo tpyaml
+    def params = m[0][2].trim().split('\n')
+    // echo Long.toString(params.size())
+    def name = ""
+    params = params.sort()
+    for (String s : params) {
+        name += s.split(":")[1]
+    }
+    echo "This is the name" + name
+    return name
+}
+
 pipeline {
     agent {
         node {
             label ""
-            customWorkspace '/testgrid/testgrid-home/jobs/wso2am-intg'
+            customWorkspace "/testgrid/testgrid-home/jobs/${JOB_BASE_NAME}"
         }
     }
 
     environment {
         TESTGRID_NAME = 'WSO2-TestGrid'
         TESTGRID_DIST_LOCATION = '/testgrid/testgrid-home/testgrid-dist/'
-        TESTGRID_HOME='/testgrid/testgrid-home/'
+        TESTGRID_HOME = '/testgrid/testgrid-home/'
 
         PRODUCT = "${JOB_BASE_NAME}"
-        INFRASTRUCTURE_REPOSITORY='https://github.com/wso2/testgrid'
-        DEPLOYMENT_REPOSITORY='https://github.com/wso2/testgrid'
-        SCENARIOS_REPOSITORY='https://github.com/wso2-incubator/apim-test-integration.git'
+        INFRASTRUCTURE_REPOSITORY = 'https://github.com/wso2/testgrid'
+        DEPLOYMENT_REPOSITORY = 'https://github.com/wso2/testgrid'
+        SCENARIOS_REPOSITORY = 'https://github.com/wso2/apim-test-integration.git'
 
-        INFRA_LOCATION="workspace/testgrid"
-        DEPLOYMENT_LOCATION="workspace/testgrid"
-        SCENARIOS_LOCATION="workspace/apim-test-integration"
-        TESTGRID_YAML_LOCATION="${INFRA_LOCATION}/jobs/${PRODUCT}/testgrid.yaml"
+        INFRA_LOCATION = "workspace/testgrid"
+        DEPLOYMENT_LOCATION = "workspace/testgrid"
+        SCENARIOS_LOCATION = "workspace/apim-test-integration"
+        TESTGRID_YAML_LOCATION = "${INFRA_LOCATION}/jobs/${PRODUCT}/testgrid.yaml"
 
-        AWS_ACCESS_KEY_ID=credentials('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY=credentials('AWS_SECRET_ACCESS_KEY')
-        tomcatUsername=credentials('TOMCAT_USERNAME')
-        tomcatPassword=credentials('TOMCAT_PASSWORD')
-        PWD=pwd()
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        tomcatUsername = credentials('TOMCAT_USERNAME')
+        tomcatPassword = credentials('TOMCAT_PASSWORD')
+        PWD = pwd()
         JOB_CONFIG_YAML = "job-config.yaml"
         JOB_CONFIG_YAML_PATH = "${PWD}/${JOB_CONFIG_YAML}"
 
-        PRODUCT_GIT_URL="${PRODUCT_GIT_URL}"
-        PRODUCT_GIT_BRANCH="${PRODUCT_GIT_BRANCH}"
-        PRODUCT_DIST_DOWNLOAD_API="${PRODUCT_DIST_DOWNLOAD_API}"
+        PRODUCT_GIT_URL = "${PRODUCT_GIT_URL}"
+        PRODUCT_GIT_BRANCH = "${PRODUCT_GIT_BRANCH}"
+        PRODUCT_DIST_DOWNLOAD_API = "${PRODUCT_DIST_DOWNLOAD_API}"
     }
 
     tools {
-        jdk 'jdk8'
+        jdk 'jdk8-slave1'
     }
 
     stages {
         stage('Preparation') {
             steps {
-                echo pwd()
-                deleteDir()
+                script {
+                    try {
+                        notifyBuild('STARTED', "Initiation", "#build_status_verbose")
+                        notifyBuild('STARTED', "Initiation", "#build_status")
+                        echo pwd()
+                        deleteDir()
 
-                // Clone scenario repo
-                sh "mkdir -p ${SCENARIOS_LOCATION}"
-                dir("${SCENARIOS_LOCATION}"){
-                    git url: "${SCENARIOS_REPOSITORY}"
-                }
+                        // Clone scenario repo
+                        sh "mkdir -p ${SCENARIOS_LOCATION}"
+                        dir("${SCENARIOS_LOCATION}") {
+                            git branch: 'master', url: "${SCENARIOS_REPOSITORY}"
+                        }
 
-                // Clone infra repo
-                sh "mkdir -p ${INFRA_LOCATION}"
-                dir("${INFRA_LOCATION}"){
-                    git branch: 'master', url:"${INFRASTRUCTURE_REPOSITORY}"
-                }
-                writeFile file: "${INFRA_LOCATION}/deploy.sh", text: '#!/bin/sh'
+                        // Clone infra repo
+                        sh "mkdir -p ${INFRA_LOCATION}"
+                        dir("${INFRA_LOCATION}") {
+                            git branch: 'master', url: "${INFRASTRUCTURE_REPOSITORY}"
+                        }
+                        writeFile file: "${INFRA_LOCATION}/deploy.sh", text: '#!/bin/sh'
 
-                sh """
+                        sh """
                     echo ${TESTGRID_NAME}
                     cd ${TESTGRID_DIST_LOCATION}
                     cd ${TESTGRID_NAME}
@@ -71,21 +175,20 @@ pipeline {
                     sed -i 's/-Xms256m -Xmx1024m/-Xmx2G -Xms2G/g' testgrid
                     """
 
-                // Get testgrid.yaml from jenkins managed files
-                configFileProvider(
-                        [configFile(fileId: "${PRODUCT}-testgrid-yaml", targetLocation:
-                                "${TESTGRID_YAML_LOCATION}")]) {
-                }
+                        // Get testgrid.yaml from jenkins managed files
+                        configFileProvider(
+                                [configFile(fileId: "${PRODUCT}-testgrid-yaml", targetLocation:
+                                        "${TESTGRID_YAML_LOCATION}")]) {
+                        }
 
-                configFileProvider([configFile(fileId: '3a63892b-06b8-483a-8a0d-74dffaf69c3d', targetLocation: 'workspace/testgrid-key.pem', variable: 'TESTGRIDKEY')]) {
-                    sh """
+                        configFileProvider([configFile(fileId: '3a63892b-06b8-483a-8a0d-74dffaf69c3d', targetLocation: 'workspace/testgrid-key.pem', variable: 'TESTGRIDKEY')]) {
+                            sh """
                         echo 'keyFileLocation: workspace/testgrid-key.pem' > ${JOB_CONFIG_YAML_PATH}
                         chmod 400 workspace/testgrid-key.pem
                         """
-                }
+                        }
 
-                sh """
-                    echo 'jobName: ${PRODUCT}' >> ${JOB_CONFIG_YAML_PATH}
+                        sh """
                     echo 'infrastructureRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'deploymentRepository: ${INFRA_LOCATION}/' >> ${JOB_CONFIG_YAML_PATH}
                     echo 'scenarioTestsRepository: ${SCENARIOS_LOCATION}' >> ${JOB_CONFIG_YAML_PATH}
@@ -102,120 +205,170 @@ pipeline {
                     echo '  gitBranch: ${PRODUCT_GIT_BRANCH}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  productDistDownloadApi: ${PRODUCT_DIST_DOWNLOAD_API}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  sqlDriversLocationUnix: ${SQL_DRIVERS_LOCATION_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  sqlDriversLocationWindows: ${SQL_DRIVERS_LOCATION_WINDOWS}' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  sshKeyFileLocation: ${PWD}/workspace/testgrid-key.pem' >> ${JOB_CONFIG_YAML_PATH}
                     echo '  RemoteWorkspaceDirPosix: ${REMOTE_WORKSPACE_DIR_UNIX}' >> ${JOB_CONFIG_YAML_PATH}
+                    echo '  buidType: abcd' >> ${JOB_CONFIG_YAML_PATH}
 
                     echo The job-config.yaml:
                     cat ${JOB_CONFIG_YAML_PATH}
                     """
 
-                stash name: "${JOB_CONFIG_YAML}", includes : "${JOB_CONFIG_YAML}"
+                        stash name: "${JOB_CONFIG_YAML}", includes: "${JOB_CONFIG_YAML}"
 
-                sh """
+                        sh """
                     cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
                     ./testgrid generate-test-plan \
                         --product ${PRODUCT} \
                         --file ${JOB_CONFIG_YAML_PATH}
                     """
+                        dir("${PWD}") {
+                            stash name: "test-plans", includes: "test-plans/**"
+                        }
+                    } catch (e) {
+                        currentBuild.result = "FAILED"
+                    } finally {
+                        notifyBuild(currentBuild.result, "preparation", "#build_status_verbose")
+                    }
+                }
             }
+
         }
 
-        stage('Test-plan-run') {
+        stage('parallel-run') {
             steps {
                 script {
-                    for (testplan in findFiles(glob: '**/test-plans/*.yaml')) {
-                        try {
-                            echo "Running Test-Plan: ${testplan.name}"
-                            sh "java -version"
-                            unstash name: "${JOB_CONFIG_YAML}"
-                            sh """
-                            cd ${SCENARIOS_LOCATION}
-                            git clean -fd
-                            cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
-                            ./testgrid run-testplan --product ${PRODUCT} \
-                            --file "${PWD}/test-plans/${testplan.name}"
-                            """
-                        } catch (Exception err) {
-                            echo "Error : ${err}"
-                            currentBuild.result = 'UNSTABLE'
-                        }
-                        echo "RESULT: ${currentBuild.result}"
-
-                        script {
-                            loadProperties()
-                            // Archive jtl files
-                            def bucket= properties['AWS_S3_BUCKET_NAME']
-                            if ( "${bucket}" == "null") {
-                                bucket="unknown"
+                    def name = "unknown"
+                    try{
+                    def parallelExecCount = 12
+                    def tests = [:]
+                    def files = findFiles(glob: '**/test-plans/*.yaml')
+                    for (int f = 1; f < parallelExecCount + 1 && f <= files.length; f++) {
+                        def executor = f
+                        name = getParameters('/testgrid/testgrid-home/jobs/wso2am-intg/test-plans/' + files[f - 1].name)
+                        echo name
+                        tests["${name}"] = {
+                            node {
+                                stage("Parallel Executor : ${executor}") {
+                                    script {
+                                        int processFileCount = 0;
+                                        if (files.length < parallelExecCount) {
+                                            processFileCount = 1;
+                                        } else {
+                                            processFileCount = files.length / parallelExecCount;
+                                        }
+                                        if (executor == parallelExecCount) {
+                                            for (int i = processFileCount * (executor - 1); i < files.length; i++) {
+                                                // Execution logic
+                                                 runPlan(files[i], "node1")
+                                            }
+                                        } else {
+                                            for (int i = 0; i < processFileCount; i++) {
+                                                int fileNo = processFileCount * (executor - 1) + i
+                                                runPlan(files[fileNo], "node1")
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
-                                // Upload artifacts to S3
-                                s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/*.jtl", bucket:"${bucket}", path:"artifacts/")
-                            }
                         }
+                    }
+                    parallel tests
+                    }catch(e){
+                        currentBuild.result = "FAILED"
+                        notifyBuild(currentBuild.result, "Parallel", "#build_status_verbose")
                     }
                 }
             }
         }
     }
 
-
     post {
         always {
-            sh """
+            script {
+                try {
+                    sh """
             cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
             ./testgrid finalize-run-testplan \
             --product ${PRODUCT} --workspace ${PWD}
             """
 
-            sh """
+                    sh """
              cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
             ./testgrid generate-report \
             --product ${PRODUCT} \
             --groupBy scenario
             """
-            // Generate email-able report
-            /* Prereq:
+                    // Generate email-able report
+                    /* Prereq:
                1. Needs TestSuit.txt and output.properties files in relevant scenario directory.
                2. DB needs to be updated on integration test result statues.
             */
-               sh """
+                    sh """
                 cd ${TESTGRID_HOME}/testgrid-dist/${TESTGRID_NAME}
                 ./testgrid generate-email \
                 --product ${PRODUCT} \
                 --workspace ${PWD}
                 """
-            script {
-                // Archive artifacts
-                loadProperties()
-                def bucket= properties['AWS_S3_BUCKET_NAME']
-                if ( "${bucket}" == "null") {
-                    bucket="unknown"
-                }
-                withAWS(credentials:'TESTGRID_BOT_CREDENTIALS') {
-                    // Upload artifacts to S3
-                    s3Upload(workingDir:"${TESTGRID_HOME}", includePathPattern:"**/builds/**, **/*.log, **/*.html",
-                            bucket:"${bucket}", path:"artifacts/")
-                }
-                //Send email for failed results.
-                if (fileExists('/testgrid/testgrid-home/${PRODUCT}/EmailReport.html')) {
-                     emailext mimeType: 'text/html',
-                     body: '${FILE,path="/testgrid/testgrid-home/${PRODUCT}/EmailReport.html"}',
-                     subject: '${PRODUCT} integration test failure!',
-                     to: 'kasung@wso2.com,pasinduj@wso2.com'
-                   }
-            }
-            // Delete logs and reports after upload
-            dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
-                sh """
+                    script {
+                        sh """
+                   echo "/testgrid/testgrid-home/jobs/${PRODUCT}"
+                   ls -al /testgrid/testgrid-home/jobs/${PRODUCT}
+                   """
+                        //Send email for failed results.
+                        if (fileExists("/testgrid/testgrid-home/jobs/${PRODUCT}/builds/SummarizedEmailReport.html")) {
+                            def emailBody = readFile "/testgrid/testgrid-home/jobs/wso2am-intg/builds/SummarizedEmailReport.html"
+                            emailext(to: 'builder@wso2.org, kasung@wso2.com, pasinduj@wso2.com, yasassri@wso2.com, lasanthad@wso2.com, sameeraw@wso2.com, asmaj@wso2.com, harshan@wso2.com',
+                                    subject: "'${env.JOB_NAME}' Integration Test Failure! #(${env.BUILD_NUMBER})",
+                                    body: "${emailBody}", mimeType: 'text/html', attachmentsPattern: "/testgrid/testgrid-home/jobs/${PRODUCT}/builds/*.png"
+                            );
+                        } else {
+                            echo "No EmailReport.html file found!!"
+                        }
+                    }
+                    // Delete logs and reports after upload
+                    dir("${TESTGRID_HOME}/jobs/${PRODUCT}") {
+                        sh """
                 find . -maxdepth 1 -type f \\( -name "*.log" -o -name "*.html" \\) -delete
                 """
+                    }
+                } catch (e) {
+                    currentBuild.result = "FAILED"
+                } finally {
+                    notifyBuild(currentBuild.result, "completed", "#build_status")
+                    notifyBuild(currentBuild.result, "completed", "#build_status_verbose")
+                }
             }
-
-//              emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
-
-// Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: 'harshan@wso2.com,kasung@wso2.com,asmaj@wso2.com,viduran@wso2.com,sameeraw@wso2.com,pasinduj@wso2.com'
-
         }
+
     }
+}
+
+def notifyBuild(String buildStatus = 'STARTED', phase, channel) {
+    // build status of null means successful
+    buildStatus = buildStatus ?: 'SUCCESS'
+
+    // Default values
+    def colorName = 'RED'
+    def colorCode = '#FF0000'
+    def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
+    def summary = "${subject} (${env.RUN_DISPLAY_URL}) in phase : $phase"
+
+    // Override default values based on build status
+    if (buildStatus == 'STARTED') {
+        color = 'BLUE'
+        colorCode = '#003EFF'
+    } else if (buildStatus == 'SUCCESS') {
+        color = 'GREEN'
+        colorCode = '#00FF00'
+    } else if (buildStatus == 'UNSTABLE') {
+        color = "YELLOW"
+        colorCode = "#FFFF00"
+    } else {
+        color = 'RED'
+        colorCode = '#FF0000'
+    }
+
+    // Send notifications
+    slackSend(channel: channel, color: colorCode, message: summary)
 }

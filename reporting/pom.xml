@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.testgrid</groupId>
         <artifactId>testgrid-parent</artifactId>
-        <version>0.9.0-m36-SNAPSHOT</version>
+        <version>0.9.0-m42-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -99,6 +99,10 @@
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.agent</artifactId>
             <classifier>runtime</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
     </dependencies>
 </project>

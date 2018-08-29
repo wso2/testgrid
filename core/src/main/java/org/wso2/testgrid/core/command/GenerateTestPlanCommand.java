@@ -29,6 +29,7 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
 import org.wso2.testgrid.common.config.JobConfigFile;
 import org.wso2.testgrid.common.config.ScenarioConfig;
@@ -71,7 +72,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.wso2.testgrid.common.TestGridConstants.FILE_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_JOB_DIR;
 
@@ -157,8 +157,7 @@ public class GenerateTestPlanCommand implements Command {
             throws IOException, CommandExecutionException, TestGridDAOException {
         JobConfigFile jobConfigFile = FileUtil.readYamlFile(jobConfigFilePath, JobConfigFile.class);
         Pattern pattern = Pattern.compile(StringUtil
-                .concatStrings(TestGridUtil.getTestGridHomePath(), FILE_SEPARATOR, TESTGRID_JOB_DIR, FILE_SEPARATOR,
-                        "*"));
+                .concatStrings(Paths.get(TestGridUtil.getTestGridHomePath(), TESTGRID_JOB_DIR).toString(), "*"));
         Matcher matcher = pattern.matcher(jobConfigFilePath);
         if (!matcher.find()) {
             Path directory = Paths.
@@ -182,8 +181,11 @@ public class GenerateTestPlanCommand implements Command {
     }
 
     private void processTestgridYaml(TestgridYaml testgridYaml, JobConfigFile jobConfigFile)
-            throws CommandExecutionException, IOException, TestGridDAOException {
-        // TODO: validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
+            throws CommandExecutionException, TestGridDAOException {
+        if (!validateTestgridYaml(testgridYaml)) {
+            throw new CommandExecutionException(
+                    "Invalid tesgridYaml file is found. Please verify the content of the testgridYaml file");
+        }
         populateDefaults(testgridYaml);
         Set<InfrastructureCombination> combinations = infrastructureCombinationsProvider.getCombinations(testgridYaml);
         List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
@@ -271,7 +273,7 @@ public class GenerateTestPlanCommand implements Command {
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error while retrieving deployment pattern for { product: ", product,
-                            ", deploymentPatternName: ", deploymentPatternName, "}"));
+                            ", deploymentPatternName: ", deploymentPatternName, "}"), e);
         }
     }
 
@@ -666,5 +668,35 @@ public class GenerateTestPlanCommand implements Command {
         } else {
             return defaultYamlPath;
         }
+    }
+
+    /**
+     * Validate the testgridYaml. It must contain at least one infra provisioner, and one scenario.
+     * @param testgridYaml TestgridYaml object
+     * @return True or False, based on the validity of the testgridYaml
+     */
+    private boolean validateTestgridYaml(TestgridYaml testgridYaml) {
+        InfrastructureConfig infrastructureConfig = testgridYaml.getInfrastructureConfig();
+        ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
+        if (infrastructureConfig != null) {
+            if (infrastructureConfig.getProvisioners().isEmpty()) {
+                logger.debug("testgrid.yaml doesn't contain at least single infra provisioner. Invalid testgrid.yaml");
+                return false;
+            }
+        } else {
+            logger.debug("testgrid.yaml doesn't have defined the infra configuration. Invalid testgrid.yaml");
+            return false;
+        }
+        if (scenarioConfig != null) {
+            if (scenarioConfig.getScenarios().isEmpty()) {
+                logger.debug("testgrid.yaml doesn't contain at least single scenario. Invalid testgrid.yaml");
+                return false;
+            }
+        } else {
+            logger.debug("testgrid.yaml doesn't have defined the scenario configuration. Invalid testgrid.yaml");
+            return false;
+        }
+
+        return true;
     }
 }

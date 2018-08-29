@@ -153,7 +153,29 @@ public class ConfigurationContext {
         /**
          * Waits for tack deletion.
          */
-        WAIT_FOR_STACK_DELETION("WAIT_FOR_STACK_DELETION");
+        WAIT_FOR_STACK_DELETION("WAIT_FOR_STACK_DELETION"),
+
+        /**
+         * URL of InfluxDB datab
+         */
+        PERFORMANCE_DASHBOARD_URL("PERFORMANCE_DASHBOARD_URL"),
+
+        /**
+         * InfluxDB username
+         */
+        INFLUXDB_USER("INFLUXDB_USER"),
+
+        /**
+         * InfluxDB password
+         */
+        INFLUXDB_PASS("INFLUXDB_PASS"),
+
+        /**
+         * Grafana api Key
+         */
+        GRAFANA_APIKEY("GRAFANA_APIKEY");
+
+
 
         private String propertyName;
 

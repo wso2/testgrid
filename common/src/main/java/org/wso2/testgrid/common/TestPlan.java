@@ -412,10 +412,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
         return StringUtil.concatStrings("TestPlan{",
                 "id='", id, "\'",
                 ", status='", status, "\'",
+                ", infraParams='", infraParameters, "\'",
                 ", testRunNumber='", testRunNumber, "\'",
                 ", deploymentPattern='", deploymentPattern, "\'",
-                ", product='", deploymentPattern.getProduct().getName(), "\'",
-                ", infraCombination='", infraParameters, "\'",
                 '}');
     }
 

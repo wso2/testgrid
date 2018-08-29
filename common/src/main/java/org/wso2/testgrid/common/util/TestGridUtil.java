@@ -31,17 +31,22 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -148,6 +153,36 @@ public final class TestGridUtil {
     }
 
     /**
+     * Parse the infra param string of {@link TestPlan#getInfraParameters()} into a map of key-value pairs.
+     *
+     * @param infraParams the {@link TestPlan#getInfraParameters()}
+     * @return Map of key-value pair where key == infra type, and value == infra value.
+     */
+    public static Map<String, String> parseInfraParametersString(String infraParams) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(infraParams, new TypeReference<Map<String, String>>() {
+            });
+        } catch (IOException e) {
+            logger.error("Error while parsing infra parameters", e);
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * transform the properties object into a json string.
+     *
+     */
+    public static String convertToJsonString(Properties properties) {
+        try {
+            return new ObjectMapper().writeValueAsString(properties);
+        } catch (JsonProcessingException e) {
+            logger.error("Error while transforming to json string", e);
+            return null;
+        }
+    }
+
+    /**
      * Returns a UUID specific to the infra parameters.
      *
      * @param infraParams infra parameters to get the UUID
@@ -235,6 +270,40 @@ public final class TestGridUtil {
             throw new CommandExecutionException(StringUtil
                     .concatStrings("Error in preparing a JSON object from the given test plan infra " +
                             "parameters: ", testPlan.getInfrastructureConfig().getParameters()), e);
+        }
+    }
+
+
+    /**
+     * Copies non existing properties from a persisted test plan to a test plan object generated from the config.
+     *
+     * @param testPlanConfig    an instance of test plan which is generated from the config
+     * @param testPlanPersisted an instance of test plan which is persisted in the db
+     * @return an instance of {@link TestPlan} with merged properties
+     */
+    public static TestPlan mergeTestPlans(TestPlan testPlanConfig, TestPlan testPlanPersisted, boolean
+            addToConfigYaml) {
+        //todo: addToConfigYaml param is required because our current merging logic is incomplete.
+        if (addToConfigYaml) {
+            testPlanConfig.setInfraParameters(testPlanPersisted.getInfraParameters());
+            testPlanConfig.setDeploymentPattern(testPlanPersisted.getDeploymentPattern());
+            testPlanConfig.setTestScenarios(testPlanPersisted.getTestScenarios());
+            return testPlanConfig;
+        } else {
+            testPlanPersisted.setDeployerType(testPlanConfig.getDeployerType());
+            testPlanPersisted.setInfrastructureConfig(testPlanConfig.getInfrastructureConfig());
+            testPlanPersisted.setDeploymentConfig(testPlanConfig.getDeploymentConfig());
+            testPlanPersisted.setScenarioConfig(testPlanConfig.getScenarioConfig());
+            testPlanPersisted.setJobName(testPlanConfig.getJobName());
+            testPlanPersisted.setInfrastructureRepository(testPlanConfig.getInfrastructureRepository());
+            testPlanPersisted.setDeploymentRepository(testPlanConfig.getDeploymentRepository());
+            testPlanPersisted.setScenarioTestsRepository(testPlanConfig.getScenarioTestsRepository());
+            testPlanPersisted.setJobProperties(testPlanConfig.getJobProperties());
+            testPlanPersisted.setConfigChangeSetRepository(testPlanConfig.getConfigChangeSetRepository());
+            testPlanPersisted.setConfigChangeSetBranchName(testPlanConfig.getConfigChangeSetBranchName());
+            testPlanPersisted.setResultFormat(testPlanConfig.getResultFormat());
+            testPlanPersisted.setKeyFileLocation(testPlanConfig.getKeyFileLocation());
+            return testPlanPersisted;
         }
     }
 
@@ -328,13 +397,16 @@ public final class TestGridUtil {
      * TESTGRID_HOME/jobs/#name#/builds/#depl_name#_#infra-uuid#_#test-run-num#/test-run.log
      *
      * @param testPlan test-plan
+     * @param truncated whether the truncated log or the raw log file
      * @return log file path
      */
-    public static String deriveTestRunLogFilePath(TestPlan testPlan) {
+    public static String deriveTestRunLogFilePath(TestPlan testPlan, Boolean truncated) {
         String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
+        String fileName = truncated ?
+                TestGridConstants.TRUNCATED_TESTRUN_LOG_FILE_NAME : TestGridConstants.TESTRUN_LOG_FILE_NAME;
         return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
-                testPlanDirName, TestGridConstants.TESTRUN_LOG_FILE_NAME).toString();
+                testPlanDirName, fileName).toString();
     }
 
     /**
@@ -401,5 +473,84 @@ public final class TestGridUtil {
     public static boolean isDebugMode(TestPlan testPlan) {
         final String debugMode = testPlan.getJobProperties().getProperty(TestGridConstants.DEBUG_MODE);
         return Boolean.valueOf(debugMode);
+    }
+
+    /**
+     * Generate the Dashboard URL for the given product/job name.
+     * Ex. https://testgrid-live.private.wso2.com/wso2am-intg
+     *
+     * @param productName the job name
+     * @return the dashboard url of the given job
+     */
+    public static String getDashboardURLFor(String productName) {
+        String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.TESTGRID_HOST);
+        return String.join("/", testGridHost, productName);
+    }
+
+    /**
+     * Generate the S3 bucket URL for the current environment.
+     * Ex. https://s3.amazonaws.com/bucket1
+     *
+     * @return the S3 bucket url of the environment
+     */
+    public static String getS3BucketURL() {
+        String s3BucketName = ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.AWS_S3_BUCKET_NAME);
+        if (StringUtil.isStringNullOrEmpty(s3BucketName)) {
+            s3BucketName = TestGridConstants.AMAZON_S3_DEFAULT_BUCKET_NAME;
+        }
+        return String.join("/", TestGridConstants.AMAZON_S3_URL, s3BucketName);
+    }
+
+    /**
+     * Returns the MD5 hash value of a given file.
+     *
+     * @param filePath path to file
+     * @return md5 hash String
+     * @throws IOException if file reading fails
+     * @throws NoSuchAlgorithmException if hash generation fails
+     */
+    public static String getHashValue(Path filePath) throws IOException, NoSuchAlgorithmException {
+        MessageDigest complete;
+        byte[] buf;
+        try (InputStream fis = new FileInputStream(filePath.toFile())) {
+            buf = new byte[1024];
+            complete = MessageDigest.getInstance("MD5");
+            int n;
+            do {
+                n = fis.read(buf);
+                if (n > 0) {
+                    complete.update(buf, 0, n);
+                }
+            } while (n != -1);
+            fis.close();
+        }
+        buf = complete.digest();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (byte aBuf : buf) {
+            stringBuilder.append(Integer.toString((aBuf & 0xff) + 0x100, 16).substring(1));
+        }
+        return stringBuilder.toString();
+    }
+
+    /**
+     * Returns the number in fibonacci series for a given position.
+     *
+     * @param index position to get the number from fibinacci series
+     * @return the number pertaining to the position
+     */
+    public static int fibonacci(int index) {
+        int series[] = new int[index + 1];
+
+        // 1st and 2nd elements in the series are 1 and 1 respectively
+        series[0] = 1;
+        series[1] = 1;
+
+        // Add the previous 2 numbers in the series and store in array
+        for (int i = 2; i <= index; i++) {
+            series[i] = series[i - 1] + series[i - 2];
+        }
+        return series[index];
     }
 }
