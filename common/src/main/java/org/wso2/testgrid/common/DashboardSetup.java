@@ -66,8 +66,8 @@ public class DashboardSetup {
     public void initDashboard() {
         // create influxDB database according to tp_id
         try {
-            InfluxDB influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl + ":8086",
-                    username, password);
+            InfluxDB influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl +
+                            TestGridConstants.INFLUXDB_PORT, username, password);
             String dbName = testplanID;
             influxDB.createDatabase(dbName);
             influxDB.close();
@@ -94,7 +94,7 @@ public class DashboardSetup {
         user.put("name", name);
         user.put("type", "influxdb");
         user.put("url", TestGridConstants.HTTP + ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.GRAFANA_DATASOURCE) + ":8086");
+                ConfigurationProperties.GRAFANA_DATASOURCE) + TestGridConstants.INFLUXDB_PORT);
         user.put("access", "proxy");
         user.put("basicAuth", false);
         user.put("password", ConfigurationContext.getProperty(ConfigurationContext.
