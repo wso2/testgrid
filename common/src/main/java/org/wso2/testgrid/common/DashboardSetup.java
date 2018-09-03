@@ -28,6 +28,7 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.DataOutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
@@ -66,8 +67,7 @@ public class DashboardSetup {
     public void initDashboard() {
         // create influxDB database according to tp_id
         try {
-            InfluxDB influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl +
-                            TestGridConstants.INFLUXDB_PORT, username, password);
+            InfluxDB influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl, username, password);
             String dbName = testplanID;
             influxDB.createDatabase(dbName);
             influxDB.close();
@@ -94,7 +94,7 @@ public class DashboardSetup {
         user.put("name", name);
         user.put("type", "influxdb");
         user.put("url", TestGridConstants.HTTP + ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.GRAFANA_DATASOURCE) + TestGridConstants.INFLUXDB_PORT);
+                ConfigurationProperties.INFLUXDB_URL));
         user.put("access", "proxy");
         user.put("basicAuth", false);
         user.put("password", ConfigurationContext.getProperty(ConfigurationContext.
@@ -135,7 +135,7 @@ public class DashboardSetup {
             dataOutputStream.writeBytes(urlParameters);
             dataOutputStream.flush();
             int responseCode = con.getResponseCode();
-            if (responseCode == 200) {
+            if (responseCode == HttpURLConnection.HTTP_OK) {
                 logger.info("grafana Data Source created for testplan " + testplanID);
             } else {
                 logger.error(StringUtil.concatStrings("failed to create grafana Data testplan ", testplanID,
