@@ -35,7 +35,6 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -68,7 +67,8 @@ public class DashboardSetup {
     public void initDashboard() {
         // create influxDB database according to tp_id
         try {
-            InfluxDB influxDB = InfluxDBFactory.connect("http://" + restUrl + ":8086", username, password);
+            InfluxDB influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl + ":8086",
+                    username, password);
             String dbName = testplanID;
             influxDB.createDatabase(dbName);
             influxDB.close();
@@ -94,7 +94,7 @@ public class DashboardSetup {
         JSONObject user = new JSONObject();
         user.put("name", name);
         user.put("type", "influxdb");
-        user.put("url", "http://" + ConfigurationContext.getProperty(ConfigurationContext.
+        user.put("url", TestGridConstants.HTTP + ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.GRAFANA_DATASOURCE) + ":8086");
         user.put("access", "proxy");
         user.put("basicAuth", false);
@@ -122,7 +122,7 @@ public class DashboardSetup {
 
             URL obj = new URL(url);
             HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-            //add reuqest header
+            //add request header
             con.setRequestMethod("POST");
             con.setRequestProperty("User-Agent", USER_AGENT);
             con.setRequestProperty("Content-Type", ContentType.APPLICATION_JSON.toString());
@@ -142,10 +142,8 @@ public class DashboardSetup {
                 logger.error(StringUtil.concatStrings("failed to create grafana Data testplan ", testplanID,
                         " Response Code ", responseCode));
             }
-        } catch (SSLHandshakeException e) {
-            logger.error("Please set a valid truststore key file" + e.toString());
         } catch (Exception e) {
-            logger.error("Error while creating Grafana data source" + e.toString());
+            logger.error("Error while creating Grafana data source" + e);
         } finally {
             if (dataOutputStream != null) {
                 try {
@@ -157,6 +155,11 @@ public class DashboardSetup {
         }
     }
 
+    /**
+     * This method is to bypass SSL verification for Grafana dashboard URL
+     * @return SSL socket factory that by will bypass SSL verification
+     * @throws Exception java.security exception is thrown in an issue with SSLContext
+     */
     private static SSLSocketFactory createSslSocketFactory() throws Exception {
         TrustManager[] byPassTrustManagers = new TrustManager[] { new X509TrustManager() {
             public X509Certificate[] getAcceptedIssuers() {
