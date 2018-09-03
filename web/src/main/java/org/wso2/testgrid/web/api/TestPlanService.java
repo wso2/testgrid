@@ -287,6 +287,27 @@ public class TestPlanService {
     }
 
     /**
+     * Returns the product performance dashboard url for the given test plan id
+     *
+     * @param id test plan id
+     * @return The requested roduct performance dashboard url for the test plan
+     */
+    @GET
+    @Path("/perf-url/{id}")
+    public Response getGrafanaURL(@PathParam("id") String id) {
+        try {
+            String dashURL = ConfigurationContext.getProperty(ConfigurationProperties.GRAFANA_URL) +
+                    "&from=now%2FM&to=now%2FM&var-VM=All&var-TestPlan=" + id;
+            return Response.status(Response.Status.OK).entity(dashURL).build();
+        } catch (Exception e) {
+            String msg = "Error occurred while fetching the Grafana dashboard url by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
      * This method returns the latest {@link TestPlan}s for a given product
      * that contains the build details for distinct infrastructure combinations.
      *
