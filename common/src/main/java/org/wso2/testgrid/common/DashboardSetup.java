@@ -43,7 +43,7 @@ import javax.net.ssl.X509TrustManager;
 import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 /**
- * This class create a database in influxDB and a Data Source in
+ * This class create a database in influxDB and a Data Source in Grafana according to the test plan
  */
 public class DashboardSetup {
 
@@ -112,7 +112,7 @@ public class DashboardSetup {
      */
     public void addGrafanaDataSource() {
 
-        DataOutputStream wr = null;
+        DataOutputStream dataOutputStream = null;
         try {
             String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
                     .GRAFANA_DATASOURCE) + ":3000/api/datasources/";
@@ -132,10 +132,9 @@ public class DashboardSetup {
             con.setSSLSocketFactory(sslSocketFactory);
             String urlParameters = getDataSource(testplanID);
             con.setDoOutput(true);
-            //logger.info("garafana COnnection: " + con.toString());
-            wr = new DataOutputStream(con.getOutputStream());
-            wr.writeBytes(urlParameters);
-            wr.flush();
+            dataOutputStream = new DataOutputStream(con.getOutputStream());
+            dataOutputStream.writeBytes(urlParameters);
+            dataOutputStream.flush();
             int responseCode = con.getResponseCode();
             if (responseCode == 200) {
                 logger.info("grafana Data Source created for testplan " + testplanID);
@@ -148,9 +147,9 @@ public class DashboardSetup {
         } catch (Exception e) {
             logger.error("Error while creating Grafana data source" + e.toString());
         } finally {
-            if (wr != null) {
+            if (dataOutputStream != null) {
                 try {
-                    wr.close();
+                    dataOutputStream.close();
                 } catch (Exception e) {
                     logger.error("Couldn't close the output stream");
                 }
