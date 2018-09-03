@@ -167,7 +167,7 @@ public class RunTestPlanCommand implements Command {
 
     /**
      * This method resolves the absolute path to a path mentioned in
-     * the iobConfigYaml.
+     * the jobConfigYaml.
      *
      * @param path          The path to resolve
      * @return the resolved path
@@ -180,6 +180,7 @@ public class RunTestPlanCommand implements Command {
         }
         return path.toString();
     }
+
     /**
      * Returns the product for the given parameters.
      *

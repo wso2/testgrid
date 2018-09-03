@@ -111,6 +111,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
     private ScenarioExecutor scenarioExecutor;
     private String actualTestPlanFileLocation;
     private String workspaceDir;
+
     @BeforeMethod
     public void init() throws Exception {
         final String randomStr = StringUtil.generateRandomString(5);
@@ -180,8 +181,8 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
     private void copyWorkspaceArtifacts() throws IOException {
         String resourceDir = Paths.get("./src", "test", "resources", "workspace").toString();
         String destinationDir = Paths.get(workspaceDir, "/workspace").toString();
-            FileUtils.copyDirectory(new File(resourceDir), new File(destinationDir));
-            logger.info("Copying necessary artifacts to directory: " + destinationDir);
+        FileUtils.copyDirectory(new File(resourceDir), new File(destinationDir));
+        logger.info("Copying necessary artifacts to directory: " + destinationDir);
     }
 
     private void doMock() throws TestGridDAOException, TestAutomationException {

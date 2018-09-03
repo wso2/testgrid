@@ -7,7 +7,7 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import java.nio.file.Paths;
 
 /**
- * This Util class holds the utility methods used to manage TestGrid S3 storage .
+ * This Util class holds the utility methods used to manage TestGrid S3 storage.
  *
  * @since 1.0.0
  */
