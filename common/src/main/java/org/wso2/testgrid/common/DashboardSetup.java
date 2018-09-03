@@ -18,7 +18,6 @@
 
 package org.wso2.testgrid.common;
 
-
 import org.apache.http.entity.ContentType;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
