@@ -116,7 +116,9 @@ public class DashboardSetup {
             String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
                     .GRAFANA_DATASOURCE) + ":3000/api/datasources/";
 
-            HostnameVerifier allHostsValid = (hostname, session) -> true;
+            HostnameVerifier allHostsValid = new HostValidator();
+
+            // Install the all-trusting host verifier
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
             URL obj = new URL(url);
