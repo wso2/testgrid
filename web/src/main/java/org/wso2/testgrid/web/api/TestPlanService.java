@@ -41,6 +41,7 @@ import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.bean.TestPlanStatus;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
+import org.wso2.testgrid.web.operation.TimeLimitGetter;
 import org.wso2.testgrid.web.plugins.AWSArtifactReader;
 import org.wso2.testgrid.web.plugins.ArtifactReadable;
 import org.wso2.testgrid.web.plugins.ArtifactReaderException;
@@ -295,9 +296,12 @@ public class TestPlanService {
     @GET
     @Path("/perf-url/{id}")
     public Response getGrafanaURL(@PathParam("id") String id) {
+
+        TimeLimitGetter timeLimitGetter = new TimeLimitGetter(id);
         try {
             String dashURL = ConfigurationContext.getProperty(ConfigurationProperties.GRAFANA_URL) +
-                    "&from=now%2FM&to=now%2FM&var-VM=All&var-TestPlan=" + id;
+                    "&from=" + timeLimitGetter.getStartTime() + "&to=" + timeLimitGetter.getEndTime() +
+                    "&var-VM=All&var-TestPlan=" + id;
             return Response.status(Response.Status.OK).entity(dashURL).build();
         } catch (Exception e) {
             String msg = "Error occurred while fetching the Grafana dashboard url by id : '" + id + "'";
