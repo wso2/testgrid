@@ -52,7 +52,7 @@ public class TimeLimitGetter {
             Query query = new Query("select first(used), time from mem", dbName);
             QueryResult queryResult = influxDB.query(query);
 
-            InfluxDBResultMapper resultMapper = new InfluxDBResultMapper(); // thread-safe - can be reused
+            InfluxDBResultMapper resultMapper = new InfluxDBResultMapper();
             List<TimeLimits> cpuList = resultMapper.toPOJO(queryResult, TimeLimits.class);
             TimeLimits timeLimits = cpuList.get(cpuList.size() - 1);
             startTime = String.valueOf(timeLimits.getTime().getEpochSecond() * 1000);
