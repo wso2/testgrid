@@ -319,6 +319,7 @@ Resources:
           'Fn::Sub': |
             <script>
             setx -m JAVA_HOME "%${JDK}%"
+            ${CustomUserData}
             </script>
             <persist>true</persist>
         SecurityGroups:

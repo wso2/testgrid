@@ -24,6 +24,7 @@ import org.wso2.testgrid.agent.listeners.OperationResponseListener;
 import org.wso2.testgrid.common.agentoperation.AgentObservable;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.EnvironmentUtil;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -61,7 +62,17 @@ public class AgentStreamReader {
     public void executeCommand(String command) throws CommandExecutionException {
         Process process;
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            switch (EnvironmentUtil.getOperatingSystemType()) {
+                case Linux:
+                case MacOS:
+                case Other:
+                    processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
+                    break;
+                case Windows:
+                    processBuilder = new ProcessBuilder("CMD", "/C", command);
+                    break;
+            }
             process = processBuilder.start();
             AgentObservable agentObservable = new AgentObservable();
             AgentStreamObserver agentStreamObserver = new AgentStreamObserver(this.operationResponseListener,

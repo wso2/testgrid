@@ -204,7 +204,7 @@ public class AWSProvider implements InfrastructureProvider {
                     .build();
 
             final List<Parameter> populatedExpectedParameters = getParameters(script, expectedParameters,
-                    infrastructureConfig, testPlan.getId());
+                    infrastructureConfig, testPlan);
             stackRequest.setParameters(populatedExpectedParameters);
             logger.info(StringUtil.concatStrings("Creation of CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
@@ -368,11 +368,12 @@ public class AWSProvider implements InfrastructureProvider {
      * @param script Script object with script details.
      * @param expectedParameters Set of parameters expected by CF-script.
      * @param infrastructureConfig Infrastructure configuration of the test-plan.
+     * @param testPlan  The test plan
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
     private List<Parameter> getParameters(Script script, List<TemplateParameter> expectedParameters,
-                                          InfrastructureConfig infrastructureConfig, String testPlanId)
+                                          InfrastructureConfig infrastructureConfig, TestPlan testPlan)
             throws IOException, TestGridInfrastructureException {
 
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
@@ -403,14 +404,31 @@ public class AWSProvider implements InfrastructureProvider {
                         ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
                 String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.AWS_REGION_NAME);
-                String customScript = StringUtil.concatStrings("/opt/testgrid/agent/init.sh ",
-                        deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName, " ",
-                        deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ", testPlanId, " ",
-                        ConfigurationContext.getProperty
-                                (ConfigurationContext.ConfigurationProperties.PERFORMANCE_DASHBOARD_URL), ":8086 ",
-                        ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_USER),
-                        " ", ConfigurationContext.getProperty(ConfigurationContext.
-                                ConfigurationProperties.INFLUXDB_PASS));
+                String customScript = "";
+                String agentInitCommand = "";
+                String telegraphInitCommand = "";
+                if (testPlan.getInfrastructureConfig().getParameters().getProperty("OS", "CentOS").
+                        equals("Windows")) {
+                    agentInitCommand = "C:/testgrid/app/agent/init.bat ";
+                    agentInitCommand = StringUtil.concatStrings(agentInitCommand, deploymentTinkererEP, " ",
+                            awsRegion, " ", testPlan.getId(), " aws ", deploymentTinkererUserName, " ",
+                            deploymentTinkererPassword);
+                    customScript = StringUtil.concatStrings(agentInitCommand);
+                } else {
+                    agentInitCommand = "/opt/testgrid/agent/init.sh ";
+                    telegraphInitCommand = "/opt/testgrid/agent/telegraf_setup.sh ";
+                    agentInitCommand = StringUtil.concatStrings(agentInitCommand, deploymentTinkererEP, " ",
+                            awsRegion, " ", testPlan.getId(), " aws ", deploymentTinkererUserName, " ",
+                            deploymentTinkererPassword);
+                    telegraphInitCommand = StringUtil.concatStrings(telegraphInitCommand, testPlan.getId(), " ",
+                            ConfigurationContext.getProperty
+                                    (ConfigurationContext.ConfigurationProperties.PERFORMANCE_DASHBOARD_URL), ":8086 ",
+                            ConfigurationContext.getProperty(
+                                    ConfigurationContext.ConfigurationProperties.INFLUXDB_USER),
+                            " ", ConfigurationContext.getProperty(ConfigurationContext.
+                                    ConfigurationProperties.INFLUXDB_PASS));
+                    customScript = StringUtil.concatStrings(agentInitCommand, "\n", telegraphInitCommand);
+                }
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);
                 cfCompatibleParameters.add(awsParameter);
