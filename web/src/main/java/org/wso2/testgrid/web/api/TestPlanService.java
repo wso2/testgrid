@@ -29,6 +29,7 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
@@ -39,9 +40,9 @@ import org.wso2.testgrid.web.bean.TestCaseEntry;
 import org.wso2.testgrid.web.bean.TestExecutionSummary;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.bean.TestPlanStatus;
+import org.wso2.testgrid.web.operation.GrafanaTimeLimitGetter;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
-import org.wso2.testgrid.web.operation.TimeLimitGetter;
 import org.wso2.testgrid.web.plugins.AWSArtifactReader;
 import org.wso2.testgrid.web.plugins.ArtifactReadable;
 import org.wso2.testgrid.web.plugins.ArtifactReaderException;
@@ -297,11 +298,11 @@ public class TestPlanService {
     @Path("/perf-url/{id}")
     public Response getGrafanaURL(@PathParam("id") String id) {
 
-        TimeLimitGetter timeLimitGetter = new TimeLimitGetter(id);
+        GrafanaTimeLimitGetter timeLimitGetter = new GrafanaTimeLimitGetter(id);
         try {
-            String dashURL = ConfigurationContext.getProperty(ConfigurationProperties.GRAFANA_URL) +
-                    "&from=" + timeLimitGetter.getStartTime() + "&to=" + timeLimitGetter.getEndTime() +
-                    "&var-VM=All&var-TestPlan=" + id;
+            String dashURL = StringUtil.concatStrings(ConfigurationContext.getProperty
+                    (ConfigurationProperties.GRAFANA_URL), "&from=", timeLimitGetter.getStartTime(), "&to=",
+                    timeLimitGetter.getEndTime(), "&var-VM=All&var-TestPlan=", id);
             return Response.status(Response.Status.OK).entity(dashURL).build();
         } catch (Exception e) {
             String msg = "Error occurred while fetching the Grafana dashboard url by id : '" + id + "'";
