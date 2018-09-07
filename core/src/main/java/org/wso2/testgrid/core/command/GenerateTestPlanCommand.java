@@ -174,8 +174,7 @@ public class GenerateTestPlanCommand implements Command {
                         "Could not determine the directory location of the input for --file : " + jobConfigFilePath);
             }
         }
-        resolvePaths(jobConfigFile);
-        this.testgridYamlLocation = jobConfigFile.getTestgridYamlLocation();
+        this.testgridYamlLocation = resolvePath(jobConfigFile.getTestgridYamlLocation(), jobConfigFile);
         TestgridYaml testgridYaml = buildTestgridYamlContent(jobConfigFile);
         processTestgridYaml(testgridYaml, jobConfigFile);
     }
@@ -277,59 +276,15 @@ public class GenerateTestPlanCommand implements Command {
         }
     }
 
-    /**
-     * This method will resolve the relative paths in the job-config.yaml
-     * to absolute paths by taking into account factors such as the workingDir.
-     *
-     * @param jobConfigFile The job-config.yaml bean
-     */
-    private void resolvePaths(JobConfigFile jobConfigFile) {
+    private String resolvePath(String path, JobConfigFile jobConfigFile) {
         Path parentPath = Paths.get(jobConfigFilePath).toAbsolutePath().getParent();
         if (jobConfigFile.isRelativePaths() && parentPath != null) {
             String parent = parentPath.toString();
-            //infra
-            Path repoPath = Paths.get(parent, jobConfigFile.getInfrastructureRepository());
-            jobConfigFile.setInfrastructureRepository(resolvePath(repoPath, jobConfigFile));
-            //deploy
-            repoPath = Paths.get(parent, jobConfigFile.getDeploymentRepository());
-            jobConfigFile.setDeploymentRepository(resolvePath(repoPath, jobConfigFile));
-            //scenarios
-            repoPath = Paths.get(parent, jobConfigFile.getScenarioTestsRepository());
-            jobConfigFile.setScenarioTestsRepository(resolvePath(repoPath, jobConfigFile));
-            //keyfile
-            if (jobConfigFile.getKeyFileLocation() != null) {
-                repoPath = Paths.get(parent, jobConfigFile.getKeyFileLocation());
-                jobConfigFile.setKeyFileLocation(resolvePath(repoPath, jobConfigFile));
-            }
-            if (jobConfigFile.getTestgridYamlLocation() != null) {
-                //testgrid.yaml
-                repoPath = Paths.get(parent, jobConfigFile.getTestgridYamlLocation());
-                jobConfigFile.setTestgridYamlLocation(resolvePath(repoPath, jobConfigFile));
-            } else {
-                logger.debug("testgrid.yaml file location is not configured in job-config.yaml. " + jobConfigFile);
-            }
+            Path repoPath = Paths.get(parent, path)
+                    .toAbsolutePath().normalize();
+            return repoPath.toString();
         }
-
-    }
-
-    /**
-     * This method resolves the absolute path to a path mentioned in
-     * the iobConfigYaml.
-     *
-     * @param path          The path to resolve
-     * @param jobConfigFile the job-config.yaml bean
-     * @return the resolved path
-     * @throws TestGridRuntimeException if the resolved path does not exist.
-     */
-    private String resolvePath(Path path, JobConfigFile jobConfigFile) {
-        path = path.toAbsolutePath().normalize();
-        if (!Files.exists(path)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("JobConfigFile: " + jobConfigFile);
-            }
-            throw new TestGridRuntimeException("Path '" + path.toString() + "' does not exist.");
-        }
-        return path.toString();
+        return path;
     }
 
     /**
@@ -341,9 +296,10 @@ public class GenerateTestPlanCommand implements Command {
      * @return the built testgrid.yaml bean
      */
     private TestgridYaml buildTestgridYamlContent(JobConfigFile jobConfigFile) {
-        String infraRepositoryLocation = jobConfigFile.getInfrastructureRepository();
-        String deployRepositoryLocation = jobConfigFile.getDeploymentRepository();
-        String scenarioTestsRepositoryLocation = jobConfigFile.getScenarioTestsRepository();
+        //Need to make absolute paths from here
+        String infraRepositoryLocation = resolvePath(jobConfigFile.getInfrastructureRepository(), jobConfigFile);
+        String deployRepositoryLocation = resolvePath(jobConfigFile.getDeploymentRepository(), jobConfigFile);
+        String scenarioTestsRepositoryLocation = resolvePath(jobConfigFile.getScenarioTestsRepository(), jobConfigFile);
         String configChangeSetRepositoryLocation = jobConfigFile.getConfigChangeSetRepository();
         String configChangeSetBranchName = jobConfigFile.getConfigChangeSetBranchName();
 

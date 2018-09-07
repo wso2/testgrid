@@ -23,7 +23,8 @@ while [ "$1" != "" ]; do
     shift
 done
 
-INFRA=$WORKSPACE/my-infrastructure
+INFRA=$WORKSPACE/workspace/infrastructure
+echo $(pwd)
 if [ ! -d $INFRA ]; then
   echo 'Cannot proceed the deployment. infrastructure dir is empty: ' ${INFRA}
   exit 1;

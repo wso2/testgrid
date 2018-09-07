@@ -23,10 +23,12 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -790,9 +792,7 @@ public class TestReportEngine {
         String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
 
         // Write to HTML file
-        String relativeFilePath = TestGridUtil.deriveTestGridLogFilePath(product.getName(), TESTGRID_EMAIL_REPORT_NAME);
-        String testGridHome = TestGridUtil.getTestGridHomePath();
-        Path reportPath = Paths.get(testGridHome, relativeFilePath);
+        Path reportPath = Paths.get(workspace, TestGridConstants.TESTGRID_BUILDS_DIR, TESTGRID_EMAIL_REPORT_NAME);
         writeHTMLToFile(reportPath, htmlString);
         return Optional.of(reportPath);
     }
@@ -825,6 +825,7 @@ public class TestReportEngine {
                 Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanYaml.getId());
                 if (testPlanById.isPresent()) {
                     TestPlan mergedTestPlan = TestGridUtil.mergeTestPlans(testPlanYaml, testPlanById.get(), false);
+                    mergedTestPlan.setWorkspace(workspace);
                     logger.info("Derived test plan dir in email phase : " +
                             TestGridUtil.deriveTestPlanDirName(mergedTestPlan));
                     testPlans.add(mergedTestPlan);
@@ -889,9 +890,9 @@ public class TestReportEngine {
 
         String productName = product.getName();
         final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
-        final String summaryChartURL = String.join("/", TestGridUtil.getS3BucketURL(),
+        final String summaryChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
                 "charts", productName, "summary.png");
-        final String historyChartURL = String.join("/", TestGridUtil.getS3BucketURL(),
+        final String historyChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
                 "charts", productName, "history.png");
 
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
@@ -909,10 +910,8 @@ public class TestReportEngine {
         String htmlString = renderer.render(SUMMARIZED_EMAIL_REPORT_MUSTACHE, results);
 
         // Write to HTML file
-        String relativeFilePath = TestGridUtil
-                .deriveTestGridLogFilePath(product.getName(), TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME);
-        String testGridHome = TestGridUtil.getTestGridHomePath();
-        Path reportPath = Paths.get(testGridHome, relativeFilePath);
+        Path reportPath = Paths.get(workspace, TestGridConstants.TESTGRID_BUILDS_DIR,
+                TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME);
         writeHTMLToFile(reportPath, htmlString);
         Path reportParentPath = reportPath.getParent();
 

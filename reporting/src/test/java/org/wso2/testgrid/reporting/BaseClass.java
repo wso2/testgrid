@@ -111,12 +111,10 @@ public class BaseClass {
         productDir = Paths.get(TESTGRID_HOME).resolve("jobs").resolve(productName);
         Files.createDirectories(productDir);
 
-
     }
 
     protected Path getTestPlansPath() {
-        return Paths.get("target", "testgrid-home", TestGridConstants.TESTGRID_JOB_DIR,
-                product.getName(), TestGridConstants.PRODUCT_TEST_PLANS_DIR);
+        return Paths.get(productDir.toString(), TestGridConstants.PRODUCT_TEST_PLANS_DIR);
     }
 
     /**
@@ -148,11 +146,12 @@ public class BaseClass {
                 + "\"DBEngineVersion\":\"5.7\",\"DBEngine\":\"mysql\"}");
         testPlan.setStatus(Status.FAIL);
         testPlan.setId(testPlanId);
-
+        testPlan.setWorkspace(productDir.toString());
         InfrastructureConfig infraConfig = new InfrastructureConfig();
         Properties p = new Properties();
         p.setProperty("DBEngine", "mysql");
         p.setProperty("DBEngineVersion", "5.7");
+
         p.setProperty("OS", "CentOS");
         p.setProperty("JDK", "ORACLE_JDK8");
         infraConfig.setParameters(p);
@@ -360,7 +359,7 @@ public class BaseClass {
             TestPlan testPlan = new TestPlan();
             testPlan.setStatus(ts.getStatus());
             testPlan.setId(i + "");
-
+            testPlan.setWorkspace(productDir.toString());
             InfrastructureConfig infraConfig = new InfrastructureConfig();
             Properties props = new Properties();
             for (InfrastructureParameter infrastructureParameter : infrastructureCombination.getParameters()) {

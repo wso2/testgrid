@@ -113,7 +113,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         try {
             Script createScript = getScriptToExecute(infrastructureConfig, Script.Phase.CREATE);
             Properties inputParameters = createScript.getInputParameters();
-            final String workspace = TestGridUtil.getTestRunWorkspace(testPlan, false).toString();
+            final String workspace = testPlan.getWorkspace();
             inputParameters.setProperty(WORKSPACE, workspace);
             // TODO: this is deprecated.
             inputParameters.setProperty(OUTPUT_DIR, DataBucketsHelper.getOutputLocation(testPlan).toString());

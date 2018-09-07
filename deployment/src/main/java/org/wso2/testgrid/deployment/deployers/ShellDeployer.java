@@ -44,7 +44,6 @@ import org.wso2.testgrid.deployment.DeploymentUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -160,9 +159,8 @@ public class ShellDeployer implements Deployer {
     }
 
     private Properties getInputParameters(TestPlan testPlan, Script deployment) {
-        Path workspace = TestGridUtil.getTestRunWorkspace(testPlan, false);
         final Properties inputParameters = deployment.getInputParameters();
-        inputParameters.setProperty(WORKSPACE, workspace.toString());
+        inputParameters.setProperty(WORKSPACE, testPlan.getWorkspace());
         return inputParameters;
     }
 

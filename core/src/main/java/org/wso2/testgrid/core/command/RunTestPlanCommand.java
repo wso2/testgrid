@@ -28,6 +28,7 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -67,6 +68,12 @@ public class RunTestPlanCommand implements Command {
             required = true)
     private String testPlanConfigLocation = "";
 
+    @Option(name = "--workspace",
+            usage = "Product workspace",
+            aliases = {"-w"},
+            required = true)
+    private String workspace = "";
+
     private ProductUOW productUOW;
     private DeploymentPatternUOW deploymentPatternUOW;
     private TestPlanUOW testPlanUOW;
@@ -79,15 +86,16 @@ public class RunTestPlanCommand implements Command {
         testPlanExecutor = new TestPlanExecutor();
     }
 
-    RunTestPlanCommand(String productName, String testPlanConfigLocation) {
+    RunTestPlanCommand(String productName, String testPlanConfigLocation, String workspace) {
         this.productName = productName;
         this.testPlanConfigLocation = testPlanConfigLocation;
+        this.workspace = workspace;
     }
 
     @Override
     public void execute() throws CommandExecutionException {
         try {
-            logger.debug("Input Arguments: \n" + "\tProduct name: " + productName);
+            logger.info("Input Arguments: \n" + "\tProduct name: " + productName);
 
             // Get test plan YAML file path location
             Product product = getProduct(productName);
@@ -101,6 +109,9 @@ public class RunTestPlanCommand implements Command {
 
             // Generate test plan from config
             TestPlan testPlan = FileUtil.readYamlFile(testPlanYAMLFilePath.get(), TestPlan.class);
+            testPlan.setWorkspace(workspace); // In future, the workspace will be kept in 'Context' and referred.
+
+            resolvePaths(testPlan);
             InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
 
             //Fetch persisted test plan from DB
@@ -129,6 +140,45 @@ public class RunTestPlanCommand implements Command {
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("Error in obtaining persisted TestPlan from database.", e);
         }
+    }
+
+    /**
+     * This method will resolve the relative paths in the test-plan.yaml
+     * to absolute paths by taking into account factors such as the workingDir.
+     *
+     * @param testPlan The test-plan.yaml bean
+     */
+    private void resolvePaths(TestPlan testPlan) {
+        //infra
+        Path repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getInfrastructureRepository());
+        testPlan.setInfrastructureRepository(resolvePath(repoPath));
+        //deploy
+        repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getDeploymentRepository());
+        testPlan.setDeploymentRepository(resolvePath(repoPath));
+        //scenarios
+        repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getScenarioTestsRepository());
+        testPlan.setScenarioTestsRepository(resolvePath(repoPath));
+        //keyfile
+        if (testPlan.getKeyFileLocation() != null) {
+            repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getKeyFileLocation());
+            testPlan.setKeyFileLocation(resolvePath(repoPath));
+        }
+    }
+
+    /**
+     * This method resolves the absolute path to a path mentioned in
+     * the jobConfigYaml.
+     *
+     * @param path          The path to resolve
+     * @return the resolved path
+     * @throws TestGridRuntimeException if the resolved path does not exist.
+     */
+    private String resolvePath(Path path) {
+        path = path.toAbsolutePath().normalize();
+        if (!Files.exists(path)) {
+            throw new TestGridRuntimeException("Path '" + path.toString() + "' does not exist.");
+        }
+        return path.toString();
     }
 
     /**
