@@ -99,11 +99,8 @@ public class DataBucketsHelper {
      * @return Get the build outputs dir
      */
     public static Path getBuildOutputsDir(TestPlan testPlan) {
-        String productName = testPlan.getJobName();
-        productName = productName == null ? testPlan.getDeploymentPattern().getProduct().getName() : productName;
         String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
-        String testgridHome = TestGridUtil.getTestGridHomePath();
-        return Paths.get(testgridHome, TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants
+        return Paths.get(testPlan.getWorkspace(), TestGridConstants
                 .TESTGRID_BUILDS_DIR, testPlanDirName);
     }
 

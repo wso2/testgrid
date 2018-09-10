@@ -25,4 +25,3 @@ done
 
 echo 'PWD:' `pwd`
 echo 'We are in:' `uname`
-mkdir -p ${WORKSPACE}/my-infrastructure

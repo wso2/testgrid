@@ -37,7 +37,6 @@ import org.wso2.testgrid.reporting.surefire.SurefireReporter;
 import org.wso2.testgrid.reporting.surefire.TestResult;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -109,8 +108,7 @@ public class EmailReportProcessor {
 
             if ("?".equals(report.getTotalTests()) || "0".equals(report.getTotalTests())
                     || report.getTotalTests().isEmpty()) {
-                final Path reportPath = Paths.get(TestGridUtil.getTestGridHomePath())
-                        .relativize(TestGridUtil.getSurefireReportsDir(testPlan));
+                final Path reportPath = TestGridUtil.getSurefireReportsDir(testPlan);
                 logger.error("Integration-test log file does not exist at '" + reportPath
                         + "' for test-plan: " + testPlan);
             }
