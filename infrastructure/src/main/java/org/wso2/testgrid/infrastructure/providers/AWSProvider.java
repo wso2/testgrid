@@ -406,24 +406,20 @@ public class AWSProvider implements InfrastructureProvider {
                 String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.AWS_REGION_NAME);
                 String customScript;
+                String scriptInputs = StringUtil.concatStrings(testPlanId, " ",
+                        ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_URL),
+                        " ", ConfigurationContext.getProperty(ConfigurationContext.
+                                ConfigurationProperties.INFLUXDB_USER), " ", ConfigurationContext.getProperty
+                                (ConfigurationContext.ConfigurationProperties.INFLUXDB_PASS));
+
                 if (testPlan.getInfraParameters().toLowerCase(Locale.ENGLISH).contains("windows")) {
-                    customScript = StringUtil.concatStrings(".\\telegraf_setup.sh ", testPlanId, " ",
-                            ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_URL),
-                            " ", ConfigurationContext.getProperty(ConfigurationContext.
-                                    ConfigurationProperties.INFLUXDB_USER), " ", ConfigurationContext.getProperty
-                                    (ConfigurationContext.ConfigurationProperties.INFLUXDB_PASS));
+                    customScript = StringUtil.concatStrings(".\\telegraf_setup.sh ", scriptInputs);
                 } else {
                     customScript = StringUtil.concatStrings("/opt/testgrid/agent/init.sh ",
                             deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,
-                            " ", deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ", testPlanId,
-                            " ", ConfigurationContext.getProperty(ConfigurationContext.
-                                    ConfigurationProperties.INFLUXDB_URL), " ", ConfigurationContext.getProperty
-                                    (ConfigurationContext.ConfigurationProperties.INFLUXDB_USER),
-                            " ", ConfigurationContext.getProperty(ConfigurationContext.
-                                    ConfigurationProperties.INFLUXDB_PASS));
+                            " ", deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ",
+                            scriptInputs);
                 }
-                logger.info("\n Custom User data : " + customScript);
-
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);
                 cfCompatibleParameters.add(awsParameter);
