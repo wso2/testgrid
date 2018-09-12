@@ -406,6 +406,7 @@ public class AWSProvider implements InfrastructureProvider {
                         ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
                 String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.AWS_REGION_NAME);
+                String windowsScript;
                 String customScript;
                 String scriptInputs = StringUtil.concatStrings(testPlanId, " ",
                         ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_URL),
@@ -414,10 +415,17 @@ public class AWSProvider implements InfrastructureProvider {
                                 (ConfigurationContext.ConfigurationProperties.INFLUXDB_PASS));
 
                 if (testPlan.getInfraParameters().toLowerCase(Locale.ENGLISH).contains("windows")) {
-                    customScript = StringUtil.concatStrings("cmd.exe /C \"C:/testgrid/app/agent/init.bat  " +
+                    windowsScript = StringUtil.concatStrings("cmd.exe /C \"C:/testgrid/app/agent/init.bat  " +
                             deploymentTinkererEP + " " + awsRegion + " " + testPlanId + " aws " +
                             deploymentTinkererUserName + " " + deploymentTinkererPassword +
                             "\" \n .\\telegraf_setup.sh ", scriptInputs);
+
+                    customScript = "cd C:\\\"Program Files\"\\telegraf\n" +
+                            "curl http://169.254.169.254/latest/meta-data/instance-id -o instance_id.txt\n" +
+                            windowsScript + "\n" +
+                            ".\\telegraf.exe  --service install > service.log\n" +
+                            "while(!(netstat -o | findstr 8086 | findstr ESTABLISHED)) " +
+                            "{ $val++;Write-Host $val;net stop telegraf;net start telegraf } >> service.log";
                 } else {
                     customScript = StringUtil.concatStrings("/opt/testgrid/agent/init.sh ",
                             deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,
