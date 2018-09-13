@@ -101,6 +101,10 @@ public class TestReportEngine {
     private final EmailReportProcessor emailReportProcessor;
     private TestPlanUOW testPlanUOW;
     private final GraphDataProvider graphDataProvider;
+    private final String imageExtension = ".png";
+    private final String chartDirectoryName = "charts";
+    private String summaryChartFileName = "summary.png";
+    private String historyChartFileName = "history.png";
 
     public TestReportEngine(TestPlanUOW testPlanUOW, EmailReportProcessor emailReportProcessor, GraphDataProvider
             graphDataProvider) {
@@ -889,11 +893,13 @@ public class TestReportEngine {
         postProcessSummaryTable(testCaseInfraSummaryMap);
 
         String productName = product.getName();
+        summaryChartFileName = String.join("summary-", StringUtil.generateRandomString(8), imageExtension);
+        historyChartFileName = String.join("history-", StringUtil.generateRandomString(8), imageExtension);
         final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
         final String summaryChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
-                "charts", productName, "summary.png");
+                chartDirectoryName, productName, summaryChartFileName);
         final String historyChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
-                "charts", productName, "history.png");
+                chartDirectoryName, productName, historyChartFileName);
 
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
@@ -971,9 +977,10 @@ public class TestReportEngine {
             ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
             // Generating the charts
             chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
-                    .getSkippedTestPlans());
+                    .getSkippedTestPlans(), summaryChartFileName);
             // Generate history chart
-            chartGenerator.generateResultHistoryChart(graphDataProvider.getTestExecutionHistory(id));
+            chartGenerator.generateResultHistoryChart(graphDataProvider.getTestExecutionHistory(id),
+                    historyChartFileName);
             chartGenerator.stopApplication();
         } catch (UnsupportedOperationException e) {
             logger.error("Unexpected error occurred during chart generation ", e);
