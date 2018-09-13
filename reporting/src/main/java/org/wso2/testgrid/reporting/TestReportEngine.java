@@ -101,6 +101,8 @@ public class TestReportEngine {
     private final EmailReportProcessor emailReportProcessor;
     private TestPlanUOW testPlanUOW;
     private final GraphDataProvider graphDataProvider;
+    private final String imageExtension = ".png";
+    private final String chartDirectoryName = "charts";
     private String summaryChartFileName = "summary.png";
     private String historyChartFileName = "history.png";
 
@@ -891,13 +893,13 @@ public class TestReportEngine {
         postProcessSummaryTable(testCaseInfraSummaryMap);
 
         String productName = product.getName();
-        summaryChartFileName = String.join("summary-", StringUtil.generateRandomString(8), ".png");
-        historyChartFileName = String.join("history-", StringUtil.generateRandomString(8), ".png");
+        summaryChartFileName = String.join("summary-", StringUtil.generateRandomString(8), imageExtension);
+        historyChartFileName = String.join("history-", StringUtil.generateRandomString(8), imageExtension);
         final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
         final String summaryChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
-                "charts", productName, summaryChartFileName);
+                chartDirectoryName, productName, summaryChartFileName);
         final String historyChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
-                "charts", productName, historyChartFileName);
+                chartDirectoryName, productName, historyChartFileName);
 
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
