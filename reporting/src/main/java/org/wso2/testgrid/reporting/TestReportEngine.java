@@ -893,8 +893,10 @@ public class TestReportEngine {
         postProcessSummaryTable(testCaseInfraSummaryMap);
 
         String productName = product.getName();
-        summaryChartFileName = String.join("summary-", StringUtil.generateRandomString(8), imageExtension);
-        historyChartFileName = String.join("history-", StringUtil.generateRandomString(8), imageExtension);
+        summaryChartFileName = StringUtil.concatStrings("summary-",
+                StringUtil.generateRandomString(8), imageExtension);
+        historyChartFileName = StringUtil.concatStrings("history-",
+                StringUtil.generateRandomString(8), imageExtension);
         final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
         final String summaryChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
                 chartDirectoryName, productName, summaryChartFileName);
