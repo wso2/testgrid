@@ -155,9 +155,10 @@ public class TestNgResultsParser extends ResultParser {
                 Map<String, TestCase> finalTestCases = new HashMap<>();
                 for (TestCase testCase : testCases) {
                     int suffix = 1;
+                    String testCaseName = testCase.getName();
                     while (finalTestCases.containsKey(testCase.getName())) {
                         testCase.setName(StringUtil
-                                .concatStrings(testCase.getName(), "#data_provider_", suffix));
+                                .concatStrings(testCaseName, "#data_provider_", suffix));
                         suffix++;
                     }
                     finalTestCases.put(testCase.getName(), testCase);
