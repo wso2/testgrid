@@ -90,7 +90,7 @@ public class TestNgResultsParserTest {
         Assert.assertNotNull(resource);
 
         final Path outputFile = DataBucketsHelper.getOutputLocation(testPlan).resolve(SUREFIRE_REPORTS_DIR)
-                .resolve(TestNgResultsParser.RESULTS_INPUT_FILE);
+                .resolve(TestNgResultsParser.RESULTS_TEST_SUITE_FILE);
         copyTestngResultsXml(outputFile);
 
         Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
@@ -135,7 +135,7 @@ public class TestNgResultsParserTest {
 
     private void copyTestngResultsXml(Path outputLocation) throws IOException {
 
-        Files.copy(testArtifactPath.resolve(SUREFIRE_REPORTS_DIR).resolve(TestNgResultsParser.RESULTS_INPUT_FILE),
+        Files.copy(testArtifactPath.resolve(SUREFIRE_REPORTS_DIR).resolve(TestNgResultsParser.RESULTS_TEST_SUITE_FILE),
                 outputLocation, StandardCopyOption.REPLACE_EXISTING);
     }
 
