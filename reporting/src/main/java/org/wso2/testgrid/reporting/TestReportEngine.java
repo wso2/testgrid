@@ -863,8 +863,7 @@ public class TestReportEngine {
         //start email generation
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
-                        + "Hence skipping email-report generation. Total test-plans: " + testPlans.size());
-            return Optional.empty();
+                        + "Total test-plans: " + testPlans.size());
         }
         List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
 

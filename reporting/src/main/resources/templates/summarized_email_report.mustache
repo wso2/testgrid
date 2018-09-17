@@ -141,7 +141,7 @@
                         <table>
                             <tr>
                                 <td style="font-family: arial; font-size: 16px; line-height: 24px; text-align: center;">
-                                    <span class ="mainTitle">{{productName}} integration tests FAILED!</span><br/>
+                                    <span class ="mainTitle">{{productName}} integration test Results!</span><br/>
                                 </td>
                             </tr>
                         </table>
@@ -167,6 +167,7 @@
             </table>
             <br/>
 
+        {{#perTestCase.length}}
         <!-- Start of test-case-vs-infrastructure success/failure summary table. -->
         <span class="testResultSubTitle" align="center">Test cases vs Suspected Infrastructure Culprits (beta)
         </span><p/>
@@ -252,6 +253,7 @@
             {{/perTestCase}}
            </tbody>
         </table>
+        {{/perTestCase.length}}
         <em>Tested by WSO2 TestGrid.</em>
     </div>
 </body>

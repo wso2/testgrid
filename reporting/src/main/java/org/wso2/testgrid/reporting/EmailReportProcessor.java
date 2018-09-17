@@ -175,10 +175,11 @@ public class EmailReportProcessor {
         //All the test-plans are executed from the same git revision. Thus git build details are similar across them.
         //Therefore we refer the fist test-plan's git-build details.
         TestPlan testPlan = testPlans.get(0);
-        String outputPropertyFilePath = null;
+        String outputPropertyFilePath;
         outputPropertyFilePath =
                 TestGridUtil.deriveScenarioOutputPropertyFilePath(testPlan);
         PropertyFileReader propertyFileReader = new PropertyFileReader();
+        logger.info("Output property file path is : " + outputPropertyFilePath);
         String gitRevision = propertyFileReader.
                 getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION, outputPropertyFilePath)
                 .orElse("");
