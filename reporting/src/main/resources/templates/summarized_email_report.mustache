@@ -167,7 +167,7 @@
             </table>
             <br/>
 
-        {{#perTestCase.length}}
+        {{#renderTestResultTables}}
         <!-- Start of test-case-vs-infrastructure success/failure summary table. -->
         <span class="testResultSubTitle" align="center">Test cases vs Suspected Infrastructure Culprits (beta)
         </span><p/>
@@ -253,7 +253,7 @@
             {{/perTestCase}}
            </tbody>
         </table>
-        {{/perTestCase.length}}
+        {{/renderTestResultTables}}
         <em>Tested by WSO2 TestGrid.</em>
     </div>
 </body>

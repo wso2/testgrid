@@ -861,9 +861,11 @@ public class TestReportEngine {
 
         List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
         //start email generation
+        boolean renderTestResultTable = true;
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
                         + "Total test-plans: " + testPlans.size());
+            renderTestResultTable = false;
         }
         List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
 
@@ -914,6 +916,7 @@ public class TestReportEngine {
         results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
         results.put("jobName", productName);
         results.put("dashboardURL", dashboardURL);
+        results.put("renderTestResultTables", renderTestResultTable);
         String htmlString = renderer.render(SUMMARIZED_EMAIL_REPORT_MUSTACHE, results);
 
         // Write to HTML file
