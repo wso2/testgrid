@@ -30,12 +30,9 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -69,7 +66,8 @@ public class InfrastructureSummaryReporter {
      * @param testPlans the test plans for which we need to generate the summary table.
      * @return mapping between tests and its status in each infrastructure.
      */
-    public Map<String, InfrastructureBuildStatus> getSummaryTable(List<TestPlan> testPlans) {
+    public Map<String, InfrastructureBuildStatus> getSummaryTable(List<TestPlan> testPlans)
+            throws TestGridDAOException {
         Map<String, InfrastructureBuildStatus> testCaseInfraBuildStatusMap = new HashMap<>();
         // Mapping between test-case to infrastructure-score-map
         TestCaseInfrastructureScoreTable testCaseInfraScores = getTCAndInfraScoreMap(testPlans);
@@ -97,7 +95,7 @@ public class InfrastructureSummaryReporter {
      */
     private void calculateInfraStatusOf(String testCase, List<TestPlan> testPlans,
             Map<String, InfrastructureBuildStatus> testCaseInfraBuildStatusMap,
-            InfrastructureScores infraScores) {
+            InfrastructureScores infraScores) throws TestGridDAOException {
         boolean allSuccessInfrasFound = false;
         InfrastructureBuildStatus infraBuildStatus = getInfraBuildStatusFrom(testCaseInfraBuildStatusMap, testCase);
         if (logger.isDebugEnabled()) {
@@ -207,11 +205,14 @@ public class InfrastructureSummaryReporter {
      * @param testPlans the test plans
      * @return the scores
      */
-    private TestCaseInfrastructureScoreTable getTCAndInfraScoreMap(List<TestPlan> testPlans) {
+    private TestCaseInfrastructureScoreTable getTCAndInfraScoreMap(List<TestPlan> testPlans)
+            throws TestGridDAOException {
         //map between test-case and its infrastructure-scores
         TestCaseInfrastructureScoreTable tcInfraScoreTable = new TestCaseInfrastructureScoreTable();
         for (TestPlan testPlan : testPlans) {
-            final List<InfrastructureParameter> infraParams = getInfraParams(testPlan);
+            final Set<InfrastructureValueSet> valueSets = infrastructureParameterUOW.getValueSet();
+            final List<InfrastructureParameter> infraParams = TestGridUtil
+                    .getInfraParamsOfTestPlan(valueSets, testPlan);
             //for each test case, T1
             for (TestScenario testScenario : testPlan.getTestScenarios()) {
                 for (TestCase testCase : testScenario.getTestCases()) {
@@ -224,42 +225,6 @@ public class InfrastructureSummaryReporter {
             logger.debug("Summary report generation: Infrastructure scores: " + tcInfraScoreTable);
         }
         return tcInfraScoreTable;
-    }
-
-    /**
-     * Read the infra params from the infrastructure_parameter db table, and return
-     * the list of infra params used in the given test plan.
-     *
-     */
-    private List<InfrastructureParameter> getInfraParams(TestPlan testPlan) {
-        List<InfrastructureParameter> infraParams = new ArrayList<>();
-        try {
-            final Set<InfrastructureValueSet> valueSets = infrastructureParameterUOW.getValueSet();
-
-            final String infraParameters = testPlan.getInfraParameters();
-
-            final Map<String, String> infraParamsStr = TestGridUtil.parseInfraParametersString(infraParameters);
-            for (InfrastructureValueSet valueSet : valueSets) {
-                final String infraName = infraParamsStr.get(valueSet.getType());
-                final Optional<InfrastructureParameter> infraParam = valueSet.getValues().stream()
-                        .filter(param -> param.getName().equals(infraName) || param
-                                .getProcessedSubInfrastructureParameters().stream().anyMatch(sip -> sip.getName()
-                                        .equals(infraName)))
-                        .findAny(); //todo simplify the logic after infra_parameter table fix
-                if (infraParam.isPresent()) {
-                    infraParam.get().transform();
-                    infraParams.add(infraParam.get());
-                } else {
-                    logger.warn("Inconsistent state: Could not find InfrastructureParameter db entry for the " +
-                            infraName + ". ValueSet: " + valueSet);
-                }
-            }
-            return infraParams;
-        } catch (TestGridDAOException e) {
-            logger.error(e.getMessage(), e);
-            return Collections.emptyList();
-        }
-
     }
 
     /**

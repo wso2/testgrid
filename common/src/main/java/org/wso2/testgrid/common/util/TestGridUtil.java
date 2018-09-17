@@ -35,6 +35,8 @@ import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
+import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -51,7 +53,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -446,6 +450,49 @@ public final class TestGridUtil {
         String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.TESTGRID_HOST);
         return String.join("/", testGridHost, productName);
+    }
+
+    /**
+     * Generate the Dashboard URL for the given test plan
+     *
+     * @param testPlan test plan
+     * @return the dashboard url of the given testplan
+     */
+    public static String getDashboardURLFor(TestPlan testPlan) {
+        return String.join("/",
+                getDashboardURLFor(testPlan.getDeploymentPattern().getProduct().getName()),
+                testPlan.getDeploymentPattern().getName(), "test-plans", testPlan.getId());
+    }
+
+    /**
+     * Read the infra params from the infrastructure_parameter db table, and return
+     * the list of infra params used in the given test plan.
+     *
+     * @param valueSets infrastructure parameters value set
+     * @param testPlan test plan to get infrastructure parameters
+     * @return a list of InfrastructureParameter
+     */
+    public static List<InfrastructureParameter> getInfraParamsOfTestPlan(
+            Set<InfrastructureValueSet> valueSets, TestPlan testPlan) {
+        List<InfrastructureParameter> infraParams = new ArrayList<>();
+        final String infraParameters = testPlan.getInfraParameters();
+        final Map<String, String> infraParamsStr = parseInfraParametersString(infraParameters);
+        for (InfrastructureValueSet valueSet : valueSets) {
+            final String infraName = infraParamsStr.get(valueSet.getType());
+            final Optional<InfrastructureParameter> infraParam = valueSet.getValues().stream()
+                    .filter(param -> param.getName().equals(infraName) || param
+                            .getProcessedSubInfrastructureParameters().stream().anyMatch(sip -> sip.getName()
+                                    .equals(infraName)))
+                    .findAny(); //todo simplify the logic after infra_parameter table fix
+            if (infraParam.isPresent()) {
+                infraParam.get().transform();
+                infraParams.add(infraParam.get());
+            } else {
+                logger.warn("Inconsistent state: Could not find InfrastructureParameter db entry for the " +
+                        infraName + ". ValueSet: " + valueSet);
+            }
+        }
+        return infraParams;
     }
 
     /**
