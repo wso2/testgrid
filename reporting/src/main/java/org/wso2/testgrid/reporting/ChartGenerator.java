@@ -80,7 +80,7 @@ public class ChartGenerator {
         final PieChart chart = new PieChart(pieChartData);
         chart.setAnimated(false);
         chart.setLabelsVisible(true);
-        chart.setTitle("Build Failure Summary by Infrastructure Combinations");
+        chart.setTitle("Build Summary by Infrastructure Combinations");
         genChart(chart, 600, 600, summaryChartFileName, "styles/summary.css");
     }
 
