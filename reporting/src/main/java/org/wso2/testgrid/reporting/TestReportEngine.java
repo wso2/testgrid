@@ -777,21 +777,26 @@ public class TestReportEngine {
             return Optional.empty();
         }
 
-        Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
-                .getSummaryTable(testPlans);
-        final String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testCaseInfraSummaryMap);
-        postProcessSummaryTable(testCaseInfraSummaryMap);
-
-        logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         Map<String, Object> report = new HashMap<>();
         Map<String, Object> perSummariesMap = new HashMap<>();
+        try {
+            Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
+                    .getSummaryTable(testPlans);
+            postProcessSummaryTable(testCaseInfraSummaryMap);
+
+            logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
+            String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testPlans);
+            report.put("testedInfrastructures", testedInfrastructures);
+            report.put("infrastructureErrors", emailReportProcessor.getErroneousInfrastructures(testPlans));
+            report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occurred while getting failed infrastructures");
+        }
         report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
-        report.put("testedInfrastructures", testedInfrastructures);
         report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
-        report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
         perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
         String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
 
@@ -888,11 +893,6 @@ public class TestReportEngine {
             resultList.add(resultSection);
         }
 
-        Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
-                .getSummaryTable(testPlans);
-        final String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testCaseInfraSummaryMap);
-        postProcessSummaryTable(testCaseInfraSummaryMap);
-
         String productName = product.getName();
         summaryChartFileName = StringUtil.concatStrings("summary-",
                 StringUtil.generateRandomString(8), imageExtension);
@@ -905,15 +905,25 @@ public class TestReportEngine {
                 chartDirectoryName, productName, historyChartFileName);
 
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
+        try {
+            Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
+                    .getSummaryTable(testPlans);
+            postProcessSummaryTable(testCaseInfraSummaryMap);
+            String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testPlans);
+            results.put("testedInfrastructures", testedInfrastructures);
+            results.put("infrastructureErrors", emailReportProcessor
+                    .getErroneousInfrastructures(testPlans).entrySet());
+            results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occurred while getting failed infrastructures");
+        }
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
-        results.put("testedInfrastructures", testedInfrastructures);
         results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         results.put(SUMMARY_CHART_TEMPLATE_KEY, summaryChartURL);
         results.put(HISTORY_CHART_TEMPLATE_KEY, historyChartURL);
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
-        results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
         results.put("jobName", productName);
         results.put("dashboardURL", dashboardURL);
         results.put("renderTestResultTables", renderTestResultTable);
