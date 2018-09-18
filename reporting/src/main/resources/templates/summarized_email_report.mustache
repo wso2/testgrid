@@ -132,7 +132,7 @@
     </style>
 </head>
 <body>
-  <table width="600" border="0" cellspacing="0" cellpadding="0" valign='top'>
+  <table width="700" border="0" cellspacing="0" cellpadding="0" valign='top'>
   <td><img src="http://cdn.wso2.com/wso2/newsletter/images/nl-2017/nl2017-wso2-logo-wb.png" alt="WSO2"></td>
   <td><h1>TestGrid <span style="color: #e46226;"> : Test Execution Results</span></h1></td>
   </table>
@@ -170,11 +170,12 @@
             <p/><p/>
             <table>
                 <tr>
-                    <td valign="top" style="padding:0 10px 10px 5px">
-                        <img  src="{{summaryChart}}" alt="" border="0" align="left" height="300" width="300"/>
+                    <td valign="top" style="padding:10px 10px 10px 100px">
+                        <img  src="{{summaryChart}}" alt="" border="0" align="left" height="450" width="450"/>
                     </td>
-                    <td valign="middle" style="padding:0 10px 10px 100px">
-                      <img  src="{{historyChart}}" alt="" border="0" align="left" height="300" width="400"/>
+                    <td valign="middle" style="padding:10px 10px 10px 70px">
+                      <img  src="{{historyChart}}" alt="" border="0" align="left" height="450" width="550"
+                            title="Build failure summary for 7 days. All the builds that ran during 24H time range is considered for the history. For a given infrastructure combination the status of the latest run is considered when deriving the state, if latest build failed it's considered as a failed build for the day."/>
                     </td>
                 </tr>
             </table>
