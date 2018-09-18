@@ -46,6 +46,7 @@ import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.ScenarioExecutor;
@@ -58,6 +59,8 @@ import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -107,6 +110,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
     private TestPlanExecutor testPlanExecutor;
     private ScenarioExecutor scenarioExecutor;
     private String actualTestPlanFileLocation;
+    private String workspaceDir;
 
     @BeforeMethod
     public void init() throws Exception {
@@ -114,7 +118,9 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         String productName = "wso2-" + randomStr;
         actualTestPlanFileLocation = Paths.get("target", "testgrid-home", TestGridConstants.TESTGRID_JOB_DIR,
                 productName, TestGridConstants.PRODUCT_TEST_PLANS_DIR, "test-plan-01.yaml").toString();
-        runTestPlanCommand = new RunTestPlanCommand(productName, actualTestPlanFileLocation);
+        workspaceDir = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR,
+                productName).toString();
+        runTestPlanCommand = new RunTestPlanCommand(productName, actualTestPlanFileLocation, workspaceDir);
         System.setProperty(TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY, TESTGRID_HOME);
 
         this.product = new Product();
@@ -130,6 +136,11 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         testPlan.setDeploymentPattern(deploymentPattern);
         testPlan.setInfraParameters(infraParamsString);
         testPlan.setDeployerType(TestPlan.DeployerType.SHELL);
+        testPlan.setScenarioTestsRepository(Paths.get(workspaceDir, "/workspace/scenarioTests").toString());
+        testPlan.setInfrastructureRepository(Paths.get(workspaceDir, "/workspace/infrastructure").toString());
+        testPlan.setDeploymentRepository(Paths.get(workspaceDir, "/workspace/deployment").toString());
+        testPlan.setKeyFileLocation(Paths.get(workspaceDir, "/workspace/testkey.pem").toString());
+        testPlan.setWorkspace(workspaceDir);
 
         when(testScenarioUOW.persistTestScenario(any(TestScenario.class))).thenAnswer(invocation -> invocation
                 .getArguments()[0]);
@@ -150,14 +161,14 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
 
         Path actualTestPlanPath = Paths.get(actualTestPlanFileLocation);
         assertTrue(Files.exists(actualTestPlanPath));
-
+        copyWorkspaceArtifacts();
         runTestPlanCommand.execute();
 
-        Path testRunDirectory = TestGridUtil.getTestRunWorkspace(testPlan, false);
+        Path testRunDirectory = DataBucketsHelper.getBuildOutputsDir(testPlan);
         assertTrue(Files.exists(testRunDirectory),
                 "The test-run dir does not exist: " + testRunDirectory.toString());
 
-        final Path infrastructurePath = testRunDirectory.resolve("my-infrastructure");
+        final Path infrastructurePath = Paths.get(testPlan.getInfrastructureRepository());
         assertTrue(Files.exists(infrastructurePath), "Infrastructure provision script failed to run. Dir does not "
                 + "exist: " + infrastructurePath.toString());
         final Path generatedDeploymentFile = infrastructurePath.resolve("my-deployment.txt");
@@ -165,6 +176,13 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
                 + "exist: " + generatedDeploymentFile);
         String content = new String(Files.readAllBytes(generatedDeploymentFile), StandardCharsets.UTF_8);
         Assert.assertEquals(content, "Deploy server1\n", "my-deployment.txt file does not contain expected content.");
+    }
+
+    private void copyWorkspaceArtifacts() throws IOException {
+        String resourceDir = Paths.get("./src", "test", "resources", "workspace").toString();
+        String destinationDir = Paths.get(workspaceDir, "/workspace").toString();
+        FileUtils.copyDirectory(new File(resourceDir), new File(destinationDir));
+        logger.info("Copying necessary artifacts to directory: " + destinationDir);
     }
 
     private void doMock() throws TestGridDAOException, TestAutomationException {

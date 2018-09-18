@@ -17,12 +17,16 @@
  */
 package org.wso2.testgrid.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.io.Serializable;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -46,6 +50,7 @@ import javax.persistence.Transient;
 @Entity
 @Table(name = TestPlan.TEST_PLAN_TABLE)
 public class TestPlan extends AbstractUUIDEntity implements Serializable, Cloneable {
+    private static final Logger logger = LoggerFactory.getLogger(TestPlan.class);
 
     /**
      * TestPlan table name.
@@ -117,6 +122,10 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     @Transient
     private String keyFileLocation;
+
+    @Transient
+    private String workspace = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR,
+            "sample-product").toString();
 
     /**
      * Returns the status of the infrastructure.
@@ -451,6 +460,37 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     public void setJobName(String jobName) {
         this.jobName = jobName;
+    }
+
+    /**
+     * Return the workspace of the TestPlan.
+     * If the workspace is not set it will be derived as below;
+     *      1. Derived using the job-name
+     *      2. If job-name is not set, derive using product-name
+     *      3. If both (1) and (2) is not possible, consider job directory as "product-<random-number>"
+     *      (The random directory will be generated only one-time and will be used as its workspace from there onwards.)
+     */
+    public String getWorkspace() {
+        if (StringUtil.isStringNullOrEmpty(workspace)) {
+            String jobDir = getJobName();
+            if (StringUtil.isStringNullOrEmpty(jobDir)) {
+                if (getDeploymentPattern() != null && getDeploymentPattern().getProduct() != null) {
+                    jobDir = getDeploymentPattern().getProduct().getName();
+                }
+                if (StringUtil.isStringNullOrEmpty(jobDir)) {
+                    jobDir = "product-" + StringUtil.generateRandomString(5);
+                }
+            }
+            this.setWorkspace(Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR,
+                    jobDir).toString());
+            logger.warn("Test-plan " + this.toString() + " does not stick to a workspace directory. " +
+                    "Hence the directory '" + workspace + "' is set as workspace and will be used from here onwards.");
+        }
+            return workspace;
+    }
+
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
     }
 
     /**

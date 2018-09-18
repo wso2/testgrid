@@ -80,4 +80,7 @@ public class TestGridConstants {
     public static final String SCENARIO_SCRIPT = "run-scenario.sh";
     public static final String AMAZON_S3_URL = "https://s3.amazonaws.com";
     public static final String AMAZON_S3_DEFAULT_BUCKET_NAME = "unknown";
+
+    public static final String KEY_FILE_LOCATION = "keyFileLocation";
+    public static final String HTTP = "http://";
 }

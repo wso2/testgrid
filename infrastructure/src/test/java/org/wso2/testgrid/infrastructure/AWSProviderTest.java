@@ -50,6 +50,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -155,7 +156,9 @@ public class AWSProviderTest extends PowerMockTestCase {
         String outputValue = "TestDNS";
         String patternName = "single-node";
         String matchedAmi = "123464";
-
+        String jobName = "wso2";
+        String workspaceDir = Paths.get("target", "testgrid-home", TestGridConstants.TESTGRID_JOB_DIR,
+                jobName).toString();
         Map<String, String> map = new HashMap<>();
         map.put(AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_ID_VALUE);
         map.put(AWS_SECRET_ACCESS_KEY, AWS_SECRET_ACCESS_KEY_VALUE);
@@ -219,9 +222,10 @@ public class AWSProviderTest extends PowerMockTestCase {
                 .thenReturn(Collections.singletonList(Mockito.mock(AWSResourceLimit.class)));
 
         AWSProvider awsProvider = new AWSProvider();
-        testPlan.setJobName("wso2");
+        testPlan.setJobName(jobName);
         testPlan.setInfrastructureConfig(infrastructureConfig);
         testPlan.setInfrastructureRepository(resourcePath.getAbsolutePath());
+        testPlan.setWorkspace(workspaceDir);
         awsProvider.init(testPlan);
         InfrastructureProvisionResult provisionResult = awsProvider
                 .provision(testPlan);

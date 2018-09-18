@@ -61,7 +61,6 @@ public class GenerateEmailCommand implements Command {
                     workspace);
             summarizedReportPath.ifPresent(p -> logger.info("Written the summarized email " +
                                                             "report body contents to: " + p));
-
             final Optional<Path> reportPath = testReportEngine.generateEmailReport(product, workspace);
             reportPath.ifPresent(p -> logger.info("Written the email report body contents to: " + p));
         } catch (ReportingException e) {

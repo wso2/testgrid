@@ -17,9 +17,6 @@
  */
 package org.wso2.testgrid.common.util;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Properties;
 import java.util.Random;
 
 /**
@@ -68,21 +65,6 @@ public class StringUtil {
             salt.append(saltChars.charAt(index));
         }
         return salt.toString();
-    }
-
-    /**
-     * Generate a string which include all the properties (key and the value).
-     * @param properties Properties
-     * @return List of properties (key and value) as a String
-     */
-    public static String getPropertiesAsString(Properties properties) {
-        if (properties.isEmpty()) {
-            return "Empty property-list.";
-        } else {
-            StringWriter writer = new StringWriter();
-            properties.list(new PrintWriter(writer));
-            return writer.getBuffer().toString();
-        }
     }
 
     /**

@@ -156,9 +156,9 @@ public class ConfigurationContext {
         WAIT_FOR_STACK_DELETION("WAIT_FOR_STACK_DELETION"),
 
         /**
-         * URL of InfluxDB datab
+         * URL of InfluxDB data base
          */
-        PERFORMANCE_DASHBOARD_URL("PERFORMANCE_DASHBOARD_URL"),
+        INFLUXDB_URL("INFLUXDB_URL"),
 
         /**
          * InfluxDB username
@@ -171,9 +171,31 @@ public class ConfigurationContext {
         INFLUXDB_PASS("INFLUXDB_PASS"),
 
         /**
+         * Grafana Datasource
+         */
+        GRAFANA_DATASOURCE("GRAFANA_DATASOURCE"),
+
+        /**
          * Grafana api Key
          */
-        GRAFANA_APIKEY("GRAFANA_APIKEY");
+        GRAFANA_APIKEY("GRAFANA_APIKEY"),
+
+        /**
+         * Grafana Dashboard URL
+         */
+        GRAFANA_URL("GRAFANA_URL"),
+
+        /**
+         * Location to trustsore .jks file
+         */
+        TRUSTSTORE_KEY("TRUSTSTORE_KEY"),
+
+        /**
+         * Password of trustore key file
+         */
+        TRUSTSTORE_PASSWORD("TRUSTSTORE_PASSWORD");
+
+
 
 
 

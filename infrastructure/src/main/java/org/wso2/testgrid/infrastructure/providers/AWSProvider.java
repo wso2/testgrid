@@ -71,6 +71,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -376,6 +377,7 @@ public class AWSProvider implements InfrastructureProvider {
                                           InfrastructureConfig infrastructureConfig, TestPlan testPlan)
             throws IOException, TestGridInfrastructureException {
 
+        String testPlanId = testPlan.getId();
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
 
         expectedParameters.forEach(LambdaExceptionUtils.rethrowConsumer(expected -> {
@@ -404,30 +406,20 @@ public class AWSProvider implements InfrastructureProvider {
                         ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
                 String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.AWS_REGION_NAME);
-                String customScript = "";
-                String agentInitCommand = "";
-                String telegraphInitCommand = "";
-                if (testPlan.getInfrastructureConfig().getParameters().getProperty("OS", "CentOS").
-                        equals("Windows")) {
-                    agentInitCommand = "C:/testgrid/app/agent/init.bat ";
-                    agentInitCommand = StringUtil.concatStrings(agentInitCommand, deploymentTinkererEP, " ",
-                            awsRegion, " ", testPlan.getId(), " aws ", deploymentTinkererUserName, " ",
-                            deploymentTinkererPassword);
-                    customScript = StringUtil.concatStrings(agentInitCommand);
+                String customScript;
+                String scriptInputs = StringUtil.concatStrings(testPlanId, " ",
+                        ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_URL),
+                        " ", ConfigurationContext.getProperty(ConfigurationContext.
+                                ConfigurationProperties.INFLUXDB_USER), " ", ConfigurationContext.getProperty
+                                (ConfigurationContext.ConfigurationProperties.INFLUXDB_PASS));
+
+                if (testPlan.getInfraParameters().toLowerCase(Locale.ENGLISH).contains("windows")) {
+                    customScript = StringUtil.concatStrings(".\\telegraf_setup.sh ", scriptInputs);
                 } else {
-                    agentInitCommand = "/opt/testgrid/agent/init.sh ";
-                    telegraphInitCommand = "/opt/testgrid/agent/telegraf_setup.sh ";
-                    agentInitCommand = StringUtil.concatStrings(agentInitCommand, deploymentTinkererEP, " ",
-                            awsRegion, " ", testPlan.getId(), " aws ", deploymentTinkererUserName, " ",
-                            deploymentTinkererPassword);
-                    telegraphInitCommand = StringUtil.concatStrings(telegraphInitCommand, testPlan.getId(), " ",
-                            ConfigurationContext.getProperty
-                                    (ConfigurationContext.ConfigurationProperties.PERFORMANCE_DASHBOARD_URL), ":8086 ",
-                            ConfigurationContext.getProperty(
-                                    ConfigurationContext.ConfigurationProperties.INFLUXDB_USER),
-                            " ", ConfigurationContext.getProperty(ConfigurationContext.
-                                    ConfigurationProperties.INFLUXDB_PASS));
-                    customScript = StringUtil.concatStrings(agentInitCommand, "\n", telegraphInitCommand);
+                    customScript = StringUtil.concatStrings("/opt/testgrid/agent/init.sh ",
+                            deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,
+                            " ", deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ",
+                            scriptInputs);
                 }
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);

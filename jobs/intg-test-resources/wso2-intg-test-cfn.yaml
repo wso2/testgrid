@@ -124,6 +124,10 @@ Parameters:
     AllowedValues:
       - OPEN_JDK8
       - ORACLE_JDK8
+  MavenVersion:
+    Type: String
+    Default: '3.3.9'
+    Description: Enter required Maven version.
   CustomUserData:
    Type: String
    Default: "echo"
@@ -178,6 +182,10 @@ Resources:
           FromPort: 9443
           ToPort: 9443
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8086
+          ToPort: 8086
+          CidrIp: 0.0.0.0/0
     Metadata:
       'AWS::CloudFormation::Designer':
         id: abbdb5e8-f28b-4bc6-8b63-da9595b59c4a
@@ -229,6 +237,11 @@ Resources:
         'Fn::Sub': |
           #cloud-boothook
           #!/bin/bash
+
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          # Echoes all commands before executing.
+          set -o verbose
+
           set -e
           set -o xtrace
 
@@ -266,9 +279,9 @@ Resources:
 
           setup_java_env
           echo "Installing Apache Maven"
-          wget https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
-          tar -xvzf apache-maven-3.3.9-bin.tar.gz
-          ln -fs apache-maven-3.3.9 maven
+          wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
+          tar -xvzf apache-maven-${MavenVersion}-bin.tar.gz
+          ln -fs apache-maven-${MavenVersion} maven
           echo 'export MAVEN_OPTS="-Xmx2048m -Xms256m"' >> /etc/environment
           echo 'export M3_HOME=/opt/wso2/workspace/maven' >> /etc/environment
           echo PATH=/opt/wso2/workspace/maven/bin/:$PATH >> /etc/environment
@@ -317,10 +330,23 @@ Resources:
         UserData:
           !Base64
           'Fn::Sub': |
-            <script>
-            setx -m JAVA_HOME "%${JDK}%"
+            <powershell>
+            [Environment]::SetEnvironmentVariable("JAVA_HOME", "$Env:${JDK}", "Machine")
+
+            wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.zip -OutFile "maven.zip"
+            Expand-Archive maven.zip -DestinationPath c:\\testgrid\\workspace
+
+            [Environment]::SetEnvironmentVariable("M2_HOME", "c:\\testgrid\\workspace\\apache-maven-${MavenVersion}", "Machine")
+            [Environment]::SetEnvironmentVariable("MAVEN_HOME", "c:\\testgrid\\workspace\\apache-maven-${MavenVersion}", "Machine")
+
+            $Old_Path=(Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name Path).Path
+            Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value ($Old_Path += ';c:\\testgrid\\workspace\\apache-maven-${MavenVersion}\\bin') -Verbose -PassThru|fl
+            cd C:\"Program Files"\telegraf
+            curl http://169.254.169.254/latest/meta-data/instance-id -o instance_id.txt
             ${CustomUserData}
-            </script>
+            .\telegraf.exe  --service install > service.log
+            while(!(netstat -o | findstr 8086 | findstr ESTABLISHED)) { $val++;Write-Host $val;net stop telegraf;net start telegraf } >> service.log
+            </powershell>
             <persist>true</persist>
         SecurityGroups:
           - !Ref WSO2InstanceSecurityGroup

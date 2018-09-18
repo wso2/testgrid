@@ -53,8 +53,6 @@ import javax.imageio.ImageIO;
 public class ChartGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(ChartGenerator.class);
-    private static  final String summaryChartFileName = "summary.png";
-    private static final String historyChartFileName = "history.png";
     private String chartGenLocation;
 
     public ChartGenerator(String chartGenLocation) {
@@ -68,8 +66,9 @@ public class ChartGenerator {
      * @param passedCount  passed test count
      * @param failedCount  failed test count
      * @param skippedCount skipped test count
+     * @param summaryChartFileName file name of the summary chart
      */
-    public void generateSummaryChart(int passedCount, int failedCount, int skippedCount) {
+    public void generateSummaryChart(int passedCount, int failedCount, int skippedCount, String summaryChartFileName) {
         List<PieChart.Data> data = new ArrayList<>();
             data.add(new PieChart.Data(StringUtil.concatStrings("Test Failures (", Integer.toString(failedCount), ")"),
                     failedCount));
@@ -81,7 +80,7 @@ public class ChartGenerator {
         final PieChart chart = new PieChart(pieChartData);
         chart.setAnimated(false);
         chart.setLabelsVisible(true);
-        chart.setTitle("Build Failure Summary by Infrastructure Combinations");
+        chart.setTitle("Build Summary by Infrastructure Combinations");
         genChart(chart, 600, 600, summaryChartFileName, "styles/summary.css");
     }
 
@@ -89,8 +88,9 @@ public class ChartGenerator {
      * Generates the history chart with the summary of test executions.
      *
      * @param dataSet input data-set for the chart
+     * @param historyChartFileName file name of the history graph
      */
-    public void generateResultHistoryChart(Map<String, BuildExecutionSummary> dataSet) {
+    public void generateResultHistoryChart(Map<String, BuildExecutionSummary> dataSet, String historyChartFileName) {
 
         final CategoryAxis xAxis = new CategoryAxis();
         final NumberAxis yAxis = new NumberAxis();

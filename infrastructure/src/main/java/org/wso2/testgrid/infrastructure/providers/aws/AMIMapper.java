@@ -32,6 +32,8 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,8 +41,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
-
-import static org.wso2.testgrid.common.util.StringUtil.getPropertiesAsString;
 
 /**
  * This class provides a mapper to find the matching AMI based on the infrastructure parameters of the test-plan.
@@ -75,6 +75,7 @@ public class AMIMapper {
 
     /**
      * This method finds out the relevant AMI-id of the AMI which matches for the infra-parameters passed.
+     *
      * @param infraParameters Infrastructure parameters (of the test-plan)
      * @return AMI-id of the matching AMI
      * @throws TestGridInfrastructureException When can not find a matching AMI
@@ -100,6 +101,7 @@ public class AMIMapper {
     /**
      * This method finds out matching AMI for the given set of parameters. (The matching AMI should include
      * all the parameters passed.)
+     *
      * @param amiList List of AMIs.
      * @param lookupParameters  List of parameters which must map with AMI tags.
      * @return AMI-ID of the matching AMI.
@@ -126,6 +128,7 @@ public class AMIMapper {
     /**
      * This method filters the infrastructure-parameters and find out which should be used to lookup for the AMI.
      * (The AMIs are containing tags for only the parameters returning from here.)
+     *
      * @param infraParamList Infrastructure parameters (of the test-plan)
      * @return Set of parameters which should be used to lookup for the AMI
      */
@@ -161,6 +164,7 @@ public class AMIMapper {
     /**
      * This method checks if the passing parameter(both parameter type and parameter value) is included in the
      * list of AMI tags.
+     *
      * @param parameterName Name (= Type) of the parameter
      * @param parameterValue Value of the parameter
      * @param tags List of AMI tags
@@ -185,5 +189,21 @@ public class AMIMapper {
         request.withOwners("self");
         DescribeImagesResult result = amazonEC2.describeImages(request);
         return result.getImages();
+    }
+
+    /**
+     * Generate a string which include all the properties (key and the value).
+     *
+     * @param properties Properties
+     * @return List of properties (key and value) as a String
+     */
+    private String getPropertiesAsString(Properties properties) {
+        if (properties.isEmpty()) {
+            return "Empty property-list.";
+        } else {
+            StringWriter writer = new StringWriter();
+            properties.list(new PrintWriter(writer));
+            return writer.getBuffer().toString();
+        }
     }
 }

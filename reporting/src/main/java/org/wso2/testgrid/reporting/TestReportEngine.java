@@ -23,10 +23,12 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -99,6 +101,10 @@ public class TestReportEngine {
     private final EmailReportProcessor emailReportProcessor;
     private TestPlanUOW testPlanUOW;
     private final GraphDataProvider graphDataProvider;
+    private final String imageExtension = ".png";
+    private final String chartDirectoryName = "charts";
+    private String summaryChartFileName = "summary.png";
+    private String historyChartFileName = "history.png";
 
     public TestReportEngine(TestPlanUOW testPlanUOW, EmailReportProcessor emailReportProcessor, GraphDataProvider
             graphDataProvider) {
@@ -771,28 +777,31 @@ public class TestReportEngine {
             return Optional.empty();
         }
 
-        Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
-                .getSummaryTable(testPlans);
-        final String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testCaseInfraSummaryMap);
-        postProcessSummaryTable(testCaseInfraSummaryMap);
-
-        logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
         Map<String, Object> report = new HashMap<>();
         Map<String, Object> perSummariesMap = new HashMap<>();
+        try {
+            Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
+                    .getSummaryTable(testPlans);
+            postProcessSummaryTable(testCaseInfraSummaryMap);
+
+            logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
+            String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testPlans);
+            report.put("testedInfrastructures", testedInfrastructures);
+            report.put("infrastructureErrors", emailReportProcessor.getErroneousInfrastructures(testPlans));
+            report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occurred while getting failed infrastructures");
+        }
         report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
-        report.put("testedInfrastructures", testedInfrastructures);
         report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
-        report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
         perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
         String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
 
         // Write to HTML file
-        String relativeFilePath = TestGridUtil.deriveTestGridLogFilePath(product.getName(), TESTGRID_EMAIL_REPORT_NAME);
-        String testGridHome = TestGridUtil.getTestGridHomePath();
-        Path reportPath = Paths.get(testGridHome, relativeFilePath);
+        Path reportPath = Paths.get(workspace, TestGridConstants.TESTGRID_BUILDS_DIR, TESTGRID_EMAIL_REPORT_NAME);
         writeHTMLToFile(reportPath, htmlString);
         return Optional.of(reportPath);
     }
@@ -825,6 +834,7 @@ public class TestReportEngine {
                 Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanYaml.getId());
                 if (testPlanById.isPresent()) {
                     TestPlan mergedTestPlan = TestGridUtil.mergeTestPlans(testPlanYaml, testPlanById.get(), false);
+                    mergedTestPlan.setWorkspace(workspace);
                     logger.info("Derived test plan dir in email phase : " +
                             TestGridUtil.deriveTestPlanDirName(mergedTestPlan));
                     testPlans.add(mergedTestPlan);
@@ -856,10 +866,11 @@ public class TestReportEngine {
 
         List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
         //start email generation
+        boolean renderTestResultTable = true;
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
-                        + "Hence skipping email-report generation. Total test-plans: " + testPlans.size());
-            return Optional.empty();
+                        + "Total test-plans: " + testPlans.size());
+            renderTestResultTable = false;
         }
         List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
 
@@ -882,37 +893,45 @@ public class TestReportEngine {
             resultList.add(resultSection);
         }
 
-        Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
-                .getSummaryTable(testPlans);
-        final String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testCaseInfraSummaryMap);
-        postProcessSummaryTable(testCaseInfraSummaryMap);
-
         String productName = product.getName();
+        summaryChartFileName = StringUtil.concatStrings("summary-",
+                StringUtil.generateRandomString(8), imageExtension);
+        historyChartFileName = StringUtil.concatStrings("history-",
+                StringUtil.generateRandomString(8), imageExtension);
         final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
-        final String summaryChartURL = String.join("/", TestGridUtil.getS3BucketURL(),
-                "charts", productName, "summary.png");
-        final String historyChartURL = String.join("/", TestGridUtil.getS3BucketURL(),
-                "charts", productName, "history.png");
+        final String summaryChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
+                chartDirectoryName, productName, summaryChartFileName);
+        final String historyChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
+                chartDirectoryName, productName, historyChartFileName);
 
         Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
+        try {
+            Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
+                    .getSummaryTable(testPlans);
+            postProcessSummaryTable(testCaseInfraSummaryMap);
+            String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testPlans);
+            results.put("testedInfrastructures", testedInfrastructures);
+            results.put("infrastructureErrors", emailReportProcessor
+                    .getErroneousInfrastructures(testPlans).entrySet());
+            results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occurred while getting failed infrastructures");
+        }
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
         results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
-        results.put("testedInfrastructures", testedInfrastructures);
         results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         results.put(SUMMARY_CHART_TEMPLATE_KEY, summaryChartURL);
         results.put(HISTORY_CHART_TEMPLATE_KEY, historyChartURL);
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
-        results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
         results.put("jobName", productName);
         results.put("dashboardURL", dashboardURL);
+        results.put("renderTestResultTables", renderTestResultTable);
         String htmlString = renderer.render(SUMMARIZED_EMAIL_REPORT_MUSTACHE, results);
 
         // Write to HTML file
-        String relativeFilePath = TestGridUtil
-                .deriveTestGridLogFilePath(product.getName(), TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME);
-        String testGridHome = TestGridUtil.getTestGridHomePath();
-        Path reportPath = Paths.get(testGridHome, relativeFilePath);
+        Path reportPath = Paths.get(workspace, TestGridConstants.TESTGRID_BUILDS_DIR,
+                TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME);
         writeHTMLToFile(reportPath, htmlString);
         Path reportParentPath = reportPath.getParent();
 
@@ -941,6 +960,7 @@ public class TestReportEngine {
                 if (testPlanById.isPresent()) {
                     logger.info("Derived test plan dir in email phase : " + TestGridUtil
                             .deriveTestPlanDirName(testPlanById.get()));
+                    testPlanById.get().setWorkspace(workspace);
                     testPlans.add(testPlanById.get());
                 } else {
                     logger.error(String.format(
@@ -972,9 +992,10 @@ public class TestReportEngine {
             ChartGenerator chartGenerator = new ChartGenerator(chartGenLocation);
             // Generating the charts
             chartGenerator.generateSummaryChart(summary.getPassedTestPlans(), summary.getFailedTestPlans(), summary
-                    .getSkippedTestPlans());
+                    .getSkippedTestPlans(), summaryChartFileName);
             // Generate history chart
-            chartGenerator.generateResultHistoryChart(graphDataProvider.getTestExecutionHistory(id));
+            chartGenerator.generateResultHistoryChart(graphDataProvider.getTestExecutionHistory(id),
+                    historyChartFileName);
             chartGenerator.stopApplication();
         } catch (UnsupportedOperationException e) {
             logger.error("Unexpected error occurred during chart generation ", e);

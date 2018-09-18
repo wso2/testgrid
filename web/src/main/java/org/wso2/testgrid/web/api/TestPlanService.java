@@ -29,6 +29,8 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.util.S3StorageUtil;
+import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
@@ -39,6 +41,7 @@ import org.wso2.testgrid.web.bean.TestCaseEntry;
 import org.wso2.testgrid.web.bean.TestExecutionSummary;
 import org.wso2.testgrid.web.bean.TestPlanRequest;
 import org.wso2.testgrid.web.bean.TestPlanStatus;
+import org.wso2.testgrid.web.operation.GrafanaTimeLimitGetter;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
 import org.wso2.testgrid.web.plugins.AWSArtifactReader;
@@ -169,8 +172,7 @@ public class TestPlanService {
                         .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
             }
             TestPlan testPlan = optionalTestPlan.get();
-
-            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan, truncate);
+            String logFileDir = S3StorageUtil.getS3LocationForTestRunLogFile(testPlan, truncate);
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
@@ -221,7 +223,7 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
 
-            String logFileDir = TestGridUtil.deriveTestRunLogFilePath(testPlan, true);
+            String logFileDir = S3StorageUtil.getS3LocationForTestRunLogFile(testPlan, true);
             String bucketKey = Paths
                     .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
@@ -280,6 +282,30 @@ public class TestPlanService {
             return Response.status(Response.Status.OK).entity(testExecutionSummary).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
+        }
+    }
+
+    /**
+     * Returns the product performance dashboard url for the given test plan id
+     *
+     * @param id test plan id
+     * @return The requested roduct performance dashboard url for the test plan
+     */
+    @GET
+    @Path("/perf-url/{id}")
+    public Response getGrafanaURL(@PathParam("id") String id) {
+
+        GrafanaTimeLimitGetter timeLimitGetter = new GrafanaTimeLimitGetter(id);
+        try {
+            String dashURL = StringUtil.concatStrings(ConfigurationContext.getProperty
+                    (ConfigurationProperties.GRAFANA_URL), "&from=", timeLimitGetter.getStartTime(), "&to=",
+                    timeLimitGetter.getEndTime(), "&var-VM=All&var-TestPlan=", id);
+            return Response.status(Response.Status.OK).entity(dashURL).build();
+        } catch (Exception e) {
+            String msg = "Error occurred while fetching the Grafana dashboard url by id : '" + id + "'";
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
@@ -382,7 +408,7 @@ public class TestPlanService {
      *                           3.If the YAML file already exists.
      */
     private void persistAsYamlFile(TestPlanRequest testPlanRequest) throws TestGridException, IOException {
-        java.nio.file.Path path = TestGridUtil.getTestPlanDirectory().resolve(testPlanRequest.getTestPlanName());
+        java.nio.file.Path path = TestGridUtil.getTestPlanRequestDirectory().resolve(testPlanRequest.getTestPlanName());
 
         if (!Files.exists(path)) {
             try {

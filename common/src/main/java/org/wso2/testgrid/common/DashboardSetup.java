@@ -18,11 +18,7 @@
 
 package org.wso2.testgrid.common;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.json.simple.JSONObject;
@@ -31,17 +27,28 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.DataOutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 /**
- * This class create a database in influxDB and a Data Source in
+ * This class create a database in influxDB and a Data Source in Grafana according to the test plan
  */
 public class DashboardSetup {
 
     private static final Logger logger = LoggerFactory.getLogger(DashboardSetup.class);
-    private String restUrl = "http://" +
-            ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.PERFORMANCE_DASHBOARD_URL);
+    private String restUrl =
+            ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_URL);
     private String username =
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_USER);
     private String password =
@@ -60,7 +67,7 @@ public class DashboardSetup {
     public void initDashboard() {
         // create influxDB database according to tp_id
         try {
-            InfluxDB influxDB = InfluxDBFactory.connect(restUrl + ":8086", username, password);
+            InfluxDB influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl, username, password);
             String dbName = testplanID;
             influxDB.createDatabase(dbName);
             influxDB.close();
@@ -69,9 +76,9 @@ public class DashboardSetup {
         } catch (IllegalArgumentException e) {
             logger.error(StringUtil.concatStrings("INFLUXDB_USER and INFLUXDB_PASS cannot be empty: \n", e));
         }
+
         // add a new data source to grafana
-        HttpPost httpPost = createConnectivity(restUrl, apikey);
-        executeReq(getDataSource(testplanID), httpPost);
+        addGrafanaDataSource();
 
     }
 
@@ -86,7 +93,8 @@ public class DashboardSetup {
         JSONObject user = new JSONObject();
         user.put("name", name);
         user.put("type", "influxdb");
-        user.put("url", "http://localhost:8086");
+        user.put("url", TestGridConstants.HTTP + ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.INFLUXDB_URL));
         user.put("access", "proxy");
         user.put("basicAuth", false);
         user.put("password", ConfigurationContext.getProperty(ConfigurationContext.
@@ -99,50 +107,72 @@ public class DashboardSetup {
     }
 
     /**
-     * This method will create the header of the POST request
-     * @param restUrl url of the grafana server
-     * @param apikey APIkey of the grafana server
-     * @return return a http post request
+     * This method will create a grafana datasource according to TestPlanID
      */
-    private HttpPost createConnectivity(String restUrl, String apikey) {
-        HttpPost post = new HttpPost(restUrl + ":3000/api/datasources/");
-        post.setHeader("AUTHORIZATION", apikey);
-        post.setHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
-        post.setHeader("Accept", ContentType.APPLICATION_JSON.toString());
-        return post;
-    }
+    public void addGrafanaDataSource() {
 
-    /**
-     * This command will handle the posting http request to REST  api
-     * @param jsonData json string of the data source
-     * @param httpPost post request with authentication
-     */
-    private void executeReq(String jsonData, HttpPost httpPost) {
+        DataOutputStream dataOutputStream = null;
         try {
-            executeHttpRequest(jsonData, httpPost);
-        } catch (UnsupportedEncodingException e) {
-            logger.error(StringUtil.concatStrings("error while encoding grafana http api url : ", e));
-        } catch (IOException e) {
-            logger.error(StringUtil.concatStrings("ioException occured while sending http request : ", e));
+            String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
+                    .GRAFANA_DATASOURCE) + ":3000/api/datasources/";
+
+            HostnameVerifier allHostsValid = new HostValidator();
+
+            // Install the all-trusting host verifier
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+            URL obj = new URL(url);
+            HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+            //add request header
+            con.setRequestMethod("POST");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("Content-Type", ContentType.APPLICATION_JSON.toString());
+            con.setRequestProperty("Accept", ContentType.APPLICATION_JSON.toString());
+            con.setRequestProperty("Authorization", apikey);
+            SSLSocketFactory sslSocketFactory = createSslSocketFactory();
+            con.setSSLSocketFactory(sslSocketFactory);
+            String urlParameters = getDataSource(testplanID);
+            con.setDoOutput(true);
+            dataOutputStream = new DataOutputStream(con.getOutputStream());
+            dataOutputStream.writeBytes(urlParameters);
+            dataOutputStream.flush();
+            int responseCode = con.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                logger.info("grafana Data Source created for testplan " + testplanID);
+            } else {
+                logger.error(StringUtil.concatStrings("failed to create grafana Data testplan ", testplanID,
+                        " Response Code ", responseCode));
+            }
         } catch (Exception e) {
-            logger.error(StringUtil.concatStrings("Exception occured while sending http request : ", e));
+            logger.error("Error while creating Grafana data source" + e);
         } finally {
-            httpPost.releaseConnection();
+            if (dataOutputStream != null) {
+                try {
+                    dataOutputStream.close();
+                } catch (Exception e) {
+                    logger.error("Couldn't close the output stream");
+                }
+            }
         }
     }
 
     /**
-     * This method will execute the post request
-     * @param jsonData json string of the data source
-     * @param httpPost post request with authentication
-     * @throws UnsupportedEncodingException thown when an error with api key
-     * @throws IOException thrown when error in connection
+     * This method is to bypass SSL verification for Grafana dashboard URL
+     * @return SSL socket factory that by will bypass SSL verification
+     * @throws Exception java.security exception is thrown in an issue with SSLContext
      */
-    private void executeHttpRequest(String jsonData,  HttpPost httpPost)  throws UnsupportedEncodingException,
-            IOException {
-        httpPost.setEntity(new StringEntity(jsonData));
-        HttpClient client = HttpClientBuilder.create().build();
-        client.execute(httpPost);
+    private static SSLSocketFactory createSslSocketFactory() throws Exception {
+        TrustManager[] byPassTrustManagers = new TrustManager[] { new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {
+            }
+            public void checkServerTrusted(X509Certificate[] chain, String authType) {
+            }
+        } };
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, byPassTrustManagers, new SecureRandom());
+        return sslContext.getSocketFactory();
     }
-
 }
