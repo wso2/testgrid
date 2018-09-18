@@ -960,6 +960,7 @@ public class TestReportEngine {
                 if (testPlanById.isPresent()) {
                     logger.info("Derived test plan dir in email phase : " + TestGridUtil
                             .deriveTestPlanDirName(testPlanById.get()));
+                    testPlanById.get().setWorkspace(workspace);
                     testPlans.add(testPlanById.get());
                 } else {
                     logger.error(String.format(
