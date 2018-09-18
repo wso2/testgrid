@@ -128,7 +128,7 @@
     </style>
 </head>
 <body>
-  <table width="600" border="0" cellspacing="0" cellpadding="0" valign='top'>
+  <table width="700" border="0" cellspacing="0" cellpadding="0" valign='top'>
   <td><img src="http://cdn.wso2.com/wso2/newsletter/images/nl-2017/nl2017-wso2-logo-wb.png" alt="WSO2"></td>
   <td><h1>TestGrid <span style="color: #e46226;"> : Test Execution Results</span></h1></td>
   </table>
@@ -155,13 +155,31 @@
             <br/>
             <span class="testResultSubTitle" align="center">Test Result Summary</span>
             <p/><p/>
-            <table>
+            <table class="reportTable">
                 <tr>
-                    <td valign="top" style="padding:0 10px 10px 5px">
-                        <img  src="{{summaryChart}}" alt="" border="0" align="left" height="300" width="300"/>
+                    <td valign="top" style="padding:10px 10px 10px 90px">
+                        <img  src="{{summaryChart}}" alt="" border="0" align="left" height="450" width="450"/>
                     </td>
-                    <td valign="middle" style="padding:0 10px 10px 100px">
-                      <img  src="{{historyChart}}" alt="" border="0" align="left" height="300" width="400"/>
+                    <td valign="middle" style="padding:10px 10px 10px 50px">
+                      <img  src="{{historyChart}}" alt="" border="0" align="left" height="450" width="550"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <pre>
+ <b>Test Failures:</b> Number of infra combinations(builds) failing due to test failures.
+ <b>Infrastructure Errors:</b> Number of builds failing due to infrastructure failures.
+                          (e.g: Deployment scripts failured, TG execution etc.)
+ <b>Tests Passed: </b>Tests Passed infra combination.
+                        </pre>
+                    </td>
+                    <td>
+                        <pre>
+ Build failure summary for last 7 days, calculated daily basis. All the builds that
+ ran during 24H time rage is considered for the history. For a given infrastructure
+ combination all the runs of the same infra combinations is considered, if there is a
+ single failure its considered as a failed build.
+                        </pre>
                     </td>
                 </tr>
             </table>
