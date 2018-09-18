@@ -155,32 +155,14 @@
             <br/>
             <span class="testResultSubTitle" align="center">Test Result Summary</span>
             <p/><p/>
-            <table class="reportTable">
+            <table>
                 <tr>
-                    <td valign="top" style="padding:10px 10px 10px 90px">
+                    <td valign="top" style="padding:10px 10px 10px 100px">
                         <img  src="{{summaryChart}}" alt="" border="0" align="left" height="450" width="450"/>
                     </td>
-                    <td valign="middle" style="padding:10px 10px 10px 50px">
-                      <img  src="{{historyChart}}" alt="" border="0" align="left" height="450" width="550"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <pre>
- <b>Test Failures:</b> Number of builds(build consist of one infra combination) failed
-                       due to test failures.
- <b>Infrastructure Errors:</b> Number of builds failed due to infrastructure failures.
-                          (e.g: Product deployment failures etc.)
- <b>Tests Passed: </b>Tests Passed infra combination.
-                        </pre>
-                    </td>
-                    <td>
-                        <pre>
- Build failure summary for 7 days. All the builds that ran during 24H time range
- is considered for the history. For a given infrastructure combination all the runs
- of the same infra combination is considered, if there is a single build failure it's
- considered as a failed build for the day.
-                        </pre>
+                    <td valign="middle" style="padding:10px 10px 10px 70px">
+                      <img  src="{{historyChart}}" alt="" border="0" align="left" height="450" width="550"
+                            title="Build failure summary for 7 days. All the builds that ran during 24H time range is considered for the history. For a given infrastructure combination the status of the latest run is considered when deriving the state, if latest build failed it's considered as a failed build for the day."/>
                     </td>
                 </tr>
             </table>

@@ -72,9 +72,9 @@ public class ChartGenerator {
         List<PieChart.Data> data = new ArrayList<>();
             data.add(new PieChart.Data(StringUtil.concatStrings("Test Failures (", Integer.toString(failedCount), ")"),
                     failedCount));
-            data.add(new PieChart.Data(StringUtil.concatStrings("Infrastructure Errors (", Integer.toString
+            data.add(new PieChart.Data(StringUtil.concatStrings("Infra Failures (", Integer.toString
                     (skippedCount), ")"), skippedCount));
-            data.add(new PieChart.Data(StringUtil.concatStrings("Tests Passed (", Integer.toString(passedCount), ")"),
+            data.add(new PieChart.Data(StringUtil.concatStrings("Passed (", Integer.toString(passedCount), ")"),
                     passedCount));
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(data);
         final PieChart chart = new PieChart(pieChartData);
