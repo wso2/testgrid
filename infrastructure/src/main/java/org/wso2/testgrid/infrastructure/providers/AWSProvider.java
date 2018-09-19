@@ -414,7 +414,10 @@ public class AWSProvider implements InfrastructureProvider {
                                 (ConfigurationContext.ConfigurationProperties.INFLUXDB_PASS));
 
                 if (testPlan.getInfraParameters().toLowerCase(Locale.ENGLISH).contains("windows")) {
-                    customScript = StringUtil.concatStrings(".\\telegraf_setup.sh ", scriptInputs);
+                    customScript = StringUtil.concatStrings("cmd.exe /C \"C:/testgrid/app/agent/init.bat  " +
+                            deploymentTinkererEP + " " + awsRegion + " " + testPlanId + " aws " +
+                            deploymentTinkererUserName + " " + deploymentTinkererPassword +
+                            "\" \n .\\telegraf_setup.sh ", scriptInputs);
                 } else {
                     customScript = StringUtil.concatStrings("/opt/testgrid/agent/init.sh ",
                             deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,

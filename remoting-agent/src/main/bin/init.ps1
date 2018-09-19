@@ -20,8 +20,8 @@ echo "Running Powershell command"
 "provider=$($args[3])"| Add-Content "C:\testgrid\app\agent-config.properties"
 "userName=$($args[4])"| Add-Content "C:\testgrid\app\agent-config.properties"
 "password=$($args[5])"| Add-Content "C:\testgrid\app\agent-config.properties"
-"instanceId=$(Invoke-WebRequest 'http://169.254.169.254/latest/meta-data/instance-id')" | Add-Content "C:\testgrid\app\agent-config.properties"
-"instanceIP=$(Invoke-WebRequest 'http://169.254.169.254/latest/meta-data/public-ipv4')" | Add-Content "C:\testgrid\app\agent-config.properties"
+"instanceId=$(Invoke-WebRequest -UseBasicParsing 'http://169.254.169.254/latest/meta-data/instance-id')" | Add-Content "C:\testgrid\app\agent-config.properties"
+"instanceIP=$(Invoke-WebRequest -UseBasicParsing 'http://169.254.169.254/latest/meta-data/public-ipv4')" | Add-Content "C:\testgrid\app\agent-config.properties"
 
 $agentPIDPath = "C:/testgrid/app/agent/testgrid-agent.pid"
 
