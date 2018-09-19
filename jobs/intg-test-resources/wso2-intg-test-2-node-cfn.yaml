@@ -658,14 +658,14 @@ Resources:
                 echo "LATEST_PRODUCT_BUILD_ARTIFACTS_API=${LatestProductBuildArtifactsAPI}" >> testplan.properties
                 echo "LATEST_PRODUCT_RELEASE_API=${LatestProductReleaseAPI}" >> testplan.properties
                 echo "NodeCount=2" >> testplan.properties
-                echo "NodeType=Slave" >> testplan.properties
+                echo "NodeType=SLAVE" >> testplan.properties
                 echo "Offset=${Offset}" >> testplan.properties
 
                 git clone --depth 1 https://github.com/harshanl/testgrid
                 cp -a testgrid/jobs/intg-test-resources/. .
                 cp -a scripts/. .
                 rm -r scripts/
-                sh scripts/deploy.sh --wd /opt/wso2/workspace/
+                sh deploy.sh --wd /opt/wso2/workspace/
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance2 --region ${AWS::Region}
       NetworkInterfaces:
         - DeleteOnTermination: 'true'
