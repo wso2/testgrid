@@ -28,6 +28,7 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.PropertyFileReader;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
@@ -181,7 +182,7 @@ public class EmailReportProcessor {
         TestPlan testPlan = testPlans.get(0);
         String outputPropertyFilePath;
         outputPropertyFilePath =
-                TestGridUtil.deriveScenarioOutputPropertyFilePath(testPlan);
+                DataBucketsHelper.getInputLocation(testPlan).toAbsolutePath().toString();
         PropertyFileReader propertyFileReader = new PropertyFileReader();
         logger.info("Output property file path is : " + outputPropertyFilePath);
         String gitRevision = propertyFileReader.
@@ -263,7 +264,7 @@ public class EmailReportProcessor {
         String infraStr;
         for (TestPlan testPlan : testPlans) {
             String logDownloadPath = TestGridUtil.getDashboardURLFor(testPlan);
-            if (testPlan.getStatus() == Status.ERROR) {
+            if (testPlan.getStatus() != Status.SUCCESS && testPlan.getStatus() != Status.FAIL) {
                 infraParams = new HashSet<>(TestGridUtil.
                         getInfraParamsOfTestPlan(infrastructureValueSet, testPlan));
                 infraMap = infraParams.stream().collect(Collectors.groupingBy(InfrastructureParameter::getType));
