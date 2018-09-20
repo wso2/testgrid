@@ -567,6 +567,36 @@ def start_rsync():
         else:
             raise FileNotFoundError("cron-job.sh script is not found, file path: " + str(crontab_filepath))
 
+def execute_command(cmd):
+    logger.info('Executing command : ' + cmd)
+    subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+def configure_efs_mounts():
+    logger.info('Configuring EFS mounts ....')
+    dist_path = str(Path(storage_dir_abs_path, dist_name))
+    server_dir_path = dist_path + "/repository/deployment/server"
+    tenant_dir_path = dist_path + "/repository/tenants"
+
+    logger.info(server_dir_path)
+    logger.info(tenant_dir_path)
+    if node_type == "MASTER":
+        #copy server & tenant dirs
+        cp_server_cmd = "cp -r " + server_dir_path + "/ /mnt/efs/deployment"
+        execute_command(cp_server_cmd)
+        cp_tenant_cmd = "cp -r " + tenant_dir_path + "/ /mnt/efs/"
+        execute_command(cp_tenant_cmd)
+
+    #delete server & tenant dirs
+    rm_server_cmd = "rm -rf " + server_dir_path
+    execute_command(rm_server_cmd)
+    rm_tenant_cmd = "rm -rf " + tenant_dir_path
+    execute_command(rm_tenant_cmd)
+    #create symbolic links
+    symlink_server_cmd = "ln -s /mnt/efs/deployment/server " + server_dir_path
+    execute_command(symlink_server_cmd)
+    symlink_tenant_cmd = "ln -s /mnt/efs/tenants " + tenant_dir_path
+    execute_command(symlink_tenant_cmd)
+
 def main():
     try:
         global logger
@@ -612,8 +642,11 @@ def main():
 
         if node_type == NODE_TYPE_MASTER:
             setup_databases(db_names)
-            start_rsync()
+            #start_rsync()
+        if os_name == "centos":
+            configure_efs_mounts()
         start_product()
+
     except Exception as e:
         logger.error("Error occurred while running the deploy.py script", exc_info=True)
     except BaseException as e:

@@ -340,8 +340,38 @@ Resources:
       DhcpOptionsId: !Ref WSO2EnvDHCPOptions
 
   #########################
+  # Create EFS file system
+  #########################
+  WSO2EFSFileSystem:
+    Type: 'AWS::EFS::FileSystem'
+    Condition: 'IsUnix'
+    Properties:
+      PerformanceMode: generalPurpose
+  WSO2PrivateSubnet1EFSMountTarget:
+    Type: 'AWS::EFS::MountTarget'
+    Condition: 'IsUnix'
+    Properties:
+      SubnetId: !Ref WSO2EnvPrivateSubnet1
+      FileSystemId: !Ref WSO2EFSFileSystem
+      SecurityGroups:
+        - !Ref WSO2EFSSecurityGroup
+
+  #########################
   # Create security groups
   #########################
+# File system configurations
+  WSO2EFSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Condition: 'IsUnix'
+    Properties:
+      VpcId: !Ref WSO2EnvVPC
+      GroupDescription: EFS Security Group
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '2049'
+        ToPort: '2049'
+        CidrIp: 0.0.0.0/0
+
   WSO2EnvInstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -563,6 +593,10 @@ Resources:
           cp -a testgrid/jobs/intg-test-resources/. .
           cp -a scripts/. .
           rm -r scripts/
+          mkdir -p /mnt/efs
+          mount -t nfs4 -o nfsvers=4.1 ${WSO2EFSFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt/efs
+          mkdir -p /mnt/efs/deployment/server
+          mkdir -p /mnt/efs/tenants
           sh deploy.sh --wd /opt/wso2/workspace/
       NetworkInterfaces:
         - DeleteOnTermination: 'true'
@@ -665,6 +699,8 @@ Resources:
                 cp -a testgrid/jobs/intg-test-resources/. .
                 cp -a scripts/. .
                 rm -r scripts/
+                mkdir -p /mnt/efs
+                mount -t nfs4 -o nfsvers=4.1 ${WSO2EFSFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt/efs
                 sh deploy.sh --wd /opt/wso2/workspace/
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance2 --region ${AWS::Region}
       NetworkInterfaces:
