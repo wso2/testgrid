@@ -990,33 +990,45 @@ Resources:
 # Print details of the created stack 
 #####################################
 Outputs:
-  LBHost:
+  LB_HOST:
     Value: !Sub '${WSO2EnvApplicationLoadBalancer.DNSName}'
     Description: Hostname of the LB
-  LBPort:
+  LB_PORT:
     Value: 443
     Description: Listening Port of ALB fronting WSO2 APIM deployment
-  WSO2MgtConsoleURL:
+  WSO2_MGT_CONSOLE_URL:
     Value: !Sub 'https://${WSO2EnvApplicationLoadBalancer.DNSName}/carbon'
     Description: Access URL of the Management Console
-  WSO2Node1PrivateIP:
+  WSO2_NODE1_PRIVATE_IP:
     Value: !If [IsUnix, !Sub '${WSO2UnixInstance1.PrivateIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance1.PrivateIp}', !Ref 'AWS::NoValue']]
     Description: Private IP of the WSO2 Product Instance Node1
-  WSO2Node2PrivateIP:
+  WSO2_NODE2_PRIVATE_IP:
     Value: !If [IsUnix, !Sub '${WSO2UnixInstance2.PrivateIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance2.PrivateIp}', !Ref 'AWS::NoValue']]
     Description: Private IP of the WSO2 Product Instance Node2
-  DatabaseHost:
+  DATABASE_HOST:
     Value: !Sub '${WSO2DBInstance.Endpoint.Address}'
     Description: Database Host
-  DatabasePort:
+  DATABASE_PORT:
     Value: !Sub '${WSO2DBInstance.Endpoint.Port}'
     Description: Database Port
   OS:
     Value: !Ref OS
-  WSO2InstanceId1:
+  WSO2_INSTANCE_ID1:
     Value: !If [IsUnix, !Ref WSO2UnixInstance1, !If [IsWindows, !Ref WSO2WindowsInstance1, !Ref 'AWS::NoValue']]
-  WSO2InstanceId2:
+  WSO2_INSTANCE_ID2:
     Value: !If [IsUnix, !Ref WSO2UnixInstance2, !If [IsWindows, !Ref WSO2WindowsInstance2, !Ref 'AWS::NoValue']]
-  BastionEIP:
+  BASTIAN_EIP:
     Value: !Sub '${WSO2EnvBastionInstance.PublicIp}'
     Description: Elastic IP of the Bastion Instance
+  PRODUCT_GIT_URL:
+    Value: !Ref ProductGITURL
+    Description: URL of the product GIT repo
+  OFFSET:
+    Value: !Ref Offset
+    Description: Offset of the product
+  PRODUCT_GIT_BRANCH:
+    Value: !Ref ProductGITBranch
+    Description: GIT branch of the product
+  TEST_MODE:
+    Value: !Ref TestMode
+    Description: Testmode
