@@ -914,6 +914,8 @@ Resources:
       Targets:
       - Id: !If [IsUnix, !Ref WSO2UnixInstance1, !If [IsWindows, !Ref WSO2WindowsInstance1, !Ref 'AWS::NoValue']]
         Port: 9943
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance2, !If [IsWindows, !Ref WSO2WindowsInstance2, !Ref 'AWS::NoValue']]
+        Port: 9943
       UnhealthyThresholdCount: 3
       VpcId:
         Ref: WSO2EnvVPC
@@ -937,6 +939,8 @@ Resources:
         Value: 'true'
       Targets:
       - Id: !If [IsUnix, !Ref WSO2UnixInstance1, !If [IsWindows, !Ref WSO2WindowsInstance1, !Ref 'AWS::NoValue']]
+        Port: 10263
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance2, !If [IsWindows, !Ref WSO2WindowsInstance2, !Ref 'AWS::NoValue']]
         Port: 10263
       UnhealthyThresholdCount: 3
       VpcId:
