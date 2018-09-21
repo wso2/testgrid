@@ -109,7 +109,7 @@ def get_abs_path(dir):
 def configure_rsync():
     logger.info("Configuring rsync files")
     sync_dirs = SYNC_DIRS[product_id]
-    cron_script_template_path = Path(workspace, RSYNC_CRON_SCRIPT_TEMPLATE[os_name.upper()])
+    cron_script_template_path = Path(workspace, RSYNC_CRON_SCRIPT_TEMPLATE[os_name])
 
     if sys.platform.startswith('win'):
         cron_script_template_path = winapi_path(cron_script_template_path)

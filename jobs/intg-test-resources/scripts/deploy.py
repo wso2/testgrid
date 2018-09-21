@@ -114,7 +114,7 @@ def read_proprty_files():
                     if key == "LBHost":
                         lb_host = val.strip()
                     elif key == "OS":
-                        os_name = val.strip()
+                        os_name = val.strip().upper()
                     elif key == "OSVersion":
                         os_version = val.strip()
                     elif key == "JDK":
@@ -521,7 +521,7 @@ def construct_db_config():
     if db_meta_data:
         database_config["driver_class_name"] = db_meta_data["driverClassName"]
         database_config["password"] = db_password
-        database_config["sql_driver_location"] = SQL_DRIVER_PATH[os_name.upper()] + "/" + db_meta_data["jarName"]
+        database_config["sql_driver_location"] = SQL_DRIVER_PATH[os_name] + "/" + db_meta_data["jarName"]
         #database_config["sql_driver_location"] = "/Users/harshan/development/projects/wso2/testgrid/AWS/AMI-Configs/Oracle/ojdbc7.jar"
         database_config["url"] = construct_url(db_meta_data["prefix"])
         database_config["db_engine"] = db_engine
@@ -579,11 +579,11 @@ def configure_efs_mounts():
 
     logger.info(server_dir_path)
     logger.info(tenant_dir_path)
-    if node_type == "MASTER":
+    if node_type.upper() == NODE_TYPE_MASTER:
         #copy server & tenant dirs
-        cp_server_cmd = "cp -r " + server_dir_path + "/ /mnt/efs/deployment"
+        cp_server_cmd = "cp -r " + server_dir_path + " /mnt/efs/deployment"
         execute_command(cp_server_cmd)
-        cp_tenant_cmd = "cp -r " + tenant_dir_path + "/ /mnt/efs/"
+        cp_tenant_cmd = "cp -r " + tenant_dir_path + " /mnt/efs/"
         execute_command(cp_tenant_cmd)
 
     #delete server & tenant dirs
@@ -640,10 +640,10 @@ def main():
         if db_names is None or not db_names:
             raise Exception("Failed the product configuring")
 
-        if node_type == NODE_TYPE_MASTER:
+        if node_type.upper() == NODE_TYPE_MASTER:
             setup_databases(db_names)
             #start_rsync()
-        if os_name == "centos":
+        if os_name == "CENTOS":
             configure_efs_mounts()
         start_product()
 
