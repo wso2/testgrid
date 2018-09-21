@@ -581,6 +581,11 @@ def configure_efs_mounts():
     logger.info(server_dir_path)
     logger.info(tenant_dir_path)
     if node_type.upper() == NODE_TYPE_MASTER:
+        #create dirs
+        mkdir_cmd_1 = "mkdir -p /mnt/efs/deployment/server"
+        mkdir_cmd_2 = "mkdir -p /mnt/efs/tenants"
+        execute_command(mkdir_cmd_1)
+        execute_command(mkdir_cmd_2)
         #copy server & tenant dirs
         cp_server_cmd = "cp -r " + server_dir_path + " /mnt/efs/deployment"
         execute_command(cp_server_cmd)

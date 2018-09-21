@@ -595,8 +595,6 @@ Resources:
           rm -r scripts/
           mkdir -p /mnt/efs
           mount -t nfs4 -o nfsvers=4.1 ${WSO2EFSFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt/efs
-          mkdir -p /mnt/efs/deployment/server
-          mkdir -p /mnt/efs/tenants
           sh deploy.sh --wd /opt/wso2/workspace/
       NetworkInterfaces:
         - DeleteOnTermination: 'true'
