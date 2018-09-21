@@ -569,7 +569,8 @@ def start_rsync():
 
 def execute_command(cmd):
     logger.info('Executing command : ' + cmd)
-    subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process.wait()
 
 def configure_efs_mounts():
     logger.info('Configuring EFS mounts ....')
