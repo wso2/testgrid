@@ -211,6 +211,13 @@
                                             </td>
                                         {{/.}}
                                     {{/failedInfra}}
+                                    {{^failedInfra}}
+                                        {{#.}}
+                                            <td style="font-weight: bold; background: repeating-radial-gradient(circle, #f0f000, #f3cf3d); border: 1px solid black;">
+                                                Failed on all infrastructure combinations
+                                            </td>
+                                        {{/.}}
+                                    {{/failedInfra}}
                                 </tr>
                                 </table>
                                 <!--</td>-->
