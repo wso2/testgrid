@@ -867,6 +867,7 @@ public class TestReportEngine {
         List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
         //start email generation
         boolean renderTestResultTable = true;
+        boolean renderInfraErrors = false;
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. "
                         + "Total test-plans: " + testPlans.size());
@@ -911,6 +912,12 @@ public class TestReportEngine {
             postProcessSummaryTable(testCaseInfraSummaryMap);
             String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testPlans);
             results.put("testedInfrastructures", testedInfrastructures);
+            Map<String, String> infraErrors = emailReportProcessor
+                    .getErroneousInfrastructures(testPlans);
+            if (infraErrors.size() > 0) {
+                renderInfraErrors = true;
+            }
+            results.put("renderInfraErrors", renderInfraErrors);
             results.put("infrastructureErrors", emailReportProcessor
                     .getErroneousInfrastructures(testPlans).entrySet());
             results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
