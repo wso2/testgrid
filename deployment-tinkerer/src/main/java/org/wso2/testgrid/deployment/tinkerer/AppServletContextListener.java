@@ -48,7 +48,6 @@ public class AppServletContextListener implements ServletContextListener {
     private static final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     private Timer heartBeatTimer;
-
     private Timer messageQueueTimer;
 
     /**

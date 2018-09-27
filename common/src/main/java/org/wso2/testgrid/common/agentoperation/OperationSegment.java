@@ -24,9 +24,7 @@ package org.wso2.testgrid.common.agentoperation;
 public class OperationSegment extends Operation {
 
     private int exitValue;
-
     private String response;
-
     private boolean completed;
 
     /**

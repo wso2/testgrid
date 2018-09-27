@@ -36,7 +36,7 @@ public class OperationRequest extends Operation {
     }
 
     /**
-     * Generation operation request for given command and code
+     * Generate operation request for given command and code
      *
      * @param request       Command to send
      * @param code          Type of the operation
@@ -77,7 +77,7 @@ public class OperationRequest extends Operation {
     }
 
     /**
-     * Get agent id which running command
+     * Get agent id which is running command
      *
      * @return      The agent id
      */

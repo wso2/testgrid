@@ -109,7 +109,7 @@ public class ScriptExecutorThread extends Thread {
         try {
             FileUtil.saveFile(operationSegment.getResponse(), fileToWrite, false);
         } catch (TestGridException e) {
-            logger.error("Unable Write data into a file for operation id " + operationSegment.getOperationId(), e);
+            logger.error("Unable write data into a file for operation id " + operationSegment.getOperationId(), e);
         }
     }
 
@@ -134,7 +134,7 @@ public class ScriptExecutorThread extends Thread {
     /**
      * Inner class to generate jersey client with GenericType.
      */
-    static class ChunkObject extends GenericType<ChunkedInput<String>> { }
+    private static class ChunkObject extends GenericType<ChunkedInput<String>> { }
 
     /**
      * Get current read Segment count

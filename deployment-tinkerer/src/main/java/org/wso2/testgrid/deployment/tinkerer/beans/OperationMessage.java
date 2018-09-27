@@ -280,6 +280,7 @@ public class OperationMessage {
             this.contentLength = contentLength;
         } catch (TestGridException e) {
             logger.error("Unable read data from a file for operation id " + this.operationId, e);
+            return false;
         }
         return removePersistedFile();
     }

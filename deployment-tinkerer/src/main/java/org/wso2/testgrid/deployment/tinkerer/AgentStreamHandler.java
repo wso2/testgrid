@@ -37,6 +37,8 @@ import javax.websocket.Session;
  */
 public class AgentStreamHandler implements Observer {
     private static final Logger logger = LoggerFactory.getLogger(AgentStreamHandler.class);
+    private static final String CHUNK_SECTION_SEPARATOR = "\r\n";
+    
     private ChunkedOutput<String> streamingBuffer;
     private OperationRequest operationRequest;
     private String agentId;
@@ -70,9 +72,9 @@ public class AgentStreamHandler implements Observer {
 
         Agent agent = sessionManager.getAgent(this.agentId);
         if (agent != null && sessionManager.hasAgentSession(agent.getAgentId())) {
-            Session wsSession = sessionManager.getAgentSession(agent.getAgentId());
+            Session webSocketSession = sessionManager.getAgentSession(agent.getAgentId());
             try {
-                wsSession.getBasicRemote().sendText(operationRequest.toJSON());
+                webSocketSession.getBasicRemote().sendText(operationRequest.toJSON());
                 sessionManager.addNewOperationQueue(this.operationRequest.getOperationId(),
                         this.operationRequest.getCode(), this.agentId);
                 logger.info("Generate new message queue with id: " + operationRequest.getOperationId() + " code: " +
@@ -122,14 +124,14 @@ public class AgentStreamHandler implements Observer {
                     resultOperation.setExitValue(operationSegment.getExitValue());
                     sessionManager.removeOperationQueueMessages(this.operationRequest.getOperationId());
                     sessionManager.getAgentObservable().deleteObserver(this);
-                    this.streamingBuffer.write(resultOperation.toJSON() + "\r\n");
+                    this.streamingBuffer.write(resultOperation.toJSON() + CHUNK_SECTION_SEPARATOR);
                     this.streamingBuffer.close();
                     return;
                 }
                 // Send response only if it contain response
                 if (!resultOperation.getResponse().equals("")) {
                     logger.debug("Sending result segment to test runner " + this.agentId);
-                    this.streamingBuffer.write(resultOperation.toJSON() + "\r\n");
+                    this.streamingBuffer.write(resultOperation.toJSON() + CHUNK_SECTION_SEPARATOR);
                     resultOperation.setResponse("");
                 }
             } catch (IOException e) {

@@ -26,7 +26,7 @@ import java.util.Locale;
  */
 public class EnvironmentUtil {
     /**
-     * types of Operating Systems
+     * Types of Operating Systems
      */
     public enum OSType {
         Windows, MacOS, Linux, Other

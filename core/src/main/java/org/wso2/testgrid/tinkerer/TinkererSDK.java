@@ -92,6 +92,7 @@ public class TinkererSDK {
                 .header(HttpHeaders.AUTHORIZATION, this.authenticationToken)
                 .post(Entity.entity(jsonRequest,
                         MediaType.APPLICATION_JSON));
+        // Save tinkerer execution logs into a temporary file path which provided by java
         Path filePath = Paths.get(System.getProperty("java.io.tmpdir"));
         ScriptExecutorThread scriptExecutorThread = new ScriptExecutorThread(operationRequest.getOperationId()
                 , response, filePath);

@@ -92,7 +92,7 @@ public class AsyncCommandResponse extends CommandResponse {
         try {
             result = FileUtil.readFile(filePath, fileName);
         } catch (TestGridException e) {
-            logger.info("Error while reading file", e);
+            logger.error("Error while reading file", e);
         }
         this.contentCount++;
         return result;

@@ -174,7 +174,6 @@ public class DeploymentTinkerer {
             errorResponse.setMessage("No agent found, Agent is null for " + operationRequest.getAgentId());
             responseToSend = Response.status(Response.Status.NOT_FOUND).entity(errorResponse).build();
         }
-
         return responseToSend;
     }
     /**
