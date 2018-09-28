@@ -253,11 +253,6 @@ Resources:
     Type: 'AWS::EC2::RouteTable'
     Properties:
       VpcId: !Ref WSO2EnvVPC
-  WSO2EnvBastionEIPAssociation:
-    Type: 'AWS::EC2::EIPAssociation'
-    Properties:
-      AllocationId: !GetAtt WSO2EnvBastionEIP.AllocationId
-      InstanceId: !Ref WSO2EnvBastionInstance
 
   ################################
   # Create network configurations
@@ -495,10 +490,6 @@ Resources:
   # Create Elastic IPs
   ###########################
   WSO2EnvEIP1:
-    Type: 'AWS::EC2::EIP'
-    Properties:
-      Domain: vpc
-  WSO2EnvBastionEIP:
     Type: 'AWS::EC2::EIP'
     Properties:
       Domain: vpc
@@ -777,22 +768,6 @@ Resources:
           PrivateIpAddress: 10.0.1.110
           GroupSet:
             - !Ref WSO2EnvInstanceSecurityGroup
-  WSO2EnvBastionInstance:
-    Type: 'AWS::EC2::Instance'
-    Properties:
-      DisableApiTermination: 'false'
-      InstanceInitiatedShutdownBehavior: stop
-      ImageId: !Ref AMI
-      InstanceType: t2.micro
-      KeyName: !Ref EC2KeyPair
-      Monitoring: 'false'
-      NetworkInterfaces:
-        - DeleteOnTermination: 'true'
-          Description: Primary network interface
-          DeviceIndex: 0
-          SubnetId: !Ref WSO2EnvPublicSubnet1
-          GroupSet:
-            - !Ref WSO2EnvInstanceSecurityGroup
   #######################
   # Create RDS instances
   #######################
@@ -847,7 +822,7 @@ Resources:
       HealthCheckTimeoutSeconds: 10
       HealthyThresholdCount: 4
       HealthCheckPath: /carbon/admin/login.jsp
-      HealthCheckPort: 9443
+      HealthCheckPort: 9943
       Matcher:
         HttpCode: 200
       Port: 8780
@@ -987,7 +962,7 @@ Resources:
       Port: 80
       Protocol: HTTP
 #####################################
-# Print details of the created stack 
+# Print details of the created stack
 #####################################
 Outputs:
   LBHost:
@@ -1017,9 +992,6 @@ Outputs:
     Value: !If [IsUnix, !Ref WSO2UnixInstance1, !If [IsWindows, !Ref WSO2WindowsInstance1, !Ref 'AWS::NoValue']]
   WSO2Node2ID:
     Value: !If [IsUnix, !Ref WSO2UnixInstance2, !If [IsWindows, !Ref WSO2WindowsInstance2, !Ref 'AWS::NoValue']]
-  BastianEIP:
-    Value: !Sub '${WSO2EnvBastionInstance.PublicIp}'
-    Description: Elastic IP of the Bastion Instance
   ProductGITURL:
     Value: !Ref ProductGITURL
     Description: URL of the product GIT repo
