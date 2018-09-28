@@ -11,57 +11,53 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 
-package org.wso2.testgrid.agent.beans;
-
-import com.google.gson.Gson;
+package org.wso2.testgrid.tinkerer;
 
 /**
- * This class holds abstract operation data.
- *
- * @since 1.0.0
+ * Abstract class to hold the result of execution.
  */
-public abstract class Operation {
-
+public abstract class CommandResponse {
     private String operationId;
-    private OperationCode code;
+    private int exitValue;
 
+    /**
+     * Get operation id of the response
+     *
+     * @return  The operation id
+     */
     public String getOperationId() {
         return operationId;
     }
 
+    /**
+     * Set operation id of the response
+     *
+     * @param operationId   The operation id
+     */
     public void setOperationId(String operationId) {
         this.operationId = operationId;
     }
 
-    public OperationCode getCode() {
-        return code;
-    }
-
-    public void setCode(OperationCode code) {
-        this.code = code;
+    /**
+     * Get exit value of the operation
+     *
+     * @return  The exit value of the operation
+     */
+    public int getExitValue() {
+        return exitValue;
     }
 
     /**
-     * This method is used to convert operation object to a json format.
+     * Set exit value of the operation
      *
-     * @return json formatted String.
+     * @param exitValue     The exit value of the operation
      */
-    public String toJSON() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
-    }
-
-    /**
-     * Supported operations.
-     *
-     * @since 1.0.0
-     */
-    public enum OperationCode {
-        SHELL, PING
+    public void setExitValue(int exitValue) {
+        this.exitValue = exitValue;
     }
 }

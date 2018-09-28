@@ -19,13 +19,9 @@
 package org.wso2.testgrid.core.configchangeset;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
-import org.apache.hc.core5.http.ContentType;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Agent;
@@ -36,6 +32,9 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.core.exception.ConfigChangeSetExecutorException;
+import org.wso2.testgrid.tinkerer.AsyncCommandResponse;
+import org.wso2.testgrid.tinkerer.TinkererSDK;
+import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -237,30 +236,13 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
                 logger.info("Start sending commands to agent " + agent.getAgentId());
                 for (String shellCommand : initShellCommand) {
                     logger.info("Execute: " + shellCommand);
-                    Content shellCommandResponse = sendShellCommand(tinkererHost, authenticationToken
-                            , agent, shellCommand);
-                    JsonParser jsonParser = new JsonParser();
-                    JsonObject result = (JsonObject) jsonParser.parse(shellCommandResponse.asString());
-                    // Set default  value as empty
-                    int exitValue = 0;
-                    String code = "";
-                    String response = "";
-                    if (result.get("exitValue") != null) {
-                        exitValue = result.get("exitValue").getAsInt();
-                    }
-                    if (result.get("code") != null) {
-                        code = result.get("code").getAsString();
-                    }
-                    if (result.get("response") != null) {
-                        response = result.get("response").getAsString();
-                    }
-                    logger.info("Agent exit value: " + exitValue + "\nAgent code: " + code + "\nAgent response: \n" +
-                            response + "\n for Agent with id " + agent.getAgentId() +
+                    int exitValue = sendShellCommand(agent, shellCommand);
+                    logger.info("Agent exit value: " + exitValue + "\n for Agent with id " + agent.getAgentId() +
                             " test plan id " + testPlan.getId());
                     // Agent code default is SHELL, if time out then, it return code as 408
-                    if (code.equals(String.valueOf(HttpStatus.SC_REQUEST_TIMEOUT)) || exitValue != 0) {
+                    if (exitValue != 0) {
                         executionStatus = false;
-                        logger.error("Agent script execution failed with code " + code + " exit value " + exitValue +
+                        logger.error("Agent script execution failed with  exit value " + exitValue +
                                 " for url " + tinkererHost);
                     }
                 }
@@ -278,28 +260,29 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
     /**
      * Send a shell command to the agent and execute it
      *
-     * @param tinkererHost          Tinkerer host address
-     * @param authenticationKey     Tinkerer authentication key as BASE64 encoded string
      * @param agent                 Agent details
      * @param script                Script that need to be executed
      * @return                      Shell execution output
      * @throws ConfigChangeSetExecutorException          Request post exception
      */
-    private Content sendShellCommand(String tinkererHost, String authenticationKey, Agent agent, String script)
+    private int sendShellCommand(Agent agent, String script)
             throws ConfigChangeSetExecutorException {
-        Content result;
-        String requestLink = tinkererHost + "test-plan/" + agent.getTestPlanId() + "/agent/" + agent.getInstanceName()
-                + "/operation";
+        TinkererSDK tinkererSDK = new TinkererSDK();
+        AsyncCommandResponse response = tinkererSDK.
+                executeCommandAsync(agent.getAgentId(), script);
         try {
-            result = Request.Post(requestLink).addHeader(HttpHeaders.AUTHORIZATION, authenticationKey)
-                    .addHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-                    .bodyString("{\"request\":\"" + script + "\",\"code\":\"SHELL\"}", ContentType.APPLICATION_JSON).
-                            execute().returnContent();
-        } catch (IOException e) {
+            String line;
+            while (response.hasMoreContent()) {
+                line = response.readLines();
+                logger.info(line);
+            }
+            response.endReadStream();
+        } catch (TinkererOperationException e) {
             throw new ConfigChangeSetExecutorException(StringUtil.concatStrings(
-                    "Send api request to the agent error occur for the ", requestLink, agent.getAgentId()), e);
+                    "Error while start reading persisted file for the operation ",
+                    response.getOperationId()), e);
         }
-        return result;
+        return response.getExitValue();
     }
 
 }

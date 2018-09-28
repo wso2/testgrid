@@ -141,6 +141,11 @@ public class ConfigurationContext {
         DEPLOYMENT_TINKERER_REST_BASE_PATH("DEPLOYMENT_TINKERER_REST_BASE_PATH"),
 
         /**
+         * Running environment of the application
+         */
+        TESTGRID_ENVIRONMENT("TESTGRID_ENVIRONMENT"),
+
+        /**
          * Host-name of TestGrid deployment.
          */
         TESTGRID_HOST("TESTGRID_HOST"),

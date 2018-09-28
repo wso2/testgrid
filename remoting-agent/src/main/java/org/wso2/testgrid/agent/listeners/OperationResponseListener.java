@@ -18,7 +18,7 @@
 
 package org.wso2.testgrid.agent.listeners;
 
-import org.wso2.testgrid.agent.beans.OperationResponse;
+import org.wso2.testgrid.common.agentoperation.OperationSegment;
 
 /**
  * This interface provides call back to listen operation responses.
@@ -28,9 +28,9 @@ import org.wso2.testgrid.agent.beans.OperationResponse;
 public interface OperationResponseListener {
 
     /**
-     * Listener method for {@link OperationResponse}.
+     * Listener method for {@link OperationSegment}.
      *
      * @param response - Operation response received.
      */
-    void sendResponse(OperationResponse response);
+    void sendResponse(OperationSegment response);
 }

@@ -21,6 +21,7 @@ package org.wso2.testgrid.agent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.agent.websocket.ClientEndpoint;
+import org.wso2.testgrid.common.util.EnvironmentUtil;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,8 +46,18 @@ public class AgentApplication {
 
     static {
         try {
-            agentPropFilePath = Paths.get(
-                        new URI ("file:///opt/testgrid/agent-config.properties"));
+            switch (EnvironmentUtil.getOperatingSystemType()) {
+                case Linux:
+                case MacOS:
+                case Other:
+                    agentPropFilePath = Paths.get(
+                            new URI ("file:///opt/testgrid/agent-config.properties"));
+                    break;
+                case Windows:
+                    agentPropFilePath = Paths.get(
+                        new URI ("file:///C:/testgrid/app/agent-config.properties"));
+                break;
+            }
         } catch (URISyntaxException e) {
             logger.error("Invalid agent configuration file uri.", e);
         }

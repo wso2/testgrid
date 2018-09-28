@@ -28,6 +28,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -108,16 +110,81 @@ public class FileUtil {
      * @param content  content to write in the file
      * @param filePath location to save the file
      * @param fileName name of the file
+     * @param append   true if append, false if overwrite
      * @throws TestGridException thrown when error on persisting file
      */
-    public static void saveFile(String content, String filePath, String fileName) throws TestGridException {
+    public static void saveFile(String content, String filePath, String fileName, boolean append)
+            throws TestGridException {
         String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
-        try (OutputStream outputStream = new FileOutputStream(fileAbsolutePath);
-                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+        saveFile(content, fileAbsolutePath, append);
+    }
+
+    /**
+     * Saves the content to a file with the given file path.
+     *
+     * @param content       The content to save into file
+     * @param filePath      Whole file path to write
+     * @param append        true if append, false if overwrite
+     * @throws TestGridException    thrown when error on persisting file
+     */
+    public static void saveFile(String content, String filePath, boolean append) throws TestGridException {
+        try (OutputStream outputStream = new FileOutputStream(filePath, append);
+             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
             outputStreamWriter.write(content);
+        } catch (IOException e) {
+            throw new TestGridException(StringUtil.concatStrings("Error while writing data to a file ",
+                    filePath), e);
+        }
+    }
+
+    /**
+     * Check if file exist in given file path
+     *
+     * @param filePath      The file path
+     * @return              True if file exist
+     */
+    public static boolean isFileExist(String filePath) {
+        return Files.exists(Paths.get(filePath));
+    }
+
+    /**
+     * Remove file if exist by given file path
+     *
+     * @param filePath              File path to remove
+     * @throws TestGridException    File deleting exception
+     */
+    public static void removeFile(String filePath) throws TestGridException {
+        try {
+            Files.deleteIfExists(Paths.get(filePath));
+        } catch (IOException e) {
+            throw new TestGridException("Error while deleting file " + filePath, e);
+        }
+    }
+
+    /**
+     * Read content from a given file
+     *
+     * @param filePath          The file path to write
+     * @param fileName          name of the file
+     * @return                  File content
+     * @throws TestGridException    Throw when file reading error
+     */
+    public static String readFile(String filePath, String fileName) throws TestGridException {
+        StringBuilder out = new StringBuilder();
+        try {
+            String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
+            try (InputStream fis = new FileInputStream(new File(fileAbsolutePath));
+                InputStreamReader reader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
+                int data = reader.read();
+                while (data != -1) {
+                    out.append((char) data);
+                    data = reader.read();
+                }
+            }
         } catch (IOException e) {
             throw new TestGridException(StringUtil.concatStrings("Error in writing file ", fileName), e);
         }
+        return out.toString();
     }
 
     /**
