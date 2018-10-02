@@ -41,6 +41,7 @@ import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -209,7 +210,6 @@ public class GenerateTestPlanCommand implements Command {
 
             // Generate test plan from config
             TestPlan testPlanEntity = TestGridUtil.toTestPlanEntity(deploymentPattern, testPlan);
-
             // Product, deployment pattern, test plan and test scenarios should be persisted
             TestPlan persistedTestPlan = testPlanUOW.persistTestPlan(testPlanEntity);
             testPlan.setId(persistedTestPlan.getId());
@@ -446,7 +446,7 @@ public class GenerateTestPlanCommand implements Command {
      * @return list of test-plans that instructs how a test-run need to be executed.
      */
     private List<TestPlan> generateTestPlans(Set<InfrastructureCombination> infrastructureCombinations,
-            TestgridYaml testgridYaml) {
+            TestgridYaml testgridYaml) throws CommandExecutionException {
         List<TestPlan> testConfigurations = new ArrayList<>();
         List<Provisioner> provisioners = testgridYaml.getInfrastructureConfig()
                 .getProvisioners();
@@ -461,13 +461,21 @@ public class GenerateTestPlanCommand implements Command {
                 TestPlan testPlan = new TestPlan();
                 testPlan.setInfrastructureConfig(testgridYaml.getInfrastructureConfig().clone());
                 testPlan.getInfrastructureConfig().setProvisioners(Collections.singletonList(provisioner1));
-                deploymentPattern.ifPresent(dp -> {
-                    setUniqueNamesFor(dp.getScripts());
-                    testPlan.setDeploymentConfig(new DeploymentConfig(Collections.singletonList(dp)));
-                });
                 Properties configAwareInfraCombination = toConfigAwareInfrastructureCombination(
                         combination.getParameters());
                 testPlan.getInfrastructureConfig().setParameters(configAwareInfraCombination);
+                deploymentPattern.ifPresent(LambdaExceptionUtils.rethrowConsumer(dp -> {
+                    setUniqueNamesFor(dp.getScripts());
+                    testPlan.setDeploymentConfig(new DeploymentConfig(Collections.singletonList(dp)));
+                    try {
+                        testPlan.setId(TestGridUtil.deriveTestPlanId(testPlan, combination.getParameters(),
+                                getDeploymentPattern(createOrReturnProduct(productName), dp.getName())));
+                    } catch (CommandExecutionException e) {
+                        throw new CommandExecutionException(StringUtil
+                                .concatStrings("Error in getting product by product-name " + productName,
+                                        testPlan.getInfrastructureConfig().getParameters()), e);
+                    }
+                }));
 
                 ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
                 List<ConfigChangeSet> configChangeSets = scenarioConfig.getConfigChangeSets();

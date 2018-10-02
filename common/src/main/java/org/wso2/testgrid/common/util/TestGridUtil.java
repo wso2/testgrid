@@ -58,6 +58,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.DEFAULT_TESTGRID_HOME;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY;
@@ -211,7 +212,6 @@ public final class TestGridUtil {
             TestPlan testPlanEntity = testPlan.clone();
             testPlanEntity.setStatus(Status.PENDING);
             testPlanEntity.setDeploymentPattern(deploymentPattern);
-
             // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.
             final DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                     .getDeploymentPatterns().get(0);
@@ -225,7 +225,6 @@ public final class TestGridUtil {
             // Set test run number
             int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlanEntity.getInfraParameters());
             testPlanEntity.setTestRunNumber(latestTestRunNumber + 1);
-
             // Set test scenarios
             List<TestScenario> testScenarios = testPlan.getScenarioConfig().getScenarios();
             for (TestScenario testScenario : testScenarios) {
@@ -289,7 +288,10 @@ public final class TestGridUtil {
                 testPlans.add(testPlan);
             }
         }
-
+        //If no test plans exist for the combination, last test-run-number is zero.
+        if (testPlans.isEmpty()) {
+            return 0;
+        }
         // Get the Test Plan with the latest test run number for the given infra combination
         TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(
                 TestPlan::getTestRunNumber));
@@ -424,6 +426,39 @@ public final class TestGridUtil {
         String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
 
         return StringUtil.concatStrings(deploymentDir, UNDERSCORE, infraDir, UNDERSCORE, String.valueOf(testRunNumber));
+    }
+
+    /**
+     * Returns the test-plan id based on the test-plan and the properties relevant to it.
+     *
+     * @param testPlan test-plan
+     * @param infrastructureParameters infrastructure-parameters of the test-plan
+     * @param deploymentPattern deployment-pattern of the test-plan
+     * @return test-plan directory name.
+     */
+    public static String deriveTestPlanId(TestPlan testPlan, Set<InfrastructureParameter> infrastructureParameters,
+                                          DeploymentPattern deploymentPattern) {
+        try {
+            String jsonInfraParams = new ObjectMapper()
+                    .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
+            int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, jsonInfraParams);
+            int testRunNumber = latestTestRunNumber + 1;
+            infrastructureParameters
+                    .removeIf(entry->(entry.getProcessedSubInfrastructureParameters().contains(entry)));
+
+            String valueList = infrastructureParameters.stream()
+                    .map(entry -> {
+                        InfrastructureParameter infraParam = entry.clone();
+                        infraParam.transform();
+                        return infraParam.getName().replace(" ", "").replace(".", "-");
+                    }).collect(Collectors.joining("_"));
+
+            return StringUtil.concatStrings(deploymentPattern.getProduct().getName(), "_",
+                    deploymentPattern.getName(), "_", valueList, "_run", testRunNumber);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(StringUtil.concatStrings("Error in parsing JSON ",
+                    testPlan.getInfrastructureConfig().getParameters().toString()), e);
+        }
     }
 
     /**
