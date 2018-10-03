@@ -132,7 +132,7 @@
     </style>
 </head>
 <body>
-  <table width="600" border="0" cellspacing="0" cellpadding="0" valign='top'>
+  <table width="700" border="0" cellspacing="0" cellpadding="0" valign='top'>
   <td><img src="http://cdn.wso2.com/wso2/newsletter/images/nl-2017/nl2017-wso2-logo-wb.png" alt="WSO2"></td>
   <td><h1>TestGrid <span style="color: #e46226;"> : Test Execution Results</span></h1></td>
   </table>
@@ -156,23 +156,27 @@
             <div>{{{gitBuildDetails}}}</div>
             <div>Detailed results: <a href="{{dashboardURL}}">{{jobName}} :: TestGrid Dashboard</a></div>
             <br/><div><strong>Tested Infrastructures:</strong> <br/> <em>{{{testedInfrastructures}}}</em></div><br/>
-            {{#infrastructureErrors}}
-            <div class="red-font">
-                <strong>Infrastructure Errors:</strong> <br/>
-                <em>&nbsp;&nbsp;{{key}}</em> - <a href="{{value}}">Download Log File</a><br/>
-            </div><br/>
-            {{/infrastructureErrors}}
-            {{^infrastructureErrors}}
-            {{/infrastructureErrors}}
+            {{#renderInfraErrors}}
+                <div class="red-font">
+                    <strong>Infrastructure Errors:</strong>
+                </div>
+                {{#infrastructureErrors}}
+                <div class="red-font">
+                    <em>&nbsp;&nbsp;{{key}}</em> - <a href="{{value}}">Download Log File</a>
+                </div>
+                {{/infrastructureErrors}}
+            {{/renderInfraErrors}}
+            <br/>
             <span class="testResultSubTitle" align="center">Test Result Summary</span>
             <p/><p/>
             <table>
                 <tr>
-                    <td valign="top" style="padding:0 10px 10px 5px">
-                        <img  src="{{summaryChart}}" alt="" border="0" align="left" height="300" width="300"/>
+                    <td valign="top" style="padding:10px 10px 10px 100px">
+                        <img  src="{{summaryChart}}" alt="" border="0" align="left" height="450" width="450"/>
                     </td>
-                    <td valign="middle" style="padding:0 10px 10px 100px">
-                      <img  src="{{historyChart}}" alt="" border="0" align="left" height="300" width="400"/>
+                    <td valign="middle" style="padding:10px 10px 10px 70px">
+                      <img  src="{{historyChart}}" alt="" border="0" align="left" height="450" width="550"
+                            title="Build failure summary for 7 days. All the builds that ran during 24H time range is considered for the history. For a given infrastructure combination the status of the latest run is considered when deriving the state, if latest build failed it's considered as a failed build for the day."/>
                     </td>
                 </tr>
             </table>
@@ -204,6 +208,13 @@
                                         {{#.}}
                                             <td style="font-weight: bold; background: repeating-radial-gradient(circle, #f0f000, #f3cf3d); border: 1px solid black;">
                                                 {{.}}
+                                            </td>
+                                        {{/.}}
+                                    {{/failedInfra}}
+                                    {{^failedInfra}}
+                                        {{#.}}
+                                            <td style="font-weight: bold; background: repeating-radial-gradient(circle, #f0f000, #f3cf3d); border: 1px solid black;">
+                                                Failed on all infrastructure combinations
                                             </td>
                                         {{/.}}
                                     {{/failedInfra}}

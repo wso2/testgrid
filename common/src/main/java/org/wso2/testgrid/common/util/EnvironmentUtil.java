@@ -17,6 +17,7 @@
  */
 package org.wso2.testgrid.common.util;
 
+import java.util.Locale;
 
 /**
  * Utility class for obtaining environment variable values.
@@ -24,7 +25,14 @@ package org.wso2.testgrid.common.util;
  * @since 1.0.0
  */
 public class EnvironmentUtil {
+    /**
+     * Types of Operating Systems
+     */
+    public enum OSType {
+        Windows, MacOS, Linux, Other
+    };
 
+    private static OSType detectedOS;
     /**
      * Returns the system property value or environment variable value (highest priority for environment variable)
      * for the given key.
@@ -35,5 +43,26 @@ public class EnvironmentUtil {
     public static String getSystemVariableValue(String systemVariableKey) {
         String envVariableValue = System.getenv(systemVariableKey);
         return envVariableValue != null ? envVariableValue : System.getProperty(systemVariableKey);
+    }
+
+    /**
+     * Get the type of OS the current running environment
+     *
+     * @return OS type
+     */
+    public static OSType getOperatingSystemType() {
+        if (detectedOS == null) {
+            String foundOS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+            if ((foundOS.indexOf("mac") >= 0) || (foundOS.indexOf("darwin") >= 0)) {
+                detectedOS = OSType.MacOS;
+            } else if (foundOS.indexOf("win") >= 0) {
+                detectedOS = OSType.Windows;
+            } else if (foundOS.indexOf("nux") >= 0) {
+                detectedOS = OSType.Linux;
+            } else {
+                detectedOS = OSType.Other;
+            }
+        }
+        return detectedOS;
     }
 }

@@ -19,8 +19,11 @@
 package org.wso2.testgrid.deployment.tinkerer.websocket;
 
 import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.agentoperation.OperationSegment;
 import org.wso2.testgrid.deployment.tinkerer.SessionManager;
-import org.wso2.testgrid.deployment.tinkerer.beans.OperationResponse;
+import org.wso2.testgrid.deployment.tinkerer.beans.OperationMessage;
 import org.wso2.testgrid.deployment.tinkerer.utils.HttpSessionConfigurator;
 
 import javax.websocket.CloseReason;
@@ -39,6 +42,8 @@ import javax.websocket.server.ServerEndpoint;
  */
 @ServerEndpoint(value = "/agent/{agentId}", configurator = HttpSessionConfigurator.class)
 public class AgentSubscriptionEndpoint extends SubscriptionEndpoint {
+
+    private static final Logger logger = LoggerFactory.getLogger(AgentSubscriptionEndpoint.class);
 
     /**
      * Web socket onOpen use when agent connect to web socket url.
@@ -62,8 +67,18 @@ public class AgentSubscriptionEndpoint extends SubscriptionEndpoint {
     @OnMessage
     public void onMessage(Session session, String message, @PathParam("agentId") String agentId) {
         super.onMessage(session, message, agentId);
-        OperationResponse operationResponse = new Gson().fromJson(message, OperationResponse.class);
-        SessionManager.getInstance().addOperationResponse(operationResponse);
+        OperationSegment operationSegment = new Gson().fromJson(message, OperationSegment.class);
+        logger.info("Message receive from agent: " + agentId + " with operation id " +
+                operationSegment.getOperationId() + " code " + operationSegment.getCode() + " exitValue " +
+                operationSegment.getExitValue() + " completed " + operationSegment.getCompleted());
+        OperationMessage operationMessage = SessionManager.getOperationQueueMap().
+                get(operationSegment.getOperationId());
+        if (operationMessage != null) {
+            operationMessage.addMessage(operationSegment);
+            logger.debug("Message with size " + operationSegment.getResponse().length() +
+                    " added to the message queue with operation id " + operationSegment.getOperationId());
+        }
+        SessionManager.getAgentObservable().notifyObservable(operationSegment.getOperationId());
     }
 
     /**

@@ -11,27 +11,34 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
+ * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
 
-package org.wso2.testgrid.agent.beans;
+package org.wso2.testgrid.tinkerer;
 
 /**
- * This class holds operation request data.
- *
- * @since 1.0.0
+ * Maintain details of the execution result of sync command request.
  */
-public class OperationRequest extends Operation {
+public class SyncCommandResponse extends CommandResponse {
+    private String response;
 
-    private String request;
-
-    public String getRequest() {
-        return request;
+    /**
+     * Get result log of the execution.
+     *
+     * @return      The response log
+     */
+    public String getResponse() {
+        return this.response;
     }
 
-    public void setRequest(String request) {
-        this.request = request;
+    /**
+     * Set the result log of the execution
+     *
+     * @param response
+     */
+    public void setResponse(String response) {
+        this.response = response;
     }
 }

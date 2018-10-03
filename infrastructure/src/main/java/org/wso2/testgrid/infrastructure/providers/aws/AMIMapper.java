@@ -27,6 +27,7 @@ import com.amazonaws.services.ec2.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -52,6 +53,7 @@ public class AMIMapper {
     private static final String AMI_TAG_OS_VERSION = "OSVersion";
     private static final String AMI_TAG_AGENT_READY = "AGENT_READY";
     private String region;
+    private static final String AMI_TAG_TESTGRID_ENVIRONMENT = "TESTGRID_ENVIRONMENT";
 
     private final AmazonEC2 amazonEC2;
 
@@ -105,6 +107,7 @@ public class AMIMapper {
      * @return AMI-ID of the matching AMI.
      */
     private Optional<String> findAMIForLookupParams (List<Image> amiList, Properties lookupParameters) {
+        ArrayList<Image> applicableAMIList = new ArrayList<>();
         Boolean isMissingLookupParams;
         for (Image ami : amiList) {
             isMissingLookupParams = false;
@@ -117,10 +120,35 @@ public class AMIMapper {
                 }
             }
             if (!isMissingLookupParams) {
-                return Optional.of(ami.getImageId());
+                applicableAMIList.add(ami);
             }
         }
-        return Optional.empty();
+        if (applicableAMIList.size() == 0) {
+            return Optional.empty();
+        } else if (applicableAMIList.size() == 1) {
+            return Optional.of(applicableAMIList.get(0).getImageId());
+        } else {
+            String environment = ConfigurationContext.
+                    getProperty(ConfigurationContext.ConfigurationProperties.TESTGRID_ENVIRONMENT);
+            if (!environment.isEmpty()) {
+                logger.info("Setting up AMI environment as " + environment);
+                for (Image image : applicableAMIList) {
+                    for (Tag amiTag : image.getTags()) {
+                        if (AMI_TAG_TESTGRID_ENVIRONMENT.equals(amiTag.getKey())) {
+                            if (amiTag.getValue().equals(environment)) {
+                                return Optional.of(image.getImageId());
+                            }
+                        }
+                    }
+                }
+                return Optional.empty();
+            } else {
+                logger.warn("Execution environment of TESTGRID_ENVIRONMENT is not set in config.properties.");
+                return Optional.of(applicableAMIList.get(0).getImageId());
+            }
+
+        }
+
     }
 
     /**

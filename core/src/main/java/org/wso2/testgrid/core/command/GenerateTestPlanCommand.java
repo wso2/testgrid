@@ -226,7 +226,7 @@ public class GenerateTestPlanCommand implements Command {
             //Remove reference ids from yaml
             output = output.replaceAll("[&,*]id[0-9]+", "");
             try {
-                FileUtil.saveFile(output, infraGenDirectory, fileName);
+                FileUtil.saveFile(output, infraGenDirectory, fileName, false);
             } catch (TestGridException e) {
                 throw new CommandExecutionException("Error while saving Testgrid yaml file.", e);
             }

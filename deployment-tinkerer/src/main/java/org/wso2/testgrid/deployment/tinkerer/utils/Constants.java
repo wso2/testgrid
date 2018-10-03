@@ -27,7 +27,12 @@ public final class Constants {
 
     public static final String HTTP_HEADERS = "HttpHeaders";
     public static final int OPERATION_TIMEOUT = 900000; //Operation timeout 15 minutes interval in milliseconds.
-    public static final int HEARTBEAT_INTERVAL = 60000; //Heartbeat interval in milliseconds.
+    public static final int PING_HEARTBEAT_INTERVAL = 60000; //Heartbeat interval in milliseconds.
+    public static final int MESSAGE_QUEUE_INTERVAL = 2000; // Message queue refresh interval in milliseconds
+    public static final int AGENT_WAIT_TIMEOUT = 500; // Timeout wait to execute operation on agent without streaming
+    public static final double MAX_QUEUE_CONTENT_LENGTH = 5e6; // Maximum size of the each of the message queue
+    public static final int MAX_LAST_CONSUME_TIMEOUT = 900000;  // Maximum waiting time to dequeue message queue
+    public static final int MAX_LAST_UPDATED_TIMEOUT = 900000;  // Maximum waiting time to update message queue
 
     private Constants() {
     }

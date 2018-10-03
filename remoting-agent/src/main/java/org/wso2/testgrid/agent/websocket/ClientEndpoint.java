@@ -25,8 +25,13 @@ import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.auth.Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.agent.OperationExecutor;
-import org.wso2.testgrid.agent.beans.OperationRequest;
+import org.wso2.testgrid.agent.AgentStreamObserver;
+import org.wso2.testgrid.agent.AgentStreamReader;
+import org.wso2.testgrid.agent.StreamResponse;
+import org.wso2.testgrid.agent.listeners.OperationResponseListener;
+import org.wso2.testgrid.common.agentoperation.OperationRequest;
+import org.wso2.testgrid.common.agentoperation.OperationSegment;
+import org.wso2.testgrid.common.exception.CommandExecutionException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -150,14 +155,49 @@ public class ClientEndpoint {
     public void onMessage(String message) {
         logger.info("Operation received: " + message);
         OperationRequest operationRequest = new Gson().fromJson(message, OperationRequest.class);
-        OperationExecutor operationExecutor = new OperationExecutor(response -> {
+        OperationSegment operationSegment = new OperationSegment();
+        operationSegment.setOperationId(operationRequest.getOperationId());
+        operationSegment.setCode(operationRequest.getCode());
+        OperationResponseListener listener = response -> {
             // send message to web socket
             if (logger.isDebugEnabled()) {
                 logger.debug("Sending message: " + response.toJSON());
             }
             sendMessage(response.toJSON());
-        });
-        executorService.submit(() -> operationExecutor.executeOperation(operationRequest));
+        };
+        AgentStreamReader agentStreamReader = new AgentStreamReader(listener,
+                operationRequest.getOperationId());
+        switch (operationRequest.getCode()) {
+            case SHELL:
+                try {
+                    agentStreamReader.executeCommand(operationRequest.getRequest());
+                } catch (CommandExecutionException e) {
+                    logger.info("Error while executing command for operation " + operationRequest.getOperationId(), e);
+                }
+                break;
+            case PING:
+                operationSegment.setResponse("ACK");
+                operationSegment.setCompleted(true);
+                executorService.submit(() -> agentStreamReader.sendResponse(operationSegment));
+                break;
+            case ABORT:
+                AgentStreamObserver agentStreamObserver =
+                        AgentStreamReader.getAgentStreamObserverById(operationRequest.getOperationId());
+                if (agentStreamObserver != null) {
+                    agentStreamObserver.setAbortExecution(true);
+                    StreamResponse streamResponse = new StreamResponse("", true,
+                            StreamResponse.StreamType.INPUT);
+                    agentStreamObserver.update(null, streamResponse);
+                } else {
+                    logger.info("No operation with given id found to abort execution " +
+                            operationRequest.getOperationId());
+                }
+                break;
+            default:
+                logger.warn("No operations found for the given command " + operationRequest.getRequest() +
+                        " operation id " + operationRequest.getOperationId());
+                break;
+        }
     }
 
     /**
