@@ -18,20 +18,31 @@
 
 package org.wso2.testgrid.common;
 
+import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
-import org.json.simple.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.DataOutputStream;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -56,9 +67,13 @@ public class DashboardSetup {
     private String apikey =
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.GRAFANA_APIKEY);
     private String testplanID;
+    private String productName;
+    private int grafanaDataSourceCount = 5;
 
-    public DashboardSetup(String testplanID) {
+
+    public DashboardSetup(String testplanID, String productName) {
         this.testplanID = testplanID;
+        this.productName = productName;
     }
 
     /**
@@ -71,6 +86,7 @@ public class DashboardSetup {
             String dbName = testplanID;
             influxDB.createDatabase(dbName);
             influxDB.close();
+            logger.info("database created for performance data");
         } catch (AssertionError e) {
             logger.error(StringUtil.concatStrings("Cannot create a new Database: \n", e));
         } catch (IllegalArgumentException e) {
@@ -80,6 +96,11 @@ public class DashboardSetup {
         // add a new data source to grafana
         addGrafanaDataSource();
 
+    }
+
+    private void setTelegrafHost() {
+        TinkererSDK tinkererSDK = new TinkererSDK();
+        List<Agent> agents = tinkererSDK.getAgentListByTestPlanId("085da584-f352-4407-ad44-f9e56a1b34c6")
     }
 
     /**
@@ -111,15 +132,106 @@ public class DashboardSetup {
      */
     public void addGrafanaDataSource() {
 
+        List<String> infraCombinations = new ArrayList<String>();
+        List<String> toDelete = new ArrayList<String>();
+        List<String> datasource;
+
+        // Install the all-trusting host verifier
+        HostnameVerifier allHostsValid = new HostValidator();
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+        datasource = getDataSources();
+
+        Connection dbcon = null;
+        PreparedStatement stmt = null;
+        String testplan;
+        ResultSet resultSet = null;
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            dbcon = DriverManager.getConnection(ConfigurationContext.getProperty(ConfigurationContext.
+                    ConfigurationProperties.DB_URL), ConfigurationContext.getProperty(ConfigurationContext.
+                    ConfigurationProperties.DB_USER), ConfigurationContext.getProperty(ConfigurationContext.
+                    ConfigurationProperties.DB_USER_PASS));
+
+
+            stmt = dbcon.prepareStatement("select distinct infra_parameters from test_plan");
+            resultSet = stmt.executeQuery();
+
+            while (resultSet.next()) {
+                infraCombinations.add(resultSet.getString(1));
+            }
+
+            stmt = dbcon.prepareStatement("drop table if exists temp ;" +
+                    "create  table temp (id VARCHAR(36), modified_timestamp TIMESTAMP, name  VARCHAR(50), " +
+                    "infra_parameters  VARCHAR(255)); " +
+                    "INSERT INTO  temp (id,name,modified_timestamp,infra_parameters ) " +
+                    "select test_plan.id, product.name, test_plan.modified_timestamp, test_plan.infra_parameters " +
+                    "from test_plan,product,deployment_pattern " +
+                    "where test_plan.DEPLOYMENTPATTERN_id = deployment_pattern.id and " +
+                    "deployment_pattern.PRODUCT_id = product.id;");
+
+            resultSet = stmt.executeQuery();
+            while (resultSet.next()) {
+                logger.info(resultSet.getString(1));
+            }
+
+            for (String infra : infraCombinations) {
+                logger.info(infra);
+                stmt = dbcon.prepareStatement("select id from temp as tp left join " +
+                        "(select id from temp where name = ? and  " +
+                        "infra_parameters = ? order by (modified_timestamp) DESC " +
+                        "limit ?)p2 USING(id) WHERE p2.id IS NULL and infra_parameters = ?  and name = ?" +
+                        "order by (modified_timestamp) DESC");
+
+                stmt.setString(1, productName);
+                stmt.setString(2, infra);
+                stmt.setInt(3, grafanaDataSourceCount);
+                stmt.setString(4, infra);
+                stmt.setString(5, productName);
+                resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    testplan = resultSet.getString(1);
+                    logger.info("considering :" + testplan);
+                    if (datasource.contains(testplan)) {
+                        toDelete.add(testplan);
+                        logger.info(testplan + " added to delete");
+                    }
+                }
+            }
+
+            stmt = dbcon.prepareStatement("drop table if exists temp ;");
+            resultSet = stmt.executeQuery();
+            while (resultSet.next()) {
+                logger.info(resultSet.getString(1));
+            }
+
+        } catch (SQLException e) {
+            logger.error("error while trying to retreive the datasources that needs to be deleted" + e);
+        } catch (ClassNotFoundException e) {
+            logger.error("Class not found" + e);
+        } finally {
+            if (dbcon != null) {
+                DbUtils.closeQuietly(dbcon);
+            }
+            if (stmt != null) {
+                DbUtils.closeQuietly(stmt);
+            }
+
+        }
+
+        if (!toDelete.isEmpty()) {
+            for (String dataSource : toDelete) {
+                logger.info("deleting data source: " + dataSource);
+                this.clearDataSources(dataSource);
+            }
+        }
+
         DataOutputStream dataOutputStream = null;
+
         try {
             String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
                     .GRAFANA_DATASOURCE) + ":3000/api/datasources/";
-
-            HostnameVerifier allHostsValid = new HostValidator();
-
-            // Install the all-trusting host verifier
-            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
             URL obj = new URL(url);
             HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
@@ -153,6 +265,74 @@ public class DashboardSetup {
                     logger.error("Couldn't close the output stream");
                 }
             }
+        }
+    }
+
+    private void clearDataSources(String datasource) {
+        try {
+            String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
+                    .GRAFANA_DATASOURCE) + ":3000/api/datasources/name/" + datasource;
+
+            URL obj = new URL(url);
+            HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+            //add request header
+            con.setRequestMethod("DELETE");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("Content-Type", ContentType.APPLICATION_JSON.toString());
+            con.setRequestProperty("Accept", ContentType.APPLICATION_JSON.toString());
+            con.setRequestProperty("Authorization", apikey);
+            SSLSocketFactory sslSocketFactory = createSslSocketFactory();
+            con.setSSLSocketFactory(sslSocketFactory);
+
+
+            int responseCode = con.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                logger.info("grafana Data Source deleted for testplan " + datasource);
+            } else {
+                logger.error(StringUtil.concatStrings("failed to delete grafana Data source ",
+                        " Response Code ", responseCode));
+            }
+        } catch (Exception e) {
+            logger.error("Error while deleting Grafana data source" + e);
+        }
+
+    }
+
+    private  List<String> getDataSources() {
+        try {
+            String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
+                    .GRAFANA_DATASOURCE) + ":3000/api/datasources/";
+
+            List<String> datasouce = new ArrayList<String>();
+
+            URL obj = new URL(url);
+            HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+            //add request header
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("Content-Type", ContentType.APPLICATION_JSON.toString());
+            con.setRequestProperty("Accept", ContentType.APPLICATION_JSON.toString());
+            con.setRequestProperty("Authorization", apikey);
+
+            SSLSocketFactory sslSocketFactory = createSslSocketFactory();
+            con.setSSLSocketFactory(sslSocketFactory);
+
+            InputStream in = con.getInputStream();
+            String encoding = con.getContentEncoding();
+            encoding = encoding == null ? "UTF-8" : encoding;
+            String body = IOUtils.toString(in, encoding);
+            JSONArray dataSources = new JSONArray(body);
+            String name;
+
+            for (Object data:dataSources) {
+                JSONObject first = (JSONObject) data;
+                name = first.getString("name");
+                datasouce.add(name);
+            }
+            return datasouce;
+        } catch (Exception e) {
+            logger.info("Error while getting the data sources in grafana: " + e);
+            return null;
         }
     }
 
