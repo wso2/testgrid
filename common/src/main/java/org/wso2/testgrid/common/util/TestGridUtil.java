@@ -181,7 +181,7 @@ public final class TestGridUtil {
 
     /**
      * This method builds and returns the parameter string from given properties.
-     *
+     * @deprecated Parameter parsing should only happen via the databuckets
      * @param properties {@link Properties} with required paramters as key value pairs
      * @return the String representation of input paramters
      */

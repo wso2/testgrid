@@ -1,27 +1,20 @@
 #!/usr/bin/env bash
 
-echo "dummy infrastructure provisioning for tests"
+DIR=$2
+echo $DIR
+FILE=${DIR}/testplan-props.properties
 
-while [ "$1" != "" ]; do
-    PARAM=`echo $1 | awk -F= '{print $1}'`
-    VALUE=`echo $1 | awk -F= '{print $2}'`
-    case $PARAM in
-        -h | --help)
-            usage
-            exit
-        ;;
-        --workspace | -w | --output-dir | -o)
-            WORKSPACE=${VALUE}
-            echo Workspace: ${WORKSPACE}
-        ;;
-        *)
-            echo "ERROR: unknown parameter \"$PARAM\""
-            usage
-            exit 1
-        ;;
-    esac
-    shift
-done
+PROP_KEY=PROPERTY1
 
-echo 'PWD:' `pwd`
-echo 'We are in:' `uname`
+#----------------------------------------------------------------------
+# getting data from databuckets
+#----------------------------------------------------------------------
+value=`grep -w "$PROP_KEY" ${FILE} | cut -d'=' -f2`
+echo "value is $value"
+if [ "$value" != "value1" ];then
+    exit 1;
+fi
+
+echo -e "\nDEPLOY_VALUE=deploy_value1" >> ${DIR}/testplan-props.properties
+
+echo "infra provision succesful"
