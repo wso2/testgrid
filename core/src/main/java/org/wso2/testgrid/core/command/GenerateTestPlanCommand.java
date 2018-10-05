@@ -472,8 +472,8 @@ public class GenerateTestPlanCommand implements Command {
                                 getDeploymentPattern(createOrReturnProduct(productName), dp.getName())));
                     } catch (CommandExecutionException e) {
                         throw new CommandExecutionException(StringUtil
-                                .concatStrings("Error in getting product by product-name " + productName,
-                                        testPlan.getInfrastructureConfig().getParameters()), e);
+                                .concatStrings("Error in generating test-plan id. Can not create/find product " +
+                                        "by product-name " + productName), e);
                     }
                 }));
 

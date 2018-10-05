@@ -249,7 +249,19 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
             clone.type = this.type;
             clone.readyForTestGrid = this.readyForTestGrid;
             clone.properties = this.properties;
-            clone.subInfrastructureParameters = this.subInfrastructureParameters;
+            clone.subInfrastructureParameters = null;
+            if (this.subInfrastructureParameters != null) {
+                List<InfrastructureParameter> infrastructureParameters = new ArrayList<>();
+                for (InfrastructureParameter infrastructureParameter : this.subInfrastructureParameters) {
+                    InfrastructureParameter subInfraClone = new InfrastructureParameter();
+                    subInfraClone.name = infrastructureParameter.name;
+                    subInfraClone.type = infrastructureParameter.type;
+                    subInfraClone.readyForTestGrid = infrastructureParameter.readyForTestGrid;
+                    subInfraClone.properties = infrastructureParameter.properties;
+                    infrastructureParameters.add(subInfraClone);
+                }
+                clone.subInfrastructureParameters = infrastructureParameters;
+            }
             return clone;
 
         } catch (CloneNotSupportedException e) {

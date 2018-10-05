@@ -61,7 +61,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.DEFAULT_TESTGRID_HOME;
+import static org.wso2.testgrid.common.TestGridConstants.PARAM_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY;
+import static org.wso2.testgrid.common.TestGridConstants.TESTRUN_NUMBER_PREFIX;
 import static org.wso2.testgrid.common.config.InfrastructureConfig.InfrastructureProvider.SHELL;
 
 /**
@@ -430,6 +432,10 @@ public final class TestGridUtil {
 
     /**
      * Returns the test-plan id based on the test-plan and the properties relevant to it.
+     * The format of the test-plan is: <product-name>_<deployment-pattern>_<infra-combination>_<test-run_number>
+     * eg: 15th test-plan of the product 'product-abc' for deployment-pattern 'integration-tests',
+     * for infra-combination {ORACLE_JDK8, mysql 5.7, CentOS 7.4} will be;
+     *          product-abc_integration-tests_ORACLE_JDK8-mysql-5-7-CentOS-7-4_run15
      *
      * @param testPlan test-plan
      * @param infrastructureParameters infrastructure-parameters of the test-plan
@@ -443,20 +449,23 @@ public final class TestGridUtil {
                     .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
             int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, jsonInfraParams);
             int testRunNumber = latestTestRunNumber + 1;
+            //Removing the sub-infrastructure-parameters from the parameter-list. (Sub-infrastructure-param includes
+            //itself as its sub-infrastructure)
             infrastructureParameters
                     .removeIf(entry->(entry.getProcessedSubInfrastructureParameters().contains(entry)));
-
             String valueList = infrastructureParameters.stream()
                     .map(entry -> {
                         InfrastructureParameter infraParam = entry.clone();
                         infraParam.transform();
-                        return infraParam.getName().replace(" ", "").replace(".", "-");
-                    }).collect(Collectors.joining("_"));
-
-            return StringUtil.concatStrings(deploymentPattern.getProduct().getName(), "_",
-                    deploymentPattern.getName(), "_", valueList, "_run", testRunNumber);
+                        return infraParam.getName().replace("\"", "").replace(" ", "")
+                                .replace(".", "-");
+                    }).collect(Collectors.joining(PARAM_SEPARATOR));
+            return StringUtil.concatStrings(deploymentPattern.getProduct().getName(), PARAM_SEPARATOR,
+                    deploymentPattern.getName(), PARAM_SEPARATOR, valueList, PARAM_SEPARATOR, TESTRUN_NUMBER_PREFIX,
+                    testRunNumber);
         } catch (JsonProcessingException e) {
-            throw new IllegalStateException(StringUtil.concatStrings("Error in parsing JSON ",
+            throw new IllegalStateException(StringUtil.
+                    concatStrings("Error in generating testplan-id when parsing JSON ",
                     testPlan.getInfrastructureConfig().getParameters().toString()), e);
         }
     }

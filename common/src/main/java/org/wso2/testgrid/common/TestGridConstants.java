@@ -49,6 +49,8 @@ public class TestGridConstants {
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
     public static final String FILE_SEPARATOR = "/";
     public static final String HIDDEN_FILE_INDICATOR = ".";
+    public static final String PARAM_SEPARATOR = "_";
+    public static final String TESTRUN_NUMBER_PREFIX = "run";
 
     public static final String WORKSPACE = "workspace";
     public static final String TESTGRID_JOB_DIR = "jobs";
