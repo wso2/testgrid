@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.testgrid.tinkerer;
+package org.wso2.testgrid.common.util.tinkerer;
 
 /**
  * Maintain details of the execution result of sync command request.

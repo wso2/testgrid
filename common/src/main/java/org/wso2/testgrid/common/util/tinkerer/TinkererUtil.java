@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.testgrid.tinkerer;
+package org.wso2.testgrid.common.util.tinkerer;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -46,9 +46,9 @@ import javax.ws.rs.core.Response;
 /**
  * Execute commands on remote agent through tinkerer.
  */
-public class TinkererSDK {
+public class TinkererUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(TinkererSDK.class);
+    private static final Logger logger = LoggerFactory.getLogger(TinkererUtil.class);
 
     private String tinkererHost;
     private String authenticationToken;
@@ -56,7 +56,7 @@ public class TinkererSDK {
     /**
      * Initialize details of the tinkerer host and authentication details.
      */
-    public TinkererSDK() {
+    public TinkererUtil() {
         this.tinkererHost = ConfigurationContext.getProperty(
                 ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH);
         String authenticationString = ConfigurationContext.getProperty(

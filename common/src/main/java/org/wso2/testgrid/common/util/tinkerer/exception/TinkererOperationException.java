@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.testgrid.tinkerer.exception;
+package org.wso2.testgrid.common.util.tinkerer.exception;
 
 import org.wso2.testgrid.common.exception.TestGridException;
 

@@ -16,14 +16,14 @@
  * under the License.
  */
 
-package org.wso2.testgrid.tinkerer;
+package org.wso2.testgrid.common.util.tinkerer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
+import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
