@@ -18,8 +18,17 @@
 
 package org.wso2.testgrid.reporting;
 
+import com.amazonaws.auth.PropertiesFileCredentialsProvider;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import org.mockito.Matchers;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -27,6 +36,8 @@ import org.testng.annotations.Test;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -34,12 +45,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
  * Tests the summary log that gets printed at the end.
  */
 @PowerMockIgnore({ "javax.management.*", "javax.script.*", "org.apache.logging.log4j.*" })
+@PrepareForTest({ConfigurationContext.class, AmazonS3.class, S3Object.class,
+        S3ObjectInputStream.class, AmazonS3ClientBuilder.class, AwsClientBuilder.class})
 public class TestReportEngineTest extends BaseClass {
 
     private static final Logger logger = LoggerFactory.getLogger(TestReportEngineTest.class);
@@ -66,6 +80,26 @@ public class TestReportEngineTest extends BaseClass {
 
         final TestReportEngine testReportEngine = new TestReportEngine(testPlanUOW,
                 new EmailReportProcessor(testPlanUOW, infrastructureParameterUOW), new GraphDataProvider(testPlanUOW));
+
+        PowerMockito.mockStatic(ConfigurationContext.class);
+        when(ConfigurationContext.getProperty(ConfigurationProperties.AWS_S3_BUCKET_NAME))
+                .thenReturn("testrun-artifacts");
+        when(ConfigurationContext.getProperty(ConfigurationProperties.AWS_S3_ARTIFACTS_DIR)).thenReturn("artifacts");
+
+        AmazonS3 s3ClientMock = Mockito.mock(AmazonS3.class);
+        AmazonS3ClientBuilder amazonS3ClientBuilderMock = PowerMockito.mock(AmazonS3ClientBuilder.class);
+        S3Object s3ObjectMock = Mockito.mock(S3Object.class);
+        S3ObjectInputStream inputStream = Mockito.mock(S3ObjectInputStream.class);
+
+        PowerMockito.mockStatic(AmazonS3ClientBuilder.class);
+        PowerMockito.when(AmazonS3ClientBuilder.standard()).thenReturn(amazonS3ClientBuilderMock);
+        PowerMockito.when(amazonS3ClientBuilderMock.withRegion(anyString())).thenReturn(amazonS3ClientBuilderMock);
+        PowerMockito.when(amazonS3ClientBuilderMock
+                .withCredentials(any(PropertiesFileCredentialsProvider.class))).thenReturn(amazonS3ClientBuilderMock);
+        PowerMockito.when(amazonS3ClientBuilderMock.build()).thenReturn(s3ClientMock);
+
+        when(s3ClientMock.getObject(anyString(), anyString())).thenReturn(s3ObjectMock);
+        when(s3ObjectMock.getObjectContent()).thenReturn(inputStream);
         Optional<Path> path = testReportEngine.generateEmailReport(product, productDir.toString());
         Assert.assertTrue(path.isPresent(), "Email report generation has failed. File path is empty.");
         logger.info("email report file: " + path.get());
