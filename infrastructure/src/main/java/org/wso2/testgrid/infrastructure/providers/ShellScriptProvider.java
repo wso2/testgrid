@@ -30,10 +30,8 @@ import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.common.util.TestGridUtil;
 
 import java.nio.file.Paths;
-import java.util.Properties;
 
 /**
  * This class creates the infrastructure for running tests.
@@ -42,8 +40,6 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(ShellScriptProvider.class);
     private static final String SHELL_SCRIPT_PROVIDER = "Shell Executor";
-    private static final String WORKSPACE = "workspace";
-    private static final String OUTPUT_DIR = "output-dir";
 
     @Override
     public String getProviderName() {
@@ -65,7 +61,10 @@ public class ShellScriptProvider implements InfrastructureProvider {
                 if (Script.Phase.CREATE.equals(script.getPhase())) {
                     try {
                         logger.info("Provisioning additional infra");
-                        int exitCode = shellExecutor.executeCommand("sh " + script.getFile());
+                        String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+                                .toAbsolutePath().toString();
+                        final String command = "bash " + script.getFile() + " --input-dir " + testInputsLoc;
+                        int exitCode = shellExecutor.executeCommand(command);
                         if (exitCode > 0) {
                             throw new TestGridInfrastructureException(StringUtil.concatStrings(
                                     "Error while executing ", script.getFile(),
@@ -89,7 +88,10 @@ public class ShellScriptProvider implements InfrastructureProvider {
             for (Script script : testPlan.getScenarioConfig().getScripts()) {
                 if (Script.Phase.DESTROY.equals(script.getPhase())) {
                     try {
-                        int exitCode = shellExecutor.executeCommand("sh " + script.getFile());
+                        String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+                                .toAbsolutePath().toString();
+                        final String command = "bash " + script.getFile() + " --input-dir " + testInputsLoc;
+                        int exitCode = shellExecutor.executeCommand(command);
                         if (exitCode > 0) {
                             throw new TestGridInfrastructureException(StringUtil.concatStrings(
                                     "Error while executing ", script.getFile(),
@@ -112,23 +114,19 @@ public class ShellScriptProvider implements InfrastructureProvider {
         logger.info("Executing provisioning scripts...");
         try {
             Script createScript = getScriptToExecute(infrastructureConfig, Script.Phase.CREATE);
-            Properties inputParameters = createScript.getInputParameters();
-            final String workspace = testPlan.getWorkspace();
-            inputParameters.setProperty(WORKSPACE, workspace);
-            // TODO: this is deprecated.
-            inputParameters.setProperty(OUTPUT_DIR, DataBucketsHelper.getOutputLocation(testPlan).toString());
-
-            String parameterString = TestGridUtil.getParameterString(null, inputParameters);
             ShellExecutor executor = new ShellExecutor(null);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
-            int exitCode = executor.executeCommand("bash " + Paths
-                    .get(testPlanLocation, createScript.getFile()) + " " + parameterString);
+            String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+                    .toAbsolutePath().toString();
+            final String command = "bash " + Paths.get(testPlanLocation, createScript.getFile())
+                    + " --input-dir " + testInputsLoc;
+            int exitCode = executor.executeCommand(command);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the infra-provision script. ",
                         "Script exited with a status code of ", exitCode));
                 result.setSuccess(false);
             }
-            result.setResultLocation(workspace);
+            result.setResultLocation(testPlanLocation);
             return result;
 
         } catch (CommandExecutionException e) {
@@ -148,17 +146,19 @@ public class ShellScriptProvider implements InfrastructureProvider {
         ShellExecutor executor = new ShellExecutor(null);
         try {
 
-            if (executor.executeCommand("bash " + Paths
+            String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+                    .toAbsolutePath().toString();
+            final String command = "bash " + Paths
                     .get(testPlanLocation, getScriptToExecute(infrastructureConfig, Script.Phase.DESTROY)
-                            .getFile())) == 0) {
-                return true;
-            }
+                            .getFile())
+                    + " --input-dir " + testInputsLoc;
+            int exitCode = executor.executeCommand(command);
+            return exitCode == 0;
         } catch (CommandExecutionException e) {
             throw new TestGridInfrastructureException(
                     "Exception occurred while executing the infra-destroy script " + "for deployment-pattern '"
                             + infrastructureConfig.getProvisioners().get(0).getName() + "'", e);
         }
-        return false;
     }
 
     /**

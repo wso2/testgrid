@@ -41,7 +41,6 @@ import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.deployment.DeploymentUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
@@ -50,9 +49,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
-
-import static org.wso2.testgrid.common.TestGridConstants.WORKSPACE;
 
 /**
  * This class performs Shell related deployment tasks.
@@ -77,21 +73,17 @@ public class ShellDeployer implements Deployer {
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
-        final Properties inputParameters;
+        String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+                .toAbsolutePath().toString();
         try {
             Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
+            String deployScriptLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
             logger.info("Performing the Deployment " + deployment.getName());
-            String infraArtifact = StringUtil
-                    .concatStrings(DataBucketsHelper.getOutputLocation(testPlan),
-                            File.separator, "k8s.properties");
-            inputParameters = getInputParameters(testPlan, deployment);
-            String parameterString = TestGridUtil.getParameterString(infraArtifact, inputParameters);
-            ShellExecutor shellExecutor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
 
-            int exitCode = shellExecutor
-                    //TODO: Remove the usages of InfrastructureProvisionResult#getDeploymentScriptsDir.
-                    .executeCommand("bash " + Paths.get(infrastructureProvisionResult
-                            .getDeploymentScriptsDir(), deployment.getFile()) + " " + parameterString);
+            ShellExecutor executor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
+            final String command = "bash " + Paths.get(deployScriptLocation, deployment.getFile())
+                    + " --input-dir " + testInputsLoc;
+            int exitCode = executor.executeCommand(command);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the deploy-provision script. ",
                         "Script exited with a status code of ", exitCode));
@@ -104,7 +96,7 @@ public class ShellDeployer implements Deployer {
             throw new TestGridDeployerException(e);
         }
         DeploymentCreationResult result = DeploymentUtil
-                .getDeploymentCreationResult(inputParameters.getProperty(WORKSPACE));
+                .getDeploymentCreationResult(testInputsLoc);
         result.setName(deploymentPatternConfig.getName());
 
         List<Host> hosts = new ArrayList<>();
@@ -156,12 +148,6 @@ public class ShellDeployer implements Deployer {
                     , testPlan.getId()));
         }
         return deploymentCreationResult;
-    }
-
-    private Properties getInputParameters(TestPlan testPlan, Script deployment) {
-        final Properties inputParameters = deployment.getInputParameters();
-        inputParameters.setProperty(WORKSPACE, testPlan.getWorkspace());
-        return inputParameters;
     }
 
     /**
