@@ -53,6 +53,7 @@ import org.wso2.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 import org.wso2.testgrid.core.configchangeset.ConfigChangeSetExecutor;
 import org.wso2.testgrid.core.configchangeset.ConfigChangeSetFactory;
 import org.wso2.testgrid.core.exception.ScenarioExecutorException;
@@ -64,7 +65,6 @@ import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 import org.wso2.testgrid.tinkerer.TinkererClient;
 import org.wso2.testgrid.tinkerer.TinkererClientFactory;
-import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
 import java.io.IOException;
 import java.io.OutputStream;

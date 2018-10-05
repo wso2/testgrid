@@ -29,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.tinkerer.AsyncCommandResponse;
+import org.wso2.testgrid.common.util.tinkerer.TinkererUtil;
 
 import java.io.DataOutputStream;
 import java.io.InputStream;
@@ -49,6 +51,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.ProcessingException;
 
 import static org.apache.http.protocol.HTTP.USER_AGENT;
 
@@ -68,7 +71,7 @@ public class DashboardSetup {
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.GRAFANA_APIKEY);
     private String testplanID;
     private String productName;
-    private int grafanaDataSourceCount = 5;
+    private int grafanaDataSourceCount = 20;
 
 
     public DashboardSetup(String testplanID, String productName) {
@@ -95,12 +98,24 @@ public class DashboardSetup {
 
         // add a new data source to grafana
         addGrafanaDataSource();
+        setTelegrafHost();
 
     }
 
     private void setTelegrafHost() {
-        TinkererSDK tinkererSDK = new TinkererSDK();
-        List<Agent> agents = tinkererSDK.getAgentListByTestPlanId("085da584-f352-4407-ad44-f9e56a1b34c6")
+        try {
+            TinkererUtil tinkererSDK = new TinkererUtil();
+            List<Agent> agents = tinkererSDK.getAgentListByTestPlanId(this.testplanID);
+            String command = "echo complete > /opt/testgrid/agent/yes.log";
+            for (Agent agent : agents) {
+                AsyncCommandResponse response = tinkererSDK.executeCommandAsync(agent.getAgentId(), command);
+            }
+        } catch (ProcessingException e) {
+            logger.info("Error while configuring telegraf host" + e);
+        }
+
+
+
     }
 
     /**
@@ -162,19 +177,17 @@ public class DashboardSetup {
                 infraCombinations.add(resultSet.getString(1));
             }
 
-            stmt = dbcon.prepareStatement("drop table if exists temp ;" +
-                    "create  table temp (id VARCHAR(36), modified_timestamp TIMESTAMP, name  VARCHAR(50), " +
-                    "infra_parameters  VARCHAR(255)); " +
-                    "INSERT INTO  temp (id,name,modified_timestamp,infra_parameters ) " +
+            stmt = dbcon.prepareStatement("drop table if exists temp ;");
+            Boolean complete = stmt.execute();
+            stmt = dbcon.prepareStatement("create table temp (id VARCHAR(36), modified_timestamp TIMESTAMP, " +
+                    "name VARCHAR(50), infra_parameters  VARCHAR(255)); ");
+            complete = stmt.execute();
+            stmt = dbcon.prepareStatement("INSERT INTO  temp (id,name,modified_timestamp,infra_parameters ) " +
                     "select test_plan.id, product.name, test_plan.modified_timestamp, test_plan.infra_parameters " +
                     "from test_plan,product,deployment_pattern " +
                     "where test_plan.DEPLOYMENTPATTERN_id = deployment_pattern.id and " +
                     "deployment_pattern.PRODUCT_id = product.id;");
-
-            resultSet = stmt.executeQuery();
-            while (resultSet.next()) {
-                logger.info(resultSet.getString(1));
-            }
+            complete = stmt.execute();
 
             for (String infra : infraCombinations) {
                 logger.info(infra);
@@ -192,19 +205,14 @@ public class DashboardSetup {
                 resultSet = stmt.executeQuery();
                 while (resultSet.next()) {
                     testplan = resultSet.getString(1);
-                    logger.info("considering :" + testplan);
                     if (datasource.contains(testplan)) {
                         toDelete.add(testplan);
                         logger.info(testplan + " added to delete");
                     }
                 }
             }
-
             stmt = dbcon.prepareStatement("drop table if exists temp ;");
-            resultSet = stmt.executeQuery();
-            while (resultSet.next()) {
-                logger.info(resultSet.getString(1));
-            }
+            complete = stmt.execute();
 
         } catch (SQLException e) {
             logger.error("error while trying to retreive the datasources that needs to be deleted" + e);

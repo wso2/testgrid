@@ -20,7 +20,7 @@ package org.wso2.testgrid.tinkerer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
-import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
+import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 
 /**
  *This is an abstraction for the deployment tinkerer client.
