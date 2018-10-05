@@ -61,7 +61,6 @@ import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -171,11 +170,6 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         final Path infrastructurePath = Paths.get(testPlan.getInfrastructureRepository());
         assertTrue(Files.exists(infrastructurePath), "Infrastructure provision script failed to run. Dir does not "
                 + "exist: " + infrastructurePath.toString());
-        final Path generatedDeploymentFile = infrastructurePath.resolve("my-deployment.txt");
-        assertTrue(Files.exists(generatedDeploymentFile), "Deployment creation script failed to run. Files does not "
-                + "exist: " + generatedDeploymentFile);
-        String content = new String(Files.readAllBytes(generatedDeploymentFile), StandardCharsets.UTF_8);
-        Assert.assertEquals(content, "Deploy server1\n", "my-deployment.txt file does not contain expected content.");
     }
 
     private void copyWorkspaceArtifacts() throws IOException {
