@@ -18,10 +18,8 @@
 
 package org.wso2.testgrid.common.util;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +39,6 @@ import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,16 +48,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.DEFAULT_TESTGRID_HOME;
+import static org.wso2.testgrid.common.TestGridConstants.PARAM_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY;
+import static org.wso2.testgrid.common.TestGridConstants.TESTRUN_NUMBER_PREFIX;
 import static org.wso2.testgrid.common.config.InfrastructureConfig.InfrastructureProvider.SHELL;
 
 /**
@@ -71,7 +68,6 @@ import static org.wso2.testgrid.common.config.InfrastructureConfig.Infrastructur
 public final class TestGridUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(TestGridUtil.class);
-    private static final String UNDERSCORE = "_";
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
 
     /**
@@ -150,36 +146,6 @@ public final class TestGridUtil {
     }
 
     /**
-     * Returns a UUID specific to the infra parameters.
-     *
-     * @param infraParams infra parameters to get the UUID
-     * @return UUID specific to the infra parameters
-     */
-    private static String getInfraParamUUID(String infraParams) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Object> sortedMap = new TreeMap<>();
-
-            // Get sorted map from the JSON object string
-            Map<String, Object> infraParamMap = mapper
-                    .readValue(infraParams, new TypeReference<Map<String, String>>() {
-                    });
-
-            // Copy values to the tree map to get the values sorted
-            infraParamMap.forEach(sortedMap::put);
-            String stringToConvertToUUID = sortedMap.toString().toLowerCase(Locale.ENGLISH);
-            return UUID.nameUUIDFromBytes(stringToConvertToUUID.getBytes(Charset.defaultCharset())).toString();
-        } catch (JsonParseException e) {
-            throw new IllegalStateException(StringUtil.concatStrings("Error in parsing JSON ", infraParams), e);
-        } catch (JsonMappingException e) {
-            throw new IllegalStateException(StringUtil.concatStrings("Error in mapping JSON ", infraParams), e);
-        } catch (IOException e) {
-            throw new IllegalStateException(StringUtil.concatStrings("IO Exception when trying to map JSON ",
-                    infraParams), e);
-        }
-    }
-
-    /**
      * This method builds and returns the parameter string from given properties.
      * @deprecated Parameter parsing should only happen via the databuckets
      * @param properties {@link Properties} with required paramters as key value pairs
@@ -211,7 +177,6 @@ public final class TestGridUtil {
             TestPlan testPlanEntity = testPlan.clone();
             testPlanEntity.setStatus(Status.PENDING);
             testPlanEntity.setDeploymentPattern(deploymentPattern);
-
             // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.
             final DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                     .getDeploymentPatterns().get(0);
@@ -225,7 +190,6 @@ public final class TestGridUtil {
             // Set test run number
             int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlanEntity.getInfraParameters());
             testPlanEntity.setTestRunNumber(latestTestRunNumber + 1);
-
             // Set test scenarios
             List<TestScenario> testScenarios = testPlan.getScenarioConfig().getScenarios();
             for (TestScenario testScenario : testScenarios) {
@@ -239,7 +203,6 @@ public final class TestGridUtil {
                             "parameters: ", testPlan.getInfrastructureConfig().getParameters()), e);
         }
     }
-
 
     /**
      * Copies non existing properties from a persisted test plan to a test plan object generated from the config.
@@ -289,7 +252,10 @@ public final class TestGridUtil {
                 testPlans.add(testPlan);
             }
         }
-
+        //If no test plans exist for the combination, last test-run-number is zero.
+        if (testPlans.isEmpty()) {
+            return 0;
+        }
         // Get the Test Plan with the latest test run number for the given infra combination
         TestPlan latestTestPlan = Collections.max(testPlans, Comparator.comparingInt(
                 TestPlan::getTestRunNumber));
@@ -353,25 +319,22 @@ public final class TestGridUtil {
 
     public static Path getTestScenarioArtifactPath(TestScenario testScenario) {
         return Paths.get(testScenario.getTestPlan().getWorkspace(),
-                TestGridConstants.TESTGRID_BUILDS_DIR, deriveTestPlanDirName(testScenario.getTestPlan()),
-                testScenario.getDir());
+                TestGridConstants.TESTGRID_BUILDS_DIR, testScenario.getDir());
     }
 
     /**
      * Returns the path of the test-run log file.
      * <p>
-     * <TestPlan Workspace>/builds/#depl_name#_#infra-uuid#_#test-run-num#/test-run.log
+     * <TestPlan Workspace>/test-run.log
      *
      * @param testPlan test-plan
      * @param truncated whether the truncated log or the raw log file
      * @return log file path
      */
     public static String deriveTestRunLogFilePath(TestPlan testPlan, Boolean truncated) {
-        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
         String fileName = truncated ?
                 TestGridConstants.TRUNCATED_TESTRUN_LOG_FILE_NAME : TestGridConstants.TESTRUN_LOG_FILE_NAME;
-        return Paths.get(testPlan.getWorkspace(), TestGridConstants.TESTGRID_BUILDS_DIR,
-                testPlanDirName, fileName).toString();
+        return Paths.get(testPlan.getWorkspace(), fileName).toString();
     }
 
     /**
@@ -394,36 +357,47 @@ public final class TestGridUtil {
      * @return File download location path
      */
     public static String deriveLogDownloadLocation(TestPlan testPlan) {
-        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
-        return Paths.get(testPlan.getWorkspace(),
-                TestGridConstants.TESTGRID_BUILDS_DIR, testPlanDirName).toString();
+        return DataBucketsHelper.getOutputLocation(testPlan).toString();
     }
 
     /**
-     * Returns the path of the scenario outputs property file.
-     * This property file is received from the instance where tests have been executed.
+     * Returns the test-plan id based on the test-plan and the properties relevant to it.
+     * The format of the test-plan is: <product-name>_<deployment-pattern>_<infra-combination>_<test-run_number>
+     * eg: 15th test-plan of the product 'product-abc' for deployment-pattern 'integration-tests',
+     * for infra-combination {ORACLE_JDK8, mysql 5.7, CentOS 7.4} will be;
+     *          product-abc_integration-tests_ORACLE_JDK8-mysql-5-7-CentOS-7-4_run15
      *
      * @param testPlan test-plan
-     * @return log file path
-     */
-    public static String deriveScenarioOutputPropertyFilePath(TestPlan testPlan) {
-        return Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(),
-                TestGridConstants.TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE).toString();
-    }
-
-    /**
-     * Returns the test-plan directory name based on the test-plan content.
-     *
-     * @param testPlan test-plan
+     * @param infrastructureParameters infrastructure-parameters of the test-plan
+     * @param deploymentPattern deployment-pattern of the test-plan
      * @return test-plan directory name.
      */
-    public static String deriveTestPlanDirName(TestPlan testPlan) {
-        DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
-        int testRunNumber = testPlan.getTestRunNumber();
-        String deploymentDir = deploymentPattern.getName();
-        String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
-
-        return StringUtil.concatStrings(deploymentDir, UNDERSCORE, infraDir, UNDERSCORE, String.valueOf(testRunNumber));
+    public static String deriveTestPlanId(TestPlan testPlan, Set<InfrastructureParameter> infrastructureParameters,
+                                          DeploymentPattern deploymentPattern) {
+        try {
+            String jsonInfraParams = new ObjectMapper()
+                    .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
+            int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, jsonInfraParams);
+            int testRunNumber = latestTestRunNumber + 1;
+            //Removing the sub-infrastructure-parameters from the parameter-list. (Sub-infrastructure-param includes
+            //itself as its sub-infrastructure)
+            infrastructureParameters
+                    .removeIf(entry->(entry.getProcessedSubInfrastructureParameters().contains(entry)));
+            String valueList = infrastructureParameters.stream()
+                    .map(entry -> {
+                        InfrastructureParameter infraParam = entry.clone();
+                        infraParam.transform();
+                        return infraParam.getName().replace("\"", "").replace(" ", "")
+                                .replace(".", "-");
+                    }).collect(Collectors.joining(PARAM_SEPARATOR));
+            return StringUtil.concatStrings(deploymentPattern.getProduct().getName(), PARAM_SEPARATOR,
+                    deploymentPattern.getName(), PARAM_SEPARATOR, valueList, PARAM_SEPARATOR, TESTRUN_NUMBER_PREFIX,
+                    testRunNumber);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(StringUtil.
+                    concatStrings("Error in generating testplan-id when parsing JSON ",
+                    testPlan.getInfrastructureConfig().getParameters().toString()), e);
+        }
     }
 
     /**

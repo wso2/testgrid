@@ -38,7 +38,7 @@ public abstract class AbstractUUIDEntity {
     public static final String ID_COLUMN = "id";
 
     @Id
-    @Column(name = ID_COLUMN, length = 36)
+    @Column(name = ID_COLUMN, length = 255)
     private String id;
 
     @Column(name = "created_timestamp", nullable = false,

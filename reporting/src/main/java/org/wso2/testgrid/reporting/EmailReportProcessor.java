@@ -34,7 +34,7 @@ import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationPropert
 import org.wso2.testgrid.common.config.PropertyFileReader;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
-import org.wso2.testgrid.common.util.DataBucketsHelper;
+import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
@@ -296,16 +296,12 @@ public class EmailReportProcessor {
      * @throws IOException if exception occurs when loading properties
      */
     private Properties getOutputPropertiesFile (TestPlan testPlan) {
-        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
-        String productName = testPlan.getDeploymentPattern().getProduct().getName();
+        String s3DatabucketDir = S3StorageUtil.deriveS3DatabucketDir(testPlan);
         Path configFilePath = TestGridUtil.getConfigFilePath();
         String bucketKey = ConfigurationContext.getProperty(ConfigurationProperties.AWS_S3_BUCKET_NAME);
         String awsBucketRegion = ConfigurationContext.getProperty(ConfigurationProperties.AWS_REGION_NAME);
 
-        String outputPropertyFilePath = Paths.get(
-                ConfigurationContext.getProperty(ConfigurationProperties.AWS_S3_ARTIFACTS_DIR),
-                TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
-                testPlanDirName, DataBucketsHelper.DATA_BUCKET_OUTPUT_DIR_NAME,
+        String outputPropertyFilePath = Paths.get(s3DatabucketDir,
                 TestGridConstants.TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE).toString();
         logger.info("Output property file path in S3 bucket is : " +
                 Paths.get(bucketKey, outputPropertyFilePath).toString());
