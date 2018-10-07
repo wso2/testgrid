@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
@@ -88,7 +87,6 @@ import static org.wso2.testgrid.web.utils.Constants.RESPONSE_HEADER_VALUE_ATTACH
 public class TestPlanService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
-    private static final String AWS_BUCKET_ARTIFACT_DIR = "artifacts";
     private JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
     private JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
 
@@ -173,14 +171,12 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
             String logFileDir = S3StorageUtil.getS3LocationForTestRunLogFile(testPlan, truncate);
-            String bucketKey = Paths
-                    .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
             // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
                     getProperty(ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
-            return Response.status(Response.Status.OK).entity(artifactDownloadable.getArtifactStream(bucketKey))
+            return Response.status(Response.Status.OK).entity(artifactDownloadable.getArtifactStream(logFileDir))
                     .build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlan by id : '" + id + "' ";
@@ -224,14 +220,12 @@ public class TestPlanService {
             TestPlan testPlan = optionalTestPlan.get();
 
             String logFileDir = S3StorageUtil.getS3LocationForTestRunLogFile(testPlan, true);
-            String bucketKey = Paths
-                    .get(AWS_BUCKET_ARTIFACT_DIR, logFileDir).toString();
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
             // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
                     getProperty(ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
-            if (artifactDownloadable.isArtifactExist(bucketKey)) {
+            if (artifactDownloadable.isArtifactExist(logFileDir)) {
                 return Response.status(Response.Status.OK).entity("The artifact exists in the remote storage").build();
             }
             return Response.status(Response.Status.NOT_FOUND).
@@ -496,20 +490,14 @@ public class TestPlanService {
                         .entity("Couldn't found a TestPlan for the requested id").build();
             }
             TestPlan testPlan = testPlanOptional.get();
-            String testPlanDir = TestGridUtil.deriveTestPlanDirName(testPlan);
-            String productName = testPlan.getDeploymentPattern().getProduct().getName();
-            archiveFileDir = Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName,
-                    TestGridConstants.TESTGRID_BUILDS_DIR, testPlanDir, scenarioDir,
-                    scenarioDir + TESTGRID_COMPRESSED_FILE_EXT).toString();
-            String bucketKey = Paths
-                    .get(AWS_BUCKET_ARTIFACT_DIR, archiveFileDir).toString();
+            archiveFileDir = S3StorageUtil.deriveS3ScenarioArchiveFileDir(testPlan, scenarioDir);
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
 
-            if (artifactDownloadable.isArtifactExist(bucketKey)) {
+            if (artifactDownloadable.isArtifactExist(archiveFileDir)) {
                 return Response
-                        .ok(artifactDownloadable.getArtifactStream(bucketKey))
+                        .ok(artifactDownloadable.getArtifactStream(archiveFileDir))
                         .type(RESPONSE_HEADER_VALUE_APPLICATION_ZIP)
                         .header(RESPONSE_HEADER_CONTENT_DISPOSITION, RESPONSE_HEADER_VALUE_ATTACHMENT + "; " +
                                 RESPONSE_HEADER_FILE_NAME + "=\" " + scenarioDir +

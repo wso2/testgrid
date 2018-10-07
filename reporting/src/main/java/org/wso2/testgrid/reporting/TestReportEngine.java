@@ -835,8 +835,6 @@ public class TestReportEngine {
                 if (testPlanById.isPresent()) {
                     TestPlan mergedTestPlan = TestGridUtil.mergeTestPlans(testPlanYaml, testPlanById.get(), false);
                     mergedTestPlan.setWorkspace(workspace);
-                    logger.info("Derived test plan dir in email phase : " +
-                            TestGridUtil.deriveTestPlanDirName(mergedTestPlan));
                     testPlans.add(mergedTestPlan);
                 } else {
                     logger.error(String.format(
@@ -965,8 +963,6 @@ public class TestReportEngine {
             for (String testPlanId : testPlanIds) {
                 Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanId);
                 if (testPlanById.isPresent()) {
-                    logger.info("Derived test plan dir in email phase : " + TestGridUtil
-                            .deriveTestPlanDirName(testPlanById.get()));
                     testPlanById.get().setWorkspace(workspace);
                     testPlans.add(testPlanById.get());
                 } else {

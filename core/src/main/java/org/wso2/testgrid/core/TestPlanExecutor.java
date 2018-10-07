@@ -162,8 +162,6 @@ public class TestPlanExecutor {
                     "hence skipping the step and continuing the test plan lifecycle. ", e);
         }
         // Test plan completed. Persist the testplan status
-        logger.info("Derived testplan path in RunTestPlan phase : "
-                + TestGridUtil.deriveTestPlanDirName(testPlan));
         persistTestPlanStatus(testPlan);
 
         //cleanup
