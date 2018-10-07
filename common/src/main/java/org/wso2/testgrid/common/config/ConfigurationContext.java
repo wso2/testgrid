@@ -111,6 +111,11 @@ public class ConfigurationContext {
         AWS_S3_BUCKET_NAME("AWS_S3_BUCKET_NAME"),
 
         /**
+         * AWS S3 artifacts directory used to upload testplan artifacts
+         */
+        AWS_S3_ARTIFACTS_DIR("AWS_S3_ARTIFACTS_DIR"),
+
+        /**
          * WUM Username of TestGrid deployment
          */
         WUM_USERNAME("WUM_USERNAME"),
@@ -194,10 +199,6 @@ public class ConfigurationContext {
          * Password of trustore key file
          */
         TRUSTSTORE_PASSWORD("TRUSTSTORE_PASSWORD");
-
-
-
-
 
         private String propertyName;
 

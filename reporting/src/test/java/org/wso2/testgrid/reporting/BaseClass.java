@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -71,7 +72,7 @@ import static org.mockito.Mockito.when;
 /**
  * Base test class for reporting module.
  */
-public class BaseClass {
+public class BaseClass extends PowerMockTestCase {
 
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final Logger logger = LoggerFactory.getLogger(BaseClass.class);
