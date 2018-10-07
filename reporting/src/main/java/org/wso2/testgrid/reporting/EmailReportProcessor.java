@@ -19,16 +19,22 @@
 
 package org.wso2.testgrid.reporting;
 
+import com.amazonaws.auth.PropertiesFileCredentialsProvider;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.S3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.config.PropertyFileReader;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
-import org.wso2.testgrid.common.util.DataBucketsHelper;
+import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
@@ -39,12 +45,17 @@ import org.wso2.testgrid.reporting.summary.InfrastructureSummaryReporter;
 import org.wso2.testgrid.reporting.surefire.SurefireReporter;
 import org.wso2.testgrid.reporting.surefire.TestResult;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -180,17 +191,16 @@ public class EmailReportProcessor {
         //All the test-plans are executed from the same git revision. Thus git build details are similar across them.
         //Therefore we refer the fist test-plan's git-build details.
         TestPlan testPlan = testPlans.get(0);
-        String outputPropertyFilePath;
-        outputPropertyFilePath =
-                DataBucketsHelper.getInputLocation(testPlan).toAbsolutePath().toString();
-        PropertyFileReader propertyFileReader = new PropertyFileReader();
-        logger.info("Output property file path is : " + outputPropertyFilePath);
-        String gitRevision = propertyFileReader.
-                getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION, outputPropertyFilePath)
-                .orElse("");
-        String gitLocation = propertyFileReader.
-                getProperty(PropertyFileReader.BuildOutputProperties.GIT_LOCATION, outputPropertyFilePath)
-                .orElse("");
+        String gitRevision = "";
+        String gitLocation = "";
+
+        Properties properties = getOutputPropertiesFile(testPlan);
+
+        if (!properties.isEmpty()) {
+            gitRevision = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION.toString());
+            gitLocation = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_LOCATION.toString());
+        }
+
         if (gitLocation.isEmpty()) {
             logger.error("Git location received as null/empty for test plan with id " + testPlan.getId());
             stringBuilder.append("Git location: Unknown!");
@@ -276,5 +286,39 @@ public class EmailReportProcessor {
             }
         }
         return erroneousInfraMap;
+    }
+
+    /**
+     * Returns the Properties in output.properties located in AWS S3 bucket.
+     *
+     * @param testPlan test plan to read the outputs from
+     * @return Properties in output.properties
+     * @throws IOException if exception occurs when loading properties
+     */
+    private Properties getOutputPropertiesFile (TestPlan testPlan) {
+        String s3DatabucketDir = S3StorageUtil.deriveS3DatabucketDir(testPlan);
+        Path configFilePath = TestGridUtil.getConfigFilePath();
+        String bucketKey = ConfigurationContext.getProperty(ConfigurationProperties.AWS_S3_BUCKET_NAME);
+        String awsBucketRegion = ConfigurationContext.getProperty(ConfigurationProperties.AWS_REGION_NAME);
+
+        String outputPropertyFilePath = Paths.get(s3DatabucketDir,
+                TestGridConstants.TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE).toString();
+        logger.info("Output property file path in S3 bucket is : " +
+                Paths.get(bucketKey, outputPropertyFilePath).toString());
+
+        AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                .withRegion(awsBucketRegion)
+                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                .build();
+        S3Object s3object = s3Client.getObject(bucketKey, outputPropertyFilePath);
+        Properties properties = new Properties();
+
+        try (InputStreamReader inputStreamReader = new InputStreamReader(
+                s3object.getObjectContent(), StandardCharsets.UTF_8)) {
+            properties.load(inputStreamReader);
+        } catch (IOException e) {
+            logger.error("Error while reading properties from output.properties.", e);
+        }
+        return properties;
     }
 }
