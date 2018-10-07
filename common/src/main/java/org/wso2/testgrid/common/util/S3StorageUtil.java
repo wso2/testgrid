@@ -3,10 +3,10 @@ package org.wso2.testgrid.common.util;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
+import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT;
 
 import java.nio.file.Paths;
 
-import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT;
 
 /**
  * This Util class holds the utility methods used to manage TestGrid S3 storage.
@@ -14,8 +14,6 @@ import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_COMPRESSED_FIL
  * @since 1.0.0
  */
 public final class S3StorageUtil {
-
-    private static final String AWS_BUCKET_ARTIFACT_DIR = "artifacts";
 
     /**
      * Returns the path of the test-run log file in S3 bucket.
@@ -56,7 +54,9 @@ public final class S3StorageUtil {
      */
     public static String deriveS3TestPlanDirPath(TestPlan testPlan) {
         String productName = testPlan.getDeploymentPattern().getProduct().getName();
-        return Paths.get(AWS_BUCKET_ARTIFACT_DIR, TestGridConstants.TESTGRID_JOB_DIR, productName,
+        String artifactsDir = ConfigurationContext.
+                getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_ARTIFACTS_DIR);
+        return Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName,
                 TestGridConstants.TESTGRID_BUILDS_DIR, testPlan.getId()).toString();
     }
 
@@ -65,11 +65,21 @@ public final class S3StorageUtil {
      *
      * @param testPlan test-plan
      * @param scenarioDir name of the scenario
-     *
      * @return archive-file directory name.
      */
     public static String deriveS3ScenarioArchiveFileDir(TestPlan testPlan, String scenarioDir) {
         return Paths.get(deriveS3TestPlanDirPath(testPlan), scenarioDir,
                 scenarioDir + TESTGRID_COMPRESSED_FILE_EXT).toString();
+    }
+
+    /**
+     * Returns the databucket directory path in S3 for a test-plan.
+     *
+     * @param testPlan test-plan
+     * @return archive-file directory name.
+     */
+    public static String deriveS3DatabucketDir(TestPlan testPlan) {
+        return Paths.get(deriveS3TestPlanDirPath(testPlan),
+                DataBucketsHelper.DATA_BUCKET_OUTPUT_DIR_NAME).toString();
     }
 }
