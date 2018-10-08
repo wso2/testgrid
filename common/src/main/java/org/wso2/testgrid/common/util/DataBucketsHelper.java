@@ -20,7 +20,6 @@ package org.wso2.testgrid.common.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 
 import java.io.IOException;
@@ -99,9 +98,7 @@ public class DataBucketsHelper {
      * @return Get the build outputs dir
      */
     public static Path getBuildOutputsDir(TestPlan testPlan) {
-        String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
-        return Paths.get(testPlan.getWorkspace(), TestGridConstants
-                .TESTGRID_BUILDS_DIR, testPlanDirName);
+        return Paths.get(testPlan.getWorkspace());
     }
 
     /**
