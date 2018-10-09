@@ -18,8 +18,10 @@
 
 package org.wso2.testgrid.common.util;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +41,7 @@ import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,10 +51,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.DEFAULT_TESTGRID_HOME;
@@ -68,6 +74,7 @@ import static org.wso2.testgrid.common.config.InfrastructureConfig.Infrastructur
 public final class TestGridUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(TestGridUtil.class);
+    private static final String UNDERSCORE = "_";
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
 
     /**
@@ -144,6 +151,38 @@ public final class TestGridUtil {
             return null;
         }
     }
+
+    /**
+     * Returns a UUID specific to the infra parameters.
+     *
+     * @param infraParams infra parameters to get the UUID
+     * @return UUID specific to the infra parameters
+     */
+    @Deprecated
+    private static String getInfraParamUUID(String infraParams) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> sortedMap = new TreeMap<>();
+
+            // Get sorted map from the JSON object string
+            Map<String, Object> infraParamMap = mapper
+                    .readValue(infraParams, new TypeReference<Map<String, String>>() {
+                    });
+
+            // Copy values to the tree map to get the values sorted
+            infraParamMap.forEach(sortedMap::put);
+            String stringToConvertToUUID = sortedMap.toString().toLowerCase(Locale.ENGLISH);
+            return UUID.nameUUIDFromBytes(stringToConvertToUUID.getBytes(Charset.defaultCharset())).toString();
+        } catch (JsonParseException e) {
+            throw new IllegalStateException(StringUtil.concatStrings("Error in parsing JSON ", infraParams), e);
+        } catch (JsonMappingException e) {
+            throw new IllegalStateException(StringUtil.concatStrings("Error in mapping JSON ", infraParams), e);
+        } catch (IOException e) {
+            throw new IllegalStateException(StringUtil.concatStrings("IO Exception when trying to map JSON ",
+                    infraParams), e);
+        }
+    }
+
 
     /**
      * This method builds and returns the parameter string from given properties.
@@ -397,6 +436,22 @@ public final class TestGridUtil {
                     concatStrings("Error in generating testplan-id when parsing JSON ",
                     testPlan.getInfrastructureConfig().getParameters().toString()), e);
         }
+    }
+
+    /**
+     * Returns the test-plan directory name based on the test-plan content.
+     *
+     * @param testPlan test-plan
+     * @return test-plan directory name.
+     */
+    @Deprecated
+    public static String deriveTestPlanDirName(TestPlan testPlan) {
+        DeploymentPattern deploymentPattern = testPlan.getDeploymentPattern();
+        int testRunNumber = testPlan.getTestRunNumber();
+        String deploymentDir = deploymentPattern.getName();
+        String infraDir = getInfraParamUUID(testPlan.getInfraParameters());
+
+        return StringUtil.concatStrings(deploymentDir, UNDERSCORE, infraDir, UNDERSCORE, String.valueOf(testRunNumber));
     }
 
     /**

@@ -3,6 +3,8 @@ package org.wso2.testgrid.common.util;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.plugins.ArtifactReadable;
+
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT;
 
 import java.nio.file.Paths;
@@ -25,8 +27,9 @@ public final class S3StorageUtil {
      * @param truncated whether the truncated log or the raw log file
      * @return log file path
      */
-    public static String getS3LocationForTestRunLogFile(TestPlan testPlan, Boolean truncated) {
-        String testPlanDirPath = deriveS3TestPlanDirPath(testPlan);
+    public static String getS3LocationForTestRunLogFile(
+            TestPlan testPlan, Boolean truncated, ArtifactReadable awsArtifactReader) {
+        String testPlanDirPath = deriveS3TestPlanDirPath(testPlan, awsArtifactReader);
         String fileName = truncated ?
                 TestGridConstants.TRUNCATED_TESTRUN_LOG_FILE_NAME : TestGridConstants.TESTRUN_LOG_FILE_NAME;
         return Paths.get(testPlanDirPath, fileName).toString();
@@ -53,12 +56,18 @@ public final class S3StorageUtil {
      * @param testPlan test-plan
      * @return test-plan directory name.
      */
-    public static String deriveS3TestPlanDirPath(TestPlan testPlan) {
+    private static String deriveS3TestPlanDirPath(TestPlan testPlan, ArtifactReadable awsArtifactReader) {
         String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String artifactsDir = ConfigurationContext.
                 getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_ARTIFACTS_DIR);
-        return Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName, TESTGRID_BUILDS_DIR,
-                testPlan.getId()).toString();
+        String testPlanDirPath =  Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName,
+                TESTGRID_BUILDS_DIR, testPlan.getId()).toString();
+        if (!awsArtifactReader.isArtifactExist(testPlanDirPath)) {
+            String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
+            testPlanDirPath = Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName,
+                    TESTGRID_BUILDS_DIR, testPlanDirName).toString();
+        }
+        return testPlanDirPath;
     }
 
     /**
@@ -68,8 +77,9 @@ public final class S3StorageUtil {
      * @param scenarioDir name of the scenario
      * @return archive-file directory name.
      */
-    public static String deriveS3ScenarioArchiveFileDir(TestPlan testPlan, String scenarioDir) {
-        return Paths.get(deriveS3TestPlanDirPath(testPlan), scenarioDir,
+    public static String deriveS3ScenarioArchiveFileDir(
+            TestPlan testPlan, String scenarioDir, ArtifactReadable awsArtifactReader) {
+        return Paths.get(deriveS3TestPlanDirPath(testPlan, awsArtifactReader), scenarioDir,
                 scenarioDir + TESTGRID_COMPRESSED_FILE_EXT).toString();
     }
 
@@ -79,8 +89,20 @@ public final class S3StorageUtil {
      * @param testPlan test-plan
      * @return archive-file directory name.
      */
-    public static String deriveS3DatabucketDir(TestPlan testPlan) {
-        return Paths.get(deriveS3TestPlanDirPath(testPlan),
+    private static String deriveS3DatabucketDir(TestPlan testPlan, ArtifactReadable awsArtifactReader) {
+        return Paths.get(deriveS3TestPlanDirPath(testPlan, awsArtifactReader),
                 DataBucketsHelper.DATA_BUCKET_OUTPUT_DIR_NAME).toString();
+    }
+
+    /**
+     * Returns the path to output.properties generated during scenario execution.
+     *
+     * @param testPlan test plan to get outputs of
+     * @param artifactReadable AWSArtifactReadable
+     * @return scenario output filepath in S3
+     */
+    public static String deriveS3ScenarioOutputsFilePath(TestPlan testPlan, ArtifactReadable artifactReadable) {
+        return Paths.get(deriveS3DatabucketDir(testPlan, artifactReadable),
+                TestGridConstants.TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE).toString();
     }
 }

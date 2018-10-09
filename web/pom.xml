@@ -84,12 +84,6 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- Plugin dependencies -->
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk</artifactId>
-        </dependency>
-
         <!-- Other dependencies -->
         <dependency>
             <groupId>commons-io</groupId>
