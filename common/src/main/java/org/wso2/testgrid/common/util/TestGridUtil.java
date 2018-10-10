@@ -300,7 +300,7 @@ public final class TestGridUtil {
      * @return log file path
      */
     public static String deriveTestGridLogFilePath(String productName, String logFileName) {
-        return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName, TestGridConstants.TESTGRID_BUILDS_DIR,
+        return Paths.get(TestGridConstants.TESTGRID_JOB_DIR, productName,
                 logFileName).toString();
     }
 
@@ -318,8 +318,7 @@ public final class TestGridUtil {
     }
 
     public static Path getTestScenarioArtifactPath(TestScenario testScenario) {
-        return Paths.get(testScenario.getTestPlan().getWorkspace(),
-                TestGridConstants.TESTGRID_BUILDS_DIR, testScenario.getDir());
+        return Paths.get(testScenario.getTestPlan().getWorkspace(), testScenario.getDir());
     }
 
     /**
