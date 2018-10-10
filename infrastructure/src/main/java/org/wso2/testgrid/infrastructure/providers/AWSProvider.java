@@ -90,7 +90,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String CUSTOM_USER_DATA = "CustomUserData";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     private AWSResourceManager awsResourceManager;
-    private static final int TIMEOUT = 30;
+    private static final int TIMEOUT = 60;
     private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
     private static final int POLL_INTERVAL = 1;
     private static final TimeUnit POLL_UNIT = TimeUnit.MINUTES;

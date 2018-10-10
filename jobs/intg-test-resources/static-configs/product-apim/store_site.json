@@ -1,0 +1,67 @@
+{
+  "theme": {
+    "base": "wso2"
+  },
+  "context": "/store",
+  "showPublicStoreURL": true,
+  "showThemesMenu": false,
+  "tagWiseMode": "false",
+  "tagGroupKey": "-group",
+  "ssoConfiguration": {
+    "enabled": "false",
+    "issuer": "API_STORE",
+    "identityProviderURL": "https://localhost:9443/samlsso",
+    "keyStorePassword": "",
+    "identityAlias": "",
+    "responseSigningEnabled": "true",
+    "assertionSigningEnabled": "true",
+    "verifyAssertionValidityPeriod": "true",
+    "timestampSkewInSeconds": "300",
+    "audienceRestrictionsEnabled": "true",
+    "keyStoreName": "",
+    "passive": "true",
+    "signRequests": "true",
+    "assertionEncryptionEnabled": "false",
+    "idpInit": "false",
+    "idpInitSSOURL": "https://localhost:9443/samlsso?spEntityID=API_STORE",
+    "loginUserNameAttribute": ""
+  },
+  "oidcConfiguration": {
+    "enabled": "false",
+    "issuer": "API_STORE",
+    "identityProviderURI": "http://localhost:8080/openid-connect-server-webapp/",
+    "authorizationEndpointURI": "http://localhost:8080/openid-connect-server-webapp/authorize",
+    "tokenEndpointURI": "http://localhost:8080/openid-connect-server-webapp/token",
+    "userInfoURI": "http://localhost:8080/openid-connect-server-webapp/userinfo",
+    "jwksURI": "http://localhost:8080/openid-connect-server-webapp/jwk",
+    "logoutEndpointURI": "http://localhost:8080/openid-connect-server-webapp/logout",
+    "authHttpMethod": "POST",
+    "clientConfiguration": {
+      "clientId": "client_am_store",
+      "clientSecret": "secret",
+      "responseType": "code",
+      "authorizationType": "authorization_code",
+      "scope": "phone email address openid profile",
+      "redirectURI": "https://localhost:9443/store/jagg/jaggery_oidc_acs.jag",
+      "postLogoutRedirectURI": "https://localhost:9443/store/",
+      "clientAlgorithm": "RS256"
+    }
+  },
+  "mutualAuthConfiguration": {
+    "enabled": "false"
+  },
+  "forum": {
+    "topicsPerPage": "5",
+    "repliesPerPage": "5",
+    "resourceIdentifier": "common"
+  },
+  "reverseProxy": {
+    "enabled": true,
+    "host": "localhost",
+    "context": "/store"
+  },
+  "mapExistingAuthApps": false,
+  "whiteListedHostNames": [
+    "localhost"
+  ]
+}
