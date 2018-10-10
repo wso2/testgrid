@@ -128,8 +128,7 @@ public class TestPlanExecutor {
                 testPlan);
         //setup product performance dashboard
         if (infrastructureProvisionResult.isSuccess()) {
-            DashboardSetup dashboardSetup = new DashboardSetup(testPlan.getId(),
-                    testPlan.getDeploymentPattern().getProduct().getName());
+            DashboardSetup dashboardSetup = new DashboardSetup(testPlan.getId());
             dashboardSetup.initDashboard();
         }
 

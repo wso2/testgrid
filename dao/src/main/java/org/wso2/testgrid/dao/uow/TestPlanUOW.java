@@ -173,6 +173,16 @@ public class TestPlanUOW {
     }
 
     /**
+     * Returns a list of testplans that needed to be deleted
+     * @param productName job name
+     * @param count number of datasource that need to be saved in each infra combination
+     * @return list of testplans
+     */
+    public List<String> getDeletingDataSources(String productName, int count) {
+        return testPlanRepository.getDeletingDataSources(productName, count);
+    }
+
+    /**
      * Returns the test plans older than a specified period of time.
      * This will be used to resolve the statuses of testplans with erroneous statuses.
      *
