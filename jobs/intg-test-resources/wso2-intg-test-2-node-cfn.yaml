@@ -1,0 +1,1006 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS CloudFormation Template for 2 node setup with a RDS
+Parameters:
+  AMI:
+    Type: String
+    Default: ami-034145fc693ca7b20
+    Description: AMI of the region.
+  DBEngine:
+    Type: String
+    Default: mysql
+    Description: Database Engine
+    AllowedValues:
+      - mysql
+      - postgres
+      - mariadb
+      - sqlserver-ex
+      - sqlserver-ee
+      - sqlserver-se
+      - sqlserver-web
+      - oracle-se
+      - oracle-se2
+      - oracle-ee
+      - oracle-se1
+  DBEngineVersion:
+    Type: String
+    Default: 5.7
+    Description: Database Engine version
+    MinLength: 1
+  DBUsername:
+    Type: String
+    Default: wso2carbon
+    Description: Database master account username
+    MinLength: 1
+    MaxLength: 20
+    ConstraintDescription: 'minimum - 1, maximum - 20 characters'
+  DBPassword:
+    Type: String
+    Default: DB_Password
+    NoEcho: true
+    Description: Database master account password
+    MinLength: 6
+    ConstraintDescription: minimum - 6 characters
+  DBClass:
+    Default: db.t2.micro
+    Description: Database instance class
+    Type: String
+    AllowedValues:
+      - db.t2.micro
+      - db.t2.small
+      - db.t2.medium
+      - db.t2.large
+      - db.t2.xlarge
+      - db.t2.2xlarge
+      - db.m4.large
+      - db.m4.xlarge
+      - db.m4.2xlarge
+    ConstraintDescription: must be a valid database instance type
+  DBAllocatedStorage:
+    Default: 20
+    Description: Size of the database (GB)
+    Type: Number
+    MinValue: 20
+    MaxValue: 6144
+    ConstraintDescription: 'minimum - 20 GB, maximum - 6144 GB'
+  EC2KeyPair:
+    Default: testgrid-key
+    Description: >-
+      This is used to ssh to the node. If you don't have a key, please create
+      one from AWS console and rerun the script
+    Type: 'AWS::EC2::KeyPair::KeyName'
+  ALBCertificateARN:
+    Type: String
+    Default: arn:aws:acm:us-east-1:809489900555:certificate/9e4b800c-d5b6-4669-a4b2-30900c16d615
+    Description: >-
+      Enter the ARN value of the certificate uploaded to ACM for Application
+      Load Balancers
+  WSO2InstanceType:
+    Description: 'EC2 instance type of the WSO2 EI Node [t2.micro is the free tier]'
+    Type: String
+    Default: m3.xlarge
+    AllowedValues:
+      - t2.nano
+      - t1.micro
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t2.xlarge
+      - t2.2xlarge
+      - m3.medium
+      - m3.large
+      - m3.xlarge
+      - m3.2xlarge
+      - m4.large
+    ConstraintDescription: must be a valid EC2 instance type
+  WUMUsername:
+    Type: String
+    Default: testgridwum@wso2.com
+    Description: Enter WUM user name
+  WUMPassword:
+    Type: String
+    Default: eeeeeee
+    NoEcho: true
+    Description: >-
+      Enter WUM user password to get the updated WSO2 products deployed. If not
+      provided standard released pack will be deployed
+  ProductName:
+    Type: String
+    Default: wso2apim
+    Description: Enter product name
+  ProductVersion:
+    Type: String
+    Default: 2.5.0
+    Description: Enter product version
+  OS:
+    Type: String
+    Default: CentOS
+    Description: >-
+      Enter target OS. This will be the username of the created EC2 instances as
+      well.
+  OSVersion:
+    Type: String
+    Default: '7.4'
+    Description: Enter target OS version.
+  JDK:
+    Type: String
+    Default: ORACLE_JDK8
+    Description: Enter target JDK version.
+    AllowedValues:
+      - OPEN_JDK8
+      - ORACLE_JDK8
+  TestMode:
+    Type: String
+    Default: RELEASE
+    Description: Enter the preferred TestMode.
+    AllowedValues:
+      - DEBUG
+      - WUM
+      - SNAPSHOT
+      - RELEASE
+  OSVersion:
+    Type: String
+    Default: '7.4'
+    Description: Enter target OS version.
+  Offset:
+    Type: Number
+    Default: 0
+    Description: Enter the port offset of products
+  ProductGITBranch:
+    Type: String
+    Default: '2.x'
+    Description: Enter product GIT branch.
+  ProductGITURL:
+    Type: String
+    Default: 'https://github.com/wso2/product-apim'
+    Description: Enter product GIT URL.
+  LatestProductBuildArtifactsAPI:
+    Type: String
+    Default: 'https://wso2.org/jenkins/job/products/job/product-apim_2.x/lastStableBuild/mavenArtifacts/api/'
+    Description: Enter Latest Product Build Artifacts API.
+  LatestProductReleaseAPI:
+    Type: String
+    Default: 'https://wso2.org/jenkins/job/products/job/product-apim_2.x/lastRelease/api/'
+    Description: Enter Latest Product Release API.
+  CustomUserData:
+    Type: String
+    Default: "echo"
+    Description: Enter custome user data scripts here.
+Mappings:
+  DB2Licence:
+    mysql:
+      license: general-public-license
+    postgres:
+      license: postgresql-license
+    mariadb:
+      license: general-public-license
+    sqlserver-ex:
+      license: license-included
+    sqlserver-ee:
+      license: license-included
+    sqlserver-se:
+      license: license-included
+    sqlserver-web:
+      license: license-included
+    oracle-se:
+      license: license-included
+    oracle-se2:
+      license: license-included
+    oracle-ee:
+      license: license-included
+    oracle-se1:
+      license: license-included
+#Conditions
+Conditions:
+ IsWindows: !Equals [ !Ref OS, "Windows" ]
+ IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "UBUNTU" ]]
+
+################################
+# Create AWS resources
+################################
+Resources:
+  ##############################
+  # Create VPC and subnets
+  ##############################
+  WSO2EnvVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      InstanceTenancy: default
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+  WSO2EnvPrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select
+        - '0'
+        - !GetAZs ''
+      VpcId: !Ref WSO2EnvVPC
+  WSO2EnvPublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.254.0/24
+      AvailabilityZone: !Select
+        - '0'
+        - !GetAZs ''
+      VpcId: !Ref WSO2EnvVPC
+  WSO2EnvPublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.252.0/24
+      AvailabilityZone: !Select
+        - '1'
+        - !GetAZs ''
+      VpcId: !Ref WSO2EnvVPC
+  WSO2EnvInternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties: {}
+  WSO2EnvDHCPOptions:
+    Type: 'AWS::EC2::DHCPOptions'
+    Properties:
+      DomainNameServers:
+        - AmazonProvidedDNS
+  WSO2EnvNetworkAcl:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId: !Ref WSO2EnvVPC
+  WSO2EnvPublicRouteTable1:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref WSO2EnvVPC
+  WSO2EnvRouteTable2:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref WSO2EnvVPC
+
+  ################################
+  # Create network configurations
+  ################################
+  WSO2EnvNATGateway:
+    DependsOn: gw1
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt WSO2EnvEIP1.AllocationId
+      SubnetId: !Ref WSO2EnvPublicSubnet1
+  acl1:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: 'true'
+      Protocol: '-1'
+      RuleAction: allow
+      RuleNumber: '100'
+      NetworkAclId: !Ref WSO2EnvNetworkAcl
+  acl2:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Protocol: '-1'
+      RuleAction: allow
+      RuleNumber: '100'
+      NetworkAclId: !Ref WSO2EnvNetworkAcl
+  subnetacl1:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      NetworkAclId: !Ref WSO2EnvNetworkAcl
+      SubnetId: !Ref WSO2EnvPrivateSubnet1
+  subnetacl2:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      NetworkAclId: !Ref WSO2EnvNetworkAcl
+      SubnetId: !Ref WSO2EnvPublicSubnet1
+  subnetacl3:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      NetworkAclId: !Ref WSO2EnvNetworkAcl
+      SubnetId: !Ref WSO2EnvPublicSubnet2
+  gw1:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref WSO2EnvVPC
+      InternetGatewayId: !Ref WSO2EnvInternetGateway
+  subnetroute1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref WSO2EnvPublicRouteTable1
+      SubnetId: !Ref WSO2EnvPublicSubnet1
+  subnetroute2:
+      Type: 'AWS::EC2::SubnetRouteTableAssociation'
+      Properties:
+        RouteTableId: !Ref WSO2EnvPublicRouteTable1
+        SubnetId: !Ref WSO2EnvPublicSubnet2
+  subnetroute3:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref WSO2EnvRouteTable2
+      SubnetId: !Ref WSO2EnvPrivateSubnet1
+  route1:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref WSO2EnvPublicRouteTable1
+      GatewayId: !Ref WSO2EnvInternetGateway
+    DependsOn: gw1
+  route2:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref WSO2EnvRouteTable2
+      NatGatewayId: !Ref WSO2EnvNATGateway
+  dchpassoc1:
+    Type: 'AWS::EC2::VPCDHCPOptionsAssociation'
+    Properties:
+      VpcId: !Ref WSO2EnvVPC
+      DhcpOptionsId: !Ref WSO2EnvDHCPOptions
+
+  #########################
+  # Create EFS file system
+  #########################
+  WSO2EFSFileSystem:
+    Type: 'AWS::EFS::FileSystem'
+    Condition: 'IsUnix'
+    Properties:
+      PerformanceMode: generalPurpose
+  WSO2PrivateSubnet1EFSMountTarget:
+    Type: 'AWS::EFS::MountTarget'
+    Condition: 'IsUnix'
+    Properties:
+      SubnetId: !Ref WSO2EnvPrivateSubnet1
+      FileSystemId: !Ref WSO2EFSFileSystem
+      SecurityGroups:
+        - !Ref WSO2EFSSecurityGroup
+
+  #########################
+  # Create security groups
+  #########################
+# File system configurations
+  WSO2EFSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Condition: 'IsUnix'
+    Properties:
+      VpcId: !Ref WSO2EnvVPC
+      GroupDescription: EFS Security Group
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '2049'
+        ToPort: '2049'
+        CidrIp: 0.0.0.0/0
+
+  WSO2EnvInstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security group for EC2 compute instances
+      VpcId: !Ref WSO2EnvVPC
+      SecurityGroupIngress:
+      - IpProtocol: icmp
+        FromPort: 8
+        ToPort: -1
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 8140
+        ToPort: 8140
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 5701
+        ToPort: 5701
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 8111
+        ToPort: 8111
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 8211
+        ToPort: 8211
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 10111
+        ToPort: 10111
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 10211
+        ToPort: 10211
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 9943
+        ToPort: 9943
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 8743
+        ToPort: 8743
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 10263
+        ToPort: 10263
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 8780
+        ToPort: 8780
+        CidrIp: !GetAtt WSO2EnvVPC.CidrBlock
+      - IpProtocol: tcp
+        FromPort: 10263
+        ToPort: 10263
+        SourceSecurityGroupId: !Ref WSO2EnvLBSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 9943
+        ToPort: 9943
+        SourceSecurityGroupId: !Ref WSO2EnvLBSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 8780
+        ToPort: 8780
+        SourceSecurityGroupId: !Ref WSO2EnvLBSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 8743
+        ToPort: 8743
+        SourceSecurityGroupId: !Ref WSO2EnvLBSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 6172
+        ToPort: 6172
+        SourceSecurityGroupId: !Ref WSO2EnvLBSecurityGroup
+  WSO2EnvLBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security group for ALB
+      VpcId: !Ref WSO2EnvVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 8780
+        ToPort: 8780
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 8743
+        ToPort: 8743
+        CidrIp: 0.0.0.0/0
+  WSO2EnvDBSecurityGroup:
+      Type: 'AWS::EC2::SecurityGroup'
+      Properties:
+        GroupDescription: Security group for RDS
+        VpcId: !Ref WSO2EnvVPC
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref WSO2EnvInstanceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref WSO2EnvInstanceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 1433
+          ToPort: 1433
+          SourceSecurityGroupId: !Ref WSO2EnvInstanceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 1521
+          ToPort: 1521
+          SourceSecurityGroupId: !Ref WSO2EnvInstanceSecurityGroup
+
+  ###########################
+  # Create Elastic IPs
+  ###########################
+  WSO2EnvEIP1:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+
+#Other
+  WSO2UnixInstance1:
+    Type: 'AWS::EC2::Instance'
+    Condition: 'IsUnix'
+    DependsOn:
+      - WSO2DBInstance
+      - WSO2EnvApplicationLoadBalancer
+    Properties:
+      DisableApiTermination: 'false'
+      InstanceInitiatedShutdownBehavior: stop
+      ImageId: !Ref AMI
+      InstanceType: !Ref WSO2InstanceType
+      KeyName: !Ref EC2KeyPair
+      Monitoring: 'false'
+      "BlockDeviceMappings" : [
+           {
+              "DeviceName" : "/dev/sda1",
+              "Ebs" : { "VolumeSize" : "15" }
+           },
+      ]
+      UserData: !Base64
+        'Fn::Sub': |
+          #cloud-boothook
+          #!/bin/bash
+          set -e
+          set -o xtrace
+
+          setup_java_env() {
+          source /etc/environment
+          echo JDK_PARAM=${JDK} >> /opt/wso2/java.txt
+          REQUESTED_JDK_PRESENT=$(grep "^${JDK}=" /etc/environment | wc -l)
+          if [ $REQUESTED_JDK_PRESENT = 0 ]; then
+          printf "The requested JDK, ${JDK}, not found in /etc/environment: \n $(cat /etc/environment)."
+          exit 1; // todo: inform via cfn-signal
+          fi
+            JAVA_HOME=$(grep "^${JDK}=" /etc/environment | head -1 | sed "s:${JDK}=\(.*\):\1:g" | sed 's:"::g')
+
+           echo ">> Setting up JAVA_HOME ..."
+            JAVA_HOME_EXISTS=$(grep -r "JAVA_HOME=" /etc/environment | wc -l  )
+            if [ $JAVA_HOME_EXISTS = 0 ]; then
+              echo ">> Adding JAVA_HOME entry."
+              echo JAVA_HOME=$JAVA_HOME >> /etc/environment
+            else
+              echo ">> Updating JAVA_HOME entry."
+              sed -i "/JAVA_HOME=/c\JAVA_HOME=$JAVA_HOME" /etc/environment
+          fi
+            source /etc/environment
+            echo "export JAVA_HOME=$JAVA_HOME" >> /etc/profile
+                      source /etc/profile
+            }
+
+          mkdir -p /opt/wso2/workspace
+          #TODO: We need to figure out the default user in the system.
+          #So, provided permissions to all the users. Need to fix!
+          chmod 777 -R /opt/wso2/workspace
+          cd /opt/wso2/workspace
+
+          setup_java_env
+          source /etc/environment
+          cat /dev/null > ~/.bash_history && history -c
+          ${CustomUserData}
+
+          #Create a file with testplan properties & write outputs
+          echo "LBHost=${WSO2EnvApplicationLoadBalancer.DNSName}" >> testplan.properties
+          echo "OS=${OS}" >> testplan.properties
+          echo "OSVersion=${OSVersion}" >> testplan.properties
+          echo "JDK=${JDK}" >> testplan.properties
+          echo "DBEngine=${DBEngine}" >> testplan.properties
+          echo "DBHost=${WSO2DBInstance.Endpoint.Address}" >> testplan.properties
+          echo "DBPort=${WSO2DBInstance.Endpoint.Port}" >> testplan.properties
+          echo "DBUsername=${DBUsername}" >> testplan.properties
+          echo "DBPassword=${DBPassword}" >> testplan.properties
+          echo "DBEngineVersion=${DBEngineVersion}" >> testplan.properties
+          echo "WUMUsername=${WUMUsername}" >> testplan.properties
+          echo "WUMPassword=${WUMPassword}" >> testplan.properties
+          echo "ProductName=${ProductName}" >> testplan.properties
+          echo "ProductVersion=${ProductVersion}" >> testplan.properties
+          echo "TestMode=${TestMode}" >> testplan.properties
+          echo "ProductGITBranch=${ProductGITBranch}" >> testplan.properties
+          echo "ProductGITURL=${ProductGITURL}" >> testplan.properties
+          echo "LATEST_PRODUCT_BUILD_ARTIFACTS_API=${LatestProductBuildArtifactsAPI}" >> testplan.properties
+          echo "LATEST_PRODUCT_RELEASE_API=${LatestProductReleaseAPI}" >> testplan.properties
+          echo "NodeCount=2" >> testplan.properties
+          echo "NodeType=MASTER" >> testplan.properties
+          echo "Offset=${Offset}" >> testplan.properties
+
+          git clone --depth 1 https://github.com/harshanl/testgrid
+          cp -a testgrid/jobs/intg-test-resources/. .
+          cp -a scripts/. .
+          rm -r scripts/
+          mkdir -p /mnt/efs
+          mount -t nfs4 -o nfsvers=4.1 ${WSO2EFSFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt/efs
+          sh deploy.sh --wd /opt/wso2/workspace/
+      NetworkInterfaces:
+        - DeleteOnTermination: 'true'
+          Description: Primary network interface
+          DeviceIndex: 0
+          SubnetId: !Ref WSO2EnvPrivateSubnet1
+          PrivateIpAddress: 10.0.1.100
+          GroupSet:
+            - !Ref WSO2EnvInstanceSecurityGroup
+  WSO2UnixInstance2:
+    Type: 'AWS::EC2::Instance'
+    Condition: 'IsUnix'
+    CreationPolicy:
+      ResourceSignal:
+        Count: '1'
+        Timeout: PT15M
+    DependsOn:
+      - WSO2DBInstance
+      - WSO2EnvApplicationLoadBalancer
+    Properties:
+      DisableApiTermination: 'false'
+      InstanceInitiatedShutdownBehavior: stop
+      ImageId: !Ref AMI
+      InstanceType: !Ref WSO2InstanceType
+      KeyName: !Ref EC2KeyPair
+      Monitoring: 'false'
+      "BlockDeviceMappings" : [
+           {
+              "DeviceName" : "/dev/sda1",
+              "Ebs" : { "VolumeSize" : "15" }
+           },
+      ]
+      UserData: !Base64
+        'Fn::Sub': |
+                #cloud-boothook
+                #!/bin/bash
+                set -e
+                set -o xtrace
+
+                setup_java_env() {
+                source /etc/environment
+                echo JDK_PARAM=${JDK} >> /opt/wso2/java.txt
+                REQUESTED_JDK_PRESENT=$(grep "^${JDK}=" /etc/environment | wc -l)
+                if [ $REQUESTED_JDK_PRESENT = 0 ]; then
+                printf "The requested JDK, ${JDK}, not found in /etc/environment: \n $(cat /etc/environment)."
+                exit 1; // todo: inform via cfn-signal
+                fi
+                  JAVA_HOME=$(grep "^${JDK}=" /etc/environment | head -1 | sed "s:${JDK}=\(.*\):\1:g" | sed 's:"::g')
+
+                 echo ">> Setting up JAVA_HOME ..."
+                  JAVA_HOME_EXISTS=$(grep -r "JAVA_HOME=" /etc/environment | wc -l  )
+                  if [ $JAVA_HOME_EXISTS = 0 ]; then
+                    echo ">> Adding JAVA_HOME entry."
+                    echo JAVA_HOME=$JAVA_HOME >> /etc/environment
+                  else
+                    echo ">> Updating JAVA_HOME entry."
+                    sed -i "/JAVA_HOME=/c\JAVA_HOME=$JAVA_HOME" /etc/environment
+                fi
+                  source /etc/environment
+                  echo "export JAVA_HOME=$JAVA_HOME" >> /etc/profile
+                            source /etc/profile
+                  }
+
+                mkdir -p /opt/wso2/workspace
+                #TODO: We need to figure out the default user in the system.
+                #So, provided permissions to all the users. Need to fix!
+                chmod 777 -R /opt/wso2/workspace
+                cd /opt/wso2/workspace
+
+                setup_java_env
+                source /etc/environment
+                cat /dev/null > ~/.bash_history && history -c
+                ${CustomUserData}
+
+                #Create a file with testplan properties & write outputs
+                echo "LBHost=${WSO2EnvApplicationLoadBalancer.DNSName}" >> testplan.properties
+                echo "OS=${OS}" >> testplan.properties
+                echo "OSVersion=${OSVersion}" >> testplan.properties
+                echo "JDK=${JDK}" >> testplan.properties
+                echo "DBEngine=${DBEngine}" >> testplan.properties
+                echo "DBHost=${WSO2DBInstance.Endpoint.Address}" >> testplan.properties
+                echo "DBPort=${WSO2DBInstance.Endpoint.Port}" >> testplan.properties
+                echo "DBUsername=${DBUsername}" >> testplan.properties
+                echo "DBPassword=${DBPassword}" >> testplan.properties
+                echo "DBEngineVersion=${DBEngineVersion}" >> testplan.properties
+                echo "WUMUsername=${WUMUsername}" >> testplan.properties
+                echo "WUMPassword=${WUMPassword}" >> testplan.properties
+                echo "ProductName=${ProductName}" >> testplan.properties
+                echo "ProductVersion=${ProductVersion}" >> testplan.properties
+                echo "TestMode=${TestMode}" >> testplan.properties
+                echo "ProductGITBranch=${ProductGITBranch}" >> testplan.properties
+                echo "ProductGITURL=${ProductGITURL}" >> testplan.properties
+                echo "LATEST_PRODUCT_BUILD_ARTIFACTS_API=${LatestProductBuildArtifactsAPI}" >> testplan.properties
+                echo "LATEST_PRODUCT_RELEASE_API=${LatestProductReleaseAPI}" >> testplan.properties
+                echo "NodeCount=2" >> testplan.properties
+                echo "NodeType=SLAVE" >> testplan.properties
+                echo "Offset=${Offset}" >> testplan.properties
+
+                git clone --depth 1 https://github.com/harshanl/testgrid
+                cp -a testgrid/jobs/intg-test-resources/. .
+                cp -a scripts/. .
+                rm -r scripts/
+                mkdir -p /mnt/efs
+                mount -t nfs4 -o nfsvers=4.1 ${WSO2EFSFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt/efs
+                sh deploy.sh --wd /opt/wso2/workspace/
+                /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance2 --region ${AWS::Region}
+      NetworkInterfaces:
+        - DeleteOnTermination: 'true'
+          Description: Primary network interface
+          DeviceIndex: 0
+          SubnetId: !Ref WSO2EnvPrivateSubnet1
+          PrivateIpAddress: 10.0.1.110
+          GroupSet:
+            - !Ref WSO2EnvInstanceSecurityGroup
+  WSO2WindowsInstance1:
+    Type: 'AWS::EC2::Instance'
+    DependsOn:
+      - WSO2DBInstance
+      - WSO2EnvApplicationLoadBalancer
+    Condition: 'IsWindows'
+    Properties:
+      DisableApiTermination: 'false'
+      InstanceInitiatedShutdownBehavior: stop
+      ImageId: !Ref AMI
+      InstanceType: 'm3.2xlarge'
+      KeyName: !Ref EC2KeyPair
+      Monitoring: 'false'
+      "BlockDeviceMappings" : [
+         {
+            "DeviceName" : "/dev/sda1",
+            "Ebs" : { "VolumeSize" : "15" }
+         },
+      ]
+      UserData:
+        !Base64
+        'Fn::Sub': |
+          <script>
+          setx -m JAVA_HOME "%${JDK}%"
+          </script>
+          <persist>true</persist>
+      NetworkInterfaces:
+        - DeleteOnTermination: 'true'
+          Description: Primary network interface
+          DeviceIndex: 0
+          SubnetId: !Ref WSO2EnvPrivateSubnet1
+          PrivateIpAddress: 10.0.1.100
+          GroupSet:
+            - !Ref WSO2EnvInstanceSecurityGroup
+  WSO2WindowsInstance2:
+    Type: 'AWS::EC2::Instance'
+    DependsOn:
+      - WSO2EnvApplicationLoadBalancer
+      - WSO2DBInstance
+    Condition: 'IsWindows'
+    Properties:
+      DisableApiTermination: 'false'
+      InstanceInitiatedShutdownBehavior: stop
+      ImageId: !Ref AMI
+      InstanceType: 'm3.2xlarge'
+      KeyName: !Ref EC2KeyPair
+      Monitoring: 'false'
+      "BlockDeviceMappings" : [
+         {
+            "DeviceName" : "/dev/sda1",
+            "Ebs" : { "VolumeSize" : "15" }
+         },
+      ]
+      UserData:
+        !Base64
+        'Fn::Sub': |
+          <script>
+          setx -m JAVA_HOME "%${JDK}%"
+          </script>
+          <persist>true</persist>
+      NetworkInterfaces:
+        - DeleteOnTermination: 'true'
+          Description: Primary network interface
+          DeviceIndex: 0
+          SubnetId: !Ref WSO2EnvPrivateSubnet1
+          PrivateIpAddress: 10.0.1.110
+          GroupSet:
+            - !Ref WSO2EnvInstanceSecurityGroup
+  #######################
+  # Create RDS instances
+  #######################
+  WSO2DBInstance:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      AllocatedStorage: !Ref DBAllocatedStorage
+      DBInstanceClass: !Ref DBClass
+      Engine: !Ref DBEngine
+      EngineVersion: !Ref DBEngineVersion
+      LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref WSO2DBSubnetGroup
+      AutoMinorVersionUpgrade: false
+      BackupRetentionPeriod: 0
+      VPCSecurityGroups:
+        - !GetAtt WSO2EnvDBSecurityGroup.GroupId
+      AvailabilityZone: !Select
+        - '0'
+        - !GetAZs ''
+    DeletionPolicy: Delete
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 5352b4e9-46ed-4a23-8bdc-bafc3666cbbd
+  WSO2DBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: RDS subnet group
+      SubnetIds:
+        - !Ref WSO2EnvPublicSubnet1
+        - !Ref WSO2EnvPublicSubnet2
+        - !Ref WSO2EnvPrivateSubnet1
+
+  ########################
+  # Create Load Balancers
+  #######################
+  WSO2EnvApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Subnets:
+        - !Ref WSO2EnvPublicSubnet1
+        - !Ref WSO2EnvPublicSubnet2
+      SecurityGroups:
+        - !Ref WSO2EnvLBSecurityGroup
+  WSO2EnvALBTargetGroup1:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTPS
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 4
+      HealthCheckPath: /carbon/admin/login.jsp
+      HealthCheckPort: 9943
+      Matcher:
+        HttpCode: 200
+      Port: 8780
+      Protocol: HTTP
+      TargetGroupAttributes:
+      - Key: deregistration_delay.timeout_seconds
+        Value: '20'
+      - Key: stickiness.enabled
+        Value: 'true'
+      Targets:
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance1, !If [IsWindows, !Ref WSO2WindowsInstance1, !Ref 'AWS::NoValue']]
+        Port: 8780
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance2, !If [IsWindows, !Ref WSO2WindowsInstance2, !Ref 'AWS::NoValue']]
+        Port: 8780
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Ref: WSO2EnvVPC
+  WSO2EnvALBTargetGroup2:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTPS
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 4
+      HealthCheckPath: /carbon/admin/login.jsp
+      HealthCheckPort: 9943
+      Matcher:
+        HttpCode: 200
+      Port: 8743
+      Protocol: HTTPS
+      TargetGroupAttributes:
+      - Key: deregistration_delay.timeout_seconds
+        Value: '20'
+      - Key: stickiness.enabled
+        Value: 'true'
+      Targets:
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance1, !If [IsWindows, !Ref WSO2WindowsInstance1, !Ref 'AWS::NoValue']]
+        Port: 8743
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance2, !If [IsWindows, !Ref WSO2WindowsInstance2, !Ref 'AWS::NoValue']]
+        Port: 8743
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Ref: WSO2EnvVPC
+  WSO2EnvALBTargetGroup3:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTPS
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 4
+      HealthCheckPath: /carbon/admin/login.jsp
+      HealthCheckPort: 9943
+      Matcher:
+        HttpCode: 200
+      Port: 443
+      Protocol: HTTPS
+      TargetGroupAttributes:
+      - Key: deregistration_delay.timeout_seconds
+        Value: '20'
+      - Key: stickiness.enabled
+        Value: 'true'
+      Targets:
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance1, !If [IsWindows, !Ref WSO2WindowsInstance1, !Ref 'AWS::NoValue']]
+        Port: 9943
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance2, !If [IsWindows, !Ref WSO2WindowsInstance2, !Ref 'AWS::NoValue']]
+        Port: 9943
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Ref: WSO2EnvVPC
+  WSO2EnvALBTargetGroup4:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTPS
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 4
+      HealthCheckPath: /carbon/admin/login.jsp
+      HealthCheckPort: 9943
+      Matcher:
+        HttpCode: 200
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+      - Key: deregistration_delay.timeout_seconds
+        Value: '20'
+      - Key: stickiness.enabled
+        Value: 'true'
+      Targets:
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance1, !If [IsWindows, !Ref WSO2WindowsInstance1, !Ref 'AWS::NoValue']]
+        Port: 10263
+      - Id: !If [IsUnix, !Ref WSO2UnixInstance2, !If [IsWindows, !Ref WSO2WindowsInstance2, !Ref 'AWS::NoValue']]
+        Port: 10263
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Ref: WSO2EnvVPC
+
+  WSO2EnvALBListener1:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WSO2EnvALBTargetGroup1
+      LoadBalancerArn: !Ref WSO2EnvApplicationLoadBalancer
+      Port: 8780
+      Protocol: HTTP
+  WSO2EnvALBListener2:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WSO2EnvALBTargetGroup2
+      Certificates:
+        - CertificateArn: !Ref ALBCertificateARN
+      LoadBalancerArn: !Ref WSO2EnvApplicationLoadBalancer
+      Port: 8743
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS-1-1-2017-01
+  WSO2EnvALBListener3:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WSO2EnvALBTargetGroup3
+      Certificates:
+        - CertificateArn: !Ref ALBCertificateARN
+      LoadBalancerArn: !Ref WSO2EnvApplicationLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS-1-1-2017-01
+  WSO2EnvALBListener4:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WSO2EnvALBTargetGroup4
+      LoadBalancerArn: !Ref WSO2EnvApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+#####################################
+# Print details of the created stack
+#####################################
+Outputs:
+  LBHost:
+    Value: !Sub '${WSO2EnvApplicationLoadBalancer.DNSName}'
+    Description: Hostname of the LB
+  LBPort:
+    Value: 443
+    Description: Listening Port of ALB fronting WSO2 APIM deployment
+  WSO2MgtConsoleURL:
+    Value: !Sub 'https://${WSO2EnvApplicationLoadBalancer.DNSName}/carbon'
+    Description: Access URL of the Management Console
+  WSO2Node1PrivateIP:
+    Value: !If [IsUnix, !Sub '${WSO2UnixInstance1.PrivateIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance1.PrivateIp}', !Ref 'AWS::NoValue']]
+    Description: Private IP of the WSO2 Product Instance Node1
+  WSO2Node2PrivateIP:
+    Value: !If [IsUnix, !Sub '${WSO2UnixInstance2.PrivateIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance2.PrivateIp}', !Ref 'AWS::NoValue']]
+    Description: Private IP of the WSO2 Product Instance Node2
+  DatabaseHost:
+    Value: !Sub '${WSO2DBInstance.Endpoint.Address}'
+    Description: Database Host
+  DatabasePort:
+    Value: !Sub '${WSO2DBInstance.Endpoint.Port}'
+    Description: Database Port
+  OS:
+    Value: !Ref OS
+  WSO2Node1ID:
+    Value: !If [IsUnix, !Ref WSO2UnixInstance1, !If [IsWindows, !Ref WSO2WindowsInstance1, !Ref 'AWS::NoValue']]
+  WSO2Node2ID:
+    Value: !If [IsUnix, !Ref WSO2UnixInstance2, !If [IsWindows, !Ref WSO2WindowsInstance2, !Ref 'AWS::NoValue']]
+  ProductGITURL:
+    Value: !Ref ProductGITURL
+    Description: URL of the product GIT repo
+  Offset:
+    Value: !Ref Offset
+    Description: Offset of the product
+  ProductGITBranch:
+    Value: !Ref ProductGITBranch
+    Description: GIT branch of the product
+  TestMode:
+    Value: !Ref TestMode
+    Description: Testmode

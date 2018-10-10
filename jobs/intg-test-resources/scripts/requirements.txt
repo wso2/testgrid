@@ -1,0 +1,5 @@
+wget==3.2
+pylint==1.9.2
+pymysql==0.9.0
+sqlparse==0.2.4
+requests==2.19.1
