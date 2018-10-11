@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.testgrid.web.bean;
+package org.wso2.testgrid.common;
 
 import org.apache.commons.io.IOUtils;
 

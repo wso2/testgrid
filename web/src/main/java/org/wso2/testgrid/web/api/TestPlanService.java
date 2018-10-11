@@ -28,6 +28,9 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.plugins.AWSArtifactReader;
+import org.wso2.testgrid.common.plugins.ArtifactReadable;
+import org.wso2.testgrid.common.plugins.ArtifactReaderException;
 import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -43,9 +46,6 @@ import org.wso2.testgrid.web.bean.TestPlanStatus;
 import org.wso2.testgrid.web.operation.GrafanaTimeLimitGetter;
 import org.wso2.testgrid.web.operation.JenkinsJobConfigurationProvider;
 import org.wso2.testgrid.web.operation.JenkinsPipelineManager;
-import org.wso2.testgrid.web.plugins.AWSArtifactReader;
-import org.wso2.testgrid.web.plugins.ArtifactReadable;
-import org.wso2.testgrid.web.plugins.ArtifactReaderException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -170,12 +170,12 @@ public class TestPlanService {
                         .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
             }
             TestPlan testPlan = optionalTestPlan.get();
-            String logFileDir = S3StorageUtil.getS3LocationForTestRunLogFile(testPlan, truncate);
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
             // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
                     getProperty(ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+            String logFileDir = S3StorageUtil.getS3LocationForTestRunLogFile(testPlan, truncate, artifactDownloadable);
             return Response.status(Response.Status.OK).entity(artifactDownloadable.getArtifactStream(logFileDir))
                     .build();
         } catch (TestGridDAOException e) {
@@ -219,12 +219,13 @@ public class TestPlanService {
             }
             TestPlan testPlan = optionalTestPlan.get();
 
-            String logFileDir = S3StorageUtil.getS3LocationForTestRunLogFile(testPlan, true);
             // In future when TestGrid is deployed in multiple regions, builds may run in different regions.
             // Then AWS_REGION_NAME will to be moved to a per-testplan parameter.
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
                     getProperty(ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+            String logFileDir = S3StorageUtil
+                    .getS3LocationForTestRunLogFile(testPlan, true, artifactDownloadable);
             if (artifactDownloadable.isArtifactExist(logFileDir)) {
                 return Response.status(Response.Status.OK).entity("The artifact exists in the remote storage").build();
             }
@@ -490,11 +491,11 @@ public class TestPlanService {
                         .entity("Couldn't found a TestPlan for the requested id").build();
             }
             TestPlan testPlan = testPlanOptional.get();
-            archiveFileDir = S3StorageUtil.deriveS3ScenarioArchiveFileDir(testPlan, scenarioDir);
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
 
+            archiveFileDir = S3StorageUtil.deriveS3ScenarioArchiveFileDir(testPlan, scenarioDir, artifactDownloadable);
             if (artifactDownloadable.isArtifactExist(archiveFileDir)) {
                 return Response
                         .ok(artifactDownloadable.getArtifactStream(archiveFileDir))
@@ -518,7 +519,7 @@ public class TestPlanService {
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
                             .setDescription(e.getMessage()).build()).build();
         } catch (ArtifactReaderException e) {
-            String msg = "Error occurred when reading the artifact in " + archiveFileDir;
+            String msg = "Error occurred when reading archived files from " + scenarioDir + "of testplan " + testPlanId;
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)

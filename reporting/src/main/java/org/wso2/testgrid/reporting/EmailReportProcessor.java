@@ -19,21 +19,20 @@
 
 package org.wso2.testgrid.reporting;
 
-import com.amazonaws.auth.PropertiesFileCredentialsProvider;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.S3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.config.PropertyFileReader;
+import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
+import org.wso2.testgrid.common.plugins.AWSArtifactReader;
+import org.wso2.testgrid.common.plugins.ArtifactReadable;
+import org.wso2.testgrid.common.plugins.ArtifactReaderException;
 import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -49,7 +48,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -293,31 +291,26 @@ public class EmailReportProcessor {
      *
      * @param testPlan test plan to read the outputs from
      * @return Properties in output.properties
-     * @throws IOException if exception occurs when loading properties
      */
     private Properties getOutputPropertiesFile (TestPlan testPlan) {
-        String s3DatabucketDir = S3StorageUtil.deriveS3DatabucketDir(testPlan);
-        Path configFilePath = TestGridUtil.getConfigFilePath();
-        String bucketKey = ConfigurationContext.getProperty(ConfigurationProperties.AWS_S3_BUCKET_NAME);
-        String awsBucketRegion = ConfigurationContext.getProperty(ConfigurationProperties.AWS_REGION_NAME);
-
-        String outputPropertyFilePath = Paths.get(s3DatabucketDir,
-                TestGridConstants.TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE).toString();
-        logger.info("Output property file path in S3 bucket is : " +
-                Paths.get(bucketKey, outputPropertyFilePath).toString());
-
-        AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
-                .withRegion(awsBucketRegion)
-                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                .build();
-        S3Object s3object = s3Client.getObject(bucketKey, outputPropertyFilePath);
         Properties properties = new Properties();
+        try {
+            ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
+                    getProperty(ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
+                    getProperty(ConfigurationProperties.AWS_S3_BUCKET_NAME));
+            String outputPropertyFilePath = S3StorageUtil.deriveS3ScenarioOutputsFilePath(testPlan, artifactReadable);
+            logger.info("Scenario outputs location is " + outputPropertyFilePath);
 
-        try (InputStreamReader inputStreamReader = new InputStreamReader(
-                s3object.getObjectContent(), StandardCharsets.UTF_8)) {
+            try (InputStreamReader inputStreamReader = new InputStreamReader(
+                    artifactReadable.getArtifactStream(outputPropertyFilePath), StandardCharsets.UTF_8)) {
             properties.load(inputStreamReader);
+            }
+        } catch (ArtifactReaderException e) {
+            logger.error("Error while initiating AWS artifacts reader.", e.getMessage());
+        } catch (TestGridRuntimeException e) {
+            logger.error(e.getMessage());
         } catch (IOException e) {
-            logger.error("Error while reading properties from output.properties.", e);
+            logger.error("Error while reading git build details from remote storage.", e.getMessage());
         }
         return properties;
     }

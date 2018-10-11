@@ -15,19 +15,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.testgrid.web.plugins;
+package org.wso2.testgrid.common.plugins;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.PropertiesFileCredentialsProvider;
+import com.amazonaws.services.applicationdiscovery.model.ResourceNotFoundException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
-import org.apache.velocity.exception.ResourceNotFoundException;
+import org.wso2.testgrid.common.TruncatedInputStreamData;
 import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.web.bean.TruncatedInputStreamData;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,7 +87,8 @@ public class AWSArtifactReader implements ArtifactReadable {
         }
     }
 
-    @Override public InputStream getArtifactStream(String key) {
+    @Override
+    public InputStream getArtifactStream(String key) {
         try {
             if (!amazonS3.doesObjectExist(bucketName, key)) {
                 throw new ResourceNotFoundException("File not found in the remote storage");
@@ -95,13 +96,14 @@ public class AWSArtifactReader implements ArtifactReadable {
             S3Object s3Object = amazonS3.getObject(bucketName, key);
             return s3Object.getObjectContent();
         } catch (AmazonServiceException e) {
-            throw new TestGridRuntimeException("Error occured in Amazon service", e);
+            throw new TestGridRuntimeException("Error occurred in Amazon service", e);
         } catch (SdkClientException e) {
-            throw new TestGridRuntimeException("Error occured in SDK client", e);
+            throw new TestGridRuntimeException("Error occurred in SDK client", e);
         }
     }
 
-    @Override public Boolean isArtifactExist(String key) {
+    @Override
+    public Boolean isArtifactExist(String key) {
         return amazonS3.doesObjectExist(bucketName, key);
     }
 }

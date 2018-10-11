@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.testgrid.web.plugins;
+package org.wso2.testgrid.common.plugins;
 
 /**
  * Custom exception class to throw all exceptions related to {@link ArtifactReadable}.
