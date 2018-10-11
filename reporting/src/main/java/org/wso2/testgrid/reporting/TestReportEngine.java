@@ -23,7 +23,6 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
@@ -801,7 +800,7 @@ public class TestReportEngine {
         String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
 
         // Write to HTML file
-        Path reportPath = Paths.get(workspace, TestGridConstants.TESTGRID_BUILDS_DIR, TESTGRID_EMAIL_REPORT_NAME);
+        Path reportPath = Paths.get(workspace, TESTGRID_EMAIL_REPORT_NAME);
         writeHTMLToFile(reportPath, htmlString);
         return Optional.of(reportPath);
     }
@@ -935,8 +934,7 @@ public class TestReportEngine {
         String htmlString = renderer.render(SUMMARIZED_EMAIL_REPORT_MUSTACHE, results);
 
         // Write to HTML file
-        Path reportPath = Paths.get(workspace, TestGridConstants.TESTGRID_BUILDS_DIR,
-                TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME);
+        Path reportPath = Paths.get(workspace, TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME);
         writeHTMLToFile(reportPath, htmlString);
         Path reportParentPath = reportPath.getParent();
 

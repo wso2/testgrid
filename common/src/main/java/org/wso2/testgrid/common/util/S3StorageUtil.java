@@ -15,6 +15,7 @@ import java.nio.file.Paths;
  */
 public final class S3StorageUtil {
 
+    private static final String TESTGRID_BUILDS_DIR = "builds";
     /**
      * Returns the path of the test-run log file in S3 bucket.
      * <p>
@@ -56,8 +57,8 @@ public final class S3StorageUtil {
         String productName = testPlan.getDeploymentPattern().getProduct().getName();
         String artifactsDir = ConfigurationContext.
                 getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_ARTIFACTS_DIR);
-        return Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName,
-                TestGridConstants.TESTGRID_BUILDS_DIR, testPlan.getId()).toString();
+        return Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName, TESTGRID_BUILDS_DIR,
+                testPlan.getId()).toString();
     }
 
     /**

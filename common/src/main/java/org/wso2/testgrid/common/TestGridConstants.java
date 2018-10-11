@@ -39,20 +39,16 @@ public class TestGridConstants {
     public static final String SCENARIO_RESULTS_FILTER_PATTERN = "*.{log,jtl}";
 
     public static final String TESTGRID_LOG_FILE_NAME = "testgrid.log";
-    public static final String TESTGRID_LOGS_DIR = "logs";
     public static final String TESTGRID_COMPRESSED_FILE_EXT = ".zip";
 
     public static final String TESTRUN_LOG_FILE_NAME = "test-run.log";
     public static final String TRUNCATED_TESTRUN_LOG_FILE_NAME = "truncated-test-run.log";
-    public static final String TEST_INTEGRATION_LOG_FILE_NAME = "TestSuite.txt";
-    public static final String TESTGRID_BUILDS_DIR = "builds";
     public static final String PRODUCT_TEST_PLANS_DIR = "test-plans";
     public static final String FILE_SEPARATOR = "/";
     public static final String HIDDEN_FILE_INDICATOR = ".";
     public static final String PARAM_SEPARATOR = "_";
     public static final String TESTRUN_NUMBER_PREFIX = "run";
 
-    public static final String WORKSPACE = "workspace";
     public static final String TESTGRID_JOB_DIR = "jobs";
     public static final String TESTGRID_HOME_ENV = "TESTGRID_HOME";
     public static final String TESTGRID_HOME_SYSTEM_PROPERTY = "testgrid.home";
