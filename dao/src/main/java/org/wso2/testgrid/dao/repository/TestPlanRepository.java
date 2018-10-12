@@ -330,10 +330,9 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * This method returns the testplans need to be deleted
      *
      * @param count number of builds that need be saved for each infra combination in each job
-     * @param productName product name of a specific build job
      * @return a List of {@link String} testpan ids
      */
-    public List<String> getDeletingDataSources(String productName, int count) {
+    public List<String> deleteDatasourcesByAge(int count) {
 
 
         List<String> toDelete = new ArrayList<String>();
@@ -343,6 +342,11 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         @SuppressWarnings("unchecked")
         List<String> infraCombinations = (List<String>) query.getResultList();
 
+        sql = "select distinct name from product";
+        query = entityManager.createNativeQuery(sql);
+        @SuppressWarnings("unchecked")
+        List<String> products = (List<String>) query.getResultList();
+
         String [] createTemp = {"drop table if exists temp ;",
         "create table temp (id VARCHAR(255), modified_timestamp TIMESTAMP, name VARCHAR(50), " +
                 "infra_parameters  VARCHAR(255)); ",
@@ -351,36 +355,37 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
                 "from test_plan,product,deployment_pattern " +
                 "where test_plan.DEPLOYMENTPATTERN_id = deployment_pattern.id and " +
                 "deployment_pattern.PRODUCT_id = product.id;"};
-        EntityTransaction txn;
+
+        EntityTransaction txn = entityManager.getTransaction();
+        txn.begin();
         for (String sqlQ : createTemp) {
-            txn = entityManager.getTransaction();
-            txn.begin();
             entityManager.createNativeQuery(sqlQ).executeUpdate();
-            txn.commit();
         }
+        txn.commit();
 
         @SuppressWarnings("unchecked")
-        List<String> delete;
+        List<String> quaryResultOfInfra;
+        for (String product : products) {
+            for (String infra : infraCombinations) {
+                logger.info(StringUtil.concatStrings("identifying testplans that need to be deleted in" +
+                        " product ", product, "infra combination : ", infra));
+                sql = "select id from temp as tp left join (select id from temp where name = ? and " +
+                        "infra_parameters = ? order by (modified_timestamp) DESC limit ?)p2 USING(id) " +
+                        "WHERE p2.id IS NULL and infra_parameters = ?  and name = ? order by (modified_timestamp) DESC";
 
-        for (String infra : infraCombinations) {
-            logger.info(infra);
-            sql = "select id from temp as tp left join (select id from temp where name = ? and infra_parameters = ? " +
-                    "order by (modified_timestamp) DESC limit ?)p2 USING(id) WHERE p2.id IS NULL and " +
-                    "infra_parameters = ?  and name = ? order by (modified_timestamp) DESC";
-            query = entityManager.createNativeQuery(sql);
-
-            query.setParameter(1, productName);
-            query.setParameter(2, infra);
-            query.setParameter(3, count);
-            query.setParameter(4, infra);
-            query.setParameter(5, productName);
-            delete = (List<String>) query.getResultList();
-            for (String data : delete) {
-                logger.info(data);
-                toDelete.add(data);
+                query = entityManager.createNativeQuery(sql);
+                query.setParameter(1, product);
+                query.setParameter(2, infra);
+                query.setParameter(3, count);
+                query.setParameter(4, infra);
+                query.setParameter(5, product);
+                quaryResultOfInfra = (List<String>) query.getResultList();
+                for (String data : quaryResultOfInfra) {
+                    logger.info(data);
+                    toDelete.add(data);
+                }
             }
         }
-
         return toDelete;
     }
 
