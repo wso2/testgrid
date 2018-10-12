@@ -284,7 +284,7 @@ Resources:
           ln -fs apache-maven-${MavenVersion} maven
           echo 'export MAVEN_OPTS="-Xmx2048m -Xms256m"' >> /etc/environment
           echo 'export M3_HOME=/opt/wso2/workspace/maven' >> /etc/environment
-          echo PATH=/opt/wso2/workspace/maven/bin/:$PATH >> /etc/environment
+          echo PATH=$JAVA_HOME/bin:/opt/wso2/workspace/maven/bin/:$PATH >> /etc/environment
 
           source /etc/environment
 
