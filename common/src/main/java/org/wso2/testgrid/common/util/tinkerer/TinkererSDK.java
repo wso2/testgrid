@@ -46,9 +46,9 @@ import javax.ws.rs.core.Response;
 /**
  * Execute commands on remote agent through tinkerer.
  */
-public class TinkererUtil {
+public class TinkererSDK {
 
-    private static final Logger logger = LoggerFactory.getLogger(TinkererUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(TinkererSDK.class);
 
     private String tinkererHost;
     private String authenticationToken;
@@ -56,7 +56,7 @@ public class TinkererUtil {
     /**
      * Initialize details of the tinkerer host and authentication details.
      */
-    public TinkererUtil() {
+    public TinkererSDK() {
         this.tinkererHost = ConfigurationContext.getProperty(
                 ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH);
         String authenticationString = ConfigurationContext.getProperty(

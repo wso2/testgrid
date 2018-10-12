@@ -32,7 +32,7 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.tinkerer.AsyncCommandResponse;
-import org.wso2.testgrid.common.util.tinkerer.TinkererUtil;
+import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
 import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 import org.wso2.testgrid.core.exception.ConfigChangeSetExecutorException;
 
@@ -267,7 +267,7 @@ public class ConfigChangeSetExecutorUnix extends ConfigChangeSetExecutor {
      */
     private int sendShellCommand(Agent agent, String script)
             throws ConfigChangeSetExecutorException {
-        TinkererUtil tinkererSDK = new TinkererUtil();
+        TinkererSDK tinkererSDK = new TinkererSDK();
         AsyncCommandResponse response = tinkererSDK.
                 executeCommandAsync(agent.getAgentId(), script);
         try {

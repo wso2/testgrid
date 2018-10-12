@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.testgrid.core.command;
 
 
@@ -5,7 +23,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.HostValidator;
@@ -14,9 +31,13 @@ import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -31,7 +52,9 @@ import javax.net.ssl.X509TrustManager;
 import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 /**
- * this class is for data purging
+ * this class is for data purging. This class will be used to purge testplans, grafana data sources and keep only a
+ * specified number of testplans and grafana data sources for each infra combination in each job
+ * It will not delete builds that are tagged as "keep forever"
  */
 
 public class CleanUpCommand implements Command {
@@ -41,12 +64,8 @@ public class CleanUpCommand implements Command {
     private String apikey =
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.GRAFANA_APIKEY);
 
-    @Option(name = "--product",
-            usage = "Product Name",
-            aliases = { "-p" },
-            required = true)
-    private String productName = "";
-    private int grafanaDataSourceCount = 10;
+
+    private int remainingBuildCount = 10;
     private TestPlanUOW testPlanUOW;
 
     @Override
@@ -62,7 +81,7 @@ public class CleanUpCommand implements Command {
         testPlanUOW = new TestPlanUOW();
 
         try {
-            List<String> allTestPlans = testPlanUOW.getDeletingDataSources(productName, grafanaDataSourceCount);
+            List<String> allTestPlans = testPlanUOW.deleteDatasourcesByAge(remainingBuildCount);
             logger.info("number of items to delete: " + allTestPlans.size());
 
             for (String deletingTestPlan : allTestPlans) {
@@ -81,7 +100,7 @@ public class CleanUpCommand implements Command {
                 logger.info("NOTHING TO DELETE");
             }
 
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             throw new CommandExecutionException("error while retrieving the data that needs to be deleted", e);
         }
     }
@@ -93,7 +112,7 @@ public class CleanUpCommand implements Command {
     private void clearDataSources(String datasource) {
         try {
             String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
-                    .GRAFANA_DATASOURCE) + ":3000/api/datasources/name/" + datasource;
+                    .GRAFANA_DATASOURCE) + "/api/datasources/name/" + datasource;
 
             URL obj = new URL(url);
             HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
@@ -114,8 +133,14 @@ public class CleanUpCommand implements Command {
                 logger.error(StringUtil.concatStrings("failed to delete grafana Data source ",
                         " Response Code ", responseCode));
             }
-        } catch (Exception e) {
-            logger.error("Error while deleting Grafana data source" + e);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("Error while connecting to grafana server  ", e);
+        } catch (MalformedURLException e) {
+            logger.error("Error with Grafana Data source URL ", e);
+        } catch (IOException e) {
+            logger.error("Error while deleting Grafana data source", e);
+        } catch (KeyManagementException e) {
+            logger.error("Error while connecting to grafana server  ", e);
         }
 
     }
@@ -125,9 +150,11 @@ public class CleanUpCommand implements Command {
      * @return list of data sources in grafana
      */
     private List<String> getDataSources() {
+
+        InputStream in = null;
         try {
             String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
-                    .GRAFANA_DATASOURCE) + ":3000/api/datasources/";
+                    .GRAFANA_DATASOURCE) + "/api/datasources/";
 
             List<String> datasouce = new ArrayList<String>();
 
@@ -143,22 +170,36 @@ public class CleanUpCommand implements Command {
             SSLSocketFactory sslSocketFactory = createSslSocketFactory();
             con.setSSLSocketFactory(sslSocketFactory);
 
-            InputStream in = con.getInputStream();
+            in = con.getInputStream();
             String encoding = con.getContentEncoding();
             encoding = encoding == null ? "UTF-8" : encoding;
             String body = IOUtils.toString(in, encoding);
             JSONArray dataSources = new JSONArray(body);
             String name;
 
-            for (Object data:dataSources) {
+            for (Object data : dataSources) {
                 JSONObject first = (JSONObject) data;
                 name = first.getString("name");
                 datasouce.add(name);
             }
             return datasouce;
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.info("Error while getting the data sources in grafana: " + e);
             return null;
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("Error while connecting to grafana server  ", e);
+            return null;
+        } catch (KeyManagementException e) {
+            logger.error("Error with SSL key management while connecting to grafana server  ", e);
+            return null;
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (Exception e) {
+                    logger.error("Couldn't close the input stream");
+                }
+            }
         }
     }
 
@@ -167,7 +208,7 @@ public class CleanUpCommand implements Command {
      * @return SSL socket factory that by will bypass SSL verification
      * @throws Exception java.security exception is thrown in an issue with SSLContext
      */
-    private static SSLSocketFactory createSslSocketFactory() throws Exception {
+    private static SSLSocketFactory createSslSocketFactory() throws KeyManagementException, NoSuchAlgorithmException {
         TrustManager[] byPassTrustManagers = new TrustManager[] { new X509TrustManager() {
             public X509Certificate[] getAcceptedIssuers() {
                 return new X509Certificate[0];

@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.common.util.tinkerer.TinkererUtil;
+import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
 
 import java.io.DataOutputStream;
 import java.net.HttpURLConnection;
@@ -48,9 +48,9 @@ import static org.apache.http.protocol.HTTP.USER_AGENT;
 /**
  * This class create a database in influxDB and a Data Source in Grafana according to the test plan
  */
-public class DashboardSetup {
+public class GrafanaDashboardHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(DashboardSetup.class);
+    private static final Logger logger = LoggerFactory.getLogger(GrafanaDashboardHandler.class);
     private String restUrl =
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_URL);
     private String username =
@@ -62,7 +62,7 @@ public class DashboardSetup {
     private String testplanID;
 
 
-    public DashboardSetup(String testplanID) {
+    public GrafanaDashboardHandler(String testplanID) {
         this.testplanID = testplanID;
     }
 
@@ -71,32 +71,41 @@ public class DashboardSetup {
      */
     public void initDashboard() {
         // create influxDB database according to tp_id
+        InfluxDB influxDB = null;
         try {
-            InfluxDB influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl, username, password);
+            influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl, username, password);
             String dbName = testplanID;
             influxDB.createDatabase(dbName);
-            influxDB.close();
+
             logger.info("database created for performance data");
         } catch (AssertionError e) {
             logger.error(StringUtil.concatStrings("Cannot create a new Database: \n", e));
         } catch (IllegalArgumentException e) {
             logger.error(StringUtil.concatStrings("INFLUXDB_USER and INFLUXDB_PASS cannot be empty: \n", e));
+        } finally {
+            if (influxDB != null) {
+                try {
+                    influxDB.close();
+                } catch (Exception e) {
+                    logger.error("Couldn't close the influxDB connection");
+                }
+            }
         }
 
         // add a new data source to grafana
         addGrafanaDataSource();
-        setTelegrafHost();
+        configureTelegrafHost();
 
     }
 
-    private void setTelegrafHost() {
+    private void configureTelegrafHost() {
         try {
             String shellCommand;
-            TinkererUtil tinkererSDK = new TinkererUtil();
+            TinkererSDK tinkererSDK = new TinkererSDK();
             List<Agent> agents = tinkererSDK.getAgentListByTestPlanId(this.testplanID);
 
             for (Agent vm : agents) {
-                shellCommand = "sed -i 's/wso2_sever/" + vm.getInstanceName() + "-"
+                shellCommand = "sudo sed -i 's/wso2_sever/" + vm.getInstanceName() + "-"
                         + vm.getInstanceId() + "/g' /etc/telegraf/telegraf.conf";
                 logger.info(StringUtil.concatStrings("agent: ", vm.getInstanceName(), "Shell Command: ",
                         shellCommand));
@@ -106,7 +115,7 @@ public class DashboardSetup {
                 tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
             }
         } catch (ProcessingException e) {
-            logger.info("Error while configuring telegraf host" + e);
+            logger.error("Error while configuring telegraf host", e);
         }
     }
 
@@ -147,7 +156,7 @@ public class DashboardSetup {
 
         try {
             String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
-                    .GRAFANA_DATASOURCE) + ":3000/api/datasources/";
+                    .GRAFANA_DATASOURCE) + "/api/datasources/";
 
             URL obj = new URL(url);
             HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();

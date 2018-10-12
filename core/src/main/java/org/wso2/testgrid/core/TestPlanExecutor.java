@@ -30,9 +30,9 @@ import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.automation.report.ReportGenerator;
 import org.wso2.testgrid.automation.report.ReportGeneratorFactory;
 import org.wso2.testgrid.common.ConfigChangeSet;
-import org.wso2.testgrid.common.DashboardSetup;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.GrafanaDashboardHandler;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
@@ -128,7 +128,7 @@ public class TestPlanExecutor {
                 testPlan);
         //setup product performance dashboard
         if (infrastructureProvisionResult.isSuccess()) {
-            DashboardSetup dashboardSetup = new DashboardSetup(testPlan.getId());
+            GrafanaDashboardHandler dashboardSetup = new GrafanaDashboardHandler(testPlan.getId());
             dashboardSetup.initDashboard();
         }
 
