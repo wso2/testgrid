@@ -96,7 +96,9 @@ public class TinkererSDK {
         Path filePath = Paths.get(System.getProperty("java.io.tmpdir"));
         ScriptExecutorThread scriptExecutorThread = new ScriptExecutorThread(operationRequest.getOperationId()
                 , response, filePath);
-        scriptExecutorThread.start();
+
+        Thread scriptExecutor = new Thread(scriptExecutorThread);
+        scriptExecutor.start();
         AsyncCommandResponse asyncCommandResponse = new AsyncCommandResponse(operationId,
                 filePath, scriptExecutorThread);
         asyncCommandResponse.setOperationId(operationRequest.getOperationId());
