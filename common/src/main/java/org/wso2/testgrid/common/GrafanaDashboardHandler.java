@@ -77,7 +77,8 @@ public class GrafanaDashboardHandler {
             String dbName = testplanID;
             influxDB.createDatabase(dbName);
 
-            logger.info("database created for performance data");
+            logger.info(StringUtil.concatStrings("database created for testplan: ", testplanID,
+                    "and DB name: ", dbName));
         } catch (AssertionError e) {
             logger.error(StringUtil.concatStrings("Cannot create a new Database: \n", e));
         } catch (IllegalArgumentException e) {

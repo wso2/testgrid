@@ -36,11 +36,11 @@ import javax.ws.rs.core.Response;
 /**
  * Thread to stream data from tinkerer and dump result into a file.
  */
-public class ScriptExecutorThread extends Thread {
+public class ScriptExecutorThread implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptExecutorThread.class);
 
-    public static final int MAX_BUFFER_IDLE_TIME = 900000;  // Maximum waiting time to update message queue
+    public static final int MAX_BUFFER_IDLE_TIME_MS = 900000;  // Maximum waiting time to update message queue
 
     private Response response;
     private Path testgridShellStreamPath;
@@ -61,7 +61,7 @@ public class ScriptExecutorThread extends Thread {
         this.response = response;
         this.testgridShellStreamPath = filePath;
         this.isCompleted = false;
-        this.exitValue = 0;
+        this.exitValue = -1;
         this.segmentCount = 0;
     }
 
@@ -79,7 +79,7 @@ public class ScriptExecutorThread extends Thread {
         while ((chunk = input.read()) != null) {
             synchronized (this) {
                 currentTime = Calendar.getInstance().getTimeInMillis();
-                if (initTime + MAX_BUFFER_IDLE_TIME < currentTime) {
+                if (initTime + MAX_BUFFER_IDLE_TIME_MS < currentTime) {
                     logger.warn("Execution time out for operation " + this.operationId);
                     break;
                 }

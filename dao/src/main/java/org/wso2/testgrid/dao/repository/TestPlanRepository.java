@@ -347,14 +347,17 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         @SuppressWarnings("unchecked")
         List<String> products = (List<String>) query.getResultList();
 
-        String [] createTemp = {"drop table if exists temp ;",
-        "create table temp (id VARCHAR(255), modified_timestamp TIMESTAMP, name VARCHAR(50), " +
+        String [] createTemp = {"drop table if exists temp ;", "drop table if exists temp2 ;",
+                "create temporary table temp (id VARCHAR(255), modified_timestamp TIMESTAMP, name VARCHAR(50), " +
                 "infra_parameters  VARCHAR(255)); ",
-        "INSERT INTO  temp (id,name,modified_timestamp,infra_parameters ) " +
-                "select test_plan.id, product.name, test_plan.modified_timestamp, test_plan.infra_parameters " +
-                "from test_plan,product,deployment_pattern " +
-                "where test_plan.DEPLOYMENTPATTERN_id = deployment_pattern.id and " +
-                "deployment_pattern.PRODUCT_id = product.id;"};
+                "INSERT INTO  temp (id,name,modified_timestamp,infra_parameters ) " +
+                        "select test_plan.id, product.name, test_plan.modified_timestamp, test_plan.infra_parameters " +
+                        "from test_plan,product,deployment_pattern " +
+                        "where test_plan.DEPLOYMENTPATTERN_id = deployment_pattern.id and " +
+                        "deployment_pattern.PRODUCT_id = product.id;",
+                "create temporary table temp2 (id VARCHAR(255), modified_timestamp TIMESTAMP, name  VARCHAR(50), " +
+                        "infra_parameters  VARCHAR(255));",
+                "insert  temp2 SELECT * FROM temp;"};
 
         EntityTransaction txn = entityManager.getTransaction();
         txn.begin();
@@ -369,7 +372,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
             for (String infra : infraCombinations) {
                 logger.info(StringUtil.concatStrings("identifying testplans that need to be deleted in" +
                         " product ", product, "infra combination : ", infra));
-                sql = "select id from temp as tp left join (select id from temp where name = ? and " +
+                sql = "select id from temp2 as tp left join (select id from temp where name = ? and " +
                         "infra_parameters = ? order by (modified_timestamp) DESC limit ?)p2 USING(id) " +
                         "WHERE p2.id IS NULL and infra_parameters = ?  and name = ? order by (modified_timestamp) DESC";
 

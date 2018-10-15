@@ -96,8 +96,6 @@ public class CleanUpCommand implements Command {
                     logger.info("deleting data source: " + dataSource);
                     this.clearDataSources(dataSource);
                 }
-            } else {
-                logger.info("NOTHING TO DELETE");
             }
 
         } catch (IllegalArgumentException e) {
