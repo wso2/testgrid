@@ -119,7 +119,7 @@ public class GrafanaDashboardHandler {
                 tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
             }
         } catch (ProcessingException e) {
-            logger.error("Error while configuring telegraf host", e);
+            logger.error("Error while configuring telegraf host for testplan " + testplanID, e);
         }
     }
 
