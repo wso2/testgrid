@@ -41,8 +41,8 @@ public class CleanUpCommandTest extends PowerMockTestCase {
 
         logger.info("Status of the cleanup : " + cleanUpCommand.getStatus());
         cleanUpCommand.execute();
-        Assert.assertEquals(cleanUpCommand.getToDelete().size(),dataToDelete.size());
-        Assert.assertEquals(cleanUpCommand.getToDelete().get(0),dataToDelete.get(0));
+        Assert.assertEquals(cleanUpCommand.getToDelete().size(), dataToDelete.size());
+        Assert.assertEquals(cleanUpCommand.getToDelete().get(0), dataToDelete.get(0));
     }
 
 }
