@@ -262,6 +262,10 @@ Resources:
           echo 'export M3_HOME=/opt/wso2/workspace/maven' >> /etc/environment
           echo PATH=/opt/wso2/workspace/maven/bin/:$PATH >> /etc/environment
 
+          curl --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+          yum -y install nodejs
+          yum -y install gcc-c++ make
+
           source /etc/environment
 
           cat /dev/null > ~/.bash_history && history -c
