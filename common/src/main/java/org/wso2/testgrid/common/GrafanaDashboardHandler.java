@@ -98,6 +98,27 @@ public class GrafanaDashboardHandler {
 
     }
 
+    private void configureTelegrafHost() {
+        try {
+            String shellCommand;
+            TinkererSDK tinkererSDK = new TinkererSDK();
+            List<Agent> agents = tinkererSDK.getAgentListByTestPlanId(this.testplanID);
+
+            for (Agent vm : agents) {
+                shellCommand = "sudo sed -i 's/wso2_sever/" + vm.getInstanceName() + "-"
+                        + vm.getInstanceId() + "/g' /etc/telegraf/telegraf.conf";
+                logger.info(StringUtil.concatStrings("agent: ", vm.getInstanceName(), "Shell Command: ",
+                        shellCommand));
+                tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
+
+                shellCommand = "sudo systemctl start telegraf";
+                tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
+            }
+        } catch (ProcessingException e) {
+            logger.error("Error while configuring telegraf host", e);
+        }
+    }
+
     /**
      * This method will use tinkerer and send commands to set the telegraf host name and start telegraf
      */
