@@ -67,9 +67,16 @@ public class CleanUpCommand implements Command {
     private String grafanaApikey =
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.GRAFANA_APIKEY);
 
+    private List<String> toDelete = new ArrayList<String>();
+
 
     private int remainingBuildCount = 10;
     private TestPlanUOW testPlanUOW;
+
+    public List<String> getToDelete() {
+
+        return toDelete;
+    }
 
     public CleanUpCommand() {
 
@@ -104,11 +111,6 @@ public class CleanUpCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
-
-        List<String> toDelete = new ArrayList<String>();
-
-        // Install the all-trusting host verifier
-
 
         try {
             List<String> allTestPlans = testPlanUOW.deleteDatasourcesByAge(remainingBuildCount);
