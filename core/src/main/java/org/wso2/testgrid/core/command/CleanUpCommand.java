@@ -60,25 +60,55 @@ import static org.apache.http.protocol.HTTP.USER_AGENT;
 public class CleanUpCommand implements Command {
 
     private static final Logger logger = LoggerFactory.getLogger(CleanUpCommand.class);
-
-    private String apikey =
+    private int status;
+    private List<String> datasource;
+    private String grafanaUrl = ConfigurationContext.getProperty
+            (ConfigurationContext.ConfigurationProperties.GRAFANA_DATASOURCE);
+    private String grafanaApikey =
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.GRAFANA_APIKEY);
 
 
     private int remainingBuildCount = 10;
     private TestPlanUOW testPlanUOW;
 
+    public CleanUpCommand() {
+
+        HostnameVerifier allHostsValid = new HostValidator();
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+        testPlanUOW = new TestPlanUOW();
+        datasource = getDataSources();
+    }
+
+    public CleanUpCommand(int status, int remainingBuildCount, TestPlanUOW testPlanUOW, List<String> datasource,
+                          String grafanaUrl) {
+        HostnameVerifier allHostsValid = new HostValidator();
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        this.status = status;
+        this.remainingBuildCount = remainingBuildCount;
+        this.testPlanUOW = testPlanUOW;
+        this.datasource = datasource;
+        this.grafanaUrl = grafanaUrl;
+
+    }
+
+    public int getStatus() {
+
+        return status;
+    }
+
+    public void setStatus(int status) {
+
+        this.status = status;
+    }
+
     @Override
     public void execute() throws CommandExecutionException {
 
         List<String> toDelete = new ArrayList<String>();
-        List<String> datasource;
 
         // Install the all-trusting host verifier
-        HostnameVerifier allHostsValid = new HostValidator();
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-        datasource = getDataSources();
-        testPlanUOW = new TestPlanUOW();
+
 
         try {
             List<String> allTestPlans = testPlanUOW.deleteDatasourcesByAge(remainingBuildCount);
@@ -109,8 +139,7 @@ public class CleanUpCommand implements Command {
      */
     private void clearDataSources(String datasource) {
         try {
-            String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
-                    .GRAFANA_DATASOURCE) + "/api/datasources/name/" + datasource;
+            String url = "https://" + grafanaUrl + "/api/datasources/name/" + datasource;
 
             URL obj = new URL(url);
             HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
@@ -119,12 +148,13 @@ public class CleanUpCommand implements Command {
             con.setRequestProperty("User-Agent", USER_AGENT);
             con.setRequestProperty("Content-Type", ContentType.APPLICATION_JSON.toString());
             con.setRequestProperty("Accept", ContentType.APPLICATION_JSON.toString());
-            con.setRequestProperty("Authorization", apikey);
+            con.setRequestProperty("Authorization", grafanaApikey);
             SSLSocketFactory sslSocketFactory = createSslSocketFactory();
             con.setSSLSocketFactory(sslSocketFactory);
 
 
             int responseCode = con.getResponseCode();
+            status = responseCode;
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 logger.info("grafana Data Source deleted for testplan " + datasource);
             } else {
@@ -151,8 +181,7 @@ public class CleanUpCommand implements Command {
 
         InputStream in = null;
         try {
-            String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
-                    .GRAFANA_DATASOURCE) + "/api/datasources/";
+            String url = "https://" + grafanaUrl + "/api/datasources/";
 
             List<String> datasouce = new ArrayList<String>();
 
@@ -163,7 +192,7 @@ public class CleanUpCommand implements Command {
             con.setRequestProperty("User-Agent", USER_AGENT);
             con.setRequestProperty("Content-Type", ContentType.APPLICATION_JSON.toString());
             con.setRequestProperty("Accept", ContentType.APPLICATION_JSON.toString());
-            con.setRequestProperty("Authorization", apikey);
+            con.setRequestProperty("Authorization", grafanaApikey);
 
             SSLSocketFactory sslSocketFactory = createSslSocketFactory();
             con.setSSLSocketFactory(sslSocketFactory);

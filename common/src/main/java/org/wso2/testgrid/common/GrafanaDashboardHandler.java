@@ -80,7 +80,7 @@ public class GrafanaDashboardHandler {
             logger.info(StringUtil.concatStrings("database created for testplan: ", testplanID,
                     "and DB name: ", dbName));
         } catch (AssertionError e) {
-            logger.error(StringUtil.concatStrings("Cannot create a new Database: \n", e));
+            logger.error("Could not create a new influxdb database for monitoring: " + testplanID, e);
         } catch (IllegalArgumentException e) {
             logger.error(StringUtil.concatStrings("INFLUXDB_USER and INFLUXDB_PASS cannot be empty: \n", e));
         } finally {
@@ -92,12 +92,15 @@ public class GrafanaDashboardHandler {
                 }
             }
         }
-
         // add a new data source to grafana
         addGrafanaDataSource();
         configureTelegrafHost();
 
     }
+
+    /**
+     * This method will use tinkerer and send commands to set the telegraf host name and start telegraf
+     */
 
     private void configureTelegrafHost() {
         try {
