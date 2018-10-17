@@ -39,7 +39,7 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
+import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 
 import java.io.File;
 import java.io.IOException;

@@ -559,7 +559,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>6.0.6</version>
+                <version>8.0.12</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
@@ -576,6 +576,16 @@
                 <groupId>com.googlecode.json-simple</groupId>
                 <artifactId>json-simple</artifactId>
                 <version>${json-simple.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-dbutils</groupId>
+                <artifactId>commons-dbutils</artifactId>
+                <version>${dbutils.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -636,5 +646,7 @@
         <glassfish.tyrus.version>1.13.1</glassfish.tyrus.version>
         <org.influxdb.version>2.11</org.influxdb.version>
         <json-simple.version>1.1</json-simple.version>
+        <json.version>20180130</json.version>
+        <dbutils.version>1.6</dbutils.version>
     </properties>
 </project>

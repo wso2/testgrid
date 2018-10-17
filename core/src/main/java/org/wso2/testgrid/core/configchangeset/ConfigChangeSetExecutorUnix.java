@@ -31,10 +31,10 @@ import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.tinkerer.AsyncCommandResponse;
+import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
+import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 import org.wso2.testgrid.core.exception.ConfigChangeSetExecutorException;
-import org.wso2.testgrid.tinkerer.AsyncCommandResponse;
-import org.wso2.testgrid.tinkerer.TinkererSDK;
-import org.wso2.testgrid.tinkerer.exception.TinkererOperationException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

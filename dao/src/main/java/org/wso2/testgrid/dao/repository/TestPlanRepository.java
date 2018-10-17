@@ -18,6 +18,8 @@
 package org.wso2.testgrid.dao.repository;
 
 import com.google.common.collect.LinkedListMultimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -35,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 
 /**
@@ -43,7 +46,7 @@ import javax.persistence.Query;
  * @since 1.0.0
  */
 public class TestPlanRepository extends AbstractRepository<TestPlan> {
-
+    private static final Logger logger = LoggerFactory.getLogger(TestPlanRepository.class);
 
     /**
      * Constructs an instance of the repository class.
@@ -321,6 +324,72 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         @SuppressWarnings("unchecked")
         List<Object[]> records = query.getResultList();
         return mapObject(TestCaseFailureResultDTO.class, records);
+    }
+
+    /**
+     * This method returns the testplans need to be deleted
+     *
+     * @param count number of builds that need be saved for each infra combination in each job
+     * @return a List of {@link String} testpan ids
+     */
+    public List<String> deleteDatasourcesByAge(int count) {
+
+
+        List<String> toDelete = new ArrayList<String>();
+
+        String sql = "select distinct infra_parameters from test_plan";
+        Query query = entityManager.createNativeQuery(sql);
+        @SuppressWarnings("unchecked")
+        List<String> infraCombinations = (List<String>) query.getResultList();
+
+        sql = "select distinct name from product";
+        query = entityManager.createNativeQuery(sql);
+        @SuppressWarnings("unchecked")
+        List<String> products = (List<String>) query.getResultList();
+
+        String [] createTemp = {"drop table if exists temp ;", "drop table if exists temp2 ;",
+                "create temporary table temp (id VARCHAR(255), modified_timestamp TIMESTAMP, name VARCHAR(50), " +
+                "infra_parameters  VARCHAR(255)); ",
+                "INSERT INTO  temp (id,name,modified_timestamp,infra_parameters ) " +
+                        "select test_plan.id, product.name, test_plan.modified_timestamp, test_plan.infra_parameters " +
+                        "from test_plan,product,deployment_pattern " +
+                        "where test_plan.DEPLOYMENTPATTERN_id = deployment_pattern.id and " +
+                        "deployment_pattern.PRODUCT_id = product.id;",
+                "create temporary table temp2 (id VARCHAR(255), modified_timestamp TIMESTAMP, name  VARCHAR(50), " +
+                        "infra_parameters  VARCHAR(255));",
+                "insert  temp2 SELECT * FROM temp;"};
+
+        EntityTransaction txn = entityManager.getTransaction();
+        txn.begin();
+        for (String sqlQ : createTemp) {
+            entityManager.createNativeQuery(sqlQ).executeUpdate();
+        }
+        txn.commit();
+
+        @SuppressWarnings("unchecked")
+        List<String> quaryResultOfInfra;
+        for (String product : products) {
+            for (String infra : infraCombinations) {
+                logger.info(StringUtil.concatStrings("identifying testplans that need to be deleted in" +
+                        " product ", product, "infra combination : ", infra));
+                sql = "select id from temp2 as tp left join (select id from temp where name = ? and " +
+                        "infra_parameters = ? order by (modified_timestamp) DESC limit ?)p2 USING(id) " +
+                        "WHERE p2.id IS NULL and infra_parameters = ?  and name = ? order by (modified_timestamp) DESC";
+
+                query = entityManager.createNativeQuery(sql);
+                query.setParameter(1, product);
+                query.setParameter(2, infra);
+                query.setParameter(3, count);
+                query.setParameter(4, infra);
+                query.setParameter(5, product);
+                quaryResultOfInfra = (List<String>) query.getResultList();
+                for (String data : quaryResultOfInfra) {
+                    logger.info(data);
+                    toDelete.add(data);
+                }
+            }
+        }
+        return toDelete;
     }
 
     /**

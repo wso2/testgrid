@@ -18,35 +18,39 @@
 
 package org.wso2.testgrid.common;
 
+
 import org.apache.http.entity.ContentType;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
 
 import java.io.DataOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.ProcessingException;
 
 import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 /**
  * This class create a database in influxDB and a Data Source in Grafana according to the test plan
  */
-public class DashboardSetup {
+public class GrafanaDashboardHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(DashboardSetup.class);
+    private static final Logger logger = LoggerFactory.getLogger(GrafanaDashboardHandler.class);
     private String restUrl =
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_URL);
     private String username =
@@ -57,7 +61,8 @@ public class DashboardSetup {
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.GRAFANA_APIKEY);
     private String testplanID;
 
-    public DashboardSetup(String testplanID) {
+
+    public GrafanaDashboardHandler(String testplanID) {
         this.testplanID = testplanID;
     }
 
@@ -66,20 +71,56 @@ public class DashboardSetup {
      */
     public void initDashboard() {
         // create influxDB database according to tp_id
+        InfluxDB influxDB = null;
         try {
-            InfluxDB influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl, username, password);
+            influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl, username, password);
             String dbName = testplanID;
             influxDB.createDatabase(dbName);
-            influxDB.close();
+
+            logger.info(StringUtil.concatStrings("database created for testplan: ", testplanID,
+                    "and DB name: ", dbName));
         } catch (AssertionError e) {
             logger.error(StringUtil.concatStrings("Cannot create a new Database: \n", e));
         } catch (IllegalArgumentException e) {
             logger.error(StringUtil.concatStrings("INFLUXDB_USER and INFLUXDB_PASS cannot be empty: \n", e));
+        } finally {
+            if (influxDB != null) {
+                try {
+                    influxDB.close();
+                } catch (Exception e) {
+                    logger.error("Couldn't close the influxDB connection");
+                }
+            }
         }
 
         // add a new data source to grafana
         addGrafanaDataSource();
+        configureTelegrafHost();
 
+    }
+
+    /**
+     * This method will set telegraf host name and start telegraf using tinkerer
+     */
+    private void configureTelegrafHost() {
+        try {
+            String shellCommand;
+            TinkererSDK tinkererSDK = new TinkererSDK();
+            List<Agent> agents = tinkererSDK.getAgentListByTestPlanId(this.testplanID);
+
+            for (Agent vm : agents) {
+                shellCommand = "sudo sed -i 's/wso2_sever/" + vm.getInstanceName() + "-"
+                        + vm.getInstanceId() + "/g' /etc/telegraf/telegraf.conf";
+                logger.info(StringUtil.concatStrings("agent: ", vm.getInstanceName(), "Shell Command: ",
+                        shellCommand));
+                tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
+
+                shellCommand = "sudo systemctl start telegraf";
+                tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
+            }
+        } catch (ProcessingException e) {
+            logger.error("Error while configuring telegraf host for testplan " + testplanID, e);
+        }
     }
 
     /**
@@ -111,15 +152,15 @@ public class DashboardSetup {
      */
     public void addGrafanaDataSource() {
 
+        // Install the all-trusting host verifier
+        HostnameVerifier allHostsValid = new HostValidator();
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
         DataOutputStream dataOutputStream = null;
+
         try {
             String url = "https://" + ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
-                    .GRAFANA_DATASOURCE) + ":3000/api/datasources/";
-
-            HostnameVerifier allHostsValid = new HostValidator();
-
-            // Install the all-trusting host verifier
-            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+                    .GRAFANA_DATASOURCE) + "/api/datasources/";
 
             URL obj = new URL(url);
             HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
