@@ -582,7 +582,7 @@ Resources:
           echo "NodeType=MASTER" >> testplan.properties
           echo "Offset=${Offset}" >> testplan.properties
 
-          git clone --depth 1 https://github.com/harshanl/testgrid
+          git clone --depth 1 https://github.com/wso2/testgrid
           cp -a testgrid/jobs/intg-test-resources/. .
           cp -a scripts/. .
           rm -r scripts/
@@ -688,7 +688,7 @@ Resources:
                 echo "NodeType=SLAVE" >> testplan.properties
                 echo "Offset=${Offset}" >> testplan.properties
 
-                git clone --depth 1 https://github.com/harshanl/testgrid
+                git clone --depth 1 https://github.com/wso2/testgrid
                 cp -a testgrid/jobs/intg-test-resources/. .
                 cp -a scripts/. .
                 rm -r scripts/
