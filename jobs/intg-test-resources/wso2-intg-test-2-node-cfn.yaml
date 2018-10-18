@@ -521,6 +521,8 @@ Resources:
           set -e
           set -o xtrace
 
+          echo "${WSO2EnvApplicationLoadBalancer.DNSName}  localhost" >> /etc/hosts
+
           setup_java_env() {
           source /etc/environment
           echo JDK_PARAM=${JDK} >> /opt/wso2/java.txt
@@ -580,7 +582,7 @@ Resources:
           echo "NodeType=MASTER" >> testplan.properties
           echo "Offset=${Offset}" >> testplan.properties
 
-          git clone --depth 1 https://github.com/harshanl/testgrid
+          git clone --depth 1 https://github.com/wso2/testgrid
           cp -a testgrid/jobs/intg-test-resources/. .
           cp -a scripts/. .
           rm -r scripts/
@@ -624,6 +626,8 @@ Resources:
                 #!/bin/bash
                 set -e
                 set -o xtrace
+
+                echo "${WSO2EnvApplicationLoadBalancer.DNSName}  localhost" >> /etc/hosts
 
                 setup_java_env() {
                 source /etc/environment
@@ -684,7 +688,7 @@ Resources:
                 echo "NodeType=SLAVE" >> testplan.properties
                 echo "Offset=${Offset}" >> testplan.properties
 
-                git clone --depth 1 https://github.com/harshanl/testgrid
+                git clone --depth 1 https://github.com/wso2/testgrid
                 cp -a testgrid/jobs/intg-test-resources/. .
                 cp -a scripts/. .
                 rm -r scripts/
