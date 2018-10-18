@@ -20,6 +20,9 @@ package org.wso2.testgrid.logging.plugins;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.lookup.StrLookup;
+import org.wso2.testgrid.common.util.TestGridUtil;
+
+import java.nio.file.Paths;
 
 /**
  * Looks up the log file location based on product test directory, deployment pattern
@@ -30,7 +33,7 @@ import org.apache.logging.log4j.core.lookup.StrLookup;
  */
 @Plugin(name = "path", category = StrLookup.CATEGORY)
 public class LogFilePathLookup implements StrLookup {
-    private static String logFilePath = "testgrid.log";
+    private static String logFilePath = Paths.get(TestGridUtil.getTestGridHomePath(), "testgrid.log").toString();
 
     @Override
     public String lookup(String key) {

@@ -40,8 +40,8 @@
         <Routing name="Routing">
             <Routes pattern="$${path:key2}">
                 <Route>
-                    <RollingFile name="SCENARIO_LOGFILE" fileName="${sys:testgrid.home}/${path:key2}"
-                                 filePattern="${sys:testgrid.home}/${path:key2}-%d{MM-dd-yyyy}">
+                    <RollingFile name="SCENARIO_LOGFILE" fileName="${path:key2}"
+                                 filePattern="${path:key2}-%d{MM-dd-yyyy}">
                         <PatternLayout pattern="[%d] %5p {%c} - %m%ex%n" />
                         <Policies>
                             <SizeBasedTriggeringPolicy size="50 MB" />
