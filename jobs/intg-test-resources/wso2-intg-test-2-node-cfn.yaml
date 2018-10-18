@@ -521,6 +521,8 @@ Resources:
           set -e
           set -o xtrace
 
+          echo "${WSO2EnvApplicationLoadBalancer.DNSName}  localhost" >> /etc/hosts
+
           setup_java_env() {
           source /etc/environment
           echo JDK_PARAM=${JDK} >> /opt/wso2/java.txt
@@ -624,6 +626,8 @@ Resources:
                 #!/bin/bash
                 set -e
                 set -o xtrace
+
+                echo "${WSO2EnvApplicationLoadBalancer.DNSName}  localhost" >> /etc/hosts
 
                 setup_java_env() {
                 source /etc/environment
