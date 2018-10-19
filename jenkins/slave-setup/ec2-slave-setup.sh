@@ -16,6 +16,7 @@ TG_MASTER_IP="$1"
 MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
 
 MASTER_KEY_LOCATION='/testgrid/testgrid-prod-key.pem'
+TESTGRID_HOME='/testgrid/testgrid-home'
 
 # Create TG Home directory
 mkdir -p /testgrid/testgrid-home/testgrid-dist
@@ -27,9 +28,10 @@ rm -rf *
 # Downloading the TG distribution
 echo "Downloading the TG Distribution!"
 echo "Download Location ${TG_MASTER_IP}:/testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid.zip"
-scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:/testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid.zip /testgrid/testgrid-home/testgrid-dist/
+scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:${TESTGRID_HOME}/testgrid-dist/WSO2-TestGrid.zip
+/testgrid/testgrid-home/testgrid-dist/
 echo "Copying config.properties from master!"
-scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:/testgrid/testgrid-home/config.properties /testgrid/testgrid-home/
+scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:${TESTGRID_HOME}/config.properties ${TESTGRID_HOME}
 
 echo "Unzip Tesgrid distribution and copy mysql jar"
 unzip WSO2-TestGrid.zip
@@ -41,4 +43,4 @@ export DISPLAY=:95
 nohup Xvfb :95 -screen 0 1024x768x16 > /dev/null 2>&1 &
 
 # Changing the testgrid home ownership
-chown -R ubuntu:ubuntu /testgrid/testgrid-home
+chown -R ubuntu:ubuntu ${TESTGRID_HOME}
