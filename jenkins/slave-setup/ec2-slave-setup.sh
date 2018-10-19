@@ -41,8 +41,7 @@ rm -rf *
 # Downloading the TG distribution
 echo "Downloading the TG Distribution!"
 echo "Download Location ${TG_MASTER_IP}:/testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid.zip"
-scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:${TESTGRID_HOME}/testgrid-dist/WSO2-TestGrid.zip
-/testgrid/testgrid-home/testgrid-dist/
+scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:${TESTGRID_HOME}/testgrid-dist/WSO2-TestGrid.zip ${TESTGRID_HOME}/testgrid-dist/
 echo "Copying config.properties from master!"
 scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:${TESTGRID_HOME}/config.properties ${TESTGRID_HOME}
 
