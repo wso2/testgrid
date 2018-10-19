@@ -9,7 +9,7 @@
 #              operational. This is triggered from the slave setup plugin.
 #
 #===================================================================================
-set -xe
+set -e
 set -o xtrace
 
 TG_MASTER_IP="$1"
