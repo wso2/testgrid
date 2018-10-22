@@ -38,9 +38,9 @@ repositories.
 ## Where to go next from here?
 
 1. Read the quick architecture details below
-2. Do the [quick start guide](QuickStartGuide.md), and get a local testgrid running
-3. Read the Testgrid concepts at [Infrastructure / Deployment / and Scenarios Repository Structure](Infrastructure-Deployment-Scenarios-Repository-Structure.md)
-4. See developer docs at [How to Pass Data between Testgrid steps](How-to-Pass-Data-to-Next-Steps.md)
+2. Do the [quick start guide](docs/QuickStartGuide.md), and get a local testgrid running
+3. Read the Testgrid concepts at [Infrastructure / Deployment / and Scenarios Repository Structure](docs/Infrastructure-Deployment-Scenarios-Repository-Structure.md)
+4. See developer docs at [How to Pass Data between Testgrid steps](docs/How-to-Pass-Data-to-Next-Steps.md)
 
 ## Testgrid architecture
 
