@@ -149,7 +149,7 @@ public class CleanUpCommand implements Command {
             }
 
         } catch (IllegalArgumentException e) {
-            throw new CommandExecutionException("error while retrieving the data that needs to be deleted", e);
+            throw new CommandExecutionException(e.getMessage(), e);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("error while retrieving the data that needs to be deleted", e);
         }
