@@ -18,17 +18,20 @@
 
 package org.wso2.testgrid.core.command;
 
-
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.HostValidator;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
 import java.io.IOException;
@@ -42,6 +45,7 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -51,8 +55,9 @@ import javax.net.ssl.X509TrustManager;
 
 import static org.apache.http.protocol.HTTP.USER_AGENT;
 
+
 /**
- * this class is for data purging. This class will be used to purge testplans, grafana data sources and keep only a
+ * This class is for data purging. This class will be used to purge testplans, grafana data sources and keep only a
  * specified number of testplans and grafana data sources for each infra combination in each job
  * It will not delete builds that are tagged as "keep forever"
  */
@@ -66,11 +71,16 @@ public class CleanUpCommand implements Command {
             (ConfigurationContext.ConfigurationProperties.GRAFANA_DATASOURCE);
     private String grafanaApikey =
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.GRAFANA_APIKEY);
-
     private List<String> toDelete = new ArrayList<String>();
 
+    @Option(name = "--count",
+            usage = "Build Count",
+            aliases = { "-c" },
+            required = true)
+    private int remainingBuildCount = 100;
 
-    private int remainingBuildCount = 10;
+
+
     private TestPlanUOW testPlanUOW;
 
     public List<String> getToDelete() {
@@ -116,13 +126,21 @@ public class CleanUpCommand implements Command {
             List<String> allTestPlans = testPlanUOW.deleteDatasourcesByAge(remainingBuildCount);
             logger.info("number of items to delete: " + allTestPlans.size());
 
+            logger.info("Clearing S3 files");
+            for (String deletingTestPlan : allTestPlans) {
+                deleteS3(deletingTestPlan);
+            }
+
+            logger.info("Deleting test plan from DB");
+            testPlanUOW.deleteTestPlans(allTestPlans);
+
+            logger.info("Deleting Grafana Data Sources");
             for (String deletingTestPlan : allTestPlans) {
                 if (datasource.contains(deletingTestPlan)) {
                     toDelete.add(deletingTestPlan);
                     logger.info(deletingTestPlan + " added to delete");
                 }
             }
-
             if (!toDelete.isEmpty()) {
                 for (String dataSource : toDelete) {
                     logger.info("deleting data source: " + dataSource);
@@ -131,6 +149,8 @@ public class CleanUpCommand implements Command {
             }
 
         } catch (IllegalArgumentException e) {
+            throw new CommandExecutionException("error while retrieving the data that needs to be deleted", e);
+        } catch (TestGridDAOException e) {
             throw new CommandExecutionException("error while retrieving the data that needs to be deleted", e);
         }
     }
@@ -176,7 +196,7 @@ public class CleanUpCommand implements Command {
     }
 
     /**
-     * this method is to get the list of data sources
+     * This method is to get the list of data sources
      * @return list of data sources in grafana
      */
     private List<String> getDataSources() {
@@ -230,6 +250,19 @@ public class CleanUpCommand implements Command {
                 }
             }
         }
+    }
+
+    /**
+     * This method delete the files in s3 for a given test plan
+     * @param testPlanId tes plan id of which the files need to be deleted
+     * @throws TestGridDAOException
+     */
+    public void deleteS3(String testPlanId) throws TestGridDAOException {
+
+        Optional<TestPlan> testPlanEntity = testPlanUOW.getTestPlanById(testPlanId);
+        TestPlan testPlan = testPlanEntity.get();
+        S3StorageUtil.deleteTestPlan(testPlan);
+
     }
 
     /**

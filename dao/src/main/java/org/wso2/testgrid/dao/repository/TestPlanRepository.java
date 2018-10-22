@@ -393,6 +393,22 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
     }
 
     /**
+     * Delete a list of test_plans from db
+     * @param testPlans list of test plan ids that need to be deleted
+     */
+    public void deleteTestPlans(List<String> testPlans) {
+        String sql;
+        EntityTransaction txn = entityManager.getTransaction();
+        txn.begin();
+
+        for (String testplan : testPlans) {
+            sql = "delete from test_plan where id = '" + testplan + "'";
+            entityManager.createNativeQuery(sql).executeUpdate();
+        }
+        txn.commit();
+    }
+
+    /**
      * This method returns the test execution summary for given test plan ids(i.e for a given build job).
      *
      * @param testPlanIds test plan ids of a specific build job

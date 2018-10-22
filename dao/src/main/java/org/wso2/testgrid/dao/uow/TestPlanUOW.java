@@ -87,6 +87,14 @@ public class TestPlanUOW {
     }
 
     /**
+     * Delete a list of test_plans from db
+     * @param testPlans list of test plan ids that need to be deleted
+     */
+    public void deleteTestPlans(List<String> testPlans) {
+        testPlanRepository.deleteTestPlans(testPlans);
+    }
+
+    /**
      * Returns a list of {@link TestPlan} instances for the given deployment-pattern-id and date.
      *
      * @param deploymentId id of the associated deployment-pattern
