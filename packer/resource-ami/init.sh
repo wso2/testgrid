@@ -14,14 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ubuntu_ami="ami-0584bcdcc2b2a82e9"
 ubuntu_os_version="16.04"
 ubuntu_ssh_username="ubuntu"
+ubuntu_source_ami_filter_name="ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*"
+ubuntu_source_ami_filter_owner="099720109477"
 
-centos_ami="ami-9887c6e7"
 centos_os_version="7.4"
 centos_ssh_username="centos"
-
+centos_source_ami_filter_name="CentOS Linux 7 x86_64 HVM EBS ENA*"
+centos_source_ami_filter_owner="679593333241"
 packer_file="packer-conf.json"
 
 #=== FUNCTION ==================================================================
@@ -29,6 +30,7 @@ packer_file="packer-conf.json"
 # DESCRIPTION: Validate config json and start packer.
 #===============================================================================
 function startPacker() {
+    echo "Starting packer.."
 	packer validate packer-conf.json
 	packer build packer-conf.json
 }
@@ -57,7 +59,7 @@ function checkIfExists() {
 function checkResources() {
 	notFound=0	
 	while read F  ; do
-		checkIfExists resources/$F
+	    checkIfExists resources/$F
 		boolExist=$?
 		if [ "$boolExist" == 1 ]
 		then
@@ -99,19 +101,21 @@ read os;
 case "$os" in
     1)
 	os="Ubuntu"
-	export PACKER_SOURCE_AMI_ID=$ubuntu_ami
 	export PACKER_SSH_USERNAME=$ubuntu_ssh_username
 	export PACKER_SOURCE_OS=$os
 	export PACKER_SOURCE_OS_VERSION=$ubuntu_os_version
+	export PACKER_SOURCE_AMI_FILTER_NAME=$ubuntu_source_ami_filter_name
+	export PACKER_SOURCE_AMI_FILTER_OWNER=$ubuntu_source_ami_filter_owner
 	downloadResourcesFromS3
 	checkResources
         ;;
     2)
 	os="CentOS"
-	export PACKER_SOURCE_AMI_ID=$centos_ami
 	export PACKER_SSH_USERNAME=$centos_ssh_username
 	export PACKER_SOURCE_OS=$os
 	export PACKER_SOURCE_OS_VERSION=$centos_os_version
+    export PACKER_SOURCE_AMI_FILTER_NAME=$centos_source_ami_filter_name
+	export PACKER_SOURCE_AMI_FILTER_OWNER=$centos_source_ami_filter_owner
 	downloadResourcesFromS3
 	checkResources
         ;;

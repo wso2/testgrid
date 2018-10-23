@@ -2,33 +2,42 @@
     "variables": {
         "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
         "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
-	"source_ami_id":  "{{env `PACKER_SOURCE_AMI_ID`}}",
-	"os": "{{env `PACKER_SOURCE_OS`}}",
-	"os_version": "{{env `PACKER_SOURCE_OS_VERSION`}}",
-	"ssh_user_name": "{{env `PACKER_SSH_USERNAME`}}",
-	"ami_creator_ip": "{{env `PACKER_AMI_CREATOR_IP`}}",
+        "os": "{{env `PACKER_SOURCE_OS`}}",
+        "os_version": "{{env `PACKER_SOURCE_OS_VERSION`}}",
+        "ssh_user_name": "{{env `PACKER_SSH_USERNAME`}}",
+        "ami_creator_ip": "{{env `PACKER_AMI_CREATOR_IP`}}",
+        "source_ami_filter_name": "{{env `PACKER_SOURCE_AMI_FILTER_NAME`}}",
+        "source_ami_filter_owner": "{{env `PACKER_SOURCE_AMI_FILTER_OWNER`}}",
         "region": "us-east-1"
     },
     "builders": [
         {
             "access_key": "{{user `aws_access_key`}}",
             "ami_name": "TestGrid-{{user `os`}}-{{user `os_version`}}-{{isotime \"2006-01-02\"}}-{{timestamp}}",
-            "instance_type": "t2.micro",
+            "instance_type": "t2.medium",
             "region": "us-east-1",
             "secret_key": "{{user `aws_secret_key`}}",
-            "source_ami": "{{user `source_ami_id`}}",
+            "source_ami_filter": {
+              "filters": {
+                "virtualization-type": "hvm",
+                "name": "{{user `source_ami_filter_name`}}",
+                "root-device-type": "ebs"
+              },
+              "owners": ["{{user `source_ami_filter_owner`}}"],
+              "most_recent": true
+            },
             "ssh_username": "{{user `ssh_user_name`}}",
             "type": "amazon-ebs",
-	    "run_tags" : {
+	        "run_tags" : {
                 "OS" : "{{user `os`}}",
                 "Tool" : "Packer"
             },
-	    "tags": {
-        	"OS": "{{user `os`}}",
-		"OSVersion": "{{user `os_version`}}",
-		"Creator": "{{user `ami_creator_ip`}}",
-        	"Timestamp": "{{timestamp}}",
-		"AGENT_READY": "true"
+            "tags": {
+                "OS": "{{user `os`}}",
+                "OSVersion": "{{user `os_version`}}",
+                "Creator": "{{user `ami_creator_ip`}}",
+                "Timestamp": "{{timestamp}}",
+                "AGENT_READY": "true"
       	    }
         }
     ],
@@ -41,9 +50,9 @@
 	},
         {
             "type": "shell",
-	    "environment_vars": [
+	        "environment_vars": [
                                   "AMI_OS={{user `os`}}"
-                                ],
+            ],
             "script": "./config.sh"
         }
     ]

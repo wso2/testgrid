@@ -80,11 +80,6 @@ function installJDKs() {
 	sudo add-apt-repository -y ppa:openjdk-r/ppa
 	sudo apt-get update -y
 	sudo apt-get -y install openjdk-8-jdk
-	#Download JCE policies
-	echo "Installing JCE policies (Presumed agreement on Oracle license at https://www.oracle.com/technetwork/java/javase/terms/license/index.html)"
-	wget -v --header "Cookie: oraclelicense=oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip
-	sudo mv UnlimitedJCEPolicyJDK8/local_policy.jar /usr/java/jdk1.8.0_181-amd64/jre/lib/security/
-	sudo mv UnlimitedJCEPolicyJDK8/US_export_policy.jar /usr/java/jdk1.8.0_181-amd64/jre/lib/security/
 	;;
 
     CentOS)
@@ -94,15 +89,16 @@ function installJDKs() {
 	#Installing OpenJDK8
 	echo "Installing OPENJDK 8"
 	sudo yum install -y java-1.8.0-openjdk-devel
- 	#Download JCE policies
+    sudo yum install -y wget #Dependency to download JCE policies
+	;;
+    esac
+    #Download JCE policies
 	echo "Installing JCE policies (Presumed agreement on Oracle license at https://www.oracle.com/technetwork/java/javase/terms/license/index.html)"
-	sudo yum install -y wget
+	installPackage wget
 	wget -v --header "Cookie: oraclelicense=oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip
 	unzip jce_policy-8.zip -d .
 	sudo mv UnlimitedJCEPolicyJDK8/local_policy.jar /usr/java/jdk1.8.0_181-amd64/jre/lib/security/
 	sudo mv UnlimitedJCEPolicyJDK8/US_export_policy.jar /usr/java/jdk1.8.0_181-amd64/jre/lib/security/
-	;;
-    esac
 }
 
 #=== FUNCTION ==================================================================
@@ -153,7 +149,7 @@ function installSQLclientsAndTools() {
 	sudo alien -i resources/oracle-instantclient12.2-sqlplus-12.2.0.1.0-1.x86_64.rpm
 	sudo ldconfig
 	;;
-     CentOS)
+    CentOS)
 	#Add MSSQL repositories
 	echo "Adding MSSQL repositories"
 	sudo su -c "curl https://packages.microsoft.com/config/rhel/7/prod.repo > /etc/yum.repos.d/msprod.repo"
@@ -195,10 +191,11 @@ function downloadJDBCDrivers() {
 # DESCRIPTION: Update path variable with appending MSSQL tools & Oracle client
 #===============================================================================
 function updatePathVariable() {
-	 case "$AMI_OS" in
-    Ubuntu)
 	echo "updating path variable..."
+    case "$AMI_OS" in
+    Ubuntu)
 	#Todo: verify the path update for Ubuntu.
+	echo "WARN: Path variable is not properly updating for Ubuntu."
 	#echo 'PATH=/opt/mssql-tools/bin:/usr/lib/oracle/12.2/client64/bin:$PATH' | sudo tee --append /etc/environment	
 	;;
     CentOS)
@@ -224,8 +221,12 @@ function addEnvVariables() {
 # DESCRIPTION: Install TestGrid Tinkerer agent to AMI.
 #===============================================================================
 function installTinkererAgent() {
-	sudo unzip resources/agent.zip -d /opt/testgrid/
-	rm resources/agent.zip
+    #Download tinkererAgent from the last successful TestGrid build in WSO2 Jenkins.
+    wget https://wso2.org/jenkins/job/testgrid/job/testgrid/lastSuccessfulBuild/artifact/remoting-agent/target/agent.zip
+	sudo unzip agent.zip -d /opt/testgrid/
+	rm agent.zip
+	#Add testgrid-agent service
+	sudo cp /opt/testgrid/agent/testgrid-agent /etc/init.d/
 }
 
 #=== FUNCTION ==================================================================
@@ -233,16 +234,15 @@ function installTinkererAgent() {
 # DESCRIPTION: Install artifacts relates to performance monitoring to AMI.
 #===============================================================================
 function installPerfMonitoringArtifacts() {
-	mv resources/perf_monitoring_artifacts.zip resources/agent.zip	#Need to unzip to same Tinker agent directory
-	sudo unzip resources/agent.zip -d /opt/testgrid/
+    unzip resources/perf_monitoring_artifacts.zip -d .
+    sudo cp -r perf_monitoring_artifacts/* /opt/testgrid/agent/
 }
 
 #=== FUNCTION ==================================================================
-# NAME: installPython
-# DESCRIPTION: Install Python (Download python from official FTP server and build)
+# NAME: installDependenciesForPython
+# DESCRIPTION: Install necessary pre-requisites for Python installation.
 #===============================================================================
-function installPython() {
-	python_version=3.6.5	#We can use any version available in python.org ftp server
+function installDependenciesForPython() {
     echo "Installing dependencies for python"
 	case "$AMI_OS" in
     Ubuntu)
@@ -254,8 +254,16 @@ function installPython() {
 	sudo yum install -y zlib-devel	        #Dependency for python installing
 	;;
     esac
-
     installPackage "bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel"
+}
+
+#=== FUNCTION ==================================================================
+# NAME: installPython
+# DESCRIPTION: Install Python (Download python from official FTP server and build)
+#===============================================================================
+function installPython() {
+	python_version=$1	    #We can use any version available in python.org ftp server
+	echo "Installing python version $python_version"
     wget https://www.python.org/ftp/python/$python_version/Python-$python_version.tgz
     tar -xvf Python-$python_version.tgz
     cd Python-$python_version
@@ -265,10 +273,36 @@ function installPython() {
 	cd ..
 	sudo rm -r Python-$python_version
 	sudo rm Python-$python_version.tgz
-    #Installing necessary python libs (All python lib installations should go here..)
-    #pip defaults to installing Python packages to a system directory (such as /usr/local/lib/python3.4). This requires root access.
-    #"--user" makes pip install packages in your home directory instead, which doesn't require any special privileges.
-    pip3 install --user virtualenv
+}
+
+#=== FUNCTION ==================================================================
+# NAME: installCfnSignalLibrary
+# DESCRIPTION: Install CFN Signal Library (CFN Signal is used to inform status
+#              of the instance to its CF Stack)
+#===============================================================================
+function installCfnSignalLibrary() {
+    #Download lib
+    wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.amzn1.noarch.rpm
+    #Installing python dependency for rpm installation
+    sudo pip install pystache
+    sudo pip install python-daemon
+    #Installation
+    sudo yum -y localinstall aws-cfn-bootstrap-latest.amzn1.noarch.rpm
+    #To fix ImportError: No module named cfnbootstrap when executing Signal (Adding symbolic link)
+    sudo ln -s /usr/local/lib/python2.7/site-packages/cfnbootstrap /usr/lib/python2.7/site-packages/cfnbootstrap
+    ls /opt/aws/bin/cfn-signal
+}
+
+#=== FUNCTION ==================================================================
+# NAME: installPythonArtifacts
+# DESCRIPTION: Install necessary Python libs, tools with the installed Python.
+#===============================================================================
+function installPythonArtifacts() {
+    echo "Installing Python artifacts"
+    #Installing pip for sudoers
+    installPackage epel-release
+    installPackage python-pip
+    sudo pip install virtualenv #Necessary for WSO2 integration-test python repositories
 }
 
 #=== FUNCTION ==================================================================
@@ -278,9 +312,12 @@ function installPython() {
 function showInstallations() {
 	echo "----git----"
 	git --version	
-	echo "----python----"
+	echo "----python 3.6----"
 	python3.6 -V
-	echo	
+	echo
+	echo "----python 3.5----"
+	python3.5 -V
+	echo
 	echo "----maven----"
 	mvn -v
 	echo	
@@ -312,6 +349,9 @@ function showInstallations() {
 	echo "----agent directory (/opt/testgrid/)----"
 	ls /opt/testgrid/agent/
 	echo
+	echo "----TestGrid agent service"
+	service --status-all |grep TestGrid
+	echo
 	echo "----JDBC drivers directory (/opt/testgrid/sql-drivers)----"
 	ls /opt/testgrid/sql-drivers
 	echo
@@ -319,6 +359,9 @@ function showInstallations() {
 	echo OracleJDK8 env= $ORACLE_JDK8
 	echo OpenJDK8 env=$OPEN_JDK8
 	echo
+	echo "---- CFN Library ----"
+    ls /opt/aws/bin/cfn-signal
+    echo
 }
 
 
@@ -357,9 +400,14 @@ updatePathVariable;
 showMessage "7.Installing Tinkerer agent"
 installTinkererAgent
 showMessage "8.Installing Python"
-installPython
+installDependenciesForPython
+installPython 3.5.6 #3.5 version is necessary for CFN-Signal library
+installPython 3.6.7 #3.6 version is necessary for WSO2 integration-test python repositories
+installPythonArtifacts
 showMessage "9.Installing Performance monitoring artifacts"
 installPerfMonitoringArtifacts
+showMessage "10.Installing CFN-Signal library"
+installCfnSignalLibrary
 showMessage "10. Adding environment variables"
 addEnvVariables
 showMessage "11.Showing installations"
