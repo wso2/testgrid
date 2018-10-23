@@ -125,7 +125,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     @Transient
     private String workspace = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR,
-            "sample-product").toString();
+            "sample-").toString();
 
     /**
      * Returns the status of the infrastructure.

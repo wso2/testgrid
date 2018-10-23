@@ -332,7 +332,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      * @param count number of builds that need be saved for each infra combination in each job
      * @return a List of {@link String} testpan ids
      */
-    public List<String> deleteDatasourcesByAge(int count) {
+    public List<String> getTestPlansToCleanup(int count) {
 
 
         List<String> toDelete = new ArrayList<String>();
@@ -390,6 +390,30 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
             }
         }
         return toDelete;
+    }
+
+    /**
+     * Delete a list of test_plans from db
+     * @param testPlans list of test plan ids that need to be deleted
+     */
+    public void deleteTestPlans(List<String> testPlans) {
+        String sql;
+        EntityTransaction txn = null;
+        try {
+            txn = entityManager.getTransaction();
+            txn.begin();
+
+            for (String testplan : testPlans) {
+                sql = "delete from test_plan where id = '" + testplan + "'";
+                entityManager.createNativeQuery(sql).executeUpdate();
+            }
+            txn.commit();
+        } catch (Exception e) {
+            if (txn != null) {
+                logger.error("Transaction is being rolled back due to error : \n", e);
+                txn.rollback();
+            }
+        }
     }
 
     /**
