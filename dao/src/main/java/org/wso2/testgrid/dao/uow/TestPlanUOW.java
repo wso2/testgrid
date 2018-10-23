@@ -185,8 +185,8 @@ public class TestPlanUOW {
      * @param count number of datasource that need to be saved in each infra combination
      * @return list of testplans
      */
-    public List<String> deleteDatasourcesByAge(int count) {
-        return testPlanRepository.deleteDatasourcesByAge(count);
+    public List<String> getTestPlansToCleanup(int count) {
+        return testPlanRepository.getTestPlansToCleanup(count);
     }
 
     /**

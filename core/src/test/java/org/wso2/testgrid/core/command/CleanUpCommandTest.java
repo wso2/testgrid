@@ -48,14 +48,13 @@ public class CleanUpCommandTest extends PowerMockTestCase {
         dataToDelete.add("TP1");
         String grafanaUrl = "ec2-34-232-211-33.compute-1.amazonaws.com:3000";
 
-        when(testPlanUOW.deleteDatasourcesByAge(10)).thenReturn(dataToDelete);
+        when(testPlanUOW.getTestPlansToCleanup(10)).thenReturn(dataToDelete);
         TestPlan testPlan = new TestPlan();
         String productName = "wso2-" + randomStr;
         actualTestPlanFileLocation = Paths.get("target", "testgrid-home", TestGridConstants.TESTGRID_JOB_DIR,
                 productName, TestGridConstants.PRODUCT_TEST_PLANS_DIR, "test-plan-01.yaml").toString();
         workspaceDir = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR,
                 productName).toString();
-
 
         this.product = new Product();
         product.setName(productName);
@@ -64,16 +63,15 @@ public class CleanUpCommandTest extends PowerMockTestCase {
         deploymentPattern.setName("default-" + randomStr);
         deploymentPattern.setProduct(product);
 
-
         testPlan.setId("TP1");
         testPlan.setTestRunNumber(1);
         testPlan.setDeploymentPattern(deploymentPattern);
         testPlan.setInfraParameters(infraParamsString);
         testPlan.setDeployerType(TestPlan.DeployerType.SHELL);
-        testPlan.setScenarioTestsRepository(Paths.get(workspaceDir, "/workspace/scenarioTests").toString());
-        testPlan.setInfrastructureRepository(Paths.get(workspaceDir, "/workspace/infrastructure").toString());
-        testPlan.setDeploymentRepository(Paths.get(workspaceDir, "/workspace/deployment").toString());
-        testPlan.setKeyFileLocation(Paths.get(workspaceDir, "/workspace/testkey.pem").toString());
+        testPlan.setScenarioTestsRepository(Paths.get(workspaceDir, "workspace", "scenarioTests").toString());
+        testPlan.setInfrastructureRepository(Paths.get(workspaceDir, "workspace", "scenarioTests").toString());
+        testPlan.setDeploymentRepository(Paths.get(workspaceDir, "workspace", "deployment").toString());
+        testPlan.setKeyFileLocation(Paths.get(workspaceDir, "workspace", "testkey.pem").toString());
         testPlan.setWorkspace(workspaceDir);
 
         when(testPlanUOW.getTestPlanById("TP1")).thenReturn(Optional.of(testPlan));

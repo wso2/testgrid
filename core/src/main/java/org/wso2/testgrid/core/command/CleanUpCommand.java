@@ -73,9 +73,9 @@ public class CleanUpCommand implements Command {
             ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.GRAFANA_APIKEY);
     private List<String> toDelete = new ArrayList<String>();
 
-    @Option(name = "--count",
-            usage = "Build Count",
-            aliases = { "-c" },
+    @Option(name = "--keep",
+            usage = "Builds to keep Count",
+            aliases = { "-k" },
             required = true)
     private int remainingBuildCount = 100;
 
@@ -123,18 +123,22 @@ public class CleanUpCommand implements Command {
     public void execute() throws CommandExecutionException {
 
         try {
-            List<String> allTestPlans = testPlanUOW.deleteDatasourcesByAge(remainingBuildCount);
-            logger.info("number of items to delete: " + allTestPlans.size());
+            List<String> allTestPlans = testPlanUOW.getTestPlansToCleanup(remainingBuildCount);
+            logger.info("number of testplans to delete: " + allTestPlans.size());
 
-            logger.info("Clearing S3 files");
+
+            logger.info(StringUtil.concatStrings("Clearing S3 files except for the last ",
+                    remainingBuildCount, " builds"));
             for (String deletingTestPlan : allTestPlans) {
                 deleteS3(deletingTestPlan);
             }
 
-            logger.info("Deleting test plan from DB");
+            logger.info(StringUtil.concatStrings("Deleting test plans from DB except for the last ",
+                    remainingBuildCount, " builds"));
             testPlanUOW.deleteTestPlans(allTestPlans);
 
-            logger.info("Deleting Grafana Data Sources");
+            logger.info(StringUtil.concatStrings("Deleting Grafana Data Sources of test plans except " +
+                    "of the last ", remainingBuildCount, " builds"));
             for (String deletingTestPlan : allTestPlans) {
                 if (datasource.contains(deletingTestPlan)) {
                     toDelete.add(deletingTestPlan);
@@ -148,8 +152,6 @@ public class CleanUpCommand implements Command {
                 }
             }
 
-        } catch (IllegalArgumentException e) {
-            throw new CommandExecutionException(e.getMessage(), e);
         } catch (TestGridDAOException e) {
             throw new CommandExecutionException("error while retrieving the data that needs to be deleted", e);
         }
@@ -260,8 +262,16 @@ public class CleanUpCommand implements Command {
     public void deleteS3(String testPlanId) throws TestGridDAOException {
 
         Optional<TestPlan> testPlanEntity = testPlanUOW.getTestPlanById(testPlanId);
-        TestPlan testPlan = testPlanEntity.get();
-        S3StorageUtil.deleteTestPlan(testPlan);
+        if (testPlanEntity.isPresent()) {
+            TestPlan testPlan = testPlanEntity.get();
+            boolean s3Deleted = S3StorageUtil.deleteTestPlan(testPlan);
+            if (s3Deleted) {
+                logger.info("S3 files deleted for test plan " + testPlanId);
+            }
+        } else {
+            logger.error("Test Plan is deleted from DB. ");
+        }
+
 
     }
 

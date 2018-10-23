@@ -2,7 +2,7 @@ package org.wso2.testgrid.common.util;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -20,6 +20,7 @@ import org.wso2.testgrid.common.plugins.ArtifactReaderException;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -65,22 +66,31 @@ public final class S3StorageUtil {
         return String.join("/", TestGridConstants.AMAZON_S3_URL, s3BucketName);
     }
 
-    public static void deleteTestPlan(TestPlan testPlan) {
+    /**
+     * This method delete the log files for a given test plan in S3
+     * @param testPlan Test plan which the data need to be deleted
+     */
+    public static boolean deleteTestPlan(TestPlan testPlan) {
+
+        Path configFilePath = Paths.get(TestGridUtil.getTestGridHomePath(),
+                TestGridConstants.TESTGRID_CONFIG_FILE);
+        String testPlanId = testPlan.getId();
+        String s3KeyName = "";
 
         try {
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(ConfigurationContext.
                     getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
 
-            String s3KeyName = deriveS3TestPlanDirPath(testPlan, artifactDownloadable);
-            logger.info("Files cleaned in :" + s3KeyName);
+            s3KeyName = deriveS3TestPlanDirPath(testPlan, artifactDownloadable);
+            logger.info("Started to clean artifacts of test-plan: " + testPlan.getId() + ", s3 bucket: " + s3KeyName);
             String clientRegion = ConfigurationContext.getProperty
                     (ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME);
             String bucketName = ConfigurationContext.getProperty
                     (ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME);
 
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
-                    .withCredentials(new ProfileCredentialsProvider())
+                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                     .withRegion(clientRegion)
                     .build();
 
@@ -88,21 +98,29 @@ public final class S3StorageUtil {
             List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
 
             for (S3ObjectSummary os : objectSummaries) {
-                logger.info(StringUtil.concatStrings("deleting file", os.getKey(), "of test plan ",
+                logger.debug(StringUtil.concatStrings("deleting file", os.getKey(), "of test plan ",
                         testPlan.getId()));
                 s3Client.deleteObject(new DeleteObjectRequest(bucketName, os.getKey()));
             }
 
             s3Client.deleteObject(new DeleteObjectRequest(bucketName, s3KeyName));
-
+            return true;
         } catch (AmazonServiceException e) {
-            logger.error("Amazon S3 couldn't process request ", e);
+            logger.error(StringUtil.concatStrings("Error while deleting file: ", s3KeyName,
+                    "of test plan: ", testPlanId, "\nAmazon S3 couldn't process request ", e));
+            return false;
         } catch (SdkClientException e) {
-            logger.error("Amazon S3 couldn't be contacted for a response" , e);
+            logger.error(StringUtil.concatStrings("Error while deleting file: ", s3KeyName,
+                    "of test plan: ", testPlanId, "\nAmazon S3 couldn't be contacted for a response ", e));
+            return false;
         } catch (ArtifactReaderException e) {
-            logger.error("Error occurred when reading the artifact.", e);
+            logger.error(StringUtil.concatStrings("Error while deleting file: ", s3KeyName,
+                    "of test plan: ", testPlanId, "\nError occurred when reading the artifact ", e));
+            return false;
         } catch (IOException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(StringUtil.concatStrings("Error while deleting file: ", s3KeyName,
+                    "of test plan: ", testPlanId, "\n", e.getMessage(), e));
+            return false;
         }
     }
 
