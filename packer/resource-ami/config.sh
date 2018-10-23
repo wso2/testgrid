@@ -200,7 +200,7 @@ function updatePathVariable() {
 	;;
     CentOS)
 	sudo su -c "echo 'pathmunge /opt/mssql-tools/bin:/usr/lib/oracle/12.2/client64/bin' > /etc/profile.d/testgrid-libs.sh"
-	sudo chmod +x /etc/profile.d/ree.sh
+	sudo chmod +x /etc/profile.d/testgrid-libs.sh
 	. /etc/profile
 	;;
 	esac
