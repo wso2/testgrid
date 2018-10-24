@@ -180,7 +180,7 @@ function downloadJDBCDrivers() {
 	curl http://central.maven.org/maven2/mysql/mysql-connector-java/5.1.44/mysql-connector-java-5.1.44.jar --output sql-drivers/mysql.jar
 	curl https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --output sql-drivers/postgres.jar
 	#Copy “ojdbc8.jar” from resources directory to sql-drivers directory
-	mv resources/ojdbc8.jar sql-drivers/
+	mv resources/ojdbc8.jar sql-drivers/oracle-se.jar
 	echo "JDBC drivers are copied to 'sql-drivers' directory."
 	ls sql-drivers
 	sudo mv sql-drivers /opt/testgrid/sql-drivers
