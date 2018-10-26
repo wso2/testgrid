@@ -159,7 +159,7 @@ Mappings:
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "UBUNTU" ]]
+ IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "UBUNTU" ], !Equals [ !Ref OS, "RHEL" ]]
 Resources:
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
