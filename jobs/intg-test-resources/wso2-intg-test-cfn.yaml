@@ -59,6 +59,10 @@ Parameters:
     MinValue: 20
     MaxValue: 6144
     ConstraintDescription: 'minimum - 20 GB, maximum - 6144 GB'
+  DBEnabled:
+      Type: String
+      Default: 'true'
+      Description: Specify whether DB should be created.
   EC2KeyPair:
     Description: >-
       This is used to ssh to the node. If you don't have a key, please create
@@ -160,6 +164,7 @@ Mappings:
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
  IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "UBUNTU" ], !Equals [ !Ref OS, "RHEL" ]]
+ IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
 Resources:
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -364,6 +369,7 @@ Resources:
          }
   WSO2DBInstance:
     Type: 'AWS::RDS::DBInstance'
+    Condition: 'IsDBEnabled'
     Properties:
       AllocatedStorage: !Ref DBAllocatedStorage
       DBInstanceClass: !Ref DBClass
@@ -393,9 +399,11 @@ Outputs:
     Description: Private IP of the WSO2 Product Instance
   DatabaseHost:
     Value: !Sub '${WSO2DBInstance.Endpoint.Address}'
+    Condition: 'IsDBEnabled'
     Description: Database Host
   DatabasePort:
     Value: !Sub '${WSO2DBInstance.Endpoint.Port}'
+    Condition: 'IsDBEnabled'
     Description: Database Port
   OS:
     Value: !Ref OS
