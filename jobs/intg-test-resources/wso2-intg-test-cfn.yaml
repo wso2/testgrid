@@ -289,7 +289,22 @@ Resources:
           source /etc/environment
 
           cat /dev/null > ~/.bash_history && history -c
+
+
           ${CustomUserData}
+
+          # creating a new user(testgrid) in ec2
+          cp .ssh/authorized_keys /tmp/
+          chmod 777 /tmp/authorized_keys
+          sudo adduser testgrid
+          sudo mkdir /home/testgrid/.ssh
+          sudo cp /tmp/authorized_keys /home/testgrid/.ssh/
+          sudo chmod 700 /home/testgrid/.ssh
+          sudo chmod 600 /home/testgrid/.ssh/authorized_keys
+          sudo chown testgrid /home/testgrid/.ssh
+          sudo chown testgrid /home/testgrid/.ssh/authorized_keys
+          sudo su -c "echo 'testgrid        ALL=(ALL)       NOPASSWD: ALL' >> /etc/sudoers"
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
       Tags:
         - Key: Name
