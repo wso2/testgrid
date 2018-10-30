@@ -48,8 +48,7 @@ echo "Copying JMETER from master!"
 scp -i ${MASTER_KEY_LOCATION} -r -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:/testgrid/apache-jmeter-3.3 /testgrid
 echo "set JMETER_HOME"
 export JMETER_HOME=/testgrid/apache-jmeter-3.3
-echo 'export JMETER_HOME="/testgrid/apache-jmeter-3.3"' >> /home/ubuntu/.bashrc
-echo 'export JMETER_HOME="/testgrid/apache-jmeter-3.3"' >> /home/ubuntu/.bash_profile
+echo 'export JMETER_HOME="/testgrid/apache-jmeter-3.3"' >> /etc/environment
 
 echo "Unzip Tesgrid distribution and copy mysql jar"
 unzip WSO2-TestGrid.zip
