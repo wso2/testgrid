@@ -44,6 +44,10 @@ echo "Download Location ${TG_MASTER_IP}:/testgrid/testgrid-home/testgrid-dist/WS
 scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:${TESTGRID_HOME}/testgrid-dist/WSO2-TestGrid.zip ${TESTGRID_HOME}/testgrid-dist/
 echo "Copying config.properties from master!"
 scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:${TESTGRID_HOME}/config.properties ${TESTGRID_HOME}
+echo "Copying JMETER from master!"
+scp -i ${MASTER_KEY_LOCATION} -r -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:/testgrid/apache-jmeter-3.3 /testgrid
+echo "set JMETER_HOME"
+export JMETER_HOME=/testgrid/apache-jmeter-3.3
 
 echo "Unzip Tesgrid distribution and copy mysql jar"
 unzip WSO2-TestGrid.zip
