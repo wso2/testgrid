@@ -38,7 +38,6 @@ import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.deployment.DeploymentUtil;
 
 import java.io.IOException;
@@ -80,7 +79,7 @@ public class ShellDeployer implements Deployer {
             String deployScriptLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
             logger.info("Performing the Deployment " + deployment.getName());
 
-            ShellExecutor executor = new ShellExecutor(Paths.get(TestGridUtil.getTestGridHomePath()));
+            ShellExecutor executor = new ShellExecutor(Paths.get(deployScriptLocation));
             final String command = "bash " + Paths.get(deployScriptLocation, deployment.getFile())
                     + " --input-dir " + testInputsLoc;
             int exitCode = executor.executeCommand(command);
