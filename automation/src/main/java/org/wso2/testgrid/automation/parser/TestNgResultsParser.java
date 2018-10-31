@@ -329,7 +329,7 @@ public class TestNgResultsParser extends ResultParser {
                         FileUtils.copyFile(file, destinationFile);
                     }
                 }
-                Path zipFilePath = artifactPath.resolve(testScenario.getDir() + TestGridConstants
+                Path zipFilePath = artifactPath.resolve(testScenario.getName() + TestGridConstants
                         .TESTGRID_COMPRESSED_FILE_EXT);
                 Files.deleteIfExists(zipFilePath);
                 FileUtil.compress(artifactPath.toString(), zipFilePath.toString());
