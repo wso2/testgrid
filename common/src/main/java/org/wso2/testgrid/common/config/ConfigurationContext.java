@@ -198,7 +198,18 @@ public class ConfigurationContext {
         /**
          * Password of trustore key file
          */
-        TRUSTSTORE_PASSWORD("TRUSTSTORE_PASSWORD");
+        TRUSTSTORE_PASSWORD("TRUSTSTORE_PASSWORD"),
+
+        /**
+         * AWS access key used for clustering
+         */
+        AWS_ACCESS_KEY_ID_CLUSTERING("AWSAccessKeyId"),
+
+        /**
+         * AWS access key secret used for clustering
+         */
+        AWS_ACCESS_KEY_SECRET_CLUSTERING("AWSAccessKeySecret");
+
 
         private String propertyName;
 
