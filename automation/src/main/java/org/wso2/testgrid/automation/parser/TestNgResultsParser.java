@@ -319,6 +319,10 @@ public class TestNgResultsParser extends ResultParser {
                     (outputLocation::relativize).collect(Collectors.toSet()));
             if (!archivePaths.isEmpty()) {
                 Path artifactPath = TestGridUtil.getTestScenarioArtifactPath(testScenario);
+                if (!Files.exists(artifactPath)) {
+                    Files.createDirectories(artifactPath);
+                }
+                logger.info("Artifact path: " + artifactPath.toString());
                 for (Path filePath : archivePaths) {
                     File file = filePath.toFile();
                     File destinationFile = new File(

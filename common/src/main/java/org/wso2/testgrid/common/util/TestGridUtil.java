@@ -357,7 +357,7 @@ public final class TestGridUtil {
     }
 
     public static Path getTestScenarioArtifactPath(TestScenario testScenario) {
-        return Paths.get(testScenario.getTestPlan().getWorkspace(), testScenario.getDir());
+        return Paths.get(testScenario.getTestPlan().getWorkspace(), testScenario.getName());
     }
 
     /**
