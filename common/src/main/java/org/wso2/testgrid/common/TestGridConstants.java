@@ -40,6 +40,7 @@ public class TestGridConstants {
 
     public static final String TESTGRID_LOG_FILE_NAME = "testgrid.log";
     public static final String TESTGRID_COMPRESSED_FILE_EXT = ".zip";
+    public static final String TESTGRID_SCENARIO_RESULTS_FILE_NAME = "results";
 
     public static final String TESTRUN_LOG_FILE_NAME = "test-run.log";
     public static final String TRUNCATED_TESTRUN_LOG_FILE_NAME = "truncated-test-run.log";

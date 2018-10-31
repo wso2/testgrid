@@ -172,7 +172,8 @@ public class FunctionalTestResultParser extends ResultParser {
             List<String> files = FileUtil.getFilesOnDirectory(this.testLocation, SCENARIO_RESULTS_FILTER_PATTERN);
             if (!files.isEmpty()) {
                 String zipFilePath = TestGridUtil.deriveScenarioArtifactPath(testScenario,
-                        testScenario.getDir() + TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT);
+                        TestGridConstants.TESTGRID_SCENARIO_RESULTS_FILE_NAME
+                                + TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT);
                 for (String filePath : files) {
                     File file = new File(filePath);
                     File destinationFile = new File(
