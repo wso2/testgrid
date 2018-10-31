@@ -48,6 +48,7 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -449,6 +450,23 @@ public class AWSProvider implements InfrastructureProvider {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(ConfigurationContext.getProperty(ConfigurationContext.
                                 ConfigurationProperties.WUM_PASSWORD));
+                cfCompatibleParameters.add(awsParameter);
+            }
+
+            //Set AWS credentials for clustering
+            if (ConfigurationContext.getProperty(ConfigurationProperties.AWS_ACCESS_KEY_ID_CLUSTERING).
+                    equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(ConfigurationContext.getProperty(
+                                ConfigurationProperties.AWS_ACCESS_KEY_ID_CLUSTERING));
+                cfCompatibleParameters.add(awsParameter);
+            }
+
+            if (ConfigurationContext.getProperty(ConfigurationProperties.AWS_ACCESS_KEY_SECRET_CLUSTERING)
+                    .equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(ConfigurationContext.getProperty(
+                                ConfigurationProperties.AWS_ACCESS_KEY_SECRET_CLUSTERING));
                 cfCompatibleParameters.add(awsParameter);
             }
         }));
