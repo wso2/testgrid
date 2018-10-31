@@ -180,8 +180,9 @@ public class UnixClient extends TinkererClient {
             }
             if (resultMap != null && resultMap.containsKey("response")) {
                 String response = resultMap.get("response");
+                // TODO: the response can also contain an error log instead of the actual response.
+                // so, we need to first make sure the command was successful via exit code.
                 List<String> logFileNames = Arrays.asList(response.split("\n"));
-
 
                 for (String logFileName : logFileNames) {
                     try {

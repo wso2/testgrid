@@ -191,8 +191,12 @@ public class TestPlanExecutor {
                 logger.error("Unable to find a Tinker Executor for OS category " + osCategory);
             }
         } catch (TinkererOperationException e) {
-            logger.error("Error while downloading the log files for TestPlan" +
-                    testPlan.getDeploymentPattern().getProduct().getName(), e);
+            final String msg = "Error while downloading the log files for TestPlan" +
+                    testPlan.getDeploymentPattern().getProduct().getName();
+            logger.warn(msg);
+            if (logger.isDebugEnabled()) {
+                logger.debug(msg, e);
+            }
         }
         //report generation
         logger.info("Generating report for the test plan: " + testPlan.getId());
@@ -200,7 +204,7 @@ public class TestPlanExecutor {
             ReportGenerator reportGenerator = ReportGeneratorFactory.getReportGenerator(testPlan);
             reportGenerator.generateReport();
         } catch (ReportGeneratorNotFoundException e) {
-            logger.error("Could not find a report generator " +
+            logger.warn("Could not find a report generator " +
                     " for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName() +
                     ". Test type: " + testPlan.getScenarioConfig().getTestType());
         } catch (ReportGeneratorInitializingException e) {
