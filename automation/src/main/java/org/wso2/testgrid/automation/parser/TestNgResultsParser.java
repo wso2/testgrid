@@ -319,9 +319,6 @@ public class TestNgResultsParser extends ResultParser {
                     (outputLocation::relativize).collect(Collectors.toSet()));
             if (!archivePaths.isEmpty()) {
                 Path artifactPath = TestGridUtil.getTestScenarioArtifactPath(testScenario);
-                if (!Files.exists(artifactPath)) {
-                    Files.createDirectories(artifactPath);
-                }
                 for (Path filePath : archivePaths) {
                     File file = filePath.toFile();
                     File destinationFile = new File(
@@ -332,8 +329,8 @@ public class TestNgResultsParser extends ResultParser {
                         FileUtils.copyFile(file, destinationFile);
                     }
                 }
-                Path zipFilePath = artifactPath.resolve(TestGridConstants.TESTGRID_SCENARIO_RESULTS_FILE_NAME
-                        + TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT);
+                Path zipFilePath = artifactPath.resolve(testScenario.getDir() + TestGridConstants
+                        .TESTGRID_COMPRESSED_FILE_EXT);
                 Files.deleteIfExists(zipFilePath);
                 FileUtil.compress(artifactPath.toString(), zipFilePath.toString());
                 logger.info("Created the results archive: " + zipFilePath);
