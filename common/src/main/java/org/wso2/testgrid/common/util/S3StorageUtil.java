@@ -154,7 +154,7 @@ public final class S3StorageUtil {
     public static String deriveS3ScenarioArchiveFileDir(
             TestPlan testPlan, String scenarioDir, ArtifactReadable awsArtifactReader) {
         return Paths.get(deriveS3TestPlanDirPath(testPlan, awsArtifactReader), scenarioDir,
-                TestGridConstants.TESTGRID_SCENARIO_RESULTS_FILE_NAME + TESTGRID_COMPRESSED_FILE_EXT).toString();
+                scenarioDir + TESTGRID_COMPRESSED_FILE_EXT).toString();
     }
 
     /**
