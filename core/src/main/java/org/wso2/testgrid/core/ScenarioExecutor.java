@@ -219,7 +219,7 @@ public class ScenarioExecutor {
                     }
                 }
                 if (testList.isEmpty()) {
-                    List<String> scripts = getDefaultScriptsToRun(testLocationPath);
+                    List<String> scripts = getTestScriptsToRun(testLocationPath);
                     Test defaultTest = new Test(testScenario.getName(), TestEngine.DEFAULT, scripts, testScenario);
                     testList.add(defaultTest);
                 }
@@ -235,12 +235,32 @@ public class ScenarioExecutor {
     }
 
     /**
+     * By default, this looks for any shell script that has the name format as test.sh,
+     * and returns them as a list.
+     *
+     * @param scenarioDir the scenario test location where tests are located.
+     */
+    private List<String> getTestScriptsToRun(Path scenarioDir) {
+
+        List<String> testScripts = new ArrayList<String>();
+        if (Files.exists(Paths.get(scenarioDir.toString(),"test.sh"))) {
+            testScripts.add(Paths.get(scenarioDir.toString(),"test.sh").toString());
+        } else {
+            logger.info("test.sh is missing in Scenario directory. Looking for run-*sh files. " +
+                    "Please create test.sh");
+            testScripts = getRunScenarioScriptsToRun(scenarioDir);
+        }
+        return testScripts;
+    }
+
+    /**
      * By default, this looks for any shell script that has the name format as run-.*.sh,
      * and returns them as a list.
      *
      * @param scenarioDir the scenario test location where tests are located.
      */
-    private List<String> getDefaultScriptsToRun(Path scenarioDir) {
+    @Deprecated
+    private List<String> getRunScenarioScriptsToRun(Path scenarioDir) {
         try {
             return Files.list(scenarioDir)
                     .filter(p -> p.getFileName().toString().matches("run-.*" + SHELL_SUFFIX))
