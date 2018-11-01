@@ -219,7 +219,7 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
             for (int i = 0; i < deploymentIdLen - 1; i++) {
                 sql.append("?, ");
             }
-            sql.append("?) group by infra_parameters) as latest_test_run_nums on "
+            sql.append("?) group by infra_parameters, DEPLOYMENTPATTERN_id) as latest_test_run_nums on "
                     + "tp.infra_parameters=latest_test_run_nums.infra_parameters and "
                     + "tp.test_run_number=latest_test_run_nums.test_run_number and tp.DEPLOYMENTPATTERN_id in (");
             for (int i = 0; i < deploymentIdLen - 1; i++) {
