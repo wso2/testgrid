@@ -243,8 +243,8 @@ public class ScenarioExecutor {
     private List<String> getTestScriptsToRun(Path scenarioDir) {
 
         List<String> testScripts = new ArrayList<String>();
-        if (Files.exists(Paths.get(scenarioDir.toString(),"test.sh"))) {
-            testScripts.add(Paths.get(scenarioDir.toString(),"test.sh").toString());
+        if (Files.exists(Paths.get(scenarioDir.toString(), "test.sh"))) {
+            testScripts.add(Paths.get(scenarioDir.toString(), "test.sh").toString());
         } else {
             logger.info("test.sh is missing in Scenario directory. Looking for run-*sh files. " +
                     "Please create test.sh");
