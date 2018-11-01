@@ -252,14 +252,19 @@ public class AWSProvider implements InfrastructureProvider {
 
             Properties outputProps = new Properties();
             for (Stack st : describeStacksResult.getStacks()) {
+                StringBuilder outputsStr = new StringBuilder("Infrastructure/Deployment outputs {\n");
                 for (Output output : st.getOutputs()) {
                     Host host = new Host();
                     host.setIp(output.getOutputValue());
                     host.setLabel(output.getOutputKey());
                     hosts.add(host);
                     outputProps.setProperty(output.getOutputKey(), output.getOutputValue());
+                    outputsStr.append(output.getOutputKey()).append("=").append(output.getOutputValue()).append("\n");
                 }
+                //Log cfn outputs
+                logger.info(outputsStr.toString() + "\n}");
             }
+
             // add cfn input properties into the output. We sometimes use default values of cfn input params
             // which needs to passed down to the next step.
             for (TemplateParameter param : expectedParameters) {
