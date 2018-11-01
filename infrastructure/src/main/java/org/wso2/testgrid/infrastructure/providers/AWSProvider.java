@@ -454,15 +454,15 @@ public class AWSProvider implements InfrastructureProvider {
             }
 
             //Set AWS credentials for clustering
-            if (ConfigurationContext.getProperty(ConfigurationProperties.AWS_ACCESS_KEY_ID_CLUSTERING).
-                    equals(expected.getParameterKey())) {
+            if (String.valueOf(ConfigurationProperties.AWS_ACCESS_KEY_ID_CLUSTERING)
+                    .equals(expected.getParameterKey())) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(ConfigurationContext.getProperty(
                                 ConfigurationProperties.AWS_ACCESS_KEY_ID_CLUSTERING));
                 cfCompatibleParameters.add(awsParameter);
             }
 
-            if (ConfigurationContext.getProperty(ConfigurationProperties.AWS_ACCESS_KEY_SECRET_CLUSTERING)
+            if (String.valueOf(ConfigurationProperties.AWS_ACCESS_KEY_SECRET_CLUSTERING)
                     .equals(expected.getParameterKey())) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(ConfigurationContext.getProperty(
