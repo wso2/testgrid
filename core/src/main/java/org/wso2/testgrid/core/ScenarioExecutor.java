@@ -61,6 +61,7 @@ import static org.wso2.testgrid.common.TestGridConstants.JMETER_FOLDER;
 import static org.wso2.testgrid.common.TestGridConstants.RUN_SCENARIO_SCRIPT;
 import static org.wso2.testgrid.common.TestGridConstants.RUN_SCENARIO_SCRIPT_TEMPLATE;
 import static org.wso2.testgrid.common.TestGridConstants.SHELL_SUFFIX;
+import static org.wso2.testgrid.common.TestGridConstants.TEST_SCRIPT;
 
 /**
  * This class is mainly responsible for executing a TestScenario. This will invoke the TestAutomationEngine for
@@ -104,8 +105,8 @@ public class ScenarioExecutor {
             testScenario.getTestPlan().setWorkspace(testPlan.getWorkspace());
 
             // Create run-scenario.sh file if it's missing.
-            if (!Files.exists(Paths.get(
-                    testPlan.getScenarioTestsRepository(), scenarioDir, RUN_SCENARIO_SCRIPT))) {
+            if (!(Files.exists(Paths.get(testPlan.getScenarioTestsRepository(), scenarioDir, RUN_SCENARIO_SCRIPT)) ||
+                    Files.exists(Paths.get(testPlan.getScenarioTestsRepository(), scenarioDir, TEST_SCRIPT)))) {
                 createRunScenarioScript(homeDir + FILE_SEPARATOR + scenarioDir);
             }
 
@@ -243,7 +244,7 @@ public class ScenarioExecutor {
     private List<String> getTestScriptsToRun(Path scenarioDir) {
 
         List<String> testScripts = new ArrayList<String>();
-        if (Files.exists(Paths.get(scenarioDir.toString(), "test.sh"))) {
+        if (Files.exists(Paths.get(scenarioDir.toString(), TEST_SCRIPT))) {
             testScripts.add(Paths.get(scenarioDir.toString(), "test.sh").toString());
         } else {
             logger.info("test.sh is missing in Scenario directory. Looking for run-*sh files. " +
