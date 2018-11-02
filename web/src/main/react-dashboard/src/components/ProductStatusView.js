@@ -139,6 +139,7 @@ class ProductStatusView extends Component {
             }
           })()}
         </td>
+        {/* Note: Commented until the backend coordination is configured.
         <td>
           <Button  outline color="info" size="sm" onClick={() => {
             window.location = '/admin/job/' + product.productName + '/build'
@@ -152,12 +153,7 @@ class ProductStatusView extends Component {
           }}>
             <i className="fa fa-cogs" aria-hidden="true"> </i>
           </Button>
-        </td>
-        <td>
-          <Button outline color="info" size="sm" onClick={this.downloadReport.bind(this, product.productName)}>
-            <i className="fa fa-download" aria-hidden="true"> </i>
-          </Button>
-        </td>
+        </td>*/}
       </tr>)
     });
 
@@ -170,9 +166,6 @@ class ProductStatusView extends Component {
             <th>Job</th>
             <th>Last Success</th>
             <th>Last Failure</th>
-            <th>Execute</th>
-            <th>Configure</th>
-            <th>Report</th>
           </tr>
           </thead>
           <tbody displayRowCheckbox={false}>
