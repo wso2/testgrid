@@ -478,7 +478,7 @@ class TestRunView extends Component {
             </Collapsible>
 
             {/*Scenario execution summary*/}
-            <Collapsible trigger="Failed tests" lazyRender={true} triggerWhenOpen="Failed tests >>" >
+            <Collapsible trigger="Failed tests" open="true" lazyRender={true} triggerWhenOpen="Failed tests >>" >
               {(() => {
                 if (this.state.testSummaryLoadStatus === SUCCESS)
                 switch (this.state.testSummaryLoadStatus) {
