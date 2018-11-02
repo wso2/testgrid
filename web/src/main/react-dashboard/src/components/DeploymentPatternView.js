@@ -24,7 +24,6 @@ import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
 import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
 import {Table, Input, Alert} from 'reactstrap';
-import {Button} from "reactstrap";
 import Moment from "moment/moment";
 
 class DeploymentPatternView extends Component {
