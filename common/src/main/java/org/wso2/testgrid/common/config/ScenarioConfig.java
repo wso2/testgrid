@@ -40,6 +40,7 @@ public class ScenarioConfig implements Serializable {
     private List<Script> scripts;
     //keep default value of test type as functional
     private String testType = TestGridConstants.TEST_TYPE_FUNCTIONAL;
+    private String remoteRepository;
 
     /**
      * This method returns the list of scenarios.
@@ -77,6 +78,14 @@ public class ScenarioConfig implements Serializable {
 
     public void setTestType(String testType) {
         this.testType = testType;
+    }
+
+    public String getRemoteRepository() {
+        return remoteRepository;
+    }
+
+    public void setRemoteRepository(String remoteRepository) {
+        this.remoteRepository = remoteRepository;
     }
 }
 

@@ -1,0 +1,53 @@
+# TestGrid Test Configuration Parameters
+# TODO use dash as the separator instead of camelCase.
+version: '0.9'
+emailToList: "yasassri@wso2.com"
+infrastructureConfig:
+  iacProvider: CLOUDFORMATION
+  infrastructureProvider: AWS
+  containerOrchestrationEngine: None
+  parameters:
+    - JDK : ORACLE_JDK8
+  includes:
+     - UBUNTU
+     - mysql
+     - ORACLE_JDK8
+  provisioners:
+    - name: prod-wso2-ei-scenario-deployment
+      repository: "-b minimum-HA https://github.com/vimukthiperera/aws-ei.git"
+      resourceLocation: "workspace/InfraRepository"
+      description: Provision Infra for running intg tests
+      scripts:
+        - name: 'prod-wso2-ei-scenario-deployment'
+          description: ''
+          type: CLOUDFORMATION
+          file: CF_script/integrator-ha.yaml
+          inputParameters:
+            parseInfrastructureScript: false
+            KeyPairName: "deployment-prod"
+            CertificateName: "self-signed-cert"
+            DBUsername: "wso2carbon"
+            DBPassword: "DB_Password"
+scenarioConfig:
+  testType: INTEGRATION
+  repository: "https://github.com/tharindu1992/wso2-ei-scenarios.git"
+  resourceLocation: ""
+  scenarios:
+    -
+      name: "1.1.1-payload-mediator"
+      description: "1.1.1-payload-mediator"
+      dir: 01-systems-with-heterogenous-msg-format/01.1-soap-to-json/1.1.1-soap-to-json-w-PLF
+
+deploymentConfig:
+  repository: "https://github.com/tharindu1992/wso2-ei-scenarios"
+  resourceLocation: ""
+  deploymentPatterns:
+    - name: 'two-node-deployment'
+      description: 'dummy'
+      dir: .
+      scripts:
+        - name: 'default'
+          type: SHELL
+          file: deployment/deploy.sh
+          inputParameters:
+            parseInfrastructureScript: false
