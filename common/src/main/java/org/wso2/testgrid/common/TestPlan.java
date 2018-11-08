@@ -124,6 +124,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String keyFileLocation;
 
     @Transient
+    private String emailToList;
+
+    @Transient
     private String workspace = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR,
             "sample-").toString();
 
@@ -491,6 +494,14 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     public void setWorkspace(String workspace) {
         this.workspace = workspace;
+    }
+
+    public String getEmailToList() {
+        return emailToList;
+    }
+
+    public void setEmailToList(String emailToList) {
+        this.emailToList = emailToList;
     }
 
     /**
