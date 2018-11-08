@@ -1,4 +1,4 @@
-!!org.wso2.testgrid.common.TestPlan
+#org.wso2.testgrid.common.TestPlan
 deployerType: AWS_CF
 deploymentConfig:
   deploymentPatterns:

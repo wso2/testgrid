@@ -76,6 +76,7 @@ public class DeploymentConfig implements Serializable {
         private String name;
         private String description;
         private String dir;
+        private String remoteRepository;
         private List<Script> scripts;
 
         public String getName() {
@@ -92,6 +93,14 @@ public class DeploymentConfig implements Serializable {
 
         public void setDescription(String description) {
             this.description = description;
+        }
+
+        public String getRemoteRepository() {
+            return remoteRepository;
+        }
+
+        public void setRemoteRepository(String remoteRepository) {
+            this.remoteRepository = remoteRepository;
         }
 
         /**
