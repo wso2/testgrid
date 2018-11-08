@@ -208,7 +208,12 @@ public class ConfigurationContext {
         /**
          * AWS access key secret used for clustering
          */
-        AWS_ACCESS_KEY_SECRET_CLUSTERING("AWSAccessKeySecret");
+        AWS_ACCESS_KEY_SECRET_CLUSTERING("AWSAccessKeySecret"),
+
+        /**
+         * API access token for testing
+         */
+        API_TOKEN("API_TOKEN");
 
 
         private String propertyName;

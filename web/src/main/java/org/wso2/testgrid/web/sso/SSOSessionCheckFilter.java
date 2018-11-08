@@ -68,6 +68,16 @@ public class SSOSessionCheckFilter implements Filter {
                 String path = ((HttpServletRequest) servletRequest).getRequestURI();
                 if (isSecuredAPI(path)) {
                     Boolean isSessionValid = ((HttpServletRequest) servletRequest).isRequestedSessionIdValid();
+
+                    // Adding a token based Authentication to call backend api without SSO for testing.
+                    if (!StringUtil.isStringNullOrEmpty(
+                            ((HttpServletRequest) servletRequest).getHeader("Authorization"))) {
+                        if (((HttpServletRequest) servletRequest).getHeader("Authorization").equals
+                                (ConfigurationContext.getProperty(ConfigurationProperties.API_TOKEN))) {
+                            isSessionValid = true;
+                        }
+                    }
+
                     if (!isSessionValid) {
                         HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
                         //If the request is for a backend API, Status Code 401 is sent.
