@@ -74,6 +74,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT;
+import static org.wso2.testgrid.common.TestGridConstants.TEST_RESULTS_ARCHIVE_DIR;
 import static org.wso2.testgrid.web.utils.Constants.RESPONSE_HEADER_CONTENT_DISPOSITION;
 import static org.wso2.testgrid.web.utils.Constants.RESPONSE_HEADER_FILE_NAME;
 import static org.wso2.testgrid.web.utils.Constants.RESPONSE_HEADER_VALUE_APPLICATION_ZIP;
@@ -472,6 +473,8 @@ public class TestPlanService {
     }
 
     /**
+     * @deprecated all scenario results are zipped together and given to download in testplan level
+     *
      * Returns the result (archive file) to the given scenario of a test plan.
      *
      * @param testPlanId test plan id
@@ -480,6 +483,7 @@ public class TestPlanService {
      */
     @GET
     @Path("/result/{test-plan-id}/{scenario-directory}")
+    @Deprecated
     public Response getScenarioResult(@PathParam("test-plan-id") String testPlanId,
                                       @PathParam("scenario-directory") String scenarioDir) {
         String archiveFileDir = null;
@@ -520,6 +524,78 @@ public class TestPlanService {
                             .setDescription(e.getMessage()).build()).build();
         } catch (ArtifactReaderException e) {
             String msg = "Error occurred when reading archived files from " + scenarioDir + "of testplan " + testPlanId;
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(e.getMessage())
+                            .setDescription(e.getMessage()).build()).build();
+        }
+    }
+    /**
+     * Returns the result (archive file) of a given test plan.
+     *
+     * @param testPlanId test plan id
+     * @return archived file of the results
+     */
+    @GET
+    @Path("/result/{test-plan-id}")
+    public Response getTestPlanResults(@PathParam("test-plan-id") String testPlanId) {
+        String archiveFileDir = null;
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            Optional<TestPlan> testPlanOptional = testPlanUOW.getTestPlanById(testPlanId);
+            if (!testPlanOptional.isPresent()) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Couldn't find a TestPlan for the requested id").build();
+            }
+            TestPlan testPlan = testPlanOptional.get();
+            ArtifactReadable artifactDownloadable = new AWSArtifactReader(
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+
+            archiveFileDir = S3StorageUtil.deriveS3TestsResultsArchivePath(testPlan, artifactDownloadable);
+            if (artifactDownloadable.isArtifactExist(archiveFileDir)) {
+                return Response
+                        .ok(artifactDownloadable.getArtifactStream(archiveFileDir))
+                        .type(RESPONSE_HEADER_VALUE_APPLICATION_ZIP)
+                        .header(RESPONSE_HEADER_CONTENT_DISPOSITION, RESPONSE_HEADER_VALUE_ATTACHMENT + "; " +
+                                RESPONSE_HEADER_FILE_NAME + "=\" " + TEST_RESULTS_ARCHIVE_DIR +
+                                TESTGRID_COMPRESSED_FILE_EXT + "\"")
+                        .build();
+            } else {
+
+                /* Support downloading results of older testplans which archives individual scenarios. */
+                String scenarioName = testPlan.getTestScenarios().get(0).getName();
+                archiveFileDir = S3StorageUtil
+                        .deriveS3ScenarioArchiveFileDir(testPlan, scenarioName, artifactDownloadable);
+                if (artifactDownloadable.isArtifactExist(archiveFileDir)) {
+                    return Response
+                            .ok(artifactDownloadable.getArtifactStream(archiveFileDir))
+                            .type(RESPONSE_HEADER_VALUE_APPLICATION_ZIP)
+                            .header(RESPONSE_HEADER_CONTENT_DISPOSITION, RESPONSE_HEADER_VALUE_ATTACHMENT + "; " +
+                                    RESPONSE_HEADER_FILE_NAME + "=\" " + scenarioName +
+                                    TESTGRID_COMPRESSED_FILE_EXT + "\"")
+                            .build();
+                }
+
+                String msg = "Couldn't find result-artifacts in " + archiveFileDir + " for test-plan ID:" + testPlanId +
+                        ", scenario:" + archiveFileDir;
+                logger.error(msg);
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Couldn't find test results at " + archiveFileDir).build();
+            }
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the test plan by id : " + testPlanId + "to get test results";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (ArtifactReaderException e) {
+            String msg = "Error occurred when reading archived files of testplan " + testPlanId;
             logger.error(msg, e);
             return Response.serverError()
                     .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)

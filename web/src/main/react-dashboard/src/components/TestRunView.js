@@ -184,6 +184,27 @@ class TestRunView extends Component {
     ).catch(error => console.error(error));
   }
 
+  downloadTestOutputs(scenarioId) {
+    let url = TESTGRID_CONTEXT + '/api/test-plans/result/' + this.state.currentInfra.testPlanId;
+    fetch(url, {
+      method: "GET",
+      credentials: 'same-origin',
+    }).then(response => {
+        if (response.status === HTTP_NOT_FOUND) {
+          let errorMessage = "Unable to locate results in the remote storage.";
+          this.toggle(errorMessage);
+        } else if (response.status !== HTTP_OK) {
+          let errorMessage = "Internal server error. Couldn't download the results at the moment.";
+          this.toggle(errorMessage);
+        } else if (response.status === HTTP_OK) {
+          let statusMessage = "Download will begin in a moment..";
+          this.toggle(statusMessage);
+          document.location = url;
+        }
+      }
+    ).catch(error => console.error(error));
+  }
+
   checkIfTestRunLogExists() {
     const path = TESTGRID_CONTEXT + '/api/test-plans/log/' + window.location.href.split("/").pop() +
       "?truncate=" + true;
@@ -300,6 +321,9 @@ class TestRunView extends Component {
                       })
                   )}
           ><i className="fa fa-download" aria-hidden="true"> </i> Download Test-Run log</Button>
+
+          <Button id ="tdd" size="sm" style={{marginLeft: "10px"}} onClick={this.downloadTestOutputs.bind(this)}>
+            <i className="fa fa-download" aria-hidden="true"> </i> Download results and logs</Button>
         </div>
         <br/>
         <Card>
@@ -328,7 +352,6 @@ class TestRunView extends Component {
                         <th style={{width: "15%", textAlign: "center"}}>Total Success</th>
                         <th style={{width: "15%", textAlign: "center"}}>Total Failed</th>
                         <th style={{width: "15%", textAlign: "center"}}>Success Percentage</th>
-                        <th style={{width: "15%", textAlign: "center"}}>Results</th>
                       </tr>
                       </thead>
                       <tbody displayRowCheckbox={false} showRowHover={true}>
@@ -443,19 +466,6 @@ class TestRunView extends Component {
                                 "0.0" :
                                 parseFloat(data.successPercentage).toFixed(2)
                             }%
-                          </td>
-                          <td
-                            style={{
-                              width: "15%",
-                              textAlign: "center",
-                              fontSize: "20px",
-                              wordWrap: "break-word",
-                              whiteSpace: "wrap"
-                            }}>
-                              <Button outline color="info" size="sm"
-                                     onClick={this.downloadScenarioResult.bind(this, data.scenarioDir)}>
-                              <i className="fa fa-download" aria-hidden="true"> </i>
-                              </Button>
                           </td>
                         </tr>)
                       })}

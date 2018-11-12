@@ -18,6 +18,7 @@ import org.wso2.testgrid.common.plugins.ArtifactReadable;
 import org.wso2.testgrid.common.plugins.ArtifactReaderException;
 
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT;
+import static org.wso2.testgrid.common.TestGridConstants.TEST_RESULTS_ARCHIVE_DIR;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -178,5 +179,18 @@ public final class S3StorageUtil {
     public static String deriveS3ScenarioOutputsFilePath(TestPlan testPlan, ArtifactReadable artifactReadable) {
         return Paths.get(deriveS3DatabucketDir(testPlan, artifactReadable),
                 TestGridConstants.TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE).toString();
+    }
+
+    /**
+     * Returns the test results archive file path in S3 of a test-plan.
+     *
+     * @param testPlan test-plan
+     * @param  awsArtifactReader AWS artifact reader for accessing the S3 storage
+     * @return archive-file directory name.
+     */
+    public static String deriveS3TestsResultsArchivePath(
+            TestPlan testPlan, ArtifactReadable awsArtifactReader) {
+        return Paths.get(deriveS3DatabucketDir(testPlan, awsArtifactReader),
+                TEST_RESULTS_ARCHIVE_DIR + TESTGRID_COMPRESSED_FILE_EXT).toString();
     }
 }
