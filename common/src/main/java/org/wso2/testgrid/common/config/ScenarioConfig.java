@@ -41,6 +41,7 @@ public class ScenarioConfig implements Serializable {
     //keep default value of test type as functional
     private String testType = TestGridConstants.TEST_TYPE_FUNCTIONAL;
     private String remoteRepository;
+    private String remoteBranch = "master";
 
     /**
      * This method returns the list of scenarios.
@@ -80,12 +81,31 @@ public class ScenarioConfig implements Serializable {
         this.testType = testType;
     }
 
+    /**
+     * The git repo URL of the remote git repository.
+     * This parameter is only used within Jenkins pipeline (for cloning purpose).
+     * It does not have any relevance within the testgrid core.
+     *
+     * Same applies to {@link #getRemoteBranch()} as well.
+     */
     public String getRemoteRepository() {
         return remoteRepository;
     }
 
     public void setRemoteRepository(String remoteRepository) {
         this.remoteRepository = remoteRepository;
+    }
+
+    /**
+     * The git branch name of the remote git repository.
+     *
+     */
+    public String getRemoteBranch() {
+        return remoteBranch;
+    }
+
+    public void setRemoteBranch(String remoteBranch) {
+        this.remoteBranch = remoteBranch;
     }
 }
 
