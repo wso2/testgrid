@@ -499,14 +499,12 @@ public class TestPlanExecutor {
             InfrastructureProvisionResult provisionResult = null;
 
             for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
-                if (script.getType().equals(Script.ScriptType.SHELL) &&
-                        !script.getPhase().equals(Script.Phase.CREATE)) {
-                    continue;
+                if (!script.getPhase().equals(Script.Phase.DESTROY)) {
+                    InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
+                            .getInfrastructureProvider(script);
+                    infrastructureProvider.init(testPlan);
+                    provisionResult = infrastructureProvider.provision(testPlan, script);
                 }
-                InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
-                        .getInfrastructureProvider(script);
-                infrastructureProvider.init(testPlan);
-                provisionResult = infrastructureProvider.provision(testPlan, script);
             }
 
             provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
@@ -585,16 +583,14 @@ public class TestPlanExecutor {
             }
 
             for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
-                if (script.getType().equals(Script.ScriptType.SHELL) &&
-                        !script.getPhase().equals(Script.Phase.DESTROY)) {
-                    continue;
+                if (!script.getPhase().equals(Script.Phase.CREATE)) {
+                    InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
+                            .getInfrastructureProvider(script);
+                    infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository(),
+                            testPlan, script);
+                    // Destroy additional infra created for test execution
+                    infrastructureProvider.cleanup(testPlan);
                 }
-                InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
-                        .getInfrastructureProvider(script);
-                infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository(), testPlan,
-                        script);
-                // Destroy additional infra created for test execution
-                infrastructureProvider.cleanup(testPlan);
             }
 
 
