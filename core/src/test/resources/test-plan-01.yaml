@@ -5,6 +5,7 @@ deploymentConfig:
   - description: Deploys a IS node locally
     dir: .
     name: 01-dummy-deployment
+    remoteBranch: master
     scripts:
     - description: Do a IS two node deployment.
       file: deploy.sh
@@ -23,6 +24,7 @@ infrastructureConfig:
   - description: Provision Infra for a dummy deployment
     dir: .
     name: 01-dummy-deployment
+    remoteBranch: test-branch
     scripts:
     - description: Creates infrastructure for a IS node deployment.
       file: infra-provision.sh
@@ -40,6 +42,7 @@ jobProperties:
   PROPERTY1: value1
 keyFileLocation: workspace/testkey.pem
 scenarioConfig:
+  remoteBranch: master
   scenarios:
   - description: Test Scenario
     dir: scenario01

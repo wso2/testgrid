@@ -10,6 +10,7 @@ infrastructureConfig:
     - name: 01-dummy-deployment
       description: Provision Infra for a dummy deployment
       dir: .
+      remoteBranch: test-branch
       scripts:
         - name: infra-for-dummy-deployment
           description: Creates infrastructure for a IS node deployment.

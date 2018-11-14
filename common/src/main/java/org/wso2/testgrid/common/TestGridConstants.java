@@ -62,6 +62,10 @@ public class TestGridConstants {
     public static final String WUM_USERNAME_PROPERTY = "WUMUsername";
     public static final String WUM_PASSWORD_PROPERTY = "WUMPassword";
 
+    /**
+     * FUNCTIONAL test type is for JMETER tests.
+     * TODO: rename this to JMETER.
+     */
     public static final String TEST_TYPE_FUNCTIONAL = "FUNCTIONAL";
     public static final String TEST_TYPE_PERFORMANCE = "PERFORMANCE";
     public static final String TEST_TYPE_INTEGRATION = "INTEGRATION";
