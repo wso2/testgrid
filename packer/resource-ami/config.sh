@@ -212,7 +212,7 @@ function updatePathVariable() {
 #===============================================================================
 function addEnvVariables() {
     sudo su -c "echo 'ORACLE_JDK8=/usr/java/jdk1.8.0_181-amd64' > /etc/environment"
-    sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-1.8.0-openjdk-amd64' >> /etc/environment"
+    sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-1.8.0-openjdk' >> /etc/environment"
     source /etc/environment
 }
 
