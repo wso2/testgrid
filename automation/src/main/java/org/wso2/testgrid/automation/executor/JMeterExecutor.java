@@ -77,7 +77,9 @@ public class JMeterExecutor extends TestExecutor {
             }
             String testInputsLoc = DataBucketsHelper.getInputLocation(testScenario.getTestPlan())
                     .toAbsolutePath().toString();
-            final String command = "bash " + script + " --input-dir " + testInputsLoc;
+            String testOutputsLoc = DataBucketsHelper.getTestOutputsLocation(testScenario.getTestPlan()).toString();
+            final String command = "bash " + script + " --input-dir " + testInputsLoc
+                    + " --output-dir " + testOutputsLoc;
             logger.info("Execute: " + command);
             int exitCode = shellExecutor.executeCommand(command, environment);
             if (exitCode > 0) {

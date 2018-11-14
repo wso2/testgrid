@@ -15,6 +15,6 @@ if [ "$value" != "value1" ];then
     exit 1;
 fi
 
-echo -e "\nDEPLOY_VALUE=deploy_value1" >> ${DIR}/testplan-props.properties
+echo -e "\nDEPLOY_VALUE=deploy_value1" >> ${DIR}/infrastructure.properties
 
 echo "infra provision succesful"

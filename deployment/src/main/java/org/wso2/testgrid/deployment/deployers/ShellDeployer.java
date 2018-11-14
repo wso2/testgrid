@@ -72,8 +72,9 @@ public class ShellDeployer implements Deployer {
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
-        String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+        String deplInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                 .toAbsolutePath().toString();
+        String deplOutputsLoc = DataBucketsHelper.getOutputLocation(testPlan).toString();
         try {
             Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
             String deployScriptLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
@@ -81,7 +82,7 @@ public class ShellDeployer implements Deployer {
 
             ShellExecutor executor = new ShellExecutor(Paths.get(deployScriptLocation));
             final String command = "bash " + Paths.get(deployScriptLocation, deployment.getFile())
-                    + " --input-dir " + testInputsLoc;
+                    + " --input-dir " + deplInputsLoc + " --output-dir " + deplOutputsLoc;
             int exitCode = executor.executeCommand(command);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the deploy-provision script. ",
@@ -94,8 +95,7 @@ public class ShellDeployer implements Deployer {
         } catch (CommandExecutionException e) {
             throw new TestGridDeployerException(e);
         }
-        DeploymentCreationResult result = DeploymentUtil
-                .getDeploymentCreationResult(testInputsLoc);
+        DeploymentCreationResult result = DeploymentUtil.getDeploymentCreationResult(deplInputsLoc);
         result.setName(deploymentPatternConfig.getName());
 
         List<Host> hosts = new ArrayList<>();

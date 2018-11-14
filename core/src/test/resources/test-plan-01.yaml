@@ -1,5 +1,5 @@
 #org.wso2.testgrid.common.TestPlan
-deployerType: AWS_CF
+deployerType: SHELL
 deploymentConfig:
   deploymentPatterns:
   - description: Deploys a IS node locally
@@ -46,6 +46,8 @@ scenarioConfig:
   scenarios:
   - description: Test Scenario
     dir: scenario01
+    inputParameters: {
+      }
     name: scenario01
     status: PENDING
     testCases: [

@@ -403,7 +403,11 @@ public class GenerateTestPlanCommand implements Command {
             DeploymentConfig.DeploymentPattern deploymentPatternConfig = new DeploymentConfig.DeploymentPattern();
             deploymentPatternConfig.setName(TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME);
             deploymentPatternConfig.setDescription(TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME);
-            deploymentPatternConfig.setScripts(Collections.emptyList());
+            Script script = new Script();
+            script.setName("default");
+            script.setType(Script.ScriptType.SHELL);
+            script.setFile(TestGridConstants.DEFAULT_DEPLOYMENT_SCRIPT_NAME);
+            deploymentPatternConfig.setScripts(Collections.singletonList(script));
             testgridYaml.getDeploymentConfig()
                     .setDeploymentPatterns(Collections.singletonList(deploymentPatternConfig));
         }
