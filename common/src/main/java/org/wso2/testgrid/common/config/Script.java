@@ -19,6 +19,8 @@
 
 package org.wso2.testgrid.common.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridError;
 
 import java.io.Serializable;
@@ -30,6 +32,7 @@ import java.util.Properties;
 public class Script implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 6547552538295691010L;
+    private static final Logger logger = LoggerFactory.getLogger(Script.class);
 
     private String name;
     private ScriptType type;
@@ -79,7 +82,7 @@ public class Script implements Serializable, Cloneable {
     }
 
     public Phase getPhase() {
-        if (phase == null) {
+        if (phase == null && type == ScriptType.CLOUDFORMATION) {
             return Phase.CREATE_AND_DELETE;
         }
         return phase;

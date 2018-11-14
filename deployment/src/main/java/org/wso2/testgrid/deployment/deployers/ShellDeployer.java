@@ -167,7 +167,7 @@ public class ShellDeployer implements Deployer {
         }
         if (Script.Phase.CREATE.equals(scriptPhase)) {
             for (Script script : deploymentConfig.getDeploymentPatterns().get(0).getScripts()) {
-                if (script.getPhase().equals(Script.Phase.CREATE_AND_DELETE)) {
+                if (script.getPhase() == null) {
                     return script;
                 }
             }
