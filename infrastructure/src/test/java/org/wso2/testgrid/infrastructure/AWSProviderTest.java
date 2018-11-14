@@ -228,7 +228,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         testPlan.setWorkspace(workspaceDir);
         awsProvider.init(testPlan);
         InfrastructureProvisionResult provisionResult = awsProvider
-                .provision(testPlan);
+                .provision(testPlan, infrastructureConfig.getProvisioners().get(0).getScripts().get(0));
 
         Assert.assertNotNull(provisionResult);
         Assert.assertEquals(provisionResult.getHosts().size(), 3);
@@ -313,7 +313,8 @@ public class AWSProviderTest extends PowerMockTestCase {
         testPlan.setInfrastructureConfig(dummyInfrastructureConfig);
         awsProvider.init(testPlan);
         boolean released = awsProvider.release(
-                dummyInfrastructureConfig, resourcePath.getAbsolutePath(), testPlan);
+                dummyInfrastructureConfig, resourcePath.getAbsolutePath(), testPlan,
+                dummyInfrastructureConfig.getProvisioners().get(0).getScripts().get(0));
 
         Assert.assertTrue(released);
         unset(map.keySet());

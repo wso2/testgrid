@@ -47,8 +47,8 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean canHandle(InfrastructureConfig infrastructureConfig) {
-        return infrastructureConfig.getInfrastructureProvider() == InfrastructureConfig.InfrastructureProvider.SHELL;
+    public boolean canHandle(Script.ScriptType scriptType) {
+        return scriptType == Script.ScriptType.SHELL;
     }
 
     @Override
@@ -63,6 +63,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
                         logger.info("Provisioning additional infra");
                         String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                                 .toAbsolutePath().toString();
+                        logger.info("testInputsLoc :" + testInputsLoc);
                         final String command = "bash " + script.getFile() + " --input-dir " + testInputsLoc;
                         int exitCode = shellExecutor.executeCommand(command);
                         if (exitCode > 0) {
@@ -107,13 +108,13 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public InfrastructureProvisionResult provision(TestPlan testPlan)
+    public InfrastructureProvisionResult provision(TestPlan testPlan, Script script)
             throws TestGridInfrastructureException {
         String testPlanLocation = Paths.get(testPlan.getInfrastructureRepository()).toString();
         InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
         logger.info("Executing provisioning scripts...");
         try {
-            Script createScript = getScriptToExecute(infrastructureConfig, Script.Phase.CREATE);
+            Script createScript = script;
             ShellExecutor executor = new ShellExecutor(null);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
@@ -139,7 +140,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
-                           TestPlan testPlan) throws TestGridInfrastructureException {
+                           TestPlan testPlan, Script script) throws TestGridInfrastructureException {
         String testPlanLocation = Paths.get(infraRepoDir).toString();
 
         logger.info("Destroying test environment...");
@@ -149,8 +150,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
             String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                     .toAbsolutePath().toString();
             final String command = "bash " + Paths
-                    .get(testPlanLocation, getScriptToExecute(infrastructureConfig, Script.Phase.DESTROY)
-                            .getFile())
+                    .get(testPlanLocation, script.getFile())
                     + " --input-dir " + testInputsLoc;
             int exitCode = executor.executeCommand(command);
             return exitCode == 0;
@@ -161,30 +161,4 @@ public class ShellScriptProvider implements InfrastructureProvider {
         }
     }
 
-    /**
-     * This method returns the script matching the correct script phase.
-     *
-     * @param infrastructureConfig {@link InfrastructureConfig} object with current infrastructure configurations
-     * @param scriptPhase          {@link Script.Phase} enum value for required script
-     * @return the matching script from deployment configuration
-     * @throws TestGridInfrastructureException if there is no matching script for phase defined
-     */
-    private Script getScriptToExecute(InfrastructureConfig infrastructureConfig, Script.Phase scriptPhase)
-            throws TestGridInfrastructureException {
-
-        for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
-            if (scriptPhase.equals(script.getPhase())) {
-                return script;
-            }
-        }
-        if (Script.Phase.CREATE.equals(scriptPhase)) {
-            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
-                if (script.getPhase() == null) {
-                    return script;
-                }
-            }
-        }
-        throw new TestGridInfrastructureException("The infrastructure provisioner's script list doesn't "
-                + "contain the script for '" + scriptPhase.toString() + "' phase");
-    }
 }

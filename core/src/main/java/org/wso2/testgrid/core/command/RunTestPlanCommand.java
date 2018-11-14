@@ -156,7 +156,9 @@ public class RunTestPlanCommand implements Command {
         repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getDeploymentRepository());
         testPlan.setDeploymentRepository(resolvePath(repoPath));
         //scenarios
+        logger.info(testPlan.getWorkspace() + "/" + testPlan.getScenarioTestsRepository());
         repoPath = Paths.get(testPlan.getWorkspace(), testPlan.getScenarioTestsRepository());
+
         testPlan.setScenarioTestsRepository(resolvePath(repoPath));
         //keyfile
         if (testPlan.getKeyFileLocation() != null) {

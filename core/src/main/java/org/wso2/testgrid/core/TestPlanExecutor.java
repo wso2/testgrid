@@ -496,10 +496,18 @@ public class TestPlanExecutor {
             }
 
             persistInfraInputs(testPlan);
-            InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
-                    .getInfrastructureProvider(infrastructureConfig);
-            infrastructureProvider.init(testPlan);
-            InfrastructureProvisionResult provisionResult = infrastructureProvider.provision(testPlan);
+            InfrastructureProvisionResult provisionResult = null;
+
+            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+                if (script.getType().equals(Script.ScriptType.SHELL) &&
+                        !script.getPhase().equals(Script.Phase.CREATE)) {
+                    continue;
+                }
+                InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
+                        .getInfrastructureProvider(script);
+                infrastructureProvider.init(testPlan);
+                provisionResult = infrastructureProvider.provision(testPlan, script);
+            }
 
             provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
             //TODO: remove. deploymentScriptsDir is deprecated now in favor of DeploymentConfig.
@@ -575,12 +583,21 @@ public class TestPlanExecutor {
                 logger.error("Execution of previous steps failed. Trying to release the possibly provisioned "
                         + "infrastructure");
             }
-            InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
-                    .getInfrastructureProvider(infrastructureConfig);
-            infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository(),
-                    testPlan);
-            // Destroy additional infra created for test execution
-            infrastructureProvider.cleanup(testPlan);
+
+            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+                if (script.getType().equals(Script.ScriptType.SHELL) &&
+                        !script.getPhase().equals(Script.Phase.DESTROY)) {
+                    continue;
+                }
+                InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
+                        .getInfrastructureProvider(script);
+                infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository(), testPlan,
+                        script);
+                // Destroy additional infra created for test execution
+                infrastructureProvider.cleanup(testPlan);
+            }
+
+
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",

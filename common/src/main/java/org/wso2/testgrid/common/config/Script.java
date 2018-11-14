@@ -127,6 +127,8 @@ public class Script implements Serializable, Cloneable {
          */
         CLOUDFORMATION("Cloud Formation"),
 
+        OPENSTACK("OpenStack"),
+
         /**
          * Defines the AWS cloud-formation script type.
          * TODO: think how we can remove this.

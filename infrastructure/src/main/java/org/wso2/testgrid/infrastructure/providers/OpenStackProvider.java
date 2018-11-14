@@ -22,6 +22,7 @@ import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 
 /**
@@ -37,9 +38,8 @@ public class OpenStackProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean canHandle(InfrastructureConfig infrastructureConfig) {
-        return infrastructureConfig.getInfrastructureProvider()
-                == InfrastructureConfig.InfrastructureProvider.OPENSTACK;
+    public boolean canHandle(Script.ScriptType scriptType) {
+        return scriptType == Script.ScriptType.OPENSTACK;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class OpenStackProvider implements InfrastructureProvider {
     }
 
     @Override
-    public InfrastructureProvisionResult provision(TestPlan testPlan)
+    public InfrastructureProvisionResult provision(TestPlan testPlan, Script script)
             throws
             TestGridInfrastructureException {
         return null;
@@ -61,7 +61,7 @@ public class OpenStackProvider implements InfrastructureProvider {
 
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
-                           TestPlan testPlan) throws TestGridInfrastructureException {
+                           TestPlan testPlan, Script script) throws TestGridInfrastructureException {
         return false;
     }
 }
