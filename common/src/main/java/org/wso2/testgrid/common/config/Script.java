@@ -79,6 +79,9 @@ public class Script implements Serializable, Cloneable {
     }
 
     public Phase getPhase() {
+        if (phase == null) {
+            return Phase.CREATE_AND_DELETE;
+        }
         return phase;
     }
 
@@ -94,6 +97,11 @@ public class Script implements Serializable, Cloneable {
          * Defines the provision-infra shell script type.
          */
         CREATE("Create"),
+
+        /**
+         * Defines the provision-infra and destroy shell script type.
+         */
+        CREATE_AND_DELETE("Create_And_Delete"),
 
         /**
          * Defines the deploy shell script type.
