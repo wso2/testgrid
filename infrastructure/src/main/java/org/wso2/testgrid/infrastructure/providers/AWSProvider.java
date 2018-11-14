@@ -102,12 +102,10 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     @Override
-    public boolean canHandle(InfrastructureConfig infrastructureConfig) {
+    public boolean canHandle(Script.ScriptType scriptType) {
         //Check if scripts has a cloud formation script.
-        boolean isAWS =
-                infrastructureConfig.getInfrastructureProvider() == InfrastructureConfig.InfrastructureProvider.AWS;
-        boolean isCFN = infrastructureConfig.getIacProvider() == InfrastructureConfig.IACProvider.CLOUDFORMATION;
-        return isAWS && isCFN;
+        boolean isCFN = (scriptType == Script.ScriptType.CLOUDFORMATION);
+        return  isCFN;
 
     }
 
@@ -139,27 +137,23 @@ public class AWSProvider implements InfrastructureProvider {
      * @throws TestGridInfrastructureException When there is an error with CloudFormation script.
      */
     @Override
-    public InfrastructureProvisionResult provision(TestPlan testPlan)
+    public InfrastructureProvisionResult provision(TestPlan testPlan, Script script)
             throws TestGridInfrastructureException {
         InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
-        for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
-            if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
-                infrastructureConfig.getParameters().forEach((key, value) ->
-                        script.getInputParameters().setProperty((String) key, (String) value));
-                return doProvision(infrastructureConfig, script, testPlan);
-            }
+        if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
+            infrastructureConfig.getParameters().forEach((key, value) ->
+                    script.getInputParameters().setProperty((String) key, (String) value));
+            return doProvision(infrastructureConfig, script, testPlan);
         }
         throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
     }
 
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
-                           TestPlan testPlan) throws TestGridInfrastructureException {
+                           TestPlan testPlan, Script script) throws TestGridInfrastructureException {
         try {
-            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
-                if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
-                    return doRelease(infrastructureConfig, script.getName(), testPlan);
-                }
+            if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
+                return doRelease(infrastructureConfig, script.getName(), testPlan);
             }
             throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
         } catch (InterruptedException e) {

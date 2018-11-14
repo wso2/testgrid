@@ -19,6 +19,7 @@
 package org.wso2.testgrid.common;
 
 import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 
 /**
@@ -38,7 +39,7 @@ public interface InfrastructureProvider {
      *
      * @return a boolean indicating whether can handle or not.
      */
-    boolean canHandle(InfrastructureConfig infrastructureConfig);
+    boolean canHandle(Script.ScriptType scriptType);
 
     /**
      * This method can be used to initialize the infrastructure provider.
@@ -60,7 +61,7 @@ public interface InfrastructureProvider {
      * @return Deployment Deployment object including the created host, ip details
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure creation process.
      */
-    InfrastructureProvisionResult provision(TestPlan testPlan) throws
+    InfrastructureProvisionResult provision(TestPlan testPlan, Script script) throws
             TestGridInfrastructureException;
 
     /**
@@ -71,7 +72,7 @@ public interface InfrastructureProvider {
      * @return boolean status of the operation
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure destroy process.
      */
-    boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir, TestPlan testPlan)
+    boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir, TestPlan testPlan, Script script)
             throws TestGridInfrastructureException;
 
 }
