@@ -4,7 +4,7 @@ echo "dummy deployment creation for tests"
 
 DIR=$2
 echo $DIR
-FILE=${DIR}/testplan-props.properties
+FILE=${DIR}/infrastructure.properties
 
 cat $FILE
 PROP_KEY=DEPLOY_VALUE

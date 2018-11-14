@@ -56,6 +56,7 @@ public class TestGridConstants {
     public static final Path DEFAULT_TESTGRID_HOME = Paths.get(System.getProperty("user.home"), ".testgrid");
 
     public static final String DEFAULT_DEPLOYMENT_PATTERN_NAME = "default";
+    public static final String DEFAULT_DEPLOYMENT_SCRIPT_NAME = "deploy.sh";
     public static final String TESTGRID_CONFIG_FILE = "config.properties";
     public static final String TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE = "output.properties";
 

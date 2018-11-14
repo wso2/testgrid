@@ -85,7 +85,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private List<TestScenario> testScenarios = new ArrayList<>();
 
     @Transient
-    private DeployerType deployerType = DeployerType.AWS_CF;
+    private DeployerType deployerType = DeployerType.SHELL;
 
     @Transient
     private InfrastructureConfig infrastructureConfig = new InfrastructureConfig();

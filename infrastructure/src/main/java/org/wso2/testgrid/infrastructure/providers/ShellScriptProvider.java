@@ -93,10 +93,13 @@ public class ShellScriptProvider implements InfrastructureProvider {
             Script createScript = script;
             ShellExecutor executor = new ShellExecutor(null);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
-            String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+            String infraInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                     .toAbsolutePath().toString();
+            String infraOutputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+                    .toAbsolutePath().toString();
+
             final String command = "bash " + Paths.get(testPlanLocation, createScript.getFile())
-                    + " --input-dir " + testInputsLoc;
+                    + " --input-dir " + infraInputsLoc +  " --output-dir " + infraOutputsLoc;
             int exitCode = executor.executeCommand(command);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the infra-provision script. ",

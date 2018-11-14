@@ -231,8 +231,8 @@ public class AWSProviderTest extends PowerMockTestCase {
                 .provision(testPlan, infrastructureConfig.getProvisioners().get(0).getScripts().get(0));
 
         Assert.assertNotNull(provisionResult);
-        Assert.assertEquals(provisionResult.getHosts().size(), 3);
-        Assert.assertEquals(provisionResult.getHosts().get(2).getIp(), outputValue);
+        Assert.assertEquals(provisionResult.getHosts().size(), 1);
+        Assert.assertEquals(provisionResult.getHosts().get(0).getIp(), outputValue);
 
         unset(map.keySet());
     }
