@@ -583,7 +583,7 @@ public class TestPlanService {
                 }
 
                 String msg = "Couldn't find result-artifacts in " + archiveFileDir + " for test-plan ID:" + testPlanId +
-                        ", scenario:" + archiveFileDir;
+                        ", scenario: " + scenarioName;
                 logger.error(msg);
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("Couldn't find test results at " + archiveFileDir).build();
