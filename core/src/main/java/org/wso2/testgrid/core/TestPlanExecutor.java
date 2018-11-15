@@ -51,6 +51,7 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
+import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
@@ -198,6 +199,18 @@ public class TestPlanExecutor {
                 logger.debug(msg, e);
             }
         }
+
+        // Compress test outputs to be uploaded to S3
+        final Path outputLocation = DataBucketsHelper.getTestOutputsLocation(testPlan);
+        Path zipFilePath = Paths.get(outputLocation.toString() + TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT);
+        try {
+            Files.deleteIfExists(zipFilePath);
+            FileUtil.compress(outputLocation.toString(), zipFilePath.toString());
+            logger.info("Created the results archive at " + zipFilePath);
+        } catch (IOException e) {
+            logger.error("Error occurred while archiving test results to" + zipFilePath, e);
+        }
+
         //report generation
         logger.info("Generating report for the test plan: " + testPlan.getId());
         try {

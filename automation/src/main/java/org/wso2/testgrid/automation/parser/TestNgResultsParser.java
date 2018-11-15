@@ -310,7 +310,7 @@ public class TestNgResultsParser extends ResultParser {
     public void archiveResults() throws ResultParserException {
         try {
             int maxDepth = 100;
-            final Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
+            final Path outputLocation = DataBucketsHelper.getTestOutputsLocation(testScenario.getTestPlan());
             final Set<Path> archivePaths = Files.find(outputLocation, maxDepth,
                     (path, att) -> Arrays.stream(ARCHIVABLE_FILES).anyMatch(f -> f.equals
                             (path.getFileName().toString()))).collect(Collectors.toSet());

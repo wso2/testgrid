@@ -91,7 +91,7 @@ public class AWSArtifactReader implements ArtifactReadable {
     public InputStream getArtifactStream(String key) {
         try {
             if (!amazonS3.doesObjectExist(bucketName, key)) {
-                throw new ResourceNotFoundException("File not found in the remote storage");
+                throw new ResourceNotFoundException("File: " + key + " not found in the remote storage: " + bucketName);
             }
             S3Object s3Object = amazonS3.getObject(bucketName, key);
             return s3Object.getObjectContent();
