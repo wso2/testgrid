@@ -35,6 +35,7 @@ public class InfrastructureProvisionResult implements Serializable {
 
     private boolean success = true;
     private String name;
+    private Properties properties;
     private String resultLocation;
 
     //TODO: Remove these after getting rid of Deployment class.
@@ -56,8 +57,6 @@ public class InfrastructureProvisionResult implements Serializable {
     public void setResultLocation(String resultLocation) {
         this.resultLocation = resultLocation;
     }
-
-    private Properties properties;
 
     public Properties getProperties() {
         return properties;
@@ -89,5 +88,15 @@ public class InfrastructureProvisionResult implements Serializable {
 
     public void setDeploymentScriptsDir(String deploymentScriptsDir) {
         this.deploymentScriptsDir = deploymentScriptsDir;
+    }
+
+    @Override
+    public String toString() {
+        return "InfrastructureProvisionResult{" +
+                "success=" + success +
+                ", name='" + name + '\'' +
+                ", properties=" + properties +
+                ", resultLocation='" + resultLocation + '\'' +
+                '}';
     }
 }
