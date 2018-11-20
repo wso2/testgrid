@@ -36,6 +36,7 @@ import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
@@ -156,8 +157,19 @@ public class BaseClass extends PowerMockTestCase {
         p.setProperty("OS", "CentOS");
         p.setProperty("JDK", "ORACLE_JDK8");
         infraConfig.setParameters(p);
+        InfrastructureConfig.Provisioner provisioner = new InfrastructureConfig.Provisioner();
+        provisioner.setName("provisioner1");
+        provisioner.setRemoteRepository("my-repo");
+        provisioner.setRemoteBranch("my-branch");
+        infraConfig.setProvisioners(Collections.singletonList(provisioner));
         testPlan.setInfrastructureConfig(infraConfig);
         testPlan.setInfraParameters(TestGridUtil.convertToJsonString(p));
+
+        DeploymentConfig deploymentConfig = new DeploymentConfig();
+        DeploymentConfig.DeploymentPattern dpConfig = new DeploymentConfig.DeploymentPattern();
+        dpConfig.setName("my-dp");
+        deploymentConfig.setDeploymentPatterns(Collections.singletonList(dpConfig));
+        testPlan.setDeploymentConfig(deploymentConfig);
 
         TestScenario s = new TestScenario();
         s.setName("Sample scenario 01");
@@ -362,12 +374,23 @@ public class BaseClass extends PowerMockTestCase {
             testPlan.setId(i + "");
             testPlan.setWorkspace(productDir.toString());
             InfrastructureConfig infraConfig = new InfrastructureConfig();
+            InfrastructureConfig.Provisioner provisioner = new InfrastructureConfig.Provisioner();
+            provisioner.setName("provisioner1");
+            provisioner.setRemoteRepository("my-repo");
+            provisioner.setRemoteBranch("my-branch");
+            infraConfig.setProvisioners(Collections.singletonList(provisioner));
             Properties props = new Properties();
             for (InfrastructureParameter infrastructureParameter : infrastructureCombination.getParameters()) {
                 props.setProperty(infrastructureParameter.getType(), infrastructureParameter.getName());
             }
             infraConfig.setParameters(props);
             testPlan.setInfrastructureConfig(infraConfig);
+
+            DeploymentConfig deploymentConfig = new DeploymentConfig();
+            DeploymentConfig.DeploymentPattern dpConfig = new DeploymentConfig.DeploymentPattern();
+            dpConfig.setName("my-dp");
+            deploymentConfig.setDeploymentPatterns(Collections.singletonList(dpConfig));
+            testPlan.setDeploymentConfig(deploymentConfig);
 
             String jsonInfraParams = new ObjectMapper()
                     .writeValueAsString(props);

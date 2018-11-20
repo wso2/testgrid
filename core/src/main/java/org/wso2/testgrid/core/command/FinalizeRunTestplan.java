@@ -171,6 +171,10 @@ public class FinalizeRunTestplan implements Command {
         Path source = Paths.get(workspace, "test-plans");
         String productId;
         Boolean isCompleteBuild = true;
+        if (!Files.exists(source)) {
+            logger.debug("Test-plans dir does not exist. Nothing to finalize. Dir: " + source);
+            return;
+        }
         try (Stream<Path> stream = Files.list(source).filter(Files::isRegularFile)) {
             List<Path> paths = stream.sorted().collect(Collectors.toList());
             for (Iterator<Path> iterator = paths.iterator(); iterator.hasNext(); ) {
