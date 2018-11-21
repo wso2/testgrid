@@ -236,7 +236,7 @@ public class EmailReportProcessor {
                     .collect(Collectors.joining(", "));
             stringBuilder.append("Infrastructure script: ")
                     .append(Optional.ofNullable(provisioner.getRemoteRepository()).orElse(
-                            TestGridConstants.REPO_NOT_CONFIGURED_STR))
+                            TestGridConstants.NOT_CONFIGURED_STR))
                     .append(" @ ")
                     .append(provisioner.getRemoteBranch())
                     .append(": ")
@@ -244,7 +244,7 @@ public class EmailReportProcessor {
                     .append(HTML_LINE_SEPARATOR);
             stringBuilder.append("Deployment script: ")
                     .append(Optional.ofNullable(dp.getRemoteRepository()).orElse(
-                            TestGridConstants.REPO_NOT_CONFIGURED_STR))
+                            TestGridConstants.NOT_CONFIGURED_STR))
                     .append(" @ ")
                     .append(dp.getRemoteBranch())
                     .append(": ")
@@ -252,7 +252,7 @@ public class EmailReportProcessor {
                     .append(HTML_LINE_SEPARATOR);
             stringBuilder.append("Test script: ")
                     .append(Optional.ofNullable(scenarioConfig.getRemoteRepository()).orElse(
-                            TestGridConstants.REPO_NOT_CONFIGURED_STR))
+                            TestGridConstants.NOT_CONFIGURED_STR))
                     .append(" @ ")
                     .append(scenarioConfig.getRemoteBranch())
                     .append(HTML_LINE_SEPARATOR);

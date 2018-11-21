@@ -89,5 +89,5 @@ public class TestGridConstants {
     public static final String HTTP = "http://";
     public static final String TEST_RESULTS_ARCHIVE_DIR = "test-outputs";
 
-    public static final String REPO_NOT_CONFIGURED_STR = "/not-configured/";
+    public static final String NOT_CONFIGURED_STR = "/not-configured/";
 }
