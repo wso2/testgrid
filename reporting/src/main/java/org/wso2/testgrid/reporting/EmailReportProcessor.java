@@ -225,13 +225,13 @@ public class EmailReportProcessor {
                     .getDeploymentPatterns().get(0);
             final ScenarioConfig scenarioConfig = testPlan.getScenarioConfig();
             final String infraFiles = provisioner.getScripts().stream()
-                    .filter(s -> s.getPhase().equals(Script.Phase.CREATE)
-                            || s.getPhase().equals(Script.Phase.CREATE_AND_DELETE))
+                    .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
+                            || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
                     .map(Script::getFile)
                     .collect(Collectors.joining(", "));
             final String deployFiles = dp.getScripts().stream()
-                    .filter(s -> s.getPhase().equals(Script.Phase.CREATE)
-                            || s.getPhase().equals(Script.Phase.CREATE_AND_DELETE))
+                    .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
+                            || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
                     .map(Script::getFile)
                     .collect(Collectors.joining(", "));
             stringBuilder.append("Infrastructure script: ")
