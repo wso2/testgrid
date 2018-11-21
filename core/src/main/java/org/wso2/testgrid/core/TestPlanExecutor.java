@@ -692,7 +692,7 @@ public class TestPlanExecutor {
             InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
             logger.info("");
             printSeparator(LINE_LENGTH);
-            logger.info("\t\t Provisioning infrastructure: " + infrastructureConfig.getProvisioners().get(0).getName());
+            logger.info("\t\t Releasing infrastructure: " + infrastructureConfig.getProvisioners().get(0).getName());
             printSeparator(LINE_LENGTH);
             logger.info("");
 
