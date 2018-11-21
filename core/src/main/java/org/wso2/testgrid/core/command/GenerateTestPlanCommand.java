@@ -408,6 +408,8 @@ public class GenerateTestPlanCommand implements Command {
             script.setType(Script.ScriptType.SHELL);
             script.setFile(TestGridConstants.DEFAULT_DEPLOYMENT_SCRIPT_NAME);
             deploymentPatternConfig.setScripts(Collections.singletonList(script));
+            deploymentPatternConfig.setRemoteRepository(TestGridConstants.NOT_CONFIGURED_STR);
+            deploymentPatternConfig.setRemoteBranch(TestGridConstants.NOT_CONFIGURED_STR);
             testgridYaml.getDeploymentConfig()
                     .setDeploymentPatterns(Collections.singletonList(deploymentPatternConfig));
         }

@@ -26,7 +26,6 @@ import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -760,12 +759,7 @@ public class TestReportEngine {
      * @param workspace workspace containing the test-plan yamls
      */
     public Optional<Path> generateEmailReport(Product product, String workspace) throws ReportingException {
-        Path testPlansDir = Paths.get(workspace, "test-plans");
-        if (!Files.exists(testPlansDir)) {
-            logger.error("Test-plans dir does not exist: " + testPlansDir);
-            return Optional.empty();
-        }
-        List<TestPlan> testPlans = getTestPlans(workspace, testPlansDir);
+        List<TestPlan> testPlans = getTestPlans(workspace);
         //start email generation
         if (!emailReportProcessor.hasFailedTests(testPlans)) {
             logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. " +
@@ -793,7 +787,7 @@ public class TestReportEngine {
             throw new ReportingException("Error occurred while getting failed infrastructures");
         }
         report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
-        report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
+        report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(testPlans));
         report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
         perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
@@ -816,7 +810,13 @@ public class TestReportEngine {
                         && s.getValue().getUnknownInfra().size() == 0);
     }
 
-    private List<TestPlan> getTestPlans(String workspace, Path testPlansDir) throws ReportingException {
+    private List<TestPlan> getTestPlans(String workspace) throws ReportingException {
+        Path testPlansDir = Paths.get(workspace, "test-plans");
+        if (!Files.exists(testPlansDir)) {
+            logger.error("Test-plans dir does not exist: " + testPlansDir);
+            return Collections.emptyList();
+        }
+
         List<TestPlan> testPlans = new ArrayList<>();
         try (Stream<Path> testPlansStream = Files.list(testPlansDir).filter(Files::isRegularFile)) {
             List<Path> paths = testPlansStream.sorted().collect(Collectors.toList());
@@ -861,7 +861,7 @@ public class TestReportEngine {
      */
     public Optional<Path> generateSummarizedEmailReport(Product product, String workspace) throws ReportingException {
 
-        List<TestPlan> testPlans = getTestPlansInWorkspace(workspace);
+        List<TestPlan> testPlans = getTestPlans(workspace);
         //start email generation
         boolean renderTestResultTable = true;
         boolean renderInfraErrors = false;
@@ -922,7 +922,7 @@ public class TestReportEngine {
             throw new ReportingException("Error occurred while getting failed infrastructures");
         }
         results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
-        results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(product, testPlans));
+        results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(testPlans));
         results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         results.put(SUMMARY_CHART_TEMPLATE_KEY, summaryChartURL);
         results.put(HISTORY_CHART_TEMPLATE_KEY, historyChartURL);
@@ -945,37 +945,6 @@ public class TestReportEngine {
         }
         generateSummarizedCharts(workspace, reportParentPath.toString(), product.getId());
         return Optional.of(reportPath);
-    }
-
-    /**
-     * Returns a list of {@link TestPlan} for a given workspace.
-     *
-     * @param workspace build workspace
-     * @return a list of {@link TestPlan} in the given workspace
-     * @throws ReportingException if {@link TestGridDAOException} or {@link TestGridException} occurs
-     */
-    private List<TestPlan> getTestPlansInWorkspace(String workspace) throws ReportingException {
-        List<TestPlan> testPlans = new ArrayList<>();
-        try {
-            List<String> testPlanIds = FileUtil.getTestPlanIdByReadingTGYaml(workspace);
-            for (String testPlanId : testPlanIds) {
-                Optional<TestPlan> testPlanById = testPlanUOW.getTestPlanById(testPlanId);
-                if (testPlanById.isPresent()) {
-                    testPlanById.get().setWorkspace(workspace);
-                    testPlans.add(testPlanById.get());
-                } else {
-                    logger.error(String.format(
-                            "Inconsistent state: The test plan yaml with id '%s' has no entry in the database. "
-                                    + "Ignoring the test plan...", testPlanId));
-                }
-            }
-        } catch (TestGridDAOException e) {
-            throw new ReportingException("Error occurred while getting the test plan from database ", e);
-        } catch (TestGridException e) {
-            throw new ReportingException(
-                    "Error occurred while getting the test plan id by reading test grid yaml files ", e);
-        }
-    return testPlans;
     }
 
     /**

@@ -232,6 +232,12 @@ public class TestPlanExecutor {
      * @param deploymentCreationResult results from the current deployment
      */
     private void performPostTestPlanActions(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
+        logger.info("");
+        printSeparator(LINE_LENGTH);
+        logger.info("\t\t Performing Post Run Actions");
+        printSeparator(LINE_LENGTH);
+        logger.info("");
+
         //Log file download
         logger.info("Initiating log file downloads");
         OSCategory osCategory = getOSCatagory(testPlan.getInfraParameters());
@@ -367,6 +373,12 @@ public class TestPlanExecutor {
      * @param deploymentCreationResult the result of the previous build step
      */
     public void runScenarioTests(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
+        logger.info("");
+        printSeparator(LINE_LENGTH);
+        logger.info("\t\t Executing tests");
+        printSeparator(LINE_LENGTH);
+        logger.info("");
+
         // Run init.sh in scenario repository
         boolean status = runPreScenariosScripts(testPlan, deploymentCreationResult);
 
@@ -449,7 +461,7 @@ public class TestPlanExecutor {
             // Run cleanup.sh in scenario repository
             runPostScenariosScripts(testPlan, deploymentCreationResult);
         } else {
-            logger.error(StringUtil.concatStrings("Error occurred while executing init script. Aborted " +
+            logger.error(StringUtil.concatStrings("[ERROR] error occurred while executing init script. Aborted " +
                     "scenario test execution for infra combination : ", testPlan.getInfraParameters()));
         }
     }
@@ -464,6 +476,8 @@ public class TestPlanExecutor {
     private void executeTestScenario(TestScenario testScenario, DeploymentCreationResult deploymentCreationResult,
                                      TestPlan testPlan) {
         try {
+            logger.info("\n--- Executing test: " + testScenario.getName());
+
             scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
             Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
             if (parser.isPresent()) {
@@ -503,14 +517,24 @@ public class TestPlanExecutor {
             InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestPlanExecutorException {
         try {
+            logger.info("");
+            printSeparator(LINE_LENGTH);
+            logger.info("\t\t Creating deployment: " + testPlan.getDeploymentConfig().getDeploymentPatterns().get(0)
+                    .getName());
+            printSeparator(LINE_LENGTH);
+            logger.info("");
+
             if (!infrastructureProvisionResult.isSuccess()) {
-                DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
-                deploymentCreationResult.setSuccess(false);
-                return deploymentCreationResult;
+                DeploymentCreationResult result = new DeploymentCreationResult();
+                result.setSuccess(false);
+                logger.debug("Deployment result: " + result);
+                return result;
             }
 
             Deployer deployerService = DeployerFactory.getDeployerService(testPlan);
-            return deployerService.deploy(testPlan, infrastructureProvisionResult);
+            final DeploymentCreationResult result = deployerService.deploy(testPlan, infrastructureProvisionResult);
+            logger.debug("Deployment result: " + result);
+            return result;
         } catch (TestGridDeployerException e) {
             persistTestPlanStatus(testPlan, Status.FAIL);
             String msg = StringUtil
@@ -537,9 +561,10 @@ public class TestPlanExecutor {
             logger.error(msg, e);
         }
 
-        DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
-        deploymentCreationResult.setSuccess(false);
-        return deploymentCreationResult;
+        DeploymentCreationResult result = new DeploymentCreationResult();
+        result.setSuccess(false);
+        logger.debug("Deployment result: " + result);
+        return result;
     }
 
     /**
@@ -558,6 +583,11 @@ public class TestPlanExecutor {
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
             }
+            logger.info("");
+            printSeparator(LINE_LENGTH);
+            logger.info("\t\t Provisioning infrastructure: " + infrastructureConfig.getProvisioners().get(0).getName());
+            printSeparator(LINE_LENGTH);
+            logger.info("");
 
             persistInfraInputs(testPlan);
             InfrastructureProvisionResult provisionResult = null;
@@ -567,13 +597,17 @@ public class TestPlanExecutor {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(testPlan);
+                    logger.info("--- executing script: " + script.getName() + ", file: " + script.getFile());
                     provisionResult = infrastructureProvider.provision(testPlan, script);
                 }
             }
 
-            provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
-            //TODO: remove. deploymentScriptsDir is deprecated now in favor of DeploymentConfig.
-            provisionResult.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepository()).toString());
+            if (provisionResult != null) {
+                provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
+                //TODO: remove. deploymentScriptsDir is deprecated now in favor of DeploymentConfig.
+                provisionResult.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepository()).toString());
+            }
+            logger.debug("Infrastructure provision result: " + provisionResult);
             return provisionResult;
         } catch (TestGridInfrastructureException e) {
             persistTestPlanStatus(testPlan, Status.FAIL);
@@ -587,6 +621,10 @@ public class TestPlanExecutor {
                     .concatStrings("No Infrastructure Provider implementation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
+        } catch (RuntimeException e) {
+            // Catching the Exception here since we need to catch and gracefully handle all exceptions.
+            persistTestPlanStatus(testPlan, Status.FAIL);
+            logger.error("Runtime exception while provisioning the infrastructure: " + e.getMessage(), e);
         } catch (Exception e) {
             // Catching the Exception here since we need to catch and gracefully handle all exceptions.
             persistTestPlanStatus(testPlan, Status.FAIL);
@@ -595,6 +633,7 @@ public class TestPlanExecutor {
 
         InfrastructureProvisionResult infrastructureProvisionResult = new InfrastructureProvisionResult();
         infrastructureProvisionResult.setSuccess(false);
+        logger.debug("Infrastructure provision result: " + infrastructureProvisionResult);
         return infrastructureProvisionResult;
     }
 
@@ -650,6 +689,13 @@ public class TestPlanExecutor {
             DeploymentCreationResult deploymentCreationResult)
             throws TestPlanExecutorException {
         try {
+            InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
+            logger.info("");
+            printSeparator(LINE_LENGTH);
+            logger.info("\t\t Provisioning infrastructure: " + infrastructureConfig.getProvisioners().get(0).getName());
+            printSeparator(LINE_LENGTH);
+            logger.info("");
+
             if (TestGridUtil.isDebugMode(testPlan)) {
                 printSeparator(LINE_LENGTH);
                 logger.info(TestGridConstants.DEBUG_MODE + " is enabled. NOT RELEASING the infrastructure. The"
@@ -657,7 +703,6 @@ public class TestPlanExecutor {
                 printSeparator(LINE_LENGTH);
                 return;
             }
-            InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
             if (!infrastructureProvisionResult.isSuccess() || !deploymentCreationResult.isSuccess()) {
                 logger.error("Execution of previous steps failed. Trying to release the possibly provisioned "
                         + "infrastructure");

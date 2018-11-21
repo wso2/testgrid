@@ -23,10 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
+import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.PropertyFileReader;
+import org.wso2.testgrid.common.config.ScenarioConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
@@ -53,6 +58,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -181,36 +187,75 @@ public class EmailReportProcessor {
      * Returns the Git build information of the latest build of the product.
      * This will consist of git location and git revision used to build the distribution.
      *
-     * @param product product
      * @return Git build information
      */
-    public String getGitBuildDetails(Product product, List<TestPlan> testPlans) {
+    public String getGitBuildDetails(List<TestPlan> testPlans) {
         StringBuilder stringBuilder = new StringBuilder();
         //All the test-plans are executed from the same git revision. Thus git build details are similar across them.
         //Therefore we refer the fist test-plan's git-build details.
+        if (testPlans.isEmpty()) {
+            return "No test plans were run!";
+        }
         TestPlan testPlan = testPlans.get(0);
-        String gitRevision = "";
-        String gitLocation = "";
-
         Properties properties = getOutputPropertiesFile(testPlan);
 
         if (!properties.isEmpty()) {
-            gitRevision = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION.toString());
-            gitLocation = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_LOCATION.toString());
-        }
+            String gitRevision = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION
+                    .toString());
+            String gitLocation = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_LOCATION
+                    .toString());
 
-        if (gitLocation.isEmpty()) {
-            logger.error("Git location received as null/empty for test plan with id " + testPlan.getId());
-            stringBuilder.append("Git location: Unknown!");
+            if (gitLocation.isEmpty()) {
+                logger.error("Git location received as null/empty for test plan with id " + testPlan.getId());
+                stringBuilder.append("Git location: Unknown!");
+            } else {
+                stringBuilder.append("Git location: ").append(gitLocation);
+            }
+            stringBuilder.append(HTML_LINE_SEPARATOR);
+            if (gitRevision.isEmpty()) {
+                logger.error("Git revision received as null/empty for test plan with id " + testPlan.getId());
+                stringBuilder.append("Git revision: Unknown!");
+            } else {
+                stringBuilder.append("Git revision: ").append(gitRevision);
+            }
         } else {
-            stringBuilder.append("Git location: ").append(gitLocation);
-        }
-        stringBuilder.append(HTML_LINE_SEPARATOR);
-        if (gitRevision.isEmpty()) {
-            logger.error("Git revision received as null/empty for test plan with id " + testPlan.getId());
-            stringBuilder.append("Git revision: Unknown!");
-        } else {
-            stringBuilder.append("Git revision: ").append(gitRevision);
+            final InfrastructureConfig.Provisioner provisioner = testPlan.getInfrastructureConfig().getProvisioners()
+                    .get(0);
+            final DeploymentConfig.DeploymentPattern dp = testPlan.getDeploymentConfig()
+                    .getDeploymentPatterns().get(0);
+            final ScenarioConfig scenarioConfig = testPlan.getScenarioConfig();
+            final String infraFiles = provisioner.getScripts().stream()
+                    .filter(s -> s.getPhase().equals(Script.Phase.CREATE)
+                            || s.getPhase().equals(Script.Phase.CREATE_AND_DELETE))
+                    .map(Script::getFile)
+                    .collect(Collectors.joining(", "));
+            final String deployFiles = dp.getScripts().stream()
+                    .filter(s -> s.getPhase().equals(Script.Phase.CREATE)
+                            || s.getPhase().equals(Script.Phase.CREATE_AND_DELETE))
+                    .map(Script::getFile)
+                    .collect(Collectors.joining(", "));
+            stringBuilder.append("Infrastructure script: ")
+                    .append(Optional.ofNullable(provisioner.getRemoteRepository()).orElse(
+                            TestGridConstants.NOT_CONFIGURED_STR))
+                    .append(" @ ")
+                    .append(provisioner.getRemoteBranch())
+                    .append(": ")
+                    .append(infraFiles)
+                    .append(HTML_LINE_SEPARATOR);
+            stringBuilder.append("Deployment script: ")
+                    .append(Optional.ofNullable(dp.getRemoteRepository()).orElse(
+                            TestGridConstants.NOT_CONFIGURED_STR))
+                    .append(" @ ")
+                    .append(dp.getRemoteBranch())
+                    .append(": ")
+                    .append(deployFiles)
+                    .append(HTML_LINE_SEPARATOR);
+            stringBuilder.append("Test script: ")
+                    .append(Optional.ofNullable(scenarioConfig.getRemoteRepository()).orElse(
+                            TestGridConstants.NOT_CONFIGURED_STR))
+                    .append(" @ ")
+                    .append(scenarioConfig.getRemoteBranch())
+                    .append(HTML_LINE_SEPARATOR);
         }
         return stringBuilder.toString();
     }
