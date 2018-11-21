@@ -39,7 +39,7 @@ public class TestExecutorFactory {
         case JMETER:
             return new ShellTestExecutor();
         case TESTNG:
-            return new TestNgExecutor();
+            return new ShellTestExecutor();
         default:
             return new ShellTestExecutor();
         }

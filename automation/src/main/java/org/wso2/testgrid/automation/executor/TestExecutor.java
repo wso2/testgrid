@@ -23,6 +23,7 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 
 import java.nio.file.Path;
@@ -53,11 +54,11 @@ public abstract class TestExecutor {
      *
      * @param testsLocation location of the test scripts
      * @param testName      test name
-     * @param testScenario  {@link TestScenario} instance associated with the test
+     * @param scenarioConfig  {@link ScenarioConfig} instance associated with the test
      * @throws TestAutomationException thrown when error on initialising the test executor
      */
-    public abstract void init(String testsLocation, String testName, TestScenario testScenario)
-            throws TestAutomationException;
+    public abstract void init(String testsLocation, String testName, ScenarioConfig scenarioConfig)
+            throws TestAutomationException ;
 
     /**
      * Executes companion scripts.

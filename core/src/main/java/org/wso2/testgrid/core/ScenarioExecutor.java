@@ -121,12 +121,12 @@ public class ScenarioExecutor {
             } else {
                 for (Test test : tests) {
                     logger.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
-                    test.execute(testLocation, deploymentCreationResult);
+                    //test.execute(testLocation, deploymentCreationResult);
                     logger.info("---------------------------------------");
                 }
             }
 
-        } catch (TestAutomationException e) {
+        } catch (Exception e) {
             testScenario.setStatus(Status.FAIL);
             persistTestScenario(testScenario);
             throw new ScenarioExecutorException(StringUtil

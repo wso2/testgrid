@@ -69,7 +69,7 @@ public class TestGridConstants {
      */
     public static final String TEST_TYPE_FUNCTIONAL = "FUNCTIONAL";
     public static final String TEST_TYPE_PERFORMANCE = "PERFORMANCE";
-    public static final String TEST_TYPE_INTEGRATION = "INTEGRATION";
+    public static final String TEST_TYPE_INTEGRATION = "TESTNG";
 
     public static final String OUTPUT_BASTIAN_IP = "BastionEIP";
 

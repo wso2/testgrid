@@ -183,7 +183,7 @@ public class FunctionalTestResultParser extends ResultParser {
             }
         } catch (IOException | TestGridException e) {
             throw new ResultParserException("Error occurred while persisting scenario test-results." +
-                    "Scenario ID: " + testScenario.getId() + ", Scenario Directory: " + testScenario.getDir(), e);
+                    "Scenario ID: " + testScenario.getId(), e);
         }
     }
 

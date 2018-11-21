@@ -24,6 +24,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
@@ -102,6 +103,23 @@ public class FinalizeRunTestplan implements Command {
             logger.info("Finalizing test plan status...");
             boolean isExistsFailedScenarios = false;
             for (TestPlan testPlan : testPlans) {
+                for(ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+                    switch (scenarioConfig.getStatus()) {
+                        case PENDING:
+                            scenarioConfig.setStatus(Status.DID_NOT_RUN);
+                            break;
+                        case RUNNING:
+                            scenarioConfig.setStatus(Status.ERROR);
+                            break;
+                        case SUCCESS:
+                            break;
+                        case FAIL:
+                            isExistsFailedScenarios = true;
+                            break;
+                        default:
+                            break;
+                    }
+                }
                 //Set statuses of scenarios
                 for (TestScenario testScenario : testPlan.getTestScenarios()) {
                     switch (testScenario.getStatus()) {

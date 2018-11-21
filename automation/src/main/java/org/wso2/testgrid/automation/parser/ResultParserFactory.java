@@ -20,6 +20,7 @@ package org.wso2.testgrid.automation.parser;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -39,14 +40,14 @@ public class ResultParserFactory {
      * @param testScenario specific scenario being parsed.
      * @return {@link ResultParser} implementation that can parse the give scenario
      */
-    public static Optional<ResultParser> getParser(TestPlan testPlan, TestScenario testScenario) {
-        String testLocation = Paths.get(testPlan.getScenarioTestsRepository(), testScenario.getDir()).toString();
+    public static Optional<ResultParser> getParser(TestPlan testPlan, TestScenario testScenario, ScenarioConfig scenarioConfig) {
+        String testLocation = Paths.get(testPlan.getScenarioTestsRepository(), scenarioConfig.getFile()).toString();
         ResultParser resultParser = null;
-        if (TestGridConstants.TEST_TYPE_FUNCTIONAL.equals(testPlan.getScenarioConfig().getTestType())) {
+        if (TestGridConstants.TEST_TYPE_FUNCTIONAL.equals(scenarioConfig.getTestType())) {
             resultParser = new FunctionalTestResultParser(testScenario, testLocation);
-        } else if (TestGridConstants.TEST_TYPE_PERFORMANCE.equals(testPlan.getScenarioConfig().getTestType())) {
+        } else if (TestGridConstants.TEST_TYPE_PERFORMANCE.equals(scenarioConfig.getTestType())) {
             resultParser = new PerformanceTestCSVParser(testScenario, testLocation);
-        } else if (TestGridConstants.TEST_TYPE_INTEGRATION.equals(testPlan.getScenarioConfig().getTestType())) {
+        } else if (TestGridConstants.TEST_TYPE_INTEGRATION.equals(scenarioConfig.getTestType())) {
             resultParser = new TestNgResultsParser(testScenario, testLocation);
         }
         return Optional.ofNullable(resultParser);

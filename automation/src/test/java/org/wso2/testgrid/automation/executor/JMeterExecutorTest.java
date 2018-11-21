@@ -17,6 +17,7 @@
  */
 package org.wso2.testgrid.automation.executor;
 
+import com.amazonaws.services.dynamodbv2.xspec.L;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -33,6 +34,8 @@ import org.wso2.testgrid.common.config.ScenarioConfig;
 
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -57,13 +60,15 @@ public class JMeterExecutorTest {
         TestScenario testScenario = new TestScenario();
         testScenario.setDir("scenarioDir");
         TestPlan testPlan = new TestPlan();
+        List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
         ScenarioConfig scenarioConfig = new ScenarioConfig();
         scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_FUNCTIONAL);
-        testPlan.setScenarioConfig(scenarioConfig);
+        scenarioConfigs.add(scenarioConfig);
+        testPlan.setScenarioConfigs(scenarioConfigs);
         testPlan.setScenarioTestsRepository("resources");
         testScenario.setName("SolutionPattern22");
         Optional<ResultParser> jMeterResultParser = ResultParserFactory.
-                getParser(testPlan, testScenario);
+                getParser(testPlan, testScenario,scenarioConfig);
         Assert.assertTrue(jMeterResultParser.isPresent());
         Assert.assertTrue(jMeterResultParser.get() instanceof ResultParser);
     }
@@ -82,12 +87,14 @@ public class JMeterExecutorTest {
         testScenario.setName("SolutionPattern22");
         testScenario.setDir("");
         TestPlan testPlan = new TestPlan();
+        List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
         ScenarioConfig scenarioConfig = new ScenarioConfig();
         scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_FUNCTIONAL);
-        testPlan.setScenarioConfig(scenarioConfig);
+        scenarioConfigs.add(scenarioConfig);
+        testPlan.setScenarioConfigs(scenarioConfigs);
         testPlan.setScenarioTestsRepository(testLocation);
         Optional<ResultParser> jMeterResultParser = ResultParserFactory
-                .getParser(testPlan, testScenario);
+                .getParser(testPlan, testScenario, scenarioConfig);
         Assert.assertTrue(jMeterResultParser.isPresent());
         jMeterResultParser.get().parseResults();
         Assert.assertFalse(testScenario.getTestCases().isEmpty());

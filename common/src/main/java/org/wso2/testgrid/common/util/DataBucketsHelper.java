@@ -114,7 +114,14 @@ public class DataBucketsHelper {
      * @return Get the build outputs dir
      */
     public static Path getBuildOutputsDir(TestPlan testPlan) {
-        return Paths.get(testPlan.getWorkspace());
+
+        if (testPlan.getWorkspace() != null) {
+            return Paths.get(testPlan.getWorkspace());
+        } else {
+            return null;
+        }
+
+
     }
 
     /**

@@ -44,6 +44,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class TestNgResultsParserTest {
@@ -52,6 +54,7 @@ public class TestNgResultsParserTest {
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
     private TestPlan testPlan;
     private TestScenario testScenario;
+    private ScenarioConfig scenarioConfig;
     private Path testArtifactPath = Paths.get("src", "test", "resources", "artifacts");
 
     @BeforeMethod
@@ -62,9 +65,10 @@ public class TestNgResultsParserTest {
         testScenario.setDir("scenarioDir");
         testPlan = new TestPlan();
         testPlan.setJobName("wso2");
-        ScenarioConfig scenarioConfig = new ScenarioConfig();
+        List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
         scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_INTEGRATION);
-        testPlan.setScenarioConfig(scenarioConfig);
+        scenarioConfigs.add(scenarioConfig);
+        testPlan.setScenarioConfigs(scenarioConfigs);
         testPlan.setScenarioTestsRepository("resources");
         testScenario.setName("SolutionPattern22");
         testScenario.setTestPlan(testPlan);
@@ -93,7 +97,7 @@ public class TestNgResultsParserTest {
                 .resolve(TestNgResultsParser.RESULTS_TEST_SUITE_FILE);
         copyTestngResultsXml(outputFile);
 
-        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
+        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         Assert.assertTrue(parser.isPresent());
         Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
 
@@ -112,7 +116,7 @@ public class TestNgResultsParserTest {
 
     @Test
     public void testArchiveResults() throws Exception {
-        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
+        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         Assert.assertTrue(parser.isPresent());
         Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
 

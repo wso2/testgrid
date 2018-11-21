@@ -236,8 +236,8 @@ public class GenerateTestPlanCommand implements Command {
              * Test plans of test scenarios should be persisted. This is persisted after building the
              * yaml to avoid adding unnecessary lines to the test-plan file.
              */
-            for (TestScenario testScenario : persistedTestPlan.getTestScenarios()) {
-                testScenario.setTestPlan(persistedTestPlan);
+            for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+                scenarioConfig.setTestPlan(persistedTestPlan);
             }
             testPlanUOW.persistTestPlan(persistedTestPlan);
 
@@ -482,7 +482,7 @@ public class GenerateTestPlanCommand implements Command {
                     }
                 }));
 
-                ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
+                /*ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
                 List<ConfigChangeSet> configChangeSets = scenarioConfig.getConfigChangeSets();
                 if (configChangeSets != null) {
                     List<TestScenario> modifiedTestScenarios = new ArrayList<>();
@@ -504,9 +504,9 @@ public class GenerateTestPlanCommand implements Command {
                         }
                     }
                     testgridYaml.getScenarioConfig().setScenarios(modifiedTestScenarios);
-                }
+                }*/
 
-                testPlan.setScenarioConfig(testgridYaml.getScenarioConfig());
+                testPlan.setScenarioConfigs(testgridYaml.getScenarioConfigs());
                 testPlan.setResultFormat(testgridYaml.getResultFormat());
 
                 testPlan.setInfrastructureRepository(testgridYaml.getInfrastructureRepository());
@@ -646,26 +646,21 @@ public class GenerateTestPlanCommand implements Command {
      */
     private boolean validateTestgridYaml(TestgridYaml testgridYaml) {
         InfrastructureConfig infrastructureConfig = testgridYaml.getInfrastructureConfig();
-        ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
-        if (infrastructureConfig != null) {
-            if (infrastructureConfig.getProvisioners().isEmpty()) {
-                logger.debug("testgrid.yaml doesn't contain at least single infra provisioner. Invalid testgrid.yaml");
+        for (ScenarioConfig scenarioConfig : testgridYaml.getScenarioConfigs()) {
+            if (infrastructureConfig != null) {
+                if (infrastructureConfig.getProvisioners().isEmpty()) {
+                    logger.debug("testgrid.yaml doesn't contain at least single infra provisioner. Invalid testgrid.yaml");
+                    return false;
+                }
+            } else {
+                logger.debug("testgrid.yaml doesn't have defined the infra configuration. Invalid testgrid.yaml");
                 return false;
             }
-        } else {
-            logger.debug("testgrid.yaml doesn't have defined the infra configuration. Invalid testgrid.yaml");
-            return false;
-        }
-        if (scenarioConfig != null) {
-            if (scenarioConfig.getScenarios().isEmpty()) {
-                logger.debug("testgrid.yaml doesn't contain at least single scenario. Invalid testgrid.yaml");
+            if (scenarioConfig == null) {
+                logger.debug("testgrid.yaml doesn't have defined the scenario configuration. Invalid testgrid.yaml");
                 return false;
             }
-        } else {
-            logger.debug("testgrid.yaml doesn't have defined the scenario configuration. Invalid testgrid.yaml");
-            return false;
         }
-
         return true;
     }
 }

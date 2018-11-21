@@ -26,6 +26,7 @@ import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.EnvironmentUtil;
@@ -49,13 +50,13 @@ public class JMeterExecutor extends TestExecutor {
     public static final String JMETER_HOME = "JMETER_HOME";
     private String testLocation;
     private String testName;
-    private TestScenario testScenario;
+    private ScenarioConfig scenarioConfig;
 
     @Override
-    public void init(String testLocation, String testName, TestScenario testScenario) throws TestAutomationException {
+    public void init(String testLocation, String testName, ScenarioConfig scenarioConfig) throws TestAutomationException {
         this.testName = testName;
         this.testLocation = testLocation;
-        this.testScenario = testScenario;
+        this.scenarioConfig = scenarioConfig;
     }
 
     @Override
@@ -75,20 +76,20 @@ public class JMeterExecutor extends TestExecutor {
             for (Host host : deploymentCreationResult.getHosts()) {
                 environment.put(host.getLabel(), host.getIp());
             }
-            String testInputsLoc = DataBucketsHelper.getInputLocation(testScenario.getTestPlan())
+            String testInputsLoc = DataBucketsHelper.getInputLocation(scenarioConfig.getTestPlan())
                     .toAbsolutePath().toString();
-            String testOutputsLoc = DataBucketsHelper.getTestOutputsLocation(testScenario.getTestPlan()).toString();
+            String testOutputsLoc = DataBucketsHelper.getTestOutputsLocation(scenarioConfig.getTestPlan()).toString();
             final String command = "bash " + script + " --input-dir " + testInputsLoc
                     + " --output-dir " + testOutputsLoc;
             logger.info("Execute: " + command);
             int exitCode = shellExecutor.executeCommand(command, environment);
             if (exitCode > 0) {
-                logger.error(StringUtil.concatStrings("Error occurred while executing the test: ", testName, ", at: ",
-                        testScenario.getDir(), ". Script exited with a status code of ", exitCode));
+                logger.error(StringUtil.concatStrings("Error occurred while executing the test: ", testName,
+                        ". Script exited with a status code of ", exitCode));
             }
 
         } catch (CommandExecutionException e) {
-            this.testScenario.setStatus(Status.ERROR);
+            this.scenarioConfig.setStatus(Status.ERROR);
             throw new TestAutomationException(String.format("Error executing scenario " +
                     "script%s", script), e);
         }
