@@ -72,6 +72,9 @@ public class InfrastructureConfig implements Serializable, Cloneable {
         this.containerOrchestrationEngine = containerOrchestrationEngine;
     }
 
+    /**
+     * Contains a list of properties that show the infrastructure combination.
+     */
     public Properties getParameters() {
         return parameters;
     }

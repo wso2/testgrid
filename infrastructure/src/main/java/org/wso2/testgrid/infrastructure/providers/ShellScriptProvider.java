@@ -106,7 +106,6 @@ public class ShellScriptProvider implements InfrastructureProvider {
                         "Script exited with a status code of ", exitCode));
                 result.setSuccess(false);
             }
-            result.setResultLocation(testPlanLocation);
             return result;
 
         } catch (CommandExecutionException e) {
