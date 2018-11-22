@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
 import org.wso2.testgrid.common.infrastructure.AWSResourceRequirement;
@@ -112,11 +113,12 @@ public class AWSResourceManager {
      * specified in config.properties is returned.
      *
      * @param testPlan test plan to create the stack for
+     * @param script
      * @return available AWS region
      * @throws TestGridDAOException if persisting to database fails
      * @throws TestGridInfrastructureException if retrieving the hash of cloudformation fails
      */
-    public String requestAvailableRegion(TestPlan testPlan) throws
+    public String requestAvailableRegion(TestPlan testPlan, Script script) throws
             TestGridDAOException, TestGridInfrastructureException {
 
         AWSResourceLimitUOW awsResourceLimitUOW = new AWSResourceLimitUOW();
@@ -128,9 +130,7 @@ public class AWSResourceManager {
             return region;
         }
 
-        Path cfnFilePath = Paths.get(
-                testPlan.getInfrastructureRepository(),
-                testPlan.getInfrastructureConfig().getProvisioners().get(0).getScripts().get(0).getFile());
+        Path cfnFilePath = Paths.get(testPlan.getInfrastructureRepository(), script.getFile());
 
         List<AWSResourceRequirement> resourceRequirements;
         try {
@@ -165,15 +165,15 @@ public class AWSResourceManager {
      * Called when a AWS stack creation has been completed. Persists resourse requirements to the database
      * if they are not already available.
      *
-     * @param testPlan test plan of which the stack was created
-     * @param stackEventList list of stack events to identfy resource requirements
-     * @throws TestGridDAOException if persistence fails
+     * @param testPlan  test plan of which the stack was created
+     * @param script    script
+     * @param stackEventList list of stack events to identfy resource requirements  @throws TestGridDAOException if
+     *                       persistence fails
      * @throws TestGridInfrastructureException if retrieving md5 hash fails
      */
-    public void notifyStackCreation(TestPlan testPlan, List<StackEvent> stackEventList)
+    public void notifyStackCreation(TestPlan testPlan, Script script, List<StackEvent> stackEventList)
             throws TestGridDAOException, TestGridInfrastructureException {
-        String region = testPlan.getInfrastructureConfig().getProvisioners().get(0).getScripts().get(0)
-                .getInputParameters().getProperty(AWS_REGION_PARAMETER);
+        String region = script.getInputParameters().getProperty(AWS_REGION_PARAMETER);
 
         /*
         * Persist AWS resource requirements only if it is the first test plan for
@@ -182,8 +182,7 @@ public class AWSResourceManager {
         if (region.equals(ConfigurationContext.getProperty(
                 ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME))) {
             Path cfnFilePath = Paths.get(
-                    testPlan.getInfrastructureRepository(),
-                    testPlan.getInfrastructureConfig().getProvisioners().get(0).getScripts().get(0).getFile());
+                    testPlan.getInfrastructureRepository(), script.getFile());
             AWSResourceRequirementUOW awsResourceRequirementUOW = new AWSResourceRequirementUOW();
             try {
                 List<AWSResourceRequirement> resourceRequirements =
@@ -200,11 +199,11 @@ public class AWSResourceManager {
      * Called when a created stack has been deleted. Releases the acquired resources when notified.
      *
      * @param testPlan test plan of which the stack has been deleted
-     * @param region region the stack was running
-     * @throws TestGridDAOException if persistence to database fails
+     * @param script
+     *@param region region the stack was running  @throws TestGridDAOException if persistence to database fails
      * @throws TestGridInfrastructureException if retrieving md5 hash fails
      */
-    public void notifyStackDeletion(TestPlan testPlan, String region) throws
+    public void notifyStackDeletion(TestPlan testPlan, Script script, String region) throws
             TestGridDAOException, TestGridInfrastructureException {
         if (!region.equals(ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME))) {
@@ -212,8 +211,7 @@ public class AWSResourceManager {
             AWSResourceRequirementUOW awsResourceRequirementUOW = new AWSResourceRequirementUOW();
             AWSResourceLimitUOW awsResourceLimitUOW = new AWSResourceLimitUOW();
             Path cfnFilePath = Paths.get(
-                    testPlan.getInfrastructureRepository(),
-                    testPlan.getInfrastructureConfig().getProvisioners().get(0).getScripts().get(0).getFile());
+                    testPlan.getInfrastructureRepository(), script.getFile());
             Map<String, Object> params = new HashMap<>();
             try {
                 params.put(AWSResourceRequirement.MD5_HASH_COLUMN, TestGridUtil.getHashValue(cfnFilePath));

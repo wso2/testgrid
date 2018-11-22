@@ -153,7 +153,7 @@ public class AWSProvider implements InfrastructureProvider {
                            TestPlan testPlan, Script script) throws TestGridInfrastructureException {
         try {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
-                return doRelease(infrastructureConfig, script.getName(), testPlan);
+                return doRelease(infrastructureConfig, script, testPlan);
             }
             throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
         } catch (InterruptedException e) {
@@ -166,8 +166,7 @@ public class AWSProvider implements InfrastructureProvider {
     private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
         Script script, TestPlan testPlan) throws TestGridInfrastructureException {
         Path configFilePath = TestGridUtil.getConfigFilePath();
-        String region = infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
-                .getInputParameters().getProperty(AWS_REGION_PARAMETER);
+        String region = script.getInputParameters().getProperty(AWS_REGION_PARAMETER);
         AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)
@@ -189,10 +188,9 @@ public class AWSProvider implements InfrastructureProvider {
 
             stackRequest.setTemplateBody(file);
 
-            region = awsResourceManager.requestAvailableRegion(testPlan);
+            region = awsResourceManager.requestAvailableRegion(testPlan, script);
             //Set region to test plan
-            infrastructureConfig.getProvisioners().get(0).getScripts().get(0).getInputParameters()
-                    .setProperty(AWS_REGION_PARAMETER, region);
+            script.getInputParameters().setProperty(AWS_REGION_PARAMETER, region);
 
             cloudFormation = AmazonCloudFormationClientBuilder.standard()
                     .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
@@ -226,7 +224,7 @@ public class AWSProvider implements InfrastructureProvider {
                     describeStackEvents(describeStackEventsRequest);
 
             //Notify AWSResourceManager about stack creation completion
-            awsResourceManager.notifyStackCreation(testPlan, describeStackEventsResult.getStackEvents());
+            awsResourceManager.notifyStackCreation(testPlan, script, describeStackEventsResult.getStackEvents());
 
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(stack.getStackId());
@@ -301,17 +299,17 @@ public class AWSProvider implements InfrastructureProvider {
      * This method releases the provisioned AWS infrastructure.
      *
      * @param infrastructureConfig The infrastructure configuration.
-     * @param stackName            the cloudformation script name
+     * @param script            the script config
      * @return true or false to indicate the result of destroy operation.
      * @throws TestGridInfrastructureException when AWS error occurs in deletion process.
      * @throws InterruptedException            when there is an interruption while waiting for the result.
      */
     private boolean doRelease(
-            InfrastructureConfig infrastructureConfig, String stackName, TestPlan testPlan)
+            InfrastructureConfig infrastructureConfig, Script script, TestPlan testPlan)
             throws TestGridInfrastructureException, InterruptedException, TestGridDAOException {
         Path configFilePath;
-        String region = infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
-                .getInputParameters().getProperty(AWS_REGION_PARAMETER);
+        String stackName = script.getName();
+        String region = script.getInputParameters().getProperty(AWS_REGION_PARAMETER);
         configFilePath = TestGridUtil.getConfigFilePath();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
@@ -324,7 +322,7 @@ public class AWSProvider implements InfrastructureProvider {
 
         //Notify AWSResourceManager about stack destruction to release acquired resources
         AWSResourceManager awsResourceManager = new AWSResourceManager();
-        awsResourceManager.notifyStackDeletion(testPlan, region);
+        awsResourceManager.notifyStackDeletion(testPlan, script, region);
 
         boolean waitForStackDeletion = Boolean.parseBoolean(ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.WAIT_FOR_STACK_DELETION));
@@ -367,7 +365,7 @@ public class AWSProvider implements InfrastructureProvider {
                             .getParameterKey())).findAny();
             if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
-                            .withParameterValue(getAMIParameterValue(infrastructureConfig));
+                            .withParameterValue(getAMIParameterValue(infrastructureConfig, script));
                 cfCompatibleParameters.add(awsParameter);
             }
 
@@ -453,10 +451,10 @@ public class AWSProvider implements InfrastructureProvider {
         return cfCompatibleParameters;
     }
 
-    private String getAMIParameterValue(InfrastructureConfig infrastructureConfig)
+    private String getAMIParameterValue(InfrastructureConfig infrastructureConfig,
+            Script script)
             throws TestGridInfrastructureException {
-        AMIMapper amiMapper = new AMIMapper(infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
-                .getInputParameters().getProperty(AWS_REGION_PARAMETER));
+        AMIMapper amiMapper = new AMIMapper(script.getInputParameters().getProperty(AWS_REGION_PARAMETER));
         return amiMapper.getAMIFor(infrastructureConfig.getParameters());
     }
 }

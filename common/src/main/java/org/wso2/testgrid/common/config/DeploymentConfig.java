@@ -60,6 +60,13 @@ public class DeploymentConfig implements Serializable {
         return ListUtils.emptyIfNull(deploymentPatterns);
     }
 
+    public DeploymentPattern getFirstDeploymentPattern() {
+        if (deploymentPatterns == null || deploymentPatterns.isEmpty()) {
+            return null;
+        }
+        return deploymentPatterns.get(0);
+    }
+
     public void setDeploymentPatterns(
             List<DeploymentPattern> deploymentPatterns) {
         this.deploymentPatterns = deploymentPatterns;

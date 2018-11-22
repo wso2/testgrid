@@ -84,6 +84,13 @@ public class InfrastructureConfig implements Serializable, Cloneable {
         return ListUtils.emptyIfNull(provisioners);
     }
 
+    public Provisioner getFirstProvisioner() {
+        if (provisioners == null || provisioners.isEmpty()) {
+            return null;
+        }
+        return provisioners.get(0);
+    }
+
     public void setProvisioners(List<Provisioner> provisioners) {
         this.provisioners = provisioners;
     }

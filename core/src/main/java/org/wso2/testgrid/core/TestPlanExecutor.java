@@ -585,14 +585,14 @@ public class TestPlanExecutor {
             }
             logger.info("");
             printSeparator(LINE_LENGTH);
-            logger.info("\t\t Provisioning infrastructure: " + infrastructureConfig.getProvisioners().get(0).getName());
+            logger.info("\t\t Provisioning infrastructure: " + infrastructureConfig.getFirstProvisioner().getName());
             printSeparator(LINE_LENGTH);
             logger.info("");
 
             persistInfraInputs(testPlan);
             InfrastructureProvisionResult provisionResult = null;
 
-            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+            for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!script.getPhase().equals(Script.Phase.DESTROY)) {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
@@ -603,7 +603,7 @@ public class TestPlanExecutor {
             }
 
             if (provisionResult != null) {
-                provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
+                provisionResult.setName(infrastructureConfig.getFirstProvisioner().getName());
                 //TODO: remove. deploymentScriptsDir is deprecated now in favor of DeploymentConfig.
                 provisionResult.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepository()).toString());
             }
@@ -692,7 +692,7 @@ public class TestPlanExecutor {
             InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
             logger.info("");
             printSeparator(LINE_LENGTH);
-            logger.info("\t\t Releasing infrastructure: " + infrastructureConfig.getProvisioners().get(0).getName());
+            logger.info("\t\t Releasing infrastructure: " + infrastructureConfig.getFirstProvisioner().getName());
             printSeparator(LINE_LENGTH);
             logger.info("");
 
@@ -708,7 +708,7 @@ public class TestPlanExecutor {
                         + "infrastructure");
             }
 
-            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+            for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!script.getPhase().equals(Script.Phase.CREATE)) {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
