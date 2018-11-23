@@ -42,7 +42,7 @@ import javax.mail.Store;
 import javax.mail.search.SubjectTerm;
 
 /**
- * Utility for interacting with an Email application
+ * Utility for interacting with an Email application.
  */
 public class EmailUtils {
     private static final Logger logger = LoggerFactory.getLogger(EmailUtils.class);

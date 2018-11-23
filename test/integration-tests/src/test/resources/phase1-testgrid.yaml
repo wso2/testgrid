@@ -14,7 +14,7 @@ infrastructureConfig:
      - ORACLE_JDK8
   provisioners:
     - name: prod-wso2-ei-scenario-deployment
-      remoteRepository: "git@github.com:tharindu1992/testgrid-jenkins-library.git"
+      remoteRepository: "git@github.com:wso2/testgrid.git"
       remoteBranch: "test"
       description: Provision Infra for running intg tests
       scripts:
@@ -22,9 +22,9 @@ infrastructureConfig:
           description: ''
           type: SHELL
           phase: CREATE
-          file: Test-Phase1/infra.sh
+          file: test/integration-tests/src/test/resources/test-phase1/infra.sh
         - name: destroy
-          file: Test-Phase1/destroy.sh
+          file: test/integration-tests/src/test/resources/test-phase1/destroy.sh
           type: SHELL
           phase: DESTROY
 deploymentConfig:
@@ -37,7 +37,7 @@ deploymentConfig:
       scripts:
         - name: 'default'
           type: SHELL
-          file: Test-Phase1/deploy.sh
+          file: test/integration-tests/src/test/resources/test-phase1/deploy.sh
 scenarioConfig:
   testType: INTEGRATION
   remoteRepository: "git@github.com:tharindu1992/testgrid-jenkins-library.git"
@@ -45,4 +45,4 @@ scenarioConfig:
   scenarios:
     - name: "Test-Phase-1"
       description: "Test-Phase-1"
-      dir: Test-Phase1
+      dir: test/integration-tests/src/test/resources/test-phase1

@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.testgrid.tests;
 
 import org.json.JSONObject;
@@ -100,8 +118,7 @@ public class TestPhases {
         summaryTest(jobName, currentBuild.id);
     }
 
-    //@Test(dependsOnMethods = {"buildTriggerTest"})
-    public void logTest(String jobName, String buildID) {
+    private void logTest(String jobName, String buildID) {
 
         try {
             validateLog(getTestPlanID(jobName, buildID));
@@ -111,7 +128,7 @@ public class TestPhases {
 
     }
 
-    public void summaryTest(String jobName, String buildID) {
+    private void summaryTest(String jobName, String buildID) {
 
         try {
             testSummaryValidate(getTestPlanID(jobName, buildID), jobName);
@@ -120,7 +137,7 @@ public class TestPhases {
         }
     }
 
-    public void validateLog(String testPlan) throws Exception {
+    private void validateLog(String testPlan) throws Exception {
 
         String webPage = "https://testgrid-live-dev.private.wso2.com/api/test-plans/log/" + testPlan;
 
@@ -146,7 +163,7 @@ public class TestPhases {
         }
     }
 
-    public String getTestPlanID(String jobName, String buildNo) throws Exception {
+    private String getTestPlanID(String jobName, String buildNo) throws Exception {
 
         URL url = new URL(testProperties.jenkinsUrl + "/job/" + jobName + "/" + buildNo +
                           "/consoleText");
@@ -297,7 +314,7 @@ public class TestPhases {
             this.building = building;
         }
 
-        public JenkinsJob(String id, Boolean building) {
+        private JenkinsJob(String id, Boolean building) {
 
             this(null, id, building);
         }
