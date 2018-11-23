@@ -20,7 +20,7 @@ infrastructureConfig:
         - name: 'prod-wso2-ei-scenario-deployment'
           description: ''
           type: CLOUDFORMATION
-          file: integrator/Minimum-HA/integrator-ha.yaml
+          file: integrator/integrator-ha.yaml
           inputParameters:
             parseInfrastructureScript: false
             KeyPairName: "deployment-dev"
@@ -28,6 +28,7 @@ infrastructureConfig:
             DBUsername: "wso2carbon"
             DBPassword: "DB_Password"
             ProductVersion: "6.4.0"
+            InternalPrepareForTest: "True"
 scenarioConfig:
   testType: INTEGRATION
   remoteRepository: "https://github.com/yasassri/product-ei.git"
