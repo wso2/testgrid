@@ -400,8 +400,9 @@ public class GenerateTestPlanCommand implements Command {
      */
     private void populateDefaults(TestgridYaml testgridYaml) {
         if (testgridYaml.getDeploymentConfig().getDeploymentPatterns().isEmpty()) {
+            String deploymentPatternName = TestGridUtil.getDeploymentPatternName(testgridYaml);
             DeploymentConfig.DeploymentPattern deploymentPatternConfig = new DeploymentConfig.DeploymentPattern();
-            deploymentPatternConfig.setName(TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME);
+            deploymentPatternConfig.setName(deploymentPatternName);
             deploymentPatternConfig.setDescription(TestGridConstants.DEFAULT_DEPLOYMENT_PATTERN_NAME);
             Script script = new Script();
             script.setName("default");
