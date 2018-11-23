@@ -18,6 +18,8 @@
 
 package org.wso2.testgrid;
 
+import org.testng.Assert;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,9 +34,6 @@ public class TestProperties {
     public static String jenkinsUser;
     public static String jenkinsToken;
     public static String jenkinsUrl = "https://testgrid-live-dev.private.wso2.com/admin";
-//    public static String trigger = "https://testgrid-live-dev.private.wso2.com/admin/job/Phase-1/build";
-//    public static String buildStatusUrl = "/job/Phase-1/lastBuild/api/json";
-
     private String propFileName = System.getenv("TEST_PROPS");
 
     public TestProperties() {
@@ -47,19 +46,14 @@ public class TestProperties {
         try (InputStream inputStream = new FileInputStream(new File(propFileName))) {
             Properties prop = new Properties();
 
-            if (inputStream != null) {
-                prop.load(inputStream);
-            } else {
-                throw new FileNotFoundException("property file '" + propFileName + "' not found.");
-            }
-
+            prop.load(inputStream);
             email = prop.getProperty("email");
             emailPassword = prop.getProperty("emailPassword");
             jenkinsToken = prop.getProperty("jenkinsToken");
             jenkinsUser = prop.getProperty("jenkinsUser");
 
         } catch (IOException e) {
-//            Log error
+            Assert.fail("Unable to read test properties " + e.getMessage());
         }
     }
 }
