@@ -22,7 +22,6 @@ import org.testng.Assert;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -33,6 +32,7 @@ public class TestProperties {
     public static String emailPassword;
     public static String jenkinsUser;
     public static String jenkinsToken;
+    public static String tgApiToken;
     public static String jenkinsUrl = "https://testgrid-live-dev.private.wso2.com/admin";
     private String propFileName = System.getenv("TEST_PROPS");
 
@@ -51,6 +51,7 @@ public class TestProperties {
             emailPassword = prop.getProperty("emailPassword");
             jenkinsToken = prop.getProperty("jenkinsToken");
             jenkinsUser = prop.getProperty("jenkinsUser");
+            tgApiToken = prop.getProperty("tgApiToken");
 
         } catch (IOException e) {
             Assert.fail("Unable to read test properties " + e.getMessage());

@@ -145,7 +145,7 @@ public class TestPhases {
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setDoOutput(true);
-        connection.setRequestProperty("Authorization", "test");
+        connection.setRequestProperty("Authorization", testProperties.tgApiToken);
         SSLSocketFactory sslSocketFactory = createSslSocketFactory();
         connection.setSSLSocketFactory(sslSocketFactory);
 
@@ -315,7 +315,6 @@ public class TestPhases {
         }
 
         private JenkinsJob(String id, Boolean building) {
-
             this(null, id, building);
         }
     }
