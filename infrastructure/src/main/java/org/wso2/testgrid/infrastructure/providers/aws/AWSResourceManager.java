@@ -205,8 +205,8 @@ public class AWSResourceManager {
      */
     public void notifyStackDeletion(TestPlan testPlan, Script script, String region) throws
             TestGridDAOException, TestGridInfrastructureException {
-        if (!region.equals(ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME))) {
+        if (!ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME).equals(region)) {
             logger.info("Releasing resources from test plan " + testPlan.toString());
             AWSResourceRequirementUOW awsResourceRequirementUOW = new AWSResourceRequirementUOW();
             AWSResourceLimitUOW awsResourceLimitUOW = new AWSResourceLimitUOW();

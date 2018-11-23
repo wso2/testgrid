@@ -250,7 +250,7 @@ public class EmailReportProcessor {
                     .append(": ")
                     .append(deployFiles)
                     .append(HTML_LINE_SEPARATOR);
-            stringBuilder.append("Test script: ")
+            stringBuilder.append("Test repo: ")
                     .append(Optional.ofNullable(scenarioConfig.getRemoteRepository()).orElse(
                             TestGridConstants.NOT_CONFIGURED_STR))
                     .append(" @ ")

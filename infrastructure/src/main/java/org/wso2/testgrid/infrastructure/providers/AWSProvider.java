@@ -289,13 +289,23 @@ public class AWSProvider implements InfrastructureProvider {
 
         Properties props = new Properties();
         props.putAll(testPlan.getInfrastructureConfig().getParameters());
-        try (InputStream tpInputStream = Files.newInputStream(testplanPropsFile, StandardOpenOption.READ);
-                InputStream infraInputStream = Files.newInputStream(infraOutFile, StandardOpenOption.READ)) {
-            props.load(tpInputStream);
-            props.load(infraInputStream);
-        } catch (IOException e) {
-            logger.error(String.format("Error while reading infrastructure inputs from '%s' and/or '%s'. Continuing "
-                            + "the flow with parameters already found..", testplanPropsFile, infraOutFile), e);
+        if (Files.exists(testplanPropsFile)) {
+            try (InputStream tpInputStream = Files.newInputStream(testplanPropsFile, StandardOpenOption.READ)) {
+                props.load(tpInputStream);
+            } catch (IOException e) {
+                logger.error(String.format("Error while reading infrastructure inputs from '%s'. Continuing "
+                        + "the flow with parameters already found..", testplanPropsFile), e);
+            }
+        }
+
+        if (Files.exists(infraOutFile)) {
+            try (InputStream infraInputStream = Files.newInputStream(infraOutFile, StandardOpenOption.READ)) {
+                props.load(infraInputStream);
+            } catch (IOException e) {
+                logger.error(String.format("Error while reading infrastructure inputs from '%s'. Continuing "
+                        + "the flow with parameters already found..", infraOutFile), e);
+            }
+
         }
         props.putAll(script.getInputParameters());
 
@@ -385,7 +395,7 @@ public class AWSProvider implements InfrastructureProvider {
      * @throws IOException When there is an error reading the parameters file.
      */
     private List<Parameter> getParameters(List<TemplateParameter> expectedParameters,
-            Properties infraCombinationProperties, Properties infraInputs, TestPlan testPlan)
+            Properties infraInputs, Properties infraCombinationProperties, TestPlan testPlan)
             throws IOException, TestGridInfrastructureException {
 
         String testPlanId = testPlan.getId();
