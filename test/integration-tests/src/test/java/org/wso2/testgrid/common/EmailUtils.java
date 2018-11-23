@@ -278,7 +278,6 @@ public class EmailUtils {
     public boolean isTextInMessage(Message message, String text) throws Exception {
 
         String content = getMessageContent(message);
-
         //Some Strings within the email have whitespace and some have break coding. Need to be the same.
         content = content.replace("&nbsp;", " ");
         return content.contains(text);

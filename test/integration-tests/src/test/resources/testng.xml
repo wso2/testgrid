@@ -23,7 +23,7 @@
 <suite name="TestGrid - Test Automation Module">
     <test name="test" parallel="false">
         <classes>
-            <class name="org.wso2.testgrid.phase1.TestPhase1"/>
+            <class name="org.wso2.testgrid.tests.TestPhases"/>
         </classes>
     </test>
 </suite>

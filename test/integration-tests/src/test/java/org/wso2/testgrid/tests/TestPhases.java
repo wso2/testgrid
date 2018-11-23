@@ -1,4 +1,4 @@
-package org.wso2.testgrid.phase1;
+package org.wso2.testgrid.tests;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -29,9 +29,9 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-public class TestPhase1 {
+public class TestPhases {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestPhase1.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestPhases.class);
     private TestProperties testProperties;
 
     @BeforeTest
@@ -81,11 +81,11 @@ public class TestPhase1 {
             }
 
             currentBuild = getLastJob(buildStatusUrl);
-
             Assert.assertEquals(currentBuild.status, "SUCCESS");
 
+            logger.info("Checking the Email content of " + jobName);
             EmailUtils emailUtils = connectToEmail();
-            testTextContained(emailUtils, jenkinsJob.id);
+            testTextContained(emailUtils, jenkinsJob.id, jobName);
 
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -114,7 +114,7 @@ public class TestPhase1 {
     public void summaryTest(String jobName, String buildID) {
 
         try {
-            testSummaryValidate(getTestPlanID(jobName, buildID));
+            testSummaryValidate(getTestPlanID(jobName, buildID), jobName);
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
@@ -179,28 +179,28 @@ public class TestPhase1 {
         return testplan;
     }
 
-    private void testTextContained(EmailUtils emailUtils, String buildNo) {
+    private void testTextContained(EmailUtils emailUtils, String buildNo, String jobName) {
 
         try {
+            String emailSubject = "'" + jobName + "' Test Results! #(" + buildNo + ")";
+            Message[] emails = null;
             for (int i = 0; i < 30; i++) {
-                Message[] emails = emailUtils.getMessagesBySubject("'Phase-1' Test Results! #(" + buildNo + ")",
-                        false, 100);
+                emails = emailUtils.getMessagesBySubject(emailSubject, false, 100);
                 if (emails.length != 0) {
                     logger.info("EMAIL Found");
                     break;
                 }
-                TimeUnit.SECONDS.sleep(1);
-                logger.info("Waiting for email");
+                TimeUnit.SECONDS.sleep(2);
+                logger.info("Waiting for email : " + emailSubject);
             }
-            Message email = emailUtils.getMessagesBySubject("'Phase-1' Test Results! #(" + buildNo + ")",
-                    false, 100)[0];
-            Assert.assertTrue(emailUtils.isTextInMessage(email, "Phase-1 integration test Results!"),
-                    "Phase-1 integration test Results!");
+            Message email = emails[0];
+            Assert.assertTrue(emailUtils.isTextInMessage(email, jobName + " integration test Results!"),
+                    jobName + " integration test Results!");
             logger.info("Email received on " + email.getReceivedDate());
         } catch (ArrayIndexOutOfBoundsException e) {
-            Assert.fail("Email not recieved for the build");
+            Assert.fail("Email not received for the build " + e.getMessage());
         } catch (Exception e) {
-            // Log Error
+            Assert.fail("Error occured while asserting the email text " + e.getMessage());
         }
     }
 
@@ -217,7 +217,7 @@ public class TestPhase1 {
         }
     }
 
-    private void testSummaryValidate(String testplan) throws Exception {
+    private void testSummaryValidate(String testplan, String jobName) throws Exception {
 
         URL url = new URL("https://testgrid-live-dev.private.wso2.com/api/test-plans/test-summary/" + testplan);
 
@@ -236,12 +236,20 @@ public class TestPhase1 {
             }
         }
 
-        JSONObject myresponse = new JSONObject(response.toString());
-        myresponse = myresponse.getJSONArray("scenarioSummaries").getJSONObject(0);
+        JSONObject responseObj = new JSONObject(response.toString());
+        responseObj = responseObj.getJSONArray("scenarioSummaries").getJSONObject(0);
 
-        Assert.assertEquals(myresponse.getInt("totalSuccess"), 541);
-        Assert.assertEquals(myresponse.getInt("totalFail"), 0);
-        Assert.assertEquals(myresponse.getString("scenarioDescription"), "Test-Phase-1");
+        if (jobName.equals("Phase-1")) {
+            Assert.assertEquals(responseObj.getInt("totalSuccess"), 541);
+        } else {
+            Assert.assertEquals(responseObj.getInt("totalSuccess"), 1);
+        }
+        Assert.assertEquals(responseObj.getInt("totalFail"), 0);
+        if (jobName.equals("Phase-1")) {
+            Assert.assertEquals(responseObj.getString("scenarioDescription"), "Test-Phase-1");
+        } else {
+            Assert.assertEquals(responseObj.getString("scenarioDescription"), "product-ei-scenarios");
+        }
         con.disconnect();
     }
 
@@ -324,7 +332,6 @@ public class TestPhase1 {
 
     @DataProvider(name = "jobs")
     public static Object[][] jobs() {
-
         return new Object[][]{{"Phase-1"}, {"Phase-2"}};
     }
 }
