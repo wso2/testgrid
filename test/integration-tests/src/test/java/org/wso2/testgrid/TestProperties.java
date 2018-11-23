@@ -34,6 +34,7 @@ public class TestProperties {
     public static String jenkinsToken;
     public static String tgApiToken;
     public static String jenkinsUrl = "https://testgrid-live-dev.private.wso2.com/admin";
+    public static String tgDashboardApiUrl = "https://testgrid-live-dev.private.wso2.com/api";
     private String propFileName = System.getenv("TEST_PROPS");
 
     public TestProperties() {

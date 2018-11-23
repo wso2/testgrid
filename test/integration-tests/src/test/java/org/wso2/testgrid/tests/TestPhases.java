@@ -139,7 +139,7 @@ public class TestPhases {
 
     private void validateLog(String testPlan) throws Exception {
 
-        String webPage = "https://testgrid-live-dev.private.wso2.com/api/test-plans/log/" + testPlan;
+        String webPage = testProperties.tgDashboardApiUrl + "/api/test-plans/log/" + testPlan;
 
         URL url = new URL(webPage);
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
@@ -172,12 +172,9 @@ public class TestPhases {
         connection.setDoOutput(true);
         SSLSocketFactory sslSocketFactory = createSslSocketFactory();
         connection.setSSLSocketFactory(sslSocketFactory);
-        int responseCode = connection.getResponseCode();
         String testplan;
         try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
             String inputLine;
-            StringBuffer response = new StringBuffer();
-
             String patternString = ".*Preparing workspace for testplan.*";
 
             Pattern pattern = Pattern.compile(patternString);
@@ -217,11 +214,12 @@ public class TestPhases {
         } catch (ArrayIndexOutOfBoundsException e) {
             Assert.fail("Email not received for the build " + e.getMessage());
         } catch (Exception e) {
-            Assert.fail("Error occured while asserting the email text " + e.getMessage());
+            logger.error("Error occurred while asserting the email ", e);
+            Assert.fail("Error occurred while asserting the email text " + e.getMessage());
         }
     }
 
-    public static EmailUtils connectToEmail() {
+    private static EmailUtils connectToEmail() {
 
         try {
             //gmail need to alow less secure apps
@@ -236,7 +234,7 @@ public class TestPhases {
 
     private void testSummaryValidate(String testplan, String jobName) throws Exception {
 
-        URL url = new URL("https://testgrid-live-dev.private.wso2.com/api/test-plans/test-summary/" + testplan);
+        URL url = new URL(TestProperties.tgDashboardApiUrl + "/test-plans/test-summary/" + testplan);
 
         HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
         con.setRequestMethod("GET");
