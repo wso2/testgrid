@@ -213,7 +213,12 @@ public class ConfigurationContext {
         /**
          * API access token for testing
          */
-        API_TOKEN("API_TOKEN");
+        API_TOKEN("API_TOKEN"),
+
+        /**
+         * Interval (in hours) to run finalize run testplan
+         */
+        FINALIZE_RUN_TESTPLAN_INTERVAL("FINALIZE_RUN_TESTPLAN_INTERVAL");
 
 
         private String propertyName;

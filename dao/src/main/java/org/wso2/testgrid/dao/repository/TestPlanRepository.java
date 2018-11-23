@@ -291,8 +291,8 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
      */
     public List<TestPlan> getTestPlanOlderThan(String duration, String timeUnit) {
         String sql = StringUtil.concatStrings(
-                "select t.* from test_plan t where t.created_timestamp < NOW() - INTERVAL ",
-                duration , " ", timeUnit, " ", " and t.status = 'PENDING' or t.status = 'RUNNING' ");
+                "select t.* from test_plan t where t.created_timestamp < (NOW() - INTERVAL ",
+                duration , " ", timeUnit, ") and (t.status = 'PENDING' or t.status = 'RUNNING') ");
         @SuppressWarnings("unchecked")
         List<TestPlan> resultList = (List<TestPlan>) entityManager.createNativeQuery(sql, TestPlan.class)
                 .getResultList();
