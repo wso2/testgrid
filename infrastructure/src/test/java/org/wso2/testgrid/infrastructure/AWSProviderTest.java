@@ -78,7 +78,7 @@ import java.util.Set;
  *
  * @since 1.0.0
  */
-@PowerMockIgnore({"javax.net.ssl.*", "javax.security.*"})
+@PowerMockIgnore({"javax.net.ssl.*", "javax.security.*", "javax.management.*"})
 @PrepareForTest({
                         AWSProvider.class, AmazonCloudFormationClientBuilder.class
                         , AmazonCloudFormation.class, AwsClientBuilder.class, ConfigurationContext.class
@@ -216,7 +216,8 @@ public class AWSProviderTest extends PowerMockTestCase {
         StackCreationWaiter validatorMock = Mockito.mock(StackCreationWaiter.class);
         PowerMockito.whenNew(StackCreationWaiter.class).withAnyArguments().thenReturn(validatorMock);
 
-        Mockito.when(awsResourceManagerMock.requestAvailableRegion(Mockito.any(TestPlan.class)))
+        Mockito.when(awsResourceManagerMock.requestAvailableRegion(Mockito.any(TestPlan.class),
+                Mockito.any(Script.class)))
                 .thenReturn("us-east-2");
         Mockito.when(awsResourceManagerMock.populateInitialResourceLimits(Mockito.any()))
                 .thenReturn(Collections.singletonList(Mockito.mock(AWSResourceLimit.class)));
@@ -228,7 +229,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         testPlan.setWorkspace(workspaceDir);
         awsProvider.init(testPlan);
         InfrastructureProvisionResult provisionResult = awsProvider
-                .provision(testPlan, infrastructureConfig.getProvisioners().get(0).getScripts().get(0));
+                .provision(testPlan, infrastructureConfig.getFirstProvisioner().getScripts().get(0));
 
         Assert.assertNotNull(provisionResult);
         Assert.assertEquals(provisionResult.getHosts().size(), 1);
@@ -314,7 +315,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         awsProvider.init(testPlan);
         boolean released = awsProvider.release(
                 dummyInfrastructureConfig, resourcePath.getAbsolutePath(), testPlan,
-                dummyInfrastructureConfig.getProvisioners().get(0).getScripts().get(0));
+                dummyInfrastructureConfig.getFirstProvisioner().getScripts().get(0));
 
         Assert.assertTrue(released);
         unset(map.keySet());

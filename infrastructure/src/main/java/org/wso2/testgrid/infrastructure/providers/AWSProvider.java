@@ -37,7 +37,6 @@ import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
 import com.amazonaws.waiters.WaiterUnrecoverableException;
-
 import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,11 +64,13 @@ import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -139,11 +140,9 @@ public class AWSProvider implements InfrastructureProvider {
     @Override
     public InfrastructureProvisionResult provision(TestPlan testPlan, Script script)
             throws TestGridInfrastructureException {
-        InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
         if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
-            infrastructureConfig.getParameters().forEach((key, value) ->
-                    script.getInputParameters().setProperty((String) key, (String) value));
-            return doProvision(infrastructureConfig, script, testPlan);
+            Properties infraInputs = getInfraInputs(testPlan, script);
+            return doProvision(script, infraInputs, testPlan);
         }
         throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
     }
@@ -153,7 +152,8 @@ public class AWSProvider implements InfrastructureProvider {
                            TestPlan testPlan, Script script) throws TestGridInfrastructureException {
         try {
             if (script.getType().equals(Script.ScriptType.CLOUDFORMATION)) {
-                return doRelease(infrastructureConfig, script.getName(), testPlan);
+                Properties infraInputs = getInfraInputs(testPlan, script);
+                return doRelease(script, infraInputs, testPlan);
             }
             throw new TestGridInfrastructureException("No CloudFormation Script found in script list");
         } catch (InterruptedException e) {
@@ -163,11 +163,10 @@ public class AWSProvider implements InfrastructureProvider {
         }
     }
 
-    private InfrastructureProvisionResult doProvision(InfrastructureConfig infrastructureConfig,
-        Script script, TestPlan testPlan) throws TestGridInfrastructureException {
+    private InfrastructureProvisionResult doProvision(Script script, Properties inputs, TestPlan testPlan) throws
+            TestGridInfrastructureException {
         Path configFilePath = TestGridUtil.getConfigFilePath();
-        String region = infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
-                .getInputParameters().getProperty(AWS_REGION_PARAMETER);
+        String region = inputs.getProperty(AWS_REGION_PARAMETER);
         AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)
@@ -189,18 +188,18 @@ public class AWSProvider implements InfrastructureProvider {
 
             stackRequest.setTemplateBody(file);
 
-            region = awsResourceManager.requestAvailableRegion(testPlan);
+            region = awsResourceManager.requestAvailableRegion(testPlan, script);
             //Set region to test plan
-            infrastructureConfig.getProvisioners().get(0).getScripts().get(0).getInputParameters()
-                    .setProperty(AWS_REGION_PARAMETER, region);
+            inputs.setProperty(AWS_REGION_PARAMETER, region);
+            script.getInputParameters().setProperty(AWS_REGION_PARAMETER, region);
 
             cloudFormation = AmazonCloudFormationClientBuilder.standard()
                     .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                     .withRegion(region)
                     .build();
 
-            final List<Parameter> populatedExpectedParameters = getParameters(script, expectedParameters,
-                    infrastructureConfig, testPlan);
+            final List<Parameter> populatedExpectedParameters = getParameters(expectedParameters, inputs,
+                    testPlan.getInfrastructureConfig().getParameters(), testPlan);
             stackRequest.setParameters(populatedExpectedParameters);
             logger.info(StringUtil.concatStrings("Creation of CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
@@ -211,7 +210,7 @@ public class AWSProvider implements InfrastructureProvider {
             }
 
             logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName,
-                    ", Infrastructure: ", infrastructureConfig.getParameters()));
+                    ", Infrastructure: ", testPlan.getInfrastructureConfig().getParameters()));
 
             TimeOutBuilder stackTimeOut = new TimeOutBuilder(TIMEOUT, TIMEOUT_UNIT, POLL_INTERVAL, POLL_UNIT);
             stackCreationWaiter.waitForStack(stackName, cloudFormation, stackTimeOut);
@@ -226,7 +225,7 @@ public class AWSProvider implements InfrastructureProvider {
                     describeStackEvents(describeStackEventsRequest);
 
             //Notify AWSResourceManager about stack creation completion
-            awsResourceManager.notifyStackCreation(testPlan, describeStackEventsResult.getStackEvents());
+            awsResourceManager.notifyStackCreation(testPlan, script, describeStackEventsResult.getStackEvents());
 
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(stack.getStackId());
@@ -253,14 +252,14 @@ public class AWSProvider implements InfrastructureProvider {
             persistOutputs(testPlan, outputProps);
 
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
-            //added for backward compatibility. todo remove.
-            result.setHosts(hosts);
             Properties props = new Properties();
             props.setProperty("HOSTS", hosts.toString());
+            props.putAll(outputProps);
             result.setProperties(props);
+            //added for backward compatibility. todo remove.
+            result.setHosts(hosts);
 
             return result;
-
         } catch (IOException e) {
             throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
         } catch (ConditionTimeoutException e) {
@@ -269,6 +268,48 @@ public class AWSProvider implements InfrastructureProvider {
         } catch (TestGridDAOException e) {
             throw new TestGridInfrastructureException("Error occurred while retrieving resource requirements", e);
         }
+    }
+
+    /**
+     * Read the {@link InfrastructureConfig#getParameters()},
+     * {@link DataBucketsHelper#TESTPLAN_PROPERTIES_FILE},
+     * intermediate {@link DataBucketsHelper#INFRA_OUT_FILE}, and
+     * {@link Script#getInputParameters()}.
+     *
+     * NOTE: properties load order is important. Latter properties has higher precedence, and will over-ride others.
+     *
+     * @param testPlan the test plan
+     * @param script script currently being executed.
+     * @return list of infrastructure inputs
+     */
+    private Properties getInfraInputs(TestPlan testPlan, Script script) {
+        final Path inputLocation = DataBucketsHelper.getInputLocation(testPlan);
+        final Path testplanPropsFile = inputLocation.resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
+        final Path infraOutFile = inputLocation.resolve(DataBucketsHelper.INFRA_OUT_FILE);
+
+        Properties props = new Properties();
+        props.putAll(testPlan.getInfrastructureConfig().getParameters());
+        if (Files.exists(testplanPropsFile)) {
+            try (InputStream tpInputStream = Files.newInputStream(testplanPropsFile, StandardOpenOption.READ)) {
+                props.load(tpInputStream);
+            } catch (IOException e) {
+                logger.error(String.format("Error while reading infrastructure inputs from '%s'. Continuing "
+                        + "the flow with parameters already found..", testplanPropsFile), e);
+            }
+        }
+
+        if (Files.exists(infraOutFile)) {
+            try (InputStream infraInputStream = Files.newInputStream(infraOutFile, StandardOpenOption.READ)) {
+                props.load(infraInputStream);
+            } catch (IOException e) {
+                logger.error(String.format("Error while reading infrastructure inputs from '%s'. Continuing "
+                        + "the flow with parameters already found..", infraOutFile), e);
+            }
+
+        }
+        props.putAll(script.getInputParameters());
+
+        return props;
     }
 
     private void persistOutputs(TestPlan testPlan, Properties deploymentInfo)
@@ -300,18 +341,17 @@ public class AWSProvider implements InfrastructureProvider {
     /**
      * This method releases the provisioned AWS infrastructure.
      *
-     * @param infrastructureConfig The infrastructure configuration.
-     * @param stackName            the cloudformation script name
+     * @param script            the script config
+     * @param inputs
      * @return true or false to indicate the result of destroy operation.
      * @throws TestGridInfrastructureException when AWS error occurs in deletion process.
      * @throws InterruptedException            when there is an interruption while waiting for the result.
      */
-    private boolean doRelease(
-            InfrastructureConfig infrastructureConfig, String stackName, TestPlan testPlan)
+    private boolean doRelease(Script script, Properties inputs, TestPlan testPlan)
             throws TestGridInfrastructureException, InterruptedException, TestGridDAOException {
         Path configFilePath;
-        String region = infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
-                .getInputParameters().getProperty(AWS_REGION_PARAMETER);
+        String stackName = script.getName();
+        String region = inputs.getProperty(AWS_REGION_PARAMETER);
         configFilePath = TestGridUtil.getConfigFilePath();
         AmazonCloudFormation stackdestroy = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
@@ -324,7 +364,7 @@ public class AWSProvider implements InfrastructureProvider {
 
         //Notify AWSResourceManager about stack destruction to release acquired resources
         AWSResourceManager awsResourceManager = new AWSResourceManager();
-        awsResourceManager.notifyStackDeletion(testPlan, region);
+        awsResourceManager.notifyStackDeletion(testPlan, script, region);
 
         boolean waitForStackDeletion = Boolean.parseBoolean(ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.WAIT_FOR_STACK_DELETION));
@@ -345,29 +385,29 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     /**
-     * Reads the parameters for the stack from file.
+     * Reads the parameters for the stack from parsed cfn yaml file.
      *
-     * @param script Script object with script details.
      * @param expectedParameters Set of parameters expected by CF-script.
-     * @param infrastructureConfig Infrastructure configuration of the test-plan.
+     * @param infraInputs all the infrastructure inputs
+     * @param infraCombinationProperties Infrastructure combination of the test-plan.
      * @param testPlan  The test plan
      * @return a List of {@link Parameter} objects
      * @throws IOException When there is an error reading the parameters file.
      */
-    private List<Parameter> getParameters(Script script, List<TemplateParameter> expectedParameters,
-                                          InfrastructureConfig infrastructureConfig, TestPlan testPlan)
+    private List<Parameter> getParameters(List<TemplateParameter> expectedParameters,
+            Properties infraInputs, Properties infraCombinationProperties, TestPlan testPlan)
             throws IOException, TestGridInfrastructureException {
 
         String testPlanId = testPlan.getId();
         List<Parameter> cfCompatibleParameters = new ArrayList<>();
 
         expectedParameters.forEach(LambdaExceptionUtils.rethrowConsumer(expected -> {
-            Optional<Map.Entry<Object, Object>> scriptParameter = script.getInputParameters().entrySet().stream()
+            Optional<Map.Entry<Object, Object>> scriptParameter = infraInputs.entrySet().stream()
                     .filter(input -> input.getKey().equals(expected
                             .getParameterKey())).findAny();
             if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
-                            .withParameterValue(getAMIParameterValue(infrastructureConfig));
+                            .withParameterValue(getAMIParameterValue(infraCombinationProperties, infraInputs));
                 cfCompatibleParameters.add(awsParameter);
             }
 
@@ -453,10 +493,9 @@ public class AWSProvider implements InfrastructureProvider {
         return cfCompatibleParameters;
     }
 
-    private String getAMIParameterValue(InfrastructureConfig infrastructureConfig)
+    private String getAMIParameterValue(Properties infraCombination, Properties infraInputs)
             throws TestGridInfrastructureException {
-        AMIMapper amiMapper = new AMIMapper(infrastructureConfig.getProvisioners().get(0).getScripts().get(0)
-                .getInputParameters().getProperty(AWS_REGION_PARAMETER));
-        return amiMapper.getAMIFor(infrastructureConfig.getParameters());
+        AMIMapper amiMapper = new AMIMapper(infraInputs.getProperty(AWS_REGION_PARAMETER));
+        return amiMapper.getAMIFor(infraCombination);
     }
 }

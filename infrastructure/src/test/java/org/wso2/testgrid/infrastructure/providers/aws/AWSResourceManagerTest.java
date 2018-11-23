@@ -117,7 +117,8 @@ public class AWSResourceManagerTest extends PowerMockTestCase {
                 getAvailableRegion(Collections.singletonList(awsResourceRequirement))).thenReturn(region);
 
         Mockito.when(awsResourceLimitUOWMock.findAll()).thenReturn(Collections.singletonList(awsResourceLimit));
-        assertEquals(region, awsResourceManager.requestAvailableRegion(testPlan));
+        assertEquals(region, awsResourceManager.requestAvailableRegion(testPlan,
+                testPlan.getInfrastructureConfig().getFirstProvisioner().getScripts().get(0)));
     }
 
     @Test(description = "Test providing a region to run a test plan when resource requirements are unavailable." +
@@ -135,7 +136,8 @@ public class AWSResourceManagerTest extends PowerMockTestCase {
         params.put(AWSResourceRequirement.MD5_HASH_COLUMN, cfnhash);
         Mockito.when(awsResourceRequirementUOWMock.findByFields(params))
                 .thenReturn(emptyList);
-        assertEquals(defaultRegion, awsResourceManager.requestAvailableRegion(testPlan));
+        assertEquals(defaultRegion, awsResourceManager.requestAvailableRegion(testPlan,
+                testPlan.getInfrastructureConfig().getFirstProvisioner().getScripts().get(0)));
     }
 
     private InfrastructureConfig getDummyInfrastructureConfig() {
@@ -168,7 +170,8 @@ public class AWSResourceManagerTest extends PowerMockTestCase {
         Mockito.doNothing().when(awsResourceRequirementUOWMock)
                 .persistResourceRequirements(Mockito.anyListOf(AWSResourceRequirement.class));
         testPlan.setInfrastructureConfig(getDummyInfrastructureConfig());
-        awsResourceManager.notifyStackCreation(testPlan, Collections.singletonList(stackEvent));
+        awsResourceManager.notifyStackCreation(testPlan, testPlan.getInfrastructureConfig().getFirstProvisioner()
+                .getScripts().get(0), Collections.singletonList(stackEvent));
         Mockito.verify(awsResourceRequirementUOWMock, Mockito.times(1))
                 .persistResourceRequirements(Mockito.anyListOf(AWSResourceRequirement.class));
     }
@@ -183,7 +186,8 @@ public class AWSResourceManagerTest extends PowerMockTestCase {
         Mockito.doNothing().when(awsResourceRequirementUOWMock)
                 .persistResourceRequirements(Mockito.anyListOf(AWSResourceRequirement.class));
         testPlan.setInfrastructureConfig(getDummyInfrastructureConfig());
-        awsResourceManager.notifyStackCreation(testPlan, Collections.singletonList(stackEvent));
+        awsResourceManager.notifyStackCreation(testPlan, testPlan.getInfrastructureConfig().getFirstProvisioner()
+                .getScripts().get(0), Collections.singletonList(stackEvent));
         Mockito.verify(awsResourceRequirementUOWMock, Mockito.times(0))
                 .persistResourceRequirements(Mockito.anyListOf(AWSResourceRequirement.class));
     }
@@ -197,7 +201,8 @@ public class AWSResourceManagerTest extends PowerMockTestCase {
 
         Mockito.doNothing().when(awsResourceLimitUOWMock)
                 .releaseResources(Mockito.anyListOf(AWSResourceRequirement.class), Mockito.anyString());
-        awsResourceManager.notifyStackDeletion(testPlan, region);
+        awsResourceManager.notifyStackDeletion(testPlan, testPlan.getInfrastructureConfig().getFirstProvisioner()
+                .getScripts().get(0), region);
         Mockito.verify(awsResourceLimitUOWMock, Mockito.times(1))
                 .releaseResources(Mockito.anyListOf(AWSResourceRequirement.class), Mockito.anyString());
     }
@@ -211,7 +216,8 @@ public class AWSResourceManagerTest extends PowerMockTestCase {
 
         Mockito.doNothing().when(awsResourceLimitUOWMock)
                 .releaseResources(Mockito.anyListOf(AWSResourceRequirement.class), Mockito.anyString());
-        awsResourceManager.notifyStackDeletion(testPlan, region);
+        awsResourceManager.notifyStackDeletion(testPlan, testPlan.getInfrastructureConfig().getFirstProvisioner()
+                .getScripts().get(0), region);
         Mockito.verify(awsResourceLimitUOWMock, Mockito.times(0))
                 .releaseResources(Mockito.anyListOf(AWSResourceRequirement.class), Mockito.anyString());
     }
