@@ -1,0 +1,48 @@
+# TestGrid Test Configuration Parameters
+# TODO use dash as the separator instead of camelCase.
+version: '0.9'
+emailToList: "wso2testgridphase1@gmail.com,yasassri@wso2.com"
+infrastructureConfig:
+  iacProvider: CLOUDFORMATION
+  infrastructureProvider: AWS
+  containerOrchestrationEngine: None
+  parameters:
+    - JDK : ORACLE_JDK8
+  includes:
+     - CentOS
+     - mysql
+     - ORACLE_JDK8
+  provisioners:
+    - name: prod-wso2-ei-scenario-deployment
+      remoteRepository: "git@github.com:tharindu1992/testgrid-jenkins-library.git"
+      remoteBranch: "test"
+      description: Provision Infra for running intg tests
+      scripts:
+        - name: 'Test-Phase-1-Deployment'
+          description: ''
+          type: SHELL
+          phase: CREATE
+          file: Test-Phase1/infra.sh
+        - name: destroy
+          file: Test-Phase1/destroy.sh
+          type: SHELL
+          phase: DESTROY
+deploymentConfig:
+  deploymentPatterns:
+    - name: 'deployment'
+      remoteRepository: "git@github.com:tharindu1992/testgrid-jenkins-library.git"
+      remoteBranch: test
+      description: 'dummy'
+      dir: .
+      scripts:
+        - name: 'default'
+          type: SHELL
+          file: Test-Phase1/deploy.sh
+scenarioConfig:
+  testType: INTEGRATION
+  remoteRepository: "git@github.com:tharindu1992/testgrid-jenkins-library.git"
+  remoteBranch: "test"
+  scenarios:
+    - name: "Test-Phase-1"
+      description: "Test-Phase-1"
+      dir: Test-Phase1

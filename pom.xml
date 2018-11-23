@@ -46,6 +46,7 @@
         <module>distribution</module>
         <module>remoting-agent</module>
         <module>deployment-tinkerer</module>
+        <module>test/integration-tests</module>
     </modules>
 
     <scm>

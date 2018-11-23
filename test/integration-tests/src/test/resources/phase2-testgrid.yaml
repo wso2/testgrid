@@ -1,0 +1,39 @@
+# TestGrid Test Configuration Parameters
+# TODO use dash as the separator instead of camelCase.
+version: '0.9'
+emailToList: "wso2testgridphase1@gmail.com,yasassri@wso2.com"
+infrastructureConfig:
+  iacProvider: CLOUDFORMATION
+  infrastructureProvider: AWS
+  containerOrchestrationEngine: None
+  parameters:
+    - JDK : ORACLE_JDK8
+  includes:
+     - CentOS
+     - mysql
+     - ORACLE_JDK8
+  provisioners:
+    - name: prod-wso2-ei-scenario-deployment
+      remoteRepository: "git@github.com:wso2/aws-ei.git"
+      description: Provision Infra for running intg tests
+      scripts:
+        - name: 'prod-wso2-ei-scenario-deployment'
+          description: ''
+          type: CLOUDFORMATION
+          file: integrator/Minimum-HA/integrator-ha.yaml
+          inputParameters:
+            parseInfrastructureScript: false
+            KeyPairName: "deployment-dev"
+            CertificateName: "self-signed-cert"
+            DBUsername: "wso2carbon"
+            DBPassword: "DB_Password"
+            ProductVersion: "6.4.0"
+scenarioConfig:
+  testType: INTEGRATION
+  remoteRepository: "https://github.com/yasassri/product-ei.git"
+  remoteBranch: "product-scenarios"
+  scenarios:
+    -
+      name: "1-integrating-systems-that-communicate-in-heterogeneous-message-formats"
+      description: "1-integrating-systems-that-communicate-in-heterogeneous-message-formats"
+      dir: product-scenarios/1-integrating-systems-that-communicate-in-heterogeneous-message-formats
