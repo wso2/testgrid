@@ -139,7 +139,7 @@ public class TestPhases {
 
     private void validateLog(String testPlan) throws Exception {
 
-        String webPage = testProperties.tgDashboardApiUrl + "/api/test-plans/log/" + testPlan;
+        String webPage = testProperties.tgDashboardApiUrl + "/test-plans/log/" + testPlan;
 
         URL url = new URL(webPage);
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
