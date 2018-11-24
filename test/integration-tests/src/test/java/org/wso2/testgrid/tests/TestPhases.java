@@ -239,7 +239,7 @@ public class TestPhases {
         HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
         con.setRequestMethod("GET");
         con.setDoOutput(true);
-        con.setRequestProperty("Authorization", "test");
+        con.setRequestProperty("Authorization", testProperties.tgApiToken);
         SSLSocketFactory sslSocketFactory = createSslSocketFactory();
         con.setSSLSocketFactory(sslSocketFactory);
         StringBuffer response;
