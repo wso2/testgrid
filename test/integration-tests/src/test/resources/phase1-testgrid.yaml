@@ -15,7 +15,6 @@ infrastructureConfig:
   provisioners:
     - name: prod-wso2-ei-scenario-deployment
       remoteRepository: "git@github.com:wso2/testgrid.git"
-      remoteBranch: "test"
       description: Provision Infra for running intg tests
       scripts:
         - name: 'Test-Phase-1-Deployment'
@@ -31,7 +30,6 @@ deploymentConfig:
   deploymentPatterns:
     - name: 'deployment'
       remoteRepository: "git@github.com:wso2/testgrid.git"
-      remoteBranch: test
       description: 'dummy'
       dir: .
       scripts:
@@ -41,7 +39,6 @@ deploymentConfig:
 scenarioConfig:
   testType: INTEGRATION
   remoteRepository: "git@github.com:wso2/testgrid.git"
-  remoteBranch: "test"
   scenarios:
     - name: "Test-Phase-1"
       description: "Test-Phase-1"
