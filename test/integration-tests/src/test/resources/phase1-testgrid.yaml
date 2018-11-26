@@ -30,7 +30,7 @@ infrastructureConfig:
 deploymentConfig:
   deploymentPatterns:
     - name: 'deployment'
-      remoteRepository: "git@github.com:tharindu1992/testgrid-jenkins-library.git"
+      remoteRepository: "git@github.com:wso2/testgrid.git"
       remoteBranch: test
       description: 'dummy'
       dir: .
@@ -40,7 +40,7 @@ deploymentConfig:
           file: test/integration-tests/src/test/resources/test-phase1/deploy.sh
 scenarioConfig:
   testType: INTEGRATION
-  remoteRepository: "git@github.com:tharindu1992/testgrid-jenkins-library.git"
+  remoteRepository: "git@github.com:wso2/testgrid.git"
   remoteBranch: "test"
   scenarios:
     - name: "Test-Phase-1"
