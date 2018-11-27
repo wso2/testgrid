@@ -24,7 +24,7 @@ INPUT_FILE=$2/infrastructure.properties
 OUTPUT_FILE=$4/deployment.properties
 
 MGT_CONSOLE_PROP_VALUE=`grep -w "MgtConsoleUrl" ${INPUT_FILE} | tr -d '\' | cut -d'=' -f2`
-host="https$MGT_CONSOLE_PROP_VALUE/admin/login.jsp"
+host="$MGT_CONSOLE_PROP_VALUE/admin/login.jsp"
 
 
 ########################################
