@@ -35,6 +35,7 @@ import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 
@@ -58,7 +59,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.DEFAULT_TESTGRID_HOME;
 import static org.wso2.testgrid.common.TestGridConstants.PARAM_SEPARATOR;
@@ -406,31 +406,22 @@ public final class TestGridUtil {
      *          product-abc_integration-tests_ORACLE_JDK8-mysql-5-7-CentOS-7-4_run15
      *
      * @param testPlan test-plan
-     * @param infrastructureParameters infrastructure-parameters of the test-plan
+     * @param infraCombination infrastructure combination of the test-plan
      * @param deploymentPattern deployment-pattern of the test-plan
      * @return test-plan directory name.
      */
-    public static String deriveTestPlanId(TestPlan testPlan, Set<InfrastructureParameter> infrastructureParameters,
+    public static String deriveTestPlanId(TestPlan testPlan, InfrastructureCombination infraCombination,
                                           DeploymentPattern deploymentPattern) {
         try {
             String jsonInfraParams = new ObjectMapper()
                     .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
             int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, jsonInfraParams);
             int testRunNumber = latestTestRunNumber + 1;
-            //Removing the sub-infrastructure-parameters from the parameter-list. (Sub-infrastructure-param includes
-            //itself as its sub-infrastructure)
-            infrastructureParameters
-                    .removeIf(entry->(entry.getProcessedSubInfrastructureParameters().contains(entry)));
-            String valueList = infrastructureParameters.stream()
-                    .map(entry -> {
-                        InfrastructureParameter infraParam = entry.clone();
-                        infraParam.transform();
-                        return infraParam.getName().replace("\"", "").replace(" ", "")
-                                .replace(".", "-");
-                    }).collect(Collectors.joining(PARAM_SEPARATOR));
+            String combinationId = infraCombination.getInfraCombinationId();
+
             return StringUtil.concatStrings(deploymentPattern.getProduct().getName(), PARAM_SEPARATOR,
-                    deploymentPattern.getName(), PARAM_SEPARATOR, valueList, PARAM_SEPARATOR, TESTRUN_NUMBER_PREFIX,
-                    testRunNumber);
+                    deploymentPattern.getName(), PARAM_SEPARATOR, combinationId, PARAM_SEPARATOR,
+                    TESTRUN_NUMBER_PREFIX, testRunNumber);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException(StringUtil.
                     concatStrings("Error in generating testplan-id when parsing JSON ",
@@ -502,8 +493,20 @@ public final class TestGridUtil {
      */
     public static List<InfrastructureParameter> getInfraParamsOfTestPlan(
             Set<InfrastructureValueSet> valueSets, TestPlan testPlan) {
+        return transformInfraParameters(valueSets, testPlan.getInfraParameters());
+    }
+
+    /**
+     * Transforms infrastructure parameters to its display values.
+     * Returns the value of corresponding value in NAME column of infrastructure_parameter table.
+     *
+     * @param valueSets infrastructure parameter value set
+     * @param infraParameters inra parameter string to parse
+     * @return a list of printable infra parameters
+     */
+    public static List<InfrastructureParameter> transformInfraParameters
+            (Set<InfrastructureValueSet> valueSets, String infraParameters) {
         List<InfrastructureParameter> infraParams = new ArrayList<>();
-        final String infraParameters = testPlan.getInfraParameters();
         final Map<String, String> infraParamsStr = parseInfraParametersString(infraParameters);
         for (InfrastructureValueSet valueSet : valueSets) {
             final String infraName = infraParamsStr.get(valueSet.getType());
@@ -513,7 +516,6 @@ public final class TestGridUtil {
                                     .equals(infraName)))
                     .findAny(); //todo simplify the logic after infra_parameter table fix
             if (infraParam.isPresent()) {
-                infraParam.get().transform();
                 infraParams.add(infraParam.get());
             } else {
                 logger.warn("Inconsistent state: Could not find InfrastructureParameter db entry for the " +

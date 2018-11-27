@@ -28,6 +28,7 @@ import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.exception.TestGridException;
+import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 import org.wso2.testgrid.common.plugins.AWSArtifactReader;
 import org.wso2.testgrid.common.plugins.ArtifactReadable;
 import org.wso2.testgrid.common.plugins.ArtifactReaderException;
@@ -35,6 +36,7 @@ import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.web.bean.ErrorResponse;
 import org.wso2.testgrid.web.bean.ScenarioSummary;
@@ -61,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -90,6 +93,7 @@ public class TestPlanService {
     private static final Logger logger = LoggerFactory.getLogger(TestPlanService.class);
     private JenkinsJobConfigurationProvider jenkinsJobConfigurationProvider = new JenkinsJobConfigurationProvider();
     private JenkinsPipelineManager jenkinsPipelineManager = new JenkinsPipelineManager();
+    private final InfrastructureParameterUOW infrastructureParameterUOW = new InfrastructureParameterUOW();
 
     /**
      * This has the implementation of the REST API for fetching all the TestPlans for a given deployment-pattern
@@ -113,7 +117,8 @@ public class TestPlanService {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             List<org.wso2.testgrid.common.TestPlan> testPlans = testPlanUOW.
                     getTestPlansByDeploymentIdAndDate(deploymentPatternId, new Timestamp(parsedDate.getTime()));
-            return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(testPlans,
+            final Set<InfrastructureValueSet> infraValueSet = infrastructureParameterUOW.getValueSet();
+            return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBeans(infraValueSet, testPlans,
                     requireTestScenarioInfo)).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the TestPlans.";
@@ -135,8 +140,9 @@ public class TestPlanService {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             Optional<TestPlan> testPlan = testPlanUOW.getTestPlanById(id);
+            final Set<InfrastructureValueSet> infraValueSet = infrastructureParameterUOW.getValueSet();
             if (testPlan.isPresent()) {
-                return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBean(testPlan.get(),
+                return Response.status(Response.Status.OK).entity(APIUtil.getTestPlanBean(infraValueSet, testPlan.get(),
                         requireTestScenarioInfo)).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
@@ -323,14 +329,23 @@ public class TestPlanService {
         product.setId(productId);
         List<TestPlan> testPlans = testPlanUOW.getLatestTestPlans(product);
         List<TestPlanStatus> plans = new ArrayList<>();
-        for (TestPlan testPlan : testPlans) {
-            TestPlan lastFailure = testPlanUOW.getLastFailure(testPlan);
-            TestPlanStatus testPlanStatus = new TestPlanStatus();
-            testPlanStatus.setLastBuild(APIUtil.getTestPlanBean(testPlan, false));
-            testPlanStatus.setLastFailure(APIUtil.getTestPlanBean(lastFailure, false));
-            plans.add(testPlanStatus);
+        try {
+            final Set<InfrastructureValueSet> infraValueSet = infrastructureParameterUOW.getValueSet();
+            for (TestPlan testPlan : testPlans) {
+                TestPlan lastFailure = testPlanUOW.getLastFailure(testPlan);
+                TestPlanStatus testPlanStatus = new TestPlanStatus();
+                testPlanStatus.setLastBuild(APIUtil.getTestPlanBean(infraValueSet, testPlan, false));
+                testPlanStatus.setLastFailure(APIUtil
+                        .getTestPlanBean(infraValueSet, lastFailure, false));
+                plans.add(testPlanStatus);
+            }
+            return Response.status(Response.Status.OK).entity(plans).build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching infrastructure parameters from database";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
-        return Response.status(Response.Status.OK).entity(plans).build();
     }
 
     /**
@@ -378,7 +393,9 @@ public class TestPlanService {
             if (planOptional.isPresent()) {
                 TestPlan testPlan = planOptional.get();
                 List<TestPlan> history = testPlanUOW.getTestPlanHistory(testPlan);
-                List<org.wso2.testgrid.web.bean.TestPlan> testPlanBeans = APIUtil.getTestPlanBeans(history, false);
+                final Set<InfrastructureValueSet> infraValueSet = infrastructureParameterUOW.getValueSet();
+                List<org.wso2.testgrid.web.bean.TestPlan> testPlanBeans =
+                        APIUtil.getTestPlanBeans(infraValueSet, history, false);
                 return Response.status(Response.Status.OK).entity(testPlanBeans).build();
             } else {
                 String msg = "No test plan found for the given id " + testPlanId;

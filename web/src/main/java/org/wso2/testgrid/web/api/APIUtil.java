@@ -19,6 +19,8 @@
 package org.wso2.testgrid.web.api;
 
 import org.wso2.testgrid.common.DeploymentPatternTestFailureStat;
+import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
+import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.web.bean.DeploymentPattern;
 import org.wso2.testgrid.web.bean.Product;
 import org.wso2.testgrid.web.bean.TestCase;
@@ -29,6 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Util class which holds utility methods required for TestGrid APIs.
@@ -127,13 +131,18 @@ class APIUtil {
      * @param requireTestScenarios boolean flag to indicate whether to include test-scenario info
      * @return {@link TestPlan} instance  with necessary information
      */
-    static TestPlan getTestPlanBean(org.wso2.testgrid.common.TestPlan testPlan, boolean requireTestScenarios) {
+    static TestPlan getTestPlanBean(Set<InfrastructureValueSet> infraValueSet,
+                                    org.wso2.testgrid.common.TestPlan testPlan, boolean requireTestScenarios) {
         TestPlan testPlanBean = new TestPlan();
         if (testPlan != null) {
             testPlanBean.setId(testPlan.getId());
             testPlanBean.setDeploymentPattern(testPlan.getDeploymentPattern().getName());
             testPlanBean.setDeploymentPatternId(testPlan.getDeploymentPattern().getId());
-            testPlanBean.setInfraParams(testPlan.getInfraParameters());
+            String infraParams = "{" + TestGridUtil.getInfraParamsOfTestPlan(infraValueSet, testPlan).stream()
+                    .map(infra -> "\"" + infra.getType() + "\":\"" + infra.getName() + "\"")
+                    .collect(Collectors.joining(",")) + "}";
+
+            testPlanBean.setInfraParams(infraParams);
             testPlanBean.setStatus(testPlan.getStatus().toString());
             testPlanBean.setCreatedTimestamp(testPlan.getCreatedTimestamp());
             testPlanBean.setModifiedTimestamp(testPlan.getModifiedTimestamp());
@@ -152,12 +161,13 @@ class APIUtil {
      * @param requireTestScenarios boolean flag to indicate whether to include test-scenario info
      * @return List of {@link TestPlan} instances with necessary information
      */
-    static List<TestPlan> getTestPlanBeans(List<org.wso2.testgrid.common.TestPlan> testPlans,
+    static List<TestPlan> getTestPlanBeans(Set<InfrastructureValueSet> infraValueSet,
+                                           List<org.wso2.testgrid.common.TestPlan> testPlans,
                                            boolean requireTestScenarios) {
         List<TestPlan> plans = new ArrayList<>();
 
         for (org.wso2.testgrid.common.TestPlan testPlan : testPlans) {
-            plans.add(getTestPlanBean(testPlan, requireTestScenarios));
+            plans.add(getTestPlanBean(infraValueSet, testPlan, requireTestScenarios));
         }
         return plans;
     }

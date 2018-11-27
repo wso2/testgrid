@@ -106,12 +106,9 @@ public class GraphDataProvider {
             String testName = testFailure.getName();
             JsonElement jelem = gson.fromJson(testFailure.getInfraParameters(), JsonElement.class);
             JsonObject jobj = jelem.getAsJsonObject();
-            String osVersion = jobj.get("OSVersion") != null ? jobj.get("OSVersion").getAsString() : "";
-            infraCombination.setOs(StringUtil.concatStrings(jobj.get(OPERATING_SYSTEM).getAsString(), " - ",
-                    osVersion));
+            infraCombination.setOs(StringUtil.concatStrings(jobj.get(OPERATING_SYSTEM).getAsString()));
             infraCombination.setJdk(jobj.get(JDK).getAsString());
-            infraCombination.setDbEngine(StringUtil.concatStrings(jobj.get(DATABASE_ENGINE).getAsString(), " - ",
-                    jobj.get(DATABASE_ENGINE_VERSION).getAsString()));
+            infraCombination.setDbEngine(StringUtil.concatStrings(jobj.get(DATABASE_ENGINE).getAsString()));
             if (testFailureSummaryMap.containsKey(testName)) {
                 testFailureSummaryMap.get(testName).getInfraCombinations().add(infraCombination);
             } else {

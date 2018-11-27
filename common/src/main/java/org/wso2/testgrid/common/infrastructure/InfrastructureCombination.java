@@ -34,6 +34,9 @@ import java.util.TreeSet;
 public class InfrastructureCombination implements Cloneable {
     private TreeSet<InfrastructureParameter> parameters = new TreeSet<>();
 
+    // Unique identification of an infra combination used for deriving the testplan id
+    private String infraCombinationId;
+
     /**
      * Initializes an @{@link InfrastructureCombination} object with the given
      * set of infrastructure parameters.
@@ -60,6 +63,35 @@ public class InfrastructureCombination implements Cloneable {
      */
     public void addParameter(InfrastructureParameter param) {
         parameters.add(param);
+    }
+
+    /**
+     * Add another set of infrastructure parameters.
+     *
+     * @param params the set of infrastructure parameters
+     */
+    public void addParameters(Set<InfrastructureParameter> params) {
+        parameters.addAll(params);
+    }
+
+    /**
+     * Return the created id of infra combination.
+     *
+     * @return a string containing uniquely identfiable infra combination
+     */
+    public String getInfraCombinationId() {
+
+        return infraCombinationId;
+    }
+
+    /**
+     * Sets the infra combination id string made out of infra parameters.
+     *
+     * @param infraCombinationId id string constructed using infra params
+     */
+    public void setInfraCombinationId(String infraCombinationId) {
+
+        this.infraCombinationId = infraCombinationId;
     }
 
     /**

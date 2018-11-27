@@ -18,6 +18,14 @@
 
 package org.wso2.testgrid.dao.dto;
 
+import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
+import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * Defines a model object of test case failure results.
  *
@@ -57,5 +65,19 @@ public class TestCaseFailureResultDTO {
 
     public void setInfraParameters(String infraParameters) {
         this.infraParameters = infraParameters;
+    }
+
+    /**
+     * Transforms infrastructure parameters to display values.
+     *
+     * @throws TestGridDAOException if retrieving infra value sets from database fails
+     */
+    public void transformInfraParameters() throws TestGridDAOException {
+        InfrastructureParameterUOW infrastructureParameterUOW = new InfrastructureParameterUOW();
+        final Set<InfrastructureValueSet> valueSets = infrastructureParameterUOW.getValueSet();
+
+        setInfraParameters("{" + TestGridUtil.transformInfraParameters(valueSets, infraParameters).stream()
+                .map(infra -> "\"" + infra.getType() + "\":\"" + infra.getName() + "\"")
+                .collect(Collectors.joining(",")) + "}");
     }
 }

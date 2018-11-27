@@ -473,7 +473,7 @@ public class GenerateTestPlanCommand implements Command {
                     setUniqueNamesFor(dp.getScripts());
                     testPlan.setDeploymentConfig(new DeploymentConfig(Collections.singletonList(dp)));
                     try {
-                        testPlan.setId(TestGridUtil.deriveTestPlanId(testPlan, combination.getParameters(),
+                        testPlan.setId(TestGridUtil.deriveTestPlanId(testPlan, combination,
                                 getDeploymentPattern(createOrReturnProduct(productName), dp.getName())));
                     } catch (CommandExecutionException e) {
                         throw new CommandExecutionException(StringUtil
