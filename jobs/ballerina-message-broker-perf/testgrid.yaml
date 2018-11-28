@@ -24,13 +24,12 @@ infrastructureConfig:
             EC2KeyPair: "testgrid-key"
             ALBCertificateARN: "arn:aws:acm:us-east-1:809489900555:certificate/2ab5aded-5df1-4549-9f7e-91639ff6634e"
 
-scenarioConfig:
+scenarioConfigs:
   testType: INTEGRATION
-  scenarios:
-    -
-      name: integration-tests
-      description: "integration tests"
-      dir: integration-tests
+  name: integration-tests
+  description: "integration tests"
+  file: test.sh
+
 
 deploymentConfig:
   deploymentPatterns:

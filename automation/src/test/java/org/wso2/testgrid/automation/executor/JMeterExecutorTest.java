@@ -17,7 +17,6 @@
  */
 package org.wso2.testgrid.automation.executor;
 
-import com.amazonaws.services.dynamodbv2.xspec.L;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -63,12 +62,13 @@ public class JMeterExecutorTest {
         List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
         ScenarioConfig scenarioConfig = new ScenarioConfig();
         scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_FUNCTIONAL);
+        scenarioConfig.setFile("scenario.sh");
         scenarioConfigs.add(scenarioConfig);
         testPlan.setScenarioConfigs(scenarioConfigs);
         testPlan.setScenarioTestsRepository("resources");
         testScenario.setName("SolutionPattern22");
         Optional<ResultParser> jMeterResultParser = ResultParserFactory.
-                getParser(testPlan, testScenario,scenarioConfig);
+                getParser(testPlan, testScenario, scenarioConfig);
         Assert.assertTrue(jMeterResultParser.isPresent());
         Assert.assertTrue(jMeterResultParser.get() instanceof ResultParser);
     }
@@ -90,9 +90,13 @@ public class JMeterExecutorTest {
         List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
         ScenarioConfig scenarioConfig = new ScenarioConfig();
         scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_FUNCTIONAL);
+        scenarioConfig.setFile("");
         scenarioConfigs.add(scenarioConfig);
         testPlan.setScenarioConfigs(scenarioConfigs);
         testPlan.setScenarioTestsRepository(testLocation);
+        testPlan.setWorkspace(Paths.get("src", "test", "resources").toString());
+        testScenario.setTestPlan(testPlan);
+        testScenario.setOutputDir("");
         Optional<ResultParser> jMeterResultParser = ResultParserFactory
                 .getParser(testPlan, testScenario, scenarioConfig);
         Assert.assertTrue(jMeterResultParser.isPresent());

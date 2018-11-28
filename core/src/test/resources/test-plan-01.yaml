@@ -41,18 +41,18 @@ infrastructureRepository: workspace/infrastructure
 jobProperties:
   PROPERTY1: value1
 keyFileLocation: workspace/testkey.pem
-scenarioConfig:
+scenarioConfigs:
+- file: run-scenarios.sh
+  inputParameters:
+    DBPassword: DB_Password
+    DBUsername: wso2carbon
+  name: integration-tests
+  outputDir: wso2-ei-scenarios
   remoteBranch: master
-  scenarios:
-  - description: Test Scenario
-    dir: scenario01
-    inputParameters: {
-      }
-    name: scenario01
-    status: PENDING
-    testCases: [
-      ]
-  testType: FUNCTIONAL
+  remoteRepository: https://github.com/tharindu1992/wso2-ei-scenarios.git
+  scenarios: [
+    ]
+  testType: TESTNG
 scenarioTestsRepository: workspace/scenarioTests
 testRunNumber: 1
 testScenarios: [

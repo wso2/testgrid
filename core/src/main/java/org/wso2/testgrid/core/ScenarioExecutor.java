@@ -95,7 +95,7 @@ public class ScenarioExecutor {
      */
     public void execute(TestScenario testScenario, DeploymentCreationResult deploymentCreationResult, TestPlan testPlan)
             throws ScenarioExecutorException {
-        try {
+
             // Run test scenario.
             String homeDir = testPlan.getScenarioTestsRepository();
             String scenarioDir = testScenario.getDir();
@@ -126,13 +126,6 @@ public class ScenarioExecutor {
                 }
             }
 
-        } catch (Exception e) {
-            testScenario.setStatus(Status.FAIL);
-            persistTestScenario(testScenario);
-            throw new ScenarioExecutorException(StringUtil
-                    .concatStrings("Exception occurred while running the Tests for Solution Pattern '",
-                            testScenario.getName(), "'"), e);
-        }
     }
 
     /**

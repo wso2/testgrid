@@ -22,13 +22,16 @@ infrastructureConfig:
           file: infra-destroy.sh
           type: SHELL
           phase: DESTROY
-scenarioConfig:
-    scenarios:
-      -
-        name: scenario01
-        description: 'Test Scenario'
-        dir: scenario01
-    testType: FUNCTIONAL
+scenarioConfigs:
+- file: run-scenarios.sh
+  inputParameters:
+    DBPassword: DB_Password
+    DBUsername: wso2carbon
+  name: integration-tests
+  outputDir: wso2-ei-scenarios
+  remoteBranch: master
+  remoteRepository: https://github.com/tharindu1992/wso2-ei-scenarios.git
+  testType: TESTNG
 deploymentConfig:
   deploymentPatterns:
     - name: 01-dummy-deployment

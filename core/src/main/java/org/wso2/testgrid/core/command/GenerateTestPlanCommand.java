@@ -22,12 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
-import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
@@ -477,8 +475,8 @@ public class GenerateTestPlanCommand implements Command {
                                 getDeploymentPattern(createOrReturnProduct(productName), dp.getName())));
                     } catch (CommandExecutionException e) {
                         throw new CommandExecutionException(StringUtil
-                                .concatStrings("Error in generating test-plan id. Can not create/find product " +
-                                        "by product-name " + productName), e);
+                                .concatStrings("Error in generating test-plan id. Can not create/find " +
+                                        "product by product-name " + productName), e);
                     }
                 }));
 
@@ -602,7 +600,8 @@ public class GenerateTestPlanCommand implements Command {
      */
     private void removeDirectories(Path directory) throws IOException {
         if (Files.exists(directory)) {
-            logger.info(StringUtil.concatStrings("Removing test directory : ", directory.toAbsolutePath().toString()));
+            logger.info(StringUtil.concatStrings("Removing test directory : ",
+                    directory.toAbsolutePath().toString()));
             FileUtils.forceDelete(new File(directory.toString()));
         }
     }
@@ -649,7 +648,8 @@ public class GenerateTestPlanCommand implements Command {
         for (ScenarioConfig scenarioConfig : testgridYaml.getScenarioConfigs()) {
             if (infrastructureConfig != null) {
                 if (infrastructureConfig.getProvisioners().isEmpty()) {
-                    logger.debug("testgrid.yaml doesn't contain at least single infra provisioner. Invalid testgrid.yaml");
+                    logger.debug("testgrid.yaml doesn't contain at least single infra provisioner. " +
+                            "Invalid testgrid.yaml");
                     return false;
                 }
             } else {

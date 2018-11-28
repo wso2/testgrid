@@ -40,7 +40,8 @@ public class ResultParserFactory {
      * @param testScenario specific scenario being parsed.
      * @return {@link ResultParser} implementation that can parse the give scenario
      */
-    public static Optional<ResultParser> getParser(TestPlan testPlan, TestScenario testScenario, ScenarioConfig scenarioConfig) {
+    public static Optional<ResultParser> getParser(TestPlan testPlan, TestScenario testScenario,
+                                                   ScenarioConfig scenarioConfig) {
         String testLocation = Paths.get(testPlan.getScenarioTestsRepository(), scenarioConfig.getFile()).toString();
         ResultParser resultParser = null;
         if (TestGridConstants.TEST_TYPE_FUNCTIONAL.equals(scenarioConfig.getTestType())) {

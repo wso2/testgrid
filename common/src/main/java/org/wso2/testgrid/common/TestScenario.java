@@ -23,9 +23,7 @@ import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -102,6 +100,10 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     @Transient
     private List<String> summaryGraphs;
 
+    @Transient
+    private String outputDir;
+
+
 
     /**
      * Returns the name of the test scenario.
@@ -119,6 +121,14 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getOutputDir() {
+        return outputDir;
+    }
+
+    public void setOutputDir(String outputDir) {
+        this.outputDir = outputDir;
     }
 
     /**

@@ -103,7 +103,7 @@ public class FinalizeRunTestplan implements Command {
             logger.info("Finalizing test plan status...");
             boolean isExistsFailedScenarios = false;
             for (TestPlan testPlan : testPlans) {
-                for(ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+                for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
                     switch (scenarioConfig.getStatus()) {
                         case PENDING:
                             scenarioConfig.setStatus(Status.DID_NOT_RUN);

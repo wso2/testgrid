@@ -22,9 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.executor.TestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
-import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.util.StringUtil;
 
 import java.util.List;
 
@@ -132,28 +130,5 @@ public class Test {
         this.postScenarioScript = postScenarioScript;
     }
 
-    /**
-     * Executes the test for the given test location and deployment.
-     *
-     * @param testLocation location of the tests
-     * @param input        Output of the previous (ie. deployment) build step.
-     * @throws TestAutomationException thrown when error on executing tests
-     */
-    //public TestScenario execute(String testLocation, DeploymentCreationResult input)
-    //        throws TestAutomationException {
-    //    testExecutor.init(testLocation, getTestName(), testScenario);
-//
-    //    try {
-    //        for (String script : scripts) {
-    //            testExecutor.execute(script, input);
-    //        }
-    //    } catch (Exception e) {
-    //        // we need to continue and execute the post script to destroy any scenario specific services.
-    //        logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
-    //                testScenario.getName(), "' in TestPlan\nCaused by "), e);
-//
-    //    }
-//
-    //    return this.testScenario;
-    //}
+
 }

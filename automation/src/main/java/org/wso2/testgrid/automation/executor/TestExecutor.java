@@ -22,7 +22,6 @@ import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.ShellExecutor;
-import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 
@@ -58,7 +57,7 @@ public abstract class TestExecutor {
      * @throws TestAutomationException thrown when error on initialising the test executor
      */
     public abstract void init(String testsLocation, String testName, ScenarioConfig scenarioConfig)
-            throws TestAutomationException ;
+            throws TestAutomationException;
 
     /**
      * Executes companion scripts.

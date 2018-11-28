@@ -36,12 +36,13 @@ public class TestExecutorFactory {
      */
     public static TestExecutor getTestExecutor(TestEngine testType) throws TestAutomationException {
         switch (testType) {
-        case JMETER:
-            return new ShellTestExecutor();
-        case TESTNG:
-            return new ShellTestExecutor();
-        default:
-            return new ShellTestExecutor();
+
+            case TESTNG:
+                return new ShellTestExecutor();
+            case SELENIUM:
+                return new TestNgExecutor();
+            default:
+                return new ShellTestExecutor();
         }
     }
 }

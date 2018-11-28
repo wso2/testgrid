@@ -25,7 +25,6 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
-import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
@@ -53,7 +52,8 @@ public class JMeterExecutor extends TestExecutor {
     private ScenarioConfig scenarioConfig;
 
     @Override
-    public void init(String testLocation, String testName, ScenarioConfig scenarioConfig) throws TestAutomationException {
+    public void init(String testLocation, String testName, ScenarioConfig scenarioConfig)
+            throws TestAutomationException {
         this.testName = testName;
         this.testLocation = testLocation;
         this.scenarioConfig = scenarioConfig;
@@ -69,7 +69,6 @@ public class JMeterExecutor extends TestExecutor {
             } else {
                 logger.info(JMETER_HOME + ": " + jmeterHome);
             }
-
             ShellExecutor shellExecutor = new ShellExecutor(Paths.get(testLocation));
             Map<String, String> environment = new HashMap<>();
 
@@ -80,8 +79,9 @@ public class JMeterExecutor extends TestExecutor {
                     .toAbsolutePath().toString();
             String testOutputsLoc = DataBucketsHelper.getTestOutputsLocation(scenarioConfig.getTestPlan()).toString();
             final String command = "bash " + script + " --input-dir " + testInputsLoc
-                    + " --output-dir " + testOutputsLoc;
+                    + " --output-dir " + testOutputsLoc + "/" + scenarioConfig.getOutputDir();
             logger.info("Execute: " + command);
+
             int exitCode = shellExecutor.executeCommand(command, environment);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the test: ", testName,

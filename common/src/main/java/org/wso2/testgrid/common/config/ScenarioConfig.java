@@ -20,10 +20,17 @@
 package org.wso2.testgrid.common.config;
 
 
-import org.apache.commons.collections4.ListUtils;
-import org.wso2.testgrid.common.*;
+import org.wso2.testgrid.common.ConfigChangeSet;
+import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +54,7 @@ public class ScenarioConfig implements Serializable {
     private String name;
     private Status status;
     private TestPlan testPlan;
+    private String outputDir;
 
     /**
      * This method returns the list of scenarios.
@@ -95,7 +103,10 @@ public class ScenarioConfig implements Serializable {
     }
 
     public List<TestScenario> getScenarios() {
-        return ListUtils.emptyIfNull(scenarios);
+        if (scenarios == null) {
+            return new ArrayList<>();
+        }
+        return scenarios;
     }
 
     public void setScenarios(List<TestScenario> scenarios) {
@@ -184,6 +195,25 @@ public class ScenarioConfig implements Serializable {
      */
     public void setFile(String file) {
         this.file = file;
+    }
+
+    public String getOutputDir() {
+        if (StringUtil.isStringNullOrEmpty(outputDir)) {
+            try {
+                URL url = new URL(remoteRepository);
+                String [] splitbyDash = url.getPath().split("/");
+                String [] splitByDot = splitbyDash[splitbyDash.length - 1].split("\\.");
+                return splitByDot[0];
+            } catch (MalformedURLException e) {
+                return null;
+            }
+
+        }
+        return outputDir;
+    }
+
+    public void setOutputDir(String outputDir) {
+        this.outputDir = outputDir;
     }
 
 }
