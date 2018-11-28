@@ -35,9 +35,10 @@ public class InfrastructureProvisionResult implements Serializable {
 
     private boolean success = true;
     private String name;
-    private String resultLocation;
+    private Properties properties = new Properties();
 
     //TODO: Remove these after getting rid of Deployment class.
+    private String resultLocation;
     private List<Host> hosts = Collections.emptyList();
     private String deploymentScriptsDir;
 
@@ -49,15 +50,15 @@ public class InfrastructureProvisionResult implements Serializable {
         this.success = success;
     }
 
+    @Deprecated
     public String getResultLocation() {
         return resultLocation;
     }
 
+    @Deprecated
     public void setResultLocation(String resultLocation) {
         this.resultLocation = resultLocation;
     }
-
-    private Properties properties;
 
     public Properties getProperties() {
         return properties;
@@ -75,19 +76,33 @@ public class InfrastructureProvisionResult implements Serializable {
         this.name = name;
     }
 
+    @Deprecated
     public List<Host> getHosts() {
         return hosts;
     }
 
+    @Deprecated
     public void setHosts(List<Host> hosts) {
         this.hosts = hosts;
     }
 
+    @Deprecated
     public String getDeploymentScriptsDir() {
         return deploymentScriptsDir;
     }
 
+    @Deprecated
     public void setDeploymentScriptsDir(String deploymentScriptsDir) {
         this.deploymentScriptsDir = deploymentScriptsDir;
+    }
+
+    @Override
+    public String toString() {
+        return "InfrastructureProvisionResult{" +
+                "success=" + success +
+                ", name='" + name + '\'' +
+                ", properties=" + properties +
+                ", resultLocation='" + resultLocation + '\'' +
+                '}';
     }
 }

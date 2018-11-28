@@ -37,6 +37,7 @@ public class DeploymentCreationResult implements Serializable {
     private boolean success = true;
     private String name;
     private Properties properties = new Properties();
+
     private List<Host> hosts = Collections.emptyList();
     private List<Agent> agents;
     private String bastianIP;
@@ -94,5 +95,14 @@ public class DeploymentCreationResult implements Serializable {
 
     public String getBastianIP() {
         return bastianIP;
+    }
+
+    @Override
+    public String toString() {
+        return "DeploymentCreationResult{" +
+                "success=" + success +
+                ", name='" + name + '\'' +
+                ", properties=" + properties +
+                '}';
     }
 }

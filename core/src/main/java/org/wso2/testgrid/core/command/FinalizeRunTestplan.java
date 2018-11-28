@@ -24,6 +24,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridException;
@@ -52,7 +53,7 @@ public class FinalizeRunTestplan implements Command {
 
     private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommand.class);
     private static final String TIME_UNIT = "HOUR";
-    private static final String TIME_DURATION = "24";
+    private static final String DEFAULT_INTERVAL = "24";
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -72,7 +73,7 @@ public class FinalizeRunTestplan implements Command {
 
     private TestPlanUOW testPlanUOW;
     private ProductUOW productUOW;
-    private List<TestPlan> testPlans;
+    private List<TestPlan> testPlans = new ArrayList<>();
 
     public FinalizeRunTestplan() {
         testPlanUOW = new TestPlanUOW();
@@ -84,6 +85,7 @@ public class FinalizeRunTestplan implements Command {
 
         LogFilePathLookup.setLogFilePath(
                 TestGridUtil.deriveTestGridLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
+        logger.info("Finalizing test plan status...");
         try {
             if (Paths.get(testPlanYamlFilePath).toFile().exists()) {
                 //Read test plan id from test-plan yaml file
@@ -93,14 +95,23 @@ public class FinalizeRunTestplan implements Command {
                     testPlans = new ArrayList<>();
                     testPlans.add(testPlanEntity.get());
                 } else {
-                    testPlans = testPlanUOW.getTestPlansOlderThan(TIME_DURATION, TIME_UNIT);
+                    logger.error("No test plans with id: " + testPlan.getId() + " found in the database.");
+                    return;
+                }
+            } else {
+                String interval = ConfigurationContext.getProperty(
+                        ConfigurationContext.ConfigurationProperties.FINALIZE_RUN_TESTPLAN_INTERVAL);
+                if (interval != null) {
+                    testPlans = testPlanUOW.getTestPlansOlderThan(interval, TIME_UNIT);
+                }
+                testPlans = testPlanUOW.getTestPlansOlderThan(DEFAULT_INTERVAL, TIME_UNIT);
+                logger.info("Found " + testPlans.size() + " test plans to finalize statuses.");
+                for (int i = 0; i < testPlans.size(); i++) {
+                    logger.info((i + 1) + ". " + testPlans.get(i).getId());
                 }
 
-            } else {
-                testPlans = testPlanUOW.getTestPlansOlderThan(TIME_DURATION, TIME_UNIT);
             }
 
-            logger.info("Finalizing test plan status...");
             boolean isExistsFailedScenarios = false;
             for (TestPlan testPlan : testPlans) {
                 for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
@@ -189,6 +200,10 @@ public class FinalizeRunTestplan implements Command {
         Path source = Paths.get(workspace, "test-plans");
         String productId;
         Boolean isCompleteBuild = true;
+        if (!Files.exists(source)) {
+            logger.debug("Test-plans dir does not exist. Nothing to finalize. Dir: " + source);
+            return;
+        }
         try (Stream<Path> stream = Files.list(source).filter(Files::isRegularFile)) {
             List<Path> paths = stream.sorted().collect(Collectors.toList());
             for (Iterator<Path> iterator = paths.iterator(); iterator.hasNext(); ) {

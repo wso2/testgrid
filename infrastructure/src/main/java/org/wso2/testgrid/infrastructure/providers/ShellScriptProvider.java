@@ -110,13 +110,12 @@ public class ShellScriptProvider implements InfrastructureProvider {
                         "Script exited with a status code of ", exitCode));
                 result.setSuccess(false);
             }
-            result.setResultLocation(testPlanLocation);
             return result;
 
         } catch (CommandExecutionException e) {
             throw new TestGridInfrastructureException(String.format(
                     "Exception occurred while executing the infra-provision script for deployment-pattern '%s'",
-                    infrastructureConfig.getProvisioners().get(0).getName()), e);
+                    infrastructureConfig.getFirstProvisioner().getName()), e);
         }
 
     }
@@ -140,7 +139,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         } catch (CommandExecutionException e) {
             throw new TestGridInfrastructureException(
                     "Exception occurred while executing the infra-destroy script " + "for deployment-pattern '"
-                            + infrastructureConfig.getProvisioners().get(0).getName() + "'", e);
+                            + infrastructureConfig.getFirstProvisioner().getName() + "'", e);
         }
     }
 

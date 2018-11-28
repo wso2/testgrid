@@ -123,12 +123,6 @@ public class TestPlanExecutor {
     public boolean execute(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws TestPlanExecutorException, TestGridDAOException {
         long startTime = System.currentTimeMillis();
-        Path testplanPropsFilePath = DataBucketsHelper.getInputLocation(testPlan)
-                .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
-        Path infraOutFilePath = DataBucketsHelper.getOutputLocation(testPlan)
-                .resolve(DataBucketsHelper.INFRA_OUT_FILE);
-        Path deplOutFilePath = DataBucketsHelper.getOutputLocation(testPlan)
-                .resolve(DataBucketsHelper.DEPL_OUT_FILE);
 
         // Provision infrastructure
         InfrastructureProvisionResult infrastructureProvisionResult = provisionInfrastructure(infrastructureConfig,
@@ -137,21 +131,6 @@ public class TestPlanExecutor {
         if (infrastructureProvisionResult.isSuccess()) {
             GrafanaDashboardHandler dashboardSetup = new GrafanaDashboardHandler(testPlan.getId());
             dashboardSetup.initDashboard();
-        }
-
-        // Append inputs from deploymentConfig in testgrid yaml to infra outputs file
-        Properties deplProperties = testPlan.getDeploymentConfig()
-                .getDeploymentPatterns().get(0).getScripts().get(0).getInputParameters();
-        persistAdditionalInputs(deplProperties, infraOutFilePath);
-
-        /*
-         *  Move testplan-props.properties out of data bucket to avoid exposing to the test execution phase.
-         */
-        logger.info("Moving tesplan.properties file from data bucket");
-        File testPlanPropsFile = testplanPropsFilePath.toFile();
-        if (!testPlanPropsFile.renameTo(new File(Paths.get(testPlan.getWorkspace(),
-                DataBucketsHelper.TESTPLAN_PROPERTIES_FILE).toString()))) {
-            logger.error("Error while moving " + testPlanPropsFile);
         }
 
         // Create and set deployment.
@@ -172,15 +151,6 @@ public class TestPlanExecutor {
             return false;
         }
 
-        /*
-         *  Move infrastructure.properties out of data bucket to avoid exposing to the test execution phase.
-         */
-        logger.info("Moving infrastructure.properties from data bucket");
-        File infraOutputFile = infraOutFilePath.toFile();
-        if (!infraOutputFile.renameTo(new File(Paths.get(testPlan.getWorkspace(),
-                DataBucketsHelper.INFRA_OUT_FILE).toString()))) {
-            logger.error("Error while moving " + infraOutFilePath);
-        }
         // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
         Properties sceProperties = new Properties();
         for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
@@ -191,16 +161,6 @@ public class TestPlanExecutor {
 
         // Run test scenarios.
         runScenarioTests(testPlan, deploymentCreationResult);
-
-        /*
-         *  Move deployment.properties out of data bucket to avoid getting uploaded to S3.
-         */
-        logger.info("Moving deployment.properties from data bucket");
-        File deplOutputFile = deplOutFilePath.toFile();
-        if (!deplOutputFile.renameTo(new File(Paths.get(testPlan.getWorkspace(),
-                DataBucketsHelper.DEPL_OUT_FILE).toString()))) {
-            logger.error("Error while moving " + deplOutFilePath);
-        }
 
         try {
             //post test plan actions
@@ -230,6 +190,12 @@ public class TestPlanExecutor {
      * @param deploymentCreationResult results from the current deployment
      */
     private void performPostTestPlanActions(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
+        logger.info("");
+        printSeparator(LINE_LENGTH);
+        logger.info("\t\t Performing Post Run Actions");
+        printSeparator(LINE_LENGTH);
+        logger.info("");
+
         //Log file download
         logger.info("Initiating log file downloads");
         OSCategory osCategory = getOSCatagory(testPlan.getInfraParameters());
@@ -410,15 +376,32 @@ public class TestPlanExecutor {
     public DeploymentCreationResult createDeployment(TestPlan testPlan,
             InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestPlanExecutorException {
+        Path infraOutFilePath = DataBucketsHelper.getOutputLocation(testPlan)
+                .resolve(DataBucketsHelper.INFRA_OUT_FILE);
         try {
+            logger.info("");
+            printSeparator(LINE_LENGTH);
+            logger.info("\t\t Creating deployment: " + testPlan.getDeploymentConfig().getDeploymentPatterns().get(0)
+                    .getName());
+            printSeparator(LINE_LENGTH);
+            logger.info("");
+
             if (!infrastructureProvisionResult.isSuccess()) {
-                DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
-                deploymentCreationResult.setSuccess(false);
-                return deploymentCreationResult;
+                DeploymentCreationResult result = new DeploymentCreationResult();
+                result.setSuccess(false);
+                logger.debug("Deployment result: " + result);
+                return result;
             }
 
+            // Append deploymentConfig inputs in testgrid yaml to infra outputs file
+            Properties deplInputs = testPlan.getDeploymentConfig()
+                    .getDeploymentPatterns().get(0).getScripts().get(0).getInputParameters();
+            persistAdditionalInputs(deplInputs, infraOutFilePath);
+
             Deployer deployerService = DeployerFactory.getDeployerService(testPlan);
-            return deployerService.deploy(testPlan, infrastructureProvisionResult);
+            final DeploymentCreationResult result = deployerService.deploy(testPlan, infrastructureProvisionResult);
+            logger.debug("Deployment result: " + result);
+            return result;
         } catch (TestGridDeployerException e) {
             persistTestPlanStatus(testPlan, Status.FAIL);
             String msg = StringUtil
@@ -443,11 +426,20 @@ public class TestPlanExecutor {
             String msg = StringUtil.concatStrings("Unhandled error occurred hile running deployment for deployment "
                     + "pattern '", testPlan.getDeploymentConfig(), "' in TestPlan");
             logger.error(msg, e);
+        } finally {
+            // Move infrastructure.properties out of data bucket to avoid exposing to the test execution phase.
+            logger.info("Moving infrastructure.properties from data bucket");
+            File infraOutputFile = infraOutFilePath.toFile();
+            if (!infraOutputFile.renameTo(new File(Paths.get(testPlan.getWorkspace(),
+                    DataBucketsHelper.INFRA_OUT_FILE).toString()))) {
+                logger.error("Error while moving " + infraOutFilePath);
+            }
         }
 
-        DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
-        deploymentCreationResult.setSuccess(false);
-        return deploymentCreationResult;
+        DeploymentCreationResult result = new DeploymentCreationResult();
+        result.setSuccess(false);
+        logger.debug("Deployment result: " + result);
+        return result;
     }
 
     /**
@@ -466,22 +458,30 @@ public class TestPlanExecutor {
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
             }
+            logger.info("");
+            printSeparator(LINE_LENGTH);
+            logger.info("\t\t Provisioning infrastructure: " + infrastructureConfig.getFirstProvisioner().getName());
+            printSeparator(LINE_LENGTH);
+            logger.info("");
 
             persistInfraInputs(testPlan);
-            InfrastructureProvisionResult provisionResult = null;
+            InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
 
-            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+            for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!script.getPhase().equals(Script.Phase.DESTROY)) {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(testPlan);
-                    provisionResult = infrastructureProvider.provision(testPlan, script);
+                    logger.info("--- executing script: " + script.getName() + ", file: " + script.getFile());
+                    InfrastructureProvisionResult aProvisionResult = infrastructureProvider.provision(testPlan, script);
+                    addTo(provisionResult, aProvisionResult);
                 }
             }
 
-            provisionResult.setName(infrastructureConfig.getProvisioners().get(0).getName());
+            provisionResult.setName(infrastructureConfig.getFirstProvisioner().getName());
             //TODO: remove. deploymentScriptsDir is deprecated now in favor of DeploymentConfig.
             provisionResult.setDeploymentScriptsDir(Paths.get(testPlan.getDeploymentRepository()).toString());
+            logger.debug("Infrastructure provision result: " + provisionResult);
             return provisionResult;
         } catch (TestGridInfrastructureException e) {
             persistTestPlanStatus(testPlan, Status.FAIL);
@@ -495,15 +495,37 @@ public class TestPlanExecutor {
                     .concatStrings("No Infrastructure Provider implementation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
+        } catch (RuntimeException e) {
+            // Catching the Exception here since we need to catch and gracefully handle all exceptions.
+            persistTestPlanStatus(testPlan, Status.FAIL);
+            logger.error("Runtime exception while provisioning the infrastructure: " + e.getMessage(), e);
         } catch (Exception e) {
             // Catching the Exception here since we need to catch and gracefully handle all exceptions.
             persistTestPlanStatus(testPlan, Status.FAIL);
             logger.error("Unknown exception while provisioning the infrastructure: " + e.getMessage(), e);
+        } finally {
+            // Move testplan-props.properties out of data bucket to avoid exposing to the test execution phase.
+            Path testplanPropsFilePath = DataBucketsHelper.getInputLocation(testPlan)
+                    .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
+            logger.info("Moving tesplan.properties file from data bucket");
+            File testPlanPropsFile = testplanPropsFilePath.toFile();
+            if (!testPlanPropsFile.renameTo(new File(Paths.get(testPlan.getWorkspace(),
+                    DataBucketsHelper.TESTPLAN_PROPERTIES_FILE).toString()))) {
+                logger.error("Error while moving " + testPlanPropsFile);
+            }
         }
 
         InfrastructureProvisionResult infrastructureProvisionResult = new InfrastructureProvisionResult();
         infrastructureProvisionResult.setSuccess(false);
+        logger.debug("Infrastructure provision result: " + infrastructureProvisionResult);
         return infrastructureProvisionResult;
+    }
+
+    private void addTo(InfrastructureProvisionResult provisionResult, InfrastructureProvisionResult aProvisionResult) {
+        provisionResult.getProperties().putAll(aProvisionResult.getProperties());
+        if (!aProvisionResult.isSuccess()) {
+            provisionResult.setSuccess(false);
+        }
     }
 
     /**
@@ -558,6 +580,13 @@ public class TestPlanExecutor {
             DeploymentCreationResult deploymentCreationResult)
             throws TestPlanExecutorException {
         try {
+            InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
+            logger.info("");
+            printSeparator(LINE_LENGTH);
+            logger.info("\t\t Releasing infrastructure: " + infrastructureConfig.getFirstProvisioner().getName());
+            printSeparator(LINE_LENGTH);
+            logger.info("");
+
             if (TestGridUtil.isDebugMode(testPlan)) {
                 printSeparator(LINE_LENGTH);
                 logger.info(TestGridConstants.DEBUG_MODE + " is enabled. NOT RELEASING the infrastructure. The"
@@ -565,13 +594,12 @@ public class TestPlanExecutor {
                 printSeparator(LINE_LENGTH);
                 return;
             }
-            InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
             if (!infrastructureProvisionResult.isSuccess() || !deploymentCreationResult.isSuccess()) {
                 logger.error("Execution of previous steps failed. Trying to release the possibly provisioned "
                         + "infrastructure");
             }
 
-            for (Script script : infrastructureConfig.getProvisioners().get(0).getScripts()) {
+            for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!script.getPhase().equals(Script.Phase.CREATE)) {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);

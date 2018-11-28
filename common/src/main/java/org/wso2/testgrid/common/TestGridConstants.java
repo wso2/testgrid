@@ -90,4 +90,6 @@ public class TestGridConstants {
     public static final String TEST_RESULTS_ARCHIVE_DIR = "test-outputs";
     public static final String TEST_RESULTS_DIR = "test-outputs/scenarios";
 
+
+    public static final String NOT_CONFIGURED_STR = "/not-configured/";
 }

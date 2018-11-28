@@ -72,6 +72,9 @@ public class InfrastructureConfig implements Serializable, Cloneable {
         this.containerOrchestrationEngine = containerOrchestrationEngine;
     }
 
+    /**
+     * Contains a list of properties that show the infrastructure combination.
+     */
     public Properties getParameters() {
         return parameters;
     }
@@ -82,6 +85,13 @@ public class InfrastructureConfig implements Serializable, Cloneable {
 
     public List<Provisioner> getProvisioners() {
         return ListUtils.emptyIfNull(provisioners);
+    }
+
+    public Provisioner getFirstProvisioner() {
+        if (provisioners == null || provisioners.isEmpty()) {
+            return null;
+        }
+        return provisioners.get(0);
     }
 
     public void setProvisioners(List<Provisioner> provisioners) {

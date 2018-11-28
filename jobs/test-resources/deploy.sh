@@ -23,8 +23,8 @@ pwd
 INPUT_FILE=$2/infrastructure.properties
 OUTPUT_FILE=$4/deployment.properties
 
-MGT_CONSOLE_PROP_VALUE=`grep -w "MgtConsoleUrl" ${INPUT_FILE} | cut -d'=' -f2 | cut -d'\' -f2`
-host="https$MGT_CONSOLE_PROP_VALUE"
+MGT_CONSOLE_PROP_VALUE=`grep -w "MgtConsoleUrl" ${INPUT_FILE} | tr -d '\' | cut -d'=' -f2`
+host="$MGT_CONSOLE_PROP_VALUE/admin/login.jsp"
 
 
 ########################################
@@ -37,7 +37,7 @@ wait_for_server_startup() {
     attempt_counter=0
 
     MGT_CONSOLE_URL=$host
-    until $(curl -k --output /dev/null --silent --head --fail $MGT_CONSOLE_URL); do
+    until $(curl -k --output /dev/null --silent --fail $MGT_CONSOLE_URL); do
        if [ ${attempt_counter} -eq ${max_attempts} ];then
         echo "Max attempts reached"
         exit 1
