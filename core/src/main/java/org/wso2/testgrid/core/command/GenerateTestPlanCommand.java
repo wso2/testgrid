@@ -67,6 +67,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -562,7 +563,8 @@ public class GenerateTestPlanCommand implements Command {
      */
     private void setUniqueNamesFor(List<Script> scripts) {
         for (Script script : scripts) {
-            script.setName(script.getName() + '-' + StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH));
+            script.setName(script.getName() + '-' + StringUtil.generateRandomString(RANDOMIZED_STR_LENGTH)
+                    .toLowerCase(Locale.ENGLISH));
         }
     }
 
