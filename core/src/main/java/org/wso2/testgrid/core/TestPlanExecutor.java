@@ -299,8 +299,6 @@ public class TestPlanExecutor {
             persistScenarioConfig(scenarioConfig);
         }
 
-
-
     }
 
     private void populateTestCases(TestPlan testPlan, TestScenario testScenario, ScenarioConfig scenarioConfig) {
@@ -317,7 +315,6 @@ public class TestPlanExecutor {
             testScenario.setStatus(Status.ERROR);
             logger.error("Error parsing the results for the scenario no parser " + testScenario.getName());
         }
-
     }
 
     private void populateScenariosList(TestPlan testPlan, ScenarioConfig scenarioConfig) throws
@@ -344,7 +341,7 @@ public class TestPlanExecutor {
         logger.info("-------------------------------------------------");
     }
 
-    private void appendScenario (TestPlan testPlan, String scenarioName, ScenarioConfig scenarioConfig) {
+    private void appendScenario(TestPlan testPlan, String scenarioName, ScenarioConfig scenarioConfig) {
         List<TestScenario> testScenarios = testPlan.getTestScenarios();
         List<TestScenario> testScenariosOfConfig = scenarioConfig.getScenarios();
         TestScenario newScenario = new TestScenario();

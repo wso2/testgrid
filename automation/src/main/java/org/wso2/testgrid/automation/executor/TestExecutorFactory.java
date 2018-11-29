@@ -35,14 +35,12 @@ public class TestExecutorFactory {
      * @return test executor for the given test type
      */
     public static TestExecutor getTestExecutor(TestEngine testType) throws TestAutomationException {
-        switch (testType) {
 
-            case TESTNG:
-                return new ShellTestExecutor();
-            case SELENIUM:
-                return new TestNgExecutor();
-            default:
-                return new ShellTestExecutor();
+        if (testType.equals(TestEngine.SELENIUM)) {
+            return new TestNgExecutor();
+        } else {
+            return new ShellTestExecutor();
+
         }
     }
 }

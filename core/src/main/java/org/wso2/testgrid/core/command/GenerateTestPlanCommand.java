@@ -481,30 +481,6 @@ public class GenerateTestPlanCommand implements Command {
                     }
                 }));
 
-                /*ScenarioConfig scenarioConfig = testgridYaml.getScenarioConfig();
-                List<ConfigChangeSet> configChangeSets = scenarioConfig.getConfigChangeSets();
-                if (configChangeSets != null) {
-                    List<TestScenario> modifiedTestScenarios = new ArrayList<>();
-                    for (ConfigChangeSet configChangeSet : configChangeSets) {
-                        for (TestScenario testScenario : scenarioConfig.getScenarios()) {
-                             TestScenario modifiedTestScenario = new TestScenario();
-                             modifiedTestScenario.setName(configChangeSet.getName() + ":" + testScenario.getName());
-                             modifiedTestScenario.setDescription(testScenario.getDescription());
-                             modifiedTestScenario.setDir(testScenario.getDir());
-                             modifiedTestScenario.setIsPostScriptSuccessful(testScenario.isPostScriptSuccessful());
-                             modifiedTestScenario.setIsPreScriptSuccessful(testScenario.isPreScriptSuccessful());
-                             modifiedTestScenario.setStatus(testScenario.getStatus());
-                             modifiedTestScenario.setTestPlan(testScenario.getTestPlan());
-                             modifiedTestScenario.setConfigChangeSetName(configChangeSet.getName());
-                             modifiedTestScenario.setConfigChangeSetDescription(configChangeSet.getDescription());
-                             modifiedTestScenario.setSummaryGraphs(testScenario.getSummaryGraphs());
-                             modifiedTestScenario.setTestCases(testScenario.getTestCases());
-                             modifiedTestScenarios.add(modifiedTestScenario);
-                        }
-                    }
-                    testgridYaml.getScenarioConfig().setScenarios(modifiedTestScenarios);
-                }*/
-
                 testPlan.setScenarioConfigs(testgridYaml.getScenarioConfigs());
                 testPlan.setResultFormat(testgridYaml.getResultFormat());
 

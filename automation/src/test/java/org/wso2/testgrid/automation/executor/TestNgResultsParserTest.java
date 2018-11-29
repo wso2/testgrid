@@ -52,7 +52,8 @@ public class TestNgResultsParserTest {
 
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
-    private static final String SUREFIRE_REPORTS_DIR_OUT = "test-outputs/scenarios/SolutionPattern22/surefire-reports";
+    private static final String SUREFIRE_REPORTS_DIR_OUT = TestGridConstants.TEST_RESULTS_DIR +
+            "/SolutionPattern22/surefire-reports";
     private TestPlan testPlan;
     private TestScenario testScenario;
     private ScenarioConfig scenarioConfig;

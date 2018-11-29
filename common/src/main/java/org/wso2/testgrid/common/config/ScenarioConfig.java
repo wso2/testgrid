@@ -131,7 +131,6 @@ public class ScenarioConfig implements Serializable {
 
     private Map<String, String> inputParameters = new HashMap<>();
 
-
     private String file;
 
     /**

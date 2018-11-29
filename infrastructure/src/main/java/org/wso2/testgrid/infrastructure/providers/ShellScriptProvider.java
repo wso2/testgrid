@@ -25,7 +25,6 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
-import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
@@ -59,31 +58,6 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     @Override
     public void cleanup(TestPlan testPlan) throws TestGridInfrastructureException {
-        String scriptsLocation = testPlan.getScenarioTestsRepository();
-        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(scriptsLocation));
-        for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
-            if (scenarioConfig.getScripts() != null
-                    && scenarioConfig.getScripts().size() > 0) {
-                for (Script script : scenarioConfig.getScripts()) {
-                    if (Script.Phase.DESTROY.equals(script.getPhase())) {
-                        try {
-                            String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
-                                    .toAbsolutePath().toString();
-                            final String command = "bash " + script.getFile() + " --input-dir " + testInputsLoc;
-                            int exitCode = shellExecutor.executeCommand(command);
-                            if (exitCode > 0) {
-                                throw new TestGridInfrastructureException(StringUtil.concatStrings(
-                                        "Error while executing ", script.getFile(),
-                                        ". Script exited with a non-zero exit code (exit code = ", exitCode, ")"));
-                            }
-                        } catch (CommandExecutionException e) {
-                            throw new TestGridInfrastructureException("Error while executing " + script.getFile(), e);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
 
     }
 
