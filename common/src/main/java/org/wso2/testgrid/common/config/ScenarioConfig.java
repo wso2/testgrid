@@ -198,15 +198,7 @@ public class ScenarioConfig implements Serializable {
 
     public String getOutputDir() {
         if (StringUtil.isStringNullOrEmpty(outputDir)) {
-            try {
-                URL url = new URL(remoteRepository);
-                String [] splitbyDash = url.getPath().split("/");
-                String [] splitByDot = splitbyDash[splitbyDash.length - 1].split("\\.");
-                return splitByDot[0];
-            } catch (MalformedURLException e) {
-                return null;
-            }
-
+            return name;
         }
         return outputDir;
     }
