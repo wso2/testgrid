@@ -28,7 +28,8 @@ infrastructureConfig:
             DBUsername: "wso2carbon"
             DBPassword: "DB_Password"
             ProductVersion: "6.4.0"
-            InternalPrepareForTest: "True"
+            InternalPrepareForTest: "true"
+            ElasticSearchEndpoint: "dummy"
 scenarioConfigs:
   - testType: TESTNG
     remoteRepository: "https://github.com/yasassri/product-ei.git"
