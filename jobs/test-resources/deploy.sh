@@ -55,3 +55,9 @@ then
 fi
 
 cp $INPUT_FILE $OUTPUT_FILE
+
+# TODO: REMOVE this once we have the cfn-signal based solution ready. 
+# We have to do this because we are still working on marking a cfn stack as completed at the correct point.
+
+echo "Sleeping for an arbitrary time of 120 seconds. Remove this once cfn-signal based deployment completion marker is implemented.."
+sleep 120
