@@ -342,7 +342,7 @@ public class TestPlanExecutor {
             }
         } else {
             //testPlan.setStatus(Status.FAIL);
-            logger.error("No scenarios found in " + dataBucket + "for Scenario Config " + scenarioConfig.getName() +
+            logger.error("No scenarios found in " + dataBucket + " for Scenario Config " + scenarioConfig.getName() +
                     " in testplan " + testPlan.getId());
         }
 
@@ -702,7 +702,7 @@ public class TestPlanExecutor {
      */
     private void persistScenarioConfig(ScenarioConfig scenarioConfig) {
         //Persist test scenario
-        if(scenarioConfig.getScenarios().isEmpty()){
+        if (scenarioConfig.getScenarios().isEmpty()) {
             scenarioConfig.setStatus(Status.FAIL);
         } else {
             for (TestScenario testScenario : scenarioConfig.getScenarios()) {

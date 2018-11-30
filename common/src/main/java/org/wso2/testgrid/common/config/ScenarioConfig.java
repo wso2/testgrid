@@ -49,7 +49,7 @@ public class ScenarioConfig implements Serializable {
     private String remoteRepository;
     private String remoteBranch = "master";
     private String dir;
-    private String name;
+    private String name = "scenarioConfig" + (int) (Math.random() * 1024 + 1);
     private Status status;
     private TestPlan testPlan;
     private String outputDir;
