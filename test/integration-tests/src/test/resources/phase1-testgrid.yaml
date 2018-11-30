@@ -36,10 +36,10 @@ deploymentConfig:
         - name: 'default'
           type: SHELL
           file: test/integration-tests/src/test/resources/test-phase1/deploy.sh
-scenarioConfig:
-  testType: INTEGRATION
+scenarioConfigs:
+  -
+  testType: TESTNG
   remoteRepository: "git@github.com:wso2/testgrid.git"
-  scenarios:
-    - name: "Test-Phase-1"
-      description: "Test-Phase-1"
-      dir: test/integration-tests/src/test/resources/test-phase1
+  name: "Test-Phase-1"
+  description: "Test-Phase-1"
+  file: test/integration-tests/src/test/resources/test-phase1/test.sh
