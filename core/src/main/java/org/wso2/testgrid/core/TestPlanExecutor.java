@@ -301,6 +301,12 @@ public class TestPlanExecutor {
 
     }
 
+    /**
+     * This method will populate test cases of a give test scenario
+     * @param testPlan          testplan
+     * @param testScenario      scenario of which tests needs to be identified
+     * @param scenarioConfig    scenario config of the test scenario
+     */
     private void populateTestCases(TestPlan testPlan, TestScenario testScenario, ScenarioConfig scenarioConfig) {
         Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         if (parser.isPresent()) {
@@ -317,12 +323,17 @@ public class TestPlanExecutor {
         }
     }
 
+    /**
+     * This method will find the test scenarios fir a given scenario config
+     * @param testPlan          testplan
+     * @param scenarioConfig    scenarioConfig for which tests need to be identified
+     * @throws TestPlanExecutorException
+     */
     private void populateScenariosList(TestPlan testPlan, ScenarioConfig scenarioConfig) throws
             TestPlanExecutorException {
 
         Path dataBucket = Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(),
                 "test-outputs", "scenarios", scenarioConfig.getOutputDir());
-
         File[] directories = new File(dataBucket.toString()).listFiles(File::isDirectory);
 
         if (directories != null) {
@@ -330,8 +341,9 @@ public class TestPlanExecutor {
                 appendScenario(testPlan, scenario.getName(), scenarioConfig);
             }
         } else {
-            throw new TestPlanExecutorException("No scenarios found in " + dataBucket + " for testplan " +
-                    testPlan.getId());
+            //testPlan.setStatus(Status.FAIL);
+            logger.error("No scenarios found in " + dataBucket + "for Scenario Config " + scenarioConfig.getName() +
+                    " in testplan " + testPlan.getId());
         }
 
         logger.info("--------- Identified Scenarios ---------------------");
@@ -341,6 +353,12 @@ public class TestPlanExecutor {
         logger.info("-------------------------------------------------");
     }
 
+    /**
+     * Append a test scenario to the testplan
+     * @param testPlan          testplan
+     * @param scenarioName      name of the new scenario
+     * @param scenarioConfig    scenario config which is associated with scenario
+     */
     private void appendScenario(TestPlan testPlan, String scenarioName, ScenarioConfig scenarioConfig) {
         List<TestScenario> testScenarios = testPlan.getTestScenarios();
         List<TestScenario> testScenariosOfConfig = scenarioConfig.getScenarios();
@@ -682,19 +700,24 @@ public class TestPlanExecutor {
      *
      * @param scenarioConfig ScenarioConfig object to persist
      */
-    private void persistScenarioConfig(ScenarioConfig scenarioConfig) throws TestPlanExecutorException {
+    private void persistScenarioConfig(ScenarioConfig scenarioConfig) {
         //Persist test scenario
-        for (TestScenario testScenario : scenarioConfig.getScenarios()) {
-            if (Status.FAIL.equals(testScenario.getStatus())) {
-                scenarioConfig.setStatus(Status.FAIL);
-                break;
-            } else if (Status.ERROR.equals(testScenario.getStatus())) {
-                scenarioConfig.setStatus(Status.ERROR);
-                break;
-            } else {
-                scenarioConfig.setStatus(Status.SUCCESS);
+        if(scenarioConfig.getScenarios().isEmpty()){
+            scenarioConfig.setStatus(Status.FAIL);
+        } else {
+            for (TestScenario testScenario : scenarioConfig.getScenarios()) {
+                if (Status.FAIL.equals(testScenario.getStatus())) {
+                    scenarioConfig.setStatus(Status.FAIL);
+                    break;
+                } else if (Status.ERROR.equals(testScenario.getStatus())) {
+                    scenarioConfig.setStatus(Status.ERROR);
+                    break;
+                } else {
+                    scenarioConfig.setStatus(Status.SUCCESS);
+                }
             }
         }
+
     }
 
     /**

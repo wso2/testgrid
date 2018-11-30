@@ -196,7 +196,7 @@ public class ScenarioConfig implements Serializable {
 
     public String getOutputDir() {
         if (StringUtil.isStringNullOrEmpty(outputDir)) {
-            return name;
+            return name.replaceAll("[^A-Za-z0-9]", "");
         }
         return outputDir;
     }
