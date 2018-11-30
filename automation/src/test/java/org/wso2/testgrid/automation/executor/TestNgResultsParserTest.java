@@ -44,27 +44,36 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class TestNgResultsParserTest {
 
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
+    private static final String SUREFIRE_REPORTS_DIR_OUT = TestGridConstants.TEST_RESULTS_DIR +
+            "/SolutionPattern22/surefire-reports";
     private TestPlan testPlan;
     private TestScenario testScenario;
+    private ScenarioConfig scenarioConfig;
     private Path testArtifactPath = Paths.get("src", "test", "resources", "artifacts");
 
     @BeforeMethod
     public void init() {
         System.setProperty(TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY, TESTGRID_HOME);
-
+        scenarioConfig = new ScenarioConfig();
         testScenario = new TestScenario();
         testScenario.setDir("scenarioDir");
+        testScenario.setOutputDir("");
         testPlan = new TestPlan();
         testPlan.setJobName("wso2");
-        ScenarioConfig scenarioConfig = new ScenarioConfig();
+        List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
         scenarioConfig.setTestType(TestGridConstants.TEST_TYPE_INTEGRATION);
-        testPlan.setScenarioConfig(scenarioConfig);
+        scenarioConfig.setFile("");
+        scenarioConfig.setOutputDir("");
+        scenarioConfigs.add(scenarioConfig);
+        testPlan.setScenarioConfigs(scenarioConfigs);
         testPlan.setScenarioTestsRepository("resources");
         testScenario.setName("SolutionPattern22");
         testScenario.setTestPlan(testPlan);
@@ -89,11 +98,11 @@ public class TestNgResultsParserTest {
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
 
-        final Path outputFile = DataBucketsHelper.getOutputLocation(testPlan).resolve(SUREFIRE_REPORTS_DIR)
+        final Path outputFile = DataBucketsHelper.getOutputLocation(testPlan).resolve(SUREFIRE_REPORTS_DIR_OUT)
                 .resolve(TestNgResultsParser.RESULTS_TEST_SUITE_FILE);
         copyTestngResultsXml(outputFile);
 
-        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
+        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         Assert.assertTrue(parser.isPresent());
         Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
 
@@ -112,15 +121,15 @@ public class TestNgResultsParserTest {
 
     @Test
     public void testArchiveResults() throws Exception {
-        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
+        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         Assert.assertTrue(parser.isPresent());
         Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
 
         final Path outputPath = DataBucketsHelper.getOutputLocation(testPlan);
         FileUtils.copyDirectory(testArtifactPath.resolve(SUREFIRE_REPORTS_DIR).toFile(),
-                outputPath.resolve(SUREFIRE_REPORTS_DIR).toFile());
+                outputPath.resolve(SUREFIRE_REPORTS_DIR_OUT).toFile());
         FileUtils.copyFile(testArtifactPath.resolve("automation.log.rename").toFile(),
-                outputPath.resolve("automation.log").toFile());
+                outputPath.resolve("test-outputs/scenarios/SolutionPattern22/automation.log").toFile());
 
         parser.get().parseResults();
         parser.get().archiveResults();

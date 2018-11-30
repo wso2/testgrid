@@ -66,7 +66,7 @@ public class TestPlanUOW {
             persisted.setConfigChangeSetBranchName(testPlan.getConfigChangeSetBranchName());
             persisted.setInfrastructureConfig(testPlan.getInfrastructureConfig());
             persisted.setDeploymentConfig(testPlan.getDeploymentConfig());
-            persisted.setScenarioConfig(testPlan.getScenarioConfig());
+            persisted.setScenarioConfigs(testPlan.getScenarioConfigs());
         }
         return persisted;
     }

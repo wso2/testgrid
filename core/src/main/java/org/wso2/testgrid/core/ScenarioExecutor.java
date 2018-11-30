@@ -69,6 +69,7 @@ import static org.wso2.testgrid.common.TestGridConstants.TEST_SCRIPT;
  *
  * @since 1.0.0
  */
+@Deprecated
 public class ScenarioExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(ScenarioExecutor.class);
@@ -93,10 +94,12 @@ public class ScenarioExecutor {
      * @param testPlan                 test plan associated with the test scenario.
      * @throws ScenarioExecutorException If something goes wrong while executing the TestScenario.
      */
+    @Deprecated
     public void execute(TestScenario testScenario, DeploymentCreationResult deploymentCreationResult, TestPlan testPlan)
             throws ScenarioExecutorException {
-        try {
-            // Run test scenario.
+        logger.error("This method is deprecated and should not have run");
+
+        // Run test scenario.
             String homeDir = testPlan.getScenarioTestsRepository();
             String scenarioDir = testScenario.getDir();
             testScenario.setTestPlan(testPlan);
@@ -119,20 +122,9 @@ public class ScenarioExecutor {
                         + testLocation);
                 testScenario.setStatus(Status.ERROR);
             } else {
-                for (Test test : tests) {
-                    logger.info(StringUtil.concatStrings("Executing ", test.getTestName(), " Test"));
-                    test.execute(testLocation, deploymentCreationResult);
-                    logger.info("---------------------------------------");
-                }
+                logger.error("This method is deprecated and should not have run");
             }
 
-        } catch (TestAutomationException e) {
-            testScenario.setStatus(Status.FAIL);
-            persistTestScenario(testScenario);
-            throw new ScenarioExecutorException(StringUtil
-                    .concatStrings("Exception occurred while running the Tests for Solution Pattern '",
-                            testScenario.getName(), "'"), e);
-        }
     }
 
     /**

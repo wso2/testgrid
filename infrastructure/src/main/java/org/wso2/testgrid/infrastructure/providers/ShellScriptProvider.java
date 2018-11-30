@@ -58,29 +58,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
 
     @Override
     public void cleanup(TestPlan testPlan) throws TestGridInfrastructureException {
-        String scriptsLocation = testPlan.getScenarioTestsRepository();
-        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(scriptsLocation));
-        if (testPlan.getScenarioConfig().getScripts() != null
-                && testPlan.getScenarioConfig().getScripts().size() > 0) {
-            for (Script script : testPlan.getScenarioConfig().getScripts()) {
-                if (Script.Phase.DESTROY.equals(script.getPhase())) {
-                    try {
-                        String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
-                                .toAbsolutePath().toString();
-                        final String command = "bash " + script.getFile() + " --input-dir " + testInputsLoc;
-                        int exitCode = shellExecutor.executeCommand(command);
-                        if (exitCode > 0) {
-                            throw new TestGridInfrastructureException(StringUtil.concatStrings(
-                                    "Error while executing ", script.getFile(),
-                                    ". Script exited with a non-zero exit code (exit code = ", exitCode, ")"));
-                        }
-                    } catch (CommandExecutionException e) {
-                        throw new TestGridInfrastructureException("Error while executing " + script.getFile(), e);
-                    }
-                    break;
-                }
-            }
-        }
+
     }
 
     @Override

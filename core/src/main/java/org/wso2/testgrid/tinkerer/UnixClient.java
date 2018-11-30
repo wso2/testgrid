@@ -72,7 +72,7 @@ public class UnixClient extends TinkererClient {
     public void downloadLogs(DeploymentCreationResult deploymentCreationResult, TestPlan testPlan)
             throws TinkererOperationException {
 
-        String testType = testPlan.getScenarioConfig().getTestType();
+        String testType = testPlan.getScenarioConfigs().get(0).getTestType();
         logger.info("TestType is : " + testType);
         Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 

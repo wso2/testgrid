@@ -18,8 +18,10 @@
 package org.wso2.testgrid.automation.report;
 
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.reporting.PerformanceResultProcessor;
 import org.wso2.testgrid.reporting.ReportingException;
 import org.wso2.testgrid.reporting.TestReportEngine;
@@ -48,7 +50,11 @@ public class PerformanceReportGenerator extends ReportGenerator {
 
     @Override
     public boolean canGenerateReport(TestPlan testPlan) {
-        return TEST_TYPE_PERFORMANCE.equals(testPlan.getScenarioConfig().getTestType());
+        boolean canGenerate = true;
+        for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+            canGenerate = canGenerate && TestGridConstants.TEST_TYPE_PERFORMANCE.equals(scenarioConfig.getTestType());
+        }
+        return canGenerate;
     }
 
     @Override

@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.TestNG;
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.DeploymentCreationResult;
-import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -55,7 +55,8 @@ public class TestNgExecutor extends TestExecutor {
     }
 
     @Override
-    public void init(String testsLocation, String testName, TestScenario testScenario) throws TestAutomationException {
+    public void init(String testsLocation, String testName, ScenarioConfig scenarioConfig)
+            throws TestAutomationException {
         this.testsLocation = testsLocation;
     }
 

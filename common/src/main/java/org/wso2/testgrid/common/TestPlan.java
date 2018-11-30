@@ -94,7 +94,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private DeploymentConfig deploymentConfig = new DeploymentConfig();
 
     @Transient
-    private ScenarioConfig scenarioConfig = new ScenarioConfig();
+    private List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
 
     @Transient
     private String jobName;
@@ -264,12 +264,12 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
         this.deploymentConfig = deploymentConfig;
     }
 
-    public ScenarioConfig getScenarioConfig() {
-        return scenarioConfig;
+    public List<ScenarioConfig> getScenarioConfigs() {
+        return scenarioConfigs;
     }
 
-    public void setScenarioConfig(ScenarioConfig scenarioConfig) {
-        this.scenarioConfig = scenarioConfig;
+    public void setScenarioConfigs(List<ScenarioConfig> scenarioConfig) {
+        this.scenarioConfigs = scenarioConfig;
     }
 
     /**
@@ -443,7 +443,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
             testPlan.setInfraParameters(infraParameters);
             testPlan.setInfrastructureRepository(infrastructureRepository);
             testPlan.setInfrastructureConfig(infrastructureConfig);
-            testPlan.setScenarioConfig(scenarioConfig);
+            testPlan.setScenarioConfigs(scenarioConfigs);
             testPlan.setStatus(status);
             testPlan.setScenarioTestsRepository(scenarioTestsRepository);
             testPlan.setTestRunNumber(testRunNumber);

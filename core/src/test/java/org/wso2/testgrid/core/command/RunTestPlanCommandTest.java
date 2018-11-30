@@ -177,6 +177,10 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         String destinationDir = Paths.get(workspaceDir, "/workspace").toString();
         FileUtils.copyDirectory(new File(resourceDir), new File(destinationDir));
         logger.info("Copying necessary artifacts to directory: " + destinationDir);
+        resourceDir = Paths.get("src", "test", "resources", "workspace", "data-bucket").toString();
+        destinationDir = Paths.get(workspaceDir, "/data-bucket").toString();
+        FileUtils.copyDirectory(new File(resourceDir), new File(destinationDir));
+        logger.info("Copying necessary artifacts to directory: " + destinationDir);
     }
 
     private void doMock() throws TestGridDAOException, TestAutomationException {

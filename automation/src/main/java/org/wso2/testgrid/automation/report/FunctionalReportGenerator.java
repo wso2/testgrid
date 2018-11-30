@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 
 /**
  * Report Generator implementation for Factional Tests.
@@ -41,8 +42,12 @@ public class FunctionalReportGenerator extends ReportGenerator {
 
     @Override
     public boolean canGenerateReport(TestPlan testPlan) {
-        return TestGridConstants.TEST_TYPE_FUNCTIONAL.equals(testPlan.getScenarioConfig()
-                .getTestType());
+
+        boolean canGenerate = true;
+        for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+            canGenerate = canGenerate && TestGridConstants.TEST_TYPE_FUNCTIONAL.equals(scenarioConfig.getTestType());
+        }
+        return canGenerate;
     }
 
     @Override

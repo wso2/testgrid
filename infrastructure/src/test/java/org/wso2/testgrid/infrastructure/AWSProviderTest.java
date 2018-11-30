@@ -110,12 +110,14 @@ public class AWSProviderTest extends PowerMockTestCase {
         scripts.add(initScript);
         scripts.add(cleanupScript);
 
+        List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
         ScenarioConfig scenarioConfig = new ScenarioConfig();
-        scenarioConfig.setScripts(scripts);
+        scenarioConfigs.add(scenarioConfig);
+        scenarioConfigs.get(0).setScripts(scripts);
         DeploymentPattern deploymentPatternDBEntry = new DeploymentPattern();
         deploymentPatternDBEntry.setName("deployment-pattern");
         testPlan.setDeploymentPattern(deploymentPatternDBEntry);
-        testPlan.setScenarioConfig(scenarioConfig);
+        testPlan.setScenarioConfigs(scenarioConfigs);
         testPlan.setScenarioTestsRepository(scenarioRepo);
         testPlan.setInfraParameters("{\"OS\": \"Ubuntu\"}");
 

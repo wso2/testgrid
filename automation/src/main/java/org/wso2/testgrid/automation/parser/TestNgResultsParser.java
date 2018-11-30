@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,10 +121,16 @@ public class TestNgResultsParser extends ResultParser {
      */
     @Override
     public void parseResults() throws ResultParserException {
-        final Path dataBucket = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
+        Path dataBucket = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
+        dataBucket = Paths.get(dataBucket.toString(), TestGridConstants.TEST_RESULTS_DIR, testScenario.getOutputDir(),
+                testScenario.getName());
+        logger.info(testScenario.getName());
         Set<Path> inputFiles = getResultInputFiles(dataBucket);
 
-        final Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
+        Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
+        outputLocation = Paths.get(outputLocation.toString(), TestGridConstants.TEST_RESULTS_DIR,
+                testScenario.getOutputDir(), testScenario.getName());
+
         logger.info("Found TEST-TestSuite.xml result files at: " + inputFiles.stream().map
                 (outputLocation::relativize).collect(Collectors.toSet()));
         for (Path resultsFile : inputFiles) {
@@ -344,7 +351,7 @@ public class TestNgResultsParser extends ResultParser {
             }
         } catch (IOException e) {
             throw new ResultParserException("Error occurred while persisting scenario test-results." +
-                    "Scenario ID: " + testScenario.getId() + ", Scenario Directory: " + testScenario.getDir(), e);
+                    "Scenario ID: " + testScenario.getId(), e);
         }
 
     }

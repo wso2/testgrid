@@ -20,12 +20,18 @@
 package org.wso2.testgrid.common.config;
 
 
-import org.apache.commons.collections4.ListUtils;
 import org.wso2.testgrid.common.ConfigChangeSet;
+import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.util.StringUtil;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represent the scenario configuration in the testgrid.yaml file that is
@@ -42,6 +48,11 @@ public class ScenarioConfig implements Serializable {
     private String testType = TestGridConstants.TEST_TYPE_FUNCTIONAL;
     private String remoteRepository;
     private String remoteBranch = "master";
+    private String dir;
+    private String name = "scenarioConfig" + (int) (Math.random() * 1024 + 1);
+    private Status status;
+    private TestPlan testPlan;
+    private String outputDir;
 
     /**
      * This method returns the list of scenarios.
@@ -57,8 +68,43 @@ public class ScenarioConfig implements Serializable {
         this.configChangeSets = configChangeSets;
     }
 
+    public String getDir() {
+        return dir;
+    }
+
+    public void setDir(String dir) {
+        this.dir = dir;
+    }
+
+    public TestPlan getTestPlan() {
+        return testPlan;
+    }
+
+    public void setTestPlan(TestPlan testPlan) {
+        this.testPlan = testPlan;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
     public List<TestScenario> getScenarios() {
-        return ListUtils.emptyIfNull(scenarios);
+        if (scenarios == null) {
+            return new ArrayList<>();
+        }
+        return scenarios;
     }
 
     public void setScenarios(List<TestScenario> scenarios) {
@@ -80,6 +126,10 @@ public class ScenarioConfig implements Serializable {
     public void setTestType(String testType) {
         this.testType = testType;
     }
+
+    private Map<String, String> inputParameters = new HashMap<>();
+
+    private String file;
 
     /**
      * The git repo URL of the remote git repository.
@@ -107,5 +157,53 @@ public class ScenarioConfig implements Serializable {
     public void setRemoteBranch(String remoteBranch) {
         this.remoteBranch = remoteBranch;
     }
+
+    /**
+     * Returns the list of input parameters required for the test script.
+     *
+     * @return List of inputParameters
+     */
+    public Map<String, String> getInputParameters() {
+        return inputParameters;
+    }
+
+    /**
+     * Sets the input parameters required to run test script.
+     *
+     * @param inputParameters List of input parameters taken from scenarioConfig
+     */
+    public void setInputParameters(Map<String, String> inputParameters) {
+        this.inputParameters = inputParameters;
+    }
+
+    /**
+     * Returns the file name of the test script (e.g. test.sh).
+     *
+     * @return file name
+     */
+    public String getFile() {
+        return file;
+    }
+
+    /**
+     * Sets the filename of the test script.
+     *
+     * @param file file name
+     */
+    public void setFile(String file) {
+        this.file = file;
+    }
+
+    public String getOutputDir() {
+        if (StringUtil.isStringNullOrEmpty(outputDir)) {
+            return name.replaceAll("[^A-Za-z0-9]", "");
+        }
+        return outputDir;
+    }
+
+    public void setOutputDir(String outputDir) {
+        this.outputDir = outputDir;
+    }
+
 }
 

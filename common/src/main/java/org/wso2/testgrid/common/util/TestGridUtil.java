@@ -230,11 +230,11 @@ public final class TestGridUtil {
             int latestTestRunNumber = getLatestTestRunNumber(deploymentPattern, testPlanEntity.getInfraParameters());
             testPlanEntity.setTestRunNumber(latestTestRunNumber + 1);
             // Set test scenarios
-            List<TestScenario> testScenarios = testPlan.getScenarioConfig().getScenarios();
+            /*List<TestScenario> testScenarios = testPlan.getScenarioConfig().getScenarios();
             for (TestScenario testScenario : testScenarios) {
                 testScenario.setStatus(Status.PENDING);
             }
-            testPlanEntity.setTestScenarios(testScenarios);
+            testPlanEntity.setTestScenarios(testScenarios);*/
             return testPlanEntity;
         } catch (JsonProcessingException e) {
             throw new CommandExecutionException(StringUtil
@@ -262,7 +262,7 @@ public final class TestGridUtil {
             testPlanPersisted.setDeployerType(testPlanConfig.getDeployerType());
             testPlanPersisted.setInfrastructureConfig(testPlanConfig.getInfrastructureConfig());
             testPlanPersisted.setDeploymentConfig(testPlanConfig.getDeploymentConfig());
-            testPlanPersisted.setScenarioConfig(testPlanConfig.getScenarioConfig());
+            testPlanPersisted.setScenarioConfigs(testPlanConfig.getScenarioConfigs());
             testPlanPersisted.setJobName(testPlanConfig.getJobName());
             testPlanPersisted.setInfrastructureRepository(testPlanConfig.getInfrastructureRepository());
             testPlanPersisted.setDeploymentRepository(testPlanConfig.getDeploymentRepository());

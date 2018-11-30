@@ -20,7 +20,7 @@ package org.wso2.testgrid.automation.executor;
 
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.common.DeploymentCreationResult;
-import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 
 /**
  * Responsible for performing the tasks related to execution of single test scenario.
@@ -32,8 +32,9 @@ import org.wso2.testgrid.common.TestScenario;
 public class ShellTestExecutor extends JMeterExecutor {
 
     @Override
-    public void init(String testLocation, String testName, TestScenario testScenario) throws TestAutomationException {
-        super.init(testLocation, testName, testScenario);
+    public void init(String testLocation, String testName, ScenarioConfig scenarioConfig)
+            throws TestAutomationException {
+        super.init(testLocation, testName, scenarioConfig);
     }
 
     @Override

@@ -83,7 +83,7 @@ public class DataBucketsHelper {
      */
     public static Path getTestOutputsLocation(TestPlan testPlan) {
         final Path outputsDirPath = getBuildOutputsDir(testPlan).resolve(
-                Paths.get(DATA_BUCKET_OUTPUT_DIR_NAME, TestGridConstants.TEST_RESULTS_ARCHIVE_DIR));
+                Paths.get(DATA_BUCKET_OUTPUT_DIR_NAME, TestGridConstants.TEST_RESULTS_DIR));
         if (!init) {
             init(outputsDirPath);
         }
@@ -114,7 +114,14 @@ public class DataBucketsHelper {
      * @return Get the build outputs dir
      */
     public static Path getBuildOutputsDir(TestPlan testPlan) {
-        return Paths.get(testPlan.getWorkspace());
+
+        if (testPlan.getWorkspace() != null) {
+            return Paths.get(testPlan.getWorkspace());
+        } else {
+            return null;
+        }
+
+
     }
 
     /**

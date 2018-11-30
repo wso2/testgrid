@@ -223,7 +223,7 @@ public class EmailReportProcessor {
                     .get(0);
             final DeploymentConfig.DeploymentPattern dp = testPlan.getDeploymentConfig()
                     .getDeploymentPatterns().get(0);
-            final ScenarioConfig scenarioConfig = testPlan.getScenarioConfig();
+            final List<ScenarioConfig> scenarioConfigs = testPlan.getScenarioConfigs();
             final String infraFiles = provisioner.getScripts().stream()
                     .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
                             || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
@@ -250,12 +250,14 @@ public class EmailReportProcessor {
                     .append(": ")
                     .append(deployFiles)
                     .append(HTML_LINE_SEPARATOR);
-            stringBuilder.append("Test repo: ")
-                    .append(Optional.ofNullable(scenarioConfig.getRemoteRepository()).orElse(
-                            TestGridConstants.NOT_CONFIGURED_STR))
-                    .append(" @ ")
-                    .append(scenarioConfig.getRemoteBranch())
-                    .append(HTML_LINE_SEPARATOR);
+            for (ScenarioConfig scenarioConfig : scenarioConfigs) {
+                stringBuilder.append("Test repo: ")
+                        .append(Optional.ofNullable(scenarioConfig.getRemoteRepository()).orElse(
+                                TestGridConstants.NOT_CONFIGURED_STR))
+                        .append(" @ ")
+                        .append(scenarioConfig.getRemoteBranch())
+                        .append(HTML_LINE_SEPARATOR);
+            }
         }
         return stringBuilder.toString();
     }

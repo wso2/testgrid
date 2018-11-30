@@ -69,7 +69,7 @@ public class TestGridConstants {
      */
     public static final String TEST_TYPE_FUNCTIONAL = "FUNCTIONAL";
     public static final String TEST_TYPE_PERFORMANCE = "PERFORMANCE";
-    public static final String TEST_TYPE_INTEGRATION = "INTEGRATION";
+    public static final String TEST_TYPE_INTEGRATION = "TESTNG";
 
     public static final String OUTPUT_BASTIAN_IP = "BastionEIP";
 
@@ -88,6 +88,8 @@ public class TestGridConstants {
     public static final String KEY_FILE_LOCATION = "keyFileLocation";
     public static final String HTTP = "http://";
     public static final String TEST_RESULTS_ARCHIVE_DIR = "test-outputs";
+    public static final String TEST_RESULTS_DIR = "test-outputs/scenarios";
+
 
     public static final String NOT_CONFIGURED_STR = "/not-configured/";
 }

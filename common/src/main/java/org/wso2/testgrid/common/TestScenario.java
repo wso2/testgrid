@@ -23,9 +23,7 @@ import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -103,10 +101,9 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
     private List<String> summaryGraphs;
 
     @Transient
-    private Map<String, String> inputParameters = new HashMap<>();
+    private String outputDir;
 
-    @Transient
-    private String file;
+
 
     /**
      * Returns the name of the test scenario.
@@ -124,6 +121,14 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getOutputDir() {
+        return outputDir;
+    }
+
+    public void setOutputDir(String outputDir) {
+        this.outputDir = outputDir;
     }
 
     /**
@@ -338,41 +343,6 @@ public class TestScenario extends AbstractUUIDEntity implements Serializable {
         this.summaryGraphs = summaryGraphs;
     }
 
-    /**
-     * Returns the list of input parameters required for the test script.
-     *
-     * @return List of inputParameters
-     */
-    public Map<String, String> getInputParameters() {
-        return inputParameters;
-    }
-
-    /**
-     * Sets the input parameters required to run test script.
-     *
-     * @param inputParameters List of input parameters taken from scenarioConfig
-     */
-    public void setInputParameters(Map<String, String> inputParameters) {
-        this.inputParameters = inputParameters;
-    }
-
-    /**
-     * Returns the file name of the test script (e.g. test.sh).
-     *
-     * @return file name
-     */
-    public String getFile() {
-        return file;
-    }
-
-    /**
-     * Sets the filename of the test script.
-     *
-     * @param file file name
-     */
-    public void setFile(String file) {
-        this.file = file;
-    }
 
     @Override
     public String toString() {

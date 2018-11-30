@@ -38,6 +38,7 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
@@ -165,6 +166,11 @@ public class BaseClass extends PowerMockTestCase {
         testPlan.setInfrastructureConfig(infraConfig);
         testPlan.setInfraParameters(TestGridUtil.convertToJsonString(p));
 
+        ScenarioConfig sc = new ScenarioConfig();
+        sc.setName("Repo1");
+        sc.setStatus(Status.SUCCESS);
+
+
         DeploymentConfig deploymentConfig = new DeploymentConfig();
         DeploymentConfig.DeploymentPattern dpConfig = new DeploymentConfig.DeploymentPattern();
         dpConfig.setName("my-dp");
@@ -198,6 +204,8 @@ public class BaseClass extends PowerMockTestCase {
         tc.setName("Sample Testcase 03");
         tc.setTestScenario(s2);
         s2.addTestCase(tc);
+        sc.setScenarios(Arrays.asList(s, s2));
+        testPlan.setScenarioConfigs(Arrays.asList(sc));
         testPlan.setTestScenarios(Arrays.asList(s, s2));
 
         DeploymentPattern dp = new DeploymentPattern();

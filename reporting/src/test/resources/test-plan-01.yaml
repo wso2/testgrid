@@ -40,15 +40,18 @@ jobName: abc
 jobProperties:
   PROPERTY1: value1
 keyFileLocation: ./src/test/resources/workspace/testkey.pem
-scenarioConfig:
-  scenarios:
-  - description: Test Scenario
-    dir: scenario01
-    name: scenario01
-    status: PENDING
-    testCases: [
-      ]
-  testType: FUNCTIONAL
+scenarioConfigs:
+- file: ps/test.sh
+  inputParameters:
+    DBPassword: DB_Password
+    DBUsername: wso2carbon
+  name: integration-tests
+  outputDir: wso2-ei-scenarios
+  remoteBranch: master
+  remoteRepository: https://github.com/tharindu1992/wso2-ei-scenarios.git
+  scenarios: [
+  ]
+  testType: TESTNG
 scenarioTestsRepository: ./src/test/resources/workspace/scenarioTests
 testRunNumber: 1
 testScenarios: [

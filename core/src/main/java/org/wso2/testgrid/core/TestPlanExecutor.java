@@ -21,28 +21,30 @@ package org.wso2.testgrid.core;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.automation.TestAutomationException;
+import org.wso2.testgrid.automation.TestEngine;
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
 import org.wso2.testgrid.automation.exception.ReportGeneratorInitializingException;
 import org.wso2.testgrid.automation.exception.ReportGeneratorNotFoundException;
 import org.wso2.testgrid.automation.exception.ResultParserException;
+import org.wso2.testgrid.automation.executor.TestExecutor;
+import org.wso2.testgrid.automation.executor.TestExecutorFactory;
 import org.wso2.testgrid.automation.parser.ResultParser;
 import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.automation.report.ReportGenerator;
 import org.wso2.testgrid.automation.report.ReportGeneratorFactory;
-import org.wso2.testgrid.common.ConfigChangeSet;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.GrafanaDashboardHandler;
-import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
-import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
 import org.wso2.testgrid.common.exception.InfrastructureProviderInitializationException;
@@ -55,9 +57,6 @@ import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
-import org.wso2.testgrid.core.configchangeset.ConfigChangeSetExecutor;
-import org.wso2.testgrid.core.configchangeset.ConfigChangeSetFactory;
-import org.wso2.testgrid.core.exception.ScenarioExecutorException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
@@ -75,12 +74,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -141,8 +139,8 @@ public class TestPlanExecutor {
 
         if (!deploymentCreationResult.isSuccess()) {
             testPlan.setStatus(Status.ERROR);
-            for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                testScenario.setStatus(Status.DID_NOT_RUN);
+            for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+                scenarioConfig.setStatus(Status.DID_NOT_RUN);
             }
             testPlanUOW.persistTestPlan(testPlan);
             logger.error(StringUtil.concatStrings(
@@ -155,8 +153,8 @@ public class TestPlanExecutor {
 
         // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
         Properties sceProperties = new Properties();
-        for (TestScenario testScenario : testPlan.getScenarioConfig().getScenarios()) {
-            sceProperties.putAll(testScenario.getInputParameters());
+        for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+            sceProperties.putAll(scenarioConfig.getInputParameters());
             persistAdditionalInputs(sceProperties, DataBucketsHelper.getOutputLocation(testPlan)
                     .resolve(DataBucketsHelper.DEPL_OUT_FILE));
         }
@@ -236,7 +234,7 @@ public class TestPlanExecutor {
         } catch (ReportGeneratorNotFoundException e) {
             logger.warn("Could not find a report generator " +
                     " for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName() +
-                    ". Test type: " + testPlan.getScenarioConfig().getTestType());
+                    ". Test type: " + testPlan.getScenarioConfigs().get(0).getTestType());
         } catch (ReportGeneratorInitializingException e) {
             logger.error("Error while initializing the report generators  " +
                     "for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName(), e);
@@ -248,232 +246,138 @@ public class TestPlanExecutor {
     }
 
     /**
-     * Run all the pre-scenario scripts mentioned in the testgrid.yaml.
-     *
-     * @param testPlan the test plan
-     * @return a boolean value indicating the status of the operation
-     */
-    private boolean runPreScenariosScripts(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
-        String scriptsLocation = testPlan.getScenarioTestsRepository();
-        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(scriptsLocation));
-        boolean status = true;
-
-        Map<String, String> environment = new HashMap<>();
-        for (Host host : deploymentCreationResult.getHosts()) {
-            environment.put(host.getLabel(), host.getIp());
-        }
-
-        if (testPlan.getScenarioConfig().getScripts() != null
-                && testPlan.getScenarioConfig().getScripts().size() > 0) {
-            for (Script script : testPlan.getScenarioConfig().getScripts()) {
-                if (Script.Phase.CREATE.equals(script.getPhase())) {
-                    try {
-                        logger.info("Provisioning additional infra");
-                        int exitCode = shellExecutor.executeCommand("sh " + script.getFile(), environment);
-                        if (exitCode > 0) {
-                            status = false;
-                            logger.error(StringUtil.concatStrings(
-                                    "Error while executing ", script.getFile(),
-                                    ". Script exited with a non-zero exit code (exit code = ", exitCode, ")"));
-                        }
-                    } catch (Exception e) {
-                        status = false;
-                        logger.error("Error while executing " + script.getFile(), e);
-                    }
-                    break;
-                }
-            }
-        }
-        return status;
-    }
-
-    /**
-     * Run all the post-scenario scripts mentioned in the testgrid.yaml.
-     *
-     * @param testPlan the test plan
-     * @return a boolean value indicating the status of the operation
-     */
-    private boolean runPostScenariosScripts(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
-        String scriptsLocation = testPlan.getScenarioTestsRepository();
-        ShellExecutor shellExecutor = new ShellExecutor(Paths.get(scriptsLocation));
-        boolean status = true;
-
-        Map<String, String> environment = new HashMap<>();
-        for (Host host : deploymentCreationResult.getHosts()) {
-            environment.put(host.getLabel(), host.getIp());
-        }
-
-        if (testPlan.getScenarioConfig().getScripts() != null
-                && testPlan.getScenarioConfig().getScripts().size() > 0) {
-            for (Script script : testPlan.getScenarioConfig().getScripts()) {
-                if (Script.Phase.DESTROY.equals(script.getPhase())) {
-                    try {
-                        int exitCode = shellExecutor.executeCommand("sh " + script.getFile(), environment);
-                        if (exitCode > 0) {
-                            status = false;
-                            logger.error(StringUtil.concatStrings(
-                                    "Error while executing ", script.getFile(),
-                                    ". Script exited with a non-zero exit code (exit code = ", exitCode, ")"));
-                        }
-                    } catch (Exception e) {
-                        status = false;
-                        logger.error("Error while executing " + script.getFile(), e);
-                    }
-                    break;
-                }
-            }
-        }
-        return status;
-    }
-
-    /**
      * Run all the scenarios mentioned in the testgrid.yaml.
      *
      * @param testPlan                 the test plan
      * @param deploymentCreationResult the result of the previous build step
      */
-    public void runScenarioTests(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult) {
-        logger.info("");
-        printSeparator(LINE_LENGTH);
-        logger.info("\t\t Executing tests");
-        printSeparator(LINE_LENGTH);
-        logger.info("");
+    public void runScenarioTests(TestPlan testPlan, DeploymentCreationResult deploymentCreationResult)
+            throws TestPlanExecutorException {
 
-        // Run init.sh in scenario repository
-        boolean status = runPreScenariosScripts(testPlan, deploymentCreationResult);
+        for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+            try {
+                scenarioConfig.setTestPlan(testPlan);
+                TestExecutor testExecutor = TestExecutorFactory.getTestExecutor(
+                        TestEngine.valueOf(scenarioConfig.getTestType()));
 
-        if (status) {
-            /* Set dir for scenarios from values matched from test-plan yaml file */
-            for (TestScenario testScenario : testPlan.getScenarioConfig().getScenarios()) {
-                for (TestScenario testScenario1 : testPlan.getTestScenarios()) {
-                    if (testScenario.getName().equals(testScenario1.getName())) {
-                        testScenario1.setDir(testScenario.getDir());
+                Path scenarioDir = Paths.get(testPlan.getScenarioTestsRepository(), scenarioConfig.getFile());
+                if (scenarioDir !=  null) {
+                    Path parent = scenarioDir.getParent();
+                    Path file = scenarioDir.getFileName();
+                    if (parent == null) {
+                        parent = Paths.get("");
                     }
+                    if (file == null) {
+                        file = Paths.get("test.sh");
+                    }
+                    testExecutor.init(parent.toString(), scenarioConfig.getName(), scenarioConfig);
+                    testExecutor.execute(file.toString(), deploymentCreationResult);
                 }
+
+
+            } catch (TestAutomationException e) {
+                throw new TestPlanExecutorException("Error while getting test executor for " +
+                        scenarioConfig.getTestType());
             }
-
-            List<ConfigChangeSet> configChangeSetList = testPlan.getScenarioConfig().getConfigChangeSets();
-            // Run test with config change sets
-            if (configChangeSetList != null) {
-                OSCategory osCategory = getOSCatagory(testPlan.getInfraParameters());
-                Optional<ConfigChangeSetExecutor> configChangeSetExecutor =
-                        ConfigChangeSetFactory.getExecutor(osCategory);
-                if (configChangeSetExecutor.isPresent()) {
-                    // Initialize config set repos on agent
-                    boolean initConfigChangeSetSuccess = false;
-                    // retry till initialization success
-                    for (int retryCount = 0; retryCount <= CONFIG_CHANGE_SET_RETRY_COUNT; retryCount++) {
-                        if (configChangeSetExecutor.get().initConfigChangeSet(testPlan)) {
-                            initConfigChangeSetSuccess = true;
-                            break;
-                        }
-                        configChangeSetExecutor.get().deInitConfigChangeSet(testPlan);
-                    }
-                    if (initConfigChangeSetSuccess) {
-                        for (ConfigChangeSet configChangeSet : configChangeSetList) {
-                            logger.info("Start running config change set for " + configChangeSet.getName());
-                            // Apply config change set script on agent
-                            boolean applyConfigChangeSetSuccess = false;
-                            // Retry untill it get success
-                            for (int applyConfigRetryCount = 0; applyConfigRetryCount <= CONFIG_CHANGE_SET_RETRY_COUNT;
-                                 applyConfigRetryCount++) {
-                                if (configChangeSetExecutor.get().applyConfigChangeSet(testPlan, configChangeSet,
-                                        deploymentCreationResult)) {
-                                    applyConfigChangeSetSuccess = true;
-                                    break;
-                                }
-                                configChangeSetExecutor.get().revertConfigChangeSet(testPlan, configChangeSet,
-                                        deploymentCreationResult);
-                            }
-                            if (applyConfigChangeSetSuccess) {
-                                // Run test scenarios for relevant config change set
-                                for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                                    if (configChangeSet.getName().equals(testScenario.getConfigChangeSetName())) {
-                                        executeTestScenario(testScenario, deploymentCreationResult, testPlan);
-                                    }
-                                }
-                                // Revert config change set after running test scenarios
-                                // If revert back is not success then, break all test scenarios running
-                                if (!configChangeSetExecutor.get().revertConfigChangeSet(testPlan, configChangeSet,
-                                        deploymentCreationResult)) {
-                                    logger.info("Config change set revert script execution failed for " +
-                                            configChangeSet.getName() + ". Abort running test scenarios");
-                                    break;
-                                }
-                            } else {
-                                logger.warn("Unable to apply config change set " + configChangeSet.getName() +
-                                        " on test plan " + testPlan.getId());
-                            }
-                        }
-                        // Remove config set repos on agent
-                        configChangeSetExecutor.get().deInitConfigChangeSet(testPlan);
-                    }
-                } else {
-                    logger.error("Unable to find a Tinker Executor for OS category " + osCategory +
-                            " for test plan id " + testPlan.getId() + testPlan.getInfraParameters());
-                }
-            } else {
-                // Run test without config change set
-                for (TestScenario testScenario : testPlan.getTestScenarios()) {
-                    executeTestScenario(testScenario, deploymentCreationResult, testPlan);
-                }
-            }
-            // Run cleanup.sh in scenario repository
-            runPostScenariosScripts(testPlan, deploymentCreationResult);
-        } else {
-            logger.error(StringUtil.concatStrings("[ERROR] error occurred while executing init script. Aborted " +
-                    "scenario test execution for infra combination : ", testPlan.getInfraParameters()));
+        }
+        List<TestScenario> testScenarios = new ArrayList<>();
+        testPlan.setTestScenarios(testScenarios);
+        for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+            populateScenariosList(testPlan, scenarioConfig);
         }
 
-        // Move deployment.properties out of data bucket to avoid getting uploaded to S3.
-        logger.info("Moving deployment.properties from data bucket");
-        Path deplOutFilePath = DataBucketsHelper.getOutputLocation(testPlan)
-                .resolve(DataBucketsHelper.DEPL_OUT_FILE);
-        File deplOutputFile = deplOutFilePath.toFile();
-        if (!deplOutputFile.renameTo(new File(Paths.get(testPlan.getWorkspace(),
-                DataBucketsHelper.DEPL_OUT_FILE).toString()))) {
-            logger.error("Error while moving " + deplOutFilePath);
+        for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+            for (TestScenario testScenario : scenarioConfig.getScenarios()) {
+                populateTestCases(testPlan, testScenario, scenarioConfig);
+                try {
+                    persistTestScenario(testScenario);
+                } catch (TestPlanExecutorException e) {
+                    logger.error(StringUtil.concatStrings(
+                            "Error occurred while persisting test scenario ", testScenario.getName()), e);
+                }
+            }
+            persistScenarioConfig(scenarioConfig);
         }
 
     }
 
     /**
-     * Execute given test scenario.
-     *
-     * @param testScenario the test scenario
-     * @param deploymentCreationResult the result of the previous build step
-     * @param testPlan the test plan
+     * This method will populate test cases of a give test scenario
+     * @param testPlan          testplan
+     * @param testScenario      scenario of which tests needs to be identified
+     * @param scenarioConfig    scenario config of the test scenario
      */
-    private void executeTestScenario(TestScenario testScenario, DeploymentCreationResult deploymentCreationResult,
-                                     TestPlan testPlan) {
-        try {
-            logger.info("\n--- Executing test: " + testScenario.getName());
-
-            scenarioExecutor.execute(testScenario, deploymentCreationResult, testPlan);
-            Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario);
-            if (parser.isPresent()) {
-                try {
-                    ResultParser resultParser = parser.get();
-                    resultParser.parseResults();
-                    resultParser.archiveResults();
-                } catch (ResultParserException e) {
-                    logger.error("Error parsing the results for the scenario " + testScenario.getName(), e);
-                }
-            } else {
-                testScenario.setStatus(Status.ERROR);
-                logger.error("Error parsing the results for the scenario " + testScenario.getName());
+    private void populateTestCases(TestPlan testPlan, TestScenario testScenario, ScenarioConfig scenarioConfig) {
+        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
+        if (parser.isPresent()) {
+            try {
+                ResultParser resultParser = parser.get();
+                resultParser.parseResults();
+                resultParser.archiveResults();
+            } catch (ResultParserException e) {
+                logger.error("Error parsing the results for the scenario " + testScenario.getName(), e);
             }
-        } catch (ScenarioExecutorException e) {
-            // we need to continue the rest of the tests irrespective of the exception thrown here.
-            logger.error(StringUtil.concatStrings("Error occurred while executing the SolutionPattern '",
-                    testScenario.getName(), "' in TestPlan\nCaused by "), e);
+        } else {
+            testScenario.setStatus(Status.ERROR);
+            logger.error("Error parsing the results for the scenario no parser " + testScenario.getName());
         }
-        try {
-            persistTestScenario(testScenario);
-        } catch (TestPlanExecutorException e) {
-            logger.error(StringUtil.concatStrings(
-                    "Error occurred while persisting test scenario ", testScenario.getName()), e);
+    }
+
+    /**
+     * This method will find the test scenarios fir a given scenario config
+     * @param testPlan          testplan
+     * @param scenarioConfig    scenarioConfig for which tests need to be identified
+     * @throws TestPlanExecutorException
+     */
+    private void populateScenariosList(TestPlan testPlan, ScenarioConfig scenarioConfig) throws
+            TestPlanExecutorException {
+
+        Path dataBucket = Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(),
+                "test-outputs", "scenarios", scenarioConfig.getOutputDir());
+        File[] directories = new File(dataBucket.toString()).listFiles(File::isDirectory);
+
+        if (directories != null) {
+            for (File scenario : directories) {
+                appendScenario(testPlan, scenario.getName(), scenarioConfig);
+            }
+        } else {
+            //testPlan.setStatus(Status.FAIL);
+            logger.error("No scenarios found in " + dataBucket + " for Scenario Config " + scenarioConfig.getName() +
+                    " in testplan " + testPlan.getId());
         }
+
+        logger.info("--------- Identified Scenarios ---------------------");
+        for (TestScenario scenario : scenarioConfig.getScenarios()) {
+            logger.info(scenario.getName());
+        }
+        logger.info("-------------------------------------------------");
+    }
+
+    /**
+     * Append a test scenario to the testplan
+     * @param testPlan          testplan
+     * @param scenarioName      name of the new scenario
+     * @param scenarioConfig    scenario config which is associated with scenario
+     */
+    private void appendScenario(TestPlan testPlan, String scenarioName, ScenarioConfig scenarioConfig) {
+        List<TestScenario> testScenarios = testPlan.getTestScenarios();
+        List<TestScenario> testScenariosOfConfig = scenarioConfig.getScenarios();
+        TestScenario newScenario = new TestScenario();
+        newScenario.setStatus(Status.RUNNING);
+        newScenario.setName(scenarioName);
+        newScenario.setTestPlan(testPlan);
+        newScenario.setIsPostScriptSuccessful(false);
+        newScenario.setIsPreScriptSuccessful(false);
+        newScenario.setConfigChangeSetName("default");
+        newScenario.setDescription(scenarioName);
+        newScenario.setConfigChangeSetDescription(scenarioName);
+        newScenario.setDir(scenarioConfig.getDir());
+        newScenario.setOutputDir(scenarioConfig.getOutputDir());
+        testScenarios.add(newScenario);
+        testScenariosOfConfig.add(newScenario);
+        testPlan.setTestScenarios(testScenarios);
+        scenarioConfig.setScenarios(testScenariosOfConfig);
+
     }
 
     /**
@@ -754,6 +658,19 @@ public class TestPlanExecutor {
                     }
                 }
             }
+            for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+                if (scenarioConfig.getStatus() != Status.SUCCESS) {
+                    isSuccess = false;
+                    if (scenarioConfig.getStatus() == Status.FAIL) {
+                        testPlan.setStatus(Status.FAIL);
+                        isSuccess = false;
+                        break;
+                    } else if (scenarioConfig.getStatus() == Status.ERROR) {
+                        testPlan.setStatus(Status.ERROR);
+                        isSuccess = false;
+                    }
+                }
+            }
             if (isSuccess) {
                 testPlan.setStatus(Status.SUCCESS);
             }
@@ -779,6 +696,31 @@ public class TestPlanExecutor {
     }
 
     /**
+     * Persists the scenario config.
+     *
+     * @param scenarioConfig ScenarioConfig object to persist
+     */
+    private void persistScenarioConfig(ScenarioConfig scenarioConfig) {
+        //Persist test scenario
+        if (scenarioConfig.getScenarios().isEmpty()) {
+            scenarioConfig.setStatus(Status.FAIL);
+        } else {
+            for (TestScenario testScenario : scenarioConfig.getScenarios()) {
+                if (Status.FAIL.equals(testScenario.getStatus())) {
+                    scenarioConfig.setStatus(Status.FAIL);
+                    break;
+                } else if (Status.ERROR.equals(testScenario.getStatus())) {
+                    scenarioConfig.setStatus(Status.ERROR);
+                    break;
+                } else {
+                    scenarioConfig.setStatus(Status.SUCCESS);
+                }
+            }
+        }
+
+    }
+
+    /**
      * Persists the test scenario.
      *
      * @param testScenario TestScenario object to persist
@@ -798,6 +740,7 @@ public class TestPlanExecutor {
                     }
                 }
             }
+
             testScenarioUOW.persistTestScenario(testScenario);
             if (logger.isDebugEnabled()) {
                 logger.debug(StringUtil.concatStrings(
