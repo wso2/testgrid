@@ -23,10 +23,10 @@ import org.glassfish.jersey.client.ChunkedInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.agentoperation.OperationSegment;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Calendar;
@@ -107,7 +107,7 @@ public class ScriptExecutorThread implements Runnable {
                 concatStrings(this.operationId, "_", Integer.toString(segmentId), ".txt")).toString();
         try {
             FileUtil.saveFile(operationSegment.getResponse(), fileToWrite, false);
-        } catch (TestGridException e) {
+        } catch (IOException e) {
             logger.error("Unable write data into a file for operation id " + operationSegment.getOperationId(), e);
         }
     }

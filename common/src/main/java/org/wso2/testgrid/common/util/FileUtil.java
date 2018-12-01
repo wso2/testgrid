@@ -90,16 +90,16 @@ public class FileUtil {
      * @param directory the directory in which the files should be look-up
      * @param glob      the glob pattern to be filtered
      * @return list of files
-     * @throws TestGridException thrown when an error occurred while accessing files on directory.
+     * @throws IOException thrown when an error occurred while accessing files on directory.
      */
-    public static List<String> getFilesOnDirectory(String directory, String glob) throws TestGridException {
+    public static List<String> getFilesOnDirectory(String directory, String glob) throws IOException {
         List<String> files = new ArrayList<>();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(directory), glob)) {
             for (Path entry : stream) {
                 files.add(entry.toString());
             }
         } catch (IOException e) {
-            throw new TestGridException("Error occurred while getting files on directory + " + directory, e);
+            throw new IOException("Error occurred while getting files on directory + " + directory, e);
         }
         return files;
     }
@@ -111,10 +111,10 @@ public class FileUtil {
      * @param filePath location to save the file
      * @param fileName name of the file
      * @param append   true if append, false if overwrite
-     * @throws TestGridException thrown when error on persisting file
+     * @throws IOException thrown when error on persisting file
      */
     public static void saveFile(String content, String filePath, String fileName, boolean append)
-            throws TestGridException {
+            throws IOException {
         String fileAbsolutePath = Paths.get(filePath, fileName).toAbsolutePath().toString();
         saveFile(content, fileAbsolutePath, append);
     }
@@ -125,14 +125,14 @@ public class FileUtil {
      * @param content       The content to save into file
      * @param filePath      Whole file path to write
      * @param append        true if append, false if overwrite
-     * @throws TestGridException    thrown when error on persisting file
+     * @throws IOException    thrown when error on persisting file
      */
-    public static void saveFile(String content, String filePath, boolean append) throws TestGridException {
+    public static void saveFile(String content, String filePath, boolean append) throws IOException {
         try (OutputStream outputStream = new FileOutputStream(filePath, append);
              OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
             outputStreamWriter.write(content);
         } catch (IOException e) {
-            throw new TestGridException(StringUtil.concatStrings("Error while writing data to a file ",
+            throw new IOException(StringUtil.concatStrings("Error while writing data to a file ",
                     filePath), e);
         }
     }

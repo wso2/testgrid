@@ -34,7 +34,6 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.core.exception.ScenarioExecutorException;
@@ -57,7 +56,6 @@ import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.FILE_SEPARATOR;
 import static org.wso2.testgrid.common.TestGridConstants.JMETER_FILE_FILTER_PATTERN;
-import static org.wso2.testgrid.common.TestGridConstants.JMETER_FOLDER;
 import static org.wso2.testgrid.common.TestGridConstants.RUN_SCENARIO_SCRIPT;
 import static org.wso2.testgrid.common.TestGridConstants.RUN_SCENARIO_SCRIPT_TEMPLATE;
 import static org.wso2.testgrid.common.TestGridConstants.SHELL_SUFFIX;
@@ -108,8 +106,11 @@ public class ScenarioExecutor {
             testScenario.getTestPlan().setWorkspace(testPlan.getWorkspace());
 
             // Create run-scenario.sh file if it's missing.
-            if (!(Files.exists(Paths.get(testPlan.getScenarioTestsRepository(), scenarioDir, RUN_SCENARIO_SCRIPT)) ||
-                    Files.exists(Paths.get(testPlan.getScenarioTestsRepository(), scenarioDir, TEST_SCRIPT)))) {
+            final Path scenarioDirPath = Paths.get(testPlan.getScenarioTestsRepository(), scenarioDir);
+            if (!(Files.exists(scenarioDirPath.resolve(RUN_SCENARIO_SCRIPT)) ||
+                    Files.exists((scenarioDirPath.resolve(TEST_SCRIPT))))) {
+                logger.info("test.sh nor run-scenario.sh found in " + scenarioDirPath + ". Attempting to create a "
+                        + "default shell script...");
                 createRunScenarioScript(homeDir + FILE_SEPARATOR + scenarioDir);
             }
 
@@ -135,13 +136,14 @@ public class ScenarioExecutor {
     private void createRunScenarioScript(String directory) throws ScenarioExecutorException {
         try {
             List<String> files = FileUtil.getFilesOnDirectory(
-                    directory + FILE_SEPARATOR + JMETER_FOLDER, JMETER_FILE_FILTER_PATTERN);
+                    directory + FILE_SEPARATOR , JMETER_FILE_FILTER_PATTERN);
             files.sort(Comparator.naturalOrder());
             FileUtil.saveFile(prepareScriptContent(files), directory, "run-scenario.sh", false);
-        } catch (TestGridException e) {
+        } catch (IOException e) {
+            logger.debug(e.getMessage(), e);
             throw new ScenarioExecutorException(StringUtil
-                    .concatStrings("Exception occurred while creating run-scenario.sh file in directory ",
-                            directory), e);
+                    .concatStrings("Exception occurred while creating run-scenario.sh/test.sh file in directory ",
+                            directory + ". " + e.getMessage()));
         }
     }
 

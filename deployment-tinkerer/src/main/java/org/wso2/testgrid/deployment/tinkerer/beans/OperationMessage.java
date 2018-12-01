@@ -258,7 +258,7 @@ public class OperationMessage {
             this.lastUpdatedTime = Calendar.getInstance().getTimeInMillis();;
             this.contentLength = 0;
             this.persisted = true;
-        } catch (TestGridException e) {
+        } catch (IOException e) {
             logger.error("Unable persist data into a file for operation id " + this.operationId, e);
             return false;
         }

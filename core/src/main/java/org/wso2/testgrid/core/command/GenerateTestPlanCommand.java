@@ -34,7 +34,6 @@ import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
-import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
@@ -227,7 +226,7 @@ public class GenerateTestPlanCommand implements Command {
             output = output.replaceAll("!!", "#");
             try {
                 FileUtil.saveFile(output, infraGenDirectory, fileName, false);
-            } catch (TestGridException e) {
+            } catch (IOException e) {
                 throw new CommandExecutionException("Error while saving Testgrid yaml file.", e);
             }
 
