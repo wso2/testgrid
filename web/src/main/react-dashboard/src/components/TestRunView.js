@@ -314,7 +314,8 @@ class TestRunView extends Component {
                       .then(response => {
                         if (response.status !== HTTP_OK) {
                           this.toggle("Error on downloading log file...");
-                          document.getElementById('logConsole').style.display = "none";
+                          if (document.getElementById('logConsole') !== null)
+                            document.getElementById('logConsole').style.display = "none"
                         } else {
                           window.open(logAllContentUrl, '_blank', false);
                         }

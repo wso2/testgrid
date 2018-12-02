@@ -83,7 +83,7 @@ class App extends Component {
               left: '0px',
               backgroundColor: '#EEEEEE'
             }}>
-              <AppBar title=" WSO2 TestGrid " style={{
+              <AppBar title=" WSO2 TestGrid " className="App-title" style={{
                 backgroundColor: '#424242', position: 'fixed'
               }}
                       iconElementLeft={<IconButton onClick={this.handleClose}>{this.state.open ? <NavigationBack/> :
@@ -97,7 +97,7 @@ class App extends Component {
                   <Route exact path={'/login'} component={Login}/>
                   <Route exact path={'/'} component={ProductContainer}/>
                   <Route exact path={'/:productName'} component={DeploymentContainer}/>
-                  <Route exact path={'/:productName/:deploymentPatternName/:testPlanId/infra'}
+                  <Route exact path={'/:productName/:deploymentPatternName/test-plans/:testPlanId/history'}
                          component={InfrastructureContainer}/>
                   <Route exact path={'/scenarios/infrastructure/:infraid'} component={ScenarioContainer}/>
                   <Route exact path={'/testcases/scenario/:scenarioid'} component={TestCaseContainer}/>
