@@ -46,6 +46,15 @@ import java.util.TreeSet;
 public class InfrastructureCombinationsProviderTest {
 
     private static final Logger logger = LoggerFactory.getLogger(InfrastructureCombinationsProviderTest.class);
+    private final String dbEnginePropKey = "DBEngine";
+    private final String dbEngineVersionPropKey = "DBEngineVersion";
+    private final String osPropKey = "OS";
+    private final String jdkPropKey = "JDK";
+
+    private final String dbEnginePropVal = "mysql";
+    private final String dbEngineVersionPropVal = "5.7";
+    private final String osPropVal = "UBUNTU";
+    private final String jdkPropVal = "ORACLE_JDK8";
 
     @BeforeTest
     public void init() {
@@ -78,7 +87,7 @@ public class InfrastructureCombinationsProviderTest {
         logger.info("Generated infrastructure combinations: " + combinations);
         Assert.assertEquals(combinations.size(), 2, "There must be two infrastructure combinations.");
         for (InfrastructureCombination combination : combinations) {
-            Assert.assertEquals(combination.getParameters().size(), 5, "Combination contains more than three "
+            Assert.assertEquals(combination.getParameters().size(), 4, "Combination contains more than three "
                     + "infrastructure parameters: " + combination);
         }
 
@@ -92,44 +101,27 @@ public class InfrastructureCombinationsProviderTest {
         for (InfrastructureCombination combination : combinations) {
             //check os
             boolean osExists = combination.getParameters().removeIf(param ->
-                    param.getName().equals(operatingSystems.get(0)) &&
-                            param.getType().equals(DefaultInfrastructureTypes.OPERATING_SYSTEM));
-            if (!osExists && operatingSystems.size() == 2) {
-                osExists = combination.getParameters().removeIf(param ->
-                        param.getName().equals(operatingSystems.get(1)) &&
-                                param.getType().equals(DefaultInfrastructureTypes.OPERATING_SYSTEM));
-                Assert.assertTrue(osExists, StringUtil.concatStrings(operatingSystems.get(0), " nor ",
+                    param.getName().equals(osPropVal) &&
+                            param.getType().equals(osPropKey));
+            Assert.assertTrue(osExists, StringUtil.concatStrings(operatingSystems.get(0), " nor ",
                         operatingSystems.get(1), " does not exist in the combination: ", combination));
-                operatingSystems.remove(1);
-            } else if (!osExists) {
-                Assert.fail(StringUtil
-                        .concatStrings(operatingSystems.get(0), " was not found in the combinations: ", combinations));
-            } else {
-                operatingSystems.remove(0);
-            }
-
-            //check db
-            boolean dbExists = combination.getParameters().removeIf(param ->
-                    param.getName().equals(dbValueSet.getValues().iterator().next().getName()) &&
-                            param.getType().equals(DefaultInfrastructureTypes.DATABASE));
-            Assert.assertTrue(dbExists, "DB does not exist in the combination: " + combination);
 
             //check db property - dbengine
             boolean dbEngineExists = combination.getParameters().removeIf(param ->
-                    param.getName().equals("mysql") && param.getType().equals("DBEngine"));
+                    param.getName().equals(dbEnginePropVal) && param.getType().equals(dbEnginePropKey));
             Assert.assertTrue(dbEngineExists, "DBEngine property of database1 has not got added as a "
                     + "InfrastructureParameter. The infrastructure combination: " + combination);
 
             //check db property - dbengineversion
             boolean dbEngineVersionExists = combination.getParameters().removeIf(param ->
-                    param.getName().equals("5.7") && param.getType().equals("DBEngineVersion"));
+                    param.getName().equals(dbEngineVersionPropVal) && param.getType().equals(dbEngineVersionPropKey));
             Assert.assertTrue(dbEngineVersionExists, "DBEngineVersion property of database1 has not got added as a "
                     + "InfrastructureParameter. The infrastructure combination: " + combination);
 
             //check jdk
             boolean jdkExists = combination.getParameters().removeIf(param ->
-                    param.getName().equals(jdkValueSet.getValues().iterator().next().getName()) &&
-                            param.getType().equals(DefaultInfrastructureTypes.JDK));
+                    param.getName().equals(jdkPropVal) &&
+                            param.getType().equals(jdkPropKey));
             Assert.assertTrue(jdkExists, "JDK does not exist in the combination: " + combination);
 
             Assert.assertEquals(combination.getParameters().size(), 0);
@@ -140,11 +132,25 @@ public class InfrastructureCombinationsProviderTest {
     private Set<InfrastructureParameter> createInfrastructureParameterSet(String type, int count) throws IOException {
         Set<InfrastructureParameter> params = new TreeSet<>();
         String propertiesStr = "";
+        Properties properties;
+        StringWriter propWriter;
         if (type.equals(DefaultInfrastructureTypes.DATABASE)) {
-            Properties properties = new Properties();
-            properties.setProperty("DBEngine", "mysql");
-            properties.setProperty("DBEngineVersion", "5.7");
-            StringWriter propWriter = new StringWriter();
+            properties = new Properties();
+            properties.setProperty(dbEnginePropKey, dbEnginePropVal);
+            properties.setProperty(dbEngineVersionPropKey, dbEngineVersionPropVal);
+            propWriter = new StringWriter();
+            properties.store(propWriter, "");
+            propertiesStr = propWriter.toString();
+        } else if (type.equals(DefaultInfrastructureTypes.OPERATING_SYSTEM)) {
+            properties = new Properties();
+            properties.setProperty(osPropKey, osPropVal);
+            propWriter = new StringWriter();
+            properties.store(propWriter, "");
+            propertiesStr = propWriter.toString();
+        } else if (type.equals(DefaultInfrastructureTypes.JDK)) {
+            properties = new Properties();
+            properties.setProperty(jdkPropKey, jdkPropVal);
+            propWriter = new StringWriter();
             properties.store(propWriter, "");
             propertiesStr = propWriter.toString();
         }

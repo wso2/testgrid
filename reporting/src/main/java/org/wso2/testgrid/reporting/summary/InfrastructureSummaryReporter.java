@@ -118,15 +118,15 @@ public class InfrastructureSummaryReporter {
         }
 
         if (allSuccessInfrasFound) {
+            final Set<InfrastructureValueSet> infraValueSet = infrastructureParameterUOW.getValueSet();
             List<TestPlan> testPlansWithoutAllSuccessInfra = testPlans.stream()
                     .filter(tp -> infraBuildStatus.getSuccessInfra().stream()
                             .noneMatch(sip -> {
                                 final Map<String, String> infraParamsStr = TestGridUtil
-                                        .parseInfraParametersString(tp.getInfraParameters());
-                                final InfrastructureParameter oneSubInfraParam = sip
-                                        .getProcessedSubInfrastructureParameters().get(0);
-                                final String s = infraParamsStr.get(oneSubInfraParam.getType());
-                                return s != null && s.equals(oneSubInfraParam.getName());
+                                        .getInfraParamsOfTestPlan(infraValueSet, tp).stream().collect(Collectors.toMap(
+                                                InfrastructureParameter::getType, InfrastructureParameter::getName));
+                                final String s = infraParamsStr.get(sip.getType());
+                                return s.equals(sip.getName());
                             }))
                     .collect(Collectors.toList());
             if (testPlansWithoutAllSuccessInfra.isEmpty()) {

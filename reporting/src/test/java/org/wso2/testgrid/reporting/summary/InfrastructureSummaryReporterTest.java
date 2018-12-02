@@ -70,7 +70,26 @@ public class InfrastructureSummaryReporterTest extends BaseClass {
             Assert.assertEquals(failedInfra.getName(), "CentOS",
                     "Could not detect the actual reason for test failures.");
 
+            // Verify failed infras of each test case
+            Assert.assertEquals(summaryTable.get("CentOS-PaginationCountTestCase")
+                    .getFailedInfra().size(), 1);
+            Assert.assertEquals(summaryTable.get("CentOS-PaginationCountTestCase")
+                    .getFailedInfra().get(0).get(0).getName(), "CentOS");
+
+            Assert.assertEquals(summaryTable.get("Oracle-APINameWithDifferentCaseTestCase").getFailedInfra().size(), 1);
+            Assert.assertEquals(summaryTable.get("Oracle-APINameWithDifferentCaseTestCase")
+                    .getFailedInfra().get(0).get(0).getName(), "Oracle");
+
+            Assert.assertEquals(summaryTable.get("Success-ESBJAVA3380TestCase").getFailedInfra().size(), 0);
+            Assert.assertEquals(summaryTable.get("CentOS-OPEN_JDK8-APIInvocationStatPublisherTestCase")
+                    .getFailedInfra().size(), 2);
+            for (List<InfrastructureParameter> infraParam : summaryTable.get("CentOS-PaginationCountTestCase")
+                    .getFailedInfra()) {
+                Assert.assertTrue(infraParam.get(0).getName().contains("CentOS")
+                        || infraParam.get(0).getName().contains("OPEN_JDK8"));
+            }
         }
+
     }
 
     @AfterMethod
