@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.sso.agent.SSOAgentConstants;
 import org.wso2.carbon.identity.sso.agent.SSOAgentException;
 import org.wso2.carbon.identity.sso.agent.bean.SSOAgentConfig;
 import org.wso2.carbon.identity.sso.agent.saml.SSOAgentX509Credential;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.web.api.SSOService;
 
@@ -45,6 +46,10 @@ public class SSOContextEventListener implements ServletContextListener {
      * {@link org.wso2.testgrid.web.utils.Constants#JKS_FILE_NAME} JKS file.
      */
     public void contextInitialized(ServletContextEvent servletContextEvent) {
+        String isSsoEnabled = ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ENABLE_SSO);
+        if (!Boolean.valueOf(isSsoEnabled)) {
+            return;
+        }
         SSOConfigurationReader ssoConfigurationReader = new SSOConfigurationReader();
         try {
             SSOAgentX509Credential credential = ssoConfigurationReader.getIdPX509Credential();
