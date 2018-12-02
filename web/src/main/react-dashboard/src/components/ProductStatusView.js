@@ -21,7 +21,8 @@ import '../App.css';
 import SingleRecord from './SingleRecord.js';
 import {add_current_product} from '../actions/testGridActions.js';
 import Moment from 'moment'
-import {HTTP_OK, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
+import {HTTP_OK, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI,
+  TESTGRID_CONTEXT, TESTGRID_API_CONTEXT} from '../constants.js';
 import {Button, Table, Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap';
 
 class ProductStatusView extends Component {
@@ -55,7 +56,7 @@ class ProductStatusView extends Component {
   }
 
   componentDidMount() {
-    var url = TESTGRID_CONTEXT + '/api/products/product-status';
+    var url = TESTGRID_API_CONTEXT + '/api/products/product-status';
     fetch(url, {
       method: "GET",
       credentials: 'same-origin',
@@ -77,7 +78,7 @@ class ProductStatusView extends Component {
   }
 
   downloadReport(productName) {
-    let url = TESTGRID_CONTEXT + '/api/products/reports?product-name=' + productName;
+    let url = TESTGRID_API_CONTEXT + '/api/products/reports?product-name=' + productName;
     fetch(url, {
       method: "HEAD",
       credentials: 'same-origin',

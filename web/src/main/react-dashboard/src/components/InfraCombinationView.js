@@ -23,8 +23,8 @@ import {add_current_infra, add_current_deployment} from '../actions/testGridActi
 import FlatButton from 'material-ui/FlatButton';
 import Divider from 'material-ui/Divider';
 import Moment from 'moment';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
-  from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, TESTGRID_API_CONTEXT,
+  DID_NOT_RUN, INCOMPLETE} from '../constants.js';
 import {Card, CardText, CardTitle, Col, Row, Table} from 'reactstrap';
 import ReactTooltip from 'react-tooltip'
 
@@ -70,7 +70,7 @@ class InfraCombinationView extends Component {
 
   componentDidMount() {
     let currentUrl = window.location.href.split("/");
-    let url = TESTGRID_CONTEXT + "/api/test-plans/history/" + currentUrl[currentUrl.length - 2];
+    let url = TESTGRID_API_CONTEXT + "/api/test-plans/history/" + currentUrl[currentUrl.length - 2];
     let currentInfra;
     fetch(url, {
       method: "GET",

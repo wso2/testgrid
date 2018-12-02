@@ -22,7 +22,7 @@ import SingleRecord from './SingleRecord.js';
 import {add_current_deployment, add_current_infra} from '../actions/testGridActions.js';
 import ReactTooltip from 'react-tooltip'
 import FlatButton from 'material-ui/FlatButton';
-import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
+import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, TESTGRID_API_CONTEXT} from '../constants.js';
 import {Table, Input, Alert} from 'reactstrap';
 import Moment from "moment/moment";
 
@@ -63,7 +63,7 @@ class DeploymentPatternView extends Component {
   componentDidMount() {
     let currentProduct = this.props.active.reducer.currentProduct;
     if (!currentProduct) {
-      let url = TESTGRID_CONTEXT + '/api/products/product-status/' + window.location.href.split("/").pop();
+      let url = TESTGRID_API_CONTEXT + '/api/products/product-status/' + window.location.href.split("/").pop();
       fetch(url, {
         method: "GET",
         credentials: 'same-origin',
@@ -86,7 +86,7 @@ class DeploymentPatternView extends Component {
   }
 
   getDeploymentDetails(currentProduct) {
-    let url = TESTGRID_CONTEXT + '/api/test-plans/product/' + currentProduct.productId;
+    let url = TESTGRID_API_CONTEXT + '/api/test-plans/product/' + currentProduct.productId;
     fetch(url, {
       method: "GET",
       credentials: 'same-origin',

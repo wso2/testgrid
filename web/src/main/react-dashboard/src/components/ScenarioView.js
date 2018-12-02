@@ -21,7 +21,7 @@ import '../App.css';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
 import {add_current_scenario} from '../actions/testGridActions.js';
-import {TESTGRID_CONTEXT, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
+import {TESTGRID_CONTEXT, TESTGRID_API_CONTEXT, HTTP_UNAUTHORIZED, LOGIN_URI} from '../constants.js';
 import {Table} from 'reactstrap';
 
 class ScenarioView extends Component {
@@ -49,7 +49,7 @@ class ScenarioView extends Component {
   }
 
   componentDidMount() {
-    var url = TESTGRID_CONTEXT + "/api/test-plans/" +
+    var url = TESTGRID_API_CONTEXT + "/api/test-plans/" +
       this.props.active.reducer.currentInfra.infrastructureId + "?require-test-scenario-info=true";
 
     fetch(url, {
