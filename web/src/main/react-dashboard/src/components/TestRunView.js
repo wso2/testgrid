@@ -24,8 +24,8 @@ import Divider from 'material-ui/Divider';
 import LinearProgress from 'material-ui/LinearProgress';
 import FlatButton from 'material-ui/FlatButton';
 import Snackbar from 'material-ui/Snackbar';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
-  from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI,
+  TESTGRID_API_CONTEXT, DID_NOT_RUN, INCOMPLETE} from '../constants.js';
 import {Button, Table, Card, CardText, CardTitle, Col, Row} from 'reactstrap';
 import InfraCombinationView from "./InfraCombinationView";
 import ReactTooltip from 'react-tooltip'
@@ -68,7 +68,7 @@ class TestRunView extends Component {
       this.setState({currentInfra: currentInfra});
       this.getGrafanaUrl(currentInfra.testPlanId);
     } else {
-      let url = TESTGRID_CONTEXT + "/api/test-plans/" + currentUrl.pop();
+      let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + currentUrl.pop();
       fetch(url, {
         method: "GET",
         credentials: 'same-origin',
@@ -94,8 +94,8 @@ class TestRunView extends Component {
   }
 
   getReportData(currentInfra) {
-    const testScenarioSummaryUrl = TESTGRID_CONTEXT + '/api/test-plans/test-summary/' + currentInfra.testPlanId;
-    const logTruncatedContentUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' + currentInfra.testPlanId
+    const testScenarioSummaryUrl = TESTGRID_API_CONTEXT + '/api/test-plans/test-summary/' + currentInfra.testPlanId;
+    const logTruncatedContentUrl = TESTGRID_API_CONTEXT + '/api/test-plans/log/' + currentInfra.testPlanId
       + "?truncate=" + true;
 
     fetch(testScenarioSummaryUrl, {
@@ -164,7 +164,7 @@ class TestRunView extends Component {
   }
 
   downloadScenarioResult(scenarioId) {
-    let url = TESTGRID_CONTEXT + '/api/test-plans/result/' + this.state.currentInfra.testPlanId + "/" + scenarioId;
+    let url = TESTGRID_API_CONTEXT + '/api/test-plans/result/' + this.state.currentInfra.testPlanId + "/" + scenarioId;
     fetch(url, {
       method: "GET",
       credentials: 'same-origin',
@@ -185,7 +185,7 @@ class TestRunView extends Component {
   }
 
   downloadTestOutputs(scenarioId) {
-    let url = TESTGRID_CONTEXT + '/api/test-plans/result/' + this.state.currentInfra.testPlanId;
+    let url = TESTGRID_API_CONTEXT + '/api/test-plans/result/' + this.state.currentInfra.testPlanId;
     fetch(url, {
       method: "GET",
       credentials: 'same-origin',
@@ -206,7 +206,7 @@ class TestRunView extends Component {
   }
 
   checkIfTestRunLogExists() {
-    const path = TESTGRID_CONTEXT + '/api/test-plans/log/' + window.location.href.split("/").pop() +
+    const path = TESTGRID_API_CONTEXT + '/api/test-plans/log/' + window.location.href.split("/").pop() +
       "?truncate=" + true;
     fetch(path, {
       method: "HEAD",
@@ -222,7 +222,7 @@ class TestRunView extends Component {
   }
 
   async getGrafanaUrl(testid){
-    const grafanaUrl = TESTGRID_CONTEXT + '/api/test-plans/perf-url/' + testid;
+    const grafanaUrl = TESTGRID_API_CONTEXT + '/api/test-plans/perf-url/' + testid;
     const fetchResult = fetch(grafanaUrl, {
                             method: "GET",
                             credentials: 'same-origin',
@@ -241,7 +241,7 @@ class TestRunView extends Component {
     var pageURL = window.location.href;
     const PERFDASH_URL = this.state.grafanaUrl
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
-    const logUrl = TESTGRID_CONTEXT + '/api/test-plans/log/' + pageURL.split("/").pop() + "?truncate=";
+    const logUrl = TESTGRID_API_CONTEXT + '/api/test-plans/log/' + pageURL.split("/").pop() + "?truncate=";
     const logAllContentUrl = logUrl + false;
     const turncatedRunLogUrl = logUrl + true;
 
@@ -314,7 +314,8 @@ class TestRunView extends Component {
                       .then(response => {
                         if (response.status !== HTTP_OK) {
                           this.toggle("Error on downloading log file...");
-                          document.getElementById('logConsole').style.display = "none";
+                          if (document.getElementById('logConsole') !== null)
+                            document.getElementById('logConsole').style.display = "none"
                         } else {
                           window.open(logAllContentUrl, '_blank', false);
                         }

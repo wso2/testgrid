@@ -23,8 +23,8 @@ import {add_current_infra, add_current_deployment} from '../actions/testGridActi
 import FlatButton from 'material-ui/FlatButton';
 import Divider from 'material-ui/Divider';
 import Moment from 'moment';
-import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, DID_NOT_RUN, INCOMPLETE}
-  from '../constants.js';
+import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT, TESTGRID_API_CONTEXT,
+  DID_NOT_RUN, INCOMPLETE} from '../constants.js';
 import {Card, CardText, CardTitle, Col, Row, Table} from 'reactstrap';
 import ReactTooltip from 'react-tooltip'
 
@@ -69,8 +69,7 @@ class InfraCombinationView extends Component {
   }
 
   componentDidMount() {
-    let currentUrl = window.location.href.split("/");
-    let url = TESTGRID_CONTEXT + "/api/test-plans/history/" + currentUrl[currentUrl.length - 2];
+    let url = TESTGRID_API_CONTEXT + "/api/test-plans/history/" + this.props.match.params.testPlanId;
     let currentInfra;
     fetch(url, {
       method: "GET",
@@ -84,7 +83,6 @@ class InfraCombinationView extends Component {
         return response.json()
       })
       .then(data => {
-        let currentUrl = window.location.href.split("/");
         if (this.props.active.reducer.currentInfra && this.props.active.reducer.currentInfra.testPlanId === data[0].id) {
           currentInfra = this.props.active.reducer.currentInfra;
         } else {
@@ -94,8 +92,8 @@ class InfraCombinationView extends Component {
           currentInfra.testPlanStatus = data[0].status;
           this.props.active.reducer.currentInfra = currentInfra;
         }
-        currentInfra.relatedProduct = currentUrl[currentUrl.length - 4];
-        currentInfra.relatedDeplymentPattern = currentUrl[currentUrl.length - 3];
+        currentInfra.relatedProduct = this.props.match.params.productName;
+        currentInfra.relatedDeplymentPattern = this.props.match.params.deploymentPatternName;
         this.setState({hits: data, currentInfra: currentInfra});
       })
       .catch(error => console.error(error));

@@ -20,7 +20,7 @@ import React, {Component} from 'react';
 import '../App.css';
 import Subheader from 'material-ui/Subheader';
 import SingleRecord from './SingleRecord.js';
-import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_CONTEXT} from '../constants.js';
+import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_API_CONTEXT} from '../constants.js';
 import {Table} from 'reactstrap';
 
 class TestCaseView extends Component {
@@ -43,7 +43,7 @@ class TestCaseView extends Component {
   }
 
   componentDidMount() {
-    var url = TESTGRID_CONTEXT + '/api/test-scenarios/' + this.props.active.reducer.currentScenario.scenarioId;
+    var url = TESTGRID_API_CONTEXT + '/api/test-scenarios/' + this.props.active.reducer.currentScenario.scenarioId;
 
     fetch(url, {
       method: "GET",

@@ -26,15 +26,12 @@ import TestCaseContainer from './containers/TestCaseContainer.js';
 import DeploymentContainer from './containers/deploymentContainer.js';
 import testRunContainer from './containers/testRunContainer.js';
 import Login from './components/Login.js'
-import {
-  Route,
-  Switch
-} from 'react-router-dom';
+import {Route, Switch} from 'react-router-dom';
 import AppBar from 'material-ui/AppBar';
 import {createStore} from 'redux';
 import {Provider} from 'react-redux';
 import testGrid from './reducers/testGrid.js';
-import {persistStore, persistCombineReducers} from 'redux-persist';
+import {persistCombineReducers, persistStore} from 'redux-persist';
 import {PersistGate} from 'redux-persist/es/integration/react';
 import storage from 'redux-persist/lib/storage/session';
 import Drawer from 'material-ui/Drawer';
@@ -43,6 +40,7 @@ import IconButton from 'material-ui/IconButton';
 import NavigationBack from 'material-ui/svg-icons/navigation/chevron-left';
 import NevigationExpand from 'material-ui/svg-icons/navigation/menu';
 import Paper from 'material-ui/Paper';
+import {TESTGRID_CONTEXT} from "./constants";
 
 const config = {
   key: 'root',
@@ -83,21 +81,26 @@ class App extends Component {
               left: '0px',
               backgroundColor: '#EEEEEE'
             }}>
-              <AppBar title=" WSO2 TestGrid " style={{
-                backgroundColor: '#424242', position: 'fixed'
-              }}
-                      iconElementLeft={<IconButton onClick={this.handleClose}>{this.state.open ? <NavigationBack/> :
-                        <NevigationExpand/>}</IconButton>}> </AppBar>
+              <AppBar
+                title={
+                  <a href={TESTGRID_CONTEXT + '/'} className="title">WSO2 TestGrid</a>
+                }
+                style={{backgroundColor: '#424242', position: 'fixed'}}
+                iconElementLeft={
+                  <IconButton onClick={this.handleClose}>
+                    {this.state.open ? <NavigationBack/> : <NevigationExpand/>}
+                  </IconButton>
+                }/>
               <Drawer open={this.state.open} containerStyle={{'top': '64px', backgroundColor: '#BDBDBD'}} width={200}>
-                <MenuItem><a href="/blue/organizations/jenkins/wso2is5.4.0LTS/activity"> TestGrid
-                  AdminPortal</a></MenuItem>
+                <MenuItem><a href="/admin/blue/organizations/jenkins/pipelines?search=wum">
+                  TestGrid Admin Portal</a></MenuItem>
               </Drawer>
               <Paper style={paperStyle} zDepth={2}>
                 <Switch>
                   <Route exact path={'/login'} component={Login}/>
                   <Route exact path={'/'} component={ProductContainer}/>
                   <Route exact path={'/:productName'} component={DeploymentContainer}/>
-                  <Route exact path={'/:productName/:deploymentPatternName/:testPlanId/infra'}
+                  <Route exact path={'/:productName/:deploymentPatternName/test-plans/:testPlanId/history'}
                          component={InfrastructureContainer}/>
                   <Route exact path={'/scenarios/infrastructure/:infraid'} component={ScenarioContainer}/>
                   <Route exact path={'/testcases/scenario/:scenarioid'} component={TestCaseContainer}/>

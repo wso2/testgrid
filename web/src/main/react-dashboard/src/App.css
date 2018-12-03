@@ -14,8 +14,17 @@
   color: white;
 }
 
-.App-title {
+.title {
   font-size: 1.5em;
+  color: inherit;
+  text-decoration:none;
+  cursor: inherit;
+}
+
+a.title:hover, a.title:active {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .App-intro {
