@@ -9,7 +9,7 @@ infrastructureConfig:
   parameters:
     - JDK : ORACLE_JDK8
   includes:
-     - CentOS-7.4
+     - CentOS-7.5
      - MySQL-5.7
      - OracleJDK-8
   provisioners:
