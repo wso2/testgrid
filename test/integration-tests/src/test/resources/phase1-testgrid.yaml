@@ -9,9 +9,9 @@ infrastructureConfig:
   parameters:
     - JDK : ORACLE_JDK8
   includes:
-     - CentOS
-     - mysql
-     - ORACLE_JDK8
+     - CentOS-7.4
+     - MySQL-5.7
+     - OracleJDK-8
   provisioners:
     - name: prod-wso2-ei-scenario-deployment
       remoteRepository: "git@github.com:wso2/testgrid.git"
