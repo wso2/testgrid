@@ -25,6 +25,7 @@ import FlatButton from 'material-ui/FlatButton';
 import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_API_CONTEXT, TESTGRID_CONTEXT} from '../constants.js';
 import {Alert, Input, Table} from 'reactstrap';
 import Moment from "moment/moment";
+import {HTTP_NOT_FOUND} from "../constants";
 
 class DeploymentPatternView extends Component {
 
@@ -33,15 +34,21 @@ class DeploymentPatternView extends Component {
     this.state = {
       hits: [],
       hitsClone: [],
-      product: null
+      product: null,
+      productExists: true
     };
+    this.handleError = this.handleError.bind(this);
   }
 
   handleError(response) {
+    if (response.status === HTTP_NOT_FOUND) {
+      this.setState({productExists: false});
+    }
+
     if (response.status.toString() === HTTP_UNAUTHORIZED) {
       window.location.replace(LOGIN_URI);
     } else if (!response.ok) {
-      throw Error(response.statusText)
+      throw Error(response.status + " " + response.statusText)
     }
     return response;
   }
@@ -99,7 +106,7 @@ class DeploymentPatternView extends Component {
         return response.json()
       })
       .then(data => this.setState({hits: data, hitsClone: data, product: currentProduct}))
-      .catch(error => console.error(error));
+      .catch(error => console.error("error while fetching product details: " + error));
   }
 
   navigateToRoute(route, deployment, testPlan) {
@@ -182,7 +189,7 @@ class DeploymentPatternView extends Component {
           }
         })()}
 
-        {this.state && !this.state.product && (() => {
+        {this.state && this.state.productExists === false && (() => {
           return <Alert color="dark">
             <p/>
             <h5>
