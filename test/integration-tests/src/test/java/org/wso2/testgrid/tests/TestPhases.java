@@ -208,8 +208,8 @@ public class TestPhases {
                 logger.info("Waiting for email : " + emailSubject);
             }
             Message email = emails[0];
-            Assert.assertTrue(emailUtils.isTextInMessage(email, jobName + " integration test Results!"),
-                    jobName + " integration test Results!");
+            Assert.assertTrue(emailUtils.isTextInMessage(email, jobName + " test Results!"),
+                    jobName + " test Results!");
             logger.info("Email received on " + email.getReceivedDate());
         } catch (ArrayIndexOutOfBoundsException e) {
             Assert.fail("Email not received for the build " + e.getMessage());
@@ -261,9 +261,10 @@ public class TestPhases {
         }
         Assert.assertEquals(responseObj.getInt("totalFail"), 0);
         if (jobName.equals("Phase-1")) {
-            Assert.assertEquals(responseObj.getString("scenarioDescription"), "Test-Phase-1");
+            Assert.assertEquals(responseObj.getString("scenarioDescription"), "integration");
         } else {
-            Assert.assertEquals(responseObj.getString("scenarioDescription"), "product-ei-scenarios");
+            Assert.assertEquals(responseObj.getString("scenarioDescription"), "1-integrating-systems-that-communicate" +
+                    "-in-heterogeneous-message-formats");
         }
         con.disconnect();
     }
