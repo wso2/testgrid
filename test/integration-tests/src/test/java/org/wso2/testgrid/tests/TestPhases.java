@@ -208,8 +208,8 @@ public class TestPhases {
                 logger.info("Waiting for email : " + emailSubject);
             }
             Message email = emails[0];
-            Assert.assertTrue(emailUtils.isTextInMessage(email, "Following string not found in email: \n" +
-                            jobName + " test Results!"), jobName + " test Results!");
+            Assert.assertTrue(emailUtils.isTextInMessage(email, jobName + " test Results!"),
+                    "Following string not found in email: \n" + jobName + " test Results!");
             logger.info("Email received on " + email.getReceivedDate());
         } catch (ArrayIndexOutOfBoundsException e) {
             Assert.fail("Email not received for the build " + e.getMessage());
