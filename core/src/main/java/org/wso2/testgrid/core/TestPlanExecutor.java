@@ -260,7 +260,8 @@ public class TestPlanExecutor {
                 TestExecutor testExecutor = TestExecutorFactory.getTestExecutor(
                         TestEngine.valueOf(scenarioConfig.getTestType()));
 
-                Path scenarioDir = Paths.get(testPlan.getScenarioTestsRepository(), scenarioConfig.getFile());
+                Path scenarioDir = Paths.get(testPlan.getScenarioTestsRepository(), scenarioConfig.getName(),
+                        scenarioConfig.getFile());
                 if (scenarioDir !=  null) {
                     Path parent = scenarioDir.getParent();
                     Path file = scenarioDir.getFileName();
