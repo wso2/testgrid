@@ -143,6 +143,7 @@ class APIUtil {
                     .collect(Collectors.joining(",")) + "}";
 
             testPlanBean.setInfraParams(infraParams);
+            testPlanBean.setLogUrl(testPlan.getLogUrl());
             testPlanBean.setStatus(testPlan.getStatus().toString());
             testPlanBean.setCreatedTimestamp(testPlan.getCreatedTimestamp());
             testPlanBean.setModifiedTimestamp(testPlan.getModifiedTimestamp());

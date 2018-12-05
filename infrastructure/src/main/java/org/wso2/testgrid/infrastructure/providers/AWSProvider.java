@@ -34,9 +34,20 @@ import com.amazonaws.services.cloudformation.model.TemplateParameter;
 import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
 import com.amazonaws.services.cloudformation.model.ValidateTemplateResult;
 import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.Reservation;
+import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
 import com.amazonaws.waiters.WaiterUnrecoverableException;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +68,7 @@ import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 import org.wso2.testgrid.infrastructure.providers.aws.AWSResourceManager;
@@ -72,12 +84,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This class provides the infrastructure from amazon web services (AWS).
@@ -96,6 +111,8 @@ public class AWSProvider implements InfrastructureProvider {
     private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
     private static final int POLL_INTERVAL = 1;
     private static final TimeUnit POLL_UNIT = TimeUnit.MINUTES;
+    private static final String STACK_NAME_TAG_KEY = "aws:cloudformation:stack-name";
+    private static final String INSTANCE_NAME_TAG_KEY = "Name";
 
     @Override
     public String getProviderName() {
@@ -227,6 +244,9 @@ public class AWSProvider implements InfrastructureProvider {
             //Notify AWSResourceManager about stack creation completion
             awsResourceManager.notifyStackCreation(testPlan, script, describeStackEventsResult.getStackEvents());
 
+            //Set log download url to test plan.
+            deriveLogDashboardUrl(testPlan, stackName);
+
             DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
             describeStacksRequest.setStackName(stack.getStackId());
             DescribeStacksResult describeStacksResult = cloudFormation
@@ -267,6 +287,81 @@ public class AWSProvider implements InfrastructureProvider {
                     StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
         } catch (TestGridDAOException e) {
             throw new TestGridInfrastructureException("Error occurred while retrieving resource requirements", e);
+        }
+    }
+
+    /**
+     * Constructs the URL to Kibana dashboard to view logs.
+     *
+     * Makes use of the static dashboard having logs of all test plans. Filters to view logs
+     * of each EC2 instance are derived using placeholders. The default view shows all logs. The shortened URL of the
+     * dashboard is retrieved through Kibana ShortenURL API to have a compact url.
+     *
+     * @param testPlan test-plan to get log url for
+     * @param stackName name of the stack created for the test-plan
+     */
+    private void deriveLogDashboardUrl(TestPlan testPlan, String stackName) {
+        String kibanaEndpoint = ConfigurationContext.getProperty(ConfigurationProperties.KIBANA_ENDPOINT_URL);
+        String dashboardCtxFormat = TestGridConstants.KIBANA_DASHBOARD_STR;
+        String instanceLogFilterFormat = TestGridConstants.KIBANA_FILTER_STR;
+        String instanceLogFilter;
+        String instanceName;
+        StringJoiner filtersStr = new StringJoiner(",");
+
+        // Filter the EC2 instance corresponding to the stack
+        AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.defaultClient();
+        List<Reservation> reservations = amazonEC2.describeInstances().getReservations()
+                .stream().filter(r -> r.getInstances().get(0).getTags().contains(
+                        new Tag(STACK_NAME_TAG_KEY, stackName))).collect(Collectors.toList());
+        Map<String, String> instancesMap = new HashMap<>();
+
+        /* Create a map with instance ids and names to create the log filter. InstanceId is used to filter the index
+           pattern and name is used to set a label for the filter */
+        for (Reservation reservation : reservations) {
+            instanceName = reservation.getInstances().get(0).getTags().stream().filter(
+                    t -> t.getKey().equalsIgnoreCase(INSTANCE_NAME_TAG_KEY))
+                    .collect(Collectors.toList()).get(0).getValue();
+            instancesMap.put(reservation.getInstances().get(0).getInstanceId(), instanceName);
+        }
+
+        // Construct filters for each node
+        for (Map.Entry<String, String> entry : instancesMap.entrySet()) {
+            instanceLogFilter = instanceLogFilterFormat.replaceAll("#_INSTANCE_ID_#", entry.getKey())
+                    .replaceAll("#_LABEL_#", entry.getValue());
+            filtersStr.add(instanceLogFilter);
+        }
+
+        // Construct the dashboard ctx
+        String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
+                .replaceAll("#_STACK_NAME_#", stackName);
+        String logUrl = null;
+
+        // Get the short url to dashboard by calling the Kibana REST API
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            HttpPost request = new HttpPost(kibanaEndpoint + "/shorten");
+            StringEntity entity = new StringEntity("{\"url\" : \"" + logDownloadCtx + "\"}");
+            request.addHeader("Content-Type", "application/json;charset=utf-8");
+            request.addHeader("kbn-xsrf", "true");
+            request.setEntity(entity);
+            CloseableHttpResponse  httpResponse = httpClient.execute(request);
+            if (httpResponse.getStatusLine().getStatusCode() == 200) {
+                String shortUrlId = EntityUtils.toString(httpResponse.getEntity());
+                logUrl = kibanaEndpoint + "/goto/" + shortUrlId;
+            } else {
+                logger.warn("Request to Kibana to retrieve shortened URL for dashboard returned status code:" +
+                        httpResponse.getStatusLine().getStatusCode() + "\n. View logs at: " +
+                        kibanaEndpoint + logDownloadCtx);
+            }
+        } catch (IOException e) {
+            logger.error("Error occurred while trying to retrieve the short URL for Kibana dashboard.", e.getMessage());
+        }
+        testPlan.setLogUrl(logUrl);
+        TestPlanUOW testPlanUOW = new TestPlanUOW();
+        try {
+            testPlanUOW.persistTestPlan(testPlan);
+        } catch (TestGridDAOException e) {
+            logger.error("Error occurred while persisting log URL to test plan."
+                    + testPlan.toString() + e.getMessage());
         }
     }
 

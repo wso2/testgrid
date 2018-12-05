@@ -218,7 +218,11 @@ public class ConfigurationContext {
         /**
          * Interval (in hours) to run finalize run testplan
          */
-        FINALIZE_RUN_TESTPLAN_INTERVAL("FINALIZE_RUN_TESTPLAN_INTERVAL");
+        FINALIZE_RUN_TESTPLAN_INTERVAL("FINALIZE_RUN_TESTPLAN_INTERVAL"),
+        /**
+         * Kibana dashboard endpoint to view WSO2 logs
+         */
+        KIBANA_ENDPOINT_URL("KIBANA_ENDPOINT_URL");
 
 
         private String propertyName;

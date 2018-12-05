@@ -76,6 +76,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     @Column(name = "test_run_number")
     private int testRunNumber;
 
+    @Column(name = "log_url")
+    private String logUrl;
+
     @ManyToOne(optional = false, cascade = CascadeType.ALL, targetEntity = DeploymentPattern.class,
                fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumn(name = "DEPLOYMENTPATTERN_id", referencedColumnName = ID_COLUMN)
@@ -416,6 +419,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      */
     public void setKeyFileLocation(String keyFileLocation) {
         this.keyFileLocation = keyFileLocation;
+    }
+
+    /**
+     * Returns the URL to view WSO2 server logs.
+     *
+     * @return Log location URL
+     */
+    public String getLogUrl() {
+        return logUrl;
+    }
+
+    /**
+     * Returns the URL to view WSO2 server logs.
+     *
+     * @param logUrl Log location URL
+     */
+    public void setLogUrl(String logUrl) {
+        this.logUrl = logUrl;
     }
 
     @Override
