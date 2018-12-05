@@ -252,32 +252,14 @@ public class AWSProvider implements InfrastructureProvider {
             DescribeStacksResult describeStacksResult = cloudFormation
                     .describeStacks(describeStacksRequest);
 
-            List<Host> hosts = new ArrayList<>();
-
-            Properties outputProps = new Properties();
-            for (Stack st : describeStacksResult.getStacks()) {
-                StringBuilder outputsStr = new StringBuilder("Infrastructure/Deployment outputs {\n");
-                for (Output output : st.getOutputs()) {
-                    Host host = new Host();
-                    host.setIp(output.getOutputValue());
-                    host.setLabel(output.getOutputKey());
-                    hosts.add(host);
-                    outputProps.setProperty(output.getOutputKey(), output.getOutputValue());
-                    outputsStr.append(output.getOutputKey()).append("=").append(output.getOutputValue()).append("\n");
-                }
-                //Log cfn outputs
-                logger.info(outputsStr.toString() + "\n}");
-            }
+            Properties outputProps = getCloudformationOutputs(describeStacksResult);
             //Persist infra outputs to a file to be used for the next step
             persistOutputs(testPlan, outputProps);
 
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             Properties props = new Properties();
-            props.setProperty("HOSTS", hosts.toString());
             props.putAll(outputProps);
             result.setProperties(props);
-            //added for backward compatibility. todo remove.
-            result.setHosts(hosts);
 
             return result;
         } catch (IOException e) {
@@ -362,6 +344,23 @@ public class AWSProvider implements InfrastructureProvider {
             logger.error("Error occurred while persisting log URL to test plan."
                     + testPlan.toString() + e.getMessage());
         }
+    }
+
+    private Properties getCloudformationOutputs(DescribeStacksResult describeStacksResult) {
+        Properties outputProps = new Properties();
+        for (Stack st : describeStacksResult.getStacks()) {
+            StringBuilder outputsStr = new StringBuilder("Infrastructure/Deployment outputs {\n");
+            for (Output output : st.getOutputs()) {
+                Host host = new Host();
+                host.setIp(output.getOutputValue());
+                host.setLabel(output.getOutputKey());
+                outputProps.setProperty(output.getOutputKey(), output.getOutputValue());
+                outputsStr.append(output.getOutputKey()).append("=").append(output.getOutputValue()).append("\n");
+            }
+            //Log cfn outputs
+            logger.info(outputsStr.toString() + "\n}");
+        }
+        return outputProps;
     }
 
     /**
