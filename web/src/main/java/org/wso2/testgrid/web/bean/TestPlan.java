@@ -30,6 +30,7 @@ public class TestPlan {
     private String deploymentPattern;
     private String status;
     private String infraParams;
+    private String logUrl;
     private List<TestScenario> testScenarios;
     private Timestamp createdTimestamp;
     private Timestamp modifiedTimestamp;
@@ -122,6 +123,24 @@ public class TestPlan {
      */
     public void setInfraParams(String infraParams) {
         this.infraParams = infraParams;
+    }
+
+    /**
+     * Returns the URL to view WSO2 server logs.
+     *
+     * @return Log location URL
+     */
+    public String getLogUrl() {
+        return logUrl;
+    }
+
+    /**
+     * Returns the URL to view WSO2 server logs.
+     *
+     * @param logUrl Log location URL
+     */
+    public void setLogUrl(String logUrl) {
+        this.logUrl = logUrl;
     }
 
     /**

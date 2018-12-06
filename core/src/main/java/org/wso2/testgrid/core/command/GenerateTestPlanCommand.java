@@ -234,9 +234,6 @@ public class GenerateTestPlanCommand implements Command {
              * Test plans of test scenarios should be persisted. This is persisted after building the
              * yaml to avoid adding unnecessary lines to the test-plan file.
              */
-            for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
-                scenarioConfig.setTestPlan(persistedTestPlan);
-            }
             testPlanUOW.persistTestPlan(persistedTestPlan);
 
             if (printTestPlanPaths) {

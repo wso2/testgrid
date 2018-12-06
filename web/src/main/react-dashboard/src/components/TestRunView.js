@@ -51,7 +51,8 @@ class TestRunView extends Component {
       showLogDownloadErrorDialog: false,
       currentInfra: null,
       TruncatedRunLogUrlStatus:null,
-      grafanaUrl: ""
+      grafanaUrl: "",
+      wso2LogsUrl: ""
     };
   }
 
@@ -67,6 +68,7 @@ class TestRunView extends Component {
       this.getReportData(currentInfra);
       this.setState({currentInfra: currentInfra});
       this.getGrafanaUrl(currentInfra.testPlanId);
+      this.getWSO2Logs(currentInfra.testPlanId);
     } else {
       let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + currentUrl.pop();
       fetch(url, {
@@ -87,6 +89,7 @@ class TestRunView extends Component {
         this.getReportData(currentInfra);
         this.setState({currentInfra: currentInfra});
         this.getGrafanaUrl(currentInfra.testPlanId);
+        this.getWSO2Logs(currentInfra.testPlanId);
       });
     }
 
@@ -236,10 +239,27 @@ class TestRunView extends Component {
 
   }
 
+  getWSO2Logs(testPlanId) {
+          let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + testPlanId;
+                fetch(url, {
+                  method: "GET",
+                  credentials: 'same-origin',
+                  headers: {
+                    'Accept': 'application/json'
+                  }
+                })
+                  .then(this.handleError)
+                  .then(response => {
+                    return response.json();
+                  })
+                  .then(data => this.setState({deploymentLogsUrl: data.logUrl}))
+          .catch(error => console.error(error));
+  }
 
   render() {
     var pageURL = window.location.href;
     const PERFDASH_URL = this.state.grafanaUrl
+    const DEPL_LOGS_URL = this.state.deploymentLogsUrl
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
     const logUrl = TESTGRID_API_CONTEXT + '/api/test-plans/log/' + pageURL.split("/").pop() + "?truncate=";
     const logAllContentUrl = logUrl + false;
@@ -581,6 +601,16 @@ class TestRunView extends Component {
                 }
               })()}
             </Collapsible>
+            <Collapsible trigger="WSO2 Server logs" lazyRender={true} triggerWhenOpen="WSO2 Server logs >>" >
+                         {(() => {
+                            return <div>
+                            <p style={{float: 'right'}}><a href={DEPL_LOGS_URL} target="_blank">View Kibana Dashboard</a></p>
+                              <br/>
+                              <iframe src= {DEPL_LOGS_URL} height="900" width="100%" title="wso2serverlogs"></iframe>
+                              <br/>
+                              </div>
+                         })()}
+                        </Collapsible>
             <Collapsible trigger="Performance Data" lazyRender={true} triggerWhenOpen="Performance Data>>" >
              {(() => {
                 return <div>

@@ -37,6 +37,12 @@ import com.amazonaws.services.cloudformation.model.TemplateParameter;
 import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
 import com.amazonaws.services.cloudformation.model.ValidateTemplateResult;
 import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.Reservation;
+import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
 import org.mockito.Matchers;
@@ -57,6 +63,7 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 import org.wso2.testgrid.infrastructure.providers.aws.AWSResourceManager;
@@ -81,7 +88,8 @@ import java.util.Set;
 @PowerMockIgnore({"javax.net.ssl.*", "javax.security.*", "javax.management.*"})
 @PrepareForTest({
                         AWSProvider.class, AmazonCloudFormationClientBuilder.class
-                        , AmazonCloudFormation.class, AwsClientBuilder.class, ConfigurationContext.class
+                        , AmazonCloudFormation.class, AwsClientBuilder.class, AmazonEC2ClientBuilder.class,
+                        ConfigurationContext.class
                 })
 public class AWSProviderTest extends PowerMockTestCase {
 
@@ -183,6 +191,7 @@ public class AWSProviderTest extends PowerMockTestCase {
         stack.setOutputs(Collections.singletonList(output));
         stack.setStackStatus(StackStatus.CREATE_COMPLETE);
 
+        PowerMockito.mockStatic(ConfigurationContext.class);
         //Mocking AWS SDK objects.
         DescribeStacksResult describeStacksResultMock = Mockito.mock(DescribeStacksResult.class);
         Mockito.when(describeStacksResultMock.getStacks()).thenReturn(Collections.singletonList(stack));
@@ -214,6 +223,22 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.when(cloudFormationClientBuilderMock.build()).thenReturn(cloudFormation);
         PowerMockito.mockStatic(AmazonCloudFormationClientBuilder.class);
         PowerMockito.when(AmazonCloudFormationClientBuilder.standard()).thenReturn(cloudFormationClientBuilderMock);
+
+        AmazonEC2 amazonEC2Mock = Mockito.mock(AmazonEC2.class);
+        PowerMockito.mockStatic(AmazonEC2ClientBuilder.class);
+        PowerMockito.when(AmazonEC2ClientBuilder.defaultClient()).thenReturn(amazonEC2Mock);
+        DescribeInstancesResult describeInstancesResult = Mockito.mock(DescribeInstancesResult.class);
+        PowerMockito.when(amazonEC2Mock.describeInstances(Mockito.any())).thenReturn(describeInstancesResult);
+        PowerMockito.when(describeInstancesResult.getReservations()).thenReturn(getMockReservations());
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.KIBANA_ENDPOINT_URL)).thenReturn("http://localhost:5601");
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.KIBANA_DASHBOARD_STR)).thenReturn("dummyDashboardStr");
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.KIBANA_FILTER_STR)).thenReturn("dummyFilterStr");
+        TestPlanUOW testPlanUOWMock = Mockito.mock(TestPlanUOW.class);
+        PowerMockito.whenNew(TestPlanUOW.class).withNoArguments().thenReturn(testPlanUOWMock);
+        PowerMockito.when(testPlanUOWMock.persistTestPlan(Mockito.any(TestPlan.class))).thenReturn(testPlan);
 
         StackCreationWaiter validatorMock = Mockito.mock(StackCreationWaiter.class);
         PowerMockito.whenNew(StackCreationWaiter.class).withAnyArguments().thenReturn(validatorMock);
@@ -363,6 +388,18 @@ public class AWSProviderTest extends PowerMockTestCase {
                 }
             }
         }
+    }
+
+    private List<Reservation> getMockReservations () {
+        List<Tag> tags = new ArrayList<>();
+        Tag dummyTag1 = new Tag().withKey("aws:cloudformation:stack-name").withValue(mockStackName);
+        Tag dummyTag2 = new Tag().withKey("Name").withValue("DummyInstance");
+        tags.add(dummyTag1);
+        tags.add(dummyTag2);
+
+        Instance dummyInstance = new Instance().withInstanceId("i-04e164e155f4a95a3").withTags(tags);
+        Reservation reservation = new Reservation().withInstances(Collections.singletonList(dummyInstance));
+        return Collections.singletonList(reservation);
     }
 
 }
