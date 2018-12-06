@@ -36,8 +36,9 @@ import com.amazonaws.services.cloudformation.model.ValidateTemplateResult;
 import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.ec2.model.Reservation;
-import com.amazonaws.services.ec2.model.Tag;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
 import com.amazonaws.waiters.WaiterUnrecoverableException;
@@ -92,7 +93,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * This class provides the infrastructure from amazon web services (AWS).
@@ -302,27 +302,26 @@ public class AWSProvider implements InfrastructureProvider {
      */
     private void deriveLogDashboardUrl(TestPlan testPlan, String stackName) {
         String kibanaEndpoint = ConfigurationContext.getProperty(ConfigurationProperties.KIBANA_ENDPOINT_URL);
-        String dashboardCtxFormat = TestGridConstants.KIBANA_DASHBOARD_STR;
-        String instanceLogFilterFormat = TestGridConstants.KIBANA_FILTER_STR;
+        String dashboardCtxFormat = ConfigurationContext.getProperty(ConfigurationProperties.KIBANA_DASHBOARD_STR);
+        String instanceLogFilterFormat = ConfigurationContext.getProperty(ConfigurationProperties.KIBANA_FILTER_STR);
         String instanceLogFilter;
-        String instanceName;
         StringJoiner filtersStr = new StringJoiner(",");
 
         // Filter the EC2 instance corresponding to the stack
         AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.defaultClient();
-        List<Reservation> reservations = amazonEC2.describeInstances().getReservations()
-                .stream().filter(r -> r.getInstances().get(0).getTags().contains(
-                        new Tag(STACK_NAME_TAG_KEY, stackName))).collect(Collectors.toList());
-        Map<String, String> instancesMap = new HashMap<>();
+        DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
+        describeInstancesRequest.withFilters(
+                new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
+        DescribeInstancesResult result = amazonEC2.describeInstances(describeInstancesRequest);
 
-        /* Create a map with instance ids and names to create the log filter. InstanceId is used to filter the index
-           pattern and name is used to set a label for the filter */
-        for (Reservation reservation : reservations) {
-            instanceName = reservation.getInstances().get(0).getTags().stream().filter(
-                    t -> t.getKey().equalsIgnoreCase(INSTANCE_NAME_TAG_KEY))
-                    .collect(Collectors.toList()).get(0).getValue();
-            instancesMap.put(reservation.getInstances().get(0).getInstanceId(), instanceName);
-        }
+        // Add instance id and name to a map
+        Map<String, String> instancesMap = new HashMap<>();
+        result.getReservations().stream().map(r -> r.getInstances()).flatMap(instanceList -> instanceList.stream())
+                .forEach(i -> {
+                    final String instanceName = i.getTags().stream().filter(t ->
+                            INSTANCE_NAME_TAG_KEY.equalsIgnoreCase(t.getKey())).findFirst().get().getValue();
+                    instancesMap.put(i.getInstanceId(), instanceName);
+        });
 
         // Construct filters for each node
         for (Map.Entry<String, String> entry : instancesMap.entrySet()) {

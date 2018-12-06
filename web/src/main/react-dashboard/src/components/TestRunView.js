@@ -252,14 +252,14 @@ class TestRunView extends Component {
                   .then(response => {
                     return response.json();
                   })
-                  .then(data => this.setState({wso2LogsUrl: data.logUrl}))
+                  .then(data => this.setState({deploymentLogsUrl: data.logUrl}))
           .catch(error => console.error(error));
   }
 
   render() {
     var pageURL = window.location.href;
     const PERFDASH_URL = this.state.grafanaUrl
-    const WSO2_LOGS_URL = this.state.wso2LogsUrl
+    const DEPL_LOGS_URL = this.state.deploymentLogsUrl
     const divider = (<Divider inset={false} style={{borderBottomWidth: 1}}/>);
     const logUrl = TESTGRID_API_CONTEXT + '/api/test-plans/log/' + pageURL.split("/").pop() + "?truncate=";
     const logAllContentUrl = logUrl + false;
@@ -604,9 +604,9 @@ class TestRunView extends Component {
             <Collapsible trigger="WSO2 Server logs" lazyRender={true} triggerWhenOpen="WSO2 Server logs >>" >
                          {(() => {
                             return <div>
-                            <p style={{float: 'right'}}><a href={WSO2_LOGS_URL} target="_blank">View Kibana Dashboard</a></p>
+                            <p style={{float: 'right'}}><a href={DEPL_LOGS_URL} target="_blank">View Kibana Dashboard</a></p>
                               <br/>
-                              <iframe src= {WSO2_LOGS_URL} height="1500" width="100%" title="wso2serverlogs"></iframe>
+                              <iframe src= {DEPL_LOGS_URL} height="900" width="100%" title="wso2serverlogs"></iframe>
                               <br/>
                               </div>
                          })()}

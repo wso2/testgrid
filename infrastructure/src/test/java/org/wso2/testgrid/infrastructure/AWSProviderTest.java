@@ -63,6 +63,7 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 import org.wso2.testgrid.infrastructure.providers.aws.AWSResourceManager;
@@ -227,10 +228,17 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.mockStatic(AmazonEC2ClientBuilder.class);
         PowerMockito.when(AmazonEC2ClientBuilder.defaultClient()).thenReturn(amazonEC2Mock);
         DescribeInstancesResult describeInstancesResult = Mockito.mock(DescribeInstancesResult.class);
-        PowerMockito.when(amazonEC2Mock.describeInstances()).thenReturn(describeInstancesResult);
+        PowerMockito.when(amazonEC2Mock.describeInstances(Mockito.any())).thenReturn(describeInstancesResult);
         PowerMockito.when(describeInstancesResult.getReservations()).thenReturn(getMockReservations());
         PowerMockito.when(ConfigurationContext.getProperty(
                 ConfigurationContext.ConfigurationProperties.KIBANA_ENDPOINT_URL)).thenReturn("http://localhost:5601");
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.KIBANA_DASHBOARD_STR)).thenReturn("dummyDashboardStr");
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.KIBANA_FILTER_STR)).thenReturn("dummyFilterStr");
+        TestPlanUOW testPlanUOWMock = Mockito.mock(TestPlanUOW.class);
+        PowerMockito.whenNew(TestPlanUOW.class).withNoArguments().thenReturn(testPlanUOWMock);
+        PowerMockito.when(testPlanUOWMock.persistTestPlan(Mockito.any(TestPlan.class))).thenReturn(testPlan);
 
         StackCreationWaiter validatorMock = Mockito.mock(StackCreationWaiter.class);
         PowerMockito.whenNew(StackCreationWaiter.class).withAnyArguments().thenReturn(validatorMock);

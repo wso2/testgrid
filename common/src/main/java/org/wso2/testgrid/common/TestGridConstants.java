@@ -92,22 +92,4 @@ public class TestGridConstants {
 
 
     public static final String NOT_CONFIGURED_STR = "/not-configured/";
-
-    // Ctx for dashboard with place holders to be replaced for each test plan
-    public static  final String KIBANA_DASHBOARD_STR = "/app/kibana#/dashboard/171ab700-f6f4-11e8-9563-f7edf14e1790?" +
-            "_g=(refreshInterval:('$$hashKey':'object:374',display:Off,pause:!f,section:0,value:0)," +
-            "time:(from:now%2FM,mode:quick,to:now))&_a=(description:'',filters:!(('$state':(store:appState)," +
-            "meta:(alias:'All%20logs',disabled:!f,index:e0c3bc10-f6f3-11e8-9563-f7edf14e1790,key:_index,negate:!f," +
-            "params:(query:'#_STACK_NAME_#*',type:phrase),type:phrase,value:'#_STACK_NAME_#*'),query:(match:(_index:" +
-            "(query:'#_STACK_NAME_#*',type:phrase)))),#_NODE_FILTERS_#),fullScreenMode:!t,options:(darkTheme:!t," +
-            "hidePanelTitles:!f,useMargins:!t),panels:!((embeddableConfig:(),gridData:(h:30,i:'1',w:48,x:0,y:0)," +
-            "id:f7db4b70-f6f3-11e8-9563-f7edf14e1790,panelIndex:'1',sort:!('@timestamp',desc),type:search," +
-            "version:'6.3.1')),query:(language:lucene,query:''),timeRestore:!t,title:All-TPs,viewMode:view)";
-
-    // Filter string with place holders to be replaced for each instance in a stack
-    public static final String KIBANA_FILTER_STR = "('$state':(store:appState),meta:(alias:#_LABEL_#,disabled:!t," +
-            "index:e0c3bc10-f6f3-11e8-9563-f7edf14e1790,key:_index,negate:!f," +
-            "params:(query:#_STACK_NAME_#-#_INSTANCE_ID_#,type:phrase),type:phrase," +
-            "value:#_STACK_NAME_#-#_INSTANCE_ID_#),query:(match:(_index:(query:#_STACK_NAME_#-#_INSTANCE_ID_#," +
-            "type:phrase))))";
 }
