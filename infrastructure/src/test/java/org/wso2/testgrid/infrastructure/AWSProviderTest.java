@@ -259,8 +259,10 @@ public class AWSProviderTest extends PowerMockTestCase {
                 .provision(testPlan, infrastructureConfig.getFirstProvisioner().getScripts().get(0));
 
         Assert.assertNotNull(provisionResult);
-        Assert.assertEquals(provisionResult.getHosts().size(), 1);
-        Assert.assertEquals(provisionResult.getHosts().get(0).getIp(), outputValue);
+        final String actualOutputValue = provisionResult.getProperties().getProperty(outputKey);
+        Assert.assertNotNull(actualOutputValue, "output parameter is missing: " + outputKey);
+        Assert.assertEquals(actualOutputValue, outputValue);
+        Assert.assertTrue(provisionResult.isSuccess(), "Provisioning should be successful.");
 
         unset(map.keySet());
     }
