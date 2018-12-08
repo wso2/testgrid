@@ -27,7 +27,7 @@ import Snackbar from 'material-ui/Snackbar';
 import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI,
   TESTGRID_API_CONTEXT, DID_NOT_RUN, INCOMPLETE} from '../constants.js';
 import {Button, Table, Card, CardText, CardTitle, Col, Row} from 'reactstrap';
-import InfraCombinationView from "./InfraCombinationView";
+import InfraCombinationHistory from "./InfraCombinationHistory";
 import ReactTooltip from 'react-tooltip'
 import {HTTP_OK} from "../constants";
 
@@ -287,7 +287,7 @@ class TestRunView extends Component {
                       <span> {this.state.currentInfra.relatedProduct}</span>
                     </i><ReactTooltip/></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -299,7 +299,7 @@ class TestRunView extends Component {
                       <span> {this.state.currentInfra.relatedProduct}</span>
                     </i><ReactTooltip/></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -313,7 +313,7 @@ class TestRunView extends Component {
                       <span className="sr-only">Loading...</span></i><ReactTooltip/>
                       <span> {this.state.currentInfra.relatedProduct}</span></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;

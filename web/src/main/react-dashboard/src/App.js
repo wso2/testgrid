@@ -20,7 +20,7 @@ import React, {Component} from 'react';
 import './App.css';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import ProductContainer from './containers/productContainer.js';
-import InfrastructureContainer from './containers/InfraContainer.js';
+import InfrastructureContainer from './containers/InfrastructureContainer.js';
 import ScenarioContainer from './containers/ScenarioContainer.js';
 import TestCaseContainer from './containers/TestCaseContainer.js';
 import DeploymentContainer from './containers/deploymentContainer.js';

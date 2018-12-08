@@ -28,7 +28,7 @@ import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_UNAUTHORIZED, LOGIN_URI, TE
 import {Card, CardText, CardTitle, Col, Row, Table} from 'reactstrap';
 import ReactTooltip from 'react-tooltip'
 
-class InfraCombinationView extends Component {
+class InfraCombinationHistory extends Component {
 
   constructor(props) {
     super(props);
@@ -112,7 +112,7 @@ class InfraCombinationView extends Component {
                       <span> {this.state.currentInfra.relatedProduct}</span>
                     </i><ReactTooltip/></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -124,7 +124,7 @@ class InfraCombinationView extends Component {
                       <span> {this.state.currentInfra.relatedProduct}</span>
                     </i><ReactTooltip/></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -136,7 +136,7 @@ class InfraCombinationView extends Component {
                       <span> {this.state.currentInfra.relatedProduct}</span>
                     </i><ReactTooltip/></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -148,7 +148,7 @@ class InfraCombinationView extends Component {
                       <span> {this.state.currentInfra.relatedProduct}</span>
                     </i><ReactTooltip/></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -160,7 +160,7 @@ class InfraCombinationView extends Component {
                       <span> {this.state.currentInfra.relatedProduct}</span>
                     </i><ReactTooltip/></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -172,7 +172,7 @@ class InfraCombinationView extends Component {
                       <span>{this.state.currentInfra.relatedProduct}</span> </i>
                       <ReactTooltip/></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -185,7 +185,7 @@ class InfraCombinationView extends Component {
                       <span className="sr-only">Loading...</span></i><ReactTooltip/>
                       <span> {this.state.currentInfra.relatedProduct}</span></CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -252,4 +252,4 @@ class InfraCombinationView extends Component {
   }
 }
 
-export default InfraCombinationView;
+export default InfraCombinationHistory;

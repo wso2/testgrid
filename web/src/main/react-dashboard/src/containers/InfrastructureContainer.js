@@ -17,7 +17,7 @@
  */
 
 import {connect} from 'react-redux'
-import InfraCombinationView from '../components/InfraCombinationView.js'
+import InfraCombinationHistory from '../components/InfraCombinationHistory.js'
 
 const mapStateToProps = (state, ownProps) => ({
   active: state
@@ -25,6 +25,6 @@ const mapStateToProps = (state, ownProps) => ({
 
 const InfrastructureContainer = connect(
   mapStateToProps
-)(InfraCombinationView);
+)(InfraCombinationHistory);
 
 export default InfrastructureContainer;
