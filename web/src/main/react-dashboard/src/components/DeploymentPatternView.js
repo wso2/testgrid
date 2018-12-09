@@ -240,8 +240,8 @@ class DeploymentPatternView extends Component {
                               <FlatButton class='view-history' data-tip="View History"
                                           onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
                                             this.state.product.productName + "/" + key + "/test-plans/" +
-                                            value.lastBuild.id +
-                                            "/history", {deploymentPatternName: key}, {
+                                            value.lastBuild.id
+                                            , {deploymentPatternName: key}, {
                                             testPlanId: value.lastBuild.id,
                                             infraParameters: value.lastBuild.infraParams,
                                             testPlanStatus: value.lastBuild.status
@@ -314,7 +314,7 @@ class DeploymentPatternView extends Component {
                               <FlatButton class='view-history' data-tip="View History"
                                           onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
                                             this.state.product.productName + "/" + key + "/test-plans/" +
-                                            value.lastBuild.id + "/history",
+                                            value.lastBuild.id,
                                             {deploymentPatternName: key}, {
                                               testPlanId: value.lastBuild.id,
                                               infraParameters: value.lastBuild.infraParams,

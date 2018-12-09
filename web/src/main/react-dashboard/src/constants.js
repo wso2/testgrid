@@ -10,4 +10,4 @@ export const HTTP_OK = 200;
 export const HTTP_NOT_FOUND = 404;
 export const LOGIN_URI = "/login";
 export const TESTGRID_CONTEXT = "";
-export const TESTGRID_API_CONTEXT = "";
+export const TESTGRID_API_CONTEXT = "https://localhost:8443";

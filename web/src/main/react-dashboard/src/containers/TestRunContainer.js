@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -17,16 +17,15 @@
  */
 
 import {connect} from 'react-redux'
-import InfraCombinationHistory from '../components/InfraCombinationHistory.js'
-import withRouter from "react-router-dom/es/withRouter";
+import TestRunView from '../components/TestRunView.js'
 
 const mapStateToProps = (state, ownProps) => ({
+  active: state,
+  currentInfra: state.currentInfra
 });
 
-const InfrastructureContainer = withRouter(
-  connect(
-    mapStateToProps
-  )(InfraCombinationHistory)
-);
+const TestRunContainer = connect(
+  mapStateToProps
+)(TestRunView);
 
-export default InfrastructureContainer;
+export default TestRunContainer;

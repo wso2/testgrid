@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "/",
   "dependencies": {
+    "@material-ui/core": "^1.5.1",
     "bootstrap": "^4.1.1",
     "downloadjs": "^1.4.7",
     "font-awesome": "^4.7.0",

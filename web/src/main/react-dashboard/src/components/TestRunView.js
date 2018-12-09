@@ -56,21 +56,42 @@ class TestRunView extends Component {
     };
   }
 
-  componentDidMount() {
+  componentDidUpdate(prevProps, prevState, snapshot) {
     let currentInfra = {};
     let currentUrl = window.location.href.split("/");
-    currentInfra.relatedProduct = currentUrl[currentUrl.length - 4];
-    currentInfra.relatedDeplymentPattern = currentUrl[currentUrl.length - 3];
+    currentInfra.relatedProduct = currentUrl[currentUrl.length - 5];
+    currentInfra.relatedDeplymentPattern = currentUrl[currentUrl.length - 4];
+    if (prevProps.active.reducer.currentInfra) {
+      if (prevProps.active.reducer.currentInfra.testPlanId !== this.props.active.reducer.currentInfra.testPlanId) {
+        this.updateCurrentInfra(currentInfra);
+      }
+    }
+  }
+
+  updateCurrentInfra(currentInfra) {
+    currentInfra.testPlanId = this.props.active.reducer.currentInfra.testPlanId;
+    currentInfra.infraParameters = this.props.active.reducer.currentInfra.infraParameters;
+    currentInfra.testPlanStatus = this.props.active.reducer.currentInfra.testPlanStatus;
+    this.getReportData(currentInfra);
+    this.setState({currentInfra: currentInfra});
+    this.getGrafanaUrl(currentInfra.testPlanId);
+    this.getWSO2Logs(currentInfra.testPlanId);
+  }
+
+  componentDidMount() {
+    console.log("---------------------------------")
+    console.log(this.props.match);
+    console.log(this.props);
+    const { productName, deploymentPatternName, testPlanId } = this.props.match.params;
+    let currentInfra = {};
+    currentInfra.relatedProduct = productName;
+    currentInfra.relatedDeplymentPattern = deploymentPatternName;
+
+    console.log(currentInfra)
     if (this.props.active.reducer.currentInfra) {
-      currentInfra.testPlanId = this.props.active.reducer.currentInfra.testPlanId;
-      currentInfra.infraParameters = this.props.active.reducer.currentInfra.infraParameters;
-      currentInfra.testPlanStatus = this.props.active.reducer.currentInfra.testPlanStatus;
-      this.getReportData(currentInfra);
-      this.setState({currentInfra: currentInfra});
-      this.getGrafanaUrl(currentInfra.testPlanId);
-      this.getWSO2Logs(currentInfra.testPlanId);
+      this.updateCurrentInfra(currentInfra);
     } else {
-      let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + currentUrl.pop();
+      let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + testPlanId;
       fetch(url, {
         method: "GET",
         credentials: 'same-origin',

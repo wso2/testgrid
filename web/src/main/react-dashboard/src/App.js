@@ -21,10 +21,11 @@ import './App.css';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import ProductContainer from './containers/productContainer.js';
 import InfrastructureContainer from './containers/InfrastructureContainer.js';
+import InfrastructureOverviewContainer from './containers/InfraCombinationOverviewContainer.js';
 import ScenarioContainer from './containers/ScenarioContainer.js';
 import TestCaseContainer from './containers/TestCaseContainer.js';
 import DeploymentContainer from './containers/deploymentContainer.js';
-import testRunContainer from './containers/testRunContainer.js';
+import testRunContainer from './containers/TestRunContainer.js';
 import Login from './components/Login.js'
 import {Route, Switch} from 'react-router-dom';
 import AppBar from 'material-ui/AppBar';
@@ -100,12 +101,12 @@ class App extends Component {
                   <Route exact path={'/login'} component={Login}/>
                   <Route exact path={'/'} component={ProductContainer}/>
                   <Route exact path={'/:productName'} component={DeploymentContainer}/>
-                  <Route exact path={'/:productName/:deploymentPatternName/test-plans/:testPlanId/history'}
-                         component={InfrastructureContainer}/>
+                  <Route exact path={'/:productName/:deploymentPatternName/test-plans/:testPlanId'}
+                         component={InfrastructureOverviewContainer}/>
                   <Route exact path={'/scenarios/infrastructure/:infraid'} component={ScenarioContainer}/>
                   <Route exact path={'/testcases/scenario/:scenarioid'} component={TestCaseContainer}/>
-                  <Route exact path={'/:productName/:deploymentPatternName/test-plans/:testPlanId'}
-                         component={testRunContainer}/>
+                  {/*<Route exact path={'/:productName/:deploymentPatternName/test-plans/:testPlanId'}*/}
+                         {/*component={testRunContainer}/>*/}
                 </Switch>
               </ Paper>
             </div>

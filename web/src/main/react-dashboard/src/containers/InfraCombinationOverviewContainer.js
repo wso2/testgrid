@@ -17,14 +17,13 @@
  */
 
 import {connect} from 'react-redux'
-import TestRunView from '../components/TestRunView.js'
+import InfraCombinationOverview from '../components/InfraCombinationOverview.js'
 
 const mapStateToProps = (state, ownProps) => ({
-  active: state
 });
 
-const testRunContainer = connect(
+const InfrastructureOverviewContainer = connect(
   mapStateToProps
-)(TestRunView);
+)(InfraCombinationOverview);
 
-export default testRunContainer;
+export default InfrastructureOverviewContainer;
