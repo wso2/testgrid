@@ -49,7 +49,7 @@ class TestRunView extends Component {
       isLogTruncated: false,
       inputStreamSize: "",
       showLogDownloadErrorDialog: false,
-      currentInfra: null,
+      currentInfra: props.currentInfra,
       TruncatedRunLogUrlStatus:null,
       grafanaUrl: "",
       wso2LogsUrl: ""
@@ -57,38 +57,34 @@ class TestRunView extends Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
+    const {productName, deploymentPatternName} = this.props.match.params;
     let currentInfra = {};
-    let currentUrl = window.location.href.split("/");
-    currentInfra.relatedProduct = currentUrl[currentUrl.length - 5];
-    currentInfra.relatedDeplymentPattern = currentUrl[currentUrl.length - 4];
-    if (prevProps.active.reducer.currentInfra) {
-      if (prevProps.active.reducer.currentInfra.testPlanId !== this.props.active.reducer.currentInfra.testPlanId) {
+    currentInfra.relatedProduct = productName;
+    currentInfra.relatedDeplymentPattern = deploymentPatternName;
+    if (prevState.currentInfra) {
+      if (prevProps.currentInfra.testPlanId !== this.props.currentInfra.testPlanId) {
         this.updateCurrentInfra(currentInfra);
       }
     }
   }
 
   updateCurrentInfra(currentInfra) {
-    currentInfra.testPlanId = this.props.active.reducer.currentInfra.testPlanId;
-    currentInfra.infraParameters = this.props.active.reducer.currentInfra.infraParameters;
-    currentInfra.testPlanStatus = this.props.active.reducer.currentInfra.testPlanStatus;
+    currentInfra.testPlanId = this.props.currentInfra.testPlanId;
+    currentInfra.infraParameters = this.props.currentInfra.infraParameters;
+    currentInfra.testPlanStatus = this.props.currentInfra.testPlanStatus;
     this.getReportData(currentInfra);
-    this.setState({currentInfra: currentInfra});
     this.getGrafanaUrl(currentInfra.testPlanId);
     this.getWSO2Logs(currentInfra.testPlanId);
+    this.setState({currentInfra: currentInfra});
   }
 
   componentDidMount() {
-    console.log("---------------------------------")
-    console.log(this.props.match);
-    console.log(this.props);
     const { productName, deploymentPatternName, testPlanId } = this.props.match.params;
     let currentInfra = {};
     currentInfra.relatedProduct = productName;
     currentInfra.relatedDeplymentPattern = deploymentPatternName;
 
-    console.log(currentInfra)
-    if (this.props.active.reducer.currentInfra) {
+    if (this.props.currentInfra) {
       this.updateCurrentInfra(currentInfra);
     } else {
       let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + testPlanId;
@@ -103,15 +99,14 @@ class TestRunView extends Component {
         .then(response => {
           return response.json();
         }).then(data => {
-        currentInfra.testPlanId = data.id;
-        currentInfra.infraParameters = data.infraParams;
-        currentInfra.testPlanStatus = data.status;
-        this.props.active.reducer.currentInfra = currentInfra;
-        this.getReportData(currentInfra);
-        this.setState({currentInfra: currentInfra});
-        this.getGrafanaUrl(currentInfra.testPlanId);
-        this.getWSO2Logs(currentInfra.testPlanId);
-      });
+          currentInfra.testPlanId = data.id;
+          currentInfra.infraParameters = data.infraParams;
+          currentInfra.testPlanStatus = data.status;
+          this.getReportData(currentInfra);
+          this.setState({currentInfra: currentInfra});
+          this.getGrafanaUrl(currentInfra.testPlanId);
+          this.getWSO2Logs(currentInfra.testPlanId);
+        });
     }
 
     this.checkIfTestRunLogExists();
@@ -540,7 +535,7 @@ class TestRunView extends Component {
                       {this.state.scenarioTestCaseEntries.map((data, index) => {
                         if (data.testCaseEntries.length > 0) {
                           return (
-                            <div style={{padding: "10px"}}>
+                            <div key={index} style={{padding: "10px"}}>
                               <h4 style={{color: "#e46226"}}>
                                 <a id={data.scenarioDescription}>
                                   Scenario: {data.scenarioDescription}

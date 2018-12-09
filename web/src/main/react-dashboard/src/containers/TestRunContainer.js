@@ -20,8 +20,7 @@ import {connect} from 'react-redux'
 import TestRunView from '../components/TestRunView.js'
 
 const mapStateToProps = (state, ownProps) => ({
-  active: state,
-  currentInfra: state.currentInfra
+  currentInfra: state.reducer.currentInfra
 });
 
 const TestRunContainer = connect(

@@ -57,7 +57,7 @@ class InfraCombinationOverview extends Component {
 
     return (
       <Grid container className={classes.root}>
-        <Grid container xs={12}>
+        <Grid container>
           <Grid
             container
           >
