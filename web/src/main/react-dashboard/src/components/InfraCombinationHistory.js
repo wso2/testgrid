@@ -49,10 +49,13 @@ class InfraCombinationHistory extends Component {
     return <Card body inverse>
       <CardText>
         {
-          Object.entries(infraData).map(([key, value]) => {
+          Object.entries(infraData).sort().map(([key, value], index) => {
 
             return (
-          <small className="text-muted" key={key}><b>{key}</b>-{value}  </small>
+              <span>
+                <small className="text-muted" key={key}><b>{key}</b>-{value} </small>
+                {index % 3 === 2 ? <br/> : ""}
+              </span>
           )
         })
         }
@@ -94,6 +97,7 @@ class InfraCombinationHistory extends Component {
     let {productName, deploymentPatternName} = this.props.match.params;
     return (
       <div>
+        <b style={{'padding-left': '10px'}}>Build History</b>
         <Table responsive fixedHeader={false}>
           <thead displaySelectAll={false} adjustForCheckbox={false}>
           <tr>

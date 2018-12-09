@@ -30,7 +30,7 @@ const styles = theme => ({
   },
   paper: {
     padding: theme.spacing.unit * 2,
-    textAlign: 'center',
+    textAlign: 'left',
     color: theme.palette.text.secondary,
   },
 });
@@ -40,9 +40,6 @@ class InfraCombinationOverview extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      direction: 'row',
-      justify: 'center',
-      alignItems: 'center',
     }
   }
 

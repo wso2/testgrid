@@ -20,12 +20,10 @@ import React, {Component} from 'react';
 import './App.css';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import ProductContainer from './containers/productContainer.js';
-import InfrastructureContainer from './containers/InfrastructureContainer.js';
 import InfrastructureOverviewContainer from './containers/InfraCombinationOverviewContainer.js';
 import ScenarioContainer from './containers/ScenarioContainer.js';
 import TestCaseContainer from './containers/TestCaseContainer.js';
 import DeploymentContainer from './containers/deploymentContainer.js';
-import testRunContainer from './containers/TestRunContainer.js';
 import Login from './components/Login.js'
 import {Route, Switch} from 'react-router-dom';
 import AppBar from 'material-ui/AppBar';
@@ -54,8 +52,8 @@ const persistor = persistStore(store);
 class App extends Component {
 
   handleClose = () => {
-    var b = !this.state.open;
-    var w = b ? 240 : 20;
+    let b = !this.state.open;
+    let w = b ? 240 : 20;
     this.setState({open: b, navWidth: w});
   };
 

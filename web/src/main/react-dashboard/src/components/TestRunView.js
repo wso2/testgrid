@@ -301,7 +301,8 @@ class TestRunView extends Component {
                   <Card body inverse style={{ backgroundColor: '#e57373', borderColor: '#e57373' }}>
                     <CardTitle><i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!">
                       <span> {this.state.currentInfra.relatedProduct}</span>
-                    </i><ReactTooltip/></CardTitle>
+                    </i><ReactTooltip/>
+                    </CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
                     {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
@@ -313,7 +314,8 @@ class TestRunView extends Component {
                   <Card body inverse color="success">
                     <CardTitle><i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!">
                       <span> {this.state.currentInfra.relatedProduct}</span>
-                    </i><ReactTooltip/></CardTitle>
+                    </i><ReactTooltip/>
+                    </CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
                     {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
@@ -326,8 +328,9 @@ class TestRunView extends Component {
                 <Col sm="12">
                   <Card body inverse color="info">
                     <CardTitle><i className="fa fa-spinner fa-pulse" data-tip="Running!">
-                      <span className="sr-only">Loading...</span></i><ReactTooltip/>
-                      <span> {this.state.currentInfra.relatedProduct}</span></CardTitle>
+                    </i><ReactTooltip/>
+                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    </CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
                     {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
