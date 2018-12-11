@@ -1,7 +1,7 @@
 # TestGrid Test Configuration Parameters
 # TODO use dash as the separator instead of camelCase.
 version: '0.9'
-emailToList: "wso2testgridphase1@gmail.com,yasassri@wso2.com"
+emailToList: "wso2testgridphase1@gmail.com,kasung@wso2.com,yasassri@wso2.com,asmaj@wso2.com,tharindusa@wso2.com,sameeraw@wso2.com"
 infrastructureConfig:
   iacProvider: CLOUDFORMATION
   infrastructureProvider: AWS
@@ -9,7 +9,7 @@ infrastructureConfig:
   parameters:
     - JDK : ORACLE_JDK8
   includes:
-     - CentOS-7.5
+     - Ubuntu-18.04
      - MySQL-5.7
      - OracleJDK-8
   provisioners:
