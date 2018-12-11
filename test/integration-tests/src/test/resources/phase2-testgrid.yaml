@@ -32,8 +32,8 @@ infrastructureConfig:
             ElasticSearchEndpoint: "dummy"
 scenarioConfigs:
   - testType: TESTNG
-    remoteRepository: "https://github.com/yasassri/product-ei.git"
-    remoteBranch: "product-scenarios"
+    remoteRepository: "https://github.com/yasassri/phase2-dummy-tests.git"
+    remoteBranch: "master"
     name: "1-integrating-systems-that-communicate-in-heterogeneous-message-formats"
     description: "1-integrating-systems-that-communicate-in-heterogeneous-message-formats"
-    file: product-scenarios/1-integrating-systems-that-communicate-in-heterogeneous-message-formats/test.sh
+    file: test.sh
