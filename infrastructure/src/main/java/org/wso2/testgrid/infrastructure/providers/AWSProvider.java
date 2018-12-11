@@ -30,6 +30,7 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.Tag;
 import com.amazonaws.services.cloudformation.model.TemplateParameter;
 import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
 import com.amazonaws.services.cloudformation.model.ValidateTemplateResult;
@@ -39,10 +40,11 @@ import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
 import com.amazonaws.waiters.WaiterUnrecoverableException;
-
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -52,7 +54,6 @@ import org.apache.http.util.EntityUtils;
 import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.Host;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestGridConstants;
@@ -85,6 +86,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -215,9 +217,14 @@ public class AWSProvider implements InfrastructureProvider {
                     .withRegion(region)
                     .build();
 
+            String tgEnvironment = ConfigurationContext.getProperty(ConfigurationContext.
+                    ConfigurationProperties.TESTGRID_ENVIRONMENT);
             final List<Parameter> populatedExpectedParameters = getParameters(expectedParameters, inputs,
                     testPlan.getInfrastructureConfig().getParameters(), testPlan);
-            stackRequest.setParameters(populatedExpectedParameters);
+            stackRequest
+                    .withParameters(populatedExpectedParameters)
+                    .withTags(new Tag().withKey("Creator").withValue("testgrid-" + tgEnvironment));
+
             logger.info(StringUtil.concatStrings("Creation of CloudFormation Stack '", stackName,
                     "' in region '", region, "'. Script : ", script.getFile()));
             final long start = System.currentTimeMillis();
@@ -247,37 +254,15 @@ public class AWSProvider implements InfrastructureProvider {
             //Set log download url to test plan.
             deriveLogDashboardUrl(testPlan, stackName);
 
-            DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
-            describeStacksRequest.setStackName(stack.getStackId());
-            DescribeStacksResult describeStacksResult = cloudFormation
-                    .describeStacks(describeStacksRequest);
-
-            List<Host> hosts = new ArrayList<>();
-
-            Properties outputProps = new Properties();
-            for (Stack st : describeStacksResult.getStacks()) {
-                StringBuilder outputsStr = new StringBuilder("Infrastructure/Deployment outputs {\n");
-                for (Output output : st.getOutputs()) {
-                    Host host = new Host();
-                    host.setIp(output.getOutputValue());
-                    host.setLabel(output.getOutputKey());
-                    hosts.add(host);
-                    outputProps.setProperty(output.getOutputKey(), output.getOutputValue());
-                    outputsStr.append(output.getOutputKey()).append("=").append(output.getOutputValue()).append("\n");
-                }
-                //Log cfn outputs
-                logger.info(outputsStr.toString() + "\n}");
-            }
+            Properties outputProps = getCloudformationOutputs(cloudFormation, stack);
+            logEC2SshAccessDetails(stack.getStackId(), inputs);
             //Persist infra outputs to a file to be used for the next step
             persistOutputs(testPlan, outputProps);
 
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             Properties props = new Properties();
-            props.setProperty("HOSTS", hosts.toString());
             props.putAll(outputProps);
             result.setProperties(props);
-            //added for backward compatibility. todo remove.
-            result.setHosts(hosts);
 
             return result;
         } catch (IOException e) {
@@ -362,6 +347,100 @@ public class AWSProvider implements InfrastructureProvider {
             logger.error("Error occurred while persisting log URL to test plan."
                     + testPlan.toString() + e.getMessage());
         }
+    }
+
+    /**
+     *
+     * Testgrid users may need to access the deployment's instances for debugging purposes.
+     * Hence, we need to print the ssh access details by probing the internal details of the
+     * cloudformation stack.
+     *
+     * @param stackName the cloudformation stack name
+     * @param inputs properties instance that contain the aws region param
+     */
+    private void logEC2SshAccessDetails(String stackName, Properties inputs) {
+        try {
+            Path configFilePath = TestGridUtil.getConfigFilePath();
+            String region = inputs.getProperty(AWS_REGION_PARAMETER);
+            final AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.standard()
+                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                    .withRegion(region)
+                    .build();
+
+            DescribeInstancesRequest request = new DescribeInstancesRequest();
+            request.withFilters(
+                    new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
+
+            DescribeInstancesResult result = amazonEC2.describeInstances(request);
+            final long instanceCount = result.getReservations().stream()
+                    .map(Reservation::getInstances)
+                    .mapToLong(Collection::size)
+                    .sum();
+
+            logger.info("");
+            logger.info("Found " + instanceCount + " EC2 instances in this AWS Cloudformation stack: {");
+            for (Reservation reservation : result.getReservations()) {
+                for (Instance instance : reservation.getInstances()) {
+                    final String loginCommand = getLoginCommand(instance);
+                    logger.info(loginCommand);
+                }
+            }
+            logger.info("}");
+            logger.info("For information on login user names for Linux, please refer: "
+                    + "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html");
+            logger.info("");
+        } catch (RuntimeException e) {
+            logger.warn("Error while trying to probe the cloudformation stack to find created ec2 instances.", e);
+        }
+    }
+
+    /**
+     * Generates a ssh login command for *nix to access the given ec2 instance.
+     *
+     * @param instance the ec2 instance
+     * @return ssh login command.
+     */
+    private String getLoginCommand(Instance instance) {
+        final String privateIpAddress = instance.getPrivateIpAddress();
+        String publicAddress = instance.getPublicDnsName();
+        publicAddress = publicAddress == null ? instance.getPublicIpAddress() : publicAddress;
+        final String keyName = instance.getKeyName();
+        String instanceName = instance.getTags().stream()
+                .filter(t -> t.getKey().equals("Name"))
+                .map(com.amazonaws.services.ec2.model.Tag::getValue)
+                .findAny().orElse("");
+        instanceName = instanceName.isEmpty() ? "" : "# name: " + instanceName;
+        String platform = instance.getPlatform();
+        platform = platform == null || platform.isEmpty() ? "" : "# platform: " + platform;
+
+        String ip;
+        if (publicAddress != null && !publicAddress.isEmpty()) {
+            ip = publicAddress;
+        } else {
+            ip = privateIpAddress;
+        }
+
+        //root user is assumed. EC2 instances print the actual user name when tried to log-in as the root user.
+        return "ssh -i " + keyName + " root@" + ip + ";   " + instanceName + platform;
+    }
+
+    private Properties getCloudformationOutputs(AmazonCloudFormation cloudFormation, CreateStackResult stack) {
+        DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
+        describeStacksRequest.setStackName(stack.getStackId());
+        final DescribeStacksResult describeStacksResult = cloudFormation
+                .describeStacks(describeStacksRequest);
+
+        Properties outputProps = new Properties();
+        for (Stack st : describeStacksResult.getStacks()) {
+            StringBuilder outputsStr = new StringBuilder("Infrastructure/Deployment outputs {\n");
+            for (Output output : st.getOutputs()) {
+                outputProps.setProperty(output.getOutputKey(), output.getOutputValue());
+                outputsStr.append(output.getOutputKey()).append("=").append(output.getOutputValue()).append("\n");
+            }
+            //Log cfn outputs
+            logger.info(outputsStr.toString() + "\n}");
+        }
+        return outputProps;
     }
 
     /**
