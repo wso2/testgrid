@@ -27,7 +27,7 @@ import Snackbar from 'material-ui/Snackbar';
 import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI,
   TESTGRID_API_CONTEXT, DID_NOT_RUN, INCOMPLETE} from '../constants.js';
 import {Button, Table, Card, CardText, CardTitle, Col, Row} from 'reactstrap';
-import InfraCombinationView from "./InfraCombinationView";
+import InfraCombinationHistory from "./InfraCombinationHistory";
 import ReactTooltip from 'react-tooltip'
 import {HTTP_OK} from "../constants";
 
@@ -49,28 +49,45 @@ class TestRunView extends Component {
       isLogTruncated: false,
       inputStreamSize: "",
       showLogDownloadErrorDialog: false,
-      currentInfra: null,
+      currentInfra: props.currentInfra,
       TruncatedRunLogUrlStatus:null,
       grafanaUrl: "",
       wso2LogsUrl: ""
     };
   }
 
-  componentDidMount() {
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const {productName, deploymentPatternName} = this.props.match.params;
     let currentInfra = {};
-    let currentUrl = window.location.href.split("/");
-    currentInfra.relatedProduct = currentUrl[currentUrl.length - 4];
-    currentInfra.relatedDeplymentPattern = currentUrl[currentUrl.length - 3];
-    if (this.props.active.reducer.currentInfra) {
-      currentInfra.testPlanId = this.props.active.reducer.currentInfra.testPlanId;
-      currentInfra.infraParameters = this.props.active.reducer.currentInfra.infraParameters;
-      currentInfra.testPlanStatus = this.props.active.reducer.currentInfra.testPlanStatus;
-      this.getReportData(currentInfra);
-      this.setState({currentInfra: currentInfra});
-      this.getGrafanaUrl(currentInfra.testPlanId);
-      this.getWSO2Logs(currentInfra.testPlanId);
+    currentInfra.relatedProduct = productName;
+    currentInfra.relatedDeplymentPattern = deploymentPatternName;
+    if (prevState.currentInfra) {
+      if (prevProps.currentInfra.testPlanId !== this.props.currentInfra.testPlanId) {
+        this.updateCurrentInfra(currentInfra);
+      }
+    }
+  }
+
+  updateCurrentInfra(currentInfra) {
+    currentInfra.testPlanId = this.props.currentInfra.testPlanId;
+    currentInfra.infraParameters = this.props.currentInfra.infraParameters;
+    currentInfra.testPlanStatus = this.props.currentInfra.testPlanStatus;
+    this.getReportData(currentInfra);
+    this.getGrafanaUrl(currentInfra.testPlanId);
+    this.getWSO2Logs(currentInfra.testPlanId);
+    this.setState({currentInfra: currentInfra});
+  }
+
+  componentDidMount() {
+    const { productName, deploymentPatternName, testPlanId } = this.props.match.params;
+    let currentInfra = {};
+    currentInfra.relatedProduct = productName;
+    currentInfra.relatedDeplymentPattern = deploymentPatternName;
+
+    if (this.props.currentInfra) {
+      this.updateCurrentInfra(currentInfra);
     } else {
-      let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + currentUrl.pop();
+      let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + testPlanId;
       fetch(url, {
         method: "GET",
         credentials: 'same-origin',
@@ -82,15 +99,14 @@ class TestRunView extends Component {
         .then(response => {
           return response.json();
         }).then(data => {
-        currentInfra.testPlanId = data.id;
-        currentInfra.infraParameters = data.infraParams;
-        currentInfra.testPlanStatus = data.status;
-        this.props.active.reducer.currentInfra = currentInfra;
-        this.getReportData(currentInfra);
-        this.setState({currentInfra: currentInfra});
-        this.getGrafanaUrl(currentInfra.testPlanId);
-        this.getWSO2Logs(currentInfra.testPlanId);
-      });
+          currentInfra.testPlanId = data.id;
+          currentInfra.infraParameters = data.infraParams;
+          currentInfra.testPlanStatus = data.status;
+          this.getReportData(currentInfra);
+          this.setState({currentInfra: currentInfra});
+          this.getGrafanaUrl(currentInfra.testPlanId);
+          this.getWSO2Logs(currentInfra.testPlanId);
+        });
     }
 
     this.checkIfTestRunLogExists();
@@ -285,9 +301,10 @@ class TestRunView extends Component {
                   <Card body inverse style={{ backgroundColor: '#e57373', borderColor: '#e57373' }}>
                     <CardTitle><i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!">
                       <span> {this.state.currentInfra.relatedProduct}</span>
-                    </i><ReactTooltip/></CardTitle>
+                    </i><ReactTooltip/>
+                    </CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -297,9 +314,10 @@ class TestRunView extends Component {
                   <Card body inverse color="success">
                     <CardTitle><i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!">
                       <span> {this.state.currentInfra.relatedProduct}</span>
-                    </i><ReactTooltip/></CardTitle>
+                    </i><ReactTooltip/>
+                    </CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -310,10 +328,11 @@ class TestRunView extends Component {
                 <Col sm="12">
                   <Card body inverse color="info">
                     <CardTitle><i className="fa fa-spinner fa-pulse" data-tip="Running!">
-                      <span className="sr-only">Loading...</span></i><ReactTooltip/>
-                      <span> {this.state.currentInfra.relatedProduct}</span></CardTitle>
+                    </i><ReactTooltip/>
+                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    </CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
-                    {InfraCombinationView.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
               </Row>;
@@ -519,7 +538,7 @@ class TestRunView extends Component {
                       {this.state.scenarioTestCaseEntries.map((data, index) => {
                         if (data.testCaseEntries.length > 0) {
                           return (
-                            <div style={{padding: "10px"}}>
+                            <div key={index} style={{padding: "10px"}}>
                               <h4 style={{color: "#e46226"}}>
                                 <a id={data.scenarioDescription}>
                                   Scenario: {data.scenarioDescription}

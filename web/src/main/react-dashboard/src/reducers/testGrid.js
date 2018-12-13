@@ -37,7 +37,8 @@ const testGrid = (state = {}, action) => {
         ...state,
         currentInfra: {
           ...action.infra
-        }
+        },
+
       }
     case 'ADD_CURRENT_SCENARIO':
       return {
