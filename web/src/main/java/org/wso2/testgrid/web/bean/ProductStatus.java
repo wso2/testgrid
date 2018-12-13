@@ -18,13 +18,14 @@
 package org.wso2.testgrid.web.bean;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * Bean class for Aggregated product productStatus reponses.
  *
  * @since 1.0.0
  */
-public class ProductStatus {
+public class ProductStatus implements Comparable<ProductStatus> {
 
     private String productId;
     private String productName;
@@ -34,6 +35,12 @@ public class ProductStatus {
     private String configLink;
     private Timestamp lastSuccessTimestamp;
     private Timestamp lastFailureTimestamp;
+
+    public ProductStatus(String productId, String productName, String productStatus) {
+        this.productId = productId;
+        this.productName = productName;
+        this.productStatus = productStatus;
+    }
 
     /**
      * Returns the productId of the product.
@@ -179,5 +186,48 @@ public class ProductStatus {
      */
     public void setLastFailureTimestamp(Timestamp lastFailureTimestamp) {
         this.lastFailureTimestamp = lastFailureTimestamp == null ? null : new Timestamp(lastFailureTimestamp.getTime());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ProductStatus that = (ProductStatus) o;
+
+        if (!productId.equals(that.productId)) {
+            return false;
+        }
+        if (!productName.equals(that.productName)) {
+            return false;
+        }
+        return Objects.equals(productStatus, that.productStatus);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = productId.hashCode();
+        result = 31 * result + productName.hashCode();
+        result = 31 * result + (productStatus != null ? productStatus.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public int compareTo(ProductStatus productStatus) {
+        int comparison = this.productName.compareTo(productStatus.productName);
+        if (comparison != 0) {
+            return comparison;
+        }
+
+        comparison = this.productStatus.compareTo(productStatus.productStatus);
+        if (comparison != 0) {
+            return comparison;
+        }
+
+        return this.productId.compareTo(productStatus.productId);
     }
 }
