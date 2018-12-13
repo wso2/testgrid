@@ -218,7 +218,7 @@ class DeploymentPatternView extends Component {
                   <th rowSpan='2' className="text-center">Last Build</th>
                   <th rowSpan='2' className="text-center">Last Failure</th>
                 </tr>
-                <tr class='infra-param-header'>
+                <tr className='infra-param-header'>
                   <td>
                     <p className="text-center">OS</p>
                     <p className="text-center">Database</p>
@@ -234,7 +234,7 @@ class DeploymentPatternView extends Component {
                       if (index === 0) {
                         return (
                           <tr>
-                            <td class='deployment-pattern-name'
+                            <td className='deployment-pattern-name'
                                 rowSpan={groupByDeployment[key].length}>{key}</td>
                             <td style={{whiteSpace: 'normal', wordWrap: 'break-word'}}>
                               <FlatButton class='view-history' data-tip="View History"
@@ -246,13 +246,13 @@ class DeploymentPatternView extends Component {
                                             infraParameters: value.lastBuild.infraParams,
                                             testPlanStatus: value.lastBuild.status
                                           })}>
-                                <p class='infra-param'>
+                                <p className='infra-param'>
                                   {infraParameters.OS} {infraParameters.OSVersion}
                                 </p>
-                                <p class='infra-param'>
+                                <p className='infra-param'>
                                   {infraParameters.DBEngine} {infraParameters.DBEngineVersion}
                                 </p>
-                                <p class='infra-param'>
+                                <p className='infra-param'>
                                   {infraParameters.JDK}
                                 </p>
                               </FlatButton>

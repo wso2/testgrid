@@ -38,9 +38,9 @@ import org.wso2.testgrid.web.utils.Constants;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.TreeSet;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -119,15 +119,13 @@ public class ProductService {
     public Response getAllProductStatuses() {
         TestPlanUOW testPlanUOW = new TestPlanUOW();
         ProductUOW productUOW = new ProductUOW();
-        ArrayList<ProductStatus> list = new ArrayList<>();
+        TreeSet<ProductStatus> list = new TreeSet<>();
         try {
             for (Product product : productUOW.getProducts()) {
-                ProductStatus status = new ProductStatus();
-                status.setProductId(product.getId());
-                status.setProductName(product.getName());
+                ProductStatus status = new ProductStatus(product.getId(), product.getName(),
+                        testPlanUOW.getCurrentStatus(product).toString());
                 status.setLastSuccessTimestamp(product.getLastSuccessTimestamp());
                 status.setLastFailureTimestamp(product.getLastFailureTimestamp());
-                status.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());
                 list.add(status);
             }
         } catch (TestGridDAOException e) {
@@ -154,23 +152,21 @@ public class ProductService {
         try {
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             ProductUOW productUOW = new ProductUOW();
-            ProductStatus productStatus = new ProductStatus();
             Optional<Product> productInstance = productUOW.getProduct(productName);
             Product product;
             if (productInstance.isPresent()) {
                 product = productInstance.get();
-                productStatus.setProductId(product.getId());
-                productStatus.setProductName(product.getName());
+                ProductStatus productStatus = new ProductStatus(product.getId(), product.getName(),
+                        testPlanUOW.getCurrentStatus(product).toString());
                 productStatus.setLastSuccessTimestamp(product.getLastSuccessTimestamp());
                 productStatus.setLastFailureTimestamp(product.getLastFailureTimestamp());
-                productStatus.setProductStatus(testPlanUOW.getCurrentStatus(product).toString());
+                return Response.status(Response.Status.OK).entity(productStatus).build();
             } else {
                 String msg = "Could not found the product:" + productName + " in TestGrid. Please check the "
                         + "infrastructure_parameter table";
                 logger.error(msg);
                 return Response.status(Response.Status.NOT_FOUND).entity(msg).build();
             }
-            return Response.status(Response.Status.OK).entity(productStatus).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the statuses of the product: " + productName + ". Please "
                     + "check the database configurations";
