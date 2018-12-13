@@ -145,6 +145,9 @@ public class InfrastructureCombinationsProvider {
     private Set<InfrastructureValueSet> filterInfrastructures(Set<InfrastructureValueSet> infrastructures,
             TestgridYaml testgridYaml) {
 
+        if (infrastructures.isEmpty()) {
+            return infrastructures;
+        }
         List<String> excludes = testgridYaml.getInfrastructureConfig().getExcludes();
         List<String> includes = testgridYaml.getInfrastructureConfig().getIncludes();
         Set<InfrastructureValueSet> selectedInfraValSet = ConcurrentHashMap.newKeySet();
@@ -165,6 +168,14 @@ public class InfrastructureCombinationsProvider {
                 selectedInfraValSet.add(new InfrastructureValueSet(infrastructureValueSet.getType(), selectedSet));
             });
             return selectedInfraValSet;
+        }
+
+        if (selectedInfraValSet.isEmpty()) {
+            logger.warn("Filtered infrastructure value-set is empty. A possible cause is incorrect includes/excludes "
+                    + "configuration in the testgrid.yaml's infrastructureConfig section.");
+            logger.warn("Infrastructure value-set from the database: " + infrastructures);
+            logger.warn("Testgrid.yaml's excludes: " + excludes);
+            logger.warn("Testgrid.yaml's includes: " + includes);
         }
 
         return infrastructures;
