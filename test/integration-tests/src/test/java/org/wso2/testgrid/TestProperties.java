@@ -33,6 +33,8 @@ public class TestProperties {
     public static String jenkinsUser;
     public static String jenkinsToken;
     public static String tgApiToken;
+    public static String tgUser;
+    public static String tgUserToken;
     public static String jenkinsUrl = "https://testgrid-live-dev.private.wso2.com/admin";
     public static String tgDashboardApiUrl = "https://testgrid-live-dev.private.wso2.com/api";
     private String propFileName = System.getenv("TEST_PROPS");
@@ -53,6 +55,8 @@ public class TestProperties {
             jenkinsToken = prop.getProperty("jenkinsToken");
             jenkinsUser = prop.getProperty("jenkinsUser");
             tgApiToken = prop.getProperty("tgApiToken");
+            tgUser = prop.getProperty("tgUser");
+            tgUserToken = prop.getProperty("tgUserToken");
 
         } catch (IOException e) {
             Assert.fail("Unable to read test properties " + e.getMessage());

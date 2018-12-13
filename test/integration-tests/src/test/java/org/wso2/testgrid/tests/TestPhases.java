@@ -35,6 +35,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,16 +68,19 @@ public class TestPhases {
         HttpsURLConnection connection = null;
         logger.info("Running tests for the job : " + jobName);
         try {
-            String jenkinsToken = testProperties.jenkinsToken;
+            String authorizationHeader = "Basic " + new String(Base64.getEncoder().
+                                    encode((testProperties.tgUser + ":" + testProperties.tgUserToken).getBytes()));
+            String jenkinsToken = TestProperties.jenkinsToken;
             URL buildTriggerUrl = new URL(TestProperties.jenkinsUrl + "/job/" + jobName + "/build?token=" +
                                           jenkinsToken);
             URL buildStatusUrl =
                     new URL(TestProperties.jenkinsUrl + "/job/" + jobName + "/lastBuild/api/json");
 
-            JenkinsJob jenkinsJob = getLastJob(buildStatusUrl);
+            JenkinsJob jenkinsJob = getLastJob(buildStatusUrl, authorizationHeader);
             logger.info("Job status for job ID : " + jenkinsJob.id + " : " + jenkinsJob.status);
 
             connection = (HttpsURLConnection) buildTriggerUrl.openConnection();
+            connection.setRequestProperty("Authorization", authorizationHeader);
             connection.setRequestMethod("GET");
             connection.setDoOutput(true);
 
@@ -90,15 +94,15 @@ public class TestPhases {
                 Assert.fail("Phase 1 build couldn't be triggered. Response code : " + response);
             }
 
-            jenkinsJob = getLastJob(buildStatusUrl);
+            jenkinsJob = getLastJob(buildStatusUrl, authorizationHeader);
 
             while (jenkinsJob.building) {
-                jenkinsJob = getLastJob(buildStatusUrl);
+                jenkinsJob = getLastJob(buildStatusUrl, authorizationHeader);
                 logger.info(jobName + " #(" + jenkinsJob.id + ") building ");
                 TimeUnit.SECONDS.sleep(2);
             }
 
-            currentBuild = getLastJob(buildStatusUrl);
+            currentBuild = getLastJob(buildStatusUrl, authorizationHeader);
             Assert.assertEquals(currentBuild.status, "SUCCESS");
 
             logger.info("Checking the Email content of " + jobName);
@@ -269,9 +273,10 @@ public class TestPhases {
         con.disconnect();
     }
 
-    private JenkinsJob getLastJob(URL url) throws Exception {
+    private JenkinsJob getLastJob(URL url, String authHeader) throws Exception {
 
         HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+        con.setRequestProperty("Authorization", authHeader);
         con.setRequestMethod("GET");
         con.setDoOutput(true);
         SSLSocketFactory sslSocketFactory = createSslSocketFactory();
