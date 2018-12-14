@@ -19,72 +19,70 @@
 
 package org.wso2.testgrid.reporting.model.email;
 
-import java.util.List;
-
 /**
- * Model class representing the test-case result section in summarized email-report.
+ * Model class representing the escalation result section in escalation email-report.
  */
-public class TestCaseResultSection {
+public class EscalationFailureSection {
 
-    private String testCaseName;
-    private String testCaseDescription;
-    private String testCaseExecutedOS;
-    private String testCaseExecutedJDK;
-    private String testCaseExecutedDB;
+    private String jobName;
+    private String imageLocation;
+    private int count;
+    private String buildInfoUrl;
+    private String lastSuccessBuildTimeStamp;
+    private int numberOfDeploymentPatterns;
     int rowSpan = -1;
 
-    List<InfraCombination> infraCombinations;
-
-    public String getTestCaseName() {
-        return testCaseName;
+    public String getJobName() {
+        return jobName;
     }
 
-    public void setTestCaseName(String testCaseName) {
-        this.testCaseName = testCaseName;
+    public void setJobName(String testCaseName) {
+        this.jobName = testCaseName;
     }
 
-    public String getTestCaseDescription() {
-        return testCaseDescription;
+    public String getImageLocation() {
+        return imageLocation;
     }
 
-    public void setTestCaseDescription(String testCaseDescription) {
-        this.testCaseDescription = testCaseDescription;
+    public void setImageLocation(String imageLocation) {
+        this.imageLocation = imageLocation;
     }
 
-    public String getTestCaseExecutedOS() {
-        return testCaseExecutedOS;
-    }
-
-    public void setTestCaseExecutedOS(String testCaseExecutedOS) {
-        this.testCaseExecutedOS = testCaseExecutedOS;
-    }
-
-    public String getTestCaseExecutedJDK() {
-        return testCaseExecutedJDK;
-    }
-
-    public void setTestCaseExecutedJDK(String testCaseExecutedJDK) {
-        this.testCaseExecutedJDK = testCaseExecutedJDK;
-    }
-
-    public String getTestCaseExecutedDB() {
-        return testCaseExecutedDB;
-    }
-
-    public void setTestCaseExecutedDB(String testCaseExecutedDB) {
-        this.testCaseExecutedDB = testCaseExecutedDB;
-    }
-
-    public List<InfraCombination> getInfraCombinations() {
-        return infraCombinations;
-    }
-
-    public void setInfraCombinations(List<InfraCombination> infraCombinations) {
-        this.infraCombinations = infraCombinations;
-    }
 
     public int getRowSpan() {
         return rowSpan;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public String getBuildInfoUrl() {
+        return buildInfoUrl;
+    }
+
+    public void setBuildInfoUrl(String buildInfoUrl) {
+        this.buildInfoUrl = buildInfoUrl;
+    }
+
+    public String getLastSuccessBuildTimeStamp() {
+        return lastSuccessBuildTimeStamp;
+    }
+
+    public void setLastSuccessBuildTimeStamp(String lastSuccessBuildTimeStamp) {
+        this.lastSuccessBuildTimeStamp = lastSuccessBuildTimeStamp;
+    }
+
+    public int getNumberOfDeploymentPatterns() {
+        return numberOfDeploymentPatterns;
+    }
+
+    public void setNumberOfDeploymentPatterns(int numberOfDeploymentPatterns) {
+        this.numberOfDeploymentPatterns = numberOfDeploymentPatterns;
     }
 
     public void setRowSpan(int rowSpan) {

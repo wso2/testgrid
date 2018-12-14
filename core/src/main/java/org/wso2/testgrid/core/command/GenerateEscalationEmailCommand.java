@@ -17,12 +17,48 @@
  */
 package org.wso2.testgrid.core.command;
 
+import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.spi.StringArrayOptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
+import org.wso2.testgrid.reporting.EscalationEmailGenerator;
+import org.wso2.testgrid.reporting.ReportingException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GenerateEscalationEmailCommand implements Command {
+
+    @Option(name = "--workspace",
+            usage = "Product workspace",
+            aliases = {"-w"},
+            required = true)
+    private String workspace = "";
+
+    @Option(name = "--exclude-products",
+            usage = "Products to be excluded from escalation mail",
+            handler = StringArrayOptionHandler.class,
+            aliases = {"-e"}
+            )
+    private List<String> excludeList = new ArrayList<>();
+
+    @Option(name = "--product-include-pattern",
+            usage = "Product names that matches the pattern will be included",
+            aliases = {"-i"}
+    )
+    String productIncludePattern; //TODO : Need to implement this
+
+    private static final Logger logger = LoggerFactory.getLogger(GenerateEscalationEmailCommand.class);
 
     @Override
     public void execute() throws CommandExecutionException {
 
+        EscalationEmailGenerator generator = new EscalationEmailGenerator();
+        try {
+            generator.generateEscalationEmail(excludeList, workspace);
+        } catch (ReportingException e) {
+            logger.error("Error occurred while generating the escalation email. ", e);
+        }
     }
 }
