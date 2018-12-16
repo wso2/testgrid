@@ -47,6 +47,9 @@ import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.util.FileUtil.writeToFile;
 
+/**
+ * This class is responsible in generating the escalation email.
+ */
 public class EscalationEmailGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(EscalationEmailGenerator.class);
@@ -54,12 +57,18 @@ public class EscalationEmailGenerator {
     private static final String ESCALATION_EMAIL_REPORT_MUSTACHE = "escalation_email_report.mustache";
     private static final String ESCALATION_EMAIL_REPORT_NAME = "EscalationMail.html";
     private static final String CHART_DIR = "escalations";
+    private static final int MAX_DAYS_FOR_ESCALATION = 7;
 
+    /**
+     * Generates the escalation email.
+     * @param excludeProducts product list to be excluded when generating the escalations
+     * @param workspace working directory
+     * @return Optional {@link Path}
+     * @throws ReportingException is thrown if error occurs when generating the email
+     */
     public Optional<Path> generateEscalationEmail(List<String> excludeProducts, String workspace) throws ReportingException {
 
-        final int numberOfDaysToConsider = 7; // Number of days to consider when retrieving testplans
         Map<String, Object> results = new HashMap<>();
-
         List<EscalationFailureSection> resultList = new ArrayList<>();
 
         ProductUOW productUOW = new ProductUOW();
@@ -70,6 +79,7 @@ public class EscalationEmailGenerator {
                     (product.getName())).collect(Collectors.toList());
             ChartGenerator chartGenerator = new ChartGenerator(workspace);
 
+            // This is used to generate the numbering
             int counter = 0;
             for (Product product : productList) {
                 GraphDataProvider dataProvider = new GraphDataProvider();
@@ -80,9 +90,9 @@ public class EscalationEmailGenerator {
                 // build result
                 Map.Entry<String, BuildExecutionSummary> entry = executionHistoryMap.entrySet().iterator().next();
                 LocalDate date = LocalDate.parse(entry.getKey());
-                Period period = Period.between(date, LocalDate.now(ZoneId.of("UTC")).minusDays(numberOfDaysToConsider));
+                Period period = Period.between(date, LocalDate.now(ZoneId.of("UTC")).minusDays(MAX_DAYS_FOR_ESCALATION));
 
-                if (period.getDays() < numberOfDaysToConsider) {
+                if (period.getDays() < MAX_DAYS_FOR_ESCALATION) {
                     logger.info("Skipping escalation creation for product " + product.getName());
                     continue;
                 }
@@ -113,6 +123,9 @@ public class EscalationEmailGenerator {
                 section.setBuildInfoUrl(ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties
                         .TESTGRID_HOST) + "/" + product.getName());
                 section.setLastSuccessBuildTimeStamp(product.getLastSuccessTimestamp().toString());
+                if (product.getLastFailureTimestamp() != null) {
+                    section.setLastFailedBuildTimeStamp(product.getLastFailureTimestamp().toString());
+                }
                 section.setNumberOfDeploymentPatterns(product.getDeploymentPatterns().size());
                 resultList.add(section);
             }

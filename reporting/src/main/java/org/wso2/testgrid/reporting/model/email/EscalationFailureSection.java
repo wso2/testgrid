@@ -29,6 +29,7 @@ public class EscalationFailureSection {
     private int count;
     private String buildInfoUrl;
     private String lastSuccessBuildTimeStamp;
+    private String lastFailedBuildTimeStamp = "None";
     private int numberOfDeploymentPatterns;
     int rowSpan = -1;
 
@@ -46,11 +47,6 @@ public class EscalationFailureSection {
 
     public void setImageLocation(String imageLocation) {
         this.imageLocation = imageLocation;
-    }
-
-
-    public int getRowSpan() {
-        return rowSpan;
     }
 
     public int getCount() {
@@ -83,6 +79,18 @@ public class EscalationFailureSection {
 
     public void setNumberOfDeploymentPatterns(int numberOfDeploymentPatterns) {
         this.numberOfDeploymentPatterns = numberOfDeploymentPatterns;
+    }
+
+    public String getLastFailedBuildTimeStamp() {
+        return lastFailedBuildTimeStamp;
+    }
+
+    public void setLastFailedBuildTimeStamp(String lastFailedBuildTimeStamp) {
+        this.lastFailedBuildTimeStamp = lastFailedBuildTimeStamp;
+    }
+
+    public int getRowSpan() {
+        return rowSpan;
     }
 
     public void setRowSpan(int rowSpan) {
