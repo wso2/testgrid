@@ -366,7 +366,7 @@ class TestRunView extends Component {
 
           <Button id ="tdd" size="sm" style={{marginLeft: "10px"}}
           onClick={() => {
-            if(this.state.buildURL == null || this.state.buildURL == undefined ){
+            if(this.state.buildURL === null || this.state.buildURL === undefined ){
               this.toggle("Error when accessing TestGrid console");
             }else{
               window.open(this.state.buildURL, '_blank', false);
