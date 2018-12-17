@@ -61,10 +61,8 @@ class TestRunView extends Component {
     let currentInfra = {};
     currentInfra.relatedProduct = productName;
     currentInfra.relatedDeplymentPattern = deploymentPatternName;
-    if (prevState.currentInfra) {
-      if (prevProps.currentInfra.testPlanId !== this.props.currentInfra.testPlanId) {
-        this.updateCurrentInfra(currentInfra);
-      }
+    if (prevProps.currentInfra && (prevProps.currentInfra.testPlanId !== this.props.currentInfra.testPlanId)) {
+      this.updateCurrentInfra(currentInfra);
     }
   }
 
