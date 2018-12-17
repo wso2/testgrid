@@ -38,7 +38,7 @@
             <property name="eclipselink.logging.logger"
                       value="org.wso2.testgrid.logging.Slf4jSessionLogger"/>
             <property name="eclipselink.logging.level" value="CONFIG"/>
-            <property name="eclipselink.ddl-generation" value="create-tables"/>
+            <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
         </properties>
     </persistence-unit>
 </persistence>

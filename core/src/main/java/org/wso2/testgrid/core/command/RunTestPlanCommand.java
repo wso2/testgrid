@@ -74,6 +74,11 @@ public class RunTestPlanCommand implements Command {
             required = true)
     private String workspace = "";
 
+    @Option(name = "--url",
+            usage = "Jenkins URL",
+            aliases = {"-u"})
+    private String buildURL;
+
     private ProductUOW productUOW;
     private DeploymentPatternUOW deploymentPatternUOW;
     private TestPlanUOW testPlanUOW;
@@ -110,6 +115,9 @@ public class RunTestPlanCommand implements Command {
             // Generate test plan from config
             TestPlan testPlan = FileUtil.readYamlFile(testPlanYAMLFilePath.get(), TestPlan.class);
             testPlan.setWorkspace(workspace); // In future, the workspace will be kept in 'Context' and referred.
+            if (buildURL != null && !buildURL.isEmpty()) {
+                testPlan.setBuildURL(buildURL);
+            }
 
             resolvePaths(testPlan);
             InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();

@@ -133,6 +133,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String workspace = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.TESTGRID_JOB_DIR,
             "sample-").toString();
 
+    @Column (name = "build_url")
+    private String buildURL;
+
     /**
      * Returns the status of the infrastructure.
      *
@@ -523,6 +526,14 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     public void setEmailToList(String emailToList) {
         this.emailToList = emailToList;
+    }
+
+    public void setBuildURL(String buildURL) {
+        this.buildURL = buildURL;
+    }
+
+    public String getBuildURL() {
+        return buildURL;
     }
 
     /**

@@ -74,7 +74,7 @@ class TestRunView extends Component {
     currentInfra.testPlanStatus = this.props.currentInfra.testPlanStatus;
     this.getReportData(currentInfra);
     this.getGrafanaUrl(currentInfra.testPlanId);
-    this.getWSO2Logs(currentInfra.testPlanId);
+    this.getURLs(currentInfra.testPlanId);
     this.setState({currentInfra: currentInfra});
   }
 
@@ -105,7 +105,7 @@ class TestRunView extends Component {
           this.getReportData(currentInfra);
           this.setState({currentInfra: currentInfra});
           this.getGrafanaUrl(currentInfra.testPlanId);
-          this.getWSO2Logs(currentInfra.testPlanId);
+          this.getURLs(currentInfra.testPlanId);
         });
     }
 
@@ -255,7 +255,7 @@ class TestRunView extends Component {
 
   }
 
-  getWSO2Logs(testPlanId) {
+  getURLs(testPlanId) {
           let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + testPlanId;
                 fetch(url, {
                   method: "GET",
@@ -268,7 +268,9 @@ class TestRunView extends Component {
                   .then(response => {
                     return response.json();
                   })
-                  .then(data => this.setState({deploymentLogsUrl: data.logUrl}))
+                  .then(data => {this.setState({deploymentLogsUrl: data.logUrl})
+                            this.setState({buildURL: data.buildURL})        
+                  })
           .catch(error => console.error(error));
   }
 
@@ -361,6 +363,16 @@ class TestRunView extends Component {
                       })
                   )}
           ><i className="fa fa-download" aria-hidden="true"> </i> Download Test-Run log</Button>
+
+          <Button id ="tdd" size="sm" style={{marginLeft: "10px"}}
+          onClick={() => {
+            if(this.state.buildURL == null || this.state.buildURL == undefined ){
+              this.toggle("Error when accessing TestGrid console");
+            }else{
+              window.open(this.state.buildURL, '_blank', false);
+            }
+          }}
+            ><i className="fa fa-id-card-o" aria-hidden="true"> </i> TestGrid console </Button>
 
           <Button id ="tdd" size="sm" style={{marginLeft: "10px"}} onClick={this.downloadTestOutputs.bind(this)}>
             <i className="fa fa-download" aria-hidden="true"> </i> Download results and logs</Button>
