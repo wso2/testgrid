@@ -56,7 +56,7 @@ public class EscalationEmailGenerator {
 
     private static final String ESCALATION_EMAIL_REPORT_MUSTACHE = "escalation_email_report.mustache";
     private static final String ESCALATION_EMAIL_REPORT_NAME = "EscalationMail.html";
-    private static final String CHART_DIR = "escalations";
+    private static final String CHART_DIR = "charts/escalations";
     private static final int MAX_DAYS_FOR_ESCALATION = 7;
 
     /**
@@ -66,19 +66,19 @@ public class EscalationEmailGenerator {
      * @return Optional {@link Path}
      * @throws ReportingException is thrown if error occurs when generating the email
      */
-    public Optional<Path> generateEscalationEmail(List<String> excludeProducts, String workspace) throws ReportingException {
+    public Optional<Path> generateEscalationEmail(List<String> excludeProducts, String workspace)
+            throws ReportingException {
 
         Map<String, Object> results = new HashMap<>();
         List<EscalationFailureSection> resultList = new ArrayList<>();
 
         ProductUOW productUOW = new ProductUOW();
+        ChartGenerator chartGenerator = new ChartGenerator(workspace);
         try {
             Renderable renderer = RenderableFactory.getRenderable(ESCALATION_EMAIL_REPORT_MUSTACHE);
             // Get products from the DB and filter excluded products
             List<Product> productList = productUOW.getProducts().stream().filter(product -> !excludeProducts.contains
                     (product.getName())).collect(Collectors.toList());
-            ChartGenerator chartGenerator = new ChartGenerator(workspace);
-
             // This is used to generate the numbering
             int counter = 0;
             for (Product product : productList) {
@@ -86,11 +86,16 @@ public class EscalationEmailGenerator {
                 Map<String, BuildExecutionSummary> executionHistoryMap = dataProvider
                         .getTestExecutionHistory(product.getId());
 
-                // Check whether the results are spanned over seven days, so in the treemap first entry is the first
-                // build result
-                Map.Entry<String, BuildExecutionSummary> entry = executionHistoryMap.entrySet().iterator().next();
+                if (executionHistoryMap.isEmpty()) {
+                    logger.info("Skipping escalation creation for product " + product.getName());
+                    continue;
+                }
+                // Check whether the results are spanned over seven days
+                Map.Entry<String, BuildExecutionSummary> entry = executionHistoryMap.entrySet()
+                                                                                    .iterator().next();
                 LocalDate date = LocalDate.parse(entry.getKey());
-                Period period = Period.between(date, LocalDate.now(ZoneId.of("UTC")).minusDays(MAX_DAYS_FOR_ESCALATION));
+                Period period = Period.between(date, LocalDate.now(ZoneId.of("UTC"))
+                                                              .minusDays(MAX_DAYS_FOR_ESCALATION));
 
                 if (period.getDays() < MAX_DAYS_FOR_ESCALATION) {
                     logger.info("Skipping escalation creation for product " + product.getName());
@@ -113,8 +118,8 @@ public class EscalationEmailGenerator {
                         StringUtil.generateRandomString(8), ".png");
                 // Generate the history chart hear and add it to the html
                 chartGenerator.generateResultHistoryChart(executionHistoryMap, fileName);
-                final String chartUrl = String.join("/", S3StorageUtil.getS3BucketURL(),
-                        CHART_DIR, product.getName(), fileName);
+                final String chartUrl = String.join("/",
+                            S3StorageUtil.getS3BucketURL(), CHART_DIR, fileName);
 
                 EscalationFailureSection section = new EscalationFailureSection();
                 section.setJobName(product.getName());
@@ -131,7 +136,7 @@ public class EscalationEmailGenerator {
             }
             // This means there are no escalations
             if (counter == 0) {
-                Optional.empty();
+                return Optional.empty();
             }
             Path reportPath = Paths.get(workspace, ESCALATION_EMAIL_REPORT_NAME);
             logger.info("Generating Escalation mail at " + reportPath.toString());
@@ -140,18 +145,12 @@ public class EscalationEmailGenerator {
             String htmlString = renderer.render(ESCALATION_EMAIL_REPORT_MUSTACHE, results);
             // Write to HTML file
             writeHTMLToFile(reportPath, htmlString);
-            Path reportParentPath = reportPath.getParent();
-
-            // Generating the charts required for the email
-            if (reportParentPath == null) {
-                throw new ReportingException(
-                        "Couldn't find the parent of the report path: " + reportPath.toAbsolutePath().toString());
-            }
             return Optional.of(reportPath);
         } catch (TestGridDAOException e) {
-            new ReportingException("Error occurred");
+            throw new ReportingException("Error occurred while retrieving data from the database", e);
+        } finally {
+            chartGenerator.stopApplication();
         }
-        return Optional.empty();
     }
 
     /**

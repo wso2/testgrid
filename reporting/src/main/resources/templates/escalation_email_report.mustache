@@ -129,22 +129,24 @@
 
     {{#renderResultTables}}
         <p/>
-        <table class="reportTable" style="border: 1px dot-dash black; border-collapse:collapse;">
+        <table width="700" border="0" cellspacing="0" cellpadding="0" class="reportTable" style="border:
+         1px dot-dash black; border-collapse:collapse;">
             <tr>
                 <td>
                     <span class="tableTitle" align="left">{{count}}. {{jobName}}</span><br/><br/>
                 </td>
                 <td>
-                    <img src="{{imageLocation}}" alt="" border="0" align="left" height="250" width="350"><br/>
+                    <img src="{{imageLocation}}" alt="" border="0" align="left" height="250" width="350"><br clear="all" /><br/>
+                    <a href="{{buildInfoUrl}}">Click here to view build information!</a><br/>
                 </td>
-                <td>
-                    <ul style="list-style-type:disc">
-                        <li>Last success Build Occurred on: {{lastSuccessBuildTimeStamp}}</li>
-                        <li>Last Failed Build Occurred on: {{lastFailedBuildTimeStamp}}</li>
-                        <li>No of deployment patterns: {{numberOfDeploymentPatterns}}</li>
-                        <a href="{{buildInfoUrl}}">Click here to view build information!</a><br/>
-                    </ul>
-                </td>
+                <!--<td>-->
+                    <!--<ul style="list-style-type:disc">-->
+                        <!--<li>Last success Build Occurred on: {{lastSuccessBuildTimeStamp}}</li>-->
+                        <!--<li>Last Failed Build Occurred on: {{lastFailedBuildTimeStamp}}</li>-->
+                        <!--<li>No of deployment patterns: {{numberOfDeploymentPatterns}}</li>-->
+
+                    <!--</ul>-->
+                <!--</td>-->
             </tr>
         </table>
         <br/>

@@ -25,9 +25,14 @@ import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.reporting.EscalationEmailGenerator;
 import org.wso2.testgrid.reporting.ReportingException;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+/**
+ * This class is responsible for generating the escalation email for all products.
+ */
 public class GenerateEscalationEmailCommand implements Command {
 
     @Option(name = "--workspace",
@@ -54,11 +59,13 @@ public class GenerateEscalationEmailCommand implements Command {
     @Override
     public void execute() throws CommandExecutionException {
 
-        EscalationEmailGenerator generator = new EscalationEmailGenerator();
         try {
-            generator.generateEscalationEmail(excludeList, workspace);
+            EscalationEmailGenerator generator = new EscalationEmailGenerator();
+            final Optional<Path> escalationReportPath = generator.generateEscalationEmail(excludeList, workspace);
+            escalationReportPath.ifPresent(p -> logger.info("Written the escalation email " +
+                                                            "report body contents to: " + p));
         } catch (ReportingException e) {
-            logger.error("Error occurred while generating the escalation email. ", e);
+            throw new CommandExecutionException("Error occurred while executing generate escalation command", e);
         }
     }
 }
