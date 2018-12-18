@@ -64,6 +64,8 @@ public class CommandHandler extends HelpCommand {
                                      impl = GenerateEmailCommand.class),
                          @SubCommand(name = "cleanup",
                                      impl = CleanUpCommand.class),
+                         @SubCommand(name = "generate-escalation-email",
+                                     impl = GenerateEscalationEmailCommand.class),
                          @SubCommand(name = "help",
                                      impl = HelpCommand.class)
                  })
