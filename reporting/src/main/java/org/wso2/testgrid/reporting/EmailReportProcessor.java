@@ -219,10 +219,9 @@ public class EmailReportProcessor {
                 stringBuilder.append("Git revision: ").append(gitRevision);
             }
         } else {
-            final InfrastructureConfig.Provisioner provisioner = testPlan.getInfrastructureConfig().getProvisioners()
-                    .get(0);
-            final DeploymentConfig.DeploymentPattern dp = testPlan.getDeploymentConfig()
-                    .getDeploymentPatterns().get(0);
+            final InfrastructureConfig.Provisioner provisioner =
+                    testPlan.getInfrastructureConfig().getFirstProvisioner();
+            final DeploymentConfig.DeploymentPattern dp = testPlan.getDeploymentConfig().getFirstDeploymentPattern();
             final List<ScenarioConfig> scenarioConfigs = testPlan.getScenarioConfigs();
             final String infraFiles = provisioner.getScripts().stream()
                     .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
@@ -353,7 +352,8 @@ public class EmailReportProcessor {
             properties.load(inputStreamReader);
             }
         } catch (ArtifactReaderException e) {
-            logger.error("Error while initiating AWS artifacts reader.", e.getMessage());
+            logger.error("Error while reading output.properties file for git build details from AWS S3 artifacts "
+                    + "reader. " + e.getMessage());
         } catch (TestGridRuntimeException e) {
             logger.error(e.getMessage());
         } catch (IOException e) {
