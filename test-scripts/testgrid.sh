@@ -62,6 +62,38 @@ function installJDKs() {
 	sudo mv UnlimitedJCEPolicyJDK8/US_export_policy.jar /usr/java/jdk1.8.0_181-amd64/jre/lib/security/
 }
 
+function setup_java_env() {
+    JDK=ORACLE_JDK8
+    source /etc/environment
+
+    echo JDK_PARAM=${JDK} >> /opt/testgrid/java.txt
+    REQUESTED_JDK_PRESENT=$(grep "^${JDK}=" /etc/environment | wc -l)
+    if [ $REQUESTED_JDK_PRESENT = 0 ]; then
+    printf "The requested JDK, ${JDK}, not found in /etc/environment: \n $(cat /etc/environment)."
+    exit 1; // todo: inform via cfn-signal
+    fi
+      JAVA_HOME=$(grep "^${JDK}=" /etc/environment | head -1 | sed "s:${JDK}=\(.*\):\1:g" | sed 's:"::g')
+
+     echo ">> Setting up JAVA_HOME ..."
+      JAVA_HOME_EXISTS=$(grep -r "JAVA_HOME=" /etc/environment | wc -l  )
+      if [ $JAVA_HOME_EXISTS = 0 ]; then
+        echo ">> Adding JAVA_HOME entry."
+        echo JAVA_HOME=$JAVA_HOME >> /etc/environment
+      else
+        echo ">> Updating JAVA_HOME entry."
+        sed -i "/JAVA_HOME=/c\JAVA_HOME=$JAVA_HOME" /etc/environment
+    fi
+      source /etc/environment
+      echo "export JAVA_HOME=$JAVA_HOME" >> /etc/profile
+                source /etc/profile
+}
+
+function addEnvVariables() {
+    sudo su -c "echo 'ORACLE_JDK8=/usr/java/jdk1.8.0_181-amd64' >> /etc/environment"
+    sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-1.8.0-openjdk' >> /etc/environment"
+    source /etc/environment
+}
+
 mkdir -p /opt/testgrid/
 sudo apt install unzip -y
 sudo apt install yum -y
@@ -69,14 +101,14 @@ sudo apt install yum -y
 installTinkererAgent
 installPerfMonitoringArtifacts
 installJDKs
+addEnvVariables
 
 export TELEGRAF_CONFIG_PATH=/opt/testgrid/agent/telegraf.conf
 echo 'TELEGRAF_CONFIG_PATH=/opt/testgrid/agent/telegraf.conf' >> /etc/environment
 
-JAVA_HOME='/usr/java/jdk1.8.0_181-amd64'
-echo "JAVA_HOME=$JAVA_HOME" >> /etc/environment
-source /etc/environment
-echo "export JAVA_HOME=$JAVA_HOME" >> /etc/profile
-source /etc/profile
-echo PATH=$JAVA_HOME/bin:$PATH >> /etc/environment
-source /etc/environment
+
+echo PATH=$JAVA_HOME/bin:/opt/testgrid/workspace/maven/bin/:$PATH >> /etc/environment
+mkdir -p /opt/testgrid/workspace
+chmod 777 -R /opt/testgrid
+cd /opt/testgrid/workspace
+setup_java_env
