@@ -45,3 +45,4 @@ sudo apt install yum -y
 installTinkererAgent
 installPerfMonitoringArtifacts
 export TELEGRAF_CONFIG_PATH=/opt/testgrid/agent/telegraf.conf
+echo 'TELEGRAF_CONFIG_PATH=/opt/testgrid/agent/telegraf.conf' >> /etc/environment
