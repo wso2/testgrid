@@ -112,3 +112,17 @@ mkdir -p /opt/testgrid/workspace
 chmod 777 -R /opt/testgrid
 cd /opt/testgrid/workspace
 setup_java_env
+
+echo "wsEndpoint=$1" > /opt/testgrid/agent-config.properties
+echo "region=$2" >> /opt/testgrid/agent-config.properties
+echo "testPlanId=$3" >> /opt/testgrid/agent-config.properties
+echo "provider=$4" >> /opt/testgrid/agent-config.properties
+echo "userName=$5" >> /opt/testgrid/agent-config.properties
+echo "password=$6" >> /opt/testgrid/agent-config.properties
+echo "instanceId=$(wget -qO- http://169.254.169.254/latest/meta-data/instance-id)" >> /opt/testgrid/agent-config.properties
+localIp=$(wget -qO- http://169.254.169.254/latest/meta-data/public-ipv4)
+if [[ -z $localIp ]]; then
+   localIp=$(wget -qO- http://169.254.169.254/latest/meta-data/local-ipv4)
+fi
+echo "instanceIP=$localIp" >> /opt/testgrid/agent-config.properties
+sudo service testgrid-agent start
