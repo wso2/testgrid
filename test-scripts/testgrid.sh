@@ -125,4 +125,5 @@ if [[ -z $localIp ]]; then
    localIp=$(wget -qO- http://169.254.169.254/latest/meta-data/local-ipv4)
 fi
 echo "instanceIP=$localIp" >> /opt/testgrid/agent-config.properties
-sudo service testgrid-agent start
+sudo systemctl daemon-reload
+sudo systemctl start testgrid-agent
