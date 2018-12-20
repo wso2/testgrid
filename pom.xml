@@ -623,7 +623,7 @@
         <javax.mail.version>1.5.0-b01</javax.mail.version>
         <!-- DAO dependencies -->
         <javax.persistence.version>2.2.0</javax.persistence.version>
-        <org.eclipse.persistence.version>2.2.0</org.eclipse.persistence.version>
+        <org.eclipse.persistence.version>2.4.0</org.eclipse.persistence.version>
         <jersey.server.version>2.22.2</jersey.server.version>
         <!-- Web app dependencies -->
         <javax.websocket.version>1.1</javax.websocket.version>
