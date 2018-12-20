@@ -66,10 +66,10 @@ public class TestPhases {
 
         JenkinsJob currentBuild = null;
         HttpsURLConnection connection = null;
+        String authorizationHeader = "Basic " + new String(Base64.getEncoder().
+                encode((testProperties.tgUser + ":" + testProperties.tgUserToken).getBytes()));
         logger.info("Running tests for the job : " + jobName);
         try {
-            String authorizationHeader = "Basic " + new String(Base64.getEncoder().
-                                    encode((testProperties.tgUser + ":" + testProperties.tgUserToken).getBytes()));
             String jenkinsToken = TestProperties.jenkinsToken;
             URL buildTriggerUrl = new URL(TestProperties.jenkinsUrl + "/job/" + jobName + "/build?token=" +
                                           jenkinsToken);
@@ -118,24 +118,24 @@ public class TestPhases {
         }
 
         // Validating the logs
-        logTest(jobName, currentBuild.id);
-        summaryTest(jobName, currentBuild.id);
+        logTest(jobName, currentBuild.id, authorizationHeader);
+        summaryTest(jobName, currentBuild.id, authorizationHeader);
     }
 
-    private void logTest(String jobName, String buildID) {
+    private void logTest(String jobName, String buildID, String authorizationHeader) {
 
         try {
-            validateLog(getTestPlanID(jobName, buildID));
+            validateLog(getTestPlanID(jobName, buildID, authorizationHeader));
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
 
     }
 
-    private void summaryTest(String jobName, String buildID) {
+    private void summaryTest(String jobName, String buildID, String authorizationHeader) {
 
         try {
-            testSummaryValidate(getTestPlanID(jobName, buildID), jobName);
+            testSummaryValidate(getTestPlanID(jobName, buildID, authorizationHeader), jobName);
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
@@ -167,12 +167,13 @@ public class TestPhases {
         }
     }
 
-    private String getTestPlanID(String jobName, String buildNo) throws Exception {
+    private String getTestPlanID(String jobName, String buildNo, String authorizationHeader) throws Exception {
 
         URL url = new URL(testProperties.jenkinsUrl + "/job/" + jobName + "/" + buildNo +
                           "/consoleText");
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", authorizationHeader);
         connection.setDoOutput(true);
         SSLSocketFactory sslSocketFactory = createSslSocketFactory();
         connection.setSSLSocketFactory(sslSocketFactory);
