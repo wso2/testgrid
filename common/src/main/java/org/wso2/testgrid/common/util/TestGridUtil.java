@@ -54,7 +54,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
@@ -509,17 +508,17 @@ public final class TestGridUtil {
         List<InfrastructureParameter> infraParams = new ArrayList<>();
         final Map<String, String> infraParamsStr = parseInfraParametersString(infraParameters);
         for (InfrastructureValueSet valueSet : valueSets) {
-            final String infraName = infraParamsStr.get(valueSet.getType());
-            final Optional<InfrastructureParameter> infraParam = valueSet.getValues().stream()
-                    .filter(param -> param.getName().equals(infraName) || param
-                            .getProcessedSubInfrastructureParameters().stream().anyMatch(sip -> sip.getName()
-                                    .equals(infraName)))
-                    .findAny(); //todo simplify the logic after infra_parameter table fix
-            if (infraParam.isPresent()) {
-                infraParams.add(infraParam.get());
-            } else {
-                logger.warn("Inconsistent state: Could not find InfrastructureParameter db entry for the " +
-                        infraName + ". ValueSet: " + valueSet);
+            for (InfrastructureParameter value : valueSet.getValues()) {
+                boolean infraAdded = false;
+                for (InfrastructureParameter param : value.getProcessedSubInfrastructureParameters()) {
+                    if (!infraParamsStr.containsValue(param.getName())) {
+                        break;
+                    }
+                    if (!infraAdded) {
+                        infraParams.add(value);
+                        infraAdded = true;
+                    }
+                }
             }
         }
         return infraParams;
