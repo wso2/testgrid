@@ -46,7 +46,6 @@ public class CleanUpCommandTest extends PowerMockTestCase {
         testPlanUOW = mock(TestPlanUOW.class);
         List<String> dataToDelete = new ArrayList<String>();
         dataToDelete.add("TP1");
-        String grafanaUrl = "ec2-34-232-211-33.compute-1.amazonaws.com:3000";
 
         when(testPlanUOW.getTestPlansToCleanup(10)).thenReturn(dataToDelete);
         TestPlan testPlan = new TestPlan();
@@ -76,7 +75,7 @@ public class CleanUpCommandTest extends PowerMockTestCase {
 
         when(testPlanUOW.getTestPlanById("TP1")).thenReturn(Optional.of(testPlan));
         CleanUpCommand cleanUpCommand = new CleanUpCommand(0, 10, testPlanUOW, dataToDelete,
-                grafanaUrl);
+                null);
 
         logger.info("Status of the cleanup : " + cleanUpCommand.getStatus());
         cleanUpCommand.execute();

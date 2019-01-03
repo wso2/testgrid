@@ -145,7 +145,7 @@ public class CleanUpCommand implements Command {
                     logger.info(deletingTestPlan + " added to delete");
                 }
             }
-            if (!toDelete.isEmpty()) {
+            if (grafanaUrl != null) {
                 for (String dataSource : toDelete) {
                     logger.info("deleting data source: " + dataSource);
                     this.clearDataSources(dataSource);

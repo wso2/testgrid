@@ -118,7 +118,7 @@ public class GrafanaDashboardHandler {
                 shellCommand = "sudo systemctl start telegraf";
                 tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
             }
-        } catch (ProcessingException e) {
+        } catch (ProcessingException | IllegalArgumentException e) {
             logger.error("Error while configuring telegraf host for testplan " + testplanID, e);
         }
     }
