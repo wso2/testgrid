@@ -34,6 +34,7 @@ public class TestPlan {
     private List<TestScenario> testScenarios;
     private Timestamp createdTimestamp;
     private Timestamp modifiedTimestamp;
+    private String buildURL;
 
     /**
      * Returns the id of the test-plan.
@@ -201,5 +202,23 @@ public class TestPlan {
         if (modifiedTimestamp != null) {
             this.modifiedTimestamp = (Timestamp) modifiedTimestamp.clone();
         }
+    }
+
+    /**
+     * Sets the buildURL of the test-plan
+     *
+     * @param buildURL blue ocean link url
+     */
+    public void setBuildURL(String buildURL) {
+        this.buildURL = buildURL;
+    }
+
+    /**
+     * Returns the build URL
+     *
+     * @return blue ocean link url
+     */
+    public String getBuildURL() {
+        return buildURL;
     }
 }
