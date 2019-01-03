@@ -255,7 +255,7 @@ public class AWSProvider implements InfrastructureProvider {
             deriveLogDashboardUrl(testPlan, stackName);
 
             Properties outputProps = getCloudformationOutputs(cloudFormation, stack);
-            logEC2SshAccessDetails(stack.getStackId(), inputs);
+            logEC2SshAccessDetails(stackName, inputs);
             //Persist infra outputs to a file to be used for the next step
             persistOutputs(testPlan, outputProps);
 
@@ -292,6 +292,10 @@ public class AWSProvider implements InfrastructureProvider {
         String instanceLogFilter;
         StringJoiner filtersStr = new StringJoiner(",");
 
+        if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
+            logger.warn("Kibana endpoint configuration not found in testgrid config. Server log view may not work!");
+            return;
+        }
         // Filter the EC2 instance corresponding to the stack
         AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.defaultClient();
         DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
