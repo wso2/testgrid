@@ -16,7 +16,7 @@
 
 #=== FUNCTION ==================================================================
 # NAME: installTinkererAgent
-# DESCRIPTION: Install TestGrid Tinkerer agent.
+# DESCRIPTION: Install TestGrid Tinkerer agent to AMI.
 #===============================================================================
 function installTinkererAgent() {
     #Download tinkererAgent from the last successful TestGrid build in WSO2 Jenkins.
@@ -29,7 +29,7 @@ function installTinkererAgent() {
 
 #=== FUNCTION ==================================================================
 # NAME: installPerfMonitoringArtifacts
-# DESCRIPTION: Install artifacts relates to performance monitoring.
+# DESCRIPTION: Install artifacts relates to performance monitoring to AMI.
 #===============================================================================
 function installPerfMonitoringArtifacts() {
     wget https://s3.amazonaws.com/testgrid-resources/packer/Unix/perf_monitoring_artifacts.zip
@@ -37,11 +37,6 @@ function installPerfMonitoringArtifacts() {
     sudo cp -r perf_monitoring_artifacts/* /opt/testgrid/agent/
     sudo cp /opt/testgrid/agent/telegraf /bin/telegraf
 }
-
-#=== FUNCTION ==================================================================
-# NAME: installPerfMonitoringArtifacts
-# DESCRIPTION: Install artifacts relates to performance monitoring.
-#===============================================================================
 
 function installJDKs() {
 

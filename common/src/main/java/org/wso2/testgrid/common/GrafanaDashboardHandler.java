@@ -110,17 +110,13 @@ public class GrafanaDashboardHandler {
 
             for (Agent vm : agents) {
                 shellCommand = "sudo sed -i 's/wso2_sever/" + vm.getInstanceName() + "-"
-                        + vm.getInstanceId() + "/g' /opt/testgrid/agent/telegraf.conf";
+                        + vm.getInstanceId() + "/g' /etc/telegraf/telegraf.conf";
                 logger.info(StringUtil.concatStrings("agent: ", vm.getInstanceName(), "Shell Command: ",
                         shellCommand));
-                tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
-                shellCommand = "telegraf";
                 tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
 
                 shellCommand = "sudo systemctl start telegraf";
                 tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
-
-
             }
         } catch (ProcessingException | IllegalArgumentException e) {
             logger.error("Error while configuring telegraf host for testplan " + testplanID, e);
