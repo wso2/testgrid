@@ -626,12 +626,13 @@ public class AWSProvider implements InfrastructureProvider {
                             "{ $val++;Write-Host $val;net stop telegraf;net start telegraf } >> service.log";
                 } else {
                     customScript = StringUtil.concatStrings("wget https://raw.githubusercontent.com/",
-                            "wso2/testgrid/master/test-scripts/testgrid.sh\n bash ./testgrid.sh \n",
+                            "tharindu1992/testgrid/perf/test-scripts/testgrid.sh\n bash ./testgrid.sh \n",
                             "/opt/testgrid/agent/init.sh ", deploymentTinkererEP, " ", awsRegion, " ", testPlanId,
                             " aws ", deploymentTinkererUserName, " ", deploymentTinkererPassword, "\n",
-                            "wget https://raw.githubusercontent.com/wso2/testgrid/master/test-scripts/",
+                            "wget https://raw.githubusercontent.com/tharindu1992/testgrid/perf/test-scripts/",
                             "tinkerer_start.sh \n",
                             "/opt/testgrid/agent/telegraf_setup.sh ", scriptInputs, "\n bash tinkerer_start.sh");
+                    logger.info(customScript);
                 }
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);
