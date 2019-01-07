@@ -1,3 +1,9 @@
 #!/bin/bash
 
-sudo systemctl start --no-block testgrid-agent
+while true; do
+    if [ $(systemctl is-active testgrid-agent) == "active" ]; then
+        break
+    fi
+    sudo systemctl start testgrid-agent
+    sleep 1
+done
