@@ -359,7 +359,7 @@ public class BaseClass extends PowerMockTestCase {
     }
 
     private InfrastructureParameter getInfrastructureParameterFor(String type, String name) {
-        return new InfrastructureParameter(name, type, "", true);
+        return new InfrastructureParameter(name, type, type + ":" + name, true);
     }
 
     /**
