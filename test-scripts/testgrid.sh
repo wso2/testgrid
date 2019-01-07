@@ -38,45 +38,11 @@ function installPerfMonitoringArtifacts() {
     sudo cp /opt/testgrid/agent/telegraf /bin/telegraf
 }
 
-function installJDKs() {
-
-	#Installing ORACLE_JAVA8
-	echo "Installing ORACLE_JAVA8"
-	sudo add-apt-repository -y ppa:webupd8team/java
-	sudo apt-get update -y
-	echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
-	echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
-	sudo apt-get -y install oracle-java8-installer
-	#Installing OpenJDK8
-	echo "Installing OPENJDK 8"
-	sudo add-apt-repository -y ppa:openjdk-r/ppa
-	sudo apt-get update -y
-	sudo apt-get -y install openjdk-8-jdk
-
-    #Download JCE policies
-	echo "Installing JCE policies (Presumed agreement on Oracle license at https://www.oracle.com/technetwork/java/javase/terms/license/index.html)"
-	installPackage wget
-	wget -v --header "Cookie: oraclelicense=oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip
-	unzip jce_policy-8.zip -d .
-	sudo mv UnlimitedJCEPolicyJDK8/local_policy.jar /usr/java/jdk1.8.0_181-amd64/jre/lib/security/
-	sudo mv UnlimitedJCEPolicyJDK8/US_export_policy.jar /usr/java/jdk1.8.0_181-amd64/jre/lib/security/
-}
-
 mkdir -p /opt/testgrid/
 sudo apt install unzip -y
 sudo apt install yum -y
 
 installTinkererAgent
 installPerfMonitoringArtifacts
-installJDKs
-
 export TELEGRAF_CONFIG_PATH=/opt/testgrid/agent/telegraf.conf
 echo 'TELEGRAF_CONFIG_PATH=/opt/testgrid/agent/telegraf.conf' >> /etc/environment
-
-JAVA_HOME='/usr/java/jdk1.8.0_181-amd64'
-echo "JAVA_HOME=$JAVA_HOME" >> /etc/environment
-source /etc/environment
-echo "export JAVA_HOME=$JAVA_HOME" >> /etc/profile
-source /etc/profile
-echo PATH=$JAVA_HOME/bin:$PATH >> /etc/environment
-source /etc/environment
