@@ -92,21 +92,29 @@ function installJDKs() {
 	#Installing OpenJDK8
 	echo "Installing OPENJDK 8"
 	sudo yum install -y java-1.8.0-openjdk-devel
-    sudo yum install -y wget #Dependency to download JCE policies
+    	sudo yum install -y wget #Dependency to download JCE policies
+	echo "Installing AdoptOpenJDK 8"
+	wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u192-b12/OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz
+	sudo mkdir -p /opt/jdk/java-8-adoptOpenJdk
+	sudo tar -xf OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz -C /opt/jdk/java-8-adoptOpenJdk/
 	;;
 
-	RHEL)
+    RHEL)
 	#Installing ORACLE_JAVA8
 	echo "Installing ORACLE_JAVA8"
 	sudo yum localinstall -y resources/jdk-8u181-linux-x64.rpm
 	#Installing OpenJDK8
 	echo "Installing OPENJDK 8"
 	sudo yum install -y java-1.8.0-openjdk-devel
-    sudo yum install -y wget #Dependency to download JCE policies
+    	sudo yum install -y wget #Dependency to download JCE policies
+	echo "Installing AdoptOpenJDK 8"
+	wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u192-b12/OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz
+	sudo mkdir -p /opt/jdk/java-8-adoptOpenJdk
+	sudo tar -xf OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz -C /opt/jdk/java-8-adoptOpenJdk/
 	;;
 
     esac
-    #Download JCE policies
+    	#Download JCE policies
 	echo "Installing JCE policies (Presumed agreement on Oracle license at https://www.oracle.com/technetwork/java/javase/terms/license/index.html)"
 	installPackage wget
 	wget -v --header "Cookie: oraclelicense=oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip
@@ -246,6 +254,7 @@ function updatePathVariable() {
 function addEnvVariables() {
     sudo su -c "echo 'ORACLE_JDK8=/usr/java/jdk1.8.0_181-amd64' > /etc/environment"
     sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-1.8.0-openjdk' >> /etc/environment"
+    sudo su -c "echo 'ADOPT_OPEN_JDK8=/opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre' >> /etc/environment"
     source /etc/environment
 }
 

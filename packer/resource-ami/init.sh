@@ -19,7 +19,7 @@ ubuntu_ssh_username="ubuntu"
 ubuntu_source_ami_filter_name="ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*"
 ubuntu_source_ami_filter_owner="099720109477"
 
-centos_os_version="7.4"
+centos_os_version="7"
 centos_ssh_username="centos"
 centos_source_ami_filter_name="CentOS Linux 7 x86_64 HVM EBS ENA*"
 centos_source_ami_filter_owner="679593333241"
@@ -121,7 +121,7 @@ case "$os" in
 	export PACKER_SSH_USERNAME=$centos_ssh_username
 	export PACKER_SOURCE_OS=$os
 	export PACKER_SOURCE_OS_VERSION=$centos_os_version
-    export PACKER_SOURCE_AMI_FILTER_NAME=$centos_source_ami_filter_name
+    	export PACKER_SOURCE_AMI_FILTER_NAME=$centos_source_ami_filter_name
 	export PACKER_SOURCE_AMI_FILTER_OWNER=$centos_source_ami_filter_owner
 	downloadResourcesFromS3
 	checkResources
@@ -135,7 +135,7 @@ case "$os" in
 	export PACKER_SSH_USERNAME=$rhel_ssh_username
 	export PACKER_SOURCE_OS=$os
 	export PACKER_SOURCE_OS_VERSION=$rhel_os_version
-    export PACKER_SOURCE_AMI_FILTER_NAME=$rhel_source_ami_filter_name
+    	export PACKER_SOURCE_AMI_FILTER_NAME=$rhel_source_ami_filter_name
 	export PACKER_SOURCE_AMI_FILTER_OWNER=$rhel_source_ami_filter_owner
 	downloadResourcesFromS3
 	checkResources
