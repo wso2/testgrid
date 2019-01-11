@@ -45,6 +45,7 @@ public class Main {
             logger.info("TestGrid Home\t: " + testGridHome);
 
             commandHandler.execute();
+            System.exit(0);
         } catch (CmdLineException e) {
             logger.error("Error while parsing command line arguments.", e);
         } catch (CommandExecutionException e) {
