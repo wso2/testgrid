@@ -87,6 +87,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -115,6 +116,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final TimeUnit POLL_UNIT = TimeUnit.MINUTES;
     private static final String STACK_NAME_TAG_KEY = "aws:cloudformation:stack-name";
     private static final String INSTANCE_NAME_TAG_KEY = "Name";
+    private static final String UPDATE_CONFIG_SCRIPT = "replace-params.sh";
 
     @Override
     public String getProviderName() {
@@ -561,6 +563,16 @@ public class AWSProvider implements InfrastructureProvider {
         return true;
     }
 
+    private String getInfraOutput(Properties infraProps) {
+        String props = "";
+        Enumeration<String> enums = (Enumeration<String>) infraProps.propertyNames();
+        while (enums.hasMoreElements()) {
+            String key = enums.nextElement();
+            props = StringUtil.concatStrings(props, key, "=", infraProps.getProperty(key), " ");
+        }
+        return props;
+    }
+
     /**
      * Reads the parameters for the stack from parsed cfn yaml file.
      *
@@ -628,7 +640,11 @@ public class AWSProvider implements InfrastructureProvider {
                     customScript = StringUtil.concatStrings("/opt/testgrid/agent/init.sh ",
                             deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,
                             " ", deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ",
-                            scriptInputs);
+                            scriptInputs, "\n",
+                            "wget https://raw.githubusercontent.com/harshanL/testgrid/master/infrastructure/" +
+                                    "src/main/resources/", UPDATE_CONFIG_SCRIPT, "\n", "chmod 700 ",
+                            UPDATE_CONFIG_SCRIPT,  "\n", "./", UPDATE_CONFIG_SCRIPT, " ",
+                            this.getInfraOutput(infraInputs));
                 }
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);
