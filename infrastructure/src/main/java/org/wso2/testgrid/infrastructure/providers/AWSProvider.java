@@ -625,7 +625,14 @@ public class AWSProvider implements InfrastructureProvider {
                             "while(!(netstat -o | findstr 8086 | findstr ESTABLISHED)) " +
                             "{ $val++;Write-Host $val;net stop telegraf;net start telegraf } >> service.log";
                 } else {
-                    customScript = StringUtil.concatStrings("/opt/testgrid/agent/init.sh ",
+                    String agentSetup = "mkdir /opt/testgrid\n" +
+                            "wget https://wso2.org/jenkins/job/testgrid/job/testgrid/lastSuccessfulBuild/" +
+                            "artifact/remoting-agent/target/agent.zip -O /opt/testgrid/agent.zip\n" +
+                            "unzip /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
+                            "cp /opt/testgrid/agent/testgrid-agent /etc/init.d\n" +
+                            "update-rc.d testgrid-agent defaults\n" +
+                            "service testgrid-agent start\n";
+                    customScript = StringUtil.concatStrings(agentSetup, "/opt/testgrid/agent/init.sh ",
                             deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,
                             " ", deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ",
                             scriptInputs);
@@ -676,3 +683,4 @@ public class AWSProvider implements InfrastructureProvider {
         return amiMapper.getAMIFor(infraCombination);
     }
 }
+
