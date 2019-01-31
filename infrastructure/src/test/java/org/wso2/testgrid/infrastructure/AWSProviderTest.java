@@ -236,6 +236,13 @@ public class AWSProviderTest extends PowerMockTestCase {
                 ConfigurationContext.ConfigurationProperties.KIBANA_DASHBOARD_STR)).thenReturn("dummyDashboardStr");
         PowerMockito.when(ConfigurationContext.getProperty(
                 ConfigurationContext.ConfigurationProperties.KIBANA_FILTER_STR)).thenReturn("dummyFilterStr");
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.KIBANA_ALL_LOGS_FILTER)).thenReturn("dummyFilterStr");
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_FILTER_STRING))
+                .thenReturn("dummyFilterStr");
+        PowerMockito.when(ConfigurationContext.getProperty(
+                ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON)).thenReturn("dummyFilterStr");
         TestPlanUOW testPlanUOWMock = Mockito.mock(TestPlanUOW.class);
         PowerMockito.whenNew(TestPlanUOW.class).withNoArguments().thenReturn(testPlanUOWMock);
         PowerMockito.when(testPlanUOWMock.persistTestPlan(Mockito.any(TestPlan.class))).thenReturn(testPlan);
