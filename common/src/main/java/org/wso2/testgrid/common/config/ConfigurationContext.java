@@ -233,7 +233,22 @@ public class ConfigurationContext {
         /**
          * Kibana dashboard filter with placeholders
          */
-        KIBANA_ENDPOINT_URL("KIBANA_ENDPOINT_URL");
+        KIBANA_ENDPOINT_URL("KIBANA_ENDPOINT_URL"),
+
+        /**
+         * Kibana all logs filter
+         */
+        KIBANA_ALL_LOGS_FILTER("KIBANA_ALL_LOGS_FILTER"),
+
+        /**
+         * Repeatable string section of all logs
+         */
+        REPEATABLE_ALL_LOGS_FILTER_STRING("REPEATABLE_ALL_LOGS_FILTER_STRING"),
+
+        /**
+         * Repeateble json string section of all logs
+         */
+        REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON");
 
 
         private String propertyName;
