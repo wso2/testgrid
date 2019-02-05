@@ -22,8 +22,11 @@ import App from './App';
 import {BrowserRouter} from 'react-router-dom'
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
+import { CookiesProvider } from 'react-cookie';
 /*This is the main component of the dash board*/
 ReactDOM.render(
   <BrowserRouter>
+    <CookiesProvider>
     <App/>
+    </CookiesProvider>
   </BrowserRouter>, document.getElementById('root'));

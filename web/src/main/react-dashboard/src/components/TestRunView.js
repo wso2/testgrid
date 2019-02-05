@@ -26,16 +26,19 @@ import FlatButton from 'material-ui/FlatButton';
 import Snackbar from 'material-ui/Snackbar';
 import {FAIL, SUCCESS, ERROR, PENDING, RUNNING, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI,
   TESTGRID_API_CONTEXT, DID_NOT_RUN, INCOMPLETE} from '../constants.js';
-import {Button, Table, Card, CardText, CardTitle, Col, Row} from 'reactstrap';
+import Button from '@material-ui/core/Button';
+import {Table, Card, CardText, CardTitle, Col, Row} from 'reactstrap';
 import InfraCombinationHistory from "./InfraCombinationHistory";
 import ReactTooltip from 'react-tooltip'
 import {HTTP_OK} from "../constants";
+import OutputFilesPopover from "./OutputFilesPopover";
 
 /**
  * View responsible for displaying test run log and summary information.
  *
  * @since 1.0.0
  */
+
 class TestRunView extends Component {
 
   constructor(props) {
@@ -341,7 +344,7 @@ class TestRunView extends Component {
         {divider}
       <br/>
         <div style={{paddingLeft:"20px"}}>
-          <Button id ="tdd" size="sm"
+          <Button id ="tdd" size="sm" variant="contained"
                   onClick={() => (fetch(logAllContentUrl, {
                       method: "GET",
                       credentials: 'same-origin',
@@ -360,9 +363,9 @@ class TestRunView extends Component {
                         }
                       })
                   )}
-          ><i className="fa fa-download" aria-hidden="true"> </i> Download Test-Run log</Button>
+          ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;Test-Run log</Button>
 
-          <Button id ="tdd" size="sm" style={{marginLeft: "10px"}}
+          <Button id ="tdd" variant="contained" size="sm" style={{marginLeft: "10px"}}
           onClick={() => {
             if(this.state.buildURL === null || this.state.buildURL === undefined ){
               this.toggle("Error when accessing TestGrid console");
@@ -370,10 +373,12 @@ class TestRunView extends Component {
               window.open(this.state.buildURL, '_blank', false);
             }
           }}
-            ><i className="fa fa-id-card-o" aria-hidden="true"> </i> TestGrid console </Button>
+            ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;TestGrid console </Button>
 
-          <Button id ="tdd" size="sm" style={{marginLeft: "10px"}} onClick={this.downloadTestOutputs.bind(this)}>
-            <i className="fa fa-download" aria-hidden="true"> </i> Download results and logs</Button>
+          <Button id ="tdd" variant="contained" size="sm" style={{marginLeft: "10px"}} onClick={this.downloadTestOutputs.bind(this)}>
+            <i className="fa fa-download" aria-hidden="true"> </i> &nbsp;Download test results and logs</Button>
+          <br/>
+          <OutputFilesPopover testPlanId={this.state.currentInfra.testPlanId}/>
         </div>
         <br/>
         <Card>
