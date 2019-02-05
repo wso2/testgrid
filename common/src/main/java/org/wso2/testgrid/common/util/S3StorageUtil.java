@@ -139,9 +139,13 @@ public final class S3StorageUtil {
         String testPlanDirPath =  Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName,
                 TESTGRID_BUILDS_DIR, testPlan.getId()).toString();
         if (!awsArtifactReader.isArtifactExist(testPlanDirPath)) {
-            String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
-            testPlanDirPath = Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName,
-                    TESTGRID_BUILDS_DIR, testPlanDirName).toString();
+            String testPlanDirNameOldStructure = TestGridUtil.deriveTestPlanDirName(testPlan);
+            String testPlanDirPathOldStructure = Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR,
+                    productName, TESTGRID_BUILDS_DIR, testPlanDirNameOldStructure).toString();
+            //If the old path exists, then only return old-path.
+            if (awsArtifactReader.isArtifactExist(testPlanDirPathOldStructure)) {
+                return testPlanDirPathOldStructure;
+            }
         }
         return testPlanDirPath;
     }

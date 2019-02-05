@@ -632,7 +632,11 @@ public class AWSProvider implements InfrastructureProvider {
                             "cp /opt/testgrid/agent/testgrid-agent /etc/init.d\n" +
                             "update-rc.d testgrid-agent defaults\n" +
                             "service testgrid-agent start\n";
-                    String awsCLISetup = "apt -y install awscli\n";
+                    String awsCLISetup = "if [[ ${OperatingSystem} =~ \"Ubuntu\" ]]; then\n"
+                    + "apt -y install awscli\n fi\n" +
+                    "if [[ ${OperatingSystem} =~ \"CentOS\" ]]; then\n"
+                    + "yum -y install awscli\n fi\n";
+
                     customScript = StringUtil
                             .concatStrings(awsCLISetup, agentSetup, "/opt/testgrid/agent/init.sh ",
                             deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,

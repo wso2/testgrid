@@ -672,7 +672,6 @@ public class TestPlanService {
             } while (objects.isTruncated());
 
             JSONArray jsArray = new JSONArray(filesToDownload);
-            System.out.printf(jsArray.toString());
             return Response.status(Response.Status.OK).entity(jsArray.toString()).build();
         } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the test plan by id : " + testPlanId + "to get test results";

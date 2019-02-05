@@ -43,7 +43,6 @@ import {TESTGRID_CONTEXT} from "./constants";
 import {withCookies, Cookies} from 'react-cookie';
 import Toolbar from '@material-ui/core/Toolbar';
 import {instanceOf} from 'prop-types';
-import TG_USER_NAME from 'constants';
 
 const config = {
   key: 'root',
@@ -68,7 +67,7 @@ class App extends Component {
     super(props);
     const { cookies } = props;
     this.state = {
-      name: cookies.get(TG_USER_NAME) || 'unknown',
+      name: cookies.get('TGUserName') || 'unknown',
       open: false,
       navWidth: 20
     }

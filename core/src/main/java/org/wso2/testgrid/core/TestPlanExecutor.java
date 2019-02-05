@@ -197,48 +197,68 @@ public class TestPlanExecutor {
      * @param testPlan test-plan of the relevant stack
      */
     public void uploadExecutionResourcesToS3(TestPlan testPlan) {
-        logger.info("Triggered upload to S3");
-        TinkererSDK tinkererSDK = new TinkererSDK();
-        tinkererSDK.setTinkererHost(ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH));
-        //Check if agent configured for the given test-plan.
-        List<String> activeTestPlans = tinkererSDK.getAllTestPlanIds();
-        if (activeTestPlans != null && activeTestPlans.contains(testPlan.getId())) {
-            logger.info("Came to if condition inside.");
-            List<Agent> agentList = tinkererSDK.getAgentListByTestPlanId(testPlan.getId());
-            String configureAWSCLI =
-                    "export AWS_ACCESS_KEY_ID=" + ConfigurationContext
-                            .getProperty(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT)
-                            + "\n" +
-                            "export AWS_SECRET_ACCESS_KEY=" + ConfigurationContext
-                            .getProperty(ConfigurationContext
-                                    .ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT) + "\n" +
-                            "export AWS_DEFAULT_REGION=" + ConfigurationContext
-                            .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME) + "\n";
-            String runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh \n";
-            String s3Location = deriveDeploymentOutputsDirectory(testPlan);
-            List<AsyncCommandResponse> asyncCommandResponses = new ArrayList<>();
-            agentList.forEach(agent -> {
-                String uploadLogsToS3 = "aws s3 cp /var/log/product_logs.zip " +
-                        s3Location + "/product_logs_" + agent.getInstanceName() + ".zip \n";
-                String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
-                        s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip \n";
-                asyncCommandResponses.add(tinkererSDK.executeCommandAsync(agent.getAgentId(),
-                        configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3));
-            });
-            logger.info("Waiting till shell commands sent via tinkerer are executed in the nodes.");
-            boolean finishShellCommands = false;
-            while (!finishShellCommands) {
-                finishShellCommands = true;
-                for (AsyncCommandResponse asyncCommandResponse : asyncCommandResponses) {
-                    if (!asyncCommandResponse.isCompleted()) {
-                        finishShellCommands = false;
-                        break;
+        String tinkererHost = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH);
+        if (tinkererHost != null && !tinkererHost.isEmpty()) {
+            logger.info("Process to upload deployment-outputs to S3 has started for test-plan " + testPlan.getId());
+            TinkererSDK tinkererSDK = new TinkererSDK();
+            tinkererSDK.setTinkererHost(ConfigurationContext
+                    .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH));
+            //Check if agent configured for the given test-plan.
+            List<String> activeTestPlans = tinkererSDK.getAllTestPlanIds();
+            if (activeTestPlans != null && activeTestPlans.contains(testPlan.getId())) {
+                List<Agent> agentList = tinkererSDK.getAgentListByTestPlanId(testPlan.getId());
+                //Assuming the external deployment is on a Linux operating system.
+                String configureAWSCLI =
+                        "export AWS_ACCESS_KEY_ID=" + ConfigurationContext
+                                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT)
+                                + "&&" +
+                                "export AWS_SECRET_ACCESS_KEY=" + ConfigurationContext
+                                .getProperty(ConfigurationContext
+                                        .ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT) + "&&" +
+                                "export AWS_DEFAULT_REGION=" + ConfigurationContext
+                                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME) + "&&";
+                String runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
+                String s3Location = deriveDeploymentOutputsDirectory(testPlan);
+                if (s3Location != null) {
+                    List<AsyncCommandResponse> asyncCommandResponses = new ArrayList<>();
+                    agentList.forEach(agent -> {
+                        String uploadLogsToS3 = "aws s3 cp /var/log/product_logs.zip " +
+                                s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
+                        String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
+                                s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
+                        asyncCommandResponses.add(tinkererSDK.executeCommandAsync(agent.getAgentId(),
+                                configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3));
+                    });
+                    logger.info("S3 path is : " + s3Location);
+                    logger.info("Waiting till shell commands sent via tinkerer are executed in the nodes.");
+                    boolean finishShellCommands = false;
+                    long endTime = System.currentTimeMillis() + 600000; //Waiting 10 minutes for commands to execute
+                    while (!finishShellCommands) {
+                        finishShellCommands = true;
+                        for (AsyncCommandResponse asyncCommandResponse : asyncCommandResponses) {
+                            if (!asyncCommandResponse.isCompleted()) {
+                                finishShellCommands = false;
+                                break;
+                            }
+                        }
+                        if (System.currentTimeMillis() > endTime) {
+                            logger.error("Time-out hit! " +
+                                    "Continuing without waiting further for tinkerer commands to complete.");
+                            finishShellCommands = true;
+                        }
                     }
+                } else {
+                    logger.error("Can not generate S3 location for deployment-outputs of test-plan: " +
+                            testPlan.getId());
                 }
             }
+        } else {
+            logger.error("Tinkerer-Host is not configured. Hence uploading deployment-outputs to S3 is skipped.");
         }
     }
+
+
 
     /**
      * Derives the deployment outputs directory for a given test-plan
@@ -246,17 +266,23 @@ public class TestPlanExecutor {
      * @return directory of the
      */
     private String deriveDeploymentOutputsDirectory(TestPlan testPlan) {
-        try {
-            ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
-                    getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
-                    getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
-            String path = S3StorageUtil.deriveS3DeploymentOutputsDir(testPlan, artifactReadable);
-            path = "s3://" + ConfigurationContext
-                    .getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME) + "/" + path;
-            return path;
-        } catch (ArtifactReaderException | IOException e) {
-            logger.error("Error occurred while deriving deployment outputs directory for test-plan " +
-                    testPlan, e);
+        String s3BucketName = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME);
+        if (s3BucketName != null && !s3BucketName.isEmpty()) {
+            try {
+                ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+                String path = S3StorageUtil.deriveS3DeploymentOutputsDir(testPlan, artifactReadable);
+                path = "s3://" + s3BucketName + "/" + path;
+                return path;
+            } catch (ArtifactReaderException | IOException e) {
+                logger.error("Error occurred while deriving deployment outputs directory for test-plan " +
+                        testPlan, e);
+            }
+        } else {
+            logger.error("S3 bucket name is not configured in the test environment." +
+                    " Hence can not derive deployment-outputs directory.");
         }
         return null;
     }
