@@ -36,7 +36,6 @@ class OutputFilesPopover extends React.Component {
   state = {
     anchorEl: null,
     files: null,
-    listError: null,
     showLogDownloadErrorDialog: false
   };
 
@@ -44,7 +43,7 @@ class OutputFilesPopover extends React.Component {
     this.setState({
       anchorEl: event.currentTarget,
     });
-    {this.getAvailableArchives()}
+    this.getAvailableArchives();
   };
 
   handleError(response) {
@@ -83,7 +82,6 @@ class OutputFilesPopover extends React.Component {
       } else if (response.status !== HTTP_OK) {
         let errorMessage = "Internal server error. Couldn't download archives at the moment.";
         this.toggle(errorMessage);
-        this.state.listError = errorMessage
       }
       return response;
     })

@@ -38,7 +38,6 @@ import OutputFilesPopover from "./OutputFilesPopover";
  *
  * @since 1.0.0
  */
-
 class TestRunView extends Component {
 
   constructor(props) {

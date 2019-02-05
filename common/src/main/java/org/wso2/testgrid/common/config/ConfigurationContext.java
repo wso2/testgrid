@@ -201,6 +201,16 @@ public class ConfigurationContext {
         TRUSTSTORE_PASSWORD("TRUSTSTORE_PASSWORD"),
 
         /**
+         * AWS access key from TestGrid bot
+         */
+        AWS_ACCESS_KEY_ID_TG_BOT("accessKey"),
+
+        /**
+         * AWS access key secret from TestGrid bot
+         */
+        AWS_ACCESS_KEY_SECRET_TG_BOT("secretKey"),
+
+        /**
          * AWS access key used for clustering
          */
         AWS_ACCESS_KEY_ID_CLUSTERING("AWSAccessKeyId"),

@@ -632,7 +632,7 @@ public class TestPlanService {
     }
 
     /**
-     * Returns the result (archive file) of a given test plan.
+     * Returns the list of deployment-output archives for a given test plan.
      *
      * @param testPlanId test plan id
      * @return archived file of the results
@@ -651,12 +651,12 @@ public class TestPlanService {
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
             TestPlan testPlan = testPlanOptional.get();
-            String archiveFileDir = S3StorageUtil.deriveS3DeploymentArchiveDir(testPlan, artifactDownloadable);
+            String archiveFileDir = S3StorageUtil.deriveS3DeploymentOutputsDir(testPlan, artifactDownloadable);
             TransferManager transferManager = TransferManagerBuilder.standard().build();
             ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
                     .withBucketName(ConfigurationContext
                             .getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME))
-                    .withPrefix(StringUtil.concatStrings(archiveFileDir,"/")).withDelimiter("/");
+                    .withPrefix(StringUtil.concatStrings(archiveFileDir, "/")).withDelimiter("/");
             ArrayList<String> filesToDownload = new ArrayList<>();
             ObjectListing objects;
             do {
@@ -675,13 +675,23 @@ public class TestPlanService {
             System.out.printf(jsArray.toString());
             return Response.status(Response.Status.OK).entity(jsArray.toString()).build();
         } catch (TestGridDAOException e) {
-            //todo
+            String msg = "Error occurred while fetching the test plan by id : " + testPlanId + "to get test results";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
         } catch (ArtifactReaderException e) {
-            //todo
+            String msg = "Error occurred when reading archived files of testplan " + testPlanId;
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
         } catch (IOException e) {
-            //todo
+            logger.error(e.getMessage(), e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(e.getMessage())
+                            .setDescription(e.getMessage()).build()).build();
         }
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
 
     /**
@@ -707,8 +717,7 @@ public class TestPlanService {
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
 
             archiveFileDir = StringUtil.concatStrings(S3StorageUtil
-                    .deriveS3DeploymentArchiveDir(testPlan, artifactDownloadable), "/", file);
-            System.out.println("Requested file: " + archiveFileDir);
+                    .deriveS3DeploymentOutputsDir(testPlan, artifactDownloadable), "/", file);
             if (artifactDownloadable.isArtifactExist(archiveFileDir)) {
                 return Response
                         .ok(artifactDownloadable.getArtifactStream(archiveFileDir))
@@ -719,7 +728,6 @@ public class TestPlanService {
             }
                 String msg = "Couldn't find file " + file + " for test-plan ID:" + testPlanId +
                         "in " + archiveFileDir;
-            System.out.println(msg);
                 logger.error(msg);
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("Couldn't find test results at " + archiveFileDir).build();

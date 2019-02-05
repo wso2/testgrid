@@ -50,6 +50,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
+import static org.wso2.testgrid.web.utils.Constants.SESSION_TIME;
+import static org.wso2.testgrid.web.utils.Constants.TG_USER_NAME;
+
 /**
  * REST Service implementation for SSO related functions.
  */
@@ -73,7 +76,7 @@ public class SSOService {
     public Response createSession(@FormParam("SAMLResponse") String responseMessage,
                                   @FormParam(Constants.RELAY_STATE_PARAM) String relayState) throws TestGridException {
         XMLObject response;
-        NewCookie cookie = null;
+        NewCookie userNameCookie = null;
         org.opensaml.saml2.core.Response saml2Response;
         try {
             response = SSOAgentUtils.unmarshall(new String(Base64.decode(responseMessage), Charset.forName("UTF-8")));
@@ -87,35 +90,30 @@ public class SSOService {
 
         try {
             validateSignature(saml2Response.getSignature());
-            request.getSession();
             HttpSession oldSession = request.getSession(false);
             if (oldSession != null) {
                 oldSession.invalidate();
             }
-            //generate a new session
             HttpSession newSession = request.getSession(true);
-            //setting session to expiry in 5 mins
-            newSession.setMaxInactiveInterval(5*60);
-
+            newSession.setMaxInactiveInterval(SESSION_TIME);
             List<Assertion> assertions = saml2Response.getAssertions();
             Assertion assertion;
             if (assertions != null && assertions.size() > 0) {
                 assertion = assertions.get(0);
                 String subject = null;
-                if(assertion.getSubject() != null && assertion.getSubject().getNameID() != null){
+                if (assertion.getSubject() != null && assertion.getSubject().getNameID() != null) {
                     subject = assertion.getSubject().getNameID().getValue();
                 }
-                if(subject != null) {
-                    System.out.println("Subject is: " + subject);
-                    cookie = new NewCookie("TGuserName", subject);
-                    System.out.println(cookie.getExpiry());
+                if (subject != null) {
+                    userNameCookie = new NewCookie(TG_USER_NAME, subject, "/", "", "", SESSION_TIME, false);
                 }
             }
-            NewCookie jCookie = new NewCookie("JSESSIONID", newSession.getId(), "/", "", "", 100, true);
+            NewCookie sessionCookie = new NewCookie("JSESSIONID", newSession.getId(), "/", "", "", SESSION_TIME, true);
             String redirectUri;
             redirectUri = StringUtil.isStringNullOrEmpty(relayState) ? Constants.WEBAPP_CONTEXT : relayState;
             return Response.status(Response.Status.FOUND).
-                    header(HttpHeaders.LOCATION, redirectUri).cookie(jCookie).cookie(cookie).type(MediaType.TEXT_PLAIN).build();
+                    header(HttpHeaders.LOCATION, redirectUri)
+                    .cookie(sessionCookie).cookie(userNameCookie).type(MediaType.TEXT_PLAIN).build();
         } catch (SSOAgentException e) {
             String msg = "Signature validation failed. Observed an attempt with invalid SAMLResponse.";
             logger.error(msg, e);
