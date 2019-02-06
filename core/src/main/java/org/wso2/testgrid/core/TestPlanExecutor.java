@@ -151,6 +151,12 @@ public class TestPlanExecutor {
             return false;
         }
 
+        //Append TestPlan id to deployment.properties file
+        Properties tgProperties = new Properties();
+        tgProperties.setProperty("TEST_PLAN_ID", testPlan.getId());
+        persistAdditionalInputs(tgProperties, DataBucketsHelper.getOutputLocation(testPlan)
+                .resolve(DataBucketsHelper.DEPL_OUT_FILE));
+
         // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
         Properties sceProperties = new Properties();
         for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
