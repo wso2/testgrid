@@ -45,12 +45,6 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterParameters;
 import com.amazonaws.waiters.WaiterUnrecoverableException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +68,7 @@ import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 import org.wso2.testgrid.infrastructure.providers.aws.AWSResourceManager;
+import org.wso2.testgrid.infrastructure.providers.aws.KibanaDashboardBuilder;
 import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.FileOutputStream;
@@ -93,7 +88,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -286,16 +280,6 @@ public class AWSProvider implements InfrastructureProvider {
      * @param stackName name of the stack created for the test-plan
      */
     private void deriveLogDashboardUrl(TestPlan testPlan, String stackName) {
-        String kibanaEndpoint = ConfigurationContext.getProperty(ConfigurationProperties.KIBANA_ENDPOINT_URL);
-        String dashboardCtxFormat = ConfigurationContext.getProperty(ConfigurationProperties.KIBANA_DASHBOARD_STR);
-        String instanceLogFilterFormat = ConfigurationContext.getProperty(ConfigurationProperties.KIBANA_FILTER_STR);
-        String instanceLogFilter;
-        StringJoiner filtersStr = new StringJoiner(",");
-
-        if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
-            logger.warn("Kibana endpoint configuration not found in testgrid config. Server log view may not work!");
-            return;
-        }
         // Filter the EC2 instance corresponding to the stack
         AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.defaultClient();
         DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
@@ -312,38 +296,10 @@ public class AWSProvider implements InfrastructureProvider {
                     instancesMap.put(i.getInstanceId(), instanceName);
         });
 
-        // Construct filters for each node
-        for (Map.Entry<String, String> entry : instancesMap.entrySet()) {
-            instanceLogFilter = instanceLogFilterFormat.replaceAll("#_INSTANCE_ID_#", entry.getKey())
-                    .replaceAll("#_LABEL_#", entry.getValue());
-            filtersStr.add(instanceLogFilter);
-        }
+        KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
+        Optional<String> logUrl = builder.buildDashBoard(instancesMap, stackName, true);
+        logUrl.ifPresent(testPlan::setLogUrl);
 
-        // Construct the dashboard ctx
-        String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
-                .replaceAll("#_STACK_NAME_#", stackName);
-        String logUrl = null;
-
-        // Get the short url to dashboard by calling the Kibana REST API
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            HttpPost request = new HttpPost(kibanaEndpoint + "/shorten");
-            StringEntity entity = new StringEntity("{\"url\" : \"" + logDownloadCtx + "\"}");
-            request.addHeader("Content-Type", "application/json;charset=utf-8");
-            request.addHeader("kbn-xsrf", "true");
-            request.setEntity(entity);
-            CloseableHttpResponse  httpResponse = httpClient.execute(request);
-            if (httpResponse.getStatusLine().getStatusCode() == 200) {
-                String shortUrlId = EntityUtils.toString(httpResponse.getEntity());
-                logUrl = kibanaEndpoint + "/goto/" + shortUrlId;
-            } else {
-                logger.warn("Request to Kibana to retrieve shortened URL for dashboard returned status code:" +
-                        httpResponse.getStatusLine().getStatusCode() + "\n. View logs at: " +
-                        kibanaEndpoint + logDownloadCtx);
-            }
-        } catch (IOException e) {
-            logger.error("Error occurred while trying to retrieve the short URL for Kibana dashboard.", e.getMessage());
-        }
-        testPlan.setLogUrl(logUrl);
         TestPlanUOW testPlanUOW = new TestPlanUOW();
         try {
             testPlanUOW.persistTestPlan(testPlan);
