@@ -147,7 +147,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         scenarioExecutor = new ScenarioExecutor(testScenarioUOW, testCaseUOW);
         testPlanExecutor = new TestPlanExecutor(scenarioExecutor, testPlanUOW, testScenarioUOW);
         testPlanExecutor = spy(testPlanExecutor);
-        Mockito.doNothing().when(testPlanExecutor).uploadExecutionResourcesToS3(any(TestPlan.class));
+        Mockito.doNothing().when(testPlanExecutor).uploadDeploymentOutputsToS3(any(TestPlan.class));
         MockitoAnnotations.initMocks(this);
     }
 

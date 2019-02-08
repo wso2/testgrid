@@ -62,7 +62,6 @@ import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
-import org.wso2.testgrid.common.util.tinkerer.AsyncCommandResponse;
 import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
 import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
@@ -188,7 +187,7 @@ public class TestPlanExecutor {
         // Test plan completed. Persist the testplan status
         persistTestPlanStatus(testPlan);
 
-        uploadExecutionResourcesToS3(testPlan);
+        uploadDeploymentOutputsToS3(testPlan);
         //cleanup
         releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
 
@@ -199,10 +198,10 @@ public class TestPlanExecutor {
     }
 
     /**
-     * Upload execution resources (thread-dumps, logs, etc.) from the instances to TestGrid S3 storage.
+     * Upload deployment outputs (thread-dumps, logs, etc.) from the instances to TestGrid S3 storage.
      * @param testPlan test-plan of the relevant stack
      */
-    public void uploadExecutionResourcesToS3(TestPlan testPlan) {
+    public void uploadDeploymentOutputsToS3(TestPlan testPlan) {
         String tinkererHost = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH);
         if (tinkererHost != null && !tinkererHost.isEmpty()) {
@@ -227,44 +226,28 @@ public class TestPlanExecutor {
                 String runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
                 String s3Location = deriveDeploymentOutputsDirectory(testPlan);
                 if (s3Location != null) {
-                    List<AsyncCommandResponse> asyncCommandResponses = new ArrayList<>();
                     agentList.forEach(agent -> {
                         String uploadLogsToS3 = "aws s3 cp /var/log/product_logs.zip " +
                                 s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
                         String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
                                 s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
-                        asyncCommandResponses.add(tinkererSDK.executeCommandAsync(agent.getAgentId(),
-                                configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3));
+                        //Todo: make command execution parallel with multi-threading.
+                        tinkererSDK.executeCommandSync(agent.getAgentId(), testPlan.getId(), agent.getInstanceName(),
+                                configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3);
                     });
                     logger.info("S3 path is : " + s3Location);
-                    logger.info("Waiting till shell commands sent via tinkerer are executed in the nodes.");
-                    boolean finishShellCommands = false;
-                    long endTime = System.currentTimeMillis() + 600000; //Waiting 10 minutes for commands to execute
-                    while (!finishShellCommands) {
-                        finishShellCommands = true;
-                        for (AsyncCommandResponse asyncCommandResponse : asyncCommandResponses) {
-                            if (!asyncCommandResponse.isCompleted()) {
-                                finishShellCommands = false;
-                                break;
-                            }
-                        }
-                        if (System.currentTimeMillis() > endTime) {
-                            logger.error("Time-out hit! " +
-                                    "Continuing without waiting further for tinkerer commands to complete.");
-                            finishShellCommands = true;
-                        }
-                    }
                 } else {
                     logger.error("Can not generate S3 location for deployment-outputs of test-plan: " +
                             testPlan.getId());
                 }
+            } else {
+                logger.error("Tinkerer does not have active test-plans. Hence skipping" +
+                        " uploading deployment-outputs to S3.");
             }
         } else {
-            logger.error("Tinkerer-Host is not configured. Hence uploading deployment-outputs to S3 is skipped.");
+            logger.error("Tinkerer-host is not configured. Hence uploading deployment-outputs to S3 is skipped.");
         }
     }
-
-
 
     /**
      * Derives the deployment outputs directory for a given test-plan
