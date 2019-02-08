@@ -22,6 +22,7 @@ package org.wso2.testgrid.core.command;
 import org.apache.commons.io.FileUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -146,6 +147,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         scenarioExecutor = new ScenarioExecutor(testScenarioUOW, testCaseUOW);
         testPlanExecutor = new TestPlanExecutor(scenarioExecutor, testPlanUOW, testScenarioUOW);
         testPlanExecutor = spy(testPlanExecutor);
+        Mockito.doNothing().when(testPlanExecutor).uploadDeploymentOutputsToS3(any(TestPlan.class));
         MockitoAnnotations.initMocks(this);
     }
 

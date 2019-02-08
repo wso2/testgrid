@@ -31,7 +31,6 @@ public class Constants extends TestGridConstants {
     public static final String CRUMB = "crumb";
     public static final String JENKINS_CRUMB_HEADER_NAME = "Jenkins-Crumb";
     public static final String WEBAPP_CONTEXT = "/";
-
     /* Terms used in Jenkins template job. */
     public static final String PRODUCT_NAME = "$productName";
     public static final String PRODUCT_CHANNEL = "$productChannel";
@@ -53,6 +52,8 @@ public class Constants extends TestGridConstants {
     public static final String RELAY_STATE_PARAM = "RelayState";
     public static final String QUERY_PARAM_APPEND = "&";
     public static final String QUERY_PARAM_EQUAL = "=";
+    public static final String TG_USER_NAME = "TGUserName";
+    public static final int SESSION_TIME = 1800;
 
     public static final String PROPERTYNAME_KEYSTORE_PASSWORD = "KeyStorePassword";
     public static final String PROPERTYNAME_PRIVATE_KEY_ALIAS = "PrivateKeyAlias";

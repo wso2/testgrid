@@ -35,6 +35,7 @@ public final class S3StorageUtil {
 
 
     private static final String TESTGRID_BUILDS_DIR = "builds";
+    private static final String TESTPLAN_DEPLOYMENT_OUTPUTS_DIR = "deployment-outputs";
     /**
      * Returns the path of the test-run log file in S3 bucket.
      * <p>
@@ -138,9 +139,13 @@ public final class S3StorageUtil {
         String testPlanDirPath =  Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName,
                 TESTGRID_BUILDS_DIR, testPlan.getId()).toString();
         if (!awsArtifactReader.isArtifactExist(testPlanDirPath)) {
-            String testPlanDirName = TestGridUtil.deriveTestPlanDirName(testPlan);
-            testPlanDirPath = Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR, productName,
-                    TESTGRID_BUILDS_DIR, testPlanDirName).toString();
+            String testPlanDirNameOldStructure = TestGridUtil.deriveTestPlanDirName(testPlan);
+            String testPlanDirPathOldStructure = Paths.get(artifactsDir, TestGridConstants.TESTGRID_JOB_DIR,
+                    productName, TESTGRID_BUILDS_DIR, testPlanDirNameOldStructure).toString();
+            //If the old path exists, then only return old-path.
+            if (awsArtifactReader.isArtifactExist(testPlanDirPathOldStructure)) {
+                return testPlanDirPathOldStructure;
+            }
         }
         return testPlanDirPath;
     }
@@ -158,6 +163,16 @@ public final class S3StorageUtil {
                 scenarioDir + TESTGRID_COMPRESSED_FILE_EXT).toString();
     }
 
+    /**
+     * Returns the path for deployment-outputs for a given test-plan
+     * @param testPlan test-plan
+     * @param awsArtifactReader AWSArtifactReadable
+     * @return deployment-outputs directory path
+     */
+    public static String deriveS3DeploymentOutputsDir(TestPlan testPlan, ArtifactReadable awsArtifactReader) {
+        return Paths.get(deriveS3DatabucketDir(testPlan, awsArtifactReader),
+                TESTPLAN_DEPLOYMENT_OUTPUTS_DIR).toString();
+    }
     /**
      * Returns the databucket directory path in S3 for a test-plan.
      *

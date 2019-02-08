@@ -231,5 +231,41 @@ public class TinkererSDK {
     public void setTinkererHost(String tinkererHost) {
         this.tinkererHost = tinkererHost;
     }
+
+    /**
+     * Send a command to all the tinkerer agents belongs to a given test-plan.
+     *
+     * @param testPlanId test-plan-id
+     * @param shellCommand shell command wants to be executed
+     */
+    public void broadcastShellCommand(String testPlanId, String shellCommand) {
+        long broadcastShellCommandTimeoutInMills = 600000;  //Time-out for waiting: 10 minutes.
+        List<String> activeTestPlans = this.getAllTestPlanIds();
+        if (activeTestPlans != null && activeTestPlans.contains(testPlanId)) {
+            List<Agent> agentList = this.getAgentListByTestPlanId(testPlanId);
+            List<AsyncCommandResponse> asyncCommandResponses = new ArrayList<>();
+            agentList.forEach(agent -> asyncCommandResponses
+                    .add(this.executeCommandAsync(agent.getAgentId(), shellCommand)));
+            logger.info("Waiting till shell commands sent via tinkerer are executed in the nodes.");
+            boolean finishShellCommands = false;
+            long endTime = System.currentTimeMillis() + broadcastShellCommandTimeoutInMills;
+            while (!finishShellCommands) {
+                finishShellCommands = true;
+                for (AsyncCommandResponse asyncCommandResponse : asyncCommandResponses) {
+                    if (!asyncCommandResponse.isCompleted()) {
+                        finishShellCommands = false;
+                        break;
+                    }
+                }
+                if (System.currentTimeMillis() > endTime) {
+                    logger.error("Time-out hit! Continuing without waiting further for tinkerer commands to complete.");
+                    finishShellCommands = true;
+                }
+            }
+        } else {
+        logger.error("No registered tinkerer agents found for test-plan: " + testPlanId + ". Hence tinkerer" +
+                "command is not executed.");
+        }
+    }
 }
 

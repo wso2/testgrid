@@ -33,6 +33,7 @@ import org.wso2.testgrid.automation.parser.ResultParser;
 import org.wso2.testgrid.automation.parser.ResultParserFactory;
 import org.wso2.testgrid.automation.report.ReportGenerator;
 import org.wso2.testgrid.automation.report.ReportGeneratorFactory;
+import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.GrafanaDashboardHandler;
@@ -43,6 +44,7 @@ import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
@@ -52,10 +54,15 @@ import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.testgrid.common.exception.UnsupportedProviderException;
+import org.wso2.testgrid.common.plugins.AWSArtifactReader;
+import org.wso2.testgrid.common.plugins.ArtifactReadable;
+import org.wso2.testgrid.common.plugins.ArtifactReaderException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.FileUtil;
+import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
 import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
@@ -180,6 +187,7 @@ public class TestPlanExecutor {
         // Test plan completed. Persist the testplan status
         persistTestPlanStatus(testPlan);
 
+        uploadDeploymentOutputsToS3(testPlan);
         //cleanup
         releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
 
@@ -187,6 +195,85 @@ public class TestPlanExecutor {
         printSummary(testPlan, System.currentTimeMillis() - startTime);
 
         return testPlan.getStatus() == Status.SUCCESS;
+    }
+
+    /**
+     * Upload deployment outputs (thread-dumps, logs, etc.) from the instances to TestGrid S3 storage.
+     * @param testPlan test-plan of the relevant stack
+     */
+    public void uploadDeploymentOutputsToS3(TestPlan testPlan) {
+        String tinkererHost = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH);
+        if (tinkererHost != null && !tinkererHost.isEmpty()) {
+            logger.info("Process to upload deployment-outputs to S3 has started for test-plan " + testPlan.getId());
+            TinkererSDK tinkererSDK = new TinkererSDK();
+            tinkererSDK.setTinkererHost(ConfigurationContext
+                    .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH));
+            //Check if agent configured for the given test-plan.
+            List<String> activeTestPlans = tinkererSDK.getAllTestPlanIds();
+            if (activeTestPlans != null && activeTestPlans.contains(testPlan.getId())) {
+                List<Agent> agentList = tinkererSDK.getAgentListByTestPlanId(testPlan.getId());
+                //Assuming the external deployment is on a Linux operating system.
+                String configureAWSCLI =
+                        "export AWS_ACCESS_KEY_ID=" + ConfigurationContext
+                                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT)
+                                + "&&" +
+                                "export AWS_SECRET_ACCESS_KEY=" + ConfigurationContext
+                                .getProperty(ConfigurationContext
+                                        .ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT) + "&&" +
+                                "export AWS_DEFAULT_REGION=" + ConfigurationContext
+                                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME) + "&&";
+                String runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
+                String s3Location = deriveDeploymentOutputsDirectory(testPlan);
+                if (s3Location != null) {
+                    agentList.forEach(agent -> {
+                        String uploadLogsToS3 = "aws s3 cp /var/log/product_logs.zip " +
+                                s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
+                        String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
+                                s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
+                        //Todo: make command execution parallel with multi-threading.
+                        tinkererSDK.executeCommandSync(agent.getAgentId(), testPlan.getId(), agent.getInstanceName(),
+                                configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3);
+                    });
+                    logger.info("S3 path is : " + s3Location);
+                } else {
+                    logger.error("Can not generate S3 location for deployment-outputs of test-plan: " +
+                            testPlan.getId());
+                }
+            } else {
+                logger.error("Tinkerer does not have active test-plans. Hence skipping" +
+                        " uploading deployment-outputs to S3.");
+            }
+        } else {
+            logger.error("Tinkerer-host is not configured. Hence uploading deployment-outputs to S3 is skipped.");
+        }
+    }
+
+    /**
+     * Derives the deployment outputs directory for a given test-plan
+     * @param testPlan test-plan
+     * @return directory of the
+     */
+    private String deriveDeploymentOutputsDirectory(TestPlan testPlan) {
+        String s3BucketName = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME);
+        if (s3BucketName != null && !s3BucketName.isEmpty()) {
+            try {
+                ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+                String path = S3StorageUtil.deriveS3DeploymentOutputsDir(testPlan, artifactReadable);
+                path = "s3://" + s3BucketName + "/" + path;
+                return path;
+            } catch (ArtifactReaderException | IOException e) {
+                logger.error("Error occurred while deriving deployment outputs directory for test-plan " +
+                        testPlan, e);
+            }
+        } else {
+            logger.error("S3 bucket name is not configured in the test environment." +
+                    " Hence can not derive deployment-outputs directory.");
+        }
+        return null;
     }
 
     /**

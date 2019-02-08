@@ -40,6 +40,9 @@ import NavigationBack from 'material-ui/svg-icons/navigation/chevron-left';
 import NevigationExpand from 'material-ui/svg-icons/navigation/menu';
 import Paper from 'material-ui/Paper';
 import {TESTGRID_CONTEXT} from "./constants";
+import {withCookies, Cookies} from 'react-cookie';
+import Toolbar from '@material-ui/core/Toolbar';
+import {instanceOf} from 'prop-types';
 
 const config = {
   key: 'root',
@@ -50,6 +53,9 @@ const store = createStore(reducer);
 const persistor = persistStore(store);
 
 class App extends Component {
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired
+  };
 
   handleClose = () => {
     let b = !this.state.open;
@@ -59,7 +65,9 @@ class App extends Component {
 
   constructor(props) {
     super(props);
+    const { cookies } = props;
     this.state = {
+      name: cookies.get('TGUserName') || 'unknown',
       open: false,
       navWidth: 20
     }
@@ -89,7 +97,13 @@ class App extends Component {
                   <IconButton onClick={this.handleClose}>
                     {this.state.open ? <NavigationBack/> : <NevigationExpand/>}
                   </IconButton>
-                }/>
+                }>
+                <Toolbar>
+                  <div style={{color: 'white'}}>
+                    <i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp;{this.state.name}
+                  </div>
+                </Toolbar>
+              </AppBar>
               <Drawer open={this.state.open} containerStyle={{'top': '64px', backgroundColor: '#BDBDBD'}} width={200}>
                 <MenuItem><a href="/admin/blue/organizations/jenkins/pipelines?search=wum">
                   TestGrid Admin Portal</a></MenuItem>
@@ -115,4 +129,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default withCookies(App);

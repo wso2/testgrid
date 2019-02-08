@@ -18,7 +18,13 @@
 
 package org.wso2.testgrid.web.api;
 
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import org.apache.hc.core5.http.HttpStatus;
+import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Status;
@@ -606,6 +612,125 @@ public class TestPlanService {
                         .entity("Couldn't find test results at " + archiveFileDir).build();
             }
         } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the test plan by id : " + testPlanId + "to get test results";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (ArtifactReaderException e) {
+            String msg = "Error occurred when reading archived files of testplan " + testPlanId;
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(e.getMessage())
+                            .setDescription(e.getMessage()).build()).build();
+        }
+    }
+
+    /**
+     * Returns the list of deployment-output archives for a given test plan.
+     *
+     * @param testPlanId test plan id
+     * @return archived file of the results
+     */
+    @GET
+    @Path("/archives/list/{test-plan-id}")
+    public Response getTestPlanArchives(@PathParam("test-plan-id") String testPlanId) {
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            Optional<TestPlan> testPlanOptional = testPlanUOW.getTestPlanById(testPlanId);
+            if (!testPlanOptional.isPresent()) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Couldn't find a TestPlan for the requested id").build();
+            }
+            ArtifactReadable artifactDownloadable = new AWSArtifactReader(
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+            TestPlan testPlan = testPlanOptional.get();
+            String archiveFileDir = S3StorageUtil.deriveS3DeploymentOutputsDir(testPlan, artifactDownloadable);
+            TransferManager transferManager = TransferManagerBuilder.standard().build();
+            ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                    .withBucketName(ConfigurationContext
+                            .getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME))
+                    .withPrefix(StringUtil.concatStrings(archiveFileDir, "/")).withDelimiter("/");
+            ArrayList<String> filesToDownload = new ArrayList<>();
+            ObjectListing objects;
+            do {
+                objects = transferManager.getAmazonS3Client().listObjects(listObjectsRequest);
+                for (S3ObjectSummary objectSummary :
+                        objects.getObjectSummaries()) {
+                    String fileName = objectSummary.getKey().replace(objects.getPrefix(), "");
+                    if (!fileName.isEmpty()) {      //To skip the record which represent the archiveFileDir itself
+                        filesToDownload.add(fileName);
+                    }
+                }
+                listObjectsRequest.setMarker(objects.getNextMarker());
+            } while (objects.isTruncated());
+
+            JSONArray jsArray = new JSONArray(filesToDownload);
+            return Response.status(Response.Status.OK).entity(jsArray.toString()).build();
+        } catch (TestGridDAOException e) {
+            String msg = "Error occurred while fetching the test plan by id : " + testPlanId + "to get test results";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (ArtifactReaderException e) {
+            String msg = "Error occurred when reading archived files of testplan " + testPlanId;
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg)
+                            .setDescription(e.getMessage()).build()).build();
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(e.getMessage())
+                            .setDescription(e.getMessage()).build()).build();
+        }
+    }
+
+    /**
+     * Returns the result (archive file) of a given test plan.
+     *
+     * @param testPlanId test plan id
+     * @return archived file of the results
+     */
+    @GET
+    @Path("/archives/{test-plan-id}/{file}")
+    public Response getTestPlanResults(@PathParam("test-plan-id") String testPlanId, @PathParam("file") String file) {
+        String archiveFileDir = null;
+        try {
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            Optional<TestPlan> testPlanOptional = testPlanUOW.getTestPlanById(testPlanId);
+            if (!testPlanOptional.isPresent()) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Couldn't find a TestPlan for the requested id").build();
+            }
+            TestPlan testPlan = testPlanOptional.get();
+            ArtifactReadable artifactDownloadable = new AWSArtifactReader(
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+
+            archiveFileDir = StringUtil.concatStrings(S3StorageUtil
+                    .deriveS3DeploymentOutputsDir(testPlan, artifactDownloadable), "/", file);
+            if (artifactDownloadable.isArtifactExist(archiveFileDir)) {
+                return Response
+                        .ok(artifactDownloadable.getArtifactStream(archiveFileDir))
+                        .type(RESPONSE_HEADER_VALUE_APPLICATION_ZIP)
+                        .header(RESPONSE_HEADER_CONTENT_DISPOSITION, RESPONSE_HEADER_VALUE_ATTACHMENT + "; " +
+                                RESPONSE_HEADER_FILE_NAME + "=\"" + file + "\"")
+                        .build();
+            }
+                String msg = "Couldn't find file " + file + " for test-plan ID:" + testPlanId +
+                        "in " + archiveFileDir;
+                logger.error(msg);
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Couldn't find test results at " + archiveFileDir).build();
+    } catch (TestGridDAOException e) {
             String msg = "Error occurred while fetching the test plan by id : " + testPlanId + "to get test results";
             logger.error(msg, e);
             return Response.serverError()
