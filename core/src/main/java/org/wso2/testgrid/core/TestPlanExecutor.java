@@ -432,7 +432,12 @@ public class TestPlanExecutor {
 
         if (directories != null) {
             for (File scenario : directories) {
-                appendScenario(testPlan, scenario.getName(), scenarioConfig);
+                if (scenario.getName().equals(TestGridConstants.MAVEN_RELATED_DIR)) {
+                    logger.warn("Avoid considering a directory with maven-reserved name (" +
+                            scenario.getName() + ") as a scenario directory.");
+                } else {
+                    appendScenario(testPlan, scenario.getName(), scenarioConfig);
+                }
             }
         } else {
             //testPlan.setStatus(Status.FAIL);
