@@ -92,4 +92,6 @@ public class TestGridConstants {
 
 
     public static final String NOT_CONFIGURED_STR = "/not-configured/";
+
+    public static final String MAVEN_RELATED_DIR = "target";
 }
