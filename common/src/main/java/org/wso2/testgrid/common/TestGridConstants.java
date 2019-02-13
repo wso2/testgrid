@@ -88,8 +88,9 @@ public class TestGridConstants {
     public static final String KEY_FILE_LOCATION = "keyFileLocation";
     public static final String HTTP = "http://";
     public static final String TEST_RESULTS_ARCHIVE_DIR = "test-outputs";
-    public static final String TEST_RESULTS_DIR = "test-outputs/scenarios";
-
+    @Deprecated public static final String TEST_RESULTS_DIR_OLD = "test-outputs/scenarios";
+    public static final String TEST_RESULTS_DIR = "test-outputs";
+    public static final String TEST_RESULTS_SCENARIO_DIR = "scenarios";
 
     public static final String NOT_CONFIGURED_STR = "/not-configured/";
 

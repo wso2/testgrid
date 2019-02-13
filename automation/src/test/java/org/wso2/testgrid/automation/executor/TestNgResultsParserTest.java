@@ -53,7 +53,7 @@ public class TestNgResultsParserTest {
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
     private static final String SUREFIRE_REPORTS_DIR_OUT = TestGridConstants.TEST_RESULTS_DIR +
-            "/SolutionPattern22/surefire-reports";
+            "/scenarios/SolutionPattern22/surefire-reports";
     private TestPlan testPlan;
     private TestScenario testScenario;
     private ScenarioConfig scenarioConfig;
@@ -129,7 +129,7 @@ public class TestNgResultsParserTest {
         FileUtils.copyDirectory(testArtifactPath.resolve(SUREFIRE_REPORTS_DIR).toFile(),
                 outputPath.resolve(SUREFIRE_REPORTS_DIR_OUT).toFile());
         FileUtils.copyFile(testArtifactPath.resolve("automation.log.rename").toFile(),
-                outputPath.resolve("test-outputs/scenarios/SolutionPattern22/automation.log").toFile());
+                outputPath.resolve("test-outputs/SolutionPattern22/scenarios/automation.log").toFile());
 
         parser.get().parseResults();
         parser.get().archiveResults();
