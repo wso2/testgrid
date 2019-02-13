@@ -582,7 +582,7 @@ public class TestPlanService {
             String zipFileName = StringUtil.concatStrings(testPlanId.replace(".", "_"),
                     "_", TEST_RESULTS_ARCHIVE_DIR);
             if (zipFileName.length() >= 255) {
-                //File name cannot be larger than 255 chars in Linux (260 chars in Windows)
+                //File name can not be larger than 255 chars in Linux (260 chars in Windows)
                 zipFileName = TEST_RESULTS_ARCHIVE_DIR;
             }
             archiveFileDir = S3StorageUtil.deriveS3TestsResultsArchivePath(testPlan, artifactDownloadable);

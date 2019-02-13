@@ -57,8 +57,6 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import static org.wso2.testgrid.common.TestGridConstants.TEST_RESULTS_SCENARIO_DIR;
-
 /**
  * Surefire reports parser implementation related to parsing testng integration
  * test results.
@@ -125,8 +123,8 @@ public class TestNgResultsParser extends ResultParser {
     public void parseResults() throws ResultParserException {
         Path dataBucket = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
         dataBucket = Paths.get(dataBucket.toString(), TestGridConstants.TEST_RESULTS_DIR,
-                testScenario.getOutputDir(), TEST_RESULTS_SCENARIO_DIR, testScenario.getName());
-        logger.info("Path: " + dataBucket.toString());
+                testScenario.getOutputDir(), TestGridConstants.TEST_RESULTS_SCENARIO_DIR,
+                testScenario.getName());
         logger.info(testScenario.getName());
         Set<Path> inputFiles = getResultInputFiles(dataBucket);
 
