@@ -579,14 +579,19 @@ public class TestPlanService {
             ArtifactReadable artifactDownloadable = new AWSArtifactReader(
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME),
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
-
+            String zipFileName = StringUtil.concatStrings(testPlanId.replace(".", "_"),
+                    "_", TEST_RESULTS_ARCHIVE_DIR);
+            if (zipFileName.length() >= 255) {
+                //File name can not be larger than 255 chars in Linux (260 chars in Windows)
+                zipFileName = TEST_RESULTS_ARCHIVE_DIR;
+            }
             archiveFileDir = S3StorageUtil.deriveS3TestsResultsArchivePath(testPlan, artifactDownloadable);
             if (artifactDownloadable.isArtifactExist(archiveFileDir)) {
                 return Response
                         .ok(artifactDownloadable.getArtifactStream(archiveFileDir))
                         .type(RESPONSE_HEADER_VALUE_APPLICATION_ZIP)
                         .header(RESPONSE_HEADER_CONTENT_DISPOSITION, RESPONSE_HEADER_VALUE_ATTACHMENT + "; " +
-                                RESPONSE_HEADER_FILE_NAME + "=\" " + TEST_RESULTS_ARCHIVE_DIR +
+                                RESPONSE_HEADER_FILE_NAME + "=\" " + zipFileName +
                                 TESTGRID_COMPRESSED_FILE_EXT + "\"")
                         .build();
             } else {

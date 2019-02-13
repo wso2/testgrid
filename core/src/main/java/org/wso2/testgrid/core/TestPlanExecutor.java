@@ -427,7 +427,7 @@ public class TestPlanExecutor {
             TestPlanExecutorException {
 
         Path dataBucket = Paths.get(DataBucketsHelper.getOutputLocation(testPlan).toString(),
-                "test-outputs", "scenarios", scenarioConfig.getOutputDir());
+                "test-outputs", scenarioConfig.getOutputDir(), TestGridConstants.TEST_RESULTS_SCENARIO_DIR);
         File[] directories = new File(dataBucket.toString()).listFiles(File::isDirectory);
 
         if (directories != null) {
