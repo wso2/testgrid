@@ -82,6 +82,7 @@ public class TestReportEngine {
     private static final String REPORT_MUSTACHE = "report.mustache";
     private static final String PERFORMANCE_REPORT_MUSTACHE = "performance_report.mustache";
     private static final String EMAIL_REPORT_MUSTACHE = "email_report.mustache";
+    private static final String INFRA_ERROR_EMAIL_REPORT_MUSTACHE = "infra_error_summary.mustache";
     private static final String SUMMARIZED_EMAIL_REPORT_MUSTACHE = "summarized_email_report.mustache";
     private static final String REPORT_TEMPLATE_KEY = "parsedReport";
     private static final String PER_TEST_PLAN_TEMPLATE_KEY = "perTestPlan";
@@ -92,6 +93,8 @@ public class TestReportEngine {
     private static final String HISTORY_CHART_TEMPLATE_KEY = "historyChart";
     private static final String GIT_BUILD_DETAILS_TEMPLATE_KEY = "gitBuildDetails";
     private static final String HTML_EXTENSION = ".html";
+    private static final String DASHBOARD_URL_TEMPLATE_KEY = "dashboardURL";
+
 
     private static final String PERFORMANCE_REPORT = "PerformanceReport";
     private static final String RESULT_FOLDER = "Results";
@@ -801,7 +804,6 @@ public class TestReportEngine {
 
     /**
      * We do not need the test cases that has been success in all the infra combinations.
-     *
      */
     private void postProcessSummaryTable(Map<String, InfrastructureBuildStatus> testCaseInfraBuildStatusMap) {
         // remove success test cases
@@ -947,11 +949,52 @@ public class TestReportEngine {
         return Optional.of(reportPath);
     }
 
+
+    /**
+     * Generates an HTML report containing only the infrastructure errors that have occured during the
+     * build. It is intended to be sent to the team responsible for maintaining the infrastructure
+     * scripts.
+     *
+     * @param product product that was tested
+     * @param workspace workspace containing the test-plan yamls
+     * @return {@link Path} of the created  report
+     */
+    public Optional<Path> generateInfraFailureReport(Product product, String workspace) throws ReportingException {
+        List<TestPlan> testPlans = getTestPlans(workspace);
+        String productName = product.getName();
+        List<TestPlan> collect = testPlans.stream()
+                .filter(testPlan -> Status.ERROR.equals(testPlan.getStatus())).collect(Collectors.toList());
+        if (collect.isEmpty()) {
+            logger.info("No infrastructure errors were found from the " + testPlans.size() + " test plan(s) that " +
+                    "were executed for product " + product.getName() + "\n" +
+                    "Hence skipping infrastructure error email generation");
+            return Optional.empty();
+        }
+        try {
+            final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
+            Map<String, Object> results = new HashMap<>();
+            results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(collect));
+            results.put(PRODUCT_NAME_TEMPLATE_KEY, productName);
+            results.put(DASHBOARD_URL_TEMPLATE_KEY, dashboardURL);
+            results.put("infrastructureErrors", emailReportProcessor.getErroneousInfrastructures(testPlans).entrySet());
+
+            Renderable renderer = RenderableFactory.getRenderable(INFRA_ERROR_EMAIL_REPORT_MUSTACHE);
+            String render = renderer.render(INFRA_ERROR_EMAIL_REPORT_MUSTACHE, results);
+            Path reportPath = Paths.get(workspace, "InfraErrorEmail.html");
+            writeHTMLToFile(reportPath, render);
+            return Optional.of(reportPath);
+        } catch (TestGridDAOException e) {
+            throw new ReportingException("Error occured while getting the erroneous infrastructures " +
+                    "for product " + productName, e);
+        }
+    }
+
     /**
      * Generate summarized charts for the summary email.
-     * @param workspace curent workspace of the build
+     *
+     * @param workspace        curent workspace of the build
      * @param chartGenLocation location where charts should be generated
-     * @param id product id
+     * @param id               product id
      */
     private void generateSummarizedCharts(String workspace, String chartGenLocation, String id)
             throws ReportingException {
