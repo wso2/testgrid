@@ -87,7 +87,8 @@ public class EscalationEmailGenerator {
                         .getTestExecutionHistory(product.getId());
 
                 if (executionHistoryMap.isEmpty()) {
-                    logger.info("Skipping escalation creation for product " + product.getName());
+                    logger.info("Execution history is empty. Hence Skipping escalation creation for product "
+                            + product.getName());
                     continue;
                 }
                 // Check whether the results are spanned over seven days
@@ -98,7 +99,9 @@ public class EscalationEmailGenerator {
                                                               .minusDays(MAX_DAYS_FOR_ESCALATION));
 
                 if (period.getDays() < MAX_DAYS_FOR_ESCALATION) {
-                    logger.info("Skipping escalation creation for product " + product.getName());
+                    logger.info("Necessary number of days (" + MAX_DAYS_FOR_ESCALATION + ") for an escalation" +
+                            " has not reached yet." + " Hence skipping escalation creation for product "
+                            + product.getName());
                     continue;
                 }
 
