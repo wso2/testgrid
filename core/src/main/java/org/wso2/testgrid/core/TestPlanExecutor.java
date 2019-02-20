@@ -581,7 +581,7 @@ public class TestPlanExecutor {
             InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
-                if (!script.getPhase().equals(Script.Phase.DESTROY)) {
+                if (!Script.Phase.DESTROY.equals(script.getPhase())) {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(testPlan);
@@ -713,7 +713,7 @@ public class TestPlanExecutor {
             }
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
-                if (!script.getPhase().equals(Script.Phase.CREATE)) {
+                if (!Script.Phase.CREATE.equals(script.getPhase())) {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository(),
