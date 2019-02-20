@@ -257,7 +257,7 @@ public class AWSProvider implements InfrastructureProvider {
             awsResourceManager.notifyStackCreation(testPlan, script, describeStackEventsResult.getStackEvents());
 
             //Set log download url to test plan.
-            deriveLogDashboardUrl(testPlan, stackName);
+            deriveLogDashboardUrl(testPlan, stackName, region);
 
             Properties outputProps = getCloudformationOutputs(cloudFormation, stack);
             logEC2SshAccessDetails(stackName, inputs);
@@ -289,10 +289,15 @@ public class AWSProvider implements InfrastructureProvider {
      *
      * @param testPlan test-plan to get log url for
      * @param stackName name of the stack created for the test-plan
+     * @param region aws region where the stack was created
      */
-    private void deriveLogDashboardUrl(TestPlan testPlan, String stackName) {
+    private void deriveLogDashboardUrl(TestPlan testPlan, String stackName, String region) {
         // Filter the EC2 instance corresponding to the stack
-        AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.defaultClient();
+        Path configFilePath = TestGridUtil.getConfigFilePath();
+        AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.standard()
+                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                .withRegion(region)
+                .build();
         DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
         describeInstancesRequest.withFilters(
                 new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
