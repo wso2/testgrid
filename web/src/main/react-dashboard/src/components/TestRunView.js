@@ -302,11 +302,13 @@ class TestRunView extends Component {
         {this.state && this.state.currentInfra && (() => {
           switch (this.state.currentInfra.testPlanStatus) {
             case FAIL:
+            case ERROR:
               return <Row>
                 <Col sm="12">
                   <Card body inverse style={{ backgroundColor: '#e57373', borderColor: '#e57373' }}>
-                    <CardTitle><i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!">
-                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct}</span>
+                    <CardTitle><i className="fa fa-exclamation-circle" aria-hidden="true"
+                                  data-tip={this.state.currentInfra.testPlanStatus}>
+                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct} Job</span>
                     </i><ReactTooltip/>
                     </CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
@@ -319,8 +321,9 @@ class TestRunView extends Component {
               return <Row>
                 <Col sm="12">
                   <Card body inverse color="success">
-                    <CardTitle><i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!">
-                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct}</span>
+                    <CardTitle><i className="fa fa-check-circle" aria-hidden="true"
+                                  data-tip={this.state.currentInfra.testPlanStatus}>
+                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct} Job</span>
                     </i><ReactTooltip/>
                     </CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
@@ -335,9 +338,10 @@ class TestRunView extends Component {
               return <Row>
                 <Col sm="12">
                   <Card body inverse color="info">
-                    <CardTitle><i className="fa fa-spinner fa-pulse" data-tip="Running!">
+                    <CardTitle><i className="fa fa-spinner fa-pulse"
+                                  data-tip={this.state.currentInfra.testPlanStatus}>
                     </i><ReactTooltip/>
-                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct}</span>
+                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct} Job</span>
                     </CardTitle>
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
                     </CardText>
