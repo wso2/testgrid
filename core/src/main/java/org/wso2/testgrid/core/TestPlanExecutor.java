@@ -217,6 +217,7 @@ public class TestPlanExecutor {
             List<String> activeTestPlans = tinkererSDK.getAllTestPlanIds();
             if (activeTestPlans != null && activeTestPlans.contains(testPlan.getId())) {
                 List<Agent> agentList = tinkererSDK.getAgentListByTestPlanId(testPlan.getId());
+                logger.info("Found " + agentList.size() + " agents for the test-plan.");
                 //Assuming the external deployment is on a Linux operating system.
                 String configureAWSCLI =
                         "export AWS_ACCESS_KEY_ID=" + ConfigurationContext
@@ -230,24 +231,23 @@ public class TestPlanExecutor {
                 String runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
                 String s3Location = deriveDeploymentOutputsDirectory(testPlan);
                 if (s3Location != null) {
-                    ExecutorService es = Executors.newCachedThreadPool();
+                    ExecutorService executorService = Executors.newCachedThreadPool();
                     agentList.forEach(agent -> {
                         String uploadLogsToS3 = "aws s3 cp /var/log/product_logs.zip " +
                                 s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
                         String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
                                 s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
-                        //Todo: make command execution parallel with multi-threading.
-//                        tinkererSDK.executeCommandSync(agent.getAgentId(), testPlan.getId(), agent.getInstanceName(),
-//                                configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3);
-                        es.execute(new TinkererCommand(agent.getAgentId(), testPlan.getId(), agent.getInstanceName(),
+                        executorService.execute(new TinkererCommand(agent.getAgentId(), testPlan.getId(),
+                                agent.getInstanceName(),
                                 configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3));
                     });
-                    es.shutdown();
+                    executorService.shutdown();
                     try {
-                        logger.info("Tinkerer commands are sent out to nodes, waiting till the execution is complete." +
+                        logger.info("Tinkerer commands are sending out to nodes, Wait till the execution is complete." +
                                 " (TIME-OUT: 10 Minutes)");
-                        while (!es.awaitTermination(10, TimeUnit.MINUTES)) {
-                            Thread.sleep(1000); //Looping per-second is enough and will limit CPU cycles.
+                        if (!executorService.awaitTermination(10, TimeUnit.MINUTES)) {
+                            logger.error("Tinkerer commands execution time-out. Gracefully moving to next steps..");
+                            executorService.shutdownNow();
                         }
                     } catch (InterruptedException e) {
                         logger.error("Exception occurred while waiting for tinkerer commands to be completed. " +
@@ -261,8 +261,8 @@ public class TestPlanExecutor {
                             testPlan.getId());
                 }
             } else {
-                logger.error("Tinkerer does not have active test-plans. Hence skipping" +
-                        " uploading deployment-outputs to S3.");
+                logger.error("Can not find any registered tinkerer-agents for the test-plan " + testPlan.getId() + "" +
+                        "Hence uploading deployment-outputs to S3 is skipped.");
             }
         } else {
             logger.error("Tinkerer-host is not configured. Hence uploading deployment-outputs to S3 is skipped.");
