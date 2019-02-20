@@ -588,16 +588,28 @@ public class AWSProvider implements InfrastructureProvider {
                             "cp /opt/testgrid/agent/testgrid-agent /etc/init.d\n" +
                             "update-rc.d testgrid-agent defaults\n" +
                             "service testgrid-agent start\n";
-                    String awsCLISetup = "if [[ ${OperatingSystem} =~ \"Ubuntu\" ]]; then\n"
-                    + "apt -y install awscli\n fi\n" +
-                    "if [[ ${OperatingSystem} =~ \"CentOS\" ]]; then\n"
-                    + "yum -y install awscli\n fi\n";
+                    //Note: Following command addresses both APT and YUM installers.
+                    String awsCLISetup = "YUM_CMD=$(which yum)\n" +
+                            "APT_GET_CMD=$(which apt-get)\n" +
+                            "if [[ ! -z $YUM_CMD ]]; then\n" +
+                            "yum install awscli\n" +
+                            "elif [[ ! -z $APT_GET_CMD ]]; then\n" +
+                            "apt-get awscli\n" +
+                            "fi\n";
+
+                    String perfMonitoringSetup = "if [ ! -f /opt/testgrid/agent/telegraf_setup.sh ]; then\n" +
+                            "  wget https://s3.amazonaws.com/testgrid-resources/packer/Unix/" +
+                            "perf_monitoring_artifacts.zip\n" +
+                            "  unzip -f perf_monitoring_artifacts.zip -d .\n" +
+                            "  [ -d /opt/testgrid/agent/ ] || sudo mkdir -p /opt/testgrid/agent/\n" +
+                            "  sudo cp -r perf_monitoring_artifacts/* /opt/testgrid/agent/\n" +
+                            "fi\n";
 
                     customScript = StringUtil
                             .concatStrings(awsCLISetup, agentSetup, "/opt/testgrid/agent/init.sh ",
                             deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,
-                            " ", deploymentTinkererPassword, "\n", "/opt/testgrid/agent/telegraf_setup.sh ",
-                            scriptInputs);
+                            " ", deploymentTinkererPassword, "\n", perfMonitoringSetup,
+                                    "/opt/testgrid/agent/telegraf_setup.sh ", scriptInputs);
                 }
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(customScript);

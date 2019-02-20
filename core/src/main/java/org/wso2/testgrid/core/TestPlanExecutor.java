@@ -62,6 +62,7 @@ import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+import org.wso2.testgrid.common.util.tinkerer.SyncCommandResponse;
 import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
 import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
@@ -88,6 +89,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.nio.file.StandardOpenOption.APPEND;
@@ -226,15 +230,31 @@ public class TestPlanExecutor {
                 String runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
                 String s3Location = deriveDeploymentOutputsDirectory(testPlan);
                 if (s3Location != null) {
+                    ExecutorService es = Executors.newCachedThreadPool();
                     agentList.forEach(agent -> {
                         String uploadLogsToS3 = "aws s3 cp /var/log/product_logs.zip " +
                                 s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
                         String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
                                 s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
                         //Todo: make command execution parallel with multi-threading.
-                        tinkererSDK.executeCommandSync(agent.getAgentId(), testPlan.getId(), agent.getInstanceName(),
-                                configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3);
+//                        tinkererSDK.executeCommandSync(agent.getAgentId(), testPlan.getId(), agent.getInstanceName(),
+//                                configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3);
+                        es.execute(new TinkererCommand(agent.getAgentId(), testPlan.getId(), agent.getInstanceName(),
+                                configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3));
                     });
+                    es.shutdown();
+                    try {
+                        logger.info("Tinkerer commands are sent out to nodes, waiting till the execution is complete." +
+                                " (TIME-OUT: 10 Minutes)");
+                        while (!es.awaitTermination(10, TimeUnit.MINUTES)) {
+                            Thread.sleep(1000); //Looping per-second is enough and will limit CPU cycles.
+                        }
+                    } catch (InterruptedException e) {
+                        logger.error("Exception occurred while waiting for tinkerer commands to be completed. " +
+                                "Please note the commands may not have completely executed due to this. Exception: "
+                                + e.getMessage(), e);
+                    }
+
                     logger.info("S3 path is : " + s3Location);
                 } else {
                     logger.error("Can not generate S3 location for deployment-outputs of test-plan: " +
@@ -987,4 +1007,37 @@ public class TestPlanExecutor {
 
     }
 
+}
+
+/**
+ * Represents an impl of Runnable which will handle tinkerer command to preprare and upload
+ * deployment outputs from single tinkerer-agent.
+ */
+class TinkererCommand implements  Runnable {
+    private String agentId;
+    private String testPlanId;
+    private String instanceName;
+    private String command;
+    private TinkererSDK tinkererSDK;
+    private Logger logger = LoggerFactory.getLogger(TinkererCommand.class);
+
+    TinkererCommand (String agentId, String testplanId, String instanceName, String command) {
+        this.agentId = agentId;
+        this.testPlanId = testplanId;
+        this.instanceName = instanceName;
+        this.command = command;
+        tinkererSDK = new TinkererSDK();
+        tinkererSDK.setTinkererHost(ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH));
+    }
+    @Override
+    public void run() {
+        SyncCommandResponse syncResponse = tinkererSDK.executeCommandSync(agentId, testPlanId, instanceName, command);
+        if (syncResponse.getExitValue() == 0) {
+            logger.info("Successfully executed tinkerer command for instance: " + instanceName);
+        } else {
+            logger.error("Error received for tinkerer command for instance: " + instanceName +
+                    ". Received error response: " + syncResponse.getResponse());
+        }
+    }
 }
