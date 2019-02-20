@@ -574,8 +574,10 @@ public class AWSProvider implements InfrastructureProvider {
                         ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME);
                 String deploymentTinkererPassword = ConfigurationContext.getProperty(ConfigurationContext.
                         ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
-                String awsRegion = ConfigurationContext.getProperty(ConfigurationContext.
-                        ConfigurationProperties.AWS_REGION_NAME);
+                String awsRegion = infraInputs.getProperty(AWS_REGION_PARAMETER);
+                if (awsRegion == null || awsRegion.isEmpty()) {
+                    awsRegion = DEFAULT_REGION;
+                }
                 String windowsScript;
                 String customScript;
                 String scriptInputs = StringUtil.concatStrings(testPlanId, " ",
