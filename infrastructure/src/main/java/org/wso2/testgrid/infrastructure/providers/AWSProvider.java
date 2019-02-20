@@ -101,6 +101,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final Logger logger = LoggerFactory.getLogger(AWSProvider.class);
     private static final String AWS_REGION_PARAMETER = "region";
     private static final String CUSTOM_USER_DATA = "CustomUserData";
+    private static final String DEFAULT_REGION = "us-east-1";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     private AWSResourceManager awsResourceManager;
     private static final int TIMEOUT = 60;
@@ -180,6 +181,15 @@ public class AWSProvider implements InfrastructureProvider {
             TestGridInfrastructureException {
         Path configFilePath = TestGridUtil.getConfigFilePath();
         String region = inputs.getProperty(AWS_REGION_PARAMETER);
+        logger.info("Region is available as an input parameter, Setting " +
+                "the region as : " + region);
+
+        if (region == null || region.isEmpty()) {
+            region = DEFAULT_REGION;
+            logger.info("Region is not provided as an input parameter, Setting " +
+                    "the region as : " + DEFAULT_REGION);
+        }
+        script.getInputParameters().setProperty(AWS_REGION_PARAMETER, region);
         AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)
@@ -201,6 +211,7 @@ public class AWSProvider implements InfrastructureProvider {
 
             stackRequest.setTemplateBody(file);
 
+            /* TODO update when resourceManager is introduced
             region = awsResourceManager.requestAvailableRegion(testPlan, script);
             //Set region to test plan
             inputs.setProperty(AWS_REGION_PARAMETER, region);
@@ -210,7 +221,7 @@ public class AWSProvider implements InfrastructureProvider {
                     .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                     .withRegion(region)
                     .build();
-
+            */
             String tgEnvironment = ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.TESTGRID_ENVIRONMENT);
             final List<Parameter> populatedExpectedParameters = getParameters(expectedParameters, inputs,
