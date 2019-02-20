@@ -72,6 +72,14 @@ class ProductStatusView extends Component {
       .catch(error => console.error(error));
   }
 
+  navigateToJob(product) {
+    this.navigateToRoute(TESTGRID_CONTEXT + "/" + product.productName, {
+      productId: product.productId,
+      productName: product.productName,
+      productStatus: product.productStatus
+    })
+  }
+
   navigateToRoute(route, product) {
     this.props.dispatch(add_current_product(product));
     this.props.history.push(route);
@@ -100,24 +108,15 @@ class ProductStatusView extends Component {
   render() {
     const products = this.state.hits.map((product, index) => {
       return (<tr key={index}>
-        <td><SingleRecord value={product.productStatus}/></td>
-        <th onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" + product.productName, {
-          productId: product.productId,
-          productName: product.productName,
-          productStatus: product.productStatus
-        })} scope="row  ">
+        <td onClick={() => this.navigateToJob(product)}><SingleRecord value={product.productStatus}/></td>
+        <th onClick={() => this.navigateToJob(product)} scope="row  ">
           <i style={{cursor: 'pointer'}}>{product.productName}</i>
         </th>
         <td style={{fontSize: '16px'}}>
           {(() => {
             if (product.lastSuccessTimestamp) {
               return (
-                <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
-                                product.productName, {
-                                productId: product.productId,
-                                productName: product.productName,
-                                productStatus: product.productStatus
-                })}> {Moment(product.lastSuccessTimestamp).fromNow()}</i>
+                <i onClick={() => this.navigateToJob(product)}> {Moment(product.lastSuccessTimestamp).fromNow()}</i>
                 )
             } else {
               return ("No Success builds yet!");
