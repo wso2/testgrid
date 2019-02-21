@@ -226,7 +226,16 @@ public class AWSProviderTest extends PowerMockTestCase {
 
         AmazonEC2 amazonEC2Mock = Mockito.mock(AmazonEC2.class);
         PowerMockito.mockStatic(AmazonEC2ClientBuilder.class);
-        PowerMockito.when(AmazonEC2ClientBuilder.defaultClient()).thenReturn(amazonEC2Mock);
+
+        AmazonEC2ClientBuilder ec2ClientBuilderMock = PowerMockito
+                .mock(AmazonEC2ClientBuilder.class);
+        PowerMockito.when(ec2ClientBuilderMock.withCredentials(Mockito.any(PropertiesFileCredentialsProvider.class)))
+                .thenReturn(ec2ClientBuilderMock);
+        PowerMockito.when(ec2ClientBuilderMock.withRegion(Mockito.anyString()))
+                .thenReturn(ec2ClientBuilderMock);
+        PowerMockito.when(ec2ClientBuilderMock.build()).thenReturn(amazonEC2Mock);
+
+        PowerMockito.when(AmazonEC2ClientBuilder.standard()).thenReturn(ec2ClientBuilderMock);
         DescribeInstancesResult describeInstancesResult = Mockito.mock(DescribeInstancesResult.class);
         PowerMockito.when(amazonEC2Mock.describeInstances(Mockito.any())).thenReturn(describeInstancesResult);
         PowerMockito.when(describeInstancesResult.getReservations()).thenReturn(getMockReservations());
