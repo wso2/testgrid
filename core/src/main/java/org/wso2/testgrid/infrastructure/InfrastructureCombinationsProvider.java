@@ -146,6 +146,7 @@ public class InfrastructureCombinationsProvider {
             TestgridYaml testgridYaml) {
 
         if (infrastructures.isEmpty()) {
+            logger.warn("Received zero infrastructure-parameters from database.");
             return infrastructures;
         }
         List<String> excludes = testgridYaml.getInfrastructureConfig().getExcludes();
@@ -159,7 +160,6 @@ public class InfrastructureCombinationsProvider {
                         .collect(Collectors.toSet());
                 selectedInfraValSet.add(new InfrastructureValueSet(infrastructureValueSet.getType(), selectedSet));
             });
-            return selectedInfraValSet;
         } else if (includes != null && !includes.isEmpty()) {
             infrastructures.forEach(infrastructureValueSet -> {
                 Set<InfrastructureParameter> selectedSet = infrastructureValueSet.getValues().stream()
@@ -167,7 +167,8 @@ public class InfrastructureCombinationsProvider {
                         .collect(Collectors.toSet());
                 selectedInfraValSet.add(new InfrastructureValueSet(infrastructureValueSet.getType(), selectedSet));
             });
-            return selectedInfraValSet;
+        } else {
+            selectedInfraValSet.addAll(infrastructures);
         }
 
         if (selectedInfraValSet.isEmpty()) {
@@ -178,6 +179,6 @@ public class InfrastructureCombinationsProvider {
             logger.warn("Testgrid.yaml's includes: " + includes);
         }
 
-        return infrastructures;
+        return selectedInfraValSet;
     }
 }
