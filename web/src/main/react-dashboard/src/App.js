@@ -34,7 +34,9 @@ import {persistCombineReducers, persistStore} from 'redux-persist';
 import {PersistGate} from 'redux-persist/es/integration/react';
 import storage from 'redux-persist/lib/storage/session';
 import Drawer from 'material-ui/Drawer';
-import MenuItem from 'material-ui/MenuItem';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import IconButton from 'material-ui/IconButton';
 import NavigationBack from 'material-ui/svg-icons/navigation/chevron-left';
 import NevigationExpand from 'material-ui/svg-icons/navigation/menu';
@@ -68,12 +70,13 @@ class App extends Component {
     const { cookies } = props;
     this.state = {
       name: cookies.get('TGUserName') || 'unknown',
-      open: false,
-      navWidth: 20
+      open: true,
+      navWidth: 240
     }
   }
 
   render() {
+
     const paperStyle = {margin: '80px 20px 50px ' + this.state.navWidth + 'px'};
     return (
       <Provider store={store}>
@@ -104,9 +107,22 @@ class App extends Component {
                   </div>
                 </Toolbar>
               </AppBar>
-              <Drawer open={this.state.open} containerStyle={{'top': '64px', backgroundColor: '#BDBDBD'}} width={200}>
-                <MenuItem><a href="/admin/blue/organizations/jenkins/pipelines?search=wum">
-                  TestGrid Admin Portal</a></MenuItem>
+              <Drawer open={this.state.open} containerStyle={{'top': '64px'}} width={200}>
+                <List>
+                  <ListItem button component="a" href="/admin/blue/organizations/jenkins/pipelines">
+                    <i className="fa fa-briefcase" aria-hidden="true"> </i><ListItemText primary="Admin Portal"/>
+                  </ListItem>
+                  <ListItem button component="a" href="/admin">
+                    <i className="fa fa-cogs" aria-hidden="true"></i><ListItemText primary="TestGrid Jenkins"/>
+                  </ListItem>
+                  <ListItem button component="a" href="https://github.com/wso2/testgrid/blob/master/docs/QuickStartGuide.md
+">
+                    <i className="fa fa-book" aria-hidden="true"></i><ListItemText primary="Quick Start Guide"/>
+                  </ListItem>
+                  <ListItem button component="a" href="https://github.com/wso2/testgrid-job-configs">
+                    <i className="fa fa-wrench" aria-hidden="true"></i><ListItemText primary="TestGrid Job Configs"/>
+                  </ListItem>
+                </List>
               </Drawer>
               <Paper style={paperStyle} zDepth={2}>
                 <Switch>
