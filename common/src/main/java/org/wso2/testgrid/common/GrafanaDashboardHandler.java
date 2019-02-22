@@ -70,6 +70,10 @@ public class GrafanaDashboardHandler {
      * This method will create a DB in influxDB and add a new Data source to grafana
      */
     public void initDashboard() {
+        if (!ConfigurationContext.isGrafanaDashboardEnabled()) {
+            logger.info("Grafana dashboard is not configured for this testgrid deployment");
+            return;
+        }
         // create influxDB database according to tp_id
         InfluxDB influxDB = null;
         try {

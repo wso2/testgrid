@@ -143,48 +143,48 @@ class DeploymentPatternView extends Component {
         {this.state && this.state.product && (() => {
           switch (this.state.product.productStatus) {
             case FAIL:
-              return <Alert color="danger">
+              return <Alert color="danger" className="h2">
                 <i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!"> </i>
                 <ReactTooltip/>
-                {" " + this.state.product.productName}
+                {" " + this.state.product.productName} Job
               </Alert>;
             case SUCCESS :
-              return <Alert color="success">
+              return <Alert color="success" className="h2">
                 <i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!"> </i>
                 <ReactTooltip/>
-                {" " + this.state.product.productName}
+                {" " + this.state.product.productName} Job
               </Alert>;
             case ERROR :
-              return <Alert color="danger">
+              return <Alert color="danger" className="h2">
                 <i className="fa fa-times-circle" aria-hidden="true" data-tip="Error!"> </i>
                 <ReactTooltip/>
-                {" " + this.state.product.productName}
+                {" " + this.state.product.productName} Job
               </Alert>;
             case INCOMPLETE :
-              return <Alert color="info">
+              return <Alert color="info" className="h2">
                 <i className="fa fa-hourglass-half" aria-hidden="true" data-tip="Incomplete!"> </i>
                 <ReactTooltip/>
-                {" " + this.state.product.productName}
+                {" " + this.state.product.productName} Job
               </Alert>;
             case DID_NOT_RUN :
-              return <Alert color="info">
+              return <Alert color="info" className="h2">
                 <i className="fa fa-ban" aria-hidden="true" data-tip="Did Not Run!"> </i>
                 <ReactTooltip/>
-                {" " + this.state.product.productName}
+                {" " + this.state.product.productName} Job
               </Alert>;
             case PENDING:
-              return <Alert color="info">
+              return <Alert color="info" className="h2">
                 <i className="fa fa-tasks" aria-hidden="true" data-tip="Pending!"> </i>
                 <ReactTooltip/>
-                {" " + this.state.product.productName}
+                {" " + this.state.product.productName} Job
               </Alert>;
             case RUNNING:
             default:
-              return <Alert color="info">
+              return <Alert color="info" className="h2">
                 <i className="fa fa-spinner fa-pulse" data-tip="Running!"> </i>
                 <span className="sr-only">Loading...</span>
                 <ReactTooltip/>
-                {" " + this.state.product.productName}
+                {" " + this.state.product.productName} Job
               </Alert>;
           }
         })()}

@@ -53,7 +53,7 @@ class InfraCombinationHistory extends Component {
 
             return (
               <span>
-                <small className="text-muted" key={key}><b>{key}</b>-{value} </small>
+                <small className="text-dark" key={key} style={{paddingRight: "20px"}}><b>{key}</b>: {value}</small>
                 {index % 3 === 2 ? <br/> : ""}
               </span>
           )
@@ -112,7 +112,7 @@ class InfraCombinationHistory extends Component {
             .sort((a, b) => b.createdTimestamp - a.createdTimestamp)
             .map((data, index) => {
               return (<tr key={index}>
-                <td>{index + 1}</td>
+                <td>{data.testRunNumber}</td>
                 <td>
                   <div style={{height: 'inherit', width: '100%', 'max-width': '150px'}}
                               onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +

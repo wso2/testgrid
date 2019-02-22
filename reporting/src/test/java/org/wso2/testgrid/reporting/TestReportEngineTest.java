@@ -100,16 +100,13 @@ public class TestReportEngineTest extends BaseClass {
 
         when(s3ClientMock.getObject(anyString(), anyString())).thenReturn(s3ObjectMock);
         when(s3ObjectMock.getObjectContent()).thenReturn(inputStream);
-        Optional<Path> path = testReportEngine.generateEmailReport(product, productDir.toString());
-        Assert.assertTrue(path.isPresent(), "Email report generation has failed. File path is empty.");
-        logger.info("email report file: " + path.get());
 
         if (testNum.equals("02")) {
             //We can only handle maximum of one data provider for chart generation code.
             //TODO: this was done because one JVM can only call JAVAFX Platform.exit() once.
             // See @ChartGenerator#stopApplication
 
-            path = testReportEngine.generateSummarizedEmailReport(product, productDir.toString());
+            Optional<Path> path = testReportEngine.generateSummarizedEmailReport(product, productDir.toString());
             Assert.assertTrue(path.isPresent(), "Email report generation has failed. File path is empty.");
             logger.info("v2 email report file: " + path.get());
 

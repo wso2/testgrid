@@ -59,10 +59,11 @@ class TestRunView extends Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    const {productName, deploymentPatternName} = this.props.match.params;
+    const {productName, deploymentPatternName, testPlanId} = this.props.match.params;
     let currentInfra = {};
     currentInfra.relatedProduct = productName;
     currentInfra.relatedDeplymentPattern = deploymentPatternName;
+    currentInfra.testPlanId = testPlanId;
     if (prevProps.currentInfra && (prevProps.currentInfra.testPlanId !== this.props.currentInfra.testPlanId)) {
       this.updateCurrentInfra(currentInfra);
     }
@@ -74,7 +75,7 @@ class TestRunView extends Component {
     currentInfra.testPlanStatus = this.props.currentInfra.testPlanStatus;
     this.getReportData(currentInfra);
     this.getGrafanaUrl(currentInfra.testPlanId);
-    this.getURLs(currentInfra.testPlanId);
+    this.getTestPlanData(currentInfra);
     this.setState({currentInfra: currentInfra});
   }
 
@@ -83,6 +84,7 @@ class TestRunView extends Component {
     let currentInfra = {};
     currentInfra.relatedProduct = productName;
     currentInfra.relatedDeplymentPattern = deploymentPatternName;
+    currentInfra.testPlanId = testPlanId;
 
     if (this.props.currentInfra) {
       this.updateCurrentInfra(currentInfra);
@@ -103,10 +105,10 @@ class TestRunView extends Component {
           currentInfra.infraParameters = data.infraParams;
           currentInfra.testPlanStatus = data.status;
           this.getReportData(currentInfra);
-          this.setState({currentInfra: currentInfra});
           this.getGrafanaUrl(currentInfra.testPlanId);
-          this.getURLs(currentInfra.testPlanId);
-        });
+          this.getTestPlanData(currentInfra);
+          this.setState({currentInfra: currentInfra});
+      });
     }
 
     this.checkIfTestRunLogExists();
@@ -255,8 +257,8 @@ class TestRunView extends Component {
 
   }
 
-  getURLs(testPlanId) {
-          let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + testPlanId;
+  getTestPlanData(currentInfra) {
+          let url = TESTGRID_API_CONTEXT + "/api/test-plans/" + currentInfra.testPlanId;
                 fetch(url, {
                   method: "GET",
                   credentials: 'same-origin',
@@ -268,8 +270,10 @@ class TestRunView extends Component {
                   .then(response => {
                     return response.json();
                   })
-                  .then(data => {this.setState({deploymentLogsUrl: data.logUrl})
-                            this.setState({buildURL: data.buildURL})        
+                  .then(data => {
+                    this.setState({deploymentLogsUrl: data.logUrl});
+                    this.setState({buildURL: data.buildURL});
+                    currentInfra.testRunNumber = data.testRunNumber;
                   })
           .catch(error => console.error(error));
   }
@@ -298,14 +302,17 @@ class TestRunView extends Component {
         {this.state && this.state.currentInfra && (() => {
           switch (this.state.currentInfra.testPlanStatus) {
             case FAIL:
+            case ERROR:
               return <Row>
                 <Col sm="12">
                   <Card body inverse style={{ backgroundColor: '#e57373', borderColor: '#e57373' }}>
-                    <CardTitle><i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!">
-                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    <CardTitle><i className="fa fa-exclamation-circle" aria-hidden="true"
+                                  data-tip={this.state.currentInfra.testPlanStatus}>
+                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct} Job</span>
                     </i><ReactTooltip/>
                     </CardTitle>
-                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
+                    </CardText>
                     {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
@@ -314,11 +321,13 @@ class TestRunView extends Component {
               return <Row>
                 <Col sm="12">
                   <Card body inverse color="success">
-                    <CardTitle><i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!">
-                      <span> {this.state.currentInfra.relatedProduct}</span>
+                    <CardTitle><i className="fa fa-check-circle" aria-hidden="true"
+                                  data-tip={this.state.currentInfra.testPlanStatus}>
+                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct} Job</span>
                     </i><ReactTooltip/>
                     </CardTitle>
-                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
+                    </CardText>
                     {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
@@ -329,11 +338,13 @@ class TestRunView extends Component {
               return <Row>
                 <Col sm="12">
                   <Card body inverse color="info">
-                    <CardTitle><i className="fa fa-spinner fa-pulse" data-tip="Running!">
+                    <CardTitle><i className="fa fa-spinner fa-pulse"
+                                  data-tip={this.state.currentInfra.testPlanStatus}>
                     </i><ReactTooltip/>
-                      <span> {this.state.currentInfra.relatedProduct}</span>
+                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct} Job</span>
                     </CardTitle>
-                    <CardText>{this.state.currentInfra.relatedDeplymentPattern}</CardText>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
+                    </CardText>
                     {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
                   </Card>
                 </Col>
@@ -475,10 +486,10 @@ class TestRunView extends Component {
                             wordWrap: "break-word",
                             whiteSpace: "wrap",
                             textDecoration: "none"
-                          }}><FlatButton class='view-history' data-tip={data.scenarioConfigChangeSetDescription}>
+                          }}><FlatButton class='view-history' style={{textAlign: "left"}} data-tip={data.scenarioConfigChangeSetDescription}>
                               {(() => {
                                   if(data.scenarioConfigChangeSetName &&
-                                    data.scenarioConfigChangeSetName === 'default') {
+                                    data.scenarioConfigChangeSetName !== 'default') {
                                       return <a href={"#" + data.scenarioDescription}>
                                           {data.scenarioConfigChangeSetName + "::" + data.scenarioDescription}
                                       </a>

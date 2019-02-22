@@ -63,7 +63,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_EMAIL_REPORT_NAME;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME;
 import static org.wso2.testgrid.common.util.FileUtil.writeToFile;
 import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
@@ -85,7 +84,6 @@ public class TestReportEngine {
     private static final String INFRA_ERROR_EMAIL_REPORT_MUSTACHE = "infra_error_summary.mustache";
     private static final String SUMMARIZED_EMAIL_REPORT_MUSTACHE = "summarized_email_report.mustache";
     private static final String REPORT_TEMPLATE_KEY = "parsedReport";
-    private static final String PER_TEST_PLAN_TEMPLATE_KEY = "perTestPlan";
     private static final String PER_TEST_CASE_TEMPLATE_KEY = "perTestCase";
     private static final String PRODUCT_STATUS_TEMPLATE_KEY = "productTestStatus";
     private static final String PRODUCT_NAME_TEMPLATE_KEY = "productName";
@@ -755,54 +753,6 @@ public class TestReportEngine {
     }
 
     /**
-     * Generate a HTML report which is used as the content of the email to be sent out to
-     * relevant parties interested in TestGrid test job.
-     *
-     * @param product   product needing the report.
-     * @param workspace workspace containing the test-plan yamls
-     */
-    public Optional<Path> generateEmailReport(Product product, String workspace) throws ReportingException {
-        List<TestPlan> testPlans = getTestPlans(workspace);
-        //start email generation
-        if (!emailReportProcessor.hasFailedTests(testPlans)) {
-            logger.info("Latest build of '" + product.getName() + "' does not contain failed tests. " +
-                    "Hence skipping email-report generation. Total test-plans: " + testPlans.size());
-            if (logger.isDebugEnabled()) {
-                logger.debug("Skipped email-report generation for test-plans: " + testPlans);
-            }
-            return Optional.empty();
-        }
-
-        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
-        Map<String, Object> report = new HashMap<>();
-        Map<String, Object> perSummariesMap = new HashMap<>();
-        try {
-            Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
-                    .getSummaryTable(testPlans);
-            postProcessSummaryTable(testCaseInfraSummaryMap);
-
-            logger.info("Generated summary table info: " + testCaseInfraSummaryMap);
-            String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testPlans);
-            report.put("testedInfrastructures", testedInfrastructures);
-            report.put("infrastructureErrors", emailReportProcessor.getErroneousInfrastructures(testPlans));
-            report.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
-        } catch (TestGridDAOException e) {
-            throw new ReportingException("Error occurred while getting failed infrastructures");
-        }
-        report.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
-        report.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(testPlans));
-        report.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
-        report.put(PER_TEST_PLAN_TEMPLATE_KEY, emailReportProcessor.generatePerTestPlanSection(product, testPlans));
-        perSummariesMap.put(REPORT_TEMPLATE_KEY, report);
-        String htmlString = renderer.render(EMAIL_REPORT_MUSTACHE, perSummariesMap);
-
-        // Write to HTML file
-        Path reportPath = Paths.get(workspace, TESTGRID_EMAIL_REPORT_NAME);
-        writeHTMLToFile(reportPath, htmlString);
-        return Optional.of(reportPath);
-    }
-
-    /**
      * We do not need the test cases that has been success in all the infra combinations.
      */
     private void postProcessSummaryTable(Map<String, InfrastructureBuildStatus> testCaseInfraBuildStatusMap) {
@@ -928,7 +878,6 @@ public class TestReportEngine {
         results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
         results.put(SUMMARY_CHART_TEMPLATE_KEY, summaryChartURL);
         results.put(HISTORY_CHART_TEMPLATE_KEY, historyChartURL);
-        results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
         results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
         results.put("jobName", productName);
         results.put("dashboardURL", dashboardURL);

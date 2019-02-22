@@ -102,8 +102,7 @@ public class EmailReportProcessor {
      * @param product product needing the results
      * @return list of test-plan sections
      */
-    public List<TPResultSection> generatePerTestPlanSection(Product product, List<TestPlan> testPlans)
-            throws ReportingException {
+    public List<TPResultSection> generatePerTestPlanSection(Product product, List<TestPlan> testPlans) {
         List<TPResultSection> perTestPlanList = new ArrayList<>();
         String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.TESTGRID_HOST);
