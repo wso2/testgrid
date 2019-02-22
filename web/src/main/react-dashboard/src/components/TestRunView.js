@@ -203,27 +203,6 @@ class TestRunView extends Component {
     ).catch(error => console.error(error));
   }
 
-  downloadTestOutputs(scenarioId) {
-    let url = TESTGRID_API_CONTEXT + '/api/test-plans/result/' + this.state.currentInfra.testPlanId;
-    fetch(url, {
-      method: "GET",
-      credentials: 'same-origin',
-    }).then(response => {
-        if (response.status === HTTP_NOT_FOUND) {
-          let errorMessage = "Unable to locate results in the remote storage.";
-          this.toggle(errorMessage);
-        } else if (response.status !== HTTP_OK) {
-          let errorMessage = "Internal server error. Couldn't download the results at the moment.";
-          this.toggle(errorMessage);
-        } else if (response.status === HTTP_OK) {
-          let statusMessage = "Download will begin in a moment..";
-          this.toggle(statusMessage);
-          document.location = url;
-        }
-      }
-    ).catch(error => console.error(error));
-  }
-
   checkIfTestRunLogExists() {
     const path = TESTGRID_API_CONTEXT + '/api/test-plans/log/' + window.location.href.split("/").pop() +
       "?truncate=" + true;
@@ -342,42 +321,51 @@ class TestRunView extends Component {
         })()}
         {divider}
       <br/>
-        <div style={{paddingLeft:"20px"}}>
-          <Button id ="tdd" size="sm" variant="contained"
-                  onClick={() => (fetch(logAllContentUrl, {
-                      method: "GET",
-                      credentials: 'same-origin',
-                      headers: {
-                        'Accept': 'application/json'
-                      }
-                    })
-                      .then(this.handleError)
-                      .then(response => {
-                        if (response.status !== HTTP_OK) {
-                          this.toggle("Error on downloading log file...");
-                          if (document.getElementById('logConsole') !== null)
-                            document.getElementById('logConsole').style.display = "none"
-                        } else {
-                          window.open(logAllContentUrl, '_blank', false);
+        <table>
+          <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+            <tr>
+              <td><Button id ="tdd" size="sm" variant="contained"
+                      onClick={() => (fetch(logAllContentUrl, {
+                          method: "GET",
+                          credentials: 'same-origin',
+                          headers: {
+                            'Accept': 'application/json'
+                          }
+                        })
+                          .then(this.handleError)
+                          .then(response => {
+                            if (response.status !== HTTP_OK) {
+                              this.toggle("Error on downloading log file...");
+                              if (document.getElementById('logConsole') !== null)
+                                document.getElementById('logConsole').style.display = "none"
+                            } else {
+                              window.open(logAllContentUrl, '_blank', false);
+                            }
+                          })
+                      )}
+              ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;Test-Run log</Button>
+              </td>
+              <td>
+              <Button id ="tdd" variant="contained" size="sm" style={{marginLeft: "10px"}}
+                      onClick={() => {
+                        if(this.state.buildURL === null || this.state.buildURL === undefined ){
+                          this.toggle("Error when accessing TestGrid console");
+                        }else{
+                          window.open(this.state.buildURL, '_blank', false);
                         }
-                      })
-                  )}
-          ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;Test-Run log</Button>
-
-          <Button id ="tdd" variant="contained" size="sm" style={{marginLeft: "10px"}}
-          onClick={() => {
-            if(this.state.buildURL === null || this.state.buildURL === undefined ){
-              this.toggle("Error when accessing TestGrid console");
-            }else{
-              window.open(this.state.buildURL, '_blank', false);
-            }
-          }}
-            ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;TestGrid console </Button>
-
-          <Button id ="tdd" variant="contained" size="sm" style={{marginLeft: "10px"}} onClick={this.downloadTestOutputs.bind(this)}>
-            <i className="fa fa-download" aria-hidden="true"> </i> &nbsp;Download test results and logs</Button>
-          <br/>
-          <OutputFilesPopover testPlanId={this.state.currentInfra.testPlanId}/>
+                      }}
+              ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;TestGrid console </Button>
+              </td>
+              <td>
+                <OutputFilesPopover testPlanId={this.state.currentInfra.testPlanId}/>
+              </td>
+            </tr>
+        </table>
+        <div style={{paddingLeft:"20px", display:"inline"}}>
         </div>
         <br/>
         <Card>

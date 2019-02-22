@@ -25,6 +25,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Snackbar from 'material-ui/Snackbar';
 import {HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_API_CONTEXT} from '../constants.js';
 import {HTTP_OK} from "../constants";
+import Divider from '@material-ui/core/Divider';
 
 const styles = theme => ({
   typography: {
@@ -121,13 +122,34 @@ class OutputFilesPopover extends React.Component {
     });
   };
 
+  downloadTestOutputs() {
+    let url = TESTGRID_API_CONTEXT + '/api/test-plans/result/' + this.props.testPlanId;
+    fetch(url, {
+      method: "GET",
+      credentials: 'same-origin',
+    }).then(response => {
+        if (response.status === HTTP_NOT_FOUND) {
+          let errorMessage = "Unable to locate results in the remote storage.";
+          this.toggle(errorMessage);
+        } else if (response.status !== HTTP_OK) {
+          let errorMessage = "Internal server error. Couldn't download the results at the moment.";
+          this.toggle(errorMessage);
+        } else if (response.status === HTTP_OK) {
+          let statusMessage = "Download will begin in a moment..";
+          this.toggle(statusMessage);
+          document.location = url;
+        }
+      }
+    ).catch(error => console.error(error));
+  }
+
   render() {
     const { classes } = this.props;
     const { anchorEl } = this.state;
     const open = Boolean(anchorEl);
 
     return (
-      <div style={{"padding-top": "10px"}}>
+      <div style={{"padding-left": "10px"}}>
         <Snackbar
           open={this.state.showLogDownloadStatusDialog}
           message={this.state.showLogDownloadStatusMessage}
@@ -144,7 +166,7 @@ class OutputFilesPopover extends React.Component {
           variant="contained"
           onClick={this.handleClick}
         >
-          <i className="fa fa-download" aria-hidden="true"> </i>  &nbsp;Download deployment outputs
+          <i className="fa fa-download" aria-hidden="true"> </i>  &nbsp;Downloads
         </Button>
         <Popover
           id="simple-popper"
@@ -162,20 +184,27 @@ class OutputFilesPopover extends React.Component {
         >
           <Typography className={classes.typography}>
             <div>
+              <p align={"center"}><b>Tests Outputs</b></p>
+              <Button id ="{data}" onClick={this.downloadTestOutputs.bind(this)}>
+                <i className="fa fa-download" aria-hidden="true"> </i> &nbsp;Test results and logs</Button>
+              <br/>
+              <Divider/>
+              <br/>
+              <p align={"center"}><b>Deployment Outputs</b></p>
               {this.state.files && this.state.files.map((data) => {
-                return <div><Button id ="{data}" onClick={()=>{this.downloadArchive(this.props.testPlanId, data)}}>{data}</Button></div>
+                return<Button id ="{data}" onClick={()=>{this.downloadArchive(this.props.testPlanId, data)}}>{data}</Button>
               })
               }
               {(() => {
                 if (this.state.files === null) {
                   return(
-                    <div>
+                    <div align={"center"}>
                       Searching relevant archives in the storage..
                       <br/>
                       <CircularProgress style={{margin: "auto"}} className={classes.progress} />
                     </div>);
                 } else if (this.state.files.length === 0) {
-                  return <div> No archives found for this test run  <span class="far fa-frown"></span></div>
+                  return <div align={"center"}> No deployment outputs for this test run <span class="fa fa-frown-o"></span></div>
                 }
               })()}
             </div>
