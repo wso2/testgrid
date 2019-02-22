@@ -63,8 +63,6 @@ public class GenerateEmailCommand implements Command {
             Optional<Path> infraEmailPath = testReportEngine.generateInfraFailureReport(product, workspace);
             summarizedReportPath.ifPresent(p -> logger.info("Written the summarized email " +
                                                             "report body contents to: " + p));
-            final Optional<Path> reportPath = testReportEngine.generateEmailReport(product, workspace);
-            reportPath.ifPresent(p -> logger.info("Written the email report body contents to: " + p));
             infraEmailPath.ifPresent(path -> logger.info("Written the infraError email content to" + path));
         } catch (ReportingException e) {
             throw new CommandExecutionException(StringUtil

@@ -192,19 +192,20 @@ class OutputFilesPopover extends React.Component {
               <br/>
               <p align={"center"}><b>Deployment Outputs</b></p>
               {this.state.files && this.state.files.map((data) => {
-                return<Button id ="{data}" onClick={()=>{this.downloadArchive(this.props.testPlanId, data)}}>{data}</Button>
+                return <div><Button id ="{data}" onClick={()=>{this.downloadArchive(this.props.testPlanId, data)}}><i className="fa fa-download" aria-hidden="true"> </i> &nbsp;{data}</Button></div>
               })
               }
               {(() => {
                 if (this.state.files === null) {
                   return(
                     <div align={"center"}>
-                      Searching relevant archives in the storage..
+                      Searching in the storage..
+                      <br/>
                       <br/>
                       <CircularProgress style={{margin: "auto"}} className={classes.progress} />
                     </div>);
                 } else if (this.state.files.length === 0) {
-                  return <div align={"center"}> No deployment outputs for this test run <span class="fa fa-frown-o"></span></div>
+                  return <div align={"center"}> No deployment outputs found <span class="fa fa-frown-o"></span></div>
                 }
               })()}
             </div>

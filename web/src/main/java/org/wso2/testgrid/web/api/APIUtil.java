@@ -148,6 +148,7 @@ class APIUtil {
             testPlanBean.setCreatedTimestamp(testPlan.getCreatedTimestamp());
             testPlanBean.setModifiedTimestamp(testPlan.getModifiedTimestamp());
             testPlanBean.setBuildURL(testPlan.getBuildURL());
+            testPlanBean.setTestRunNumber(testPlan.getTestRunNumber());
             if (requireTestScenarios) {
                 testPlanBean.setTestScenarios(getTestScenarioBeans(testPlan.getTestScenarios(), false));
             }

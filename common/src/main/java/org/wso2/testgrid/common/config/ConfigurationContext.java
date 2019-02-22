@@ -60,6 +60,15 @@ public class ConfigurationContext {
         return properties.getProperty(property.toString());
     }
 
+    public static boolean isGrafanaDashboardEnabled() {
+        return getProperty(ConfigurationProperties.GRAFANA_URL) != null
+                && getProperty(ConfigurationProperties.INFLUXDB_URL) != null;
+    }
+
+    public static boolean isDeploymentTinkererEnabled() {
+        return getProperty(ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH) != null;
+    }
+
     /**
      * Defines the testgrid configuration properties.
      */

@@ -66,7 +66,7 @@ public class TinkererSDK {
         this.authenticationToken = "Basic " + Base64.getEncoder().encodeToString(
                 authenticationString.getBytes(StandardCharsets.UTF_8));
         if (this.tinkererHost == null) {
-            logger.warn("Tinkerer host does not initialized properly");
+            logger.warn("Deployment Tinkerer is not configured on this deployment.");
         }
     }
 

@@ -35,6 +35,7 @@ public class TestPlan {
     private Timestamp createdTimestamp;
     private Timestamp modifiedTimestamp;
     private String buildURL;
+    private int testRunNumber;
 
     /**
      * Returns the id of the test-plan.
@@ -220,5 +221,24 @@ public class TestPlan {
      */
     public String getBuildURL() {
         return buildURL;
+    }
+
+    /**
+     * Returns the test run (build) number of the infra-combination corresponding
+     * to this test plan.
+     *
+     * @return the test run number
+     */
+    public int getTestRunNumber() {
+        return testRunNumber;
+    }
+
+    /**
+     * Sets the test-run number of this test-plan.
+     *
+     * @param testRunNumber
+     */
+    public void setTestRunNumber(int testRunNumber) {
+        this.testRunNumber = testRunNumber;
     }
 }

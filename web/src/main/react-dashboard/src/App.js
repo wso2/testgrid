@@ -71,11 +71,12 @@ class App extends Component {
     this.state = {
       name: cookies.get('TGUserName') || 'unknown',
       open: true,
-      navWidth: 20
+      navWidth: 240
     }
   }
 
   render() {
+
     const paperStyle = {margin: '80px 20px 50px ' + this.state.navWidth + 'px'};
     return (
       <Provider store={store}>

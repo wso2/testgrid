@@ -64,15 +64,12 @@ import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.common.util.tinkerer.SyncCommandResponse;
 import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
-import org.wso2.testgrid.common.util.tinkerer.exception.TinkererOperationException;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
-import org.wso2.testgrid.tinkerer.TinkererClient;
-import org.wso2.testgrid.tinkerer.TinkererClientFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -86,7 +83,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -261,11 +257,12 @@ public class TestPlanExecutor {
                             testPlan.getId());
                 }
             } else {
-                logger.error("Can not find any registered tinkerer-agents for the test-plan " + testPlan.getId() + "" +
-                        "Hence uploading deployment-outputs to S3 is skipped.");
+                logger.error("Cannot download logs from the deployment. No Tinkerer agents got registered with "
+                        + "Tinkerer for this test-plan. Logs will not be available from the Testgrid dashboard. Test "
+                        + "plan id: " + testPlan.getId());
             }
         } else {
-            logger.error("Tinkerer-host is not configured. Hence uploading deployment-outputs to S3 is skipped.");
+            logger.warn("Tinkerer-host is not configured. Hence uploading deployment-outputs to S3 is skipped.");
         }
     }
 
@@ -309,25 +306,6 @@ public class TestPlanExecutor {
         printSeparator(LINE_LENGTH);
         logger.info("");
 
-        //Log file download
-        logger.info("Initiating log file downloads");
-        OSCategory osCategory = getOSCatagory(testPlan.getInfraParameters());
-        try {
-            Optional<TinkererClient> executer = TinkererClientFactory.getExecuter(osCategory);
-            if (executer.isPresent()) {
-                executer.get().downloadLogs(deploymentCreationResult, testPlan);
-            } else {
-                logger.error("Unable to find a Tinker Executor for OS category " + osCategory);
-            }
-        } catch (TinkererOperationException e) {
-            final String msg = "Error while downloading the log files for TestPlan" +
-                    testPlan.getDeploymentPattern().getProduct().getName();
-            logger.warn(msg);
-            if (logger.isDebugEnabled()) {
-                logger.debug(msg, e);
-            }
-        }
-
         // Compress test outputs to be uploaded to S3
         final Path outputLocation = DataBucketsHelper.getTestOutputsLocation(testPlan);
         Path zipFilePath = Paths.get(outputLocation.toString() + TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT);
@@ -345,7 +323,8 @@ public class TestPlanExecutor {
             ReportGenerator reportGenerator = ReportGeneratorFactory.getReportGenerator(testPlan);
             reportGenerator.generateReport();
         } catch (ReportGeneratorNotFoundException e) {
-            logger.warn("Could not find a report generator " +
+            logger.info("Report generation skipped..");
+            logger.debug("Could not find a report generator " +
                     " for TestPlan of " + testPlan.getDeploymentPattern().getProduct().getName() +
                     ". Test type: " + testPlan.getScenarioConfigs().get(0).getTestType());
         } catch (ReportGeneratorInitializingException e) {
@@ -602,7 +581,7 @@ public class TestPlanExecutor {
             InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
-                if (!script.getPhase().equals(Script.Phase.DESTROY)) {
+                if (!Script.Phase.DESTROY.equals(script.getPhase())) {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(testPlan);
@@ -734,7 +713,7 @@ public class TestPlanExecutor {
             }
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
-                if (!script.getPhase().equals(Script.Phase.CREATE)) {
+                if (!Script.Phase.CREATE.equals(script.getPhase())) {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository(),
@@ -967,22 +946,6 @@ public class TestPlanExecutor {
      */
     private static void printSeparator(int length) {
         logger.info(StringUtils.repeat("-", length));
-    }
-
-    /**
-     *
-     * Returns the Category of the Operating system in the infra parameter String
-     *
-     * @param infraParameters the infrastructure parameters.
-     * @return the Catagory of the Operating System
-     */
-    private OSCategory getOSCatagory(String infraParameters) {
-        if (infraParameters.toLowerCase(Locale.ENGLISH)
-                .contains(OSCategory.WINDOWS.toString().toLowerCase(Locale.ENGLISH))) {
-            return OSCategory.WINDOWS;
-        } else {
-            return OSCategory.UNIX;
-        }
     }
 
     /**
