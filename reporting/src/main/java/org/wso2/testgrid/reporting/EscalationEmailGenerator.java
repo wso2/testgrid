@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.util.FileUtil.writeToFile;
@@ -66,7 +68,8 @@ public class EscalationEmailGenerator {
      * @return Optional {@link Path}
      * @throws ReportingException is thrown if error occurs when generating the email
      */
-    public Optional<Path> generateEscalationEmail(List<String> excludeProducts, String workspace)
+    public Optional<Path> generateEscalationEmail(List<String> excludeProducts, String productIncludePattern,
+                                                  String workspace)
             throws ReportingException {
 
         Map<String, Object> results = new HashMap<>();
@@ -79,6 +82,22 @@ public class EscalationEmailGenerator {
             // Get products from the DB and filter excluded products
             List<Product> productList = productUOW.getProducts().stream().filter(product -> !excludeProducts.contains
                     (product.getName())).collect(Collectors.toList());
+            if (productIncludePattern != null && !productIncludePattern.isEmpty()) {
+                try {
+                    Pattern regexPattern = Pattern.compile(productIncludePattern);
+                    List<Product> productsToExclude = new ArrayList<>();
+                    for (Product product: productList) {
+                        if (!regexPattern.matcher(product.getName()).matches()) {
+                            productsToExclude.add(product);
+                            logger.info("Excluded job " + product.getName() +
+                                    " due to not matching to regex: "  + regexPattern);
+                        }
+                    }
+                    productList.removeAll(productsToExclude);
+                } catch (PatternSyntaxException e) {
+                    logger.error("Regex pattern to include products is erroneous. Hence discarded considering..");
+                }
+            }
             // This is used to generate the numbering
             int counter = 0;
             for (Product product : productList) {

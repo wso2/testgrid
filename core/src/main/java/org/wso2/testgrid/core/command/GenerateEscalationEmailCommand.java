@@ -49,10 +49,10 @@ public class GenerateEscalationEmailCommand implements Command {
     private List<String> excludeList = new ArrayList<>();
 
     @Option(name = "--product-include-pattern",
-            usage = "Product names that matches the pattern will be included",
+            usage = "Product names that matches the regex pattern will be included",
             aliases = {"-i"}
     )
-    String productIncludePattern; //TODO : Need to implement this
+    private String productIncludePattern;
 
     private static final Logger logger = LoggerFactory.getLogger(GenerateEscalationEmailCommand.class);
 
@@ -61,7 +61,8 @@ public class GenerateEscalationEmailCommand implements Command {
 
         try {
             EscalationEmailGenerator generator = new EscalationEmailGenerator();
-            final Optional<Path> escalationReportPath = generator.generateEscalationEmail(excludeList, workspace);
+            final Optional<Path> escalationReportPath = generator.
+                    generateEscalationEmail(excludeList, productIncludePattern, workspace);
             escalationReportPath.ifPresent(p -> logger.info("Written the escalation email " +
                                                             "report body contents to: " + p));
         } catch (ReportingException e) {
