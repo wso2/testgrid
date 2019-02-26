@@ -367,7 +367,9 @@ class TestRunView extends Component {
               ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;TestGrid console </Button>
               </td>
               <td>
-                <OutputFilesPopover testPlanId={this.state.currentInfra.testPlanId}/>
+                {this.state && this.state.currentInfra && (() => {
+                  return (<OutputFilesPopover testPlanId={this.state.currentInfra.testPlanId}/>)
+                })()}
               </td>
             </tr>
         </table>
