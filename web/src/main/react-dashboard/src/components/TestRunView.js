@@ -335,7 +335,7 @@ class TestRunView extends Component {
         <table>
             <tr>
               {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
-                if (this.state.currentInfra.testPlanStatus === PENDING) {
+                if (this.state.currentInfra.testPlanStatus === RUNNING) {
                   return <td><Button id="tdd" size="sm" disabled variant="contained">
                    <i className="fa fa-id-card-o" aria-hidden="true" data-tip="Hello world"></i> &nbsp;
                     Test-Run log</Button> </td>
@@ -376,7 +376,7 @@ class TestRunView extends Component {
               </td>
               <td>
                 {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
-                  if (this.state.currentInfra.testPlanStatus === PENDING) {
+                  if (this.state.currentInfra.testPlanStatus === RUNNING) {
                     return <div style={{"padding-left": "10px"}}>
                       <Button disabled variant="contained">
                       <i className="fa fa-download" aria-hidden="true"> </i>  &nbsp;Downloads
@@ -393,7 +393,7 @@ class TestRunView extends Component {
         <br/>
         <Card>
           {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
-            if (this.state.currentInfra.testPlanStatus !== PENDING) {
+            if (this.state.currentInfra.testPlanStatus !== RUNNING) {
               return <CardMedia>
                 {/*Scenario execution summary*/}
                 <Collapsible trigger="Scenario execution summary" open="true">
