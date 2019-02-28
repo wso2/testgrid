@@ -334,27 +334,35 @@ class TestRunView extends Component {
       <br/>
         <table>
             <tr>
-              <td><Button id ="tdd" size="sm" variant="contained"
-                      onClick={() => (fetch(logAllContentUrl, {
-                          method: "GET",
-                          credentials: 'same-origin',
-                          headers: {
-                            'Accept': 'application/json'
-                          }
-                        })
-                          .then(this.handleError)
-                          .then(response => {
-                            if (response.status !== HTTP_OK) {
-                              this.toggle("Error on downloading log file...");
-                              if (document.getElementById('logConsole') !== null)
-                                document.getElementById('logConsole').style.display = "none"
-                            } else {
-                              window.open(logAllContentUrl, '_blank', false);
-                            }
-                          })
-                      )}
-              ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;Test-Run log</Button>
-              </td>
+              {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
+                if (this.state.currentInfra.testPlanStatus === RUNNING) {
+                  return <td><Button id="tdd" size="sm" disabled variant="contained">
+                   <i className="fa fa-id-card-o" aria-hidden="true" data-tip="Test plan is still running!"></i> &nbsp;
+                    Test-Run log</Button> </td>
+                } else {
+                  return <td><Button id ="tdd" size="sm" variant="contained"
+                                     onClick={() => (fetch(logAllContentUrl, {
+                                         method: "GET",
+                                         credentials: 'same-origin',
+                                         headers: {
+                                           'Accept': 'application/json'
+                                         }
+                                       })
+                                         .then(this.handleError)
+                                         .then(response => {
+                                           if (response.status !== HTTP_OK) {
+                                             this.toggle("Error on downloading log file...");
+                                             if (document.getElementById('logConsole') !== null)
+                                               document.getElementById('logConsole').style.display = "none"
+                                           } else {
+                                             window.open(logAllContentUrl, '_blank', false);
+                                           }
+                                         })
+                                     )}
+                  ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;Test-Run log</Button>
+                  </td>
+                }
+              })()}
               <td>
               <Button id ="tdd" variant="contained" size="sm" style={{marginLeft: "10px"}}
                       onClick={() => {
@@ -367,8 +375,15 @@ class TestRunView extends Component {
               ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;TestGrid console </Button>
               </td>
               <td>
-                {this.state && this.state.currentInfra && (() => {
-                  return (<OutputFilesPopover testPlanId={this.state.currentInfra.testPlanId}/>)
+                {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
+                  if (this.state.currentInfra.testPlanStatus === RUNNING) {
+                    return <div style={{"padding-left": "10px"}}>
+                      <Button disabled variant="contained">
+                      <i className="fa fa-download" aria-hidden="true"> </i>  &nbsp;Downloads
+                      </Button> </div>
+                  } else {
+                    return <OutputFilesPopover testPlanId={this.state.currentInfra.testPlanId}/>
+                  }
                 })()}
               </td>
             </tr>
@@ -377,292 +392,300 @@ class TestRunView extends Component {
         </div>
         <br/>
         <Card>
-          <CardMedia>
-            {/*Scenario execution summary*/}
-            <Collapsible trigger="Scenario execution summary" open="true">
-            {(() => {
-              switch (this.state.testSummaryLoadStatus) {
-                case ERROR:
-                  return <div style={{
-                    padding: 5,
-                    color: "#D8000C",
-                    backgroundColor: "#FFD2D2"
-                  }}>
-                    <br/>
-                    <strong>Oh snap! </strong>
-                    Error occurred when loading test summaries.
-                  </div>;
-                case SUCCESS:
-                  return <div>
-                    <Table responsive>
-                      <thead displaySelectAll={false} adjustForCheckbox={false}>
-                      <tr>
-                        <th style={{width: "5%", textAlign: "center"}}/>
-                        <th>Scenario</th>
-                        <th style={{width: "15%", textAlign: "center"}}>Total Success</th>
-                        <th style={{width: "15%", textAlign: "center"}}>Total Failed</th>
-                        <th style={{width: "15%", textAlign: "center"}}>Success Percentage</th>
-                      </tr>
-                      </thead>
-                      <tbody displayRowCheckbox={false} showRowHover={true}>
-                      {this.state.testScenarioSummaries.map((data, index) => {
-                        return (<tr key={index}>
-                          <td style={{width: "5%"}}>
-                            {(() => {
-                              switch (data.scenarioStatus) {
-                                case SUCCESS:
-                                  return <div>
-                                    <Button outline color="success" size="sm" className="success-status-btn">
-                                      <i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!"> </i>
-                                      <ReactTooltip/>
-                                    </Button>
-                                  </div>;
-                                case FAIL:
-                                  return <div>
-                                    <Button outline color="danger" size="sm">
-                                      <i className="fa fa-exclamation-circle" aria-hidden="true"
-                                         data-tip="Failed!"> </i>
-                                      <ReactTooltip/>
-                                    </Button>
-                                  </div>;
-                                case PENDING:
-                                  return <div>
-                                    <Button outline color="info" size="sm">
-                                      <i className="fa fa-tasks" aria-hidden="true" data-tip="Pending!"> </i>
-                                      <ReactTooltip/>
-                                    </Button>
-                                  </div>;
-                                case INCOMPLETE:
-                                  return <div>
-                                    <Button outline color="info" size="sm" className="incomplete-status-btn">
-                                      <i className="fa fa-hourglass-half" aria-hidden="true"
-                                         data-tip="Incomplete!"> </i>
-                                      <ReactTooltip/>
-                                    </Button>
-                                  </div>;
-                                case DID_NOT_RUN:
-                                  return <div>
-                                    <Button outline color="info" size="sm" className="not-run-status-btn" >
-                                      <i className="fa fa-ban" aria-hidden="true" data-tip="Did Not Run!"> </i>
-                                      <ReactTooltip/>
-                                    </Button>
-                                  </div>;
-                                case ERROR:
-                                  return <div>
-                                    <Button outline color="danger" size="sm" className="error-status-btn">
-                                      <i className="fa fa-times-circle" aria-hidden="true" data-tip="Error!"> </i>
-                                      <ReactTooltip/>
-                                    </Button>
-                                  </div>;
-                                case "RUNNING":
-                                default:
-                                  return <div>
-                                    <Button outline color="info" size="sm" className="running-status-btn">
-                                      <i className="fa fa-spinner fa-pulse" data-tip="Running!"> </i>
-                                      <span className="sr-only">Loading...</span>
-                                      <ReactTooltip/>
-                                    </Button>
-                                  </div>
-                              }
-                            })()}
-                          </td>
-                          <td style={{
-                            fontSize: "15px",
-                            wordWrap: "break-word",
-                            whiteSpace: "wrap",
-                            textDecoration: "none"
-                          }}><FlatButton class='view-history' style={{textAlign: "left"}} data-tip={data.scenarioConfigChangeSetDescription}>
-                              {(() => {
-                                  if(data.scenarioConfigChangeSetName &&
-                                    data.scenarioConfigChangeSetName !== 'default') {
-                                      return <a href={"#" + data.scenarioDescription}>
-                                          {data.scenarioConfigChangeSetName + "::" + data.scenarioDescription}
-                                      </a>
-                                  } else {
-                                      return <a href={"#" + data.scenarioDescription}>
-                                          {data.scenarioDescription}
-                                      </a>
-                                  }
-                              })()}
-                          </FlatButton>
-                          </td>
-                          <td
-                            style={{
-                              width: "15%",
-                              textAlign: "center",
-                              color: "#189800",
-                              fontSize: "20px",
-                              wordWrap: "break-word",
-                              whiteSpace: "wrap"
-                            }}>{data.totalSuccess}</td>
-                          <td
-                            style={{
-                              width: "15%",
-                              textAlign: "center",
-                              color: "#c12f29",
-                              fontSize: "20px",
-                              wordWrap: "break-word",
-                              whiteSpace: "wrap"
-                            }}>{data.totalFail}</td>
-                          <td
-                            style={{
-                              width: "15%",
-                              textAlign: "center",
-                              fontSize: "20px",
-                              wordWrap: "break-word",
-                              whiteSpace: "wrap"
-                            }}>
-                            {
-                              isNaN(data.successPercentage) ?
-                                "0.0" :
-                                parseFloat(data.successPercentage).toFixed(2)
-                            }%
-                          </td>
-                        </tr>)
-                      })}
-                      </tbody>
-                    </Table>
-                    <br/>
-                    <br/>
-                  </div>;
-                case PENDING:
-                default:
-                  return <div>
-                    <br/>
-                    <br/>
-                    <b>Loading test summaries...</b>
-                    <br/>
-                    <LinearProgress mode="indeterminate"/>
-                  </div>;
-              }
-            })()}
-            </Collapsible>
-
-            {/*Scenario execution summary*/}
-            <Collapsible trigger="Failed tests" open="true" lazyRender={true}>
-              {(() => {
-                if (this.state.testSummaryLoadStatus === SUCCESS)
-                switch (this.state.testSummaryLoadStatus) {
-                  case SUCCESS:
-                    return <div>
-                      {/*Detailed Report for failed test cases*/}
-                      {this.state.scenarioTestCaseEntries.map((data, index) => {
-                        if (data.testCaseEntries.length > 0) {
-                          return (
-                            <div key={index} style={{padding: "10px"}}>
-                              <h4 style={{color: "#e46226"}}>
-                                <a id={data.scenarioDescription}>
-                                  Scenario: {data.scenarioDescription}
-                                </a>
-                              </h4>
-                              <Table responsive>
-                                <thead displaySelectAll={false} adjustForCheckbox={false}>
-                                <tr>
-                                  <th style={{width: "5%", textAlign: "center"}}/>
-                                  <th style={{width: "30%"}}>Test Case</th>
-                                  <th style={{width: "65%"}}>Failure Message</th>
-                                </tr>
-                                </thead>
-                                <tbody displayRowCheckbox={false}
-                                       showRowHover={true}>
-                                {data.testCaseEntries.map((entry, index) => {
-                                  return (
-                                    <tr key={index}>
-                                      <td
-                                        style={{width: "5%"}}>
-                                        {entry.isTestSuccess ?
+          {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
+            if (this.state.currentInfra.testPlanStatus !== RUNNING) {
+              return <CardMedia>
+                {/*Scenario execution summary*/}
+                <Collapsible trigger="Scenario execution summary" open="true">
+                  {(() => {
+                    switch (this.state.testSummaryLoadStatus) {
+                      case ERROR:
+                        return <div style={{
+                          padding: 5,
+                          color: "#D8000C",
+                          backgroundColor: "#FFD2D2"
+                        }}>
+                          <br/>
+                          <strong>Oh snap! </strong>
+                          Error occurred when loading test summaries.
+                        </div>;
+                      case SUCCESS:
+                        return <div>
+                          <Table responsive>
+                            <thead displaySelectAll={false} adjustForCheckbox={false}>
+                            <tr>
+                              <th style={{width: "5%", textAlign: "center"}}/>
+                              <th>Scenario</th>
+                              <th style={{width: "15%", textAlign: "center"}}>Total Success</th>
+                              <th style={{width: "15%", textAlign: "center"}}>Total Failed</th>
+                              <th style={{width: "15%", textAlign: "center"}}>Success Percentage</th>
+                            </tr>
+                            </thead>
+                            <tbody displayRowCheckbox={false} showRowHover={true}>
+                            {this.state.testScenarioSummaries.map((data, index) => {
+                              return (<tr key={index}>
+                                <td style={{width: "5%"}}>
+                                  {(() => {
+                                    switch (data.scenarioStatus) {
+                                      case SUCCESS:
+                                        return <div>
                                           <Button outline color="success" size="sm" className="success-status-btn">
-                                            <i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!"> </i>
+                                            <i className="fa fa-check-circle" aria-hidden="true"
+                                               data-tip="Success!"> </i>
                                             <ReactTooltip/>
-                                          </Button> :
+                                          </Button>
+                                        </div>;
+                                      case FAIL:
+                                        return <div>
                                           <Button outline color="danger" size="sm">
                                             <i className="fa fa-exclamation-circle" aria-hidden="true"
                                                data-tip="Failed!"> </i>
                                             <ReactTooltip/>
-                                          </Button>}
-                                      </td>
-                                      <td style={{
-                                        fontSize: "15px",
-                                        width: "30%",
-                                        wordWrap: "break-word",
-                                        whiteSpace: "wrap",
-                                      }}>{entry.testCase}</td>
-                                      <td style={{
-                                        fontSize: "15px",
-                                        width: "65%",
-                                        wordWrap: "break-word",
-                                        whiteSpace: "wrap",
-                                        paddingTop: 15,
-                                        paddingBottom: 15
-                                      }}>
-                                        {entry.failureMessage}
-                                      </td>
-                                    </tr>
-                                  )
-                                })}
-                                </tbody>
-                              </Table>
-                              <br/>
-                            </div>)
-                        } else {
-                          return <div style={{padding: "10px"}}>No failed tests..</div>
-                        }
-                      })}
-                    </div>;
-                  case PENDING:
+                                          </Button>
+                                        </div>;
+                                      case PENDING:
+                                        return <div>
+                                          <Button outline color="info" size="sm">
+                                            <i className="fa fa-tasks" aria-hidden="true" data-tip="Pending!"> </i>
+                                            <ReactTooltip/>
+                                          </Button>
+                                        </div>;
+                                      case INCOMPLETE:
+                                        return <div>
+                                          <Button outline color="info" size="sm" className="incomplete-status-btn">
+                                            <i className="fa fa-hourglass-half" aria-hidden="true"
+                                               data-tip="Incomplete!"> </i>
+                                            <ReactTooltip/>
+                                          </Button>
+                                        </div>;
+                                      case DID_NOT_RUN:
+                                        return <div>
+                                          <Button outline color="info" size="sm" className="not-run-status-btn">
+                                            <i className="fa fa-ban" aria-hidden="true" data-tip="Did Not Run!"> </i>
+                                            <ReactTooltip/>
+                                          </Button>
+                                        </div>;
+                                      case ERROR:
+                                        return <div>
+                                          <Button outline color="danger" size="sm" className="error-status-btn">
+                                            <i className="fa fa-times-circle" aria-hidden="true" data-tip="Error!"> </i>
+                                            <ReactTooltip/>
+                                          </Button>
+                                        </div>;
+                                      case "RUNNING":
+                                      default:
+                                        return <div>
+                                          <Button outline color="info" size="sm" className="running-status-btn">
+                                            <i className="fa fa-spinner fa-pulse" data-tip="Running!"> </i>
+                                            <span className="sr-only">Loading...</span>
+                                            <ReactTooltip/>
+                                          </Button>
+                                        </div>
+                                    }
+                                  })()}
+                                </td>
+                                <td style={{
+                                  fontSize: "15px",
+                                  wordWrap: "break-word",
+                                  whiteSpace: "wrap",
+                                  textDecoration: "none"
+                                }}><FlatButton class='view-history' style={{textAlign: "left"}}
+                                               data-tip={data.scenarioConfigChangeSetDescription}>
+                                  {(() => {
+                                    if (data.scenarioConfigChangeSetName &&
+                                      data.scenarioConfigChangeSetName !== 'default') {
+                                      return <a href={"#" + data.scenarioDescription}>
+                                        {data.scenarioConfigChangeSetName + "::" + data.scenarioDescription}
+                                      </a>
+                                    } else {
+                                      return <a href={"#" + data.scenarioDescription}>
+                                        {data.scenarioDescription}
+                                      </a>
+                                    }
+                                  })()}
+                                </FlatButton>
+                                </td>
+                                <td
+                                  style={{
+                                    width: "15%",
+                                    textAlign: "center",
+                                    color: "#189800",
+                                    fontSize: "20px",
+                                    wordWrap: "break-word",
+                                    whiteSpace: "wrap"
+                                  }}>{data.totalSuccess}</td>
+                                <td
+                                  style={{
+                                    width: "15%",
+                                    textAlign: "center",
+                                    color: "#c12f29",
+                                    fontSize: "20px",
+                                    wordWrap: "break-word",
+                                    whiteSpace: "wrap"
+                                  }}>{data.totalFail}</td>
+                                <td
+                                  style={{
+                                    width: "15%",
+                                    textAlign: "center",
+                                    fontSize: "20px",
+                                    wordWrap: "break-word",
+                                    whiteSpace: "wrap"
+                                  }}>
+                                  {
+                                    isNaN(data.successPercentage) ?
+                                      "0.0" :
+                                      parseFloat(data.successPercentage).toFixed(2)
+                                  }%
+                                </td>
+                              </tr>)
+                            })}
+                            </tbody>
+                          </Table>
+                          <br/>
+                          <br/>
+                        </div>;
+                      case PENDING:
+                      default:
+                        return <div>
+                          <br/>
+                          <br/>
+                          <b>Loading test summaries...</b>
+                          <br/>
+                          <LinearProgress mode="indeterminate"/>
+                        </div>;
+                    }
+                  })()}
+                </Collapsible>
+
+                {/*Scenario execution summary*/}
+                <Collapsible trigger="Failed tests" open="true" lazyRender={true}>
+                  {(() => {
+                    if (this.state.testSummaryLoadStatus === SUCCESS)
+                      switch (this.state.testSummaryLoadStatus) {
+                        case SUCCESS:
+                          return <div>
+                            {/*Detailed Report for failed test cases*/}
+                            {this.state.scenarioTestCaseEntries.map((data, index) => {
+                              if (data.testCaseEntries.length > 0) {
+                                return (
+                                  <div key={index} style={{padding: "10px"}}>
+                                    <h4 style={{color: "#e46226"}}>
+                                      <a id={data.scenarioDescription}>
+                                        Scenario: {data.scenarioDescription}
+                                      </a>
+                                    </h4>
+                                    <Table responsive>
+                                      <thead displaySelectAll={false} adjustForCheckbox={false}>
+                                      <tr>
+                                        <th style={{width: "5%", textAlign: "center"}}/>
+                                        <th style={{width: "30%"}}>Test Case</th>
+                                        <th style={{width: "65%"}}>Failure Message</th>
+                                      </tr>
+                                      </thead>
+                                      <tbody displayRowCheckbox={false}
+                                             showRowHover={true}>
+                                      {data.testCaseEntries.map((entry, index) => {
+                                        return (
+                                          <tr key={index}>
+                                            <td
+                                              style={{width: "5%"}}>
+                                              {entry.isTestSuccess ?
+                                                <Button outline color="success" size="sm"
+                                                        className="success-status-btn">
+                                                  <i className="fa fa-check-circle" aria-hidden="true"
+                                                     data-tip="Success!"> </i>
+                                                  <ReactTooltip/>
+                                                </Button> :
+                                                <Button outline color="danger" size="sm">
+                                                  <i className="fa fa-exclamation-circle" aria-hidden="true"
+                                                     data-tip="Failed!"> </i>
+                                                  <ReactTooltip/>
+                                                </Button>}
+                                            </td>
+                                            <td style={{
+                                              fontSize: "15px",
+                                              width: "30%",
+                                              wordWrap: "break-word",
+                                              whiteSpace: "wrap",
+                                            }}>{entry.testCase}</td>
+                                            <td style={{
+                                              fontSize: "15px",
+                                              width: "65%",
+                                              wordWrap: "break-word",
+                                              whiteSpace: "wrap",
+                                              paddingTop: 15,
+                                              paddingBottom: 15
+                                            }}>
+                                              {entry.failureMessage}
+                                            </td>
+                                          </tr>
+                                        )
+                                      })}
+                                      </tbody>
+                                    </Table>
+                                    <br/>
+                                  </div>)
+                              } else {
+                                return <div style={{padding: "10px"}}>No failed tests..</div>
+                              }
+                            })}
+                          </div>;
+                        case PENDING:
+                          return <div>
+                            <br/>
+                            <br/>
+                            <b>Loading failed tests...</b>
+                            <br/>
+                            <LinearProgress mode="indeterminate"/>
+                          </div>;
+                        case ERROR:
+                        default:
+                          return <div style={{
+                            padding: 5,
+                            color: "#D8000C",
+                            backgroundColor: "#FFD2D2"
+                          }}>
+                            <br/>
+                            <strong>Oh snap! </strong>
+                            Error occurred when loading failed tests.
+                          </div>;
+                      }
+                  })()}
+                </Collapsible>
+                <Collapsible trigger="WSO2 Server logs" lazyRender={true}>
+                  {(() => {
+                    return <div>
+                      <p style={{float: 'right'}}><a href={DEPL_LOGS_URL} target="_blank">View Kibana Dashboard</a></p>
+                      <br/>
+                      <iframe src={DEPL_LOGS_URL} height="900" width="100%" title="wso2serverlogs"></iframe>
+                      <br/>
+                    </div>
+                  })()}
+                </Collapsible>
+                <Collapsible trigger="Performance Data" lazyRender={true}>
+                  {(() => {
                     return <div>
                       <br/>
+                      <iframe src={PERFDASH_URL} height="1500" width="1200" title="perfmetrics"></iframe>
                       <br/>
-                      <b>Loading failed tests...</b>
-                      <br/>
-                      <LinearProgress mode="indeterminate"/>
-                    </div>;
-                  case ERROR:
-                  default:
-                    return <div style={{
-                      padding: 5,
-                      color: "#D8000C",
-                      backgroundColor: "#FFD2D2"
-                    }}>
-                      <br/>
-                      <strong>Oh snap! </strong>
-                      Error occurred when loading failed tests.
-                    </div>;
-                }
-              })()}
-            </Collapsible>
-            <Collapsible trigger="WSO2 Server logs" lazyRender={true}>
-                         {(() => {
-                            return <div>
-                            <p style={{float: 'right'}}><a href={DEPL_LOGS_URL} target="_blank">View Kibana Dashboard</a></p>
-                              <br/>
-                              <iframe src= {DEPL_LOGS_URL} height="900" width="100%" title="wso2serverlogs"></iframe>
-                              <br/>
-                              </div>
-                         })()}
-                        </Collapsible>
-            <Collapsible trigger="Performance Data" lazyRender={true}>
-             {(() => {
-                return <div>
-                  <br/>
-                  <iframe src= {PERFDASH_URL} height="1500" width="1200" title="perfmetrics"></iframe>
-                  <br/>
-                  </div>
-             })()}
-            </Collapsible>
-            {(() => {
-              if (this.state.TruncatedRunLogUrlStatus && this.state.TruncatedRunLogUrlStatus === HTTP_OK) {
-                return <Collapsible trigger="Test-Run log summary" lazyRender={true}>
-                  <div id="logConsoleFrame">
-                    <iframe id="logConsole" title={"Test-Run Log"} style={{
-                      height: "500px",
-                      width: "100%"
-                    }} src={turncatedRunLogUrl}></iframe>
-                  </div>
-                </Collapsible>;
-              }
-            })()}
-          </CardMedia>
+                    </div>
+                  })()}
+                </Collapsible>
+                {(() => {
+                  if (this.state.TruncatedRunLogUrlStatus && this.state.TruncatedRunLogUrlStatus === HTTP_OK) {
+                    return <Collapsible trigger="Test-Run log summary" lazyRender={true}>
+                      <div id="logConsoleFrame">
+                        <iframe id="logConsole" title={"Test-Run Log"} style={{
+                          height: "500px",
+                          width: "100%"
+                        }} src={turncatedRunLogUrl}></iframe>
+                      </div>
+                    </Collapsible>;
+                  }
+                })()}
+              </CardMedia>
+            }
+          })()}
           <br/>
           <br/>
         </Card>
