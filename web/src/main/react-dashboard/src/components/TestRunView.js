@@ -337,7 +337,7 @@ class TestRunView extends Component {
               {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
                 if (this.state.currentInfra.testPlanStatus === RUNNING) {
                   return <td><Button id="tdd" size="sm" disabled variant="contained">
-                   <i className="fa fa-id-card-o" aria-hidden="true" data-tip="Hello world"></i> &nbsp;
+                   <i className="fa fa-id-card-o" aria-hidden="true" data-tip="Test plan is still running!"></i> &nbsp;
                     Test-Run log</Button> </td>
                 } else {
                   return <td><Button id ="tdd" size="sm" variant="contained"
