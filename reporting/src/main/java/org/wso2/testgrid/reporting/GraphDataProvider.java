@@ -25,6 +25,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -199,9 +200,9 @@ public class GraphDataProvider {
             filteredTestPlanHistory = filterTestPlanHistory(testPlanHistory);
 
             for (TestPlan testplan : filteredTestPlanHistory) {
-                if (Status.SUCCESS.equals(testplan.getStatus())) {
+                if (TestPlanStatus.SUCCESS.equals(testplan.getStatus())) {
                     passedTestPlans++;
-                } else if (Status.FAIL.equals(testplan.getStatus())) {
+                } else if (TestPlanStatus.FAIL.equals(testplan.getStatus())) {
                     failedTestPlans++;
                 } else {
                     skippedTestPlans++;

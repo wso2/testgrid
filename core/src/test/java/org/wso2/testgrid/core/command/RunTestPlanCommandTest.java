@@ -42,6 +42,8 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
@@ -135,6 +137,8 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         testPlan.setTestRunNumber(1);
         testPlan.setDeploymentPattern(deploymentPattern);
         testPlan.setInfraParameters(infraParamsString);
+        testPlan.setPhase(TestPlanPhase.INFRA_PHASE_SUCCEEDED);
+        testPlan.setStatus(TestPlanStatus.RUNNING);
         testPlan.setDeployerType(TestPlan.DeployerType.SHELL);
         testPlan.setScenarioTestsRepository(Paths.get(workspaceDir, "/workspace/scenarioTests").toString());
         testPlan.setInfrastructureRepository(Paths.get(workspaceDir, "/workspace/infrastructure").toString());
@@ -148,6 +152,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         testPlanExecutor = new TestPlanExecutor(scenarioExecutor, testPlanUOW, testScenarioUOW);
         testPlanExecutor = spy(testPlanExecutor);
         Mockito.doNothing().when(testPlanExecutor).uploadDeploymentOutputsToS3(any(TestPlan.class));
+
         MockitoAnnotations.initMocks(this);
     }
 

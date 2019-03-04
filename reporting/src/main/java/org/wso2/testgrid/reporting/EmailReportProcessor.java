@@ -25,6 +25,7 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.config.DeploymentConfig;
@@ -109,7 +110,7 @@ public class EmailReportProcessor {
         String productName = product.getName();
         SurefireReporter surefireReporter = new SurefireReporter();
         for (TestPlan testPlan : testPlans) {
-            if (testPlan.getStatus().equals(Status.SUCCESS)) {
+            if (testPlan.getStatus().equals(TestPlanStatus.SUCCESS)) {
                 logger.info(String.format("Test plan ,%s, status is set to success. Not adding to email report. "
                         + "Infra combination: %s", testPlan.getId(), testPlan.getInfraParameters()));
                 continue;
@@ -269,7 +270,7 @@ public class EmailReportProcessor {
      */
     public boolean hasFailedTests(List<TestPlan> testPlans) {
         for (TestPlan testPlan : testPlans) {
-            if (testPlan.getStatus().equals(Status.FAIL)) {
+            if (testPlan.getStatus().equals(TestPlanStatus.FAIL)) {
                 return true;
             }
         }
@@ -318,7 +319,7 @@ public class EmailReportProcessor {
         String infraStr;
         for (TestPlan testPlan : testPlans) {
             String logDownloadPath = TestGridUtil.getDashboardURLFor(testPlan);
-            if (testPlan.getStatus() != Status.SUCCESS && testPlan.getStatus() != Status.FAIL) {
+            if (testPlan.getStatus() != TestPlanStatus.SUCCESS && testPlan.getStatus() != TestPlanStatus.FAIL) {
                 infraParams = new HashSet<>(TestGridUtil.
                         getInfraParamsOfTestPlan(infrastructureValueSet, testPlan));
                 infraMap = infraParams.stream().collect(Collectors.groupingBy(InfrastructureParameter::getType));

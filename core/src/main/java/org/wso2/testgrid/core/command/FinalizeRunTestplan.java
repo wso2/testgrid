@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ScenarioConfig;
@@ -149,24 +151,31 @@ public class FinalizeRunTestplan implements Command {
                         break;
                     }
                 }
-                //Set statuses of testplans
-                switch (testPlan.getStatus()) {
-                case PENDING:
-                    testPlan.setStatus(Status.DID_NOT_RUN);
-                    persistTestPlan(testPlan);
-                    break;
-                case RUNNING:
-                    if (isExistsFailedScenarios) {
-                        testPlan.setStatus(Status.FAIL);
-                        isExistsFailedScenarios = false;
+                if (testPlan.getStatus().equals(TestPlanStatus.RUNNING)) {
+                    testPlan.setStatus(TestPlanStatus.ERROR);
+                    //Change the test-plan phase to currentPhase's ERROR stage
+                    //Ex:  INFRA_PHASE_STARTED will be updated to INFRA_PHASE_ERROR
+                    TestPlanPhase testPlanPhase = testPlan.getPhase();
+                    if (testPlanPhase != null) {
+                        String testPlanPhaseStr = testPlan.getPhase().toString();
+                        String phaseName = (testPlanPhaseStr.substring(0, testPlanPhaseStr.lastIndexOf('_')));
+                        testPlan.setPhase(TestPlanPhase.valueOf(phaseName + "_ERROR"));
+                        //todo: if failed before beginning of new one (then need to set new phase's ERROR phase).
                     } else {
-                        testPlan.setStatus(Status.INCOMPLETE);
+                        //Assume the phase is null because the job has aborted/failed before setting the first phase.
+                        testPlan.setPhase(TestPlanPhase.PREPARATION_ERROR);
                     }
-                    persistTestPlan(testPlan);
-                    break;
-                default:
-                    break;
+                    logger.info("=============##### FINALIZED TestPlan Result ####==========");
+                    logger.info("TestPlan:" + testPlan.getId());
+                    logger.info("Status:" + testPlan.getStatus());
+                    logger.info("Phase:" + testPlan.getPhase());
+                } else {
+                    logger.info("=============##### TestPlan Result ####==========");
+                    logger.info("TestPlan:" + testPlan.getId());
+                    logger.info("Status:" + testPlan.getStatus());
+                    logger.info("Phase:" + testPlan.getPhase());
                 }
+                persistTestPlan(testPlan);
             }
             updateProductStatus();
         } catch (IOException e) {
@@ -215,12 +224,11 @@ public class FinalizeRunTestplan implements Command {
                 TestPlan testPlan = FileUtil.readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
                 Optional<TestPlan> testPlanEntity = testPlanUOW.getTestPlanById(testPlan.getId());
                 if (testPlanEntity.isPresent()) {
-                    if (Status.FAIL.equals(testPlanEntity.get().getStatus())) {
+                    if (TestPlanStatus.FAIL.equals(testPlanEntity.get().getStatus())) {
                         productId = testPlanEntity.get().getDeploymentPattern().getProduct().getId();
                         productUOW.updateProductStatusTimestamp(Status.FAIL, productId);
                         break;
-                    } else if ((Status.DID_NOT_RUN.equals(testPlanEntity.get().getStatus()) || Status.INCOMPLETE
-                            .equals(testPlanEntity.get().getStatus())) && isCompleteBuild) {
+                    } else if (TestPlanStatus.ERROR.equals(testPlanEntity.get().getStatus()) && isCompleteBuild) {
                         isCompleteBuild = false;
                     }
                 } else {

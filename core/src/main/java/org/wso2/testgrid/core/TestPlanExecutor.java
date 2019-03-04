@@ -43,6 +43,8 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -132,69 +134,120 @@ public class TestPlanExecutor {
         long startTime = System.currentTimeMillis();
 
         // Provision infrastructure
+        logger.info("");
+        logger.info("----------------------Start of INFRA PHASE--------------------------");
+        logger.info("TestPlan Status: " + testPlan.getStatus().toString());
+        logger.info("TestPlan Phase: " + testPlan.getPhase().toString());
+        logger.info("");
+        testPlan.setPhase(TestPlanPhase.INFRA_PHASE_STARTED);
+        testPlanUOW.persistTestPlan(testPlan);
         InfrastructureProvisionResult infrastructureProvisionResult = provisionInfrastructure(infrastructureConfig,
                 testPlan);
         //setup product performance dashboard
         if (infrastructureProvisionResult.isSuccess()) {
+            persistTestPlanPhase(testPlan, TestPlanPhase.INFRA_PHASE_SUCCEEDED);
             GrafanaDashboardHandler dashboardSetup = new GrafanaDashboardHandler(testPlan.getId());
             dashboardSetup.initDashboard();
         }
+        logger.info("");
+        logger.info("----------------------End of INFRA PHASE--------------------------");
+        logger.info("TestPlan Status: " + testPlan.getStatus().toString());
+        logger.info("TestPlan Phase: " + testPlan.getPhase().toString());
+        logger.info("");
 
         // Create and set deployment.
-        DeploymentCreationResult deploymentCreationResult = createDeployment(testPlan,
-                infrastructureProvisionResult);
+        if (testPlan.getPhase().equals(TestPlanPhase.INFRA_PHASE_SUCCEEDED) &&
+                testPlan.getStatus().equals(TestPlanStatus.RUNNING)) {
+            logger.info("");
+            logger.info("----------------------Start of DEPLOY PHASE--------------------------");
+            logger.info("TestPlan Status: " + testPlan.getStatus().toString());
+            logger.info("TestPlan Phase: " + testPlan.getPhase().toString());
+            logger.info("");
+            persistTestPlanPhase(testPlan, TestPlanPhase.DEPLOY_PHASE_STARTED);
+            DeploymentCreationResult deploymentCreationResult = createDeployment(testPlan,
+                    infrastructureProvisionResult);
 
-        if (!deploymentCreationResult.isSuccess()) {
-            testPlan.setStatus(Status.ERROR);
-            for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
-                scenarioConfig.setStatus(Status.DID_NOT_RUN);
+            if (!deploymentCreationResult.isSuccess()) {
+                testPlan.setStatus(TestPlanStatus.ERROR);
+                testPlan.setPhase(TestPlanPhase.DEPLOY_PHASE_ERROR);
+                for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+                    scenarioConfig.setStatus(Status.DID_NOT_RUN);
+                }
+                testPlanUOW.persistTestPlan(testPlan);
+                logger.error(StringUtil.concatStrings(
+                        "Error occurred while performing deployment for test plan", testPlan.getId(),
+                        "Releasing infrastructure..."));
+                releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
+
+                printSummary(testPlan, System.currentTimeMillis() - startTime);
+                return false;
             }
-            testPlanUOW.persistTestPlan(testPlan);
-            logger.error(StringUtil.concatStrings(
-                    "Error occurred while performing deployment for test plan", testPlan.getId(),
-                    "Releasing infrastructure..."));
-            releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
-            printSummary(testPlan, System.currentTimeMillis() - startTime);
-            return false;
-        }
-
-        //Append TestPlan id to deployment.properties file
-        Properties tgProperties = new Properties();
-        tgProperties.setProperty("TEST_PLAN_ID", testPlan.getId());
-        persistAdditionalInputs(tgProperties, DataBucketsHelper.getOutputLocation(testPlan)
-                .resolve(DataBucketsHelper.DEPL_OUT_FILE));
-
-        // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
-        Properties sceProperties = new Properties();
-        for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
-            sceProperties.putAll(scenarioConfig.getInputParameters());
-            persistAdditionalInputs(sceProperties, DataBucketsHelper.getOutputLocation(testPlan)
+            persistTestPlanPhase(testPlan, TestPlanPhase.DEPLOY_PHASE_SUCCEEDED);
+            logger.info("");
+            logger.info("----------------------End of DEPLOY PHASE--------------------------");
+            logger.info("TestPlan Status: " + testPlan.getStatus().toString());
+            logger.info("TestPlan Phase: " + testPlan.getPhase().toString());
+            logger.info("");
+            //Append TestPlan id to deployment.properties file
+            Properties tgProperties = new Properties();
+            tgProperties.setProperty("TEST_PLAN_ID", testPlan.getId());
+            persistAdditionalInputs(tgProperties, DataBucketsHelper.getOutputLocation(testPlan)
                     .resolve(DataBucketsHelper.DEPL_OUT_FILE));
+            // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
+            Properties sceProperties = new Properties();
+            for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
+                sceProperties.putAll(scenarioConfig.getInputParameters());
+                persistAdditionalInputs(sceProperties, DataBucketsHelper.getOutputLocation(testPlan)
+                        .resolve(DataBucketsHelper.DEPL_OUT_FILE));
+            }
+
+            // Run test scenarios.
+            // Ideally we should have condition here to check if test-plan has DEPLOY_PHASE_SUCCEEDED phase.
+            // But as per the logic, only those test-plans can reach this line. Hence avoiding the condition.
+            logger.info("");
+            logger.info("----------------------Start of TEST PHASE--------------------------");
+            logger.info("TestPlan Status: " + testPlan.getStatus().toString());
+            logger.info("TestPlan Phase: " + testPlan.getPhase().toString());
+            logger.info("");
+            persistTestPlanPhase(testPlan, TestPlanPhase.TEST_PHASE_STARTED);
+            runScenarioTests(testPlan, deploymentCreationResult);
+            if (testPlan.getStatus().equals(TestPlanStatus.RUNNING) &&
+                    testPlan.getPhase().equals(TestPlanPhase.TEST_PHASE_STARTED)) {
+            } else {
+                logger.error("Continuing to PostTestPlanActions bearing erroneous observations for the test-plan "
+                        + testPlan + ". TestPlan Status: " + testPlan.getStatus() + ", TestPlan Phase: "
+                        + testPlan.getPhase());
+            }
+
+            try {
+                //post test plan actions also belongs to the TEST-Phase
+                performPostTestPlanActions(testPlan, deploymentCreationResult);
+            } catch (Throwable e) {
+                //catch throwable here because we need to ensure the test plan life cycle executes fully
+                //even if an error occurs at this stage.
+                logger.error("Unexpected Error occurred while performing post test execution tasks," +
+                        "hence skipping the step and continuing the test plan lifecycle. ", e);
+            }
+            uploadDeploymentOutputsToS3(testPlan);
+            //cleanup
+            releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
+        } else {
+            logger.error("INFRA phase was not succeeded for test-plan: " + testPlan.getId() + ". Hence" +
+                    "not starting next phases.");
+            releaseInfrastructure(testPlan, infrastructureProvisionResult);
         }
 
-        // Run test scenarios.
-        runScenarioTests(testPlan, deploymentCreationResult);
-
-        try {
-            //post test plan actions
-            performPostTestPlanActions(testPlan, deploymentCreationResult);
-        } catch (Throwable e) {
-            //catch throwable here because we need to ensure the test plan life cycle executes fully
-            //even if an error occurs at this stage.
-            logger.error("Unexpected Error occurred while performing post test execution tasks," +
-                    "hence skipping the step and continuing the test plan lifecycle. ", e);
-        }
-        // Test plan completed. Persist the testplan status
-        persistTestPlanStatus(testPlan);
-
-        uploadDeploymentOutputsToS3(testPlan);
-        //cleanup
-        releaseInfrastructure(testPlan, infrastructureProvisionResult, deploymentCreationResult);
+        // Test plan completed. Update and persist testplan status
+        updateTestPlanStatusBasedOnResults(testPlan);
+        logger.info("");
+        logger.info("----------------------End of TEST PHASE--------------------------");
+        logger.info("TestPlan Status: " + testPlan.getStatus().toString());
+        logger.info("TestPlan Phase: " + testPlan.getPhase().toString());
+        logger.info("");
 
         // Print summary
         printSummary(testPlan, System.currentTimeMillis() - startTime);
-
-        return testPlan.getStatus() == Status.SUCCESS;
+        return testPlan.getStatus() == TestPlanStatus.SUCCESS;
     }
 
     /**
@@ -314,10 +367,13 @@ public class TestPlanExecutor {
             FileUtil.compress(outputLocation.toString(), zipFilePath.toString());
             logger.info("Created the results archive at " + zipFilePath);
         } catch (IOException e) {
+            //todo add error to db new column
+            persistTestPlanStatus(testPlan, TestPlanStatus.ERROR);
             logger.error("Error occurred while archiving test results to" + zipFilePath, e);
         }
 
-        //report generation
+        //Note: Being unable to generate report is not considered as a reason to make test-run ERROR since
+        //report generation is deprecated now.
         logger.info("Generating report for the test plan: " + testPlan.getId());
         try {
             ReportGenerator reportGenerator = ReportGeneratorFactory.getReportGenerator(testPlan);
@@ -369,6 +425,8 @@ public class TestPlanExecutor {
 
 
             } catch (TestAutomationException e) {
+                //todo: add reason to test-plan db record
+                persistTestPlanProgress(testPlan, TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
                 throw new TestPlanExecutorException("Error while getting test executor for " +
                         scenarioConfig.getTestType());
             }
@@ -387,6 +445,8 @@ public class TestPlanExecutor {
                 } catch (TestPlanExecutorException e) {
                     logger.error(StringUtil.concatStrings(
                             "Error occurred while persisting test scenario ", testScenario.getName()), e);
+                    //todo: add reason to test-plan db record
+                    persistTestPlanProgress(testPlan, TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
                 }
             }
             persistScenarioConfig(scenarioConfig);
@@ -408,10 +468,13 @@ public class TestPlanExecutor {
                 resultParser.parseResults();
                 resultParser.archiveResults();
             } catch (ResultParserException e) {
+                //todo: add reason to test-plan db record
+                persistTestPlanProgress(testPlan, TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
                 logger.error("Error parsing the results for the scenario " + testScenario.getName(), e);
             }
         } else {
-            testScenario.setStatus(Status.ERROR);
+            //todo: add reason to test-plan db record
+            persistTestPlanProgress(testPlan, TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
             logger.error("Error parsing the results for the scenario no parser " + testScenario.getName());
         }
     }
@@ -439,7 +502,8 @@ public class TestPlanExecutor {
                 }
             }
         } else {
-            //testPlan.setStatus(Status.FAIL);
+            //todo: add reason to test-plan db record
+            persistTestPlanProgress(testPlan, TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
             logger.error("No scenarios found in " + dataBucket + " for Scenario Config " + scenarioConfig.getName() +
                     " in testplan " + testPlan.getId());
         }
@@ -516,26 +580,26 @@ public class TestPlanExecutor {
             logger.debug("Deployment result: " + result);
             return result;
         } catch (TestGridDeployerException e) {
-            persistTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanProgress(testPlan, TestPlanPhase.DEPLOY_PHASE_ERROR, TestPlanStatus.ERROR);
             String msg = StringUtil
                     .concatStrings("Exception occurred while running the deployment for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
         } catch (DeployerInitializationException e) {
-            persistTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanProgress(testPlan, TestPlanPhase.DEPLOY_PHASE_ERROR, TestPlanStatus.ERROR);
             String msg = StringUtil
                     .concatStrings("Unable to locate a Deployer Service implementation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan '");
             logger.error(msg, e);
         } catch (UnsupportedDeployerException e) {
-            persistTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanProgress(testPlan, TestPlanPhase.DEPLOY_PHASE_ERROR, TestPlanStatus.ERROR);
             String msg = StringUtil
                     .concatStrings("Error occurred while running deployment for deployment pattern '",
                             testPlan.getDeploymentPattern(), "' in TestPlan");
             logger.error(msg, e);
         } catch (Exception e) {
             // deployment creation should not interrupt other tasks.
-            persistTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanProgress(testPlan, TestPlanPhase.DEPLOY_PHASE_ERROR, TestPlanStatus.ERROR);
             String msg = StringUtil.concatStrings("Unhandled error occurred hile running deployment for deployment "
                     + "pattern '", testPlan.getDeploymentConfig(), "' in TestPlan");
             logger.error(msg, e);
@@ -566,7 +630,7 @@ public class TestPlanExecutor {
             TestPlan testPlan) {
         try {
             if (infrastructureConfig == null) {
-                persistTestPlanStatus(testPlan, Status.FAIL);
+                persistTestPlanProgress(testPlan, TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
                 throw new TestPlanExecutorException(StringUtil
                         .concatStrings("Unable to locate infrastructure descriptor for deployment pattern '",
                                 testPlan.getDeploymentPattern(), "', in TestPlan"));
@@ -597,30 +661,30 @@ public class TestPlanExecutor {
             logger.debug("Infrastructure provision result: " + provisionResult);
             return provisionResult;
         } catch (TestGridInfrastructureException e) {
-            persistTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanProgress(testPlan, TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
             String msg = StringUtil
                     .concatStrings("Error on infrastructure creation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
         } catch (InfrastructureProviderInitializationException | UnsupportedProviderException e) {
-            persistTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanProgress(testPlan, TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
             String msg = StringUtil
                     .concatStrings("No Infrastructure Provider implementation for deployment pattern '",
                             testPlan.getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
         } catch (RuntimeException e) {
             // Catching the Exception here since we need to catch and gracefully handle all exceptions.
-            persistTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanProgress(testPlan, TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
             logger.error("Runtime exception while provisioning the infrastructure: " + e.getMessage(), e);
         } catch (Exception e) {
             // Catching the Exception here since we need to catch and gracefully handle all exceptions.
-            persistTestPlanStatus(testPlan, Status.FAIL);
+            persistTestPlanProgress(testPlan, TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
             logger.error("Unknown exception while provisioning the infrastructure: " + e.getMessage(), e);
         } finally {
             // Move testplan-props.properties out of data bucket to avoid exposing to the test execution phase.
             Path testplanPropsFilePath = DataBucketsHelper.getInputLocation(testPlan)
                     .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
-            logger.info("Moving tesplan.properties file from data bucket");
+            logger.info("Moving testplan.properties file from data bucket");
             File testPlanPropsFile = testplanPropsFilePath.toFile();
             if (!testPlanPropsFile.renameTo(new File(Paths.get(testPlan.getWorkspace(),
                     DataBucketsHelper.TESTPLAN_PROPERTIES_FILE).toString()))) {
@@ -736,22 +800,75 @@ public class TestPlanExecutor {
     }
 
     /**
-     * Persists the test plan with the status.
+     * Destroys the given {@link InfrastructureConfig}.
      *
+     * @param testPlan                      test plan
+     * @param infrastructureProvisionResult the infrastructure provisioning result
+     * @throws TestPlanExecutorException thrown when error on destroying
+     *                                   infrastructure
+     */
+    public void releaseInfrastructure(TestPlan testPlan, InfrastructureProvisionResult infrastructureProvisionResult)
+            throws TestPlanExecutorException {
+        try {
+            InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
+            logger.info("");
+            printSeparator(LINE_LENGTH);
+            logger.info("\t\t Releasing infrastructure: " + infrastructureConfig.getFirstProvisioner().getName());
+            printSeparator(LINE_LENGTH);
+            logger.info("");
+
+            if (TestGridUtil.isDebugMode(testPlan)) {
+                printSeparator(LINE_LENGTH);
+                logger.info(TestGridConstants.DEBUG_MODE + " is enabled. NOT RELEASING the infrastructure. The"
+                        + "infrastructure need to be manually released/de-allocated.");
+                printSeparator(LINE_LENGTH);
+                return;
+            }
+
+            for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
+                if (!Script.Phase.CREATE.equals(script.getPhase())) {
+                    InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
+                            .getInfrastructureProvider(script);
+                    infrastructureProvider.release(infrastructureConfig, testPlan.getInfrastructureRepository(),
+                            testPlan, script);
+                    // Destroy additional infra created for test execution
+                    infrastructureProvider.cleanup(testPlan);
+                }
+            }
+
+        } catch (TestGridInfrastructureException e) {
+            throw new TestPlanExecutorException(StringUtil
+                    .concatStrings("Error on infrastructure removal for deployment pattern '",
+                            testPlan.getDeploymentPattern(), "', in TestPlan"), e);
+        } catch (InfrastructureProviderInitializationException | UnsupportedProviderException e) {
+            throw new TestPlanExecutorException(StringUtil
+                    .concatStrings("No Infrastructure Provider implementation for deployment pattern '",
+                            testPlan.getDeploymentPattern(), "', in TestPlan"), e);
+        }
+    }
+
+    /**
+     * Persists the test plan with the status.
+     * Decided by: if at least one test-case or test-scenario or scenario-config has an error,
+     * then the testplan's phase will be TEST_PHASE_ERROR and the status will be ERROR.
      * @param testPlan TestPlan object to persist
      */
-    private void persistTestPlanStatus(TestPlan testPlan) {
+    private void updateTestPlanStatusBasedOnResults(TestPlan testPlan) {
+
         try {
             boolean isSuccess = true;
             for (TestScenario testScenario : testPlan.getTestScenarios()) {
                 if (testScenario.getStatus() != Status.SUCCESS) {
                     isSuccess = false;
                     if (testScenario.getStatus() == Status.FAIL) {
-                        testPlan.setStatus(Status.FAIL);
+                        testPlan.setStatus(TestPlanStatus.FAIL);
+                        testPlan.setPhase(TestPlanPhase.TEST_PHASE_ERROR);
                         isSuccess = false;
                         break;
                     } else if (testScenario.getStatus() == Status.ERROR) {
-                        testPlan.setStatus(Status.ERROR);
+                        logger.error("Found erroneous scenario " + testScenario.getName());
+                        testPlan.setStatus(TestPlanStatus.ERROR);
+                        testPlan.setPhase(TestPlanPhase.TEST_PHASE_ERROR);
                         isSuccess = false;
                     }
                 }
@@ -760,17 +877,34 @@ public class TestPlanExecutor {
                 if (scenarioConfig.getStatus() != Status.SUCCESS) {
                     isSuccess = false;
                     if (scenarioConfig.getStatus() == Status.FAIL) {
-                        testPlan.setStatus(Status.FAIL);
+                        testPlan.setStatus(TestPlanStatus.FAIL);
                         isSuccess = false;
                         break;
                     } else if (scenarioConfig.getStatus() == Status.ERROR) {
-                        testPlan.setStatus(Status.ERROR);
+                        logger.error("Found erroneous scenario config: " + scenarioConfig.getName());
+                        testPlan.setStatus(TestPlanStatus.ERROR);
                         isSuccess = false;
                     }
                 }
             }
             if (isSuccess) {
-                testPlan.setStatus(Status.SUCCESS);
+                if (testPlan.getStatus().equals(TestPlanStatus.RUNNING) &&
+                        testPlan.getPhase().equals(TestPlanPhase.TEST_PHASE_STARTED)) {
+                   persistTestPlanProgress(testPlan, TestPlanPhase.TEST_PHASE_SUCCEEDED, TestPlanStatus.SUCCESS);
+                } else {
+                    updateFinalTestPlanPhase(testPlan);
+                    logger.info("All the parsed-results are passing. However due to issues in the previous steps," +
+                            "testplan status can not be claimed as success.");
+                }
+            } else {
+                if (testPlan.getStatus().equals(TestPlanStatus.RUNNING) &&
+                        testPlan.getPhase().equals(TestPlanPhase.TEST_PHASE_STARTED)) {
+                    persistTestPlanProgress(testPlan, TestPlanPhase.TEST_PHASE_SUCCEEDED, TestPlanStatus.FAIL);
+                } else {
+                    updateFinalTestPlanPhase(testPlan);
+                    logger.error("One or more of parsed-results can be failing. However due to issues in the" +
+                            " previous steps, testplan status will be claimed as ERROR (instead of FAILED).");
+                }
             }
             testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
@@ -784,8 +918,31 @@ public class TestPlanExecutor {
      * @param testPlan TestPlan object to persist
      * @param status   the status to set
      */
-    private void persistTestPlanStatus(TestPlan testPlan, Status status) {
+    private void persistTestPlanStatus(TestPlan testPlan, TestPlanStatus status) {
+        logger.info("Updating/Persisting testplan status from " + testPlan.getStatus() + " to " + status);
         try {
+            testPlan.setStatus(status);
+            testPlanUOW.persistTestPlan(testPlan);
+        } catch (TestGridDAOException e) {
+            logger.error("Error occurred while persisting the test plan. ", e);
+        }
+    }
+
+    private void persistTestPlanPhase(TestPlan testPlan, TestPlanPhase phase) {
+        logger.info("Updating/Persisting testplan phasae from " + testPlan.getPhase() + " to " + phase);
+        try {
+            testPlan.setPhase(phase);
+            testPlanUOW.persistTestPlan(testPlan);
+        } catch (TestGridDAOException e) {
+            logger.error("Error occurred while persisting the test plan. ", e);
+        }
+    }
+
+    private void persistTestPlanProgress(TestPlan testPlan, TestPlanPhase phase, TestPlanStatus status) {
+        logger.info("Updating/Persisting testplan status from " + testPlan.getStatus() + " to " + status + " and " +
+                "testplan phrase from " + testPlan.getPhase() + "to " + phase);
+        try {
+            testPlan.setPhase(phase);
             testPlan.setStatus(status);
             testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
@@ -870,9 +1027,6 @@ public class TestPlanExecutor {
                 printFailState(testPlan);
                 break;
             case RUNNING:
-            case PENDING:
-            case DID_NOT_RUN:
-            case INCOMPLETE:
             default:
                 logger.error(StringUtil.concatStrings(
                         "Inconsistent state detected (", testPlan.getStatus(), "). Please report this to testgrid team "
@@ -970,6 +1124,56 @@ public class TestPlanExecutor {
 
     }
 
+    private void updateFinalTestPlanPhase(TestPlan testPlan) {
+        if (testPlan.getStatus().equals(TestPlanStatus.RUNNING)) {
+            //Change the test-plan phase to currentPhase's ERROR stage
+            //Ex:  INFRA_PHASE_STARTED will be updated to INFRA_PHASE_ERROR
+            TestPlanPhase testPlanPhase = testPlan.getPhase();
+            if (testPlanPhase != null) {
+                String testPlanPhaseStr = testPlan.getPhase().toString();
+                String phaseStage = testPlanPhaseStr.substring(testPlanPhaseStr.lastIndexOf("_") + 1);
+                if (!phaseStage.equals("SUCCEEDED")) {
+                    //If the phase is not succeeded, then we assume the error should be in the same phase.
+                    String phaseName = (testPlanPhaseStr.substring(0, testPlanPhaseStr.lastIndexOf('_')));
+                    logger.info("Setting test-plan's phase " + testPlan.getPhase().toString() +
+                            " into: " + phaseName + "_ERROR");
+                    testPlan.setPhase(TestPlanPhase.valueOf(phaseName + "_ERROR"));
+                    testPlan.setStatus(TestPlanStatus.ERROR);
+                } else {
+                    logger.info("Setting next phase's ERROR stage..");
+                    //If the phase is a succeeded one, then we assume the error should have happened in the next phase.
+                    switch(testPlanPhase) {
+                        case PREPARATION_SUCCEEDED:
+                            testPlan.setPhase(TestPlanPhase.INFRA_PHASE_ERROR);
+                            break;
+                        case INFRA_PHASE_SUCCEEDED:
+                            testPlan.setPhase(TestPlanPhase.DEPLOY_PHASE_ERROR);
+                            break;
+                        case DEPLOY_PHASE_SUCCEEDED:
+                            testPlan.setPhase(TestPlanPhase.TEST_PHASE_ERROR);
+                            break;
+                        default:
+                            logger.error("Error in the phase finalizing logic. Please contact TestGrid admin.");
+                            logger.error("Received testplan with the phase " + testPlan.getPhase());
+                    }
+                    testPlan.setStatus(TestPlanStatus.ERROR);
+                }
+            } else {
+                //Assume the phase is null because the job has aborted/failed before setting the first phase.
+                testPlan.setPhase(TestPlanPhase.PREPARATION_ERROR);
+            }
+            logger.info("=============##### UPDATED TestPlan Result ####==========");
+            logger.info("TestPlan:" + testPlan.getId());
+            logger.info("Status:" + testPlan.getStatus());
+            logger.info("Phase:" + testPlan.getPhase());
+        } else {
+            logger.info("=============##### TestPlan Result ####==========");
+            logger.info("TestPlan:" + testPlan.getId());
+            logger.info("Status:" + testPlan.getStatus());
+            logger.info("Phase:" + testPlan.getPhase());
+        }
+        persistTestPlanProgress(testPlan, testPlan.getPhase(), testPlan.getStatus());
+    }
 }
 
 /**

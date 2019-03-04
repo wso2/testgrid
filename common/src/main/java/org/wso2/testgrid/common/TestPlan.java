@@ -68,7 +68,11 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private Status status;
+    private TestPlanStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "phase", length = 100)
+    private TestPlanPhase phase;
 
     @Column(name = "infra_parameters")
     private String infraParameters;
@@ -137,11 +141,26 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String buildURL;
 
     /**
+     * Returns the phase of the test-plan
+     *
+     */
+    public TestPlanPhase getPhase() {
+        return phase;
+    }
+
+    /**
+     * Set the phase of the test-plan
+     */
+    public void setPhase(TestPlanPhase testPlanPhase) {
+        this.phase = testPlanPhase;
+    }
+
+    /**
      * Returns the status of the infrastructure.
      *
      * @return infrastructure status
      */
-    public Status getStatus() {
+    public TestPlanStatus getStatus() {
         return status;
     }
 
@@ -150,7 +169,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      *
      * @param status infrastructure status
      */
-    public void setStatus(Status status) {
+    public void setStatus(TestPlanStatus status) {
         this.status = status;
     }
 

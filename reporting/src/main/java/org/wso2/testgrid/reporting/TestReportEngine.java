@@ -24,6 +24,7 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.exception.TestGridException;
 import org.wso2.testgrid.common.util.S3StorageUtil;
@@ -912,7 +913,7 @@ public class TestReportEngine {
         List<TestPlan> testPlans = getTestPlans(workspace);
         String productName = product.getName();
         List<TestPlan> collect = testPlans.stream()
-                .filter(testPlan -> Status.ERROR.equals(testPlan.getStatus())).collect(Collectors.toList());
+                .filter(testPlan -> TestPlanStatus.ERROR.equals(testPlan.getStatus())).collect(Collectors.toList());
         if (collect.isEmpty()) {
             logger.info("No infrastructure errors were found from the " + testPlans.size() + " test plan(s) that " +
                     "were executed for product " + product.getName() + "\n" +

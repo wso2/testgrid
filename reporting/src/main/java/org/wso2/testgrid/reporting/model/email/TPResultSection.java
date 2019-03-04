@@ -19,7 +19,7 @@
 
 package org.wso2.testgrid.reporting.model.email;
 
-import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.reporting.surefire.TestResult;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class TPResultSection {
 
     private String infraCombination;
     private String deployment;
-    private Status status;
+    private TestPlanStatus status;
 
     private String jobName;
     private String dashboardLink;
@@ -71,7 +71,7 @@ public class TPResultSection {
         return dashboardLink;
     }
 
-    public Status getStatus() {
+    public TestPlanStatus getStatus() {
         return status;
     }
 
@@ -110,7 +110,7 @@ public class TPResultSection {
     public static class TPResultSectionBuilder {
         private String infraCombination;
         private String deployment;
-        private Status status;
+        private TestPlanStatus status;
 
         private String jobName;
         private String dashboardLink;
@@ -122,7 +122,7 @@ public class TPResultSection {
         private String totalErrors;
         private String totalSkipped;
 
-        public TPResultSectionBuilder(String infraCombination, String deployment, Status status) {
+        public TPResultSectionBuilder(String infraCombination, String deployment, TestPlanStatus status) {
             this.infraCombination = infraCombination;
             this.deployment = deployment;
             this.status = status;

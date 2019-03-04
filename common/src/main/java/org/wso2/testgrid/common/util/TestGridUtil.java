@@ -26,9 +26,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeploymentPattern;
-import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
@@ -213,7 +214,8 @@ public final class TestGridUtil {
             String jsonInfraParams = new ObjectMapper()
                     .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
             TestPlan testPlanEntity = testPlan.clone();
-            testPlanEntity.setStatus(Status.PENDING);
+            testPlanEntity.setStatus(TestPlanStatus.RUNNING);
+            testPlanEntity.setPhase(TestPlanPhase.PREPARATION_STARTED);
             testPlanEntity.setDeploymentPattern(deploymentPattern);
             // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.
             final DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
@@ -256,6 +258,8 @@ public final class TestGridUtil {
             testPlanConfig.setInfraParameters(testPlanPersisted.getInfraParameters());
             testPlanConfig.setDeploymentPattern(testPlanPersisted.getDeploymentPattern());
             testPlanConfig.setTestScenarios(testPlanPersisted.getTestScenarios());
+            testPlanConfig.setPhase(testPlanPersisted.getPhase());
+            testPlanConfig.setStatus(testPlanPersisted.getStatus());
             return testPlanConfig;
         } else {
             testPlanPersisted.setDeployerType(testPlanConfig.getDeployerType());
