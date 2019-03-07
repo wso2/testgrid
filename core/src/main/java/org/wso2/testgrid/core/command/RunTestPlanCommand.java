@@ -269,6 +269,7 @@ public class RunTestPlanCommand implements Command {
      */
     private boolean executeTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws CommandExecutionException {
+        testPlan.setInfrastructureConfig(infrastructureConfig);
         try {
             String infraCmb = testPlan.getInfrastructureConfig().getParameters().entrySet().stream()
                     .map(e -> e.getKey() + " = " + e.getValue())
@@ -276,7 +277,7 @@ public class RunTestPlanCommand implements Command {
                     .collect(Collectors.joining("\n\t"));
             infraCmb = "{\n\t" + infraCmb + "\n}";
             logger.info("Executing test-plan for infrastructure combination: \n" + infraCmb);
-            return testPlanExecutor.execute(testPlan, infrastructureConfig);
+            return testPlanExecutor.execute(testPlan);
         } catch (TestPlanExecutorException | TestGridDAOException e) {
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan ", testPlan), e);

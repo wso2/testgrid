@@ -131,6 +131,12 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String keyFileLocation;
 
     @Transient
+    private InfrastructureProvisionResult infrastructureProvisionResult;
+
+    @Transient
+    private DeploymentCreationResult deploymentCreationResult;
+
+    @Transient
     private String emailToList;
 
     @Transient
@@ -553,6 +559,22 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     public String getBuildURL() {
         return buildURL;
+    }
+
+    public InfrastructureProvisionResult getInfrastructureProvisionResult() {
+        return infrastructureProvisionResult;
+    }
+
+    public void setInfrastructureProvisionResult(InfrastructureProvisionResult infrastructureProvisionResult) {
+        this.infrastructureProvisionResult = infrastructureProvisionResult;
+    }
+
+    public DeploymentCreationResult getDeploymentCreationResult() {
+        return deploymentCreationResult;
+    }
+
+    public void setDeploymentCreationResult(DeploymentCreationResult deploymentCreationResult) {
+        this.deploymentCreationResult = deploymentCreationResult;
     }
 
     /**

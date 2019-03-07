@@ -578,4 +578,55 @@ public final class TestGridUtil {
         }
         return series[index];
     }
+
+    public static TestPlan updateFinalTestPlanPhase(TestPlan testPlan) {
+        if (testPlan.getStatus().equals(TestPlanStatus.RUNNING)) {
+            //Change the test-plan phase to currentPhase's ERROR stage
+            //Ex:  INFRA_PHASE_STARTED will be updated to INFRA_PHASE_ERROR
+            TestPlanPhase testPlanPhase = testPlan.getPhase();
+            if (testPlanPhase != null) {
+                String testPlanPhaseStr = testPlan.getPhase().toString();
+                String phaseStage = testPlanPhaseStr.substring(testPlanPhaseStr.lastIndexOf("_") + 1);
+                if (!phaseStage.equals("SUCCEEDED")) {
+                    //If the phase is not succeeded, then we assume the error should be in the same phase.
+                    String phaseName = (testPlanPhaseStr.substring(0, testPlanPhaseStr.lastIndexOf('_')));
+                    logger.info("Setting test-plan's phase " + testPlan.getPhase().toString() +
+                            " into: " + phaseName + "_ERROR");
+                    testPlan.setPhase(TestPlanPhase.valueOf(phaseName + "_ERROR"));
+                    testPlan.setStatus(TestPlanStatus.ERROR);
+                } else {
+                    logger.info("Setting next phase's ERROR stage..");
+                    //If the phase is a succeeded one, then we assume the error should have happened in the next phase.
+                    switch(testPlanPhase) {
+                        case PREPARATION_SUCCEEDED:
+                            testPlan.setPhase(TestPlanPhase.INFRA_PHASE_ERROR);
+                            break;
+                        case INFRA_PHASE_SUCCEEDED:
+                            testPlan.setPhase(TestPlanPhase.DEPLOY_PHASE_ERROR);
+                            break;
+                        case DEPLOY_PHASE_SUCCEEDED:
+                            testPlan.setPhase(TestPlanPhase.TEST_PHASE_ERROR);
+                            break;
+                        default:
+                            logger.error("Error in the phase finalizing logic. Please contact TestGrid admin.");
+                            logger.error("Received testplan with the phase " + testPlan.getPhase());
+                    }
+                    testPlan.setStatus(TestPlanStatus.ERROR);
+                }
+            } else {
+                //Assume the phase is null because the job has aborted/failed before setting the first phase.
+                testPlan.setPhase(TestPlanPhase.PREPARATION_ERROR);
+            }
+            logger.info("=============##### UPDATED TestPlan Result ####==========");
+            logger.info("TestPlan:" + testPlan.getId());
+            logger.info("Status:" + testPlan.getStatus());
+            logger.info("Phase:" + testPlan.getPhase());
+        } else {
+            logger.info("=============##### TestPlan Result ####==========");
+            logger.info("TestPlan:" + testPlan.getId());
+            logger.info("Status:" + testPlan.getStatus());
+            logger.info("Phase:" + testPlan.getPhase());
+        }
+        return testPlan;
+    }
 }
