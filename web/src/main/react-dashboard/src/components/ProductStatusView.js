@@ -112,6 +112,7 @@ class ProductStatusView extends Component {
         <th onClick={() => this.navigateToJob(product)} scope="row  ">
           <i style={{cursor: 'pointer'}}>{product.productName}</i>
         </th>
+       {/* Note: revisit last success date find logic
         <td style={{fontSize: '16px'}}>
           {(() => {
             if (product.lastSuccessTimestamp) {
@@ -122,7 +123,7 @@ class ProductStatusView extends Component {
               return ("No Success builds yet!");
             }
           })()}
-        </td>
+        </td>*/}
         <td style={{fontSize: '16px'}}>
           {(() => {
             if (product.lastFailureTimestamp) {
@@ -164,7 +165,7 @@ class ProductStatusView extends Component {
           <tr>
             <th>Status</th>
             <th>Job</th>
-            <th>Last Success</th>
+            {/*<th>Last Success</th>*/}
             <th>Last Failure</th>
           </tr>
           </thead>
