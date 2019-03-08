@@ -26,6 +26,8 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
@@ -133,6 +135,9 @@ public class GenerateTestPlanCommand implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
+        logger.info("");
+        logger.info("----------------------Start of PREPARATION PHASE--------------------------");
+        logger.info("");
         try {
             //Set the log file path
             LogFilePathLookup.setLogFilePath(
@@ -201,6 +206,9 @@ public class GenerateTestPlanCommand implements Command {
         } else {
             logger.info(StringUtil.concatStrings("Test plans dir: ", infraGenDirectory));
         }
+        if (printTestPlanPaths) {
+            logger.info(testPlanPaths.substring(0, testPlanPaths.length() - 1));
+        }
         for (int i = 0; i < testPlans.size(); i++) {
             TestPlan testPlan = testPlans.get(i);
             DeploymentPattern deploymentPattern = getDeploymentPattern(product,
@@ -215,7 +223,7 @@ public class GenerateTestPlanCommand implements Command {
             //Need to set this as converting to TestPlan entity changes deployerType based on infra provisioner.
             testPlan.setDeployerType(persistedTestPlan.getDeployerType());
 
-            String fileName = String
+            String yamlFileName = String
                     .format("%s-%02d%s", TestGridConstants.TEST_PLAN_YAML_PREFIX, (i + 1), FileUtil.YAML_EXTENSION);
             testPlan.setKeyFileLocation(jobConfigFile.getKeyFileLocation());
             testPlan.setJobProperties(jobConfigFile.getProperties());
@@ -225,23 +233,34 @@ public class GenerateTestPlanCommand implements Command {
             output = output.replaceAll("[&,*]id[0-9]+", "");
             output = output.replaceAll("!!", "#");
             try {
-                FileUtil.saveFile(output, infraGenDirectory, fileName, false);
+                FileUtil.saveFile(output, infraGenDirectory, yamlFileName, false);
             } catch (IOException e) {
                 throw new CommandExecutionException("Error while saving Testgrid yaml file.", e);
             }
 
+            if (printTestPlanPaths) {
+                testPlanPaths.append(Paths.get(infraGenDirectory, yamlFileName)).append(System.lineSeparator());
+            }
+
+            persistedTestPlan.setStatus(TestPlanStatus.RUNNING);
+            //Note: Setting Preparation_Succeeded implies the Generate-Test-Plan step is finished.
+            // Therefore new future additions/modifications should be added prior to this line.
+            persistedTestPlan.setPhase(TestPlanPhase.PREPARATION_SUCCEEDED);
             /*
              * Test plans of test scenarios should be persisted. This is persisted after building the
              * yaml to avoid adding unnecessary lines to the test-plan file.
              */
             testPlanUOW.persistTestPlan(persistedTestPlan);
+            logger.info("");
+            logger.info("----------------------End of PREPARATION PHASE--------------------------");
+            if (testPlan.getStatus() != null) {
 
-            if (printTestPlanPaths) {
-                testPlanPaths.append(Paths.get(infraGenDirectory, fileName)).append(System.lineSeparator());
+                logger.info("TestPlan Status: " + testPlan.getStatus().toString());
             }
-        }
-        if (printTestPlanPaths) {
-            logger.info(testPlanPaths.substring(0, testPlanPaths.length() - 1));
+            if (testPlan.getPhase() != null) {
+                logger.info("TestPlan Phase: " + testPlan.getPhase().toString());
+            }
+            logger.info("");
         }
     }
 

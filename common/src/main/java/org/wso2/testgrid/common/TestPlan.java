@@ -68,7 +68,11 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private Status status;
+    private TestPlanStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "phase", length = 100)
+    private TestPlanPhase phase;
 
     @Column(name = "infra_parameters")
     private String infraParameters;
@@ -127,6 +131,12 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String keyFileLocation;
 
     @Transient
+    private InfrastructureProvisionResult infrastructureProvisionResult;
+
+    @Transient
+    private DeploymentCreationResult deploymentCreationResult;
+
+    @Transient
     private String emailToList;
 
     @Transient
@@ -137,11 +147,26 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String buildURL;
 
     /**
+     * Returns the phase of the test-plan
+     *
+     */
+    public TestPlanPhase getPhase() {
+        return phase;
+    }
+
+    /**
+     * Set the phase of the test-plan
+     */
+    public void setPhase(TestPlanPhase testPlanPhase) {
+        this.phase = testPlanPhase;
+    }
+
+    /**
      * Returns the status of the infrastructure.
      *
      * @return infrastructure status
      */
-    public Status getStatus() {
+    public TestPlanStatus getStatus() {
         return status;
     }
 
@@ -150,7 +175,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
      *
      * @param status infrastructure status
      */
-    public void setStatus(Status status) {
+    public void setStatus(TestPlanStatus status) {
         this.status = status;
     }
 
@@ -534,6 +559,22 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     public String getBuildURL() {
         return buildURL;
+    }
+
+    public InfrastructureProvisionResult getInfrastructureProvisionResult() {
+        return infrastructureProvisionResult;
+    }
+
+    public void setInfrastructureProvisionResult(InfrastructureProvisionResult infrastructureProvisionResult) {
+        this.infrastructureProvisionResult = infrastructureProvisionResult;
+    }
+
+    public DeploymentCreationResult getDeploymentCreationResult() {
+        return deploymentCreationResult;
+    }
+
+    public void setDeploymentCreationResult(DeploymentCreationResult deploymentCreationResult) {
+        this.deploymentCreationResult = deploymentCreationResult;
     }
 
     /**

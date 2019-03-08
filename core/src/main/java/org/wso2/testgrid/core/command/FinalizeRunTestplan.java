@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ScenarioConfig;
@@ -149,24 +150,8 @@ public class FinalizeRunTestplan implements Command {
                         break;
                     }
                 }
-                //Set statuses of testplans
-                switch (testPlan.getStatus()) {
-                case PENDING:
-                    testPlan.setStatus(Status.DID_NOT_RUN);
-                    persistTestPlan(testPlan);
-                    break;
-                case RUNNING:
-                    if (isExistsFailedScenarios) {
-                        testPlan.setStatus(Status.FAIL);
-                        isExistsFailedScenarios = false;
-                    } else {
-                        testPlan.setStatus(Status.INCOMPLETE);
-                    }
-                    persistTestPlan(testPlan);
-                    break;
-                default:
-                    break;
-                }
+                testPlan = TestGridUtil.updateFinalTestPlanPhase(testPlan);
+                persistTestPlan(testPlan);
             }
             updateProductStatus();
         } catch (IOException e) {
@@ -215,12 +200,11 @@ public class FinalizeRunTestplan implements Command {
                 TestPlan testPlan = FileUtil.readYamlFile(path.toAbsolutePath().toString(), TestPlan.class);
                 Optional<TestPlan> testPlanEntity = testPlanUOW.getTestPlanById(testPlan.getId());
                 if (testPlanEntity.isPresent()) {
-                    if (Status.FAIL.equals(testPlanEntity.get().getStatus())) {
+                    if (TestPlanStatus.FAIL.equals(testPlanEntity.get().getStatus())) {
                         productId = testPlanEntity.get().getDeploymentPattern().getProduct().getId();
                         productUOW.updateProductStatusTimestamp(Status.FAIL, productId);
                         break;
-                    } else if ((Status.DID_NOT_RUN.equals(testPlanEntity.get().getStatus()) || Status.INCOMPLETE
-                            .equals(testPlanEntity.get().getStatus())) && isCompleteBuild) {
+                    } else if (TestPlanStatus.ERROR.equals(testPlanEntity.get().getStatus()) && isCompleteBuild) {
                         isCompleteBuild = false;
                     }
                 } else {

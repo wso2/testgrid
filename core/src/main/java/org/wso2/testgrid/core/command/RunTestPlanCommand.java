@@ -23,9 +23,10 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
-import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridRuntimeException;
@@ -128,16 +129,19 @@ public class RunTestPlanCommand implements Command {
                 //Merge properties from persisted test plan to test plan config
                 testPlan = TestGridUtil.mergeTestPlans(testPlan, testPlanEntity.get(), true);
 
-                // Test plan status should be changed to running and persisted
-                testPlan.setStatus(Status.RUNNING);
-                persistTestPlan(testPlan);
-
                 //Create logging directory
                 LogFilePathLookup.setLogFilePath(TestGridUtil.deriveTestRunLogFilePath(testPlan, false));
-
-                final boolean success = executeTestPlan(testPlan, infrastructureConfig);
-                if (!success) {
-                    throw new IllegalStateException("Test plan execution failed.");
+                if (testPlan.getPhase().equals(TestPlanPhase.PREPARATION_SUCCEEDED)) {
+                    final boolean success = executeTestPlan(testPlan, infrastructureConfig);
+                    if (!success) {
+                        throw new IllegalStateException("Test plan execution was not succeeded.");
+                    }
+                } else {
+                    logger.error("PREPARATION phase was not succeeded for test-plan: " + testPlan.getId() + "Hence" +
+                            "not starting other phases.");
+                    testPlan.setStatus(TestPlanStatus.ERROR);
+                    testPlan.setPhase(TestPlanPhase.PREPARATION_ERROR);
+                    persistTestPlan(testPlan);
                 }
             } else {
                 throw new CommandExecutionException(StringUtil.concatStrings("Unable to locate persisted " +
@@ -265,6 +269,7 @@ public class RunTestPlanCommand implements Command {
      */
     private boolean executeTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
             throws CommandExecutionException {
+        testPlan.setInfrastructureConfig(infrastructureConfig);
         try {
             String infraCmb = testPlan.getInfrastructureConfig().getParameters().entrySet().stream()
                     .map(e -> e.getKey() + " = " + e.getValue())
@@ -272,7 +277,7 @@ public class RunTestPlanCommand implements Command {
                     .collect(Collectors.joining("\n\t"));
             infraCmb = "{\n\t" + infraCmb + "\n}";
             logger.info("Executing test-plan for infrastructure combination: \n" + infraCmb);
-            return testPlanExecutor.execute(testPlan, infrastructureConfig);
+            return testPlanExecutor.execute(testPlan);
         } catch (TestPlanExecutorException | TestGridDAOException e) {
             throw new CommandExecutionException(
                     StringUtil.concatStrings("Unable to execute the TestPlan ", testPlan), e);

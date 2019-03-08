@@ -12,6 +12,7 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.core.command.RunTestPlanCommandTest;
@@ -64,7 +65,7 @@ public class TestPlanExecutorTest {
     public void testPrintSummary() throws Exception {
         TestPlan testPlan = new TestPlan();
         testPlan.setInfraParameters("{DBEngine: \"mysql\"}");
-        testPlan.setStatus(Status.FAIL);
+        testPlan.setStatus(TestPlanStatus.FAIL);
 
         TestScenario s = new TestScenario();
         s.setName("Sample scenario 01");

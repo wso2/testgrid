@@ -22,7 +22,6 @@ package org.wso2.testgrid.core.command;
 import org.apache.commons.io.FileUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -42,6 +41,8 @@ import org.wso2.testgrid.common.DeploymentPattern;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.TestgridYaml;
 import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
@@ -74,8 +75,8 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({ StringUtil.class, TestExecutorFactory.class })
@@ -135,6 +136,8 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         testPlan.setTestRunNumber(1);
         testPlan.setDeploymentPattern(deploymentPattern);
         testPlan.setInfraParameters(infraParamsString);
+        testPlan.setPhase(TestPlanPhase.INFRA_PHASE_SUCCEEDED);
+        testPlan.setStatus(TestPlanStatus.RUNNING);
         testPlan.setDeployerType(TestPlan.DeployerType.SHELL);
         testPlan.setScenarioTestsRepository(Paths.get(workspaceDir, "/workspace/scenarioTests").toString());
         testPlan.setInfrastructureRepository(Paths.get(workspaceDir, "/workspace/infrastructure").toString());
@@ -144,10 +147,11 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
 
         when(testScenarioUOW.persistTestScenario(any(TestScenario.class))).thenAnswer(invocation -> invocation
                 .getArguments()[0]);
+
         scenarioExecutor = new ScenarioExecutor(testScenarioUOW, testCaseUOW);
         testPlanExecutor = new TestPlanExecutor(scenarioExecutor, testPlanUOW, testScenarioUOW);
         testPlanExecutor = spy(testPlanExecutor);
-        Mockito.doNothing().when(testPlanExecutor).uploadDeploymentOutputsToS3(any(TestPlan.class));
+
         MockitoAnnotations.initMocks(this);
     }
 
@@ -186,7 +190,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
     }
 
     private void doMock() throws TestGridDAOException, TestAutomationException {
-        PowerMockito.spy(StringUtil.class);
+        spy(StringUtil.class);
         when(StringUtil.generateRandomString(anyInt())).thenReturn("");
         PowerMockito.mockStatic(TestExecutorFactory.class);
         when(TestExecutorFactory.getTestExecutor(any())).thenReturn(new ShellTestExecutor());

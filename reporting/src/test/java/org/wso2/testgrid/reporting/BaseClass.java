@@ -35,6 +35,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -147,7 +148,7 @@ public class BaseClass extends PowerMockTestCase {
         TestPlan testPlan = new TestPlan();
         testPlan.setInfraParameters("{\"OSVersion\":\"7.4\",\"JDK\":\"ORACLE_JDK8\",\"OS\":\"CentOS\","
                 + "\"DBEngineVersion\":\"5.7\",\"DBEngine\":\"mysql\"}");
-        testPlan.setStatus(Status.FAIL);
+        testPlan.setStatus(TestPlanStatus.FAIL);
         testPlan.setId(testPlanId);
         testPlan.setWorkspace(productDir.toString());
         InfrastructureConfig infraConfig = new InfrastructureConfig();
@@ -378,7 +379,16 @@ public class BaseClass extends PowerMockTestCase {
             addTestCasesFor(infrastructureCombination, ts);
 
             TestPlan testPlan = new TestPlan();
-            testPlan.setStatus(ts.getStatus());
+            switch(ts.getStatus()) {
+                case SUCCESS:
+                    testPlan.setStatus(TestPlanStatus.SUCCESS);
+                    break;
+                case FAIL:
+                    testPlan.setStatus(TestPlanStatus.FAIL);
+                    break;
+                default:
+                    testPlan.setStatus(TestPlanStatus.ERROR);
+            }
             testPlan.setId(i + "");
             testPlan.setWorkspace(productDir.toString());
             InfrastructureConfig infraConfig = new InfrastructureConfig();

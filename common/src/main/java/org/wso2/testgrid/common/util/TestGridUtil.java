@@ -26,9 +26,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.DeploymentPattern;
-import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
@@ -213,7 +214,8 @@ public final class TestGridUtil {
             String jsonInfraParams = new ObjectMapper()
                     .writeValueAsString(testPlan.getInfrastructureConfig().getParameters());
             TestPlan testPlanEntity = testPlan.clone();
-            testPlanEntity.setStatus(Status.PENDING);
+            testPlanEntity.setStatus(TestPlanStatus.RUNNING);
+            testPlanEntity.setPhase(TestPlanPhase.PREPARATION_STARTED);
             testPlanEntity.setDeploymentPattern(deploymentPattern);
             // TODO: this code need to use enum valueOf instead of doing if checks for each deployer-type.
             final DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
@@ -256,6 +258,8 @@ public final class TestGridUtil {
             testPlanConfig.setInfraParameters(testPlanPersisted.getInfraParameters());
             testPlanConfig.setDeploymentPattern(testPlanPersisted.getDeploymentPattern());
             testPlanConfig.setTestScenarios(testPlanPersisted.getTestScenarios());
+            testPlanConfig.setPhase(testPlanPersisted.getPhase());
+            testPlanConfig.setStatus(testPlanPersisted.getStatus());
             return testPlanConfig;
         } else {
             testPlanPersisted.setDeployerType(testPlanConfig.getDeployerType());
@@ -573,5 +577,56 @@ public final class TestGridUtil {
             series[i] = series[i - 1] + series[i - 2];
         }
         return series[index];
+    }
+
+    public static TestPlan updateFinalTestPlanPhase(TestPlan testPlan) {
+        if (testPlan.getStatus().equals(TestPlanStatus.RUNNING)) {
+            //Change the test-plan phase to currentPhase's ERROR stage
+            //Ex:  INFRA_PHASE_STARTED will be updated to INFRA_PHASE_ERROR
+            TestPlanPhase testPlanPhase = testPlan.getPhase();
+            if (testPlanPhase != null) {
+                String testPlanPhaseStr = testPlan.getPhase().toString();
+                String phaseStage = testPlanPhaseStr.substring(testPlanPhaseStr.lastIndexOf("_") + 1);
+                if (!phaseStage.equals("SUCCEEDED")) {
+                    //If the phase is not succeeded, then we assume the error should be in the same phase.
+                    String phaseName = (testPlanPhaseStr.substring(0, testPlanPhaseStr.lastIndexOf('_')));
+                    logger.info("Setting test-plan's phase " + testPlan.getPhase().toString() +
+                            " into: " + phaseName + "_ERROR");
+                    testPlan.setPhase(TestPlanPhase.valueOf(phaseName + "_ERROR"));
+                    testPlan.setStatus(TestPlanStatus.ERROR);
+                } else {
+                    logger.info("Setting next phase's ERROR stage..");
+                    //If the phase is a succeeded one, then we assume the error should have happened in the next phase.
+                    switch(testPlanPhase) {
+                        case PREPARATION_SUCCEEDED:
+                            testPlan.setPhase(TestPlanPhase.INFRA_PHASE_ERROR);
+                            break;
+                        case INFRA_PHASE_SUCCEEDED:
+                            testPlan.setPhase(TestPlanPhase.DEPLOY_PHASE_ERROR);
+                            break;
+                        case DEPLOY_PHASE_SUCCEEDED:
+                            testPlan.setPhase(TestPlanPhase.TEST_PHASE_ERROR);
+                            break;
+                        default:
+                            logger.error("Error in the phase finalizing logic. Please contact TestGrid admin.");
+                            logger.error("Received testplan with the phase " + testPlan.getPhase());
+                    }
+                    testPlan.setStatus(TestPlanStatus.ERROR);
+                }
+            } else {
+                //Assume the phase is null because the job has aborted/failed before setting the first phase.
+                testPlan.setPhase(TestPlanPhase.PREPARATION_ERROR);
+            }
+            logger.info("=============##### UPDATED TestPlan Result ####==========");
+            logger.info("TestPlan:" + testPlan.getId());
+            logger.info("Status:" + testPlan.getStatus());
+            logger.info("Phase:" + testPlan.getPhase());
+        } else {
+            logger.info("=============##### TestPlan Result ####==========");
+            logger.info("TestPlan:" + testPlan.getId());
+            logger.info("Status:" + testPlan.getStatus());
+            logger.info("Phase:" + testPlan.getPhase());
+        }
+        return testPlan;
     }
 }

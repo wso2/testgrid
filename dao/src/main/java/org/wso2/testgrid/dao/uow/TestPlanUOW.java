@@ -20,6 +20,7 @@ package org.wso2.testgrid.dao.uow;
 import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.dao.EntityManagerHelper;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.dto.TestCaseFailureResultDTO;
@@ -137,9 +138,9 @@ public class TestPlanUOW {
     public Status getCurrentStatus(Product product) {
         List<TestPlan> testPlans = testPlanRepository.getLatestTestPlans(product);
         List<TestPlan> succesfulPlans = testPlans.stream().filter(testPlan ->
-                testPlan.getStatus().equals(Status.SUCCESS)
+                testPlan.getStatus().equals(TestPlanStatus.SUCCESS)
         ).collect(Collectors.toList());
-        boolean running = testPlans.stream().anyMatch(testPlan -> Status.RUNNING.equals(testPlan.getStatus()));
+        boolean running = testPlans.stream().anyMatch(testPlan -> TestPlanStatus.RUNNING.equals(testPlan.getStatus()));
         //check if there are pending test_plans
         if (running) {
             return Status.RUNNING;
