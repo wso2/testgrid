@@ -133,7 +133,7 @@ public class Product extends AbstractUUIDEntity implements Serializable {
      */
     public void setLastSuccessTimestamp(Timestamp lastSuccessTimestamp) {
         this.lastSuccessTimestamp =
-                this.lastSuccessTimestamp == null ? null : new Timestamp(lastSuccessTimestamp.getTime());
+                lastSuccessTimestamp == null ? null : new Timestamp(lastSuccessTimestamp.getTime());
     }
 
     /**
