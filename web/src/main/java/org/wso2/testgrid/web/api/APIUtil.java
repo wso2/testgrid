@@ -152,6 +152,11 @@ class APIUtil {
             if (requireTestScenarios) {
                 testPlanBean.setTestScenarios(getTestScenarioBeans(testPlan.getTestScenarios(), false));
             }
+            if (testPlan.getPhase() != null) {
+                testPlanBean.setPhase(testPlan.getPhase().toString());
+            } else {
+                testPlanBean.setPhase(null);
+            }
         }
         return testPlanBean;
     }

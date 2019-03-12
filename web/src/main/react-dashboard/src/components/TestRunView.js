@@ -32,6 +32,11 @@ import InfraCombinationHistory from "./InfraCombinationHistory";
 import ReactTooltip from 'react-tooltip'
 import {HTTP_OK} from "../constants";
 import OutputFilesPopover from "./OutputFilesPopover";
+import Chip from '@material-ui/core/Chip';
+import DoneIcon from '@material-ui/icons/Done';
+import CloseIcon from '@material-ui/icons/Close';
+import WaitIcon from '@material-ui/icons/Update';
+import IncompleteIcon from '@material-ui/icons/Flip';
 
 /**
  * View responsible for displaying test run log and summary information.
@@ -73,10 +78,10 @@ class TestRunView extends Component {
     currentInfra.testPlanId = this.props.currentInfra.testPlanId;
     currentInfra.infraParameters = this.props.currentInfra.infraParameters;
     currentInfra.testPlanStatus = this.props.currentInfra.testPlanStatus;
-    this.getReportData(currentInfra);
-    this.getGrafanaUrl(currentInfra.testPlanId);
     this.getTestPlanData(currentInfra);
     this.setState({currentInfra: currentInfra});
+    this.getReportData(currentInfra);
+    this.getGrafanaUrl(currentInfra.testPlanId);
   }
 
   componentDidMount() {
@@ -104,6 +109,7 @@ class TestRunView extends Component {
           currentInfra.testPlanId = data.id;
           currentInfra.infraParameters = data.infraParams;
           currentInfra.testPlanStatus = data.status;
+          currentInfra.testPlanPhase = data.phase;
           this.getReportData(currentInfra);
           this.getGrafanaUrl(currentInfra.testPlanId);
           this.getTestPlanData(currentInfra);
@@ -150,13 +156,15 @@ class TestRunView extends Component {
           this.setState({
             logDownloadStatus: response.ok ? SUCCESS : ERROR
           });
-          return response.json();
-        }).then(data =>
-        this.setState({
-          logContent: data.inputStreamContent,
-          isLogTruncated: data.truncated,
-          inputStreamSize: data.completeInputStreamSize
-        }));
+          if (response.ok) {
+            let json = response.json();
+            this.setState({
+              logContent: json.inputStreamContent,
+              isLogTruncated: json.truncated,
+              inputStreamSize: json.completeInputStreamSize
+            })
+          }
+        });
     }
   }
 
@@ -253,10 +261,108 @@ class TestRunView extends Component {
                     this.setState({deploymentLogsUrl: data.logUrl});
                     this.setState({buildURL: data.buildURL});
                     currentInfra.testRunNumber = data.testRunNumber;
+                    currentInfra.testPlanPhase = data.phase;
                   })
           .catch(error => console.error(error));
   }
 
+  parsePhases(){
+    if (this.state && this.state.currentInfra.testPlanStatus === "SUCCESS") {
+      return (
+        <div>
+          <br/>
+          <Chip style={{background: 'white', color: "green", margin: "5px"}}
+                icon={<DoneIcon/>}
+                label="PREPARTION"
+                color="primary"
+          />
+          <Chip style={{background: 'white', color: "green", margin: "5px"}}
+                icon={<DoneIcon/>}
+                label="INFRA"
+                color="primary"
+          />
+          <Chip style={{background: 'white', color: "green", margin: "5px"}}
+                icon={<DoneIcon/>}
+                label="DEPLOY"
+                color="primary"
+          />
+          <Chip style={{background: 'white', color: "green", margin: "5px"}}
+                icon={<DoneIcon/>}
+                label="TEST"
+                color="primary"
+          />
+        </div>)
+    } else if (this.state.currentInfra.testPlanPhase) {
+      return <div><br/>
+        {(() => {
+          var phase = this.state.currentInfra.testPlanPhase;
+          var phases = ["PREPARATION", "INFRA", "DEPLOY", "TEST"];
+          var stage;
+          var foundError = false;
+          var foundStarted = false;
+          var foundSucceeded = false;
+          var rows = [];
+          for (var i = 0; i < phases.length; i++) {
+            if (phases[i] === phase.slice(0, phase.indexOf('_'))) {
+              stage = phase.slice(phase.lastIndexOf('_') + 1)
+              switch (stage) {
+                case "ERROR":
+                  rows.push(
+                    <Chip style={{background: 'white', color: "red", margin: "5px"}}
+                          icon={<CloseIcon/>}
+                          label={phases[i]}
+                          color="primary"
+                    />)
+                  foundError = true;
+                  break;
+                case "SUCCEEDED":
+                  rows.push(
+                    <Chip style={{background: 'white', color: "green", margin: "5px"}}
+                          icon={<DoneIcon/>}
+                          label={phases[i]}
+                          color="primary"
+                    />)
+                  foundSucceeded = true;
+                  break;
+                case "INCOMPLETE":
+                  rows.push(
+                    <Chip style={{background: 'white', color: "brown", margin: "5px"}}
+                          icon={<IncompleteIcon/>}
+                          label={phases[i]}
+                          color="primary"
+                    />)
+                  foundError = true;
+                  break;
+                case "STARTED":
+                  default:
+                  rows.push(<Chip style={{background: 'white', color: "green", margin: "5px"}}
+                          icon={<i className="fa fa-spinner fa-pulse"/>}
+                          label={phases[i]}
+                          color="primary"
+                    />)
+                    foundStarted = true;
+                  break;
+              }
+            } else if (foundStarted || foundSucceeded) {
+              rows.push(
+                <Chip style={{background: 'white', color: "grey", margin: "5px"}}
+                      icon={<WaitIcon/>}
+                      label={phases[i]}
+                      color="primary"
+                />)
+            } else if (!foundError){
+              rows.push(
+                <Chip style={{background: 'white', color: "green", margin: "5px"}}
+                      icon={<DoneIcon/>}
+                      label={phases[i]}
+                      color="primary"
+                />)
+            }
+          }
+          return rows;
+        })()} </div>
+    }
+  }
   render() {
     var pageURL = window.location.href;
     const PERFDASH_URL = this.state.grafanaUrl
@@ -280,22 +386,6 @@ class TestRunView extends Component {
         />
         {this.state && this.state.currentInfra && (() => {
           switch (this.state.currentInfra.testPlanStatus) {
-            case FAIL:
-            case ERROR:
-              return <Row>
-                <Col sm="12">
-                  <Card body inverse style={{ backgroundColor: '#e57373', borderColor: '#e57373' }}>
-                    <CardTitle><i className="fa fa-exclamation-circle" aria-hidden="true"
-                                  data-tip={this.state.currentInfra.testPlanStatus}>
-                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct} Job</span>
-                    </i><ReactTooltip/>
-                    </CardTitle>
-                    <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
-                    </CardText>
-                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
-                  </Card>
-                </Col>
-              </Row>;
             case SUCCESS:
               return <Row>
                 <Col sm="12">
@@ -308,12 +398,27 @@ class TestRunView extends Component {
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
                     </CardText>
                     {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {this.parsePhases()}
                   </Card>
                 </Col>
               </Row>;
-            case PENDING:
+            case FAIL:
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse style={{ backgroundColor: "#e57373", borderColor: "#e57373" }}>
+                    <CardTitle><i className="fa fa fa-times-circle" aria-hidden="true"
+                                  data-tip={this.state.currentInfra.testPlanStatus}>
+                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct} Job</span>
+                    </i><ReactTooltip/>
+                    </CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
+                    </CardText>
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {this.parsePhases()}
+                  </Card>
+                </Col>
+              </Row>;
             case RUNNING:
-            default:
               return <Row>
                 <Col sm="12">
                   <Card body inverse color="info">
@@ -325,9 +430,30 @@ class TestRunView extends Component {
                     <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
                     </CardText>
                     {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {this.parsePhases()}
                   </Card>
                 </Col>
               </Row>;
+            default:
+            case PENDING:
+            case DID_NOT_RUN:
+            case ERROR:
+              return <Row>
+                <Col sm="12">
+                  <Card body inverse style={{ backgroundColor: "#d6d6d6", borderColor: "#d6d6d6" }}>
+                    <CardTitle><i className="fa fa-exclamation-triangle" aria-hidden="true"
+                                  data-tip={this.state.currentInfra.testPlanStatus}>
+                      <span style={{fontSize: "120%"}}> {this.state.currentInfra.relatedProduct} Job</span>
+                    </i><ReactTooltip/>
+                    </CardTitle>
+                    <CardText>{this.state.currentInfra.relatedDeplymentPattern} #{this.state.currentInfra.testRunNumber}
+                    </CardText>
+                    {InfraCombinationHistory.parseInfraCombination(this.state.currentInfra.infraParameters)}
+                    {this.parsePhases()}
+                  </Card>
+                </Col>
+              </Row>;
+
           }
         })()}
         {divider}
@@ -377,7 +503,7 @@ class TestRunView extends Component {
               <td>
                 {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
                   if (this.state.currentInfra.testPlanStatus === RUNNING) {
-                    return <div style={{"padding-left": "10px"}}>
+                    return <div style={{paddingLeft: '10px'}}>
                       <Button disabled variant="contained">
                       <i className="fa fa-download" aria-hidden="true"> </i>  &nbsp;Downloads
                       </Button> </div>

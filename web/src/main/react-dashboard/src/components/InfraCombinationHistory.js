@@ -98,7 +98,7 @@ class InfraCombinationHistory extends Component {
     return (
       <div>
         <b style={{'padding-left': '10px'}}>Build History</b>
-        <Table responsive fixedHeader={false}>
+        <Table responsive hover fixedHeader={false}>
           <thead displaySelectAll={false} adjustForCheckbox={false}>
           <tr>
             <th>#</th>
@@ -111,23 +111,22 @@ class InfraCombinationHistory extends Component {
           {this.state.hits
             .sort((a, b) => b.createdTimestamp - a.createdTimestamp)
             .map((data, index) => {
-              return (<tr key={index}>
+              return (
+                <tr key="index" style={{height: 'inherit', width: '100%', 'max-width': '150px', cursor: 'pointer'}}
+                     onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
+                       productName + "/" +
+                       deploymentPatternName + "/test-plans/"
+                       + data.id, {
+                       deploymentPatternName:
+                       this.state.currentInfra.relatedProduct
+                     }, {
+                       testPlanId: data.id,
+                       infraParameters: data.infraParams,
+                       testPlanStatus: data.status
+                     })}>
                 <td>{data.testRunNumber}</td>
                 <td>
-                  <div style={{height: 'inherit', width: '100%', 'max-width': '150px'}}
-                              onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
-                                productName + "/" +
-                                deploymentPatternName + "/test-plans/"
-                                + data.id, {
-                                deploymentPatternName:
-                                this.state.currentInfra.relatedProduct
-                              }, {
-                                testPlanId: data.id,
-                                infraParameters: data.infraParams,
-                                testPlanStatus: data.status
-                              })}>
                     <SingleRecord value={data.status}/>
-                  </div>
                 </td>
                 <td>{Moment(data.createdTimestamp).calendar()}</td>
               </tr>)
