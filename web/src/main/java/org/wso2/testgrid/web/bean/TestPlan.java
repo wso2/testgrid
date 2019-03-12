@@ -29,6 +29,7 @@ public class TestPlan {
     private String deploymentPatternId;
     private String deploymentPattern;
     private String status;
+    private String phase;
     private String infraParams;
     private String logUrl;
     private List<TestScenario> testScenarios;
@@ -240,5 +241,21 @@ public class TestPlan {
      */
     public void setTestRunNumber(int testRunNumber) {
         this.testRunNumber = testRunNumber;
+    }
+
+    /**
+     * Returns the phase (the last updated phase) of the test-plan
+     * @return phase of the test-plan
+     */
+    public String getPhase() {
+        return phase;
+    }
+
+    /**
+     * Sets the phase (the last-update phase) of the test-plan
+     * @param phase phase of the test-plan
+     */
+    public void setPhase(String phase) {
+        this.phase = phase;
     }
 }

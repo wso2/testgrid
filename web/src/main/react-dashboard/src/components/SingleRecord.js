@@ -18,7 +18,7 @@
 
 import React, {Component} from 'react';
 import Moment from 'moment';
-import {SUCCESS, ERROR, PENDING, RUNNING, INCOMPLETE, DID_NOT_RUN} from '../constants.js';
+import {SUCCESS, ERROR, PENDING, FAIL, RUNNING, INCOMPLETE, DID_NOT_RUN} from '../constants.js';
 import 'font-awesome/css/font-awesome.min.css';
 import {Button} from "reactstrap";
 import ReactTooltip from 'react-tooltip'
@@ -40,39 +40,11 @@ class SingleRecord extends Component {
           </Button>
         </div>
       )
-    } else if (this.props.value === INCOMPLETE) {
+    } else if (this.props.value === ERROR || this.props.value === INCOMPLETE || this.props.value === DID_NOT_RUN || this.props.value === PENDING) {
       return (
         <div>
-          <Button onClick={this.props.nevigate} outline color="info" size="sm" className="incomplete-status-btn">
-            <i className="fa fa-hourglass-half" aria-hidden="true" data-tip="Incomplete!"> </i>
-            <ReactTooltip/>
-            {(() => {
-              if (this.props.time) {
-                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
-              }
-            })()}
-          </Button>
-        </div>
-      )
-    } else if (this.props.value === DID_NOT_RUN) {
-      return (
-        <div>
-          <Button onClick={this.props.nevigate} outline color="info" size="sm" className="not-run-status-btn">
-            <i className="fa fa-ban" aria-hidden="true" data-tip="Did Not Run!"> </i>
-            <ReactTooltip/>
-            {(() => {
-              if (this.props.time) {
-                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
-              }
-            })()}
-          </Button>
-        </div>
-      )
-    } else if (this.props.value === ERROR) {
-      return (
-        <div>
-          <Button onClick={this.props.nevigate} outline color="danger" size="sm" className="error-status-btn">
-            <i className="fa fa-times-circle" aria-hidden="true" data-tip="Error!"> </i>
+          <Button onClick={this.props.nevigate} outline color="secondary" size="sm" className="error-status-btn">
+            <i className="fa fa-exclamation-triangle" aria-hidden="true" data-tip="Error!"> </i>
             <ReactTooltip/>
             {(() => {
               if (this.props.time) {
@@ -97,11 +69,11 @@ class SingleRecord extends Component {
           </Button>
         </div>
       )
-    } else if (this.props.value === PENDING) {
+    } else if (this.props.value === FAIL) {
       return (
         <div>
-          <Button onClick={this.props.nevigate} outline color="info" size="sm">
-            <i className="fa fa-tasks" aria-hidden="true" data-tip="Pending!"> </i>
+          <Button onClick={this.props.nevigate} outline color="danger" size="sm">
+            <i className="fa fa fa-times-circle" aria-hidden="true" data-tip="Failed!"> </i>
             <ReactTooltip/>
             {(() => {
               if (this.props.time) {
@@ -113,19 +85,17 @@ class SingleRecord extends Component {
       )
     }
     else {
-      return (
-        <div>
-          <Button onClick={this.props.nevigate} outline color="danger" size="sm">
-            <i className="fa fa-exclamation-circle" aria-hidden="true" data-tip="Failed!"> </i>
-            <ReactTooltip/>
-            {(() => {
-              if (this.props.time) {
-                return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
-              }
-            })()}
-          </Button>
-        </div>
-      )
+      return (<div>
+        <Button onClick={this.props.nevigate} outline color="secondary" size="sm">
+          <i className="fa fa-question-circle" aria-hidden="true" data-tip="Unknown Statue!"> </i>
+          <ReactTooltip/>
+          {(() => {
+            if (this.props.time) {
+              return (<span className="label"><i> {Moment(this.props.time).fromNow()}</i></span>);
+            }
+          })()}
+        </Button>
+      </div>)
     }
   }
 }

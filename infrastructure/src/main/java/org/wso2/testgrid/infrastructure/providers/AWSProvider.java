@@ -610,9 +610,9 @@ public class AWSProvider implements InfrastructureProvider {
                     String awsCLISetup = "YUM_CMD=$(which yum)\n" +
                             "APT_GET_CMD=$(which apt-get)\n" +
                             "if [[ ! -z $YUM_CMD ]]; then\n" +
-                            "yum install awscli\n" +
+                            "sudo yum -y install awscli\n" +
                             "elif [[ ! -z $APT_GET_CMD ]]; then\n" +
-                            "apt-get awscli\n" +
+                            "sudo apt -y install awscli\n" +
                             "fi\n";
 
                     String perfMonitoringSetup = "if [ ! -f /opt/testgrid/agent/telegraf_setup.sh ]; then\n" +
