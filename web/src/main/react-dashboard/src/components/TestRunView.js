@@ -35,7 +35,7 @@ import OutputFilesPopover from "./OutputFilesPopover";
 import Chip from '@material-ui/core/Chip';
 import DoneIcon from '@material-ui/icons/Done';
 import CloseIcon from '@material-ui/icons/Close';
-import WaitIcon from '@material-ui/icons/Update';
+import WaitIcon from '@material-ui/icons/DoneOutline';
 import IncompleteIcon from '@material-ui/icons/Flip';
 
 /**
@@ -273,7 +273,7 @@ class TestRunView extends Component {
           <br/>
           <Chip style={{background: 'white', color: "green", margin: "5px"}}
                 icon={<DoneIcon/>}
-                label="PREPARTION"
+                label="PREPARATION"
                 color="primary"
           />
           <Chip style={{background: 'white', color: "green", margin: "5px"}}
