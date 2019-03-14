@@ -173,6 +173,29 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
     }
 
     /**
+     * This method returns the last stable(status with {SUCCESS, FAIL, ERROR}) {@link TestPlan} for a
+     * given product.
+     *
+     * @param testPlan testPlan with the same infra-params.
+     * @return instance of a {@link TestPlan} representing the last failed test plan.
+     */
+    public TestPlan getLastStableBuild(TestPlan testPlan) {
+        String sql = "select * from test_plan where infra_parameters= ?  AND DEPLOYMENTPATTERN_id=? " +
+                " AND status!='RUNNING' order by modified_timestamp desc limit 1";
+
+        List resultList = entityManager.createNativeQuery(sql, TestPlan.class)
+                .setParameter(1, testPlan.getInfraParameters())
+                .setParameter(2, testPlan.getDeploymentPattern().getId())
+                .getResultList();
+
+        if (!resultList.isEmpty()) {
+            return (TestPlan) EntityManagerHelper.refreshResult(entityManager, resultList.get(0));
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * This method returns the last build TestPlan for a given product.
      *
      * @param product the product being queried
@@ -212,6 +235,50 @@ public class TestPlanRepository extends AbstractRepository<TestPlan> {
         StringBuilder sql = new StringBuilder(
                 "select tp.* from test_plan tp inner join (Select distinct infra_parameters, max(test_run_number) "
                         + "as test_run_number from test_plan where  DEPLOYMENTPATTERN_id in (");
+        if (deploymentIds.isEmpty()) {
+            return Collections.emptyList();
+        } else {
+            int deploymentIdLen = deploymentIds.size();
+            for (int i = 0; i < deploymentIdLen - 1; i++) {
+                sql.append("?, ");
+            }
+            sql.append("?) group by infra_parameters, DEPLOYMENTPATTERN_id) as latest_test_run_nums on "
+                    + "tp.infra_parameters=latest_test_run_nums.infra_parameters and "
+                    + "tp.test_run_number=latest_test_run_nums.test_run_number and tp.DEPLOYMENTPATTERN_id in (");
+            for (int i = 0; i < deploymentIdLen - 1; i++) {
+                sql.append("?, ");
+            }
+            sql.append("?);");
+            Query query = entityManager.createNativeQuery(sql.toString(), TestPlan.class);
+            int index = 1;
+            for (int i = 0; i < 2; i++) {
+                for (String s : deploymentIds) {
+                    query.setParameter(index++, s);
+                }
+            }
+            @SuppressWarnings("unchecked")
+            List<TestPlan> resultList = (List<TestPlan>) query.getResultList();
+            return EntityManagerHelper.refreshResultList(entityManager, resultList);
+        }
+    }
+
+    /**
+     * This method retrives a list of TestPlans for a given product that represent the latest builds for
+     * distinct infra combinations.
+     *
+     * @param product the product being queried
+     * @return a list of {@link TestPlan}
+     */
+    public List<TestPlan> getLatestStableTestPlans(Product product) {
+        String deploymentIdsRetrievingQuery = "select id from deployment_pattern where PRODUCT_id= ?;";
+        @SuppressWarnings("unchecked")
+        List<String> deploymentIds = (List<String>) entityManager
+                .createNativeQuery(deploymentIdsRetrievingQuery).setParameter(1, product.getId()).getResultList();
+
+        StringBuilder sql = new StringBuilder(
+                "select tp.* from test_plan tp inner join (Select distinct infra_parameters, max(test_run_number) "
+                        + "as test_run_number from test_plan " +
+                        "where test_plan.status != 'RUNNING' and DEPLOYMENTPATTERN_id in (");
         if (deploymentIds.isEmpty()) {
             return Collections.emptyList();
         } else {

@@ -18,7 +18,6 @@
 package org.wso2.testgrid.dao.uow;
 
 import org.wso2.testgrid.common.Product;
-import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.dao.EntityManagerHelper;
@@ -133,20 +132,37 @@ public class TestPlanUOW {
      * statuses.
      *
      * @param product the product being queried
-     * @return a {@link Status} for the product
+     * @return a {@link TestPlanStatus} for the product
      */
-    public Status getCurrentStatus(Product product) {
+    public TestPlanStatus getCurrentStatus(Product product) {
         List<TestPlan> testPlans = testPlanRepository.getLatestTestPlans(product);
         List<TestPlan> succesfulPlans = testPlans.stream().filter(testPlan ->
                 testPlan.getStatus().equals(TestPlanStatus.SUCCESS)
         ).collect(Collectors.toList());
         boolean running = testPlans.stream().anyMatch(testPlan -> TestPlanStatus.RUNNING.equals(testPlan.getStatus()));
+        boolean error = testPlans.stream().anyMatch(testPlan -> TestPlanStatus.ERROR.equals(testPlan.getStatus()));
         //check if there are pending test_plans
+
         if (running) {
-            return Status.RUNNING;
+            return TestPlanStatus.RUNNING;
+        } else if (error) {
+            return TestPlanStatus.ERROR;
         } else {
-            return succesfulPlans.size() == testPlans.size() ? Status.SUCCESS : Status.FAIL;
+            return succesfulPlans.size() == testPlans.size() ? TestPlanStatus.SUCCESS : TestPlanStatus.FAIL;
         }
+    }
+
+    public TestPlanStatus getLastStableStatus(Product product) {
+        List<TestPlan> testPlans = testPlanRepository.getLatestStableTestPlans(product);
+        List<TestPlan> succesfulPlans = testPlans.stream().filter(testPlan ->
+                testPlan.getStatus().equals(TestPlanStatus.SUCCESS)
+        ).collect(Collectors.toList());
+        boolean error = testPlans.stream().anyMatch(testPlan -> TestPlanStatus.ERROR.equals(testPlan.getStatus()));
+        if (error) {
+            return TestPlanStatus.ERROR;
+        }
+        //check if there are pending test_plans
+        return succesfulPlans.size() == testPlans.size() ? TestPlanStatus.SUCCESS : TestPlanStatus.FAIL;
     }
 
     /**

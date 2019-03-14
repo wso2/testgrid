@@ -22,7 +22,6 @@ package org.wso2.testgrid.reporting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
-import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestPlanStatus;
@@ -179,7 +178,7 @@ public class EmailReportProcessor {
      * @param product product
      * @return current status of the product
      */
-    public Status getProductStatus(Product product) {
+    public TestPlanStatus getProductStatus(Product product) {
         return testPlanUOW.getCurrentStatus(product);
     }
 

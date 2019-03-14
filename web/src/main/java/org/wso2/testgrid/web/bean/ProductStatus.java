@@ -35,6 +35,7 @@ public class ProductStatus implements Comparable<ProductStatus> {
     private String configLink;
     private Timestamp lastSuccessTimestamp;
     private Timestamp lastFailureTimestamp;
+    private boolean isRunning;
 
     public ProductStatus(String productId, String productName, String productStatus) {
         this.productId = productId;
@@ -229,5 +230,13 @@ public class ProductStatus implements Comparable<ProductStatus> {
         }
 
         return this.productId.compareTo(productStatus.productId);
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
+
+    public void setRunning(boolean running) {
+        isRunning = running;
     }
 }

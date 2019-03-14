@@ -26,6 +26,9 @@ import {HTTP_UNAUTHORIZED, LOGIN_URI, TESTGRID_API_CONTEXT, TESTGRID_CONTEXT} fr
 import {Alert, Input, Table} from 'reactstrap';
 import Moment from "moment/moment";
 import {HTTP_NOT_FOUND} from "../constants";
+import {Button} from "reactstrap";
+import SearchIcon from '@material-ui/icons/Search';
+
 
 class DeploymentPatternView extends Component {
 
@@ -206,15 +209,18 @@ class DeploymentPatternView extends Component {
         {this.state && this.state.product && (() => {
           return (
             <div>
-              <div>
-                <Input placeholder="Search Infra..." innerRef={Input => this.search = Input}
-                       onChange={this.handleInputChange}/>
+              <div style={{textAlign: 'left'}}>
+                <div  style={{display:'inline-block'}}>{<SearchIcon/>}</div>
+                  <div style={{display:'inline-block', width: '90%'}}><Input  placeholder="Filter by infra-parameters.."
+                                                         innerRef={Input => this.search = Input} onChange={this.handleInputChange}/></div>
               </div>
               <Table responsive bordered className='deployment-pattern-view' fixedHeader={false} size="sm">
                 <thead displaySelectAll={false} adjustForCheckbox={false}>
                 <tr style={{borderBottom: '0'}}>
                   <th rowSpan='2' className="text-center">Deployment Pattern</th>
-                  <th className="text-center">Infra Combination</th>
+                  <th className="text-center">
+                    Infra Combination
+                  </th>
                   <th rowSpan='2' className="text-center">Last Build</th>
                   <th rowSpan='2' className="text-center">Last Failure</th>
                 </tr>
@@ -235,7 +241,8 @@ class DeploymentPatternView extends Component {
                         return (
                           <tr>
                             <td className='deployment-pattern-name'
-                                rowSpan={groupByDeployment[key].length}>{key}</td>
+                                rowSpan={groupByDeployment[key].length}>
+                              <div style={{textAlign:'center'}}>{key}</div></td>
                             <td style={{whiteSpace: 'normal', wordWrap: 'break-word'}}>
                               <FlatButton class='view-history' data-tip="View History"
                                           onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
@@ -259,6 +266,7 @@ class DeploymentPatternView extends Component {
                               <ReactTooltip/>
                             </td>
                             <td>
+                              <div style={{textAlign:'center'}}>
                               <FlatButton style={{height: 'inherit', width: '100%', maxWidth: '150px'}}
                                           onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
                                             this.state.product.productName + "/" + key + "/test-plans/" +
@@ -272,26 +280,33 @@ class DeploymentPatternView extends Component {
                                 <SingleRecord value={value.lastBuild.status}
                                               time={value.lastBuild.modifiedTimestamp}/>
                               </FlatButton>
+                              </div>
                             </td>
                             <td style={{fontSize: '16px'}}>
                               {(() => {
                                 if (value.lastFailed.modifiedTimestamp) {
                                   return (
-                                    <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT +
-                                      "/" + this.state.product.productName + "/" + key +
-                                      "/test-plans/" + value.lastFailed.id,
-                                      {deploymentPatternName: key}, {
-                                        testPlanId: value.lastFailed.id,
-                                        infraParameters: value.lastFailed.infraParams,
-                                        testPlanStatus: value.lastFailed.status
-                                      })}
-                                       style={{cursor: 'pointer'}}>{Moment(value.lastFailed.modifiedTimestamp).fromNow()}</i>
+                                    <div style={{textAlign:'center'}}>
+                                      <Button  outline color="danger" size="sm"
+                                               onClick={() => this.navigateToRoute(TESTGRID_CONTEXT +
+                                                 "/" + this.state.product.productName + "/" + key +
+                                                 "/test-plans/" + value.lastFailed.id,
+                                                 {deploymentPatternName: key}, {
+                                                   testPlanId: value.lastFailed.id,
+                                                   infraParameters: value.lastFailed.infraParams,
+                                                   testPlanStatus: value.lastFailed.status
+                                                 })}>
+                                        {Moment(value.lastFailed.modifiedTimestamp).fromNow()}
+                                      </Button>
+                                    </div>
                                   );
                                 } else {
                                   return (
-                                    <FlatButton
+                                    <div style={{textAlign:'center'}}>
+                                    <FlatButton disabled
                                       style={{fontSize: '16px'}}>No failed builds yet!
                                     </FlatButton>
+                                    </div>
                                   )
                                 }
                               })()}
@@ -333,6 +348,7 @@ class DeploymentPatternView extends Component {
                               <ReactTooltip/>
                             </td>
                             <td>
+                              <div style={{textAlign:'center'}}>
                               <FlatButton style={{height: 'inherit', width: '100%', maxWidth: '150px'}}
                                           onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" +
                                             this.state.product.productName + "/" + key + "/test-plans/" +
@@ -346,26 +362,33 @@ class DeploymentPatternView extends Component {
                                 <SingleRecord value={value.lastBuild.status}
                                               time={value.lastBuild.modifiedTimestamp}/>
                               </FlatButton>
+                              </div>
                             </td>
                             <td style={{fontSize: '16px'}}>
                               {(() => {
                                 if (value.lastFailed.modifiedTimestamp) {
                                   return (
-                                    <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT +
-                                      "/" + this.state.product.productName + "/" + key +
-                                      "/test-plans/" + value.lastFailed.id,
-                                      {deploymentPatternName: key}, {
-                                        testPlanId: value.lastFailed.id,
-                                        infraParameters: value.lastFailed.infraParams,
-                                        testPlanStatus: value.lastFailed.status
-                                      })}
-                                       style={{cursor: 'pointer'}}>{Moment(value.lastFailed.modifiedTimestamp).fromNow()}</i>
+                                    <div style={{textAlign:'center'}}>
+                                    <Button  outline color="danger" size="sm"
+                                                onClick={() => this.navigateToRoute(TESTGRID_CONTEXT +
+                                                  "/" + this.state.product.productName + "/" + key +
+                                                  "/test-plans/" + value.lastFailed.id,
+                                                  {deploymentPatternName: key}, {
+                                                    testPlanId: value.lastFailed.id,
+                                                    infraParameters: value.lastFailed.infraParams,
+                                                    testPlanStatus: value.lastFailed.status
+                                                  })}>
+                                        {Moment(value.lastFailed.modifiedTimestamp).fromNow()}
+                                    </Button>
+                                    </div>
                                   );
                                 } else {
                                   return (
-                                    <FlatButton style={{fontSize: '16px'}}>
+                                    <div style={{textAlign:'center'}}>
+                                    <FlatButton disabled style={{fontSize: '16px'}}>
                                       No failed builds yet!
                                     </FlatButton>
+                                    </div>
                                   )
                                 }
                               })()}
