@@ -26,11 +26,16 @@ import ReactTooltip from 'react-tooltip'
 class SingleRecord extends Component {
 
   render() {
+    if (this.props.isRunning && this.props.isRunning ===true) {
+      var animate = "fa-pulse";
+    } else {
+      animate = "";
+    }
     if (this.props.value === SUCCESS || this.props.value === true) {
       return (
         <div>
           <Button onClick={this.props.nevigate} outline color="success" size="sm" className="success-status-btn">
-            <i className="fa fa-check-circle" aria-hidden="true" data-tip="Success!"> </i>
+            <i className={"fa fa-check-circle " + animate} aria-hidden="true" data-tip="Success!"> </i>
             <ReactTooltip/>
             {(() => {
               if (this.props.time) {
@@ -44,7 +49,7 @@ class SingleRecord extends Component {
       return (
         <div>
           <Button onClick={this.props.nevigate} outline color="secondary" size="sm" className="error-status-btn">
-            <i className="fa fa-exclamation-triangle" aria-hidden="true" data-tip="Error!"> </i>
+            <i className={"fa fa-exclamation-triangle " + animate} aria-hidden="true" data-tip="Error!"> </i>
             <ReactTooltip/>
             {(() => {
               if (this.props.time) {
@@ -58,7 +63,7 @@ class SingleRecord extends Component {
       return (
         <div>
           <Button onClick={this.props.nevigate} outline color="info" size="sm" className="running-status-btn">
-            <i className="fa fa-spinner fa-pulse" data-tip="Running!"> </i>
+            <i className={"fa fa-spinner fa-pulse " + animate} data-tip="Running!"> </i>
             <span className="sr-only">Loading...</span>
             <ReactTooltip/>
             {(() => {
@@ -73,7 +78,7 @@ class SingleRecord extends Component {
       return (
         <div>
           <Button onClick={this.props.nevigate} outline color="danger" size="sm">
-            <i className="fa fa fa-times-circle" aria-hidden="true" data-tip="Failed!"> </i>
+            <i className={"fa fa fa-times-circle " + animate} aria-hidden="true" data-tip="Failed!"> </i>
             <ReactTooltip/>
             {(() => {
               if (this.props.time) {
@@ -87,7 +92,7 @@ class SingleRecord extends Component {
     else {
       return (<div>
         <Button onClick={this.props.nevigate} outline color="secondary" size="sm">
-          <i className="fa fa-question-circle" aria-hidden="true" data-tip="Unknown Statue!"> </i>
+          <i className={"fa fa-question-circle " + animate} aria-hidden="true" data-tip="Unknown Statue!"> </i>
           <ReactTooltip/>
           {(() => {
             if (this.props.time) {

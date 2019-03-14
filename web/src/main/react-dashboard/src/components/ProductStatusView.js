@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,6 +24,7 @@ import Moment from 'moment'
 import {HTTP_OK, HTTP_NOT_FOUND, HTTP_UNAUTHORIZED, LOGIN_URI,
   TESTGRID_CONTEXT, TESTGRID_API_CONTEXT} from '../constants.js';
 import {Button, Table, Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap';
+import FlatButton from 'material-ui/FlatButton';
 
 class ProductStatusView extends Component {
 
@@ -108,7 +109,11 @@ class ProductStatusView extends Component {
   render() {
     const products = this.state.hits.map((product, index) => {
       return (<tr key={index}>
-        <td onClick={() => this.navigateToJob(product)}><SingleRecord value={product.productStatus}/></td>
+        <td onClick={() => this.navigateToJob(product)}>
+          <SingleRecord value={product.productStatus}
+          isRunning={product.running}
+          />
+        </td>
         <th onClick={() => this.navigateToJob(product)} scope="row  ">
           <i style={{cursor: 'pointer'}}>{product.productName}</i>
         </th>
@@ -128,15 +133,15 @@ class ProductStatusView extends Component {
           {(() => {
             if (product.lastFailureTimestamp) {
               return (
-                <i onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" + product.productName, {
+                <Button outline color="danger" size="sm" onClick={() => this.navigateToRoute(TESTGRID_CONTEXT + "/" + product.productName, {
                   productId: product.productId,
                   productName: product.productName,
                   productStatus: product.productStatus
                 })} style={{cursor: 'pointer'}}>
-                  {Moment(product.lastFailureTimestamp).fromNow()}</i>
+                  {Moment(product.lastFailureTimestamp).fromNow()}</Button>
               );
             } else {
-              return ("No failed builds yet!")
+              return (<FlatButton disabled>No failed builds yet!</FlatButton>)
             }
           })()}
         </td>
@@ -160,7 +165,7 @@ class ProductStatusView extends Component {
 
     return (
       <div>
-        <Table responsive>
+        <Table hover responsive>
           <thead displaySelectAll={false} adjustForCheckbox={false}>
           <tr>
             <th>Status</th>

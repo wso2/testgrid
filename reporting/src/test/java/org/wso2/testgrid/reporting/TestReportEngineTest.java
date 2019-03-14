@@ -34,8 +34,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.testgrid.common.Product;
-import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 
@@ -74,7 +74,7 @@ public class TestReportEngineTest extends BaseClass {
                     }
                     return Optional.of(testPlans.get(Integer.valueOf(testPlanId)));
                 });
-        when(testPlanUOW.getCurrentStatus(product)).thenReturn(Status.FAIL);
+        when(testPlanUOW.getCurrentStatus(product)).thenReturn(TestPlanStatus.FAIL);
         when(testPlanUOW.getTestExecutionSummary(any())).thenReturn(testPlans.stream().map(tp -> tp.getStatus()
                 .toString()).collect(Collectors.toList()));
 

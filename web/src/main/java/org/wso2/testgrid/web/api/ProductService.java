@@ -22,6 +22,7 @@ import org.apache.velocity.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.plugins.AWSArtifactReader;
@@ -122,8 +123,18 @@ public class ProductService {
         TreeSet<ProductStatus> list = new TreeSet<>();
         try {
             for (Product product : productUOW.getProducts()) {
+                TestPlanStatus currentStatus = testPlanUOW.getCurrentStatus(product);
                 ProductStatus status = new ProductStatus(product.getId(), product.getName(),
-                        testPlanUOW.getCurrentStatus(product).toString());
+                        currentStatus.toString());
+                //If last test-plan status is running, update status to the last stable status and
+                //Set running property to true
+                if (currentStatus.equals(TestPlanStatus.RUNNING)) {
+                    currentStatus = testPlanUOW.getLastStableStatus(product);
+                    status.setProductStatus(currentStatus.toString());
+                    status.setRunning(true);
+                } else {
+                    status.setRunning(false);
+                }
                 status.setLastSuccessTimestamp(product.getLastSuccessTimestamp());
                 status.setLastFailureTimestamp(product.getLastFailureTimestamp());
                 list.add(status);
