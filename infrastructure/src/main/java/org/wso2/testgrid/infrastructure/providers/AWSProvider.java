@@ -515,7 +515,8 @@ public class AWSProvider implements InfrastructureProvider {
         AWSResourceManager awsResourceManager = new AWSResourceManager();
         awsResourceManager.notifyStackDeletion(testPlan, script, region);
 
-        boolean waitForStackDeletion = Boolean.parseBoolean(getProperty(ConfigurationProperties.WAIT_FOR_STACK_DELETION));
+        boolean waitForStackDeletion = Boolean
+                .parseBoolean(getProperty(ConfigurationProperties.WAIT_FOR_STACK_DELETION));
         if (waitForStackDeletion) {
             logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName, " to delete.."));
             Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new
