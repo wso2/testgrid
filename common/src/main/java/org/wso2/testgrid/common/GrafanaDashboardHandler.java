@@ -27,21 +27,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
 
 import java.io.DataOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.List;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import javax.ws.rs.ProcessingException;
 
 import static org.apache.http.protocol.HTTP.USER_AGENT;
 
@@ -99,33 +96,34 @@ public class GrafanaDashboardHandler {
 
         // add a new data source to grafana
         addGrafanaDataSource();
-        configureTelegrafHost();
+        //TODO: Fixing immediate build hanging issue.
+        //configureTelegrafHost();
 
     }
 
     /**
      * This method will set telegraf host name and start telegraf using tinkerer
      */
-    private void configureTelegrafHost() {
-        try {
-            String shellCommand;
-            TinkererSDK tinkererSDK = new TinkererSDK();
-            List<Agent> agents = tinkererSDK.getAgentListByTestPlanId(this.testplanID);
-
-            for (Agent vm : agents) {
-                shellCommand = "sudo sed -i 's/wso2_sever/" + vm.getInstanceName() + "-"
-                        + vm.getInstanceId() + "/g' /etc/telegraf/telegraf.conf";
-                logger.info(StringUtil.concatStrings("agent: ", vm.getInstanceName(), "Shell Command: ",
-                        shellCommand));
-                tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
-
-                shellCommand = "sudo systemctl start telegraf";
-                tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
-            }
-        } catch (ProcessingException | IllegalArgumentException e) {
-            logger.error("Error while configuring telegraf host for testplan " + testplanID, e);
-        }
-    }
+//    private void configureTelegrafHost() {
+//        try {
+//            String shellCommand;
+//            TinkererSDK tinkererSDK = new TinkererSDK();
+//            List<Agent> agents = tinkererSDK.getAgentListByTestPlanId(this.testplanID);
+//
+//            for (Agent vm : agents) {
+//                shellCommand = "sudo sed -i 's/wso2_sever/" + vm.getInstanceName() + "-"
+//                        + vm.getInstanceId() + "/g' /etc/telegraf/telegraf.conf";
+//                logger.info(StringUtil.concatStrings("agent: ", vm.getInstanceName(), "Shell Command: ",
+//                        shellCommand));
+//                tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
+//
+//                shellCommand = "sudo systemctl start telegraf";
+//                tinkererSDK.executeCommandAsync(vm.getAgentId(), shellCommand);
+//            }
+//        } catch (ProcessingException | IllegalArgumentException e) {
+//            logger.error("Error while configuring telegraf host for testplan " + testplanID, e);
+//        }
+//    }
 
     /**
      * This method creates a json string that describes the grafana datasource

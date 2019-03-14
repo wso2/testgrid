@@ -53,7 +53,6 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TimeOutBuilder;
-import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
@@ -89,6 +88,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
+import static org.wso2.testgrid.common.config.ConfigurationContext.getProperty;
 
 /**
  * This class provides the infrastructure from amazon web services (AWS).
@@ -222,8 +223,7 @@ public class AWSProvider implements InfrastructureProvider {
                     .withRegion(region)
                     .build();
             */
-            String tgEnvironment = ConfigurationContext.getProperty(ConfigurationContext.
-                    ConfigurationProperties.TESTGRID_ENVIRONMENT);
+            String tgEnvironment = getProperty(ConfigurationProperties.TESTGRID_ENVIRONMENT);
             final List<Parameter> populatedExpectedParameters = getParameters(expectedParameters, inputs,
                     testPlan.getInfrastructureConfig().getParameters(), testPlan);
             stackRequest
@@ -515,8 +515,7 @@ public class AWSProvider implements InfrastructureProvider {
         AWSResourceManager awsResourceManager = new AWSResourceManager();
         awsResourceManager.notifyStackDeletion(testPlan, script, region);
 
-        boolean waitForStackDeletion = Boolean.parseBoolean(ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.WAIT_FOR_STACK_DELETION));
+        boolean waitForStackDeletion = Boolean.parseBoolean(getProperty(ConfigurationProperties.WAIT_FOR_STACK_DELETION));
         if (waitForStackDeletion) {
             logger.info(StringUtil.concatStrings("Waiting for stack : ", stackName, " to delete.."));
             Waiter<DescribeStacksRequest> describeStacksRequestWaiter = new
@@ -568,23 +567,20 @@ public class AWSProvider implements InfrastructureProvider {
 
             //Set Remote Management
             if (CUSTOM_USER_DATA.equals(expected.getParameterKey())) {
-                String deploymentTinkererEP = ConfigurationContext.getProperty(ConfigurationContext.
-                        ConfigurationProperties.DEPLOYMENT_TINKERER_EP);
-                String deploymentTinkererUserName = ConfigurationContext.getProperty(ConfigurationContext.
-                        ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME);
-                String deploymentTinkererPassword = ConfigurationContext.getProperty(ConfigurationContext.
-                        ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
+                String deploymentTinkererEP = getProperty(ConfigurationProperties.DEPLOYMENT_TINKERER_EP);
+                String deploymentTinkererUserName = getProperty(ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME);
+                String deploymentTinkererPassword = getProperty(ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD);
                 String awsRegion = infraInputs.getProperty(AWS_REGION_PARAMETER);
                 if (awsRegion == null || awsRegion.isEmpty()) {
                     awsRegion = DEFAULT_REGION;
                 }
                 String windowsScript;
                 String customScript;
-                String scriptInputs = StringUtil.concatStrings(testPlanId, " ",
-                        ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.INFLUXDB_URL),
-                        " ", ConfigurationContext.getProperty(ConfigurationContext.
-                                ConfigurationProperties.INFLUXDB_USER), " ", ConfigurationContext.getProperty
-                                (ConfigurationContext.ConfigurationProperties.INFLUXDB_PASS));
+                String scriptInputs = StringUtil.concatStrings(
+                        testPlanId, " ",
+                        getProperty(ConfigurationProperties.INFLUXDB_URL), " ",
+                        getProperty(ConfigurationProperties.INFLUXDB_USER), " ",
+                        getProperty(ConfigurationProperties.INFLUXDB_PASS));
 
                 if (testPlan.getInfraParameters().toLowerCase(Locale.ENGLISH).contains("windows")) {
                     windowsScript = StringUtil.concatStrings("cmd.exe /C \"C:/testgrid/app/agent/init.bat  " +
@@ -639,13 +635,13 @@ public class AWSProvider implements InfrastructureProvider {
             //Set WUM credentials
             if (TestGridConstants.WUM_USERNAME_PROPERTY.equals(expected.getParameterKey())) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
-                        withParameterValue(ConfigurationContext.getProperty(
+                        withParameterValue(getProperty(
                                 ConfigurationProperties.WUM_USERNAME));
                 cfCompatibleParameters.add(awsParameter);
             }
             if (TestGridConstants.WUM_PASSWORD_PROPERTY.equals(expected.getParameterKey())) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
-                        withParameterValue(ConfigurationContext.getProperty(
+                        withParameterValue(getProperty(
                                 ConfigurationProperties.WUM_PASSWORD));
                 cfCompatibleParameters.add(awsParameter);
             }
@@ -653,14 +649,14 @@ public class AWSProvider implements InfrastructureProvider {
             if (String.valueOf(ConfigurationProperties.AWS_ACCESS_KEY_ID_CLUSTERING)
                     .equals(expected.getParameterKey())) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
-                        withParameterValue(ConfigurationContext.getProperty(
+                        withParameterValue(getProperty(
                                 ConfigurationProperties.AWS_ACCESS_KEY_ID_CLUSTERING));
                 cfCompatibleParameters.add(awsParameter);
             }
             if (String.valueOf(ConfigurationProperties.AWS_ACCESS_KEY_SECRET_CLUSTERING)
                     .equals(expected.getParameterKey())) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
-                        withParameterValue(ConfigurationContext.getProperty(
+                        withParameterValue(getProperty(
                                 ConfigurationProperties.AWS_ACCESS_KEY_SECRET_CLUSTERING));
                 cfCompatibleParameters.add(awsParameter);
             }
