@@ -85,7 +85,7 @@ public class GenerateTestPlanCommand implements Command {
 
     private static final Logger logger = LoggerFactory.getLogger(GenerateTestPlanCommand.class);
     private static final int RANDOMIZED_STR_LENGTH = 6;
-    private static final int MAXIMUM_TEST_PLANS_TO_PRINT = 5;
+    private static final int MAXIMUM_TEST_PLANS_TO_PRINT = 8;
 
     @Option(name = "--product",
             usage = "Product Name",
@@ -204,10 +204,8 @@ public class GenerateTestPlanCommand implements Command {
         if (printTestPlanPaths) {
             testPlanPaths.append("Generated test-plans: ").append(System.lineSeparator());
         } else {
-            logger.info(StringUtil.concatStrings("Test plans dir: ", infraGenDirectory));
-        }
-        if (printTestPlanPaths) {
-            logger.info(testPlanPaths.substring(0, testPlanPaths.length() - 1));
+            logger.info(StringUtil.concatStrings("Generated ", testPlans.size(), " plans. Test plans dir: ",
+                    infraGenDirectory));
         }
         for (int i = 0; i < testPlans.size(); i++) {
             TestPlan testPlan = testPlans.get(i);
@@ -251,8 +249,6 @@ public class GenerateTestPlanCommand implements Command {
              * yaml to avoid adding unnecessary lines to the test-plan file.
              */
             testPlanUOW.persistTestPlan(persistedTestPlan);
-            logger.info("");
-            logger.info("----------------------End of PREPARATION PHASE--------------------------");
             if (testPlan.getStatus() != null) {
 
                 logger.info("TestPlan Status: " + testPlan.getStatus().toString());
@@ -260,8 +256,13 @@ public class GenerateTestPlanCommand implements Command {
             if (testPlan.getPhase() != null) {
                 logger.info("TestPlan Phase: " + testPlan.getPhase().toString());
             }
-            logger.info("");
         }
+        if (printTestPlanPaths) {
+            logger.info(testPlanPaths.substring(0, testPlanPaths.length() - 1));
+        }
+        logger.info("");
+        logger.info("----------------------End of PREPARATION PHASE--------------------------");
+        logger.info("");
     }
 
     /**
@@ -311,47 +312,10 @@ public class GenerateTestPlanCommand implements Command {
      * @return the built testgrid.yaml bean
      */
     private TestgridYaml buildTestgridYamlContent(JobConfigFile jobConfigFile) {
-        //Need to make absolute paths from here
-        String infraRepositoryLocation = resolvePath(jobConfigFile.getInfrastructureRepository(), jobConfigFile);
-        String deployRepositoryLocation = resolvePath(jobConfigFile.getDeploymentRepository(), jobConfigFile);
-        String scenarioTestsRepositoryLocation = resolvePath(jobConfigFile.getScenarioTestsRepository(), jobConfigFile);
-        String configChangeSetRepositoryLocation = jobConfigFile.getConfigChangeSetRepository();
-        String configChangeSetBranchName = jobConfigFile.getConfigChangeSetBranchName();
-
-        StringBuilder testgridYamlBuilder = new StringBuilder();
-        String ls = System.lineSeparator();
-        testgridYamlBuilder
-                .append(getTestgridYamlFor(getTestGridYamlLocation(infraRepositoryLocation)))
-                .append(ls);
-        String testgridYamlContent = testgridYamlBuilder.toString().trim();
-        if (!testgridYamlContent.isEmpty()) {
-            if (!testgridYamlContent.contains("deploymentConfig")) {
-                testgridYamlBuilder
-                        .append(getTestgridYamlFor(getTestGridYamlLocation(deployRepositoryLocation)))
-                        .append(ls);
-            }
-            testgridYamlBuilder
-                    .append(getTestgridYamlFor(getTestGridYamlLocation(scenarioTestsRepositoryLocation)))
-                    .append(ls);
-            testgridYamlBuilder
-                    .append(getTestgridYamlFor(getTestGridYamlLocation(configChangeSetRepositoryLocation)))
-                    .append(ls);
-            testgridYamlBuilder
-                    .append(getTestgridYamlFor(getTestGridYamlLocation(configChangeSetBranchName)))
-                    .append(ls);
-        } else {
-            logger.warn(StringUtil.concatStrings(
-                    TestGridConstants.TESTGRID_YAML, " is missing in ", deployRepositoryLocation));
-        }
-        testgridYamlContent = testgridYamlBuilder.toString().trim();
-        if (testgridYamlContent.isEmpty() || !testgridYamlContent.contains("scenarioConfig")) {
-            testgridYamlContent = getTestgridYamlFor(Paths.get(testgridYamlLocation)).trim();
-        }
+        String testgridYamlContent = getTestgridYamlFor(Paths.get(testgridYamlLocation)).trim();
 
         if (testgridYamlContent.isEmpty()) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("job-config.yaml content: " + jobConfigFile.toString());
-            }
+            logger.error("Testgrid.yaml content is empty. job-config.yaml content: " + jobConfigFile.toString());
             throw new TestGridRuntimeException("Could not find testgrid.yaml content. It is either empty or the path "
                     + "could not be resolved via the job-config.yaml at: " + this.jobConfigFilePath);
         }
@@ -466,7 +430,7 @@ public class GenerateTestPlanCommand implements Command {
      * @return list of test-plans that instructs how a test-run need to be executed.
      */
     private List<TestPlan> generateTestPlans(Set<InfrastructureCombination> infrastructureCombinations,
-            TestgridYaml testgridYaml) throws CommandExecutionException {
+            TestgridYaml testgridYaml) {
         List<TestPlan> testConfigurations = new ArrayList<>();
         List<Provisioner> provisioners = testgridYaml.getInfrastructureConfig()
                 .getProvisioners();
@@ -594,7 +558,7 @@ public class GenerateTestPlanCommand implements Command {
      */
     private void removeDirectories(Path directory) throws IOException {
         if (Files.exists(directory)) {
-            logger.info(StringUtil.concatStrings("Removing test directory : ",
+            logger.debug(StringUtil.concatStrings("Removing test directory : ",
                     directory.toAbsolutePath().toString()));
             FileUtils.forceDelete(new File(directory.toString()));
         }
@@ -613,22 +577,6 @@ public class GenerateTestPlanCommand implements Command {
             } else {
                 return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
             }
-        }
-    }
-
-    /**
-     * If the testgrid yaml file is hidden in the directory, change the URI as to refer the hidden file.
-     * @param directory directory where the testgrid yaml file exists
-     * @return testgrid yaml file path
-     */
-    private Path getTestGridYamlLocation(String directory) {
-        Path hiddenYamlPath = Paths.get(
-                directory, TestGridConstants.HIDDEN_FILE_INDICATOR + TestGridConstants.TESTGRID_YAML);
-        Path defaultYamlPath = Paths.get(directory, TestGridConstants.TESTGRID_YAML);
-        if (Files.exists(hiddenYamlPath)) {
-            return hiddenYamlPath;
-        } else {
-            return defaultYamlPath;
         }
     }
 

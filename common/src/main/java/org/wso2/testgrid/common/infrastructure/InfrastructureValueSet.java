@@ -24,6 +24,7 @@ import org.wso2.testgrid.common.util.StringUtil;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * Represents a set of values of a given infrastructure 'type'.
@@ -74,9 +75,9 @@ public class InfrastructureValueSet {
 
     @Override
     public String toString() {
-        return "InfrastructureValueSet{" +
-                "name='" + type + '\'' +
-                ", values=\n" + values +
-                "\n}";
+        final String values = this.values.stream()
+                .map(InfrastructureParameter::getName)
+                .collect(Collectors.joining(", "));
+        return type + "={" + values + "}";
     }
 }
