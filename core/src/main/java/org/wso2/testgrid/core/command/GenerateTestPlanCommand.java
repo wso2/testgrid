@@ -430,7 +430,7 @@ public class GenerateTestPlanCommand implements Command {
      * @return list of test-plans that instructs how a test-run need to be executed.
      */
     private List<TestPlan> generateTestPlans(Set<InfrastructureCombination> infrastructureCombinations,
-            TestgridYaml testgridYaml) throws CommandExecutionException {
+            TestgridYaml testgridYaml) {
         List<TestPlan> testConfigurations = new ArrayList<>();
         List<Provisioner> provisioners = testgridYaml.getInfrastructureConfig()
                 .getProvisioners();
