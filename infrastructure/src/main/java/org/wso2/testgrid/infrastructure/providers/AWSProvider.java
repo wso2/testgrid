@@ -604,8 +604,8 @@ public class AWSProvider implements InfrastructureProvider {
                             "update-rc.d testgrid-agent defaults\n" +
                             "service testgrid-agent start\n";
                     //Note: Following command addresses both APT and YUM installers.
-                    String awsCLISetup = "YUM_CMD=$(which yum)\n" +
-                            "APT_GET_CMD=$(which apt-get)\n" +
+                    String awsCLISetup = "YUM_CMD=$(which yum) || echo 'yum is not available'\n" +
+                            "APT_GET_CMD=$(which apt-get) || echo 'apt-get is not available'\n" +
                             "if [[ ! -z $YUM_CMD ]]; then\n" +
                             "sudo yum -y install awscli\n" +
                             "elif [[ ! -z $APT_GET_CMD ]]; then\n" +
