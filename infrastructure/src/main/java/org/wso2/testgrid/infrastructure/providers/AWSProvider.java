@@ -63,6 +63,7 @@ import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
@@ -85,6 +86,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -437,7 +439,7 @@ public class AWSProvider implements InfrastructureProvider {
         final Path infraOutFile = inputLocation.resolve(DataBucketsHelper.INFRA_OUT_FILE);
 
         Properties props = new Properties();
-        props.putAll(testPlan.getInfrastructureConfig().getParameters());
+        //props.putAll(testPlan.getInfrastructureConfig().getParameters());
         if (Files.exists(testplanPropsFile)) {
             try (InputStream tpInputStream = Files.newInputStream(testplanPropsFile, StandardOpenOption.READ)) {
                 props.load(tpInputStream);
@@ -457,6 +459,25 @@ public class AWSProvider implements InfrastructureProvider {
 
         }
         props.putAll(script.getInputParameters());
+
+        InfrastructureParameterUOW infrastructureParameterUOW = new InfrastructureParameterUOW();
+        Properties infraParamsAsProps =  testPlan.getInfrastructureConfig().getParameters();
+        //Fetch infra-parms from db and include their sub-props also as props to be passed.
+        for (String key: infraParamsAsProps.stringPropertyNames()) {
+            try {
+                infrastructureParameterUOW
+                        .getInfrastructureParameter(infraParamsAsProps.getProperty(key)).get()
+                        .getProcessedSubInfrastructureParameters()
+                        .forEach(infraParam -> props.setProperty(infraParam.getType(), infraParam.getName()));
+            } catch (TestGridDAOException e) {
+                //todo
+                logger.error("Error occurred while reading infra-params from database.");
+            } catch (NoSuchElementException e) {
+                //todo need to throw?
+                logger.error("Found ambiguous value as a infra-param");
+            }
+        }
+        logger.info("Infra Properties sending to cloud-formation: " + props.toString());
 
         return props;
     }

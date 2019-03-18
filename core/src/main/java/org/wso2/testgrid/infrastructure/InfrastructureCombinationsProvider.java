@@ -79,8 +79,13 @@ public class InfrastructureCombinationsProvider {
         if (valueSets.size() == 1) {
             Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
             for (InfrastructureParameter value : valueSets.iterator().next().getValues()) {
+                InfrastructureParameter infraParameter = new InfrastructureParameter();
+                infraParameter.setName(value.getName());
+                infraParameter.setType(value.getType());
+                infraParameter.setReadyForTestGrid(value.isReadyForTestGrid());
+                infraParameter.setProperties(value.getProperties());
                 InfrastructureCombination infraCombination =
-                        new InfrastructureCombination(getProcessedInfrastructureParameters(value));
+                        new InfrastructureCombination(infraParameter);
                 infraCombination.setInfraCombinationId(value.getName());
                 infrastructureCombinations.add(infraCombination);
             }
@@ -97,7 +102,12 @@ public class InfrastructureCombinationsProvider {
         for (InfrastructureParameter value : currentValueSet.getValues()) {
             for (InfrastructureCombination infrastructureCombination : combinationsSubSet) {
                 InfrastructureCombination clone = infrastructureCombination.clone();
-                clone.addParameters(getProcessedInfrastructureParameters(value));
+                InfrastructureParameter infraParameter = new InfrastructureParameter();
+                infraParameter.setName(value.getName());
+                infraParameter.setType(value.getType());
+                infraParameter.setReadyForTestGrid(value.isReadyForTestGrid());
+                infraParameter.setProperties(value.getProperties());
+                clone.addParameter(infraParameter);
                 clone.setInfraCombinationId(clone.getInfraCombinationId() + "_" + value.getName());
                 finalInfrastructureCombinations.add(clone);
             }
