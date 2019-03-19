@@ -596,12 +596,19 @@ public class AWSProvider implements InfrastructureProvider {
                             "while(!(netstat -o | findstr 8086 | findstr ESTABLISHED)) " +
                             "{ $val++;Write-Host $val;net stop telegraf;net start telegraf } >> service.log";
                 } else {
-                    String agentSetup = "mkdir /opt/testgrid\n" +
+                    String agentSetup = "if [[ ! -d /opt/testgrid ]]; then\n" +
+                            "mkdir /opt/testgrid\n" +
+                            "fi\n" +
                             "wget https://wso2.org/jenkins/job/testgrid/job/testgrid/lastSuccessfulBuild/" +
                             "artifact/remoting-agent/target/agent.zip -O /opt/testgrid/agent.zip\n" +
-                            "unzip /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
+                            "unzip -o /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
                             "cp /opt/testgrid/agent/testgrid-agent /etc/init.d\n" +
+                            "SERVER=$(awk -F= '/^NAME/{print $2}' /etc/os-release)\n" +
+                            "if [[ $SERVER = 'Ubuntu' ]]; then\n" +
                             "update-rc.d testgrid-agent defaults\n" +
+                            "elif [[ $SERVER = 'CentOS Linux' ]]; then\n" +
+                            "chkconfig testgrid-agent on\n" +
+                            "fi\n" +
                             "service testgrid-agent start\n";
                     //Note: Following command addresses both APT and YUM installers.
                     String awsCLISetup = "YUM_CMD=$(which yum) || echo 'yum is not available'\n" +
