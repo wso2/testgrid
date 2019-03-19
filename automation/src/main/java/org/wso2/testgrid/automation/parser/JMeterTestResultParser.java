@@ -57,10 +57,10 @@ import static org.wso2.testgrid.common.TestGridConstants.SCENARIO_RESULTS_FILTER
  *
  * @since 1.0.0
  */
-public class FunctionalTestResultParser extends ResultParser {
+public class JMeterTestResultParser extends ResultParser {
 
     private static final Logger logger = LoggerFactory.
-            getLogger(FunctionalTestResultParser.class.getName());
+            getLogger(JMeterTestResultParser.class.getName());
     private static final long serialVersionUID = -5244808712889913949L;
 
     private static final String HTTP_SAMPLE_ELEMENT = "httpSample";
@@ -70,13 +70,13 @@ public class FunctionalTestResultParser extends ResultParser {
     private static final String TEST_SUCCESS_ATTRIBUTE = "s";
 
     /**
-     * This constructor creates a {@link FunctionalTestResultParser} object with the
+     * This constructor creates a {@link JMeterTestResultParser} object with the
      * test scenario and test location.
      *
      * @param testScenario The TestScenario to be parsed
      * @param testLocation The location of the test artifacts
      */
-    public FunctionalTestResultParser(TestScenario testScenario, String testLocation) {
+    public JMeterTestResultParser(TestScenario testScenario, String testLocation) {
         super(testScenario, testLocation);
     }
 
@@ -112,7 +112,7 @@ public class FunctionalTestResultParser extends ResultParser {
             try (InputStream inputStream = Files.newInputStream(Paths.get(testLocation, jtlFile))) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Parsing scenario-results file of the TestScenario : '"
-                            + testScenarioName + "' using the FunctionalTestResultParser");
+                            + testScenarioName + "' using the JMeterTestResultParser");
                 }
 
                 XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
@@ -152,7 +152,7 @@ public class FunctionalTestResultParser extends ResultParser {
 
                 if (logger.isDebugEnabled()) {
                     logger.debug("End parsing scenario-results file of the TestScenario : '" + testScenarioName +
-                            "' using the FunctionalTestResultParser");
+                            "' using the JMeterTestResultParser");
                 }
             } catch (XMLStreamException e) {
                 throw new JTLResultParserException("Unable to parse the scenario-results file of TestScenario :" +

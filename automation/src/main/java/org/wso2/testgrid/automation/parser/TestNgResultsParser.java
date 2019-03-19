@@ -124,7 +124,6 @@ public class TestNgResultsParser extends ResultParser {
         dataBucket = Paths.get(dataBucket.toString(), TestGridConstants.TEST_RESULTS_DIR,
                 testScenario.getOutputDir(), TestGridConstants.TEST_RESULTS_SCENARIO_DIR,
                 testScenario.getName());
-        logger.info(testScenario.getName());
         Set<Path> inputFiles = getResultInputFiles(dataBucket);
 
         Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());

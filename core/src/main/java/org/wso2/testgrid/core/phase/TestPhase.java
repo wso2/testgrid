@@ -265,11 +265,12 @@ public class TestPhase extends Phase {
         Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         if (parser.isPresent()) {
             try {
-                logger.info("-- parse results for test type: " + scenarioConfig.getTestType());
+                logger.info(String.format("--- parse results of '%s' (%s)", testScenario.getName(),
+                        scenarioConfig.getTestType()));
                 ResultParser resultParser = parser.get();
                 resultParser.parseResults();
                 logger.info("");
-                logger.info("-- archive results for downloading via dashboard");
+                logger.info("--- archive results to download via dashboard");
                 resultParser.archiveResults();
             } catch (ResultParserException e) {
                 //todo: add reason to test-plan db record
@@ -279,7 +280,8 @@ public class TestPhase extends Phase {
         } else {
             //todo: add reason to test-plan db record
             persistTestPlanProgress(TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
-            logger.error("Error parsing the results for the scenario no parser " + testScenario.getName());
+            logger.error("Error parsing the results for the scenario '" + testScenario.getName() + "'. No "
+                    + "results parser found. Test type: " + scenarioConfig.getTestType());
         }
     }
 

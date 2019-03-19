@@ -17,13 +17,16 @@
 */
 package org.wso2.testgrid.automation.parser;
 
-import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.automation.TestEngine;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 
 import java.nio.file.Paths;
 import java.util.Optional;
+
+import static org.wso2.testgrid.common.TestGridConstants.TEST_TYPE_FUNCTIONAL;
+import static org.wso2.testgrid.common.TestGridConstants.TEST_TYPE_PERFORMANCE;
 
 /**
  * Abstract factory class that defines the common functionalities of factory implementations
@@ -44,11 +47,14 @@ public class ResultParserFactory {
                                                    ScenarioConfig scenarioConfig) {
         String testLocation = Paths.get(testPlan.getScenarioTestsRepository(), scenarioConfig.getFile()).toString();
         ResultParser resultParser = null;
-        if (TestGridConstants.TEST_TYPE_FUNCTIONAL.equals(scenarioConfig.getTestType())) {
-            resultParser = new FunctionalTestResultParser(testScenario, testLocation);
-        } else if (TestGridConstants.TEST_TYPE_PERFORMANCE.equals(scenarioConfig.getTestType())) {
+        final String testType =
+                Optional.ofNullable(scenarioConfig.getTestType()).orElse(TestEngine.TESTNG.toString());
+        if (TestEngine.JMETER.toString().equalsIgnoreCase(testType) ||
+                TEST_TYPE_FUNCTIONAL.equalsIgnoreCase(testType)) {
+            resultParser = new JMeterTestResultParser(testScenario, testLocation);
+        } else if (TEST_TYPE_PERFORMANCE.equalsIgnoreCase(testType)) {
             resultParser = new PerformanceTestCSVParser(testScenario, testLocation);
-        } else if (TestGridConstants.TEST_TYPE_INTEGRATION.equals(scenarioConfig.getTestType())) {
+        } else if (TestEngine.TESTNG.toString().equalsIgnoreCase(testType)) {
             resultParser = new TestNgResultsParser(testScenario, testLocation);
         }
         return Optional.ofNullable(resultParser);
