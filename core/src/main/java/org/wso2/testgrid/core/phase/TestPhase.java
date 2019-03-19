@@ -265,8 +265,11 @@ public class TestPhase extends Phase {
         Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         if (parser.isPresent()) {
             try {
+                logger.info("-- parse results for test type: " + scenarioConfig.getTestType());
                 ResultParser resultParser = parser.get();
                 resultParser.parseResults();
+                logger.info("");
+                logger.info("-- archive results for downloading via dashboard");
                 resultParser.archiveResults();
             } catch (ResultParserException e) {
                 //todo: add reason to test-plan db record
