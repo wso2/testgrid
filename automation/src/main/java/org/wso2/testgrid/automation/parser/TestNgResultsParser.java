@@ -117,10 +117,9 @@ public class TestNgResultsParser extends ResultParser {
      * </testcase>
      * one test testcase element == one testgrid testcase.
      *
-     * @throws ResultParserException parsing error
      */
     @Override
-    public void parseResults() throws ResultParserException {
+    public void parseResults() {
         Path dataBucket = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
         dataBucket = Paths.get(dataBucket.toString(), TestGridConstants.TEST_RESULTS_DIR,
                 testScenario.getOutputDir(), TestGridConstants.TEST_RESULTS_SCENARIO_DIR,
@@ -132,8 +131,15 @@ public class TestNgResultsParser extends ResultParser {
         outputLocation = Paths.get(outputLocation.toString(), TestGridConstants.TEST_RESULTS_DIR,
                 testScenario.getOutputDir(), testScenario.getName());
 
-        logger.info("Found TEST-TestSuite.xml result files at: " + inputFiles.stream().map
-                (outputLocation::relativize).collect(Collectors.toSet()));
+        final Set<Path> testSuiteXmlPaths = inputFiles.stream().map
+                (outputLocation::relativize).collect(Collectors.toSet());
+        if (testSuiteXmlPaths.isEmpty()) {
+            logger.error("ERROR while processing scenario '" + testScenario.getName() + "'. Did not find any "
+                    + "TEST-TestSuite.xml output files at " + outputLocation + ". Check whether you copied the "
+                    + "output files correctly? Is your test type TESTNG as defined in testgrid.yaml?");
+        } else {
+            logger.info("Found TEST-TestSuite.xml result files at: " + testSuiteXmlPaths);
+        }
         for (Path resultsFile : inputFiles) {
             try (final InputStream stream = Files.newInputStream(resultsFile, StandardOpenOption.READ)) {
                 logger.info("Processing results file: " + outputLocation.relativize(resultsFile));

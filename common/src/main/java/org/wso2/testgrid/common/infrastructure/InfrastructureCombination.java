@@ -52,10 +52,10 @@ public class InfrastructureCombination implements Cloneable {
      * Initializes an @{@link InfrastructureCombination} object with the given
      * single infrastructure parameter.
      *
-     * @param parameters a set of infrastructure parameters that have distinct types.
+     * @param parameter infrastructure parameter.
      */
-    public InfrastructureCombination(InfrastructureParameter parameters) {
-        this.parameters.add(parameters);
+    public InfrastructureCombination(InfrastructureParameter parameter) {
+        this.parameters.add(parameter);
     }
 
     /**

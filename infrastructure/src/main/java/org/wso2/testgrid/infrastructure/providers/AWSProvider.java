@@ -86,7 +86,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -427,7 +426,13 @@ public class AWSProvider implements InfrastructureProvider {
      * intermediate {@link DataBucketsHelper#INFRA_OUT_FILE}, and
      * {@link Script#getInputParameters()}.
      *
-     * NOTE: properties load order is important. Latter properties has higher precedence, and will over-ride others.
+     * NOTE: properties load order is important. Latter properties have higher precedence, and will over-ride others.
+     * The look-up order of the files for properties will be;
+     *         1.test-plan props file.
+     *         2.infra-output file.
+     *         3.properties mentioned in the database.
+     * (If there exists a property with the same name in multiple locations, the one that pick-up last will be replacing
+     * the value.)
      *
      * @param testPlan the test plan
      * @param script script currently being executed.
@@ -439,7 +444,7 @@ public class AWSProvider implements InfrastructureProvider {
         final Path infraOutFile = inputLocation.resolve(DataBucketsHelper.INFRA_OUT_FILE);
 
         Properties props = new Properties();
-        //props.putAll(testPlan.getInfrastructureConfig().getParameters());
+
         if (Files.exists(testplanPropsFile)) {
             try (InputStream tpInputStream = Files.newInputStream(testplanPropsFile, StandardOpenOption.READ)) {
                 props.load(tpInputStream);
@@ -460,9 +465,9 @@ public class AWSProvider implements InfrastructureProvider {
         }
         props.putAll(script.getInputParameters());
 
+        //Fetch infra-parms from db and include their sub-props also as properties to be passed.
         InfrastructureParameterUOW infrastructureParameterUOW = new InfrastructureParameterUOW();
         Properties infraParamsAsProps =  testPlan.getInfrastructureConfig().getParameters();
-        //Fetch infra-parms from db and include their sub-props also as props to be passed.
         for (String key: infraParamsAsProps.stringPropertyNames()) {
             try {
                 infrastructureParameterUOW
@@ -470,15 +475,9 @@ public class AWSProvider implements InfrastructureProvider {
                         .getProcessedSubInfrastructureParameters()
                         .forEach(infraParam -> props.setProperty(infraParam.getType(), infraParam.getName()));
             } catch (TestGridDAOException e) {
-                //todo
                 logger.error("Error occurred while reading infra-params from database.");
-            } catch (NoSuchElementException e) {
-                //todo need to throw?
-                logger.error("Found ambiguous value as a infra-param");
             }
         }
-        logger.info("Infra Properties sending to cloud-formation: " + props.toString());
-
         return props;
     }
 
@@ -617,16 +616,23 @@ public class AWSProvider implements InfrastructureProvider {
                             "while(!(netstat -o | findstr 8086 | findstr ESTABLISHED)) " +
                             "{ $val++;Write-Host $val;net stop telegraf;net start telegraf } >> service.log";
                 } else {
-                    String agentSetup = "mkdir /opt/testgrid\n" +
+                    String agentSetup = "if [[ ! -d /opt/testgrid ]]; then\n" +
+                            "mkdir /opt/testgrid\n" +
+                            "fi\n" +
                             "wget https://wso2.org/jenkins/job/testgrid/job/testgrid/lastSuccessfulBuild/" +
                             "artifact/remoting-agent/target/agent.zip -O /opt/testgrid/agent.zip\n" +
-                            "unzip /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
+                            "unzip -o /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
                             "cp /opt/testgrid/agent/testgrid-agent /etc/init.d\n" +
+                            "SERVER=$(awk -F= '/^NAME/{print $2}' /etc/os-release)\n" +
+                            "if [[ $SERVER = 'Ubuntu' ]]; then\n" +
                             "update-rc.d testgrid-agent defaults\n" +
+                            "elif [[ $SERVER = 'CentOS Linux' ]]; then\n" +
+                            "chkconfig testgrid-agent on\n" +
+                            "fi\n" +
                             "service testgrid-agent start\n";
                     //Note: Following command addresses both APT and YUM installers.
-                    String awsCLISetup = "YUM_CMD=$(which yum)\n" +
-                            "APT_GET_CMD=$(which apt-get)\n" +
+                    String awsCLISetup = "YUM_CMD=$(which yum) || echo 'yum is not available'\n" +
+                            "APT_GET_CMD=$(which apt-get) || echo 'apt-get is not available'\n" +
                             "if [[ ! -z $YUM_CMD ]]; then\n" +
                             "sudo yum -y install awscli\n" +
                             "elif [[ ! -z $APT_GET_CMD ]]; then\n" +
