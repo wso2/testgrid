@@ -52,8 +52,8 @@ public class TestNgResultsParserTest {
 
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
-    private static final String SUREFIRE_REPORTS_DIR_OUT = TestGridConstants.TEST_RESULTS_DIR +
-            "/scenarios/SolutionPattern22/surefire-reports";
+    private static final Path SCENARIO_OUTPUTS_DIR = Paths.get("scenarios", "SolutionPattern22");
+
     private TestPlan testPlan;
     private TestScenario testScenario;
     private ScenarioConfig scenarioConfig;
@@ -98,7 +98,8 @@ public class TestNgResultsParserTest {
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
 
-        final Path outputFile = DataBucketsHelper.getOutputLocation(testPlan).resolve(SUREFIRE_REPORTS_DIR_OUT)
+        final Path outputFile = DataBucketsHelper.getTestOutputsLocation(testPlan).resolve(SCENARIO_OUTPUTS_DIR)
+                .resolve(SUREFIRE_REPORTS_DIR)
                 .resolve(TestNgResultsParser.RESULTS_TEST_SUITE_FILE);
         copyTestngResultsXml(outputFile);
 
@@ -125,11 +126,11 @@ public class TestNgResultsParserTest {
         Assert.assertTrue(parser.isPresent());
         Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
 
-        final Path outputPath = DataBucketsHelper.getOutputLocation(testPlan);
+        final Path outputPath = DataBucketsHelper.getTestOutputsLocation(testPlan);
         FileUtils.copyDirectory(testArtifactPath.resolve(SUREFIRE_REPORTS_DIR).toFile(),
-                outputPath.resolve(SUREFIRE_REPORTS_DIR_OUT).toFile());
+                outputPath.resolve(SCENARIO_OUTPUTS_DIR).resolve(SUREFIRE_REPORTS_DIR).toFile());
         FileUtils.copyFile(testArtifactPath.resolve("automation.log.rename").toFile(),
-                outputPath.resolve("test-outputs/SolutionPattern22/scenarios/automation.log").toFile());
+                outputPath.resolve(SCENARIO_OUTPUTS_DIR).resolve("automation.log").toFile());
 
         parser.get().parseResults();
         parser.get().archiveResults();
@@ -151,6 +152,6 @@ public class TestNgResultsParserTest {
     @AfterClass
     public void tearDown() throws Exception {
         final Path buildOutputsDir = DataBucketsHelper.getBuildOutputsDir(testPlan);
-        FileUtils.deleteQuietly(buildOutputsDir.toFile());
+        //FileUtils.deleteQuietly(buildOutputsDir.toFile());
     }
 }

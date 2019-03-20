@@ -18,28 +18,21 @@
 
 package org.wso2.testgrid.automation.parser;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.JTLResultParserException;
 import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.exception.TestGridException;
-import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.common.util.TestGridUtil;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.List;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -49,8 +42,6 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-
-import static org.wso2.testgrid.common.TestGridConstants.SCENARIO_RESULTS_FILTER_PATTERN;
 
 /**
  * Parser implementation for parsing JMeter Functional Test result file.
@@ -69,15 +60,16 @@ public class JMeterTestResultParser extends ResultParser {
     private static final String TEST_NAME_ATTRIBUTE = "lb";
     private static final String TEST_SUCCESS_ATTRIBUTE = "s";
 
+    private static final String[] ARCHIVABLE_FILES = new String[]{"*.{jtl,log}"};
+
     /**
      * This constructor creates a {@link JMeterTestResultParser} object with the
      * test scenario and test location.
-     *
-     * @param testScenario The TestScenario to be parsed
-     * @param testLocation The location of the test artifacts
+     *  @param testScenario The TestScenario to be parsed
+     * @param testResultsLocation The location of the test artifacts
      */
-    public JMeterTestResultParser(TestScenario testScenario, String testLocation) {
-        super(testScenario, testLocation);
+    public JMeterTestResultParser(TestScenario testScenario, Path testResultsLocation) {
+        super(testScenario, testResultsLocation, ARCHIVABLE_FILES);
     }
 
     /**
@@ -99,17 +91,17 @@ public class JMeterTestResultParser extends ResultParser {
     public void parseResults() throws JTLResultParserException {
         boolean failureMsgElement = false;
         XMLInputFactory factory = XMLInputFactory.newInstance();
-        String[] scenarioResultFiles = ResultParserUtil.getJTLFiles(this.testLocation);
+        String[] scenarioResultFiles = ResultParserUtil.getJTLFiles(this.testResultsLocation);
         String testScenarioName = testScenario.getName();
 
         if (scenarioResultFiles.length == 0) {
             logger.warn(StringUtil.concatStrings("Unable to locate jtl files for the scenario : '",
-                    testScenarioName, "' , in path : ", this.testLocation));
+                    testScenarioName, "' , in path : ", this.testResultsLocation));
             return;
         }
 
         for (String jtlFile : scenarioResultFiles) {
-            try (InputStream inputStream = Files.newInputStream(Paths.get(testLocation, jtlFile))) {
+            try (InputStream inputStream = Files.newInputStream(testResultsLocation.resolve(jtlFile))) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Parsing scenario-results file of the TestScenario : '"
                             + testScenarioName + "' using the JMeterTestResultParser");
@@ -168,23 +160,7 @@ public class JMeterTestResultParser extends ResultParser {
 
     @Override
     public void archiveResults() throws ResultParserException {
-        try {
-            List<String> files = FileUtil.getFilesOnDirectory(this.testLocation, SCENARIO_RESULTS_FILTER_PATTERN);
-            if (!files.isEmpty()) {
-                String zipFilePath = TestGridUtil.deriveScenarioArtifactPath(testScenario,
-                        testScenario.getName() + TestGridConstants.TESTGRID_COMPRESSED_FILE_EXT);
-                for (String filePath : files) {
-                    File file = new File(filePath);
-                    File destinationFile = new File(
-                            TestGridUtil.deriveScenarioArtifactPath(this.testScenario, file.getName()));
-                    FileUtils.copyFile(file, destinationFile);
-                }
-                FileUtil.compressFiles(files, zipFilePath);
-            }
-        } catch (IOException | TestGridException e) {
-            throw new ResultParserException("Error occurred while persisting scenario test-results." +
-                    "Scenario ID: " + testScenario.getId(), e);
-        }
+        super.archiveResults();
     }
 
     private TestCase buildTestCase(StartElement sampleElement) {

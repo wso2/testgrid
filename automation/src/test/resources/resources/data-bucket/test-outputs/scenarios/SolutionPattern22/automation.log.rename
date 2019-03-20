@@ -1,8 +1,0 @@
-[08:46:04,955] INFO  [org.wso2.carbon.automation.engine.testlisteners.TestManagerListener] - =================== Running the test method org.wso2.am.integration.tests.restapi.testcases.MultipleSubscriptionsTestCase.testSubscription ===================
-[08:46:07,176] INFO  [o.w.c.a.e.s.u.ServerLogReader] - [2018-07-10 08:46:06,544]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 08:46:06,544+0000]
-[08:46:07,234] INFO  [o.w.c.a.e.s.u.ServerLogReader] - [2018-07-10 08:46:06,602]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 08:46:06,602+0000]
-[08:46:08,514] INFO  [o.w.c.a.e.s.u.ServerLogReader] - [2018-07-10 08:46:07,882]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 08:46:07,882+0000]
-[08:46:08,568] INFO  [o.w.c.a.e.s.u.ServerLogReader] - [2018-07-10 08:46:07,936]  INFO - CarbonAuthenticationUtil 'admin@carbon.super [-1234]' logged in at [2018-07-10 08:46:07,936+0000]
-[08:46:08,628] INFO  [o.w.c.a.e.s.u.ServerLogReader] - [2018-07-10 08:46:07,996]  INFO - DependencyTracker API : admin--APItoTestSubscription1:v1.0.0 was added to the Synapse configuration successfully
-[08:46:08,628] INFO  [o.w.c.a.e.s.u.ServerLogReader] - [2018-07-10 08:46:07,997]  INFO - API Initializing API: admin--APItoTestSubscription1:v1.0.0
-[08:46:08,730] INFO  [o.w.c.a.e.s.u.ServerLogReader] - [2018-07-10 08:46:08,098]  INFO - DependencyTracker Endpoint : APItoTestSubscription1--v1.0.0_APIproductionEndpoint was added to the Synapse configuration successfully

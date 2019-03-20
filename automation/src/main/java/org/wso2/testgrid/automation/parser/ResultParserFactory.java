@@ -18,10 +18,13 @@
 package org.wso2.testgrid.automation.parser;
 
 import org.wso2.testgrid.automation.TestEngine;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.ScenarioConfig;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
@@ -45,17 +48,21 @@ public class ResultParserFactory {
      */
     public static Optional<ResultParser> getParser(TestPlan testPlan, TestScenario testScenario,
                                                    ScenarioConfig scenarioConfig) {
-        String testLocation = Paths.get(testPlan.getScenarioTestsRepository(), scenarioConfig.getFile()).toString();
+        // ex. $testgrid_home/$job_name/data-bucket/test-outputs/$scenario_outputdir/scenarios/$scenario_name
+        Path testResultsLocation = DataBucketsHelper.getTestOutputsLocation(testScenario.getTestPlan());
+        testResultsLocation = Paths.get(testResultsLocation.toString(), testScenario.getOutputDir(),
+                TestGridConstants.TEST_RESULTS_SCENARIO_DIR, testScenario.getName());
+
         ResultParser resultParser = null;
         final String testType =
                 Optional.ofNullable(scenarioConfig.getTestType()).orElse(TestEngine.TESTNG.toString());
         if (TestEngine.JMETER.toString().equalsIgnoreCase(testType) ||
                 TEST_TYPE_FUNCTIONAL.equalsIgnoreCase(testType)) {
-            resultParser = new JMeterTestResultParser(testScenario, testLocation);
+            resultParser = new JMeterTestResultParser(testScenario, testResultsLocation);
         } else if (TEST_TYPE_PERFORMANCE.equalsIgnoreCase(testType)) {
-            resultParser = new PerformanceTestCSVParser(testScenario, testLocation);
+            resultParser = new PerformanceTestCSVParser(testScenario, testResultsLocation);
         } else if (TestEngine.TESTNG.toString().equalsIgnoreCase(testType)) {
-            resultParser = new TestNgResultsParser(testScenario, testLocation);
+            resultParser = new TestNgResultsParser(testScenario, testResultsLocation);
         }
         return Optional.ofNullable(resultParser);
     }
