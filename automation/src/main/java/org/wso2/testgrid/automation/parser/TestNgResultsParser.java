@@ -61,7 +61,7 @@ import javax.xml.stream.events.XMLEvent;
 public class TestNgResultsParser extends ResultParser {
 
     public static final String RESULTS_INPUT_FILE = "testng-results.xml";
-    public static final String RESULTS_TEST_SUITE_FILE = "TEST-TestSuite.xml";
+    public static final String RESULTS_TEST_SUITE_FILES_REGEX = "TEST-.*.xml";
     private static final String[] ARCHIVABLE_FILES = new String[] { "surefire-reports", "automation.log" };
     private static final Logger logger = LoggerFactory.getLogger(TestNgResultsParser.class);
     private static final String TEST_CASE = "testcase";
@@ -285,13 +285,13 @@ public class TestNgResultsParser extends ResultParser {
                 if (Files.isDirectory(file)) {
                     final Set<Path> anInputFilesList = getResultInputFiles(file);
                     inputFiles.addAll(anInputFilesList);
-                } else if (RESULTS_TEST_SUITE_FILE.equals(fileName.toString())) {
+                } else if (fileName.toString().matches(RESULTS_TEST_SUITE_FILES_REGEX)) {
                     inputFiles.add(file);
                 }
             }
             return inputFiles;
         } catch (IOException e) {
-            logger.error("Error while reading " + RESULTS_TEST_SUITE_FILE + " in " + dataBucket, e);
+            logger.error("Error while reading " + RESULTS_TEST_SUITE_FILES_REGEX + " files in " + dataBucket, e);
             return Collections.emptySet();
         }
     }
