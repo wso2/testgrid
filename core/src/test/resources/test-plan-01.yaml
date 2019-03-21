@@ -37,6 +37,8 @@ infrastructureConfig:
       name: destroy-
       phase: DESTROY
       type: SHELL
+infrastructureProperties:
+  operating_system: ubuntu_16.04
 infrastructureRepository: workspace/infrastructure
 jobProperties:
   PROPERTY1: value1

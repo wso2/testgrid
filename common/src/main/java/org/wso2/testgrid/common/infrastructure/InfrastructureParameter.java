@@ -43,7 +43,6 @@ import javax.persistence.UniqueConstraint;
  * An InfrastructureParameter provides details about a given
  * infrastructure - name, type, and list of its properties.
  * <p>
- * Type is defined by the @{@link Type} enum.
  *
  * @since 1.0
  */
@@ -178,6 +177,32 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
         return subInfrastructureParameters;
     }
 
+    /**
+     * Processes the {@link #properties} field, and generate a list of sub infrastructure parameters.
+     *
+     * @return list of sub infra parameters
+     */
+    public Properties getSubProperties() {
+            try {
+                Properties properties = new Properties();
+                properties.load(new StringReader(this.getProperties()));
+                //Remove if invalid properties found
+                for (Map.Entry entry : properties.entrySet()) {
+                    String name = (String) entry.getValue();
+                    String type = (String) entry.getKey();
+                    String regex = "[\\w,-\\.@:]*";
+                    if (type.isEmpty() || !type.matches(regex)
+                            || name.isEmpty() || !name.matches(regex)) {
+                        properties.remove(type, name);
+                    }
+                }
+                return properties;
+            } catch (IOException e) {
+                logger.warn("Error while loading the infrastructure parameter's properties string for: " + this);
+            }
+        return null;
+    }
+
     @Override
     public String toString() {
         return type + "='" + name + '\'';
@@ -268,44 +293,5 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
             throw new TestGridError("Since the super class of this object is java.lang.Object that supports cloning, "
                     + "this failure condition should never happen unless a serious system error occurred.", e);
         }
-    }
-
-    @Transient
-    private boolean transformed = false;
-    /**
-     *
-     * TODO: This is a temporary method until we fix the infrastructure_parameter table
-     * to contain uniquely distinguishable 'name' column.
-     * Right now, even the type=name pair is also taken as a infrastructure value.
-     * This is not a good design.
-     *
-     */
-    public synchronized void transform() {
-        if (transformed) {
-            return;
-        }
-        final String newName = getProcessedInfraParamName();
-        final InfrastructureParameter clone = this.clone();
-        clone.subInfrastructureParameters = null;
-        this.subInfrastructureParameters.add(clone);
-        this.name = newName;
-        this.transformed = true;
-    }
-
-
-    /**
-     * The @{@link InfrastructureParameter#getName()} is supposed to provide a fully-qualified name
-     * that can uniquely identify an infra. But that's not the case right now.
-     *
-     * Following is a working around to provide better display output.
-     *
-     */
-    private String getProcessedInfraParamName() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(this.getName());
-        for (InfrastructureParameter subParam : this.getProcessedSubInfrastructureParameters()) {
-            sb.append(" - ").append(subParam.getName());
-        }
-        return sb.toString();
     }
 }

@@ -38,24 +38,14 @@ public class InfrastructureCombination implements Cloneable {
     private String infraCombinationId;
 
     /**
-     * Initializes an @{@link InfrastructureCombination} object with the given
-     * set of infrastructure parameters.
-     *
-     * @param parameters a set of infrastructure parameters that have distinct types.
-     */
-    public InfrastructureCombination(Set<InfrastructureParameter> parameters) {
-        this.parameters.addAll(parameters);
-    }
-
-
-    /**
-     * Initializes an @{@link InfrastructureCombination} object with the given
-     * single infrastructure parameter.
+     * Initializes an @{@link InfrastructureCombination} object with the given number of infrastructure parameters.
      *
      * @param parameter infrastructure parameter.
      */
-    public InfrastructureCombination(InfrastructureParameter parameter) {
-        this.parameters.add(parameter);
+    public InfrastructureCombination(InfrastructureParameter ...parameter) {
+        for (InfrastructureParameter param: parameter) {
+            this.parameters.add(param);
+        }
     }
 
     /**

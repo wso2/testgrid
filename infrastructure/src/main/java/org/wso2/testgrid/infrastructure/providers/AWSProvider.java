@@ -63,7 +63,6 @@ import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
-import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
@@ -430,7 +429,7 @@ public class AWSProvider implements InfrastructureProvider {
      * The look-up order of the files for properties will be;
      *         1.test-plan props file.
      *         2.infra-output file.
-     *         3.properties mentioned in the database.
+     *         3.properties mentioned in the test-plan yaml (which were generated from the testgrid-db).
      * (If there exists a property with the same name in multiple locations, the one that pick-up last will be replacing
      * the value.)
      *
@@ -464,20 +463,7 @@ public class AWSProvider implements InfrastructureProvider {
 
         }
         props.putAll(script.getInputParameters());
-
-        //Fetch infra-parms from db and include their sub-props also as properties to be passed.
-        InfrastructureParameterUOW infrastructureParameterUOW = new InfrastructureParameterUOW();
-        Properties infraParamsAsProps =  testPlan.getInfrastructureConfig().getParameters();
-        for (String key: infraParamsAsProps.stringPropertyNames()) {
-            try {
-                infrastructureParameterUOW
-                        .getInfrastructureParameter(infraParamsAsProps.getProperty(key)).get()
-                        .getProcessedSubInfrastructureParameters()
-                        .forEach(infraParam -> props.setProperty(infraParam.getType(), infraParam.getName()));
-            } catch (TestGridDAOException e) {
-                logger.error("Error occurred while reading infra-params from database.");
-            }
-        }
+        props.putAll(testPlan.getInfrastructureProperties());
         return props;
     }
 

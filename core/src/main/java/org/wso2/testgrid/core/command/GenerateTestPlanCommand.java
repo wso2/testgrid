@@ -461,9 +461,17 @@ public class GenerateTestPlanCommand implements Command {
                     }
                 }));
 
+                Properties infrastructureProperties = new Properties();
+                for (InfrastructureParameter infraParam: combination.getParameters()) {
+                    //Add infra-param itself as a property.
+                    infrastructureProperties.setProperty(infraParam.getType(), infraParam.getName());
+                    //Add sub-properties of infra-param also as properties.
+                    infrastructureProperties.putAll(infraParam.getSubProperties());
+                }
+                testPlan.setInfrastructureProperties(infrastructureProperties);
+
                 testPlan.setScenarioConfigs(testgridYaml.getScenarioConfigs());
                 testPlan.setResultFormat(testgridYaml.getResultFormat());
-
                 testPlan.setInfrastructureRepository(testgridYaml.getInfrastructureRepository());
                 testPlan.setDeploymentRepository(testgridYaml.getDeploymentRepository());
                 testPlan.setScenarioTestsRepository(testgridYaml.getScenarioTestsRepository());

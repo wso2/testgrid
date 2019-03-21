@@ -104,6 +104,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
 
     @Transient
+    private Properties infrastructureProperties = new Properties();
+
+    @Transient
     private String jobName;
 
     @Transient
@@ -575,6 +578,14 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     public void setDeploymentCreationResult(DeploymentCreationResult deploymentCreationResult) {
         this.deploymentCreationResult = deploymentCreationResult;
+    }
+
+    public Properties getInfrastructureProperties() {
+        return infrastructureProperties;
+    }
+
+    public void setInfrastructureProperties(Properties infrastructureProperties) {
+        this.infrastructureProperties = infrastructureProperties;
     }
 
     /**
