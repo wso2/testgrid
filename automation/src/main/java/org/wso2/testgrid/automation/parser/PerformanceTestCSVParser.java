@@ -30,7 +30,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,18 +49,17 @@ public class PerformanceTestCSVParser extends ResultParser {
     /**
      * This constructor is used to create a {@link PerformanceTestCSVParser} object with the
      * scenario details.
-     *
-     * @param testScenario TestScenario to be parsed
+     *  @param testScenario TestScenario to be parsed
      * @param testLocation location of the test artifacts
      */
-    public PerformanceTestCSVParser(TestScenario testScenario, String testLocation) {
-        super(testScenario, testLocation);
+    public PerformanceTestCSVParser(TestScenario testScenario, Path testLocation) {
+        super(testScenario, testLocation, new String[] {"*" + CSV_EXTENTION, "*" + PNG_EXTENTION});
     }
     
     @Override
     public void parseResults() throws CSVResultParserException {
         //this parser reads the csv file and then set the data to the scenario
-        Path workspace = Paths.get(this.testLocation).resolve(RESULT_LOCATION);
+        Path workspace = this.testResultsLocation.resolve(RESULT_LOCATION);
         File file = workspace.resolve(RESULT_FILE).toFile();
         List<List<String>> data = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)

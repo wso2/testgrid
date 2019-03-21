@@ -26,7 +26,6 @@ import org.wso2.testgrid.automation.TestEngine;
 import org.wso2.testgrid.automation.exception.ReportGeneratorException;
 import org.wso2.testgrid.automation.exception.ReportGeneratorInitializingException;
 import org.wso2.testgrid.automation.exception.ReportGeneratorNotFoundException;
-import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.automation.executor.TestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
 import org.wso2.testgrid.automation.parser.ResultParser;
@@ -265,13 +264,14 @@ public class TestPhase extends Phase {
         Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         if (parser.isPresent()) {
             try {
-                logger.info("-- parse results for test type: " + scenarioConfig.getTestType());
+                logger.info(String.format("--- parse results of '%s' (%s)", testScenario.getName(),
+                        scenarioConfig.getTestType()));
                 ResultParser resultParser = parser.get();
                 resultParser.parseResults();
                 logger.info("");
-                logger.info("-- archive results for downloading via dashboard");
+                logger.info("--- archive results to download via dashboard");
                 resultParser.archiveResults();
-            } catch (ResultParserException e) {
+            } catch (Exception e) {
                 //todo: add reason to test-plan db record
                 persistTestPlanProgress(TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
                 logger.error("Error parsing the results for the scenario " + testScenario.getName(), e);
@@ -279,7 +279,8 @@ public class TestPhase extends Phase {
         } else {
             //todo: add reason to test-plan db record
             persistTestPlanProgress(TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
-            logger.error("Error parsing the results for the scenario no parser " + testScenario.getName());
+            logger.error("Error parsing the results for the scenario '" + testScenario.getName() + "'. No "
+                    + "results parser found. Test type: " + scenarioConfig.getTestType());
         }
     }
 
