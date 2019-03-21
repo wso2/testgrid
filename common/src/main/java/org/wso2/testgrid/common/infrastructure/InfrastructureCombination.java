@@ -40,7 +40,7 @@ public class InfrastructureCombination implements Cloneable {
     /**
      * Initializes an @{@link InfrastructureCombination} object with the given number of infrastructure parameters.
      *
-     * @param parameter infrastructure parameter.
+     * @param parameter infrastructure-parameter arguments.
      */
     public InfrastructureCombination(InfrastructureParameter ...parameter) {
         for (InfrastructureParameter param: parameter) {

@@ -466,7 +466,10 @@ public class GenerateTestPlanCommand implements Command {
                     //Add infra-param itself as a property.
                     infrastructureProperties.setProperty(infraParam.getType(), infraParam.getName());
                     //Add sub-properties of infra-param also as properties.
-                    infrastructureProperties.putAll(infraParam.getSubProperties());
+                    Properties subProperties = infraParam.getSubProperties();
+                    if (subProperties != null && !subProperties.isEmpty()) {
+                        infrastructureProperties.putAll(infraParam.getSubProperties());
+                    }
                 }
                 testPlan.setInfrastructureProperties(infrastructureProperties);
 

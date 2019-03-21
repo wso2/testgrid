@@ -17,29 +17,21 @@
  */
 package org.wso2.testgrid.automation.parser;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestCase;
-import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestScenario;
-import org.wso2.testgrid.common.util.DataBucketsHelper;
-import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
-import org.wso2.testgrid.common.util.TestGridUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,7 +61,7 @@ import javax.xml.stream.events.XMLEvent;
 public class TestNgResultsParser extends ResultParser {
 
     public static final String RESULTS_INPUT_FILE = "testng-results.xml";
-    public static final String RESULTS_TEST_SUITE_FILE = "TEST-TestSuite.xml";
+    public static final String RESULTS_TEST_SUITE_FILES_REGEX = "TEST-.*.xml";
     private static final String[] ARCHIVABLE_FILES = new String[] { "surefire-reports", "automation.log" };
     private static final Logger logger = LoggerFactory.getLogger(TestNgResultsParser.class);
     private static final String TEST_CASE = "testcase";
@@ -81,12 +73,11 @@ public class TestNgResultsParser extends ResultParser {
     /**
      * This constructor is used to create a {@link TestNgResultsParser} object with the
      * scenario details.
-     *
-     * @param testScenario TestScenario to be parsed
-     * @param testLocation location of the test artifacts
+     *  @param testScenario TestScenario to be parsed
+     * @param testResultsLocation location of the test artifacts
      */
-    public TestNgResultsParser(TestScenario testScenario, String testLocation) {
-        super(testScenario, testLocation);
+    public TestNgResultsParser(TestScenario testScenario, Path testResultsLocation) {
+        super(testScenario, testResultsLocation, ARCHIVABLE_FILES);
     }
 
     /**
@@ -120,29 +111,20 @@ public class TestNgResultsParser extends ResultParser {
      */
     @Override
     public void parseResults() {
-        Path dataBucket = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
-        dataBucket = Paths.get(dataBucket.toString(), TestGridConstants.TEST_RESULTS_DIR,
-                testScenario.getOutputDir(), TestGridConstants.TEST_RESULTS_SCENARIO_DIR,
-                testScenario.getName());
-        logger.info(testScenario.getName());
-        Set<Path> inputFiles = getResultInputFiles(dataBucket);
-
-        Path outputLocation = DataBucketsHelper.getOutputLocation(testScenario.getTestPlan());
-        outputLocation = Paths.get(outputLocation.toString(), TestGridConstants.TEST_RESULTS_DIR,
-                testScenario.getOutputDir(), testScenario.getName());
-
+        Set<Path> inputFiles = getResultInputFiles(testResultsLocation);
         final Set<Path> testSuiteXmlPaths = inputFiles.stream().map
-                (outputLocation::relativize).collect(Collectors.toSet());
+                (testResultsLocation::relativize).collect(Collectors.toSet());
         if (testSuiteXmlPaths.isEmpty()) {
-            logger.error("ERROR while processing scenario '" + testScenario.getName() + "'. Did not find any "
-                    + "TEST-TestSuite.xml output files at " + outputLocation + ". Check whether you copied the "
-                    + "output files correctly? Is your test type TESTNG as defined in testgrid.yaml?");
+            logger.error("ERROR while processing scenario '" + testScenario.getName()
+                    + "'. Did not find any TEST-TestSuite.xml output files at " + testResultsLocation
+                    + ". Check whether you copied the output files correctly? "
+                    + "Also check whether the test type is TESTNG as defined in testgrid.yaml?");
         } else {
             logger.info("Found TEST-TestSuite.xml result files at: " + testSuiteXmlPaths);
         }
         for (Path resultsFile : inputFiles) {
             try (final InputStream stream = Files.newInputStream(resultsFile, StandardOpenOption.READ)) {
-                logger.info("Processing results file: " + outputLocation.relativize(resultsFile));
+                logger.info("Processing results file: " + testResultsLocation.relativize(resultsFile));
                 if (logger.isDebugEnabled()) {
                     logger.debug(
                             "File content: " + new String(Files.readAllBytes(resultsFile), StandardCharsets.UTF_8));
@@ -303,13 +285,13 @@ public class TestNgResultsParser extends ResultParser {
                 if (Files.isDirectory(file)) {
                     final Set<Path> anInputFilesList = getResultInputFiles(file);
                     inputFiles.addAll(anInputFilesList);
-                } else if (RESULTS_TEST_SUITE_FILE.equals(fileName.toString())) {
+                } else if (fileName.toString().matches(RESULTS_TEST_SUITE_FILES_REGEX)) {
                     inputFiles.add(file);
                 }
             }
             return inputFiles;
         } catch (IOException e) {
-            logger.error("Error while reading " + RESULTS_TEST_SUITE_FILE + " in " + dataBucket, e);
+            logger.error("Error while reading " + RESULTS_TEST_SUITE_FILES_REGEX + " files in " + dataBucket, e);
             return Collections.emptySet();
         }
     }
@@ -322,44 +304,6 @@ public class TestNgResultsParser extends ResultParser {
      */
     @Override
     public void archiveResults() throws ResultParserException {
-        try {
-            int maxDepth = 100;
-            final Path outputLocation = DataBucketsHelper.getTestOutputsLocation(testScenario.getTestPlan());
-            final Set<Path> archivePaths = Files.find(outputLocation, maxDepth,
-                    (path, att) -> Arrays.stream(ARCHIVABLE_FILES).anyMatch(f -> f.equals
-                            (path.getFileName().toString()))).collect(Collectors.toSet());
-
-            logger.info("Found results paths at " + outputLocation + ": " + archivePaths.stream().map
-                    (outputLocation::relativize).collect(Collectors.toSet()));
-            if (!archivePaths.isEmpty()) {
-                Path artifactPath = TestGridUtil.getTestScenarioArtifactPath(testScenario);
-                if (!Files.exists(artifactPath)) {
-                    Files.createDirectories(artifactPath);
-                }
-                logger.info("Artifact path: " + artifactPath.toString());
-                for (Path filePath : archivePaths) {
-                    File file = filePath.toFile();
-                    File destinationFile = new File(
-                            TestGridUtil.deriveScenarioArtifactPath(this.testScenario, file.getName()));
-                    if (file.isDirectory()) {
-                        FileUtils.copyDirectory(file, destinationFile);
-                    } else {
-                        FileUtils.copyFile(file, destinationFile);
-                    }
-                }
-                Path zipFilePath = artifactPath.resolve(testScenario.getName() + TestGridConstants
-                        .TESTGRID_COMPRESSED_FILE_EXT);
-                Files.deleteIfExists(zipFilePath);
-                FileUtil.compress(artifactPath.toString(), zipFilePath.toString());
-                logger.info("Created the results archive: " + zipFilePath);
-            } else {
-                logger.info("Could not create results archive. No archived files with names: " + Arrays.toString
-                        (ARCHIVABLE_FILES) + " were found at " + outputLocation + ".");
-            }
-        } catch (IOException e) {
-            throw new ResultParserException("Error occurred while persisting scenario test-results." +
-                    "Scenario ID: " + testScenario.getId(), e);
-        }
-
+        super.archiveResults();
     }
 }

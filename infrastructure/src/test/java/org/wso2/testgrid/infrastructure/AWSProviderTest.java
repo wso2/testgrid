@@ -63,7 +63,6 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
-import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.providers.AWSProvider;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
@@ -257,11 +256,6 @@ public class AWSProviderTest extends PowerMockTestCase {
         PowerMockito.whenNew(TestPlanUOW.class).withNoArguments().thenReturn(testPlanUOWMock);
         PowerMockito.when(testPlanUOWMock.persistTestPlan(Mockito.any(TestPlan.class))).thenReturn(testPlan);
 
-        InfrastructureParameterUOW infrastructureParameterUOWMock = Mockito.mock(InfrastructureParameterUOW.class);
-        PowerMockito.whenNew(InfrastructureParameterUOW.class).withAnyArguments().
-                thenReturn(infrastructureParameterUOWMock);
-        PowerMockito.when(infrastructureParameterUOWMock.getInfrastructureParameter(Mockito.any())).thenReturn(null);
-
         StackCreationWaiter validatorMock = Mockito.mock(StackCreationWaiter.class);
         PowerMockito.whenNew(StackCreationWaiter.class).withAnyArguments().thenReturn(validatorMock);
 
@@ -354,11 +348,6 @@ public class AWSProviderTest extends PowerMockTestCase {
         Mockito.doNothing().when(mock).run(Matchers.any(WaiterParameters.class));
         Mockito.when(waiterMock.stackDeleteComplete()).thenReturn(mock);
         PowerMockito.whenNew(AmazonCloudFormationWaiters.class).withAnyArguments().thenReturn(waiterMock);
-
-        InfrastructureParameterUOW infrastructureParameterUOWMock = Mockito.mock(InfrastructureParameterUOW.class);
-        PowerMockito.whenNew(InfrastructureParameterUOW.class).withAnyArguments().
-                thenReturn(infrastructureParameterUOWMock);
-        PowerMockito.when(infrastructureParameterUOWMock.getInfrastructureParameter(Mockito.any())).thenReturn(null);
 
         PowerMockito.mockStatic(ConfigurationContext.class);
         PowerMockito.when(ConfigurationContext.getProperty(
