@@ -24,7 +24,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.testgrid.automation.exception.ParserInitializationException;
 import org.wso2.testgrid.automation.exception.ResultParserException;
 import org.wso2.testgrid.automation.parser.ResultParser;
 import org.wso2.testgrid.automation.parser.ResultParserFactory;
@@ -40,10 +39,8 @@ import org.wso2.testgrid.common.util.DataBucketsHelper;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -52,7 +49,7 @@ public class TestNgResultsParserTest {
 
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
-    private static final Path SCENARIO_OUTPUTS_DIR = Paths.get("scenarios", "SolutionPattern22");
+    private static final Path SUREFIRE_REPORTS_DIR_OUT = Paths.get("scenarios", "SolutionPattern22");
 
     private TestPlan testPlan;
     private TestScenario testScenario;
@@ -60,7 +57,7 @@ public class TestNgResultsParserTest {
     private Path testArtifactPath = Paths.get("src", "test", "resources", "artifacts");
 
     @BeforeMethod
-    public void init() {
+    public void init() throws IOException {
         System.setProperty(TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY, TESTGRID_HOME);
         scenarioConfig = new ScenarioConfig();
         testScenario = new TestScenario();
@@ -87,37 +84,37 @@ public class TestNgResultsParserTest {
         testPlan.setDeploymentPattern(deploymentPatternDBEntry);
         testPlan.setWorkspace(Paths.get(TESTGRID_HOME, TestGridConstants.TESTGRID_JOB_DIR,
                 product.getName()).toString());
+
+        final Path outputLocation = DataBucketsHelper.getTestOutputsLocation(testPlan)
+                .resolve(SUREFIRE_REPORTS_DIR_OUT);
+        copyTestngResultsXml(outputLocation);
+
         MockitoAnnotations.initMocks(this);
     }
 
     @Test(description = "Test for testing the functional test parser instance")
-    public void testTestNgResultsParser() throws ResultParserException, ParserInitializationException, IOException {
+    public void testTestNgResultsParser() throws ResultParserException {
 
         // Set cloned test plan location.
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("test-grid-is-resources");
         Assert.assertNotNull(resource);
 
-        final Path outputFile = DataBucketsHelper.getTestOutputsLocation(testPlan).resolve(SCENARIO_OUTPUTS_DIR)
-                .resolve(SUREFIRE_REPORTS_DIR)
-                .resolve(TestNgResultsParser.RESULTS_TEST_SUITE_FILE);
-        copyTestngResultsXml(outputFile);
-
         Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         Assert.assertTrue(parser.isPresent());
         Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
 
         parser.get().parseResults();
-        Assert.assertEquals(testScenario.getTestCases().size(), 9, "generated test cases does not match.");
+        Assert.assertEquals(testScenario.getTestCases().size(), 18, "generated test cases does not match.");
         final long successTestCases = testScenario.getTestCases().stream()
                 .filter(tc -> Status.SUCCESS.equals(tc.getStatus())).count();
         final long failureTestCases = testScenario.getTestCases().stream()
                 .filter(tc -> Status.FAIL.equals(tc.getStatus())).count();
         final long skipTestCases = testScenario.getTestCases().stream()
                 .filter(tc -> Status.SKIP.equals(tc.getStatus())).count();
-        Assert.assertEquals(successTestCases, 6, "success test cases does not match.");
-        Assert.assertEquals(failureTestCases, 2, "failure test cases does not match.");
-        Assert.assertEquals(skipTestCases, 1, "skip test cases does not match.");
+        Assert.assertEquals(successTestCases, 12, "success test cases does not match.");
+        Assert.assertEquals(failureTestCases, 4, "failure test cases does not match.");
+        Assert.assertEquals(skipTestCases, 2, "skip test cases does not match.");
     }
 
     @Test
@@ -126,32 +123,26 @@ public class TestNgResultsParserTest {
         Assert.assertTrue(parser.isPresent());
         Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
 
-        final Path outputPath = DataBucketsHelper.getTestOutputsLocation(testPlan);
-        FileUtils.copyDirectory(testArtifactPath.resolve(SUREFIRE_REPORTS_DIR).toFile(),
-                outputPath.resolve(SCENARIO_OUTPUTS_DIR).resolve(SUREFIRE_REPORTS_DIR).toFile());
-        FileUtils.copyFile(testArtifactPath.resolve("automation.log.rename").toFile(),
-                outputPath.resolve(SCENARIO_OUTPUTS_DIR).resolve("automation.log").toFile());
-
         parser.get().parseResults();
         parser.get().archiveResults();
-        Assert.assertEquals(testScenario.getTestCases().size(), 9, "generated test cases does not match.");
+        Assert.assertEquals(testScenario.getTestCases().size(), 18, "generated test cases does not match.");
         final long successTestCases = testScenario.getTestCases().stream()
                 .filter(tc -> Status.SUCCESS.equals(tc.getStatus())).count();
         final long failureTestCases = testScenario.getTestCases().stream()
                 .filter(tc -> Status.FAIL.equals(tc.getStatus())).count();
-        Assert.assertEquals(successTestCases, 6, "success test cases does not match.");
-        Assert.assertEquals(failureTestCases, 2, "failure test cases does not match.");
+        Assert.assertEquals(successTestCases, 12, "success test cases does not match.");
+        Assert.assertEquals(failureTestCases, 4, "failure test cases does not match.");
     }
 
     private void copyTestngResultsXml(Path outputLocation) throws IOException {
 
-        Files.copy(testArtifactPath.resolve(SUREFIRE_REPORTS_DIR).resolve(TestNgResultsParser.RESULTS_TEST_SUITE_FILE),
-                outputLocation, StandardCopyOption.REPLACE_EXISTING);
+        FileUtils.copyDirectory(testArtifactPath.toFile(), outputLocation.toFile());
+
     }
 
     @AfterClass
     public void tearDown() throws Exception {
         final Path buildOutputsDir = DataBucketsHelper.getBuildOutputsDir(testPlan);
-        //FileUtils.deleteQuietly(buildOutputsDir.toFile());
+        FileUtils.deleteQuietly(buildOutputsDir.toFile());
     }
 }
