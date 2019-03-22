@@ -18,10 +18,10 @@ infrastructureConfig:
       remoteBranch: "6.4.0"
       description: Provision Infra for running intg tests
       scripts:
-        - name: 'prod-wso2-ei-scenario-deployment'
+        - name: 'phase2-wso2-ei-scenario-deployment'
           description: ''
           type: CLOUDFORMATION
-          file: integrator/integrator-ha.yaml
+          file: integrator/Minimum-HA/integrator-ha.yaml
           inputParameters:
             parseInfrastructureScript: false
             KeyPairName: "deployment-dev"
