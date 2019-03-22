@@ -148,40 +148,6 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
      *
      * @return list of sub infra parameters
      */
-    public List<InfrastructureParameter> getProcessedSubInfrastructureParameters() {
-        if (subInfrastructureParameters == null) {
-            subInfrastructureParameters = new ArrayList<>();
-            try {
-                Properties properties = new Properties();
-                properties.load(new StringReader(this.getProperties()));
-
-                for (Map.Entry entry : properties.entrySet()) {
-                    String name = (String) entry.getValue();
-                    String type = (String) entry.getKey();
-                    String regex = "[\\w,-\\.@:]*";
-                    if (type.isEmpty() || !type.matches(regex)
-                            || name.isEmpty() || !name.matches(regex)) {
-                        continue;
-                    }
-                    InfrastructureParameter infraParameter = new InfrastructureParameter();
-                    infraParameter.setName(name);
-                    infraParameter.setType(type);
-                    infraParameter.setReadyForTestGrid(true);
-                    infraParameter.setProperties(this.getProperties());
-                    subInfrastructureParameters.add(infraParameter);
-                }
-            } catch (IOException e) {
-                logger.warn("Error while loading the infrastructure parameter's properties string for: " + this);
-            }
-        }
-        return subInfrastructureParameters;
-    }
-
-    /**
-     * Processes the {@link #properties} field, and generate a list of sub infrastructure parameters.
-     *
-     * @return list of sub infra parameters
-     */
     public Properties getSubProperties() {
             try {
                 Properties properties = new Properties();

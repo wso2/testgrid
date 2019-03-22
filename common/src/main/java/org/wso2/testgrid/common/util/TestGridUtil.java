@@ -500,7 +500,7 @@ public final class TestGridUtil {
     }
 
     /**
-     * Transforms infrastructure parameters to its display values.
+     * Parse infrastructure parameters to its display values.
      * Returns the value of corresponding value in NAME column of infrastructure_parameter table.
      *
      * @param valueSets infrastructure parameter value set
@@ -513,15 +513,8 @@ public final class TestGridUtil {
         final Map<String, String> infraParamsStr = parseInfraParametersString(infraParameters);
         for (InfrastructureValueSet valueSet : valueSets) {
             for (InfrastructureParameter value : valueSet.getValues()) {
-                boolean infraAdded = false;
-                for (InfrastructureParameter param : value.getProcessedSubInfrastructureParameters()) {
-                    if (!infraParamsStr.containsValue(param.getName())) {
-                        break;
-                    }
-                    if (!infraAdded) {
-                        infraParams.add(value);
-                        infraAdded = true;
-                    }
+                if (infraParamsStr.containsValue(value.getName()) && !infraParams.contains(value)) {
+                    infraParams.add(value);
                 }
             }
         }
