@@ -25,20 +25,21 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.wso2.testgrid.common.infrastructure.DefaultInfrastructureTypes;
 import org.wso2.testgrid.common.infrastructure.InfrastructureCombination;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 /**
  * Unit tests for the {@link InfrastructureCombinationsProvider} class.
@@ -46,18 +47,22 @@ import java.util.TreeSet;
 public class InfrastructureCombinationsProviderTest {
 
     private static final Logger logger = LoggerFactory.getLogger(InfrastructureCombinationsProviderTest.class);
-    private final String dbEnginePropKey = "DBEngine";
-    private final String dbEngineVersionPropKey = "DBEngineVersion";
-    private final String osPropKey = "OS";
-    private final String jdkPropKey = "JDK";
+    private final String dbEngineParamKey = "DBEngine";
+    private final String osPramKey = "OS";
+    private final String jdkParamKey = "JDK";
 
-    private final String dbEnginePropVal = "mysql";
+    private final String dbEngineVersionPropKey = "DBEngineVersion";
     private final String dbEngineVersionPropVal = "5.7";
-    private final String osPropVal = "UBUNTU";
-    private final String jdkPropVal = "ORACLE_JDK8";
+
+    private final ArrayList<String> osParamVals = new ArrayList<>();
+    private final ArrayList<String> jdkParamVals = new ArrayList<>();
+    private final ArrayList<String> dbParamVals = new ArrayList<>();
 
     @BeforeTest
     public void init() {
+        osParamVals.addAll(Arrays.asList("Ubuntu-18.04", "Windows-2016", "CentOS-7.5"));
+        jdkParamVals.addAll(Arrays.asList("ORACLE_JDK8", "OPEN_JDK8", "ADOPT_JDK8"));
+        dbParamVals.addAll(Arrays.asList("MySQL-5.6", "SQLServer-SE-13.00", "Postgres-10.5"));
         MockitoAnnotations.initMocks(this);
     }
 
@@ -72,12 +77,12 @@ public class InfrastructureCombinationsProviderTest {
     @Test
     public void testGetCombinations() throws Exception {
         Set<InfrastructureValueSet> valueSets = new HashSet<>();
-        InfrastructureValueSet osValueSet = new InfrastructureValueSet(DefaultInfrastructureTypes.OPERATING_SYSTEM,
-                createInfrastructureParameterSet(DefaultInfrastructureTypes.OPERATING_SYSTEM, 2));
-        InfrastructureValueSet dbValueSet = new InfrastructureValueSet(DefaultInfrastructureTypes.DATABASE,
-                createInfrastructureParameterSet(DefaultInfrastructureTypes.DATABASE, 1));
-        InfrastructureValueSet jdkValueSet = new InfrastructureValueSet(DefaultInfrastructureTypes.JDK,
-                createInfrastructureParameterSet(DefaultInfrastructureTypes.JDK, 1));
+        InfrastructureValueSet osValueSet = new InfrastructureValueSet(osPramKey,
+                createInfrastructureParameterSet(osPramKey, 2));
+        InfrastructureValueSet dbValueSet = new InfrastructureValueSet(dbEngineParamKey,
+                createInfrastructureParameterSet(dbEngineParamKey, 2));
+        InfrastructureValueSet jdkValueSet = new InfrastructureValueSet(jdkParamKey,
+                createInfrastructureParameterSet(jdkParamKey, 1));
         valueSets.add(osValueSet);
         valueSets.add(dbValueSet);
         valueSets.add(jdkValueSet);
@@ -85,44 +90,40 @@ public class InfrastructureCombinationsProviderTest {
         Set<InfrastructureCombination> combinations = new InfrastructureCombinationsProvider()
                 .getCombinations(valueSets);
         logger.info("Generated infrastructure combinations: " + combinations);
-        Assert.assertEquals(combinations.size(), 2, "There must be two infrastructure combinations.");
+        //Expected value should be the permutation count of distinct infra-param values.( 2! x 2! x 1!)
+        Assert.assertEquals(combinations.size(), 4, "There must be two infrastructure combinations.");
         for (InfrastructureCombination combination : combinations) {
-            Assert.assertEquals(combination.getParameters().size(), 4, "Combination contains more than three "
+            Assert.assertEquals(combination.getParameters().size(), 3, "Combination contains more than three "
                     + "infrastructure parameters: " + combination);
         }
-
-        List<String> operatingSystems = new ArrayList<String>() {
-            {
-                add(DefaultInfrastructureTypes.OPERATING_SYSTEM + 1);
-                add(DefaultInfrastructureTypes.OPERATING_SYSTEM + 2);
-            }
-        };
 
         for (InfrastructureCombination combination : combinations) {
             //check os
             boolean osExists = combination.getParameters().removeIf(param ->
-                    param.getName().equals(osPropVal) &&
-                            param.getType().equals(osPropKey));
-            Assert.assertTrue(osExists, StringUtil.concatStrings(operatingSystems.get(0), " nor ",
-                        operatingSystems.get(1), " does not exist in the combination: ", combination));
+                    param.getType().equals(osPramKey) && osParamVals.contains(param.getName()));
+            Assert.assertTrue(osExists, StringUtil.concatStrings("An OS out of available set {" +
+                    osParamVals.toString() + "} does not exist in the combination: ", combination));
 
             //check db property - dbengine
             boolean dbEngineExists = combination.getParameters().removeIf(param ->
-                    param.getName().equals(dbEnginePropVal) && param.getType().equals(dbEnginePropKey));
-            Assert.assertTrue(dbEngineExists, "DBEngine property of database1 has not got added as a "
-                    + "InfrastructureParameter. The infrastructure combination: " + combination);
+                            param.getType().equals(dbEngineParamKey) &&
+                    dbParamVals.contains(param.getName()));
+            Assert.assertTrue(dbEngineExists, StringUtil.concatStrings("A DB Engine out of available set {" +
+                    dbParamVals.toString() + "} does not exist in the combination: ", combination));
 
             //check db property - dbengineversion
             boolean dbEngineVersionExists = combination.getParameters().removeIf(param ->
                     param.getName().equals(dbEngineVersionPropVal) && param.getType().equals(dbEngineVersionPropKey));
-            Assert.assertTrue(dbEngineVersionExists, "DBEngineVersion property of database1 has not got added as a "
-                    + "InfrastructureParameter. The infrastructure combination: " + combination);
+            Assert.assertFalse(dbEngineVersionExists, "DBEngineVersion property, which is a sub-param of the" +
+                    "database infrastructure parameter has been added incorrectly as a infrastructure parameter." +
+                    combination);
 
             //check jdk
             boolean jdkExists = combination.getParameters().removeIf(param ->
-                    param.getName().equals(jdkPropVal) &&
-                            param.getType().equals(jdkPropKey));
-            Assert.assertTrue(jdkExists, "JDK does not exist in the combination: " + combination);
+                    param.getType().equals(jdkParamKey) &&
+                            jdkParamVals.contains(param.getName()));
+            Assert.assertTrue(jdkExists, StringUtil.concatStrings("A JDK out of available set {" +
+                    jdkParamVals.toString() + "} does not exist in the combination: ", combination));
 
             Assert.assertEquals(combination.getParameters().size(), 0);
         }
@@ -131,35 +132,46 @@ public class InfrastructureCombinationsProviderTest {
 
     private Set<InfrastructureParameter> createInfrastructureParameterSet(String type, int count) throws IOException {
         Set<InfrastructureParameter> params = new TreeSet<>();
-        String propertiesStr = "";
-        Properties properties;
-        StringWriter propWriter;
-        if (type.equals(DefaultInfrastructureTypes.DATABASE)) {
-            properties = new Properties();
-            properties.setProperty(dbEnginePropKey, dbEnginePropVal);
-            properties.setProperty(dbEngineVersionPropKey, dbEngineVersionPropVal);
-            propWriter = new StringWriter();
-            properties.store(propWriter, "");
-            propertiesStr = propWriter.toString();
-        } else if (type.equals(DefaultInfrastructureTypes.OPERATING_SYSTEM)) {
-            properties = new Properties();
-            properties.setProperty(osPropKey, osPropVal);
-            propWriter = new StringWriter();
-            properties.store(propWriter, "");
-            propertiesStr = propWriter.toString();
-        } else if (type.equals(DefaultInfrastructureTypes.JDK)) {
-            properties = new Properties();
-            properties.setProperty(jdkPropKey, jdkPropVal);
-            propWriter = new StringWriter();
-            properties.store(propWriter, "");
-            propertiesStr = propWriter.toString();
-        }
-        for (int i = 1; i <= count; i++) {
-            InfrastructureParameter param = new InfrastructureParameter(type + i, type, propertiesStr, true);
-            params.add(param);
-        }
+        int maxRandomIndex;
+        switch (type) {
+            case osPramKey:
+                maxRandomIndex = osParamVals.size();
+                break;
+            case dbEngineParamKey:
+                maxRandomIndex = dbParamVals.size();
+                break;
+            case jdkParamKey:
+                default:
+                maxRandomIndex = jdkParamVals.size();
 
+        }
+        //Receive distinct random index
+        List<Integer> randomDistinctIntList = ThreadLocalRandom.current()
+                .ints(0, maxRandomIndex).distinct().limit(count).boxed()
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < count; i++) {
+            params.add(getRandomInfraParamForType(type, randomDistinctIntList.get(i)));
+        }
         return params;
+    }
+
+    private InfrastructureParameter getRandomInfraParamForType(String type, int randomIndex) {
+
+        switch (type) {
+            case osPramKey:
+                return new InfrastructureParameter(osParamVals.get(randomIndex),
+                        osPramKey, "", true);
+            case jdkParamKey:
+                return new InfrastructureParameter(jdkParamVals.get(randomIndex),
+                        jdkParamKey, "", true);
+            case dbEngineParamKey:
+            default:
+                Properties props = new Properties();
+                props.setProperty(dbEngineVersionPropKey, dbEngineVersionPropVal);
+                return new InfrastructureParameter(dbParamVals.get(randomIndex),
+                        dbEngineParamKey,  props.toString(), true);
+        }
     }
 
 }

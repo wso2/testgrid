@@ -425,7 +425,13 @@ public class AWSProvider implements InfrastructureProvider {
      * intermediate {@link DataBucketsHelper#INFRA_OUT_FILE}, and
      * {@link Script#getInputParameters()}.
      *
-     * NOTE: properties load order is important. Latter properties has higher precedence, and will over-ride others.
+     * NOTE: properties load order is important. Latter properties have higher precedence, and will over-ride others.
+     * The look-up order of the files for properties will be;
+     *         1.test-plan props file.
+     *         2.infra-output file.
+     *         3.properties mentioned in the test-plan yaml (which were generated from the testgrid-db).
+     * (If there exists a property with the same name in multiple locations, the one that pick-up last will be replacing
+     * the value.)
      *
      * @param testPlan the test plan
      * @param script script currently being executed.
@@ -437,7 +443,7 @@ public class AWSProvider implements InfrastructureProvider {
         final Path infraOutFile = inputLocation.resolve(DataBucketsHelper.INFRA_OUT_FILE);
 
         Properties props = new Properties();
-        props.putAll(testPlan.getInfrastructureConfig().getParameters());
+
         if (Files.exists(testplanPropsFile)) {
             try (InputStream tpInputStream = Files.newInputStream(testplanPropsFile, StandardOpenOption.READ)) {
                 props.load(tpInputStream);
@@ -457,7 +463,7 @@ public class AWSProvider implements InfrastructureProvider {
 
         }
         props.putAll(script.getInputParameters());
-
+        props.putAll(testPlan.getInfrastructureProperties());
         return props;
     }
 
