@@ -562,7 +562,8 @@ public class AWSProvider implements InfrastructureProvider {
                             .getParameterKey())).findAny();
             if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
-                            .withParameterValue(getAMIParameterValue(infraCombinationProperties, infraInputs));
+                            .withParameterValue(getAMIParameterValue(testPlan.getInfrastructureProperties(),
+                                    infraInputs));
                 cfCompatibleParameters.add(awsParameter);
             }
 
