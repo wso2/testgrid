@@ -20,6 +20,7 @@ package org.wso2.testgrid.core.command;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
@@ -58,8 +59,7 @@ public class FinalizeRunTestplan implements Command {
 
     @Option(name = "--product",
             usage = "Product Name",
-            aliases = { "-p" },
-            required = true)
+            aliases = { "-p" })
     private String productName = "";
 
     @Option(name = "--file",
@@ -83,15 +83,37 @@ public class FinalizeRunTestplan implements Command {
 
     @Override
     public void execute() throws CommandExecutionException {
+        if (productName == null || productName.isEmpty()) {
+            try {
+                ProductUOW productUOW = new ProductUOW();
+                List<Product> products = productUOW.getProducts();
+                for (Product product: products) {
+                    logger.info("Finalizing test-plans of product " + product.getName());
+                    executePerProduct(product.getName());
+                }
+            } catch (TestGridDAOException e) {
+                logger.error("Error while fetching product-list from database.", e);
+            }
+        } else {
+            executePerProduct(productName);
+        }
+    }
 
+    /**
+     * Execute finalizing logic for the give product.
+     *
+     * @param product product-name
+     */
+    private void executePerProduct(String product) {
         LogFilePathLookup.setLogFilePath(
-                TestGridUtil.deriveTestGridLogFilePath(productName, TestGridConstants.TESTGRID_LOG_FILE_NAME));
+                TestGridUtil.deriveTestGridLogFilePath(product, TestGridConstants.TESTGRID_LOG_FILE_NAME));
         logger.info("Finalizing test plan status...");
         try {
             if (Paths.get(testPlanYamlFilePath).toFile().exists()) {
                 //Read test plan id from test-plan yaml file
                 TestPlan testPlan = FileUtil.readYamlFile(testPlanYamlFilePath, TestPlan.class);
-                Optional<TestPlan> testPlanEntity = testPlanUOW.getTestPlanById(testPlan.getId());
+                Optional<TestPlan> testPlanEntity = testPlanUOW
+                        .getTestPlanById(testPlan.getId());
                 if (testPlanEntity.isPresent()) {
                     testPlans = new ArrayList<>();
                     testPlans.add(testPlanEntity.get());
