@@ -80,10 +80,18 @@ public class GrafanaDashboardHandler {
 
             logger.info(StringUtil.concatStrings("database created for testplan: ", testplanID,
                     "and DB name: ", dbName));
+
+            // add a new data source to grafana
+            addGrafanaDataSource();
+            //TODO: Fixing immediate build hanging issue.
+            //configureTelegrafHost();
         } catch (AssertionError e) {
-            logger.error(StringUtil.concatStrings("Cannot create a new Database: \n", e));
+            logger.error("Cannot create a new Database. Test plan ID: " + testplanID, e);
         } catch (IllegalArgumentException e) {
-            logger.error(StringUtil.concatStrings("INFLUXDB_USER and INFLUXDB_PASS cannot be empty: \n", e));
+            logger.error("INFLUXDB_USER and INFLUXDB_PASS cannot be empty. Test plan ID: " + testplanID, e);
+        } catch (Exception e) {
+            logger.error("Unknown error occurred while creating deployment monitor database (InfluxDB). Test plan ID: "
+                    + testplanID, e);
         } finally {
             if (influxDB != null) {
                 try {
@@ -93,12 +101,6 @@ public class GrafanaDashboardHandler {
                 }
             }
         }
-
-        // add a new data source to grafana
-        addGrafanaDataSource();
-        //TODO: Fixing immediate build hanging issue.
-        //configureTelegrafHost();
-
     }
 
     /**
