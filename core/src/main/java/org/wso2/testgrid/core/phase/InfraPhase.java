@@ -73,9 +73,9 @@ public class InfraPhase extends Phase {
                 provisionInfrastructure();
         //setup product performance dashboard
         if (infrastructureProvisionResult.isSuccess()) {
-            persistTestPlanPhase(TestPlanPhase.INFRA_PHASE_SUCCEEDED);
             GrafanaDashboardHandler dashboardSetup = new GrafanaDashboardHandler(getTestPlan().getId());
             dashboardSetup.initDashboard();
+            persistTestPlanPhase(TestPlanPhase.INFRA_PHASE_SUCCEEDED);
         }
         getTestPlan().setInfrastructureProvisionResult(infrastructureProvisionResult);
     }
