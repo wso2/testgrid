@@ -91,6 +91,7 @@ Parameters:
       - m3.xlarge
       - m3.2xlarge
       - m4.large
+      - c3.4xlarge
     ConstraintDescription: must be a valid EC2 instance type
   WUMUsername:
     Type: String
@@ -324,7 +325,7 @@ Resources:
         DisableApiTermination: 'false'
         InstanceInitiatedShutdownBehavior: stop
         ImageId: !Ref AMI
-        InstanceType: 'm3.2xlarge'
+        InstanceType:  !Ref WSO2InstanceType
         KeyName: !Ref EC2KeyPair
         Monitoring: 'false'
         "BlockDeviceMappings" : [
