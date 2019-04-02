@@ -126,8 +126,9 @@ public class FinalizeRunTestplan implements Command {
                         ConfigurationContext.ConfigurationProperties.FINALIZE_RUN_TESTPLAN_INTERVAL);
                 if (interval != null) {
                     testPlans = testPlanUOW.getTestPlansOlderThan(interval, TIME_UNIT);
+                } else {
+                    testPlans = testPlanUOW.getTestPlansOlderThan(DEFAULT_INTERVAL, TIME_UNIT);
                 }
-                testPlans = testPlanUOW.getTestPlansOlderThan(DEFAULT_INTERVAL, TIME_UNIT);
                 logger.info("Found " + testPlans.size() + " test plans to finalize statuses.");
                 for (int i = 0; i < testPlans.size(); i++) {
                     logger.info((i + 1) + ". " + testPlans.get(i).getId());
