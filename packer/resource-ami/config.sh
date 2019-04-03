@@ -83,6 +83,11 @@ function installJDKs() {
 	sudo add-apt-repository -y ppa:openjdk-r/ppa
 	sudo apt-get update -y
 	sudo apt-get -y install openjdk-8-jdk
+	#Installing Amazon CorrettoJDK 8
+	echo "Installing CorrettoJDK-8"
+	wget https://d2znqt9b1bc64u.cloudfront.net/java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
+    sudo apt-get -y update && sudo apt-get -y install java-common
+    sudo dpkg --install java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
 	;;
 
     CentOS)
