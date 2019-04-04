@@ -52,6 +52,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -496,32 +497,40 @@ public final class TestGridUtil {
      */
     public static List<InfrastructureParameter> getInfraParamsOfTestPlan(
             Set<InfrastructureValueSet> valueSets, TestPlan testPlan) {
-        return transformInfraParameters(valueSets, testPlan.getInfraParameters());
+        return parseInfraParameters(valueSets, testPlan.getInfraParameters());
     }
 
     /**
-     * Transforms infrastructure parameters to its display values.
+     * Parse infrastructure parameters to its display values.
      * Returns the value of corresponding value in NAME column of infrastructure_parameter table.
      *
      * @param valueSets infrastructure parameter value set
      * @param infraParameters inra parameter string to parse
      * @return a list of printable infra parameters
      */
-    public static List<InfrastructureParameter> transformInfraParameters
+    public static List<InfrastructureParameter> parseInfraParameters
             (Set<InfrastructureValueSet> valueSets, String infraParameters) {
         List<InfrastructureParameter> infraParams = new ArrayList<>();
         final Map<String, String> infraParamsStr = parseInfraParametersString(infraParameters);
         for (InfrastructureValueSet valueSet : valueSets) {
             for (InfrastructureParameter value : valueSet.getValues()) {
+                //The following logic will be used to be compatible with old db records.
                 boolean infraAdded = false;
-                for (InfrastructureParameter param : value.getProcessedSubInfrastructureParameters()) {
-                    if (!infraParamsStr.containsValue(param.getName())) {
+                Properties props = value.getSubProperties();
+                Enumeration enm = props.propertyNames();
+                while (enm.hasMoreElements()) {
+                    String key = enm.nextElement().toString();
+                    if (!infraParamsStr.containsValue(props.getProperty(key))) {
                         break;
                     }
                     if (!infraAdded) {
                         infraParams.add(value);
                         infraAdded = true;
                     }
+                }
+                //Actual logic needs for current db records.
+                if (infraParamsStr.containsValue(value.getName()) && !infraParams.contains(value)) {
+                    infraParams.add(value);
                 }
             }
         }

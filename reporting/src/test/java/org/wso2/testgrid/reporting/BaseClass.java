@@ -352,7 +352,8 @@ public class BaseClass extends PowerMockTestCase {
                     params.add(os);
                     params.add(db);
                     params.add(jdk);
-                    infrastructureCombinations.add(new InfrastructureCombination(params));
+                    infrastructureCombinations.add(new InfrastructureCombination(params
+                            .toArray(new InfrastructureParameter[params.size()])));
                 }
             }
         }

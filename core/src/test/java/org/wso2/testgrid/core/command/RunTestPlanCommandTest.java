@@ -197,7 +197,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
 
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "{}", true);
-        InfrastructureCombination comb1 = new InfrastructureCombination(Collections.singleton(param));
+        InfrastructureCombination comb1 = new InfrastructureCombination(param);
         when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class)))
                 .thenReturn(Collections.singleton(comb1));
 

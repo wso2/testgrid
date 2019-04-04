@@ -76,7 +76,7 @@ public class TestCaseFailureResultDTO {
         InfrastructureParameterUOW infrastructureParameterUOW = new InfrastructureParameterUOW();
         final Set<InfrastructureValueSet> valueSets = infrastructureParameterUOW.getValueSet();
 
-        setInfraParameters("{" + TestGridUtil.transformInfraParameters(valueSets, infraParameters).stream()
+        setInfraParameters("{" + TestGridUtil.parseInfraParameters(valueSets, infraParameters).stream()
                 .map(infra -> "\"" + infra.getType() + "\":\"" + infra.getName() + "\"")
                 .collect(Collectors.joining(",")) + "}");
     }

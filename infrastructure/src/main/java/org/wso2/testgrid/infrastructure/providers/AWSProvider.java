@@ -292,36 +292,39 @@ public class AWSProvider implements InfrastructureProvider {
      * @param region aws region where the stack was created
      */
     private void deriveLogDashboardUrl(TestPlan testPlan, String stackName, String region) {
-        // Filter the EC2 instance corresponding to the stack
-        Path configFilePath = TestGridUtil.getConfigFilePath();
-        AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.standard()
-                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                .withRegion(region)
-                .build();
-        DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
-        describeInstancesRequest.withFilters(
-                new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
-        DescribeInstancesResult result = amazonEC2.describeInstances(describeInstancesRequest);
-
-        // Add instance id and name to a map
-        Map<String, String> instancesMap = new HashMap<>();
-        result.getReservations().stream().map(r -> r.getInstances()).flatMap(instanceList -> instanceList.stream())
-                .forEach(i -> {
-                    final String instanceName = i.getTags().stream().filter(t ->
-                            INSTANCE_NAME_TAG_KEY.equalsIgnoreCase(t.getKey())).findFirst().get().getValue();
-                    instancesMap.put(i.getInstanceId(), instanceName);
-        });
-
-        KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
-        Optional<String> logUrl = builder.buildDashBoard(instancesMap, stackName, true);
-        logUrl.ifPresent(testPlan::setLogUrl);
-
-        TestPlanUOW testPlanUOW = new TestPlanUOW();
         try {
+            // Filter the EC2 instance corresponding to the stack
+            Path configFilePath = TestGridUtil.getConfigFilePath();
+            AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.standard()
+                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                    .withRegion(region)
+                    .build();
+            DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
+            describeInstancesRequest.withFilters(
+                    new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
+            DescribeInstancesResult result = amazonEC2.describeInstances(describeInstancesRequest);
+
+            // Add instance id and name to a map
+            Map<String, String> instancesMap = new HashMap<>();
+            result.getReservations().stream().map(r -> r.getInstances()).flatMap(instanceList -> instanceList.stream())
+                    .forEach(i -> {
+                        final String instanceName = i.getTags().stream().filter(t ->
+                                INSTANCE_NAME_TAG_KEY.equalsIgnoreCase(t.getKey())).findFirst().get().getValue();
+                        instancesMap.put(i.getInstanceId(), instanceName);
+                    });
+
+            KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
+            Optional<String> logUrl = builder.buildDashBoard(instancesMap, stackName, true);
+            logUrl.ifPresent(testPlan::setLogUrl);
+
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
             testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
             logger.error("Error occurred while persisting log URL to test plan."
                     + testPlan.toString() + e.getMessage());
+        } catch (Exception e) {
+            logger.warn("Unknown error occurred while deriving the Kibana log dashboard URL. Continuing the "
+                    + "deployment regardless. Test plan ID: " + testPlan, e);
         }
     }
 
@@ -425,7 +428,13 @@ public class AWSProvider implements InfrastructureProvider {
      * intermediate {@link DataBucketsHelper#INFRA_OUT_FILE}, and
      * {@link Script#getInputParameters()}.
      *
-     * NOTE: properties load order is important. Latter properties has higher precedence, and will over-ride others.
+     * NOTE: properties load order is important. Latter properties have higher precedence, and will over-ride others.
+     * The look-up order of the files for properties will be;
+     *         1.test-plan props file.
+     *         2.infra-output file.
+     *         3.properties mentioned in the test-plan yaml (which were generated from the testgrid-db).
+     * (If there exists a property with the same name in multiple locations, the one that pick-up last will be replacing
+     * the value.)
      *
      * @param testPlan the test plan
      * @param script script currently being executed.
@@ -437,7 +446,7 @@ public class AWSProvider implements InfrastructureProvider {
         final Path infraOutFile = inputLocation.resolve(DataBucketsHelper.INFRA_OUT_FILE);
 
         Properties props = new Properties();
-        props.putAll(testPlan.getInfrastructureConfig().getParameters());
+
         if (Files.exists(testplanPropsFile)) {
             try (InputStream tpInputStream = Files.newInputStream(testplanPropsFile, StandardOpenOption.READ)) {
                 props.load(tpInputStream);
@@ -457,7 +466,7 @@ public class AWSProvider implements InfrastructureProvider {
 
         }
         props.putAll(script.getInputParameters());
-
+        props.putAll(testPlan.getInfrastructureProperties());
         return props;
     }
 
@@ -556,7 +565,8 @@ public class AWSProvider implements InfrastructureProvider {
                             .getParameterKey())).findAny();
             if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
-                            .withParameterValue(getAMIParameterValue(infraCombinationProperties, infraInputs));
+                            .withParameterValue(getAMIParameterValue(testPlan.getInfrastructureProperties(),
+                                    infraInputs));
                 cfCompatibleParameters.add(awsParameter);
             }
 
