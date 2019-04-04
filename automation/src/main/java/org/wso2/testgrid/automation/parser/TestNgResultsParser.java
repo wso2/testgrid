@@ -269,7 +269,7 @@ public class TestNgResultsParser extends ResultParser {
     }
 
     /**
-     * Searches the provided path for files named "TEST-TestSuite.xml",
+     * Searches the provided path for files named "TEST-.*.xml",
      * and returns the list of paths.
      *
      * @param dataBucket the data bucket folder where build artifacts are located.
@@ -282,7 +282,9 @@ public class TestNgResultsParser extends ResultParser {
             final Set<Path> inputFiles = new HashSet<>();
             for (Path file : files) {
                 final Path fileName = file.getFileName();
-                if (Files.isDirectory(file)) {
+                if (fileName == null) {
+                    continue;
+                } else if (Files.isDirectory(file) && !"junitreports".equalsIgnoreCase(fileName.toString())) {
                     final Set<Path> anInputFilesList = getResultInputFiles(file);
                     inputFiles.addAll(anInputFilesList);
                 } else if (fileName.toString().matches(RESULTS_TEST_SUITE_FILES_REGEX)) {
