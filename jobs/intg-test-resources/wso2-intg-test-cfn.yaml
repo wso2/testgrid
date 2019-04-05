@@ -130,6 +130,7 @@ Parameters:
       - OPEN_JDK8
       - ORACLE_JDK8
       - ADOPT_OPEN_JDK8
+      - CORRETTO_JDK8
   MavenVersion:
     Type: String
     Default: '3.3.9'
