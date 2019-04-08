@@ -88,6 +88,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.config.ConfigurationContext.getProperty;
 
@@ -305,13 +306,18 @@ public class AWSProvider implements InfrastructureProvider {
             DescribeInstancesResult result = amazonEC2.describeInstances(describeInstancesRequest);
 
             // Add instance id and name to a map
-            Map<String, String> instancesMap = new HashMap<>();
-            result.getReservations().stream().map(r -> r.getInstances()).flatMap(instanceList -> instanceList.stream())
-                    .forEach(i -> {
-                        final String instanceName = i.getTags().stream().filter(t ->
-                                INSTANCE_NAME_TAG_KEY.equalsIgnoreCase(t.getKey())).findFirst().get().getValue();
-                        instancesMap.put(i.getInstanceId(), instanceName);
-                    });
+            Map<String, String> instancesMap = result.getReservations().stream()
+                    .map(Reservation::getInstances)
+                    .flatMap(Collection::stream)
+                    .map(i -> {
+                        final Optional<String> name = i.getTags().stream()
+                                .filter(t -> INSTANCE_NAME_TAG_KEY.equalsIgnoreCase(t.getKey()))
+                                .map(com.amazonaws.services.ec2.model.Tag::getValue)
+                                .findAny();
+                        return new HashMap.SimpleEntry<>(i.getInstanceId(), name);
+                    })
+                    .filter(e -> e.getValue().isPresent())
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
 
             KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
             Optional<String> logUrl = builder.buildDashBoard(instancesMap, stackName, true);
