@@ -86,6 +86,9 @@ public class TestCase extends AbstractUUIDEntity implements Serializable {
      * @param name test case name
      */
     public void setName(String name) {
+        if (name.length() > 255) {
+            name = name.substring(0, 252) + "...";
+        }
         this.name = name;
     }
 

@@ -20,6 +20,7 @@ package org.wso2.testgrid.infrastructure.providers.aws;
 import com.amazonaws.services.cloudformation.model.StackEvent;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
 import org.powermock.modules.testng.PowerMockTestCase;
@@ -51,6 +52,7 @@ import static org.testng.Assert.assertNull;
 /**
  * Test class to test methods in AWSResourceManager.
  */
+@PowerMockIgnore({ "javax.net.ssl.*", "javax.security.*", "javax.management.*"})
 @PrepareForTest({AWSResourceManager.class, AWSRegionWaiter.class, TestGridUtil.class, ConfigurationContext.class})
 @SuppressStaticInitializationFor("org.wso2.testgrid.common.config.ConfigurationContext")
 public class AWSResourceManagerTest extends PowerMockTestCase {

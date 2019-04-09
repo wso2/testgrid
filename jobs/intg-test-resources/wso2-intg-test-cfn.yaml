@@ -76,7 +76,7 @@ Parameters:
   WSO2InstanceType:
     Description: 'EC2 instance type of the WSO2 EI Node [t2.micro is the free tier]'
     Type: String
-    Default: m3.xlarge
+    Default: m3.2xlarge
     AllowedValues:
       - t2.nano
       - t1.micro
@@ -130,7 +130,7 @@ Parameters:
       - OPEN_JDK8
       - ORACLE_JDK8
       - ADOPT_OPEN_JDK8
-      - CorrettoJDK-8
+      - CORRETTO_JDK8
   MavenVersion:
     Type: String
     Default: '3.3.9'
@@ -326,7 +326,8 @@ Resources:
         DisableApiTermination: 'false'
         InstanceInitiatedShutdownBehavior: stop
         ImageId: !Ref AMI
-        InstanceType:  !Ref WSO2InstanceType
+        
+        InstanceType: !Ref WSO2InstanceType
         KeyName: !Ref EC2KeyPair
         Monitoring: 'false'
         "BlockDeviceMappings" : [
