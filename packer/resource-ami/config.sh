@@ -88,6 +88,7 @@ function installJDKs() {
 	wget https://d2znqt9b1bc64u.cloudfront.net/java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
     sudo apt-get -y update && sudo apt-get -y install java-common
     sudo dpkg --install java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
+
 	;;
 
     CentOS)
@@ -97,11 +98,16 @@ function installJDKs() {
 	#Installing OpenJDK8
 	echo "Installing OPENJDK 8"
 	sudo yum install -y java-1.8.0-openjdk-devel
-    	sudo yum install -y wget #Dependency to download JCE policies
+    sudo yum install -y wget #Dependency to download JCE policies
 	echo "Installing AdoptOpenJDK 8"
 	wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u192-b12/OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz
 	sudo mkdir -p /opt/jdk/java-8-adoptOpenJdk
 	sudo tar -xf OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz -C /opt/jdk/java-8-adoptOpenJdk/
+	#Installing Amazon CorrettoJDK 8
+	echo "Installing CorrettoJDK-8"
+	wget https://d2znqt9b1bc64u.cloudfront.net/amazon-corretto-8.202.08.2-macosx-x64.tar.gz
+	sudo mkdir -p /opt/jdk/java-8-correttoJdk
+	sudo tar -xf amazon-corretto-8.202.08.2-macosx-x64.tar.gz -C /opt/jdk/java-8-correttoJdk
 	;;
 
     RHEL)
@@ -111,7 +117,7 @@ function installJDKs() {
 	#Installing OpenJDK8
 	echo "Installing OPENJDK 8"
 	sudo yum install -y java-1.8.0-openjdk-devel
-    	sudo yum install -y wget #Dependency to download JCE policies
+    sudo yum install -y wget #Dependency to download JCE policies
 	echo "Installing AdoptOpenJDK 8"
 	wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u192-b12/OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz
 	sudo mkdir -p /opt/jdk/java-8-adoptOpenJdk
@@ -260,6 +266,7 @@ function addEnvVariables() {
     sudo su -c "echo 'ORACLE_JDK8=/usr/java/jdk1.8.0_181-amd64' > /etc/environment"
     sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-1.8.0-openjdk' >> /etc/environment"
     sudo su -c "echo 'ADOPT_OPEN_JDK8=/opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre' >> /etc/environment"
+    sudo su -c "echo 'CORRETTO_JDK8=/opt/jdk/java-8-correttojdk/amazon-corretto-8.jdk/Contents/Home' >> /etc/environment"
     source /etc/environment
 }
 
