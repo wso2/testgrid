@@ -69,7 +69,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         logger.info("Executing provisioning scripts...");
         try {
             Script createScript = script;
-            ShellExecutor executor = new ShellExecutor(null);
+            ShellExecutor executor = new ShellExecutor(null); //todo
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             String infraInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                     .toAbsolutePath().toString();

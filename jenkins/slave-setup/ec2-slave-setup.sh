@@ -61,3 +61,33 @@ nohup Xvfb :95 -screen 0 1024x768x16 > /dev/null 2>&1 &
 
 # Changing the testgrid home ownership
 chown -R ubuntu:ubuntu ${TESTGRID_HOME}
+
+# Install GCloud
+#export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+#echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" \
+#| sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+#curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+#sudo apt-get update && sudo apt-get install google-cloud-sdk
+# copy gke-developer json pvt key
+# gcloud auth activate-service-account --key-file <path-to-key>.json
+# generate kubeconfig:
+# gcloud container clusters get-credentials <cluster-name> --zone us-central1-a --project testgrid
+# gcloud version
+# install kubectl && kubectl version
+
+#sudo apt install xvfb
+#mkdir -p /testgrid/software/java/jdk1.8.0_161
+#sudo mkdir -p /testgrid/software/java/jdk1.8.0_161
+#sudo chown -R ubuntu:ubuntu /testgrid
+#mv jdk-8u161-linux-x64.tar.gz /testgrid/software/java/
+#sudo apt-get install unzip
+#cd /testgrid/software/java/
+
+
+# Current .bashrc content
+#export PATH="$PATH:/opt/mssql-tools/bin"
+#Xvfb :95 -screen 0 1024x768x16 &> xvfb.log &
+## The next line updates PATH for the Google Cloud SDK.
+#if [ -f '/testgrid/software/gcloud/google-cloud-sdk/path.bash.inc' ]; then . '/testgrid/software/gcloud/google-cloud-sdk/path.bash.inc'; fi
+## The next line enables shell command completion for gcloud.
+#if [ -f '/testgrid/software/gcloud/google-cloud-sdk/completion.bash.inc' ]; then . '/testgrid/software/gcloud/google-cloud-sdk/completion.bash.inc'; fi
