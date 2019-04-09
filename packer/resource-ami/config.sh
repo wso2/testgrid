@@ -87,7 +87,7 @@ function installJDKs() {
 	echo "Installing CorrettoJDK-8"
 	wget https://d2znqt9b1bc64u.cloudfront.net/java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
     sudo apt-get -y update && sudo apt-get -y install java-common
-    sudo dpkg --install java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
+	sudo dpkg --install java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
 
 	;;
 
