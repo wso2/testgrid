@@ -43,7 +43,7 @@ import java.util.function.Consumer;
  */
 public class ShellExecutor {
 
-    private static Logger logger = LoggerFactory.getLogger(ShellExecutor.class);
+    private static Logger logger = LoggerFactory.getLogger("Shell");
 
     private Path workingDirectory;
 
@@ -110,8 +110,15 @@ public class ShellExecutor {
             }
             Process process = processBuilder.start();
 
-            StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), logger::info);
-            StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), logger::error);
+            StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), msg -> {
+                msg = reduceLogVerbosity(msg);
+                logger.info(msg);
+            });
+            StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), msg -> {
+                Consumer<String> c = !msg.startsWith("+ ") ? logger::error : logger::info; // handle 'set -o xtrace'
+                msg = reduceLogVerbosity(msg);
+                c.accept(msg);
+            });
 
             executor.execute(outputStreamGobbler);
             executor.execute(errorStreamGobbler);
@@ -129,6 +136,11 @@ public class ShellExecutor {
         } finally {
             executor.shutdownNow();
         }
+    }
+
+    private String reduceLogVerbosity(String msg) {
+        return msg.replace("INFO  [org.wso2.carbon.automation.extensions.servers.utils.ServerLogReader] - ",
+                "[Server] - ");
     }
 
     /**
