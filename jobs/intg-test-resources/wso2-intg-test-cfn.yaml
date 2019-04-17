@@ -114,7 +114,7 @@ Parameters:
     Description: Enter product version
   OS:
     Type: String
-    Default: ubuntu
+    Default: Ubuntu
     Description: >-
       Enter target OS. This will be the username of the created EC2 instances as
       well.
@@ -166,7 +166,7 @@ Mappings:
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "UBUNTU" ], !Equals [ !Ref OS, "RHEL" ]]
+ IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "Ubuntu" ], !Equals [ !Ref OS, "RHEL" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
 Resources:
   WSO2InstanceSecurityGroup:
