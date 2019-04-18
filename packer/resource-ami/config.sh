@@ -105,9 +105,10 @@ function installJDKs() {
 	sudo tar -xf OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz -C /opt/jdk/java-8-adoptOpenJdk/
 	#Installing Amazon CorrettoJDK 8
 	echo "Installing CorrettoJDK-8"
-	wget https://d2znqt9b1bc64u.cloudfront.net/amazon-corretto-8.202.08.2-macosx-x64.tar.gz
+	wget https://d2znqt9b1bc64u.cloudfront.net/amazon-corretto-8.202.08.2-linux-x64.tar.gz
 	sudo mkdir -p /opt/jdk/java-8-correttoJdk
-	sudo tar -xf amazon-corretto-8.202.08.2-macosx-x64.tar.gz -C /opt/jdk/java-8-correttoJdk
+	sudo tar -xf amazon-corretto-8.202.08.2-linux-x64.tar.gz -C /opt/jdk/java-8-correttoJdk
+	sudo cp /opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre/lib/security/cacerts 	/opt/jdk/java-8-correttoJdk/amazon-corretto-8.202.08.2-linux-x64/jre/lib/security/
 	;;
 
     RHEL)
@@ -266,7 +267,7 @@ function addEnvVariables() {
     sudo su -c "echo 'ORACLE_JDK8=/usr/java/jdk1.8.0_181-amd64' > /etc/environment"
     sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-1.8.0-openjdk' >> /etc/environment"
     sudo su -c "echo 'ADOPT_OPEN_JDK8=/opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre' >> /etc/environment"
-    sudo su -c "echo 'CORRETTO_JDK8=/opt/jdk/java-8-correttojdk/amazon-corretto-8.jdk/Contents/Home' >> /etc/environment"
+    sudo su -c "echo 'CORRETTO_JDK8=/opt/jdk/java-8-correttoJdk/amazon-corretto-8.202.08.2-linux-x64/jre' >> /etc/environment"
     source /etc/environment
 }
 
