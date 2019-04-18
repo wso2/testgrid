@@ -634,7 +634,7 @@ public class AWSProvider implements InfrastructureProvider {
                             "elif [[ ! -z $APT_GET_CMD ]]; then\n" +
                             "  sudo apt-get -y install awscli\n" +
                             "fi\n" +
-                            "aws --version";
+                            "aws --version\n";
 
                     String perfMonitoringSetup = "if [ ! -f /opt/testgrid/agent/telegraf_setup.sh ]; then\n" +
                             "  wget https://s3.amazonaws.com/testgrid-resources/packer/Unix/" +
