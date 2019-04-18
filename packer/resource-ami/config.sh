@@ -18,6 +18,9 @@
 # NAME: echoLogo
 # DESCRIPTION: Print the WSO2 TestGrid Logo.
 #===============================================================================
+
+set -o xtrace
+
 function echoLogo() {
 	echo "__          __ ____  ____ ___    _______        _    _____      _     _ "
 	echo "\ \        / / ____|/ __ \__ \  |__   __|      | |  / ____|    (_)   | |"
