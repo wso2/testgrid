@@ -106,7 +106,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String DEFAULT_REGION = "us-east-1";
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     private AWSResourceManager awsResourceManager;
-    private static final int TIMEOUT = 60;
+    private static final int TIMEOUT = 75;
     private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
     private static final int POLL_INTERVAL = 1;
     private static final TimeUnit POLL_UNIT = TimeUnit.MINUTES;
@@ -272,12 +272,13 @@ public class AWSProvider implements InfrastructureProvider {
 
             return result;
         } catch (IOException e) {
-            throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
+            throw new TestGridInfrastructureException("Error while Reading CloudFormation script", e);
         } catch (ConditionTimeoutException e) {
             throw new TestGridInfrastructureException(
-                    StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
+                    "ERROR: cloudformation stack creation has timed out. Analyze cause via stack logs in AWS console: "
+                            + stackName, e);
         } catch (TestGridDAOException e) {
-            throw new TestGridInfrastructureException("Error occurred while retrieving resource requirements", e);
+            throw new TestGridInfrastructureException("Error while retrieving resource requirements", e);
         }
     }
 

@@ -101,8 +101,6 @@ public class RunTestPlanCommand implements Command {
     @Override
     public void execute() throws CommandExecutionException {
         try {
-            logger.info("Input Arguments: \n" + "\tProduct name: " + productName);
-
             // Get test plan YAML file path location
             Product product = getProduct(productName);
             Optional<String> testPlanYAMLFilePath = getTestPlanYamlAbsoluteLocation(product, testPlanConfigLocation);
