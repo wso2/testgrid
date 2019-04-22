@@ -134,7 +134,7 @@ public class AWSProvider implements InfrastructureProvider {
             Path limitsYamlPath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.AWS_LIMITS_YAML);
             List<AWSResourceLimit> awsResourceLimits = awsResourceManager.populateInitialResourceLimits(limitsYamlPath);
             if (awsResourceLimits == null || awsResourceLimits.isEmpty()) {
-                logger.warn("Could not populate AWS resource limits. ");
+                logger.warn("Not using current AWS resource limits. awsLimits.yaml may be missing.");
             }
         } catch (TestGridDAOException e) {
             throw new TestGridInfrastructureException("Error while retrieving aws limits.", e);
