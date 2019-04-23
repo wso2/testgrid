@@ -18,6 +18,9 @@
 # NAME: echoLogo
 # DESCRIPTION: Print the WSO2 TestGrid Logo.
 #===============================================================================
+
+set -o xtrace
+
 function echoLogo() {
 	echo "__          __ ____  ____ ___    _______        _    _____      _     _ "
 	echo "\ \        / / ____|/ __ \__ \  |__   __|      | |  / ____|    (_)   | |"
@@ -120,6 +123,7 @@ function installJDKs() {
 	wget https://d2znqt9b1bc64u.cloudfront.net/amazon-corretto-8.202.08.2-linux-x64.tar.gz
 	sudo mkdir -p /opt/jdk/java-8-correttoJdk
 	sudo tar -xf amazon-corretto-8.202.08.2-linux-x64.tar.gz -C /opt/jdk/java-8-correttoJdk
+	sudo cp /opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre/lib/security/cacerts 	/opt/jdk/java-8-correttoJdk/amazon-corretto-8.202.08.2-linux-x64/jre/lib/security/
 	;;
 
     RHEL)
