@@ -78,20 +78,28 @@ Parameters:
     Type: String
     Default: c3.4xlarge
     AllowedValues:
-      - t2.nano
-      - t1.micro
       - t2.micro
       - t2.small
       - t2.medium
       - t2.large
       - t2.xlarge
       - t2.2xlarge
+      - t3.micro
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
       - m3.medium
       - m3.large
       - m3.xlarge
       - m3.2xlarge
       - m4.large
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
       - c3.4xlarge
+      - c5.2xlarge
+      - c5.4xlarge
     ConstraintDescription: must be a valid EC2 instance type
   WUMUsername:
     Type: String
@@ -301,7 +309,14 @@ Resources:
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
       Tags:
         - Key: Name
-          Value: wso2-apim-intg-node
+          Value: !Join
+            - ''
+            - - 'intg-test__'
+              - !Ref OS
+              - '__'
+              - !Ref DBEngine
+              - '__'
+              - !Ref JDK
       SecurityGroups:
         - !Ref WSO2InstanceSecurityGroup
     Metadata:
