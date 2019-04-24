@@ -369,6 +369,16 @@ Resources:
             ${CustomUserData}
             </powershell>
             <persist>true</persist>
+        Tags:
+          - Key: Name
+            Value: !Join
+              - ''
+              - - 'intg-test__'
+                - !Ref OS
+                - '__'
+                - !Ref DBEngine
+                - '__'
+                - !Ref JDK
         SecurityGroups:
           - !Ref WSO2InstanceSecurityGroup
       Metadata:
