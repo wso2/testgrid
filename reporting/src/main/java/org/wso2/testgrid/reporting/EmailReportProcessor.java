@@ -26,18 +26,12 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.ConfigurationContext;
-import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
-import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
-import org.wso2.testgrid.common.plugins.AWSArtifactReader;
-import org.wso2.testgrid.common.plugins.ArtifactReadable;
-import org.wso2.testgrid.common.plugins.ArtifactReaderException;
-import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
@@ -48,9 +42,6 @@ import org.wso2.testgrid.reporting.summary.InfrastructureSummaryReporter;
 import org.wso2.testgrid.reporting.surefire.SurefireReporter;
 import org.wso2.testgrid.reporting.surefire.TestResult;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -308,32 +298,4 @@ public class EmailReportProcessor {
         return erroneousInfraMap;
     }
 
-    /**
-     * Returns the Properties in output.properties located in AWS S3 bucket.
-     *
-     * @param testPlan test plan to read the outputs from
-     * @return Properties in output.properties
-     */
-    private Properties getOutputPropertiesFile (TestPlan testPlan) {
-        Properties properties = new Properties();
-        try {
-            ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
-                    getProperty(ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
-                    getProperty(ConfigurationProperties.AWS_S3_BUCKET_NAME));
-            String outputPropertyFilePath = S3StorageUtil.deriveS3ScenarioOutputsFilePath(testPlan, artifactReadable);
-            logger.info("Scenario outputs location is " + outputPropertyFilePath);
-
-            try (InputStreamReader inputStreamReader = new InputStreamReader(
-                    artifactReadable.getArtifactStream(outputPropertyFilePath), StandardCharsets.UTF_8)) {
-            properties.load(inputStreamReader);
-            }
-        } catch (ArtifactReaderException e) {
-            logger.error("Error while initiating AWS artifacts reader.", e.getMessage());
-        } catch (TestGridRuntimeException e) {
-            logger.error(e.getMessage());
-        } catch (IOException e) {
-            logger.error("Error while reading git build details from remote storage.", e.getMessage());
-        }
-        return properties;
-    }
 }
