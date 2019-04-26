@@ -516,6 +516,19 @@ public class AWSProvider implements InfrastructureProvider {
                 break;
             }
         }
+
+        if (sb.toString().split("\n").length < EC2_SYSTEM_LOG_NO_OF_LINES / 5) {
+            logger.warn("user-data logs were not found for this ec2 instance.");
+            count = 0;
+            for (int i = lines.length - 1; i >= EC2_SYSTEM_LOG_NO_OF_LINES; i--) {
+                final String line = lines[i];
+                sb.insert(0, "\n  ").insert(0, line);
+                if (++count > EC2_SYSTEM_LOG_NO_OF_LINES) {
+                    break;
+                }
+            }
+        }
+
         return sb.insert(0, "  ").toString();
     }
 

@@ -26,19 +26,12 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.ConfigurationContext;
-import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
-import org.wso2.testgrid.common.config.PropertyFileReader;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
-import org.wso2.testgrid.common.exception.TestGridRuntimeException;
 import org.wso2.testgrid.common.infrastructure.InfrastructureParameter;
 import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
-import org.wso2.testgrid.common.plugins.AWSArtifactReader;
-import org.wso2.testgrid.common.plugins.ArtifactReadable;
-import org.wso2.testgrid.common.plugins.ArtifactReaderException;
-import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
@@ -49,9 +42,6 @@ import org.wso2.testgrid.reporting.summary.InfrastructureSummaryReporter;
 import org.wso2.testgrid.reporting.surefire.SurefireReporter;
 import org.wso2.testgrid.reporting.surefire.TestResult;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -196,67 +185,44 @@ public class EmailReportProcessor {
             return "No test plans were run!";
         }
         TestPlan testPlan = testPlans.get(0);
-        Properties properties = getOutputPropertiesFile(testPlan);
-
-        if (!properties.isEmpty()) {
-            String gitRevision = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION
-                    .toString());
-            String gitLocation = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_LOCATION
-                    .toString());
-
-            if (gitLocation.isEmpty()) {
-                logger.error("Git location received as null/empty for test plan with id " + testPlan.getId());
-                stringBuilder.append("Git location: Unknown!");
-            } else {
-                stringBuilder.append("Git location: ").append(gitLocation);
-            }
-            stringBuilder.append(HTML_LINE_SEPARATOR);
-            if (gitRevision.isEmpty()) {
-                logger.error("Git revision received as null/empty for test plan with id " + testPlan.getId());
-                stringBuilder.append("Git revision: Unknown!");
-            } else {
-                stringBuilder.append("Git revision: ").append(gitRevision);
-            }
-        } else {
-            final InfrastructureConfig.Provisioner provisioner = testPlan.getInfrastructureConfig().getProvisioners()
-                    .get(0);
-            final DeploymentConfig.DeploymentPattern dp = testPlan.getDeploymentConfig()
-                    .getDeploymentPatterns().get(0);
-            final List<ScenarioConfig> scenarioConfigs = testPlan.getScenarioConfigs();
-            final String infraFiles = provisioner.getScripts().stream()
-                    .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
-                            || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
-                    .map(Script::getFile)
-                    .collect(Collectors.joining(", "));
-            final String deployFiles = dp.getScripts().stream()
-                    .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
-                            || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
-                    .map(Script::getFile)
-                    .collect(Collectors.joining(", "));
-            stringBuilder.append("Infrastructure script: ")
-                    .append(Optional.ofNullable(provisioner.getRemoteRepository()).orElse(
+        final InfrastructureConfig.Provisioner provisioner = testPlan.getInfrastructureConfig().getProvisioners()
+                .get(0);
+        final DeploymentConfig.DeploymentPattern dp = testPlan.getDeploymentConfig()
+                .getDeploymentPatterns().get(0);
+        final List<ScenarioConfig> scenarioConfigs = testPlan.getScenarioConfigs();
+        final String infraFiles = provisioner.getScripts().stream()
+                .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
+                        || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
+                .map(Script::getFile)
+                .collect(Collectors.joining(", "));
+        final String deployFiles = dp.getScripts().stream()
+                .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
+                        || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
+                .map(Script::getFile)
+                .collect(Collectors.joining(", "));
+        stringBuilder.append("Infrastructure script: ")
+                .append(Optional.ofNullable(provisioner.getRemoteRepository()).orElse(
+                        TestGridConstants.NOT_CONFIGURED_STR))
+                .append(" @ ")
+                .append(provisioner.getRemoteBranch())
+                .append(": ")
+                .append(infraFiles)
+                .append(HTML_LINE_SEPARATOR);
+        stringBuilder.append("Deployment script: ")
+                .append(Optional.ofNullable(dp.getRemoteRepository()).orElse(
+                        TestGridConstants.NOT_CONFIGURED_STR))
+                .append(" @ ")
+                .append(dp.getRemoteBranch())
+                .append(": ")
+                .append(deployFiles)
+                .append(HTML_LINE_SEPARATOR);
+        for (ScenarioConfig scenarioConfig : scenarioConfigs) {
+            stringBuilder.append("Test repo: ")
+                    .append(Optional.ofNullable(scenarioConfig.getRemoteRepository()).orElse(
                             TestGridConstants.NOT_CONFIGURED_STR))
                     .append(" @ ")
-                    .append(provisioner.getRemoteBranch())
-                    .append(": ")
-                    .append(infraFiles)
+                    .append(scenarioConfig.getRemoteBranch())
                     .append(HTML_LINE_SEPARATOR);
-            stringBuilder.append("Deployment script: ")
-                    .append(Optional.ofNullable(dp.getRemoteRepository()).orElse(
-                            TestGridConstants.NOT_CONFIGURED_STR))
-                    .append(" @ ")
-                    .append(dp.getRemoteBranch())
-                    .append(": ")
-                    .append(deployFiles)
-                    .append(HTML_LINE_SEPARATOR);
-            for (ScenarioConfig scenarioConfig : scenarioConfigs) {
-                stringBuilder.append("Test repo: ")
-                        .append(Optional.ofNullable(scenarioConfig.getRemoteRepository()).orElse(
-                                TestGridConstants.NOT_CONFIGURED_STR))
-                        .append(" @ ")
-                        .append(scenarioConfig.getRemoteBranch())
-                        .append(HTML_LINE_SEPARATOR);
-            }
         }
         return stringBuilder.toString();
     }
@@ -332,32 +298,4 @@ public class EmailReportProcessor {
         return erroneousInfraMap;
     }
 
-    /**
-     * Returns the Properties in output.properties located in AWS S3 bucket.
-     *
-     * @param testPlan test plan to read the outputs from
-     * @return Properties in output.properties
-     */
-    private Properties getOutputPropertiesFile (TestPlan testPlan) {
-        Properties properties = new Properties();
-        try {
-            ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
-                    getProperty(ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
-                    getProperty(ConfigurationProperties.AWS_S3_BUCKET_NAME));
-            String outputPropertyFilePath = S3StorageUtil.deriveS3ScenarioOutputsFilePath(testPlan, artifactReadable);
-            logger.info("Scenario outputs location is " + outputPropertyFilePath);
-
-            try (InputStreamReader inputStreamReader = new InputStreamReader(
-                    artifactReadable.getArtifactStream(outputPropertyFilePath), StandardCharsets.UTF_8)) {
-            properties.load(inputStreamReader);
-            }
-        } catch (ArtifactReaderException e) {
-            logger.error("Error while initiating AWS artifacts reader.", e.getMessage());
-        } catch (TestGridRuntimeException e) {
-            logger.error(e.getMessage());
-        } catch (IOException e) {
-            logger.error("Error while reading git build details from remote storage.", e.getMessage());
-        }
-        return properties;
-    }
 }
