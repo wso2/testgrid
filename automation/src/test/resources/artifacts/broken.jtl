@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <row>
+      <timeStamp>1555589130874</timeStamp>
+      <elapsed>3398</elapsed>
+      <label>Generate Access Token from Client Credentials grant type</label>
+      <responseCode>200</responseCode>
+      <responseMessage>OK</responseMessage>
+      <threadName>SCENARIO1: CREATE Account Access Consent 1-1</threadName>
+      <dataType>text</dataType>
+      <success>true</success>
+      <failureMessage></failureMessage>
+      <bytes>1406</bytes>
+      <sentBytes>1109</sentBytes>
+      <grpThreads>1</grpThreads>
+      <allThreads>1</allThreads>
+      <Latency>3398</Latency>
+      <IdleTime>0</IdleTime>
+      <Connect>1480</Connect>
+  </row>
+  <row>
+      <timeStamp>1555589134285</timeStamp>
+      <elapsed>1206</elapsed>
+      <label>POST CreateAccountAccessConsent: 1</label>
+      <responseCode>201</responseCode>
+      <responseMessage>Created</responseMessage>
+      <threadName>SCENARIO1: CREATE Account Access Consent 1-1</threadName>
+      <dataType>text</dataType>
+      <success>true</success>
+      <failureMessage></failureMessage>
+      <bytes>1252</bytes>
+      <sentBytes>975</sentBytes>
+      <grpThreads>1</grpThreads>
+      <allThreads>1</allThreads>
+      <Latency>1206</Latency>
+      <IdleTime>0</IdleTime>
+      <Connect>450</Connect>
+  </row>
+  <row>
+      <timeStamp>1555589135584</timeStamp>
+      <elapsed>7937</elapsed>
+      <label>GET Authorize_Endpoint</label>
+      <responseCode>200</responseCode>
+      <responseMessage>OK</responseMessage>
+      <threadName>SCENARIO1: CREATE Account Access Consent 1-1</threadName>
+      <dataType>text</dataType>
+      <success>true</success>
+      <failureMessage></failureMessage>
+      <bytes>480780</bytes>
+      <sentBytes>3093</sentBytes>
+      <grpThreads>1</grpThreads>
+      <allThreads>1</allThreads>
+      <Latency>448</Latency>
+      <IdleTime>0</IdleTime>
+      <Connect>0</Connect>
+  </row>
+</root>

@@ -29,7 +29,6 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ConfigurationContext.ConfigurationProperties;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
-import org.wso2.testgrid.common.config.PropertyFileReader;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridRuntimeException;
@@ -196,67 +195,44 @@ public class EmailReportProcessor {
             return "No test plans were run!";
         }
         TestPlan testPlan = testPlans.get(0);
-        Properties properties = getOutputPropertiesFile(testPlan);
-
-        if (!properties.isEmpty()) {
-            String gitRevision = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_REVISION
-                    .toString());
-            String gitLocation = properties.getProperty(PropertyFileReader.BuildOutputProperties.GIT_LOCATION
-                    .toString());
-
-            if (gitLocation.isEmpty()) {
-                logger.error("Git location received as null/empty for test plan with id " + testPlan.getId());
-                stringBuilder.append("Git location: Unknown!");
-            } else {
-                stringBuilder.append("Git location: ").append(gitLocation);
-            }
-            stringBuilder.append(HTML_LINE_SEPARATOR);
-            if (gitRevision.isEmpty()) {
-                logger.error("Git revision received as null/empty for test plan with id " + testPlan.getId());
-                stringBuilder.append("Git revision: Unknown!");
-            } else {
-                stringBuilder.append("Git revision: ").append(gitRevision);
-            }
-        } else {
-            final InfrastructureConfig.Provisioner provisioner = testPlan.getInfrastructureConfig().getProvisioners()
-                    .get(0);
-            final DeploymentConfig.DeploymentPattern dp = testPlan.getDeploymentConfig()
-                    .getDeploymentPatterns().get(0);
-            final List<ScenarioConfig> scenarioConfigs = testPlan.getScenarioConfigs();
-            final String infraFiles = provisioner.getScripts().stream()
-                    .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
-                            || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
-                    .map(Script::getFile)
-                    .collect(Collectors.joining(", "));
-            final String deployFiles = dp.getScripts().stream()
-                    .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
-                            || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
-                    .map(Script::getFile)
-                    .collect(Collectors.joining(", "));
-            stringBuilder.append("Infrastructure script: ")
-                    .append(Optional.ofNullable(provisioner.getRemoteRepository()).orElse(
+        final InfrastructureConfig.Provisioner provisioner = testPlan.getInfrastructureConfig().getProvisioners()
+                .get(0);
+        final DeploymentConfig.DeploymentPattern dp = testPlan.getDeploymentConfig()
+                .getDeploymentPatterns().get(0);
+        final List<ScenarioConfig> scenarioConfigs = testPlan.getScenarioConfigs();
+        final String infraFiles = provisioner.getScripts().stream()
+                .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
+                        || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
+                .map(Script::getFile)
+                .collect(Collectors.joining(", "));
+        final String deployFiles = dp.getScripts().stream()
+                .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
+                        || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
+                .map(Script::getFile)
+                .collect(Collectors.joining(", "));
+        stringBuilder.append("Infrastructure script: ")
+                .append(Optional.ofNullable(provisioner.getRemoteRepository()).orElse(
+                        TestGridConstants.NOT_CONFIGURED_STR))
+                .append(" @ ")
+                .append(provisioner.getRemoteBranch())
+                .append(": ")
+                .append(infraFiles)
+                .append(HTML_LINE_SEPARATOR);
+        stringBuilder.append("Deployment script: ")
+                .append(Optional.ofNullable(dp.getRemoteRepository()).orElse(
+                        TestGridConstants.NOT_CONFIGURED_STR))
+                .append(" @ ")
+                .append(dp.getRemoteBranch())
+                .append(": ")
+                .append(deployFiles)
+                .append(HTML_LINE_SEPARATOR);
+        for (ScenarioConfig scenarioConfig : scenarioConfigs) {
+            stringBuilder.append("Test repo: ")
+                    .append(Optional.ofNullable(scenarioConfig.getRemoteRepository()).orElse(
                             TestGridConstants.NOT_CONFIGURED_STR))
                     .append(" @ ")
-                    .append(provisioner.getRemoteBranch())
-                    .append(": ")
-                    .append(infraFiles)
+                    .append(scenarioConfig.getRemoteBranch())
                     .append(HTML_LINE_SEPARATOR);
-            stringBuilder.append("Deployment script: ")
-                    .append(Optional.ofNullable(dp.getRemoteRepository()).orElse(
-                            TestGridConstants.NOT_CONFIGURED_STR))
-                    .append(" @ ")
-                    .append(dp.getRemoteBranch())
-                    .append(": ")
-                    .append(deployFiles)
-                    .append(HTML_LINE_SEPARATOR);
-            for (ScenarioConfig scenarioConfig : scenarioConfigs) {
-                stringBuilder.append("Test repo: ")
-                        .append(Optional.ofNullable(scenarioConfig.getRemoteRepository()).orElse(
-                                TestGridConstants.NOT_CONFIGURED_STR))
-                        .append(" @ ")
-                        .append(scenarioConfig.getRemoteBranch())
-                        .append(HTML_LINE_SEPARATOR);
-            }
         }
         return stringBuilder.toString();
     }
