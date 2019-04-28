@@ -355,6 +355,8 @@ Resources:
           !Base64
           'Fn::Sub': |
             <powershell>
+            
+            [Environment]::SetEnvironmentVariable("PATH", "%JAVA_HOME%\bin;$Env:${PATH}", "Machine")
             [Environment]::SetEnvironmentVariable("JAVA_HOME", "$Env:${JDK}", "Machine")
 
             wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.zip -OutFile "maven.zip"
