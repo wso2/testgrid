@@ -25,7 +25,6 @@ import org.wso2.testgrid.common.Product;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestPlanStatus;
-import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
@@ -36,14 +35,9 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
-import org.wso2.testgrid.reporting.model.email.TPResultSection;
 import org.wso2.testgrid.reporting.summary.InfrastructureBuildStatus;
 import org.wso2.testgrid.reporting.summary.InfrastructureSummaryReporter;
-import org.wso2.testgrid.reporting.surefire.SurefireReporter;
-import org.wso2.testgrid.reporting.surefire.TestResult;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,24 +45,24 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.HTML_LINE_SEPARATOR;
-import static org.wso2.testgrid.common.TestGridConstants.TEST_PLANS_URI;
+import static org.wso2.testgrid.common.TestPlanStatus.FAIL;
 
 /**
  * This class is responsible for process and generate all the content for the email-report for TestReportEngine.
  * The report will consist of base details such as product status, git build details, as well as per test-plan
  * (per infra-combination) details such as test-plan log, test-plan infra combination.
  */
-public class EmailReportProcessor {
+class EmailReportProcessor {
     private static final Logger logger = LoggerFactory.getLogger(EmailReportProcessor.class);
-    private static final int MAX_DISPLAY_TEST_COUNT = 20;
     private final InfrastructureSummaryReporter infrastructureSummaryReporter;
     private TestPlanUOW testPlanUOW;
     private InfrastructureParameterUOW infrastructureParameterUOW;
 
-    public EmailReportProcessor() {
+    EmailReportProcessor() {
         this.testPlanUOW = new TestPlanUOW();
         this.infrastructureParameterUOW = new InfrastructureParameterUOW();
         this.infrastructureSummaryReporter = new InfrastructureSummaryReporter(infrastructureParameterUOW);
@@ -86,88 +80,12 @@ public class EmailReportProcessor {
     }
 
     /**
-     * Populates test-plan result sections in the report considering the latest test-plans of the product.
-     *
-     * @param product product needing the results
-     * @return list of test-plan sections
-     */
-    public List<TPResultSection> generatePerTestPlanSection(Product product, List<TestPlan> testPlans) {
-        List<TPResultSection> perTestPlanList = new ArrayList<>();
-        String testGridHost = ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.TESTGRID_HOST);
-        String productName = product.getName();
-        SurefireReporter surefireReporter = new SurefireReporter();
-        for (TestPlan testPlan : testPlans) {
-            if (testPlan.getStatus().equals(TestPlanStatus.SUCCESS)) {
-                logger.info(String.format("Test plan ,%s, status is set to success. Not adding to email report. "
-                        + "Infra combination: %s", testPlan.getId(), testPlan.getInfraParameters()));
-                continue;
-            }
-            String deploymentPattern = testPlan.getDeploymentPattern().getName();
-            String testPlanId = testPlan.getId();
-            final String infraCombination = testPlan.getInfraParameters();
-            final String dashboardLink = String.join("/", testGridHost, productName, deploymentPattern,
-                    TEST_PLANS_URI, testPlanId);
-
-            final TestResult report = surefireReporter.getReport(testPlan);
-            if (logger.isDebugEnabled()) {
-                logger.debug("Test results of test plan '" + testPlan.getId() + "': " + report);
-            }
-
-            if ("?".equals(report.getTotalTests()) || "0".equals(report.getTotalTests())
-                    || report.getTotalTests().isEmpty()) {
-                final Path reportPath = TestGridUtil.getSurefireReportsDir(testPlan);
-                logger.error("Integration-test log file does not exist at '" + reportPath
-                        + "' for test-plan: " + testPlan);
-            }
-
-            List<TestResult.TestCaseResult> failureTests = getTrimmedTests(report.getFailureTests(),
-                    MAX_DISPLAY_TEST_COUNT);
-            List<TestResult.TestCaseResult> errorTests = getTrimmedTests(report.getErrorTests(),
-                    MAX_DISPLAY_TEST_COUNT);
-
-            TPResultSection testPlanResultSection = new TPResultSection.TPResultSectionBuilder(
-                    infraCombination, deploymentPattern, testPlan.getStatus())
-                    .jobName(productName)
-                    .dashboardLink(dashboardLink)
-                    .failureTests(failureTests)
-                    .errorTests(errorTests)
-                    .totalTests(report.getTotalTests())
-                    .totalFailures(report.getTotalFailures())
-                    .totalErrors(report.getTotalErrors())
-                    .totalSkipped(report.getTotalSkipped())
-                    .build();
-            perTestPlanList.add(testPlanResultSection);
-        }
-        return perTestPlanList;
-    }
-
-    private List<TestResult.TestCaseResult> getTrimmedTests(List<TestResult.TestCaseResult> tests,
-            int maxDisplayTestCount) {
-        final int actualCount = tests.size();
-        int displayCount = tests.size();
-        displayCount = displayCount < maxDisplayTestCount ? displayCount : maxDisplayTestCount;
-
-        tests = new ArrayList<>(tests.subList(0, displayCount));
-        if (displayCount < actualCount) {
-            TestResult.TestCaseResult continuation = new TestResult.TestCaseResult();
-            continuation.setClassName("...");
-            TestResult.TestCaseResult allTestsInfo = new TestResult.TestCaseResult();
-            allTestsInfo.setClassName("(view complete list of tests (" + actualCount + ") in testgrid-live..)");
-            tests.add(continuation);
-            tests.add(continuation);
-            tests.add(allTestsInfo);
-        }
-        return tests;
-    }
-
-    /**
      * Returns the current status of the product.
      *
      * @param product product
      * @return current status of the product
      */
-    public TestPlanStatus getProductStatus(Product product) {
+    TestPlanStatus getProductStatus(Product product) {
         return testPlanUOW.getCurrentStatus(product);
     }
 
@@ -177,7 +95,7 @@ public class EmailReportProcessor {
      *
      * @return Git build information
      */
-    public String getGitBuildDetails(List<TestPlan> testPlans) {
+    String getGitBuildDetails(List<TestPlan> testPlans) {
         StringBuilder stringBuilder = new StringBuilder();
         //All the test-plans are executed from the same git revision. Thus git build details are similar across them.
         //Therefore we refer the fist test-plan's git-build details.
@@ -190,16 +108,14 @@ public class EmailReportProcessor {
         final DeploymentConfig.DeploymentPattern dp = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         final List<ScenarioConfig> scenarioConfigs = testPlan.getScenarioConfigs();
-        final String infraFiles = provisioner.getScripts().stream()
+
+        Function<List<Script>, String> scriptPathsDisplayFunc = (script) -> script.stream()
                 .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
                         || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
                 .map(Script::getFile)
                 .collect(Collectors.joining(", "));
-        final String deployFiles = dp.getScripts().stream()
-                .filter(s -> Script.Phase.CREATE.equals(s.getPhase())
-                        || Script.Phase.CREATE_AND_DELETE.equals(s.getPhase()))
-                .map(Script::getFile)
-                .collect(Collectors.joining(", "));
+        final String infraFiles = scriptPathsDisplayFunc.apply(provisioner.getScripts());
+        final String deployFiles = scriptPathsDisplayFunc.apply(dp.getScripts());
         stringBuilder.append("Infrastructure script: ")
                 .append(Optional.ofNullable(provisioner.getRemoteRepository()).orElse(
                         TestGridConstants.NOT_CONFIGURED_STR))
@@ -233,9 +149,9 @@ public class EmailReportProcessor {
      * @param testPlans List of test plans
      * @return if test-failures exists or not
      */
-    public boolean hasFailedTests(List<TestPlan> testPlans) {
+    boolean hasFailedTests(List<TestPlan> testPlans) {
         for (TestPlan testPlan : testPlans) {
-            if (testPlan.getStatus().equals(TestPlanStatus.FAIL)) {
+            if (testPlan.getStatus().equals(FAIL)) {
                 return true;
             }
         }
@@ -247,7 +163,7 @@ public class EmailReportProcessor {
      * @param testPlans the test plans for which we need to generate the summary
      * @return summary table
      */
-    public Map<String, InfrastructureBuildStatus> getSummaryTable(List<TestPlan> testPlans)
+    Map<String, InfrastructureBuildStatus> getSummaryTable(List<TestPlan> testPlans)
             throws TestGridDAOException {
         return infrastructureSummaryReporter.getSummaryTable(testPlans);
     }
@@ -257,7 +173,7 @@ public class EmailReportProcessor {
      *
      * @param testPlans executed test plans
      */
-    public String getTestedInfrastructures(List<TestPlan> testPlans) throws TestGridDAOException {
+    String getTestedInfrastructures(List<TestPlan> testPlans) throws TestGridDAOException {
 
         final Set<InfrastructureValueSet> infrastructureValueSet = infrastructureParameterUOW.getValueSet();
         Set<InfrastructureParameter> infraParams = new HashSet<>();
@@ -276,24 +192,36 @@ public class EmailReportProcessor {
         return infraStr.toString();
     }
 
-    public Map<String, String> getErroneousInfrastructures(List<TestPlan> testPlans) throws TestGridDAOException {
+    /**
+     *
+     * @param testPlans list of test plans of a particular tg build
+     * @param filter filter the test plans
+     * @return a map where key = infra-combination string, value = test plan dashboard url
+     */
+    Map<String, String> getErroneousInfrastructuresOf(List<TestPlan> testPlans,
+            Function<TestPlan, Boolean> filter) {
         Map<String, String> erroneousInfraMap = new HashMap<>();
-        final Set<InfrastructureValueSet> infrastructureValueSet = infrastructureParameterUOW.getValueSet();
-        Set<InfrastructureParameter> infraParams;
-        Map<String, List<InfrastructureParameter>> infraMap;
-        String infraStr;
-        for (TestPlan testPlan : testPlans) {
-            String logDownloadPath = TestGridUtil.getDashboardURLFor(testPlan);
-            if (testPlan.getStatus() != TestPlanStatus.SUCCESS && testPlan.getStatus() != TestPlanStatus.FAIL) {
-                infraParams = new HashSet<>(TestGridUtil.
-                        getInfraParamsOfTestPlan(infrastructureValueSet, testPlan));
-                infraMap = infraParams.stream().collect(Collectors.groupingBy(InfrastructureParameter::getType));
-                infraStr = infraMap.entrySet().stream()
-                        .map(entry -> entry.getValue().stream().map(InfrastructureParameter::getName)
-                                .collect(Collectors.joining(", ")))
-                        .collect(Collectors.joining(", "));
-                erroneousInfraMap.put(infraStr, logDownloadPath);
+        try {
+            final Set<InfrastructureValueSet> infrastructureValueSet = infrastructureParameterUOW.getValueSet();
+            Set<InfrastructureParameter> infraParams;
+            Map<String, List<InfrastructureParameter>> infraMap;
+            String infraStr;
+            for (TestPlan testPlan : testPlans) {
+                String dashboardUrl = TestGridUtil.getDashboardURLFor(testPlan);
+                if (filter.apply(testPlan)) {
+                    infraParams = new HashSet<>(TestGridUtil.
+                            getInfraParamsOfTestPlan(infrastructureValueSet, testPlan));
+                    infraMap = infraParams.stream().collect(Collectors.groupingBy(InfrastructureParameter::getType));
+                    infraStr = infraMap.entrySet().stream()
+                            .map(entry -> entry.getValue().stream().map(InfrastructureParameter::getName)
+                                    .collect(Collectors.joining(", ")))
+                            .collect(Collectors.joining(", "));
+                    erroneousInfraMap.put(infraStr, dashboardUrl);
+                }
             }
+        } catch (TestGridDAOException e) {
+            logger.warn("Error while email generation. Failed to connect to db. Error: " + e.getMessage());
+            erroneousInfraMap.put("Error while collecting testplan errors", "empty");
         }
         return erroneousInfraMap;
     }
