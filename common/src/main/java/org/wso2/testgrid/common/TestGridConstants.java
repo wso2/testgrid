@@ -91,11 +91,19 @@ public class TestGridConstants {
     public static final String KEY_FILE_LOCATION = "keyFileLocation";
     public static final String HTTP = "http://";
     public static final String TEST_RESULTS_ARCHIVE_DIR = "test-outputs";
-    @Deprecated public static final String TEST_RESULTS_DIR_OLD = "test-outputs/scenarios";
+    @Deprecated
+    public static final String TEST_RESULTS_DIR_OLD = "test-outputs/scenarios";
     public static final String TEST_RESULTS_DIR = "test-outputs";
     public static final String TEST_RESULTS_SCENARIO_DIR = "scenarios";
 
     public static final String NOT_CONFIGURED_STR = "/not-configured/";
 
     public static final String MAVEN_RELATED_DIR = "target";
+
+    public static final String ACCESS_KEY_FILE_LOCATION = "accessKeyFileLocation";
+
+    public static final String INFRA_SCRIPT = "infra.sh";
+
+    public static final String DEPLOY_SCRIPT = "deploy.sh";
+
 }

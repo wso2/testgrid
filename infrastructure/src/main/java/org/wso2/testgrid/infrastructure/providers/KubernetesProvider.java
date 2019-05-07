@@ -1,54 +1,44 @@
-/*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package org.wso2.testgrid.infrastructure.providers;
 
+import com.amazonaws.SdkClientException;
+import com.amazonaws.auth.PropertiesCredentials;
+import com.sun.javafx.fxml.PropertyNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.InfrastructureProvider;
-import org.wso2.testgrid.common.InfrastructureProvisionResult;
-import org.wso2.testgrid.common.ShellExecutor;
-import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.*;
+import org.wso2.testgrid.common.config.ConfigurationContext;
+import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.CommandExecutionException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
+import org.wso2.testgrid.common.util.TestGridUtil;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 
-/**
- * This class creates the infrastructure for running tests.
- */
-public class ShellScriptProvider implements InfrastructureProvider {
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 
-    private static final Logger logger = LoggerFactory.getLogger(ShellScriptProvider.class);
-    private static final String SHELL_SCRIPT_PROVIDER = "Shell Executor";
+public class KubernetesProvider implements InfrastructureProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(KubernetesProvider.class);
+    private static final String KUBERNETES_PROVIDER = "KUBERNETES";
 
     @Override
     public String getProviderName() {
-        return SHELL_SCRIPT_PROVIDER;
+        return KUBERNETES_PROVIDER;
     }
 
     @Override
     public boolean canHandle(Script.ScriptType scriptType) {
-        return scriptType == Script.ScriptType.SHELL;
+        return scriptType == Script.ScriptType.KUBERNETES;
     }
 
     @Override
@@ -66,6 +56,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
             throws TestGridInfrastructureException {
         String testPlanLocation = Paths.get(testPlan.getInfrastructureRepository()).toString();
         InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
+        setAccessKeyFileLocation(testPlan,script);
         logger.info("Executing provisioning scripts...");
         try {
             Script createScript = script;
@@ -73,12 +64,15 @@ public class ShellScriptProvider implements InfrastructureProvider {
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             String infraInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                     .toAbsolutePath().toString();
-            String infraOutputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+
+            String infraOutputsLoc = DataBucketsHelper.getOutputLocation(testPlan)
                     .toAbsolutePath().toString();
-            String name=script.getName();
-            final String command = "bash " + Paths.get(testPlanLocation, createScript.getFile())
+
+            final String command = "bash " + Paths.get(testPlanLocation,TestGridConstants.INFRA_SCRIPT)
                     + " --input-dir " + infraInputsLoc +  " --output-dir " + infraOutputsLoc;
             int exitCode = executor.executeCommand(command);
+
+
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the infra-provision script. ",
                         "Script exited with a status code of ", exitCode));
@@ -116,5 +110,35 @@ public class ShellScriptProvider implements InfrastructureProvider {
                             + infrastructureConfig.getFirstProvisioner().getName() + "'", e);
         }
     }
+
+
+    private String getAccessKeyFileLocation(){
+
+    String accessKeyFileLocation=null;
+
+    try{
+
+        accessKeyFileLocation=ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ACCESS_KEY_FILE_LOCATION);
+
+    }catch(PropertyNotFoundException e){
+
+        logger.error("The keyFileLocation is not found");
+
+    }
+        return accessKeyFileLocation;
+    }
+
+    private void setAccessKeyFileLocation(TestPlan testplan, Script script) {
+        final Path location = DataBucketsHelper.getInputLocation(testplan)
+                .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
+        final String accessKeyFileLocation = getAccessKeyFileLocation();
+        try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
+            os.write(("\nname="+script.getName()).getBytes(StandardCharsets.UTF_8));
+            os.write(("\n" +TestGridConstants.ACCESS_KEY_FILE_LOCATION + "=" + accessKeyFileLocation).getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            logger.error("Error while persisting infra input params to " + location, e);
+        }
+    }
+
 
 }

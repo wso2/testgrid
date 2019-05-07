@@ -1,36 +1,30 @@
 /*
-* Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* WSO2 Inc. licenses this file to you under the Apache License,
-* Version 2.0 (the "License"); you may not use this file except
-* in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied. See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.testgrid.deployment.deployers;
 
 import com.google.gson.Gson;
+import com.sun.javafx.fxml.PropertyNotFoundException;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.client5.http.fluent.Response;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.Agent;
-import org.wso2.testgrid.common.Deployer;
-import org.wso2.testgrid.common.DeploymentCreationResult;
-import org.wso2.testgrid.common.Host;
-import org.wso2.testgrid.common.InfrastructureProvisionResult;
-import org.wso2.testgrid.common.ShellExecutor;
-import org.wso2.testgrid.common.TestGridConstants;
-import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.*;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.Script;
@@ -41,23 +35,26 @@ import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.deployment.DeploymentUtil;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
  * This class performs Shell related deployment tasks.
  *
  * @since 1.0.0
  */
-public class ShellDeployer implements Deployer {
+public class KubernetesDeployer implements Deployer {
 
-    private static final Logger logger = LoggerFactory.getLogger(ShellDeployer.class);
-    private static final String DEPLOYER_NAME = "SHELL";
+    private static final Logger logger = LoggerFactory.getLogger(KubernetesDeployer.class);
+    private static final String DEPLOYER_NAME = "KUBERNETES";
 
     @Override
     public String getDeployerName() {
@@ -66,22 +63,23 @@ public class ShellDeployer implements Deployer {
 
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-            InfrastructureProvisionResult infrastructureProvisionResult)
+                                           InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestGridDeployerException {
-
+        setProperties(testPlan);
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         logger.info("Performing the Deployment " + deploymentPatternConfig.getName());
         String deplInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                 .toAbsolutePath().toString();
         String deplOutputsLoc = DataBucketsHelper.getOutputLocation(testPlan).toString();
+
         try {
             Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
             String deployScriptLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
             logger.info("Performing the Deployment " + deployment.getName());
 
             ShellExecutor executor = new ShellExecutor(Paths.get(deployScriptLocation));
-            final String command = "bash " + Paths.get(deployScriptLocation, "deploy1.sh")
+            final String command = "bash " + Paths.get(deployScriptLocation, TestGridConstants.DEPLOY_SCRIPT)
                     + " --input-dir " + deplInputsLoc + " --output-dir " + deplOutputsLoc;
             int exitCode = executor.executeCommand(command);
             if (exitCode > 0) {
@@ -175,4 +173,38 @@ public class ShellDeployer implements Deployer {
         throw new TestGridDeployerException("The Script list Provided doesn't containt a " + scriptPhase.toString() +
                 "Type script to succesfully complete the execution!");
     }
+    private void setProperties(TestPlan testplan) throws TestGridDeployerException{
+
+        String WUM_USERNAME = null;
+        String WUM_PASSWORD = null;
+        Script deployment = getScriptToExecute(testplan.getDeploymentConfig(), Script.Phase.CREATE);
+        String deployScriptLocation = Paths.get(testplan.getDeploymentRepository()).toString();
+
+        String scriptPath=Paths.get(deployScriptLocation, deployment.getFile()).toString();
+
+        final Path location = DataBucketsHelper.getInputLocation(testplan)
+                .resolve(DataBucketsHelper.INFRA_OUT_FILE);
+        logger.info(location.toString());
+        logger.info(location.toString());
+        try{
+            WUM_USERNAME=ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.WUM_USERNAME);
+            WUM_PASSWORD=ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.WUM_PASSWORD);
+        }catch(PropertyNotFoundException e){
+            logger.error("properties are not found"); }
+
+        DeploymentConfig.DeploymentPattern deploymentPatternConfig = testplan.getDeploymentConfig()
+                .getDeploymentPatterns().get(0);
+
+
+        try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
+            os.write(("\nscript="+scriptPath).getBytes(StandardCharsets.UTF_8));
+            os.write(("\nname="+deploymentPatternConfig.getName()).getBytes(StandardCharsets.UTF_8));
+            os.write(("\n" +TestGridConstants.WUM_USERNAME_PROPERTY + "=" + WUM_USERNAME).getBytes(StandardCharsets.UTF_8));
+            os.write(("\n" +TestGridConstants.WUM_PASSWORD_PROPERTY + "=" + WUM_PASSWORD+"\n").getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            logger.error("Error while persisting infra input params to " + location, e);
+        }
+
+    }
+
 }

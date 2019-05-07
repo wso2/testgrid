@@ -140,6 +140,8 @@ public class Script implements Serializable, Cloneable {
 
         OPENSTACK("OpenStack"),
 
+        KUBERNETES("Kubernetes"),
+
         /**
          * Defines the AWS cloud-formation script type.
          * TODO: think how we can remove this.

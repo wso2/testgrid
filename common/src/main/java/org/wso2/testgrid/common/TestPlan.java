@@ -92,7 +92,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private List<TestScenario> testScenarios = new ArrayList<>();
 
     @Transient
-    private DeployerType deployerType = DeployerType.SHELL;
+    private DeployerType deployerType = DeployerType.KUBERNETES;
 
     @Transient
     private InfrastructureConfig infrastructureConfig = new InfrastructureConfig();
@@ -614,6 +614,11 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
          * Defines the chef automation.
          */
         CHEF("CHEF"),
+
+        /**
+         * Defines the Kubernetes based deployment
+         */
+        KUBERNETES("KUBERNETES"),
 
         /**
          * Defines the Shell based deployment

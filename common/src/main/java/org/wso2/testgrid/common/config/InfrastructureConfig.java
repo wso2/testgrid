@@ -124,6 +124,7 @@ public class InfrastructureConfig implements Serializable, Cloneable {
     public enum IACProvider {
         CLOUDFORMATION("CloudFormation"),
         TERRAFORM("Terraform"),
+        KUBERNETES("Kubernetes"),
         None("None");
         private final String iacProvider;
 
@@ -151,6 +152,7 @@ public class InfrastructureConfig implements Serializable, Cloneable {
         AWS("AWS"),
         OPENSTACK("OpenStack"),
         GCP("GCP"),
+        GKE("GKE"),
         SHELL("SHELL"),
         LOCAL("LOCAL");
 
