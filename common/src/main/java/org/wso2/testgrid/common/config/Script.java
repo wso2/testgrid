@@ -140,6 +140,8 @@ public class Script implements Serializable, Cloneable {
 
         OPENSTACK("OpenStack"),
 
+        KUBERNETES("Kubernetes"),
+
         /**
          * Defines the Kubernetes script type
          */

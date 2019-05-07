@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+=======
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+>>>>>>> testgrid implementation of kubernetes
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,11 +22,13 @@
 package org.wso2.testgrid.deployment.deployers;
 
 import com.google.gson.Gson;
+
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.client5.http.fluent.Response;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.wso2.testgrid.common.Agent;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
@@ -31,6 +37,7 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.Script;
@@ -41,6 +48,7 @@ import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.deployment.DeploymentUtil;
 
 import java.io.IOException;
+
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -53,18 +61,18 @@ import java.util.Optional;
  * This class performs Kubernetes related deployment tasks. This class is used to deploy
  * the kubernetes deployer script which is used to deploy the deployments and services
  * in the kubernetes engine.
- *
- * @since 1.0.0
  */
 public class KubernetesDeployer implements Deployer {
 
     private static final Logger logger = LoggerFactory.getLogger(KubernetesDeployer.class);
+
     private static final String DEPLOYER_NAME = TestPlan.DeployerType.KUBERNETES.toString();
 
     @Override
     public String getDeployerName() {
         return DEPLOYER_NAME;
     }
+
 
     /**
      * This class is used to invoke the script to deploy the deployments in Kubernetes Engine
@@ -74,10 +82,12 @@ public class KubernetesDeployer implements Deployer {
      * @return
      * @throws TestGridDeployerException
      */
+
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
                                            InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestGridDeployerException {
+
 
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);

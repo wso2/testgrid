@@ -81,7 +81,7 @@ public class ShellDeployer implements Deployer {
             logger.info("Performing the Deployment " + deployment.getName());
 
             ShellExecutor executor = new ShellExecutor(Paths.get(deployScriptLocation));
-            final String command = "bash " + Paths.get(deployScriptLocation, deployment.getFile())
+            final String command = "bash " + Paths.get(deployScriptLocation, "deploy1.sh")
                     + " --input-dir " + deplInputsLoc + " --output-dir " + deplOutputsLoc;
             int exitCode = executor.executeCommand(command);
             if (exitCode > 0) {
