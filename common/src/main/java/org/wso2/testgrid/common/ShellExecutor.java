@@ -139,7 +139,7 @@ public class ShellExecutor {
     }
 
     private String reduceLogVerbosity(String msg) {
-        return msg.replaceAll("INFO\\s*.org.wso2.carbon.automation.extensions.servers.utils.ServerLogReader. - ",
+        return msg.replace("INFO  [org.wso2.carbon.automation.extensions.servers.utils.ServerLogReader] - ",
                 "[Server] - ");
     }
 

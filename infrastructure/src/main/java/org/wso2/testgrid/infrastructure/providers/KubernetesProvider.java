@@ -25,7 +25,6 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
-
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -37,16 +36,13 @@ import org.wso2.testgrid.common.util.StringUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
-
 
 /**
  * This class provide infrastructure for the kubernetes architecture.
@@ -76,7 +72,6 @@ public class KubernetesProvider implements InfrastructureProvider {
 
     }
 
-
     /**
      * This method invoke the infrastructure creation script which would create the
      * basic infrastructure in the Kubernetes Engine
@@ -86,8 +81,6 @@ public class KubernetesProvider implements InfrastructureProvider {
      * @return Returns the InfrastructureProvisionResult
      * @throws TestGridInfrastructureException when there is an error in the script
      */
-
-
     @Override
     public InfrastructureProvisionResult provision(TestPlan testPlan, Script script)
             throws TestGridInfrastructureException {
@@ -105,8 +98,7 @@ public class KubernetesProvider implements InfrastructureProvider {
             String infraOutputsLoc = DataBucketsHelper.getOutputLocation(testPlan)
                     .toAbsolutePath().toString();
 
-
-            final String command = "bash " + Paths.get(testPlanLocation,TestGridConstants.INFRA_SCRIPT)
+            final String command = "bash " + Paths.get(testPlanLocation, TestGridConstants.INFRA_SCRIPT)
                     + " --input-dir " + infraInputsLoc +  " --output-dir " + infraOutputsLoc;
             int exitCode = executor.executeCommand(command);
 
@@ -136,7 +128,6 @@ public class KubernetesProvider implements InfrastructureProvider {
      * @return
      * @throws TestGridInfrastructureException when there is an error in the release infrastructure script
      */
-
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
                            TestPlan testPlan, Script script) throws TestGridInfrastructureException {
@@ -146,8 +137,11 @@ public class KubernetesProvider implements InfrastructureProvider {
         ShellExecutor executor = new ShellExecutor(null);
         try {
 
+            String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
+                    .toAbsolutePath().toString();
             final String command = "bash " + Paths
-                    .get(testPlanLocation, TestGridConstants.DESTROY_SCRIPT);
+                    .get(testPlanLocation, TestGridConstants.DESTROY_SCRIPT)
+                    + " --input-dir " + testInputsLoc;
             int exitCode = executor.executeCommand(command);
             return exitCode == 0;
         } catch (CommandExecutionException e) {
@@ -156,7 +150,6 @@ public class KubernetesProvider implements InfrastructureProvider {
                             + infrastructureConfig.getFirstProvisioner().getName() + "'", e);
         }
     }
-
 
 
     /**
@@ -206,6 +199,8 @@ public class KubernetesProvider implements InfrastructureProvider {
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
         }
+
     }
+
 
 }

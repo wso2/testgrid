@@ -269,7 +269,6 @@ public class ConfigurationContext {
          */
         REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON");
 
-
         private String propertyName;
 
         /**

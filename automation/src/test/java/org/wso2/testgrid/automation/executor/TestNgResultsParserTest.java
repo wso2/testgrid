@@ -39,36 +39,30 @@ import org.wso2.testgrid.common.util.DataBucketsHelper;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- *
- * To view log4j logs, add following line to #init method.
- * org.apache.log4j.BasicConfigurator.configure();
- */
 public class TestNgResultsParserTest {
 
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String SUREFIRE_REPORTS_DIR = "surefire-reports";
     private static final Path SUREFIRE_REPORTS_DIR_OUT = Paths.get("scenarios", "SolutionPattern22");
-    private static final Path SUREFIRE_REPORTS_DIR_OUT_NEGATIVE = Paths.get("scenarios", "SolutionPattern33");
 
     private TestPlan testPlan;
     private TestScenario testScenario;
     private ScenarioConfig scenarioConfig;
     private Path testArtifactPath = Paths.get("src", "test", "resources", "artifacts");
-    private TestScenario testScenarioNegative;
 
     @BeforeMethod
     public void init() throws IOException {
         System.setProperty(TestGridConstants.TESTGRID_HOME_SYSTEM_PROPERTY, TESTGRID_HOME);
-
         scenarioConfig = new ScenarioConfig();
+        testScenario = new TestScenario();
+        testScenario.setDir("scenarioDir");
+        testScenario.setOutputDir("");
         testPlan = new TestPlan();
         testPlan.setJobName("wso2");
         List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
@@ -78,19 +72,9 @@ public class TestNgResultsParserTest {
         scenarioConfigs.add(scenarioConfig);
         testPlan.setScenarioConfigs(scenarioConfigs);
         testPlan.setScenarioTestsRepository("resources");
-        testPlan.setInfraParameters("{\"OS\": \"Ubuntu\"}");
-
-        testScenario = new TestScenario();
-        testScenario.setDir("scenarioDir");
-        testScenario.setOutputDir("");
         testScenario.setName("SolutionPattern22");
         testScenario.setTestPlan(testPlan);
-
-        testScenarioNegative = new TestScenario();
-        testScenarioNegative.setDir("scenarioDir2");
-        testScenarioNegative.setOutputDir("");
-        testScenarioNegative.setName("SolutionPattern33");
-        testScenarioNegative.setTestPlan(testPlan);
+        testPlan.setInfraParameters("{\"OS\": \"Ubuntu\"}");
 
         Product product = new Product();
         product.setName("wso2");
@@ -104,8 +88,6 @@ public class TestNgResultsParserTest {
         final Path outputLocation = DataBucketsHelper.getTestOutputsLocation(testPlan)
                 .resolve(SUREFIRE_REPORTS_DIR_OUT);
         copyTestngResultsXml(outputLocation);
-        Files.createDirectories(
-                DataBucketsHelper.getTestOutputsLocation(testPlan).resolve(SUREFIRE_REPORTS_DIR_OUT_NEGATIVE));
 
         MockitoAnnotations.initMocks(this);
     }
@@ -135,16 +117,6 @@ public class TestNgResultsParserTest {
         Assert.assertEquals(skipTestCases, 2, "skip test cases does not match.");
     }
 
-    @Test(description = "Negative Test for testing the functional test parser instance")
-    public void testNegativeEmptyTestSuiteXmls() throws ResultParserException {
-        Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenarioNegative, scenarioConfig);
-        Assert.assertTrue(parser.isPresent());
-        Assert.assertTrue(parser.get() instanceof TestNgResultsParser);
-
-        parser.get().parseResults();
-        Assert.assertEquals(testScenarioNegative.getTestCases().size(), 0, "generated test cases does not match.");
-    }
-
     @Test
     public void testArchiveResults() throws Exception {
         Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
@@ -163,6 +135,7 @@ public class TestNgResultsParserTest {
     }
 
     private void copyTestngResultsXml(Path outputLocation) throws IOException {
+
         FileUtils.copyDirectory(testArtifactPath.toFile(), outputLocation.toFile());
 
     }
