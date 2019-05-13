@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridError;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -139,6 +140,10 @@ public class Script implements Serializable, Cloneable {
         CLOUDFORMATION("Cloud Formation"),
 
         OPENSTACK("OpenStack"),
+
+        /**
+         * Defines the Kubernetes script type
+         */
 
         KUBERNETES("Kubernetes"),
 

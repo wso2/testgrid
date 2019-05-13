@@ -106,4 +106,6 @@ public class TestGridConstants {
 
     public static final String DEPLOY_SCRIPT = "deploy.sh";
 
+    public static final String DESTROY_SCRIPT = "destroy.sh";
+
 }

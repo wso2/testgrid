@@ -18,7 +18,10 @@
 
 package org.wso2.testgrid.common;
 
+import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 
 /**
  * Interface for the deployment of the artifacts.
@@ -41,4 +44,5 @@ public interface Deployer {
      */
     DeploymentCreationResult deploy(TestPlan testPlan, InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestGridDeployerException;
+
 }
