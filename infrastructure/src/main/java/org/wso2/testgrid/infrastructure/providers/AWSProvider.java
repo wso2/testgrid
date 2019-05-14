@@ -282,10 +282,11 @@ public class AWSProvider implements InfrastructureProvider {
                     "ERROR: cloudformation stack creation has timed out. Analyze cause via stack logs in AWS console: "
                             + stackName, e);
         } catch (TestGridDAOException e) {
-            throw new TestGridInfrastructureException("Error while retrieving resource requirements", e);
+            throw new TestGridInfrastructureException("Error while retrieving resource requirements for " + stackName,
+                    e);
         } catch (TestGridInfrastructureException e) {
-            logger.warn("Cloudformation stack creation has failed. Collecting EC2 instance logs. Error: {}",
-                    e.getMessage());
+            logger.warn("Cloudformation stack creation has failed. Collecting EC2 instance logs. Name: {}. Error: {}",
+                    stackName, e.getMessage());
             getAllEC2InstanceConsoleLogs(stackName, region);
             throw e;
         }
@@ -465,11 +466,13 @@ public class AWSProvider implements InfrastructureProvider {
             decodedOutput = reduceLogVerbosity(decodedOutput);
 
         } catch (NullPointerException e) {
+            String error = e.getMessage() +
+                    (e.getStackTrace().length > 0 ? "at " + e.getStackTrace()[0].toString() : "");
             decodedOutput = "Error occurred while retrieving instance console logs for " + instance.getInstanceId() +
-                    ". Error: " + e.getMessage();
+                    ". Error: " + error;
         }
 
-        return "\n" + instanceName + " logs {\n" +
+        return instanceName + " logs {\n" +
                 decodedOutput + "\n" +
                 "}\n";
     }
@@ -509,7 +512,7 @@ public class AWSProvider implements InfrastructureProvider {
         int count = 0;
         for (int i = lines.length - 1; i >= 0; i--) {
             final String line = lines[i];
-            if (line.startsWith("user-data")) {
+            if (line.contains("user-data: ")) {
                 sb.insert(0, "\n  ").insert(0, line);
             }
             if (++count > EC2_SYSTEM_LOG_NO_OF_LINES) {
@@ -518,10 +521,9 @@ public class AWSProvider implements InfrastructureProvider {
         }
 
         if (sb.toString().split("\n").length < EC2_SYSTEM_LOG_NO_OF_LINES / 5) {
-            logger.warn("user-data logs were not found for this ec2 instance.");
             count = 0;
             for (int i = lines.length - 1; i >= EC2_SYSTEM_LOG_NO_OF_LINES; i--) {
-                final String line = lines[i];
+                final String line = lines[i].trim().isEmpty() ? "" :  lines[i].trim() + "\n  ";
                 sb.insert(0, "\n  ").insert(0, line);
                 if (++count > EC2_SYSTEM_LOG_NO_OF_LINES) {
                     break;
