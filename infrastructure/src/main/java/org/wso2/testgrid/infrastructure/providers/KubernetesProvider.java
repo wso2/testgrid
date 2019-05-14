@@ -151,6 +151,26 @@ public class KubernetesProvider implements InfrastructureProvider {
         }
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * This is used to get the access key to log into the GKE
+     *
+     * @return the access key location
+     */
+
+    private String getAccessKeyFileLocation(){
+        String accessKeyFileLocation=null;
+        try{
+            accessKeyFileLocation=ConfigurationContext.getProperty(ConfigurationContext
+                    .ConfigurationProperties.GKE_ACCESS_KEY);
+            logger.info(accessKeyFileLocation);
+                   }catch(PropertyNotFoundException e){
+            logger.error("The keyFileLocation is not found");
+        }
+        return accessKeyFileLocation;
+    }
+>>>>>>> review-1.0
 
     /**
      * This is used to set the infra properties
@@ -164,7 +184,13 @@ public class KubernetesProvider implements InfrastructureProvider {
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
+<<<<<<< HEAD
             os.write(("\nname=" + deploymentPatternConfig.getName()).getBytes(StandardCharsets.UTF_8));
+=======
+            os.write(("\nname="+deploymentPatternConfig.getName()).getBytes(StandardCharsets.UTF_8));
+            os.write(("\n" +TestGridConstants.ACCESS_KEY_FILE_LOCATION + "=" +
+                    accessKeyFileLocation).getBytes(StandardCharsets.UTF_8));
+>>>>>>> review-1.0
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
         }
@@ -182,14 +208,24 @@ public class KubernetesProvider implements InfrastructureProvider {
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
         logger.info(location.toString());
+<<<<<<< HEAD
         try {
             wumUserName = ConfigurationContext.getProperty(ConfigurationContext.
+=======
+        try{
+            WUM_USERNAME=ConfigurationContext.getProperty(ConfigurationContext.
+>>>>>>> review-1.0
                     ConfigurationProperties.WUM_USERNAME);
             wumPassword = ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.WUM_PASSWORD);
+<<<<<<< HEAD
         } catch (PropertyNotFoundException e) {
             logger.error("Wum username and passwords are not included.");
         }
+=======
+        }catch(PropertyNotFoundException e){
+            logger.error("Wum username and passwords are not included."); }
+>>>>>>> review-1.0
 
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
             os.write(("\n" + TestGridConstants.WUM_USERNAME_PROPERTY + "=" + wumUserName).

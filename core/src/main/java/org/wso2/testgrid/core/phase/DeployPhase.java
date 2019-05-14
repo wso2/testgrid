@@ -19,6 +19,7 @@
 
 package org.wso2.testgrid.core.phase;
 
+<<<<<<< HEAD
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.InfrastructureProvider;
@@ -27,6 +28,17 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlanPhase;
 import org.wso2.testgrid.common.TestPlanStatus;
+=======
+
+import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.Deployer;
+>>>>>>> review-1.0
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;

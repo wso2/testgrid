@@ -106,4 +106,9 @@ public class TestGridConstants {
 
     public static final String DESTROY_SCRIPT = "infrastructureRepository/destroy.sh";
 
+<<<<<<< HEAD
+=======
+    public static final String DESTROY_SCRIPT = "destroy.sh";
+
+>>>>>>> review-1.0
 }
