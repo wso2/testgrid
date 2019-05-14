@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -115,10 +116,12 @@ public class TestNgResultsParser extends ResultParser {
         final Set<Path> testSuiteXmlPaths = inputFiles.stream().map
                 (testResultsLocation::relativize).collect(Collectors.toSet());
         if (testSuiteXmlPaths.isEmpty()) {
+            final Path workspace = Paths.get(testScenario.getTestPlan().getWorkspace());
             logger.error("ERROR while processing scenario '" + testScenario.getName()
-                    + "'. Did not find any TEST-TestSuite.xml output files at " + testResultsLocation
-                    + ". Check whether you copied the output files correctly? "
-                    + "Also check whether the test type is TESTNG as defined in testgrid.yaml?");
+                    + "'. Did not find any TEST-TestSuite.xml output files at " +
+                    workspace.relativize(testResultsLocation) + ".\n"
+                    + " Check whether you copied the output files correctly?\n"
+                    + " Also check whether the test type is TESTNG as defined in testgrid.yaml.");
         } else {
             logger.info("Found TEST-TestSuite.xml result files at: " + testSuiteXmlPaths);
         }
