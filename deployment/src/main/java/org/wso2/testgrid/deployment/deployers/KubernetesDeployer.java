@@ -23,7 +23,14 @@ import org.apache.hc.client5.http.fluent.Response;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.*;
+import org.wso2.testgrid.common.Agent;
+import org.wso2.testgrid.common.Deployer;
+import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.Host;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.ShellExecutor;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.Script;
@@ -43,14 +50,16 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * This class performs Kubernetes related deployment tasks.
+ * This class performs Kubernetes related deployment tasks. This class is used to deploy
+ * the kubernetes deployer script which is used to deploy the deployments and services
+ * in the kubernetes engine.
  *
  * @since 1.0.0
  */
 public class KubernetesDeployer implements Deployer {
 
     private static final Logger logger = LoggerFactory.getLogger(KubernetesDeployer.class);
-    private static final String DEPLOYER_NAME = "Kubernetes";
+    private static final String DEPLOYER_NAME = TestPlan.DeployerType.KUBERNETES.toString();
 
     @Override
     public String getDeployerName() {

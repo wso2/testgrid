@@ -46,7 +46,7 @@ import static java.nio.file.StandardOpenOption.CREATE;
 public class KubernetesProvider implements InfrastructureProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(KubernetesProvider.class);
-    private static final String KUBERNETES_PROVIDER = "KUBERNETES";
+    private static final String KUBERNETES_PROVIDER = TestPlan.DeployerType.KUBERNETES.toString();
 
     @Override
     public String getProviderName() {
@@ -69,8 +69,8 @@ public class KubernetesProvider implements InfrastructureProvider {
     }
 
     /**
-     * This method invoke the infrastructure creation script which would create the infrastructure through
-     * kubectl
+     * This method invoke the infrastructure creation script which would create the
+     * basic infrastructure in the Kubernetes Engine
      *
      * @param testPlan {@link TestPlan} with current test run specifications
      * @param script with the details of the infra creation script specifications
@@ -157,7 +157,7 @@ public class KubernetesProvider implements InfrastructureProvider {
         String accessKeyFileLocation=null;
         try{
             accessKeyFileLocation=ConfigurationContext.getProperty(ConfigurationContext
-                    .ConfigurationProperties.ACCESS_KEY_FILE_LOCATION);
+                    .ConfigurationProperties.GKE_ACCESS_KEY);
             logger.info(accessKeyFileLocation);
                    }catch(PropertyNotFoundException e){
             logger.error("The keyFileLocation is not found");
@@ -179,7 +179,8 @@ public class KubernetesProvider implements InfrastructureProvider {
         final String accessKeyFileLocation = getAccessKeyFileLocation();
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
             os.write(("\nname="+deploymentPatternConfig.getName()).getBytes(StandardCharsets.UTF_8));
-            os.write(("\n" +TestGridConstants.ACCESS_KEY_FILE_LOCATION + "=" + accessKeyFileLocation).getBytes(StandardCharsets.UTF_8));
+            os.write(("\n" +TestGridConstants.ACCESS_KEY_FILE_LOCATION + "=" +
+                    accessKeyFileLocation).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
         }
@@ -188,7 +189,7 @@ public class KubernetesProvider implements InfrastructureProvider {
     /**
      * This sets the properties to be used by the deploy scripts.
      *
-     * @param testPlan with current test run specifications
+     * @param testPlan
      */
 
     private void setProperties(TestPlan testPlan) {
@@ -197,14 +198,13 @@ public class KubernetesProvider implements InfrastructureProvider {
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
         logger.info(location.toString());
-        logger.info(location.toString());
         try{
             WUM_USERNAME=ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.WUM_USERNAME);
             WUM_PASSWORD=ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.WUM_PASSWORD);
         }catch(PropertyNotFoundException e){
-            logger.error("properties are not found"); }
+            logger.error("Wum username and passwords are not included."); }
 
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
             os.write(("\n" +TestGridConstants.WUM_USERNAME_PROPERTY + "=" + WUM_USERNAME).

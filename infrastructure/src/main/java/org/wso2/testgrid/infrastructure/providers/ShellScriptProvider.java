@@ -100,7 +100,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         String testPlanLocation = Paths.get(infraRepoDir).toString();
 
         logger.info("Destroying test environment...");
-        ShellExecutor executor = new ShellExecutor(null);
+        ShellExecutor executor = new ShellExecutor(null); //todo
         try {
 
             String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)

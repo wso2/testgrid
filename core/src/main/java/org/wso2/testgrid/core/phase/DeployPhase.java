@@ -19,8 +19,15 @@
 
 package org.wso2.testgrid.core.phase;
 
-import org.wso2.testgrid.common.*;
-import org.wso2.testgrid.common.config.DeploymentConfig;
+
+import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
@@ -41,8 +48,6 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -130,7 +135,7 @@ public class DeployPhase extends Phase {
                 Deployer deployerService = DeployerFactory.getDeployerService(script);
                 DeploymentCreationResult aresult =
                         deployerService.deploy(getTestPlan(), infrastructureProvisionResult);
-                addTo(result,aresult);
+                addTo(result, aresult);
                 logger.debug("Deployment result: " + result);
             }
             return result;
@@ -174,6 +179,14 @@ public class DeployPhase extends Phase {
         logger.debug("Deployment result: " + result);
         return result;
     }
+
+    /**
+     * The results created by running a single script in deploy phase is added
+     * to the deployment creation result
+     *
+     * @param provisionResult result of the deploy phase
+     * @param aProvisionResult result of a single script in deploy phase.
+     */
 
     private void addTo(DeploymentCreationResult provisionResult, DeploymentCreationResult aProvisionResult) {
         provisionResult.getProperties().putAll(aProvisionResult.getProperties());
@@ -241,7 +254,7 @@ public class DeployPhase extends Phase {
     private void persistAdditionalInputs(Properties properties, Path propFilePath) throws TestPlanExecutorException {
         try (OutputStream outputStream = new FileOutputStream(
                 propFilePath.toString(), true)) {
-                properties.store(outputStream, null);
+                    properties.store(outputStream, null);
         } catch (Throwable e) {
             throw new TestPlanExecutorException("Error occurred while writing deployment outputs.", e);
         }

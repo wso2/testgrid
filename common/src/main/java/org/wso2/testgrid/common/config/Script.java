@@ -145,7 +145,7 @@ public class Script implements Serializable, Cloneable {
          * Defines the Kubernetes script type
          */
 
-        KUBERNETES("Kubernetes"),
+        KUBERNETES("KUBERNETES"),
 
         /**
          * Defines the AWS cloud-formation script type.

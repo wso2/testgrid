@@ -272,7 +272,7 @@ public class ConfigurationContext {
         /**
          * gke service account key file location
          */
-        ACCESS_KEY_FILE_LOCATION("accessKeyFileLocation");
+        GKE_ACCESS_KEY("accessKeyFileLocation");
 
 
         private String propertyName;
