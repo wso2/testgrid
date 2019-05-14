@@ -75,7 +75,6 @@ public class ShellScriptProvider implements InfrastructureProvider {
                     .toAbsolutePath().toString();
             String infraOutputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                     .toAbsolutePath().toString();
-            String name=script.getName();
             final String command = "bash " + Paths.get(testPlanLocation, createScript.getFile())
                     + " --input-dir " + infraInputsLoc +  " --output-dir " + infraOutputsLoc;
             int exitCode = executor.executeCommand(command);

@@ -19,15 +19,14 @@
 
 package org.wso2.testgrid.core.phase;
 
-
+import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
+import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.Status;
+import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlanPhase;
 import org.wso2.testgrid.common.TestPlanStatus;
-import org.wso2.testgrid.common.InfrastructureProvisionResult;
-import org.wso2.testgrid.common.TestGridConstants;
-import org.wso2.testgrid.common.InfrastructureProvider;
-import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
@@ -42,6 +41,7 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
+
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -119,7 +119,7 @@ public class DeployPhase extends Phase {
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
         try {
             DeploymentCreationResult result = new DeploymentCreationResult();
-            for(Script script: getTestPlan().getDeploymentConfig().getFirstDeploymentPattern().getScripts()) {
+            for (Script script: getTestPlan().getDeploymentConfig().getFirstDeploymentPattern().getScripts()) {
                 printMessage("\t\t Creating deployment: " + script.getName());
 
                 if (!infrastructureProvisionResult.isSuccess()) {
@@ -230,8 +230,6 @@ public class DeployPhase extends Phase {
                     infrastructureProvider.cleanup(getTestPlan());
                 }
             }
-
-
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",

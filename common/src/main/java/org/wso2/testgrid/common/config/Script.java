@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridError;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Properties;
 
 /**

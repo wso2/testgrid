@@ -18,7 +18,6 @@
 package org.wso2.testgrid.deployment;
 
 import org.wso2.testgrid.common.Deployer;
-import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
 import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
@@ -34,7 +33,7 @@ public class DeployerFactory {
     /**
      * Return a matching Deployer for deploying artifacts.
      *
-     * @param testPlan an instance of testPlan object
+     * @param script instance of testPlan object
      * @return an instance of the requested Deployer
      * @throws DeployerInitializationException if instantiation of the requested Deployer fails
      * @throws UnsupportedDeployerException if an unsupported deployerType is provided

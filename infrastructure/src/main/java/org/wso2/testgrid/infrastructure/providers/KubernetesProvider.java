@@ -20,7 +20,11 @@ package org.wso2.testgrid.infrastructure.providers;
 import com.sun.javafx.fxml.PropertyNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.*;
+import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.ShellExecutor;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -94,7 +98,7 @@ public class KubernetesProvider implements InfrastructureProvider {
             String infraOutputsLoc = DataBucketsHelper.getOutputLocation(testPlan)
                     .toAbsolutePath().toString();
 
-            final String command = "bash " + Paths.get(testPlanLocation,TestGridConstants.INFRA_SCRIPT)
+            final String command = "bash " + Paths.get(testPlanLocation, TestGridConstants.INFRA_SCRIPT)
                     + " --input-dir " + infraInputsLoc +  " --output-dir " + infraOutputsLoc;
             int exitCode = executor.executeCommand(command);
 
@@ -153,13 +157,13 @@ public class KubernetesProvider implements InfrastructureProvider {
      * @return the access key location
      */
 
-    private String getAccessKeyFileLocation(){
-        String accessKeyFileLocation=null;
-        try{
-            accessKeyFileLocation=ConfigurationContext.getProperty(ConfigurationContext
+    private String getAccessKeyFileLocation() {
+        String accessKeyFileLocation = null;
+        try {
+            accessKeyFileLocation = ConfigurationContext.getProperty(ConfigurationContext
                     .ConfigurationProperties.GKE_ACCESS_KEY);
             logger.info(accessKeyFileLocation);
-                   }catch(PropertyNotFoundException e){
+        } catch (PropertyNotFoundException e) {
             logger.error("The keyFileLocation is not found");
         }
         return accessKeyFileLocation;
@@ -178,8 +182,8 @@ public class KubernetesProvider implements InfrastructureProvider {
                 .getDeploymentPatterns().get(0);
         final String accessKeyFileLocation = getAccessKeyFileLocation();
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
-            os.write(("\nname="+deploymentPatternConfig.getName()).getBytes(StandardCharsets.UTF_8));
-            os.write(("\n" +TestGridConstants.ACCESS_KEY_FILE_LOCATION + "=" +
+            os.write(("\nname=" + deploymentPatternConfig.getName()).getBytes(StandardCharsets.UTF_8));
+            os.write(("\n" + TestGridConstants.ACCESS_KEY_FILE_LOCATION  + "=" +
                     accessKeyFileLocation).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
@@ -193,23 +197,24 @@ public class KubernetesProvider implements InfrastructureProvider {
      */
 
     private void setProperties(TestPlan testPlan) {
-        String WUM_USERNAME = null;
-        String WUM_PASSWORD = null;
+        String wumUserName = null;
+        String wumPassword = null;
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
         logger.info(location.toString());
-        try{
-            WUM_USERNAME=ConfigurationContext.getProperty(ConfigurationContext.
+        try {
+            wumUserName = ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.WUM_USERNAME);
-            WUM_PASSWORD=ConfigurationContext.getProperty(ConfigurationContext.
+            wumPassword = ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.WUM_PASSWORD);
-        }catch(PropertyNotFoundException e){
-            logger.error("Wum username and passwords are not included."); }
+        } catch (PropertyNotFoundException e) {
+            logger.error("Wum username and passwords are not included.");
+        }
 
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
-            os.write(("\n" +TestGridConstants.WUM_USERNAME_PROPERTY + "=" + WUM_USERNAME).
+            os.write(("\n" + TestGridConstants.WUM_USERNAME_PROPERTY + "=" + wumUserName).
                     getBytes(StandardCharsets.UTF_8));
-            os.write(("\n" +TestGridConstants.WUM_PASSWORD_PROPERTY + "=" + WUM_PASSWORD+"\n").
+            os.write(("\n" + TestGridConstants.WUM_PASSWORD_PROPERTY + "=" + wumPassword + "\n").
                     getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
