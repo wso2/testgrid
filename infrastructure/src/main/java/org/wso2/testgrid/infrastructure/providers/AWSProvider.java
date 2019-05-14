@@ -277,7 +277,17 @@ public class AWSProvider implements InfrastructureProvider {
             throw new TestGridInfrastructureException(
                     StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
         } catch (TestGridDAOException e) {
+<<<<<<< HEAD
             throw new TestGridInfrastructureException("Error occurred while retrieving resource requirements", e);
+=======
+            throw new TestGridInfrastructureException("Error while retrieving resource requirements for " + stackName,
+                    e);
+        } catch (TestGridInfrastructureException e) {
+            logger.warn("Cloudformation stack creation has failed. Collecting EC2 instance logs. Name: {}. Error: {}",
+                    stackName, e.getMessage());
+            getAllEC2InstanceConsoleLogs(stackName, region);
+            throw e;
+>>>>>>> Improve logs for better troubleshooting
         }
     }
 
@@ -409,7 +419,86 @@ public class AWSProvider implements InfrastructureProvider {
         return "ssh -i " + keyName + " root@" + ip + ";   " + instanceName + platform;
     }
 
+<<<<<<< HEAD
     private Properties getCloudformationOutputs(AmazonCloudFormation cloudFormation, CreateStackResult stack) {
+=======
+    /**
+     * Get logs of all the ec2 instances created by this #stackName.
+     *
+     * @param stackName the stack that created the ec2 instances
+     * @param region aws region of the stack
+     */
+    private void getAllEC2InstanceConsoleLogs(String stackName, String region) {
+        try {
+            final DescribeInstancesResult result = getDescribeInstancesResult(stackName, region);
+            final long instanceCount = result.getReservations().stream()
+                    .map(Reservation::getInstances)
+                    .mapToLong(Collection::size)
+                    .sum();
+
+            logger.info("");
+            logger.info("Downloading logs of " + instanceCount + " EC2 instances in this AWS Cloudformation stack: {");
+            for (Reservation reservation : result.getReservations()) {
+                for (Instance instance : reservation.getInstances()) {
+                    final String logs = getEC2InstanceConsoleLogs(instance, getAmazonEC2(region));
+                    logger.info(logs);
+                }
+            }
+            logger.info("}");
+            logger.info("Further details about this EC2 instance console outputs can be found at: "
+                    + "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-console.html");
+            logger.info("");
+        } catch (RuntimeException e) {
+            logger.warn("Error while trying to download the instance console output from ec2 instances of {}@{}. "
+                    + "Error: ", stackName, region, e.getMessage());
+        }
+    }
+
+    /**
+     *
+     * Logs are retrieved via aws api that looks similar to this cli command:
+     * aws ec2 get-console-output --instance-id i-123456789abcd --output text
+     *
+     * This won't contain the entire ec2 instance console (system) log.
+     * It'll be truncated to last {@link #EC2_SYSTEM_LOG_NO_OF_LINES} lines.
+     *
+     * @param instance the ec2 instance object
+     * @param amazonEC2 AmazonEC2 command handler
+     * @return return string will be of following format:
+     * <pre>
+     *  ${ec2-nickname} logs {
+     *      <br/>
+     *      ${truncated-logs}
+     *      <br/>
+     *  }
+     * </pre>
+     */
+    private String getEC2InstanceConsoleLogs(Instance instance, AmazonEC2 amazonEC2) {
+        String decodedOutput;
+        String instanceName = instance.getTags().stream()
+                .filter(t -> t.getKey().equals("Name"))
+                .map(com.amazonaws.services.ec2.model.Tag::getValue)
+                .findAny().orElse("<name-empty>");
+        try {
+            GetConsoleOutputRequest consoleOutputRequest = new GetConsoleOutputRequest(instance.getInstanceId());
+            final GetConsoleOutputResult consoleOutputResult = amazonEC2.getConsoleOutput(consoleOutputRequest);
+            decodedOutput = consoleOutputResult.getDecodedOutput();
+            decodedOutput = reduceLogVerbosity(decodedOutput);
+
+        } catch (NullPointerException e) {
+            String error = e.getMessage() +
+                    (e.getStackTrace().length > 0 ? "at " + e.getStackTrace()[0].toString() : "");
+            decodedOutput = "Error occurred while retrieving instance console logs for " + instance.getInstanceId() +
+                    ". Error: " + error;
+        }
+
+        return instanceName + " logs {\n" +
+                decodedOutput + "\n" +
+                "}\n";
+    }
+
+    private static Properties getCloudformationOutputs(AmazonCloudFormation cloudFormation, CreateStackResult stack) {
+>>>>>>> Improve logs for better troubleshooting
         DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
         describeStacksRequest.setStackName(stack.getStackId());
         final DescribeStacksResult describeStacksResult = cloudFormation
@@ -428,6 +517,55 @@ public class AWSProvider implements InfrastructureProvider {
         return outputProps;
     }
 
+<<<<<<< HEAD
+=======
+    private static DescribeInstancesResult getDescribeInstancesResult(String stackName, String region) {
+        final AmazonEC2 amazonEC2 = getAmazonEC2(region);
+
+        DescribeInstancesRequest request = new DescribeInstancesRequest();
+        request.withFilters(
+                new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
+
+        return amazonEC2.describeInstances(request);
+    }
+
+    private String reduceLogVerbosity(String decodedOutput) {
+        final String[] lines = decodedOutput.split("\n");
+        StringBuilder sb = new StringBuilder();
+        int count = 0;
+        for (int i = lines.length - 1; i >= 0; i--) {
+            final String line = lines[i];
+            if (line.contains("user-data: ")) {
+                sb.insert(0, "\n  ").insert(0, line);
+            }
+            if (++count > EC2_SYSTEM_LOG_NO_OF_LINES) {
+                break;
+            }
+        }
+
+        if (sb.toString().split("\n").length < EC2_SYSTEM_LOG_NO_OF_LINES / 5) {
+            count = 0;
+            for (int i = lines.length - 1; i >= EC2_SYSTEM_LOG_NO_OF_LINES; i--) {
+                final String line = lines[i].trim().isEmpty() ? "" :  lines[i].trim() + "\n  ";
+                sb.insert(0, "\n  ").insert(0, line);
+                if (++count > EC2_SYSTEM_LOG_NO_OF_LINES) {
+                    break;
+                }
+            }
+        }
+
+        return sb.insert(0, "  ").toString();
+    }
+
+    private static AmazonEC2 getAmazonEC2(String region) {
+        Path configFilePath = TestGridUtil.getConfigFilePath();
+        return AmazonEC2ClientBuilder.standard()
+                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                .withRegion(region)
+                .build();
+    }
+
+>>>>>>> Improve logs for better troubleshooting
     /**
      * Read the {@link InfrastructureConfig#getParameters()},
      * {@link DataBucketsHelper#TESTPLAN_PROPERTIES_FILE},

@@ -155,8 +155,20 @@
             <br/>
             <div>{{{gitBuildDetails}}}</div>
             <div>Detailed results: <a href="{{dashboardURL}}">{{jobName}} :: TestGrid Dashboard</a></div>
+<<<<<<< HEAD
             <br/><div><strong>Tested Infrastructures:</strong> <br/> <em>{{{testedInfrastructures}}}</em></div><br/>
             {{#renderInfraErrors}}
+=======
+            <br/><div><strong>Tested Infrastructures:</strong> <br/> <em>{{{testedInfrastructures}}}</em></div>
+
+            {{^infrastructureErrors.isEmpty}}
+              <br/>
+              <div class="red-font">
+                    <strong>Infrastructure/Deployment Errors:</strong>
+                </div>
+            {{/infrastructureErrors.isEmpty}}
+            {{#infrastructureErrors}}
+>>>>>>> Improve logs for better troubleshooting
                 <div class="red-font">
                     <strong>Infrastructure Errors:</strong>
                 </div>
