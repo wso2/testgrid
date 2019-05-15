@@ -45,7 +45,7 @@ public class Main {
             logger.info("TestGrid Home\t: " + testGridHome);
 
             commandHandler.execute();
-            logger.info("Run test plan execution has completed.");
+            logger.info("Command execution has completed.");
             System.exit(0);
         } catch (CmdLineException e) {
             logger.error("Error while parsing command line arguments.", e);

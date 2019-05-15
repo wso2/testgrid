@@ -624,6 +624,8 @@ public final class TestGridUtil {
                 }
             } else {
                 //Assume the phase is null because the job has aborted/failed before setting the first phase.
+                logger.warn("Phase is null. This may happen if the job has aborted/failed before setting the first "
+                        + "phase. id: " + testPlan.getId());
                 testPlan.setPhase(TestPlanPhase.PREPARATION_ERROR);
             }
             logger.info("=============##### UPDATED TestPlan Result ####==========");

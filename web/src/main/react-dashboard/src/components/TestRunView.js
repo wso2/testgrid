@@ -498,7 +498,7 @@ class TestRunView extends Component {
                           window.open(this.state.buildURL, '_blank', false);
                         }
                       }}
-              ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;TestGrid console </Button>
+              ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;Blue Ocean console</Button>
               </td>
               <td>
                 {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
