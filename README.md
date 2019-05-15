@@ -42,6 +42,15 @@ repositories.
 3. Read the Testgrid concepts at [Infrastructure / Deployment / and Scenarios Repository Structure](docs/Infrastructure-Deployment-Scenarios-Repository-Structure.md)
 4. See developer docs at [How to Pass Data between Testgrid steps](docs/How-to-Pass-Data-to-Next-Steps.md)
 
+## Building Testgrid
+
+You need Oracle/OpenJDK 8 and Apache Maven 3.5 to build Testgrid. 
+
+`mvn clean install`
+
+NOTE: if you are using OpenJDK 8, then you'll need to install JFX libraries. 
+For Ubuntu/Debian, it's available in openjfx package. You can install it via `apt install openjfx`.
+
 ## Testgrid architecture
 
 ### Overall system components are as follows:
