@@ -37,7 +37,9 @@ class OutputFilesPopover extends React.Component {
   state = {
     anchorEl: null,
     files: null,
-    showLogDownloadErrorDialog: false
+    showLogDownloadErrorDialog: false,
+    showLogDownloadStatusDialog: false,
+    showLogDownloadStatusMessage: ""
   };
 
   handleClick = event => {
@@ -149,7 +151,7 @@ class OutputFilesPopover extends React.Component {
     const open = Boolean(anchorEl);
 
     return (
-      <div style={{"padding-left": "10px"}}>
+      <div style={{"paddingLeft": "10px"}}>
         <Snackbar
           open={this.state.showLogDownloadStatusDialog}
           message={this.state.showLogDownloadStatusMessage}

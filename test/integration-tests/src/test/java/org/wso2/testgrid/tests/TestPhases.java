@@ -103,7 +103,7 @@ public class TestPhases {
             }
 
             currentBuild = getLastJob(buildStatusUrl, authorizationHeader);
-            Assert.assertEquals(currentBuild.status, "SUCCESS");
+            Assert.assertEquals(currentBuild.status, "SUCCESS", jobName + " has status " + currentBuild.status);
 
             logger.info("Checking the Email content of " + jobName);
             EmailUtils emailUtils = connectToEmail();
