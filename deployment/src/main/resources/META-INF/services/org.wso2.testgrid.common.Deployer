@@ -1,2 +1,3 @@
 org.wso2.testgrid.deployment.deployers.AWSDeployer
 org.wso2.testgrid.deployment.deployers.ShellDeployer
+org.wso2.testgrid.deployment.deployers.KubernetesDeployer

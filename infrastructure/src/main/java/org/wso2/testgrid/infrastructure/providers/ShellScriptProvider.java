@@ -52,7 +52,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
     }
 
     @Override
-    public void init(TestPlan testPlan) throws TestGridInfrastructureException  {
+    public void init(TestPlan testPlan) throws TestGridInfrastructureException {
 
     }
 
@@ -69,13 +69,12 @@ public class ShellScriptProvider implements InfrastructureProvider {
         logger.info("Executing provisioning scripts...");
         try {
             Script createScript = script;
-            ShellExecutor executor = new ShellExecutor(null); //todo
+            ShellExecutor executor = new ShellExecutor(null);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             String infraInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                     .toAbsolutePath().toString();
             String infraOutputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                     .toAbsolutePath().toString();
-
             final String command = "bash " + Paths.get(testPlanLocation, createScript.getFile())
                     + " --input-dir " + infraInputsLoc +  " --output-dir " + infraOutputsLoc;
             int exitCode = executor.executeCommand(command);
@@ -100,7 +99,7 @@ public class ShellScriptProvider implements InfrastructureProvider {
         String testPlanLocation = Paths.get(infraRepoDir).toString();
 
         logger.info("Destroying test environment...");
-        ShellExecutor executor = new ShellExecutor(null);
+        ShellExecutor executor = new ShellExecutor(null); //todo
         try {
 
             String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)

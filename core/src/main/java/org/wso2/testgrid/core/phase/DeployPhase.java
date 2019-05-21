@@ -42,6 +42,7 @@ import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -117,25 +118,26 @@ public class DeployPhase extends Phase {
         Path infraOutFilePath = DataBucketsHelper.getOutputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
         try {
-            printMessage("\t\t Creating deployment: " + getTestPlan().getDeploymentConfig()
-                    .getDeploymentPatterns().get(0).getName());
+            DeploymentCreationResult result = new DeploymentCreationResult();
+            for (Script script: getTestPlan().getDeploymentConfig().getFirstDeploymentPattern().getScripts()) {
+                printMessage("\t\t Creating deployment: " + script.getName());
 
-            if (!infrastructureProvisionResult.isSuccess()) {
-                DeploymentCreationResult result = new DeploymentCreationResult();
-                result.setSuccess(false);
+                if (!infrastructureProvisionResult.isSuccess()) {
+                    DeploymentCreationResult nresult = new DeploymentCreationResult();
+                    result.setSuccess(false);
+                    logger.debug("Deployment result: " + nresult);
+                    return result;
+                }
+
+                // Append deploymentConfig inputs in testgrid yaml to infra outputs file
+                Properties deplInputs = script.getInputParameters();
+                persistAdditionalInputs(deplInputs, infraOutFilePath);
+                Deployer deployerService = DeployerFactory.getDeployerService(script);
+                DeploymentCreationResult aresult =
+                        deployerService.deploy(getTestPlan(), infrastructureProvisionResult);
+                addTo(result, aresult);
                 logger.debug("Deployment result: " + result);
-                return result;
             }
-
-            // Append deploymentConfig inputs in testgrid yaml to infra outputs file
-            Properties deplInputs = getTestPlan().getDeploymentConfig()
-                    .getDeploymentPatterns().get(0).getScripts().get(0).getInputParameters();
-            persistAdditionalInputs(deplInputs, infraOutFilePath);
-
-            Deployer deployerService = DeployerFactory.getDeployerService(getTestPlan());
-            final DeploymentCreationResult result =
-                    deployerService.deploy(getTestPlan(), infrastructureProvisionResult);
-            logger.debug("Deployment result: " + result);
             return result;
         } catch (TestGridDeployerException e) {
             persistTestPlanProgress(TestPlanPhase.DEPLOY_PHASE_ERROR, TestPlanStatus.ERROR);
@@ -179,6 +181,20 @@ public class DeployPhase extends Phase {
     }
 
     /**
+     * The results created by running a single script in deploy phase is added
+     * to the deployment creation result
+     *
+     * @param provisionResult result of the deploy phase
+     * @param aProvisionResult result of a single script in deploy phase.
+     */
+
+    private void addTo(DeploymentCreationResult provisionResult, DeploymentCreationResult aProvisionResult) {
+        provisionResult.getProperties().putAll(aProvisionResult.getProperties());
+        if (!aProvisionResult.isSuccess()) {
+            provisionResult.setSuccess(false);
+        }
+    }
+    /**
      * Destroys the given InfrastructureConfig
      *
      * @throws TestPlanExecutorException thrown when error on destroying
@@ -214,8 +230,6 @@ public class DeployPhase extends Phase {
                     infrastructureProvider.cleanup(getTestPlan());
                 }
             }
-
-
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",
@@ -238,7 +252,7 @@ public class DeployPhase extends Phase {
     private void persistAdditionalInputs(Properties properties, Path propFilePath) throws TestPlanExecutorException {
         try (OutputStream outputStream = new FileOutputStream(
                 propFilePath.toString(), true)) {
-            properties.store(outputStream, null);
+                    properties.store(outputStream, null);
         } catch (Throwable e) {
             throw new TestPlanExecutorException("Error occurred while writing deployment outputs.", e);
         }
