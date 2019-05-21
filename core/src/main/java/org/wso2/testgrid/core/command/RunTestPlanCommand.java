@@ -101,8 +101,6 @@ public class RunTestPlanCommand implements Command {
     @Override
     public void execute() throws CommandExecutionException {
         try {
-            logger.info("Input Arguments: \n" + "\tProduct name: " + productName);
-
             // Get test plan YAML file path location
             Product product = getProduct(productName);
             Optional<String> testPlanYAMLFilePath = getTestPlanYamlAbsoluteLocation(product, testPlanConfigLocation);
@@ -137,9 +135,8 @@ public class RunTestPlanCommand implements Command {
                         throw new IllegalStateException("Test plan execution was not succeeded.");
                     }
                 } else {
-
-                    logger.error("PREPARATION phase was not succeeded for test-plan: " + testPlan.getId() + "Hence" +
-                            "not starting other phases.");
+                    logger.error("PREPARATION phase was not succeeded for test-plan: " + testPlan.getId() + ". Hence" +
+                            "not starting other phases. Current phase: " + testPlan.getPhase().toString());
                     testPlan.setStatus(TestPlanStatus.ERROR);
                     testPlan.setPhase(TestPlanPhase.PREPARATION_ERROR);
                     persistTestPlan(testPlan);

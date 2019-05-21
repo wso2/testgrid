@@ -58,8 +58,8 @@ public class InfraPhase extends Phase {
                 getTestPlan().getStatus().equals(TestPlanStatus.RUNNING)) {
             return true;
         } else {
-                logger.error("PREPARATION phase was not succeeded for test-plan: " + getTestPlan().getId() + "Hence" +
-                        "not starting other phases.");
+                logger.error("PREPARATION phase was not succeeded for test-plan: " + getTestPlan().getId() + ". Hence" +
+                        "not starting other phases..");
                 persistTestPlanProgress(TestPlanPhase.PREPARATION_ERROR, TestPlanStatus.ERROR);
             return false;
         }
@@ -119,7 +119,7 @@ public class InfraPhase extends Phase {
             persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
             String msg = StringUtil
                     .concatStrings("Error on infrastructure creation for deployment pattern '",
-                            getTestPlan().getDeploymentPattern(), "', in TestPlan");
+                            getTestPlan().getDeploymentPattern().getName(), "'");
             logger.error(msg, e);
         } catch (InfrastructureProviderInitializationException | UnsupportedProviderException e) {
             persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
