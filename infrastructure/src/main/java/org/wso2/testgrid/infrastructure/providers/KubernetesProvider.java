@@ -86,7 +86,7 @@ public class KubernetesProvider implements InfrastructureProvider {
             throws TestGridInfrastructureException {
         String testPlanLocation = Paths.get(testPlan.getInfrastructureRepository()).toString();
         InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
-        setAccessKeyFileLocation(testPlan);
+        setInfraProperties(testPlan);
         setProperties(testPlan);
         logger.info("Executing provisioning scripts...");
         try {
@@ -151,40 +151,20 @@ public class KubernetesProvider implements InfrastructureProvider {
         }
     }
 
-    /**
-     * This is used to get the access key to log into the GKE
-     *
-     * @return the access key location
-     */
-
-    private String getAccessKeyFileLocation() {
-        String accessKeyFileLocation = null;
-        try {
-            accessKeyFileLocation = ConfigurationContext.getProperty(ConfigurationContext
-                    .ConfigurationProperties.GKE_ACCESS_KEY);
-            logger.info(accessKeyFileLocation);
-        } catch (PropertyNotFoundException e) {
-            logger.error("The keyFileLocation is not found");
-        }
-        return accessKeyFileLocation;
-    }
 
     /**
-     * This is used to set the access key location
+     * This is used to set the infra properties
      *
      * @param testPlan with current test run specifications
      */
 
-    private void setAccessKeyFileLocation(TestPlan testPlan) {
+    private void setInfraProperties(TestPlan testPlan) {
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
                 .getDeploymentPatterns().get(0);
-        final String accessKeyFileLocation = getAccessKeyFileLocation();
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
             os.write(("\nname=" + deploymentPatternConfig.getName()).getBytes(StandardCharsets.UTF_8));
-            os.write(("\n" + TestGridConstants.ACCESS_KEY_FILE_LOCATION  + "=" +
-                    accessKeyFileLocation).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
         }
