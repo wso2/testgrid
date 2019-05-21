@@ -154,9 +154,9 @@ public class ShellExecutor {
      */
     public int executeCommand(String command, Map<String, String> environment) throws CommandExecutionException {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Running shell command : " + command + ", from directory : " + workingDirectory.toString());
-        }
+
+        logger.info("Running shell command : " + command + ", from directory : " + workingDirectory.toString());
+
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
