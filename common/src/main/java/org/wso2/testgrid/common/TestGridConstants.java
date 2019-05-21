@@ -100,15 +100,12 @@ public class TestGridConstants {
 
     public static final String MAVEN_RELATED_DIR = "target";
 
+
     public static final String INFRA_SCRIPT = "infrastructureRepository/infra.sh";
 
     public static final String DEPLOY_SCRIPT = "deploymentRepository/deploy.sh";
 
     public static final String DESTROY_SCRIPT = "infrastructureRepository/destroy.sh";
 
-<<<<<<< HEAD
-=======
-    public static final String DESTROY_SCRIPT = "destroy.sh";
 
->>>>>>> review-1.0
 }

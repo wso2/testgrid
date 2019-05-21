@@ -267,17 +267,9 @@ public class ConfigurationContext {
         /**
          * Repeateble json string section of all logs
          */
-<<<<<<< HEAD
+
         REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON");
-=======
-        REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON"),
 
-        /**
-         * gke service account key file location
-         */
-        GKE_ACCESS_KEY("accessKeyFileLocation");
-
->>>>>>> review-1.0
 
         private String propertyName;
 
