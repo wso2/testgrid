@@ -40,6 +40,8 @@ import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Filter;
+import com.amazonaws.services.ec2.model.GetConsoleOutputRequest;
+import com.amazonaws.services.ec2.model.GetConsoleOutputResult;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.waiters.Waiter;
@@ -104,9 +106,10 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String AWS_REGION_PARAMETER = "region";
     private static final String CUSTOM_USER_DATA = "CustomUserData";
     private static final String DEFAULT_REGION = "us-east-1";
+    private static final int EC2_SYSTEM_LOG_NO_OF_LINES = 30;
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     private AWSResourceManager awsResourceManager;
-    private static final int TIMEOUT = 60;
+    private static final int TIMEOUT = 75;
     private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
     private static final int POLL_INTERVAL = 1;
     private static final TimeUnit POLL_UNIT = TimeUnit.MINUTES;
@@ -134,7 +137,7 @@ public class AWSProvider implements InfrastructureProvider {
             Path limitsYamlPath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.AWS_LIMITS_YAML);
             List<AWSResourceLimit> awsResourceLimits = awsResourceManager.populateInitialResourceLimits(limitsYamlPath);
             if (awsResourceLimits == null || awsResourceLimits.isEmpty()) {
-                logger.warn("Could not populate AWS resource limits. ");
+                logger.warn("Not using current AWS resource limits. awsLimits.yaml may be missing.");
             }
         } catch (TestGridDAOException e) {
             throw new TestGridInfrastructureException("Error while retrieving aws limits.", e);
@@ -272,14 +275,13 @@ public class AWSProvider implements InfrastructureProvider {
 
             return result;
         } catch (IOException e) {
-            throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
+            throw new TestGridInfrastructureException("Error while Reading CloudFormation script", e);
         } catch (ConditionTimeoutException e) {
+            getAllEC2InstanceConsoleLogs(stackName, region);
             throw new TestGridInfrastructureException(
-                    StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
+                    "ERROR: cloudformation stack creation has timed out. Analyze cause via stack logs in AWS console: "
+                            + stackName, e);
         } catch (TestGridDAOException e) {
-<<<<<<< HEAD
-            throw new TestGridInfrastructureException("Error occurred while retrieving resource requirements", e);
-=======
             throw new TestGridInfrastructureException("Error while retrieving resource requirements for " + stackName,
                     e);
         } catch (TestGridInfrastructureException e) {
@@ -287,7 +289,6 @@ public class AWSProvider implements InfrastructureProvider {
                     stackName, e.getMessage());
             getAllEC2InstanceConsoleLogs(stackName, region);
             throw e;
->>>>>>> Improve logs for better troubleshooting
         }
     }
 
@@ -305,15 +306,7 @@ public class AWSProvider implements InfrastructureProvider {
     private void deriveLogDashboardUrl(TestPlan testPlan, String stackName, String region) {
         try {
             // Filter the EC2 instance corresponding to the stack
-            Path configFilePath = TestGridUtil.getConfigFilePath();
-            AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.standard()
-                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                    .withRegion(region)
-                    .build();
-            DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
-            describeInstancesRequest.withFilters(
-                    new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
-            DescribeInstancesResult result = amazonEC2.describeInstances(describeInstancesRequest);
+            DescribeInstancesResult result = getDescribeInstancesResult(stackName, region);
 
             // Add instance id and name to a map
             Map<String, String> instancesMap = result.getReservations().stream()
@@ -355,18 +348,8 @@ public class AWSProvider implements InfrastructureProvider {
      */
     private void logEC2SshAccessDetails(String stackName, Properties inputs) {
         try {
-            Path configFilePath = TestGridUtil.getConfigFilePath();
             String region = inputs.getProperty(AWS_REGION_PARAMETER);
-            final AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.standard()
-                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                    .withRegion(region)
-                    .build();
-
-            DescribeInstancesRequest request = new DescribeInstancesRequest();
-            request.withFilters(
-                    new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
-
-            DescribeInstancesResult result = amazonEC2.describeInstances(request);
+            DescribeInstancesResult result = getDescribeInstancesResult(stackName, region);
             final long instanceCount = result.getReservations().stream()
                     .map(Reservation::getInstances)
                     .mapToLong(Collection::size)
@@ -419,9 +402,6 @@ public class AWSProvider implements InfrastructureProvider {
         return "ssh -i " + keyName + " root@" + ip + ";   " + instanceName + platform;
     }
 
-<<<<<<< HEAD
-    private Properties getCloudformationOutputs(AmazonCloudFormation cloudFormation, CreateStackResult stack) {
-=======
     /**
      * Get logs of all the ec2 instances created by this #stackName.
      *
@@ -498,7 +478,6 @@ public class AWSProvider implements InfrastructureProvider {
     }
 
     private static Properties getCloudformationOutputs(AmazonCloudFormation cloudFormation, CreateStackResult stack) {
->>>>>>> Improve logs for better troubleshooting
         DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
         describeStacksRequest.setStackName(stack.getStackId());
         final DescribeStacksResult describeStacksResult = cloudFormation
@@ -517,8 +496,6 @@ public class AWSProvider implements InfrastructureProvider {
         return outputProps;
     }
 
-<<<<<<< HEAD
-=======
     private static DescribeInstancesResult getDescribeInstancesResult(String stackName, String region) {
         final AmazonEC2 amazonEC2 = getAmazonEC2(region);
 
@@ -565,7 +542,6 @@ public class AWSProvider implements InfrastructureProvider {
                 .build();
     }
 
->>>>>>> Improve logs for better troubleshooting
     /**
      * Read the {@link InfrastructureConfig#getParameters()},
      * {@link DataBucketsHelper#TESTPLAN_PROPERTIES_FILE},
@@ -680,7 +656,7 @@ public class AWSProvider implements InfrastructureProvider {
             } catch (WaiterUnrecoverableException e) {
 
                 throw new TestGridInfrastructureException("Error occurred while waiting for Stack :"
-                                                          + stackName + " deletion !");
+                        + stackName + " deletion !");
             }
         }
         return true;
@@ -697,7 +673,7 @@ public class AWSProvider implements InfrastructureProvider {
      * @throws IOException When there is an error reading the parameters file.
      */
     private List<Parameter> getParameters(List<TemplateParameter> expectedParameters,
-            Properties infraInputs, Properties infraCombinationProperties, TestPlan testPlan)
+                                          Properties infraInputs, Properties infraCombinationProperties, TestPlan testPlan)
             throws IOException, TestGridInfrastructureException {
 
         String testPlanId = testPlan.getId();
@@ -709,8 +685,8 @@ public class AWSProvider implements InfrastructureProvider {
                             .getParameterKey())).findAny();
             if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
-                            .withParameterValue(getAMIParameterValue(testPlan.getInfrastructureProperties(),
-                                    infraInputs));
+                        .withParameterValue(getAMIParameterValue(testPlan.getInfrastructureProperties(),
+                                infraInputs));
                 cfCompatibleParameters.add(awsParameter);
             }
 
@@ -744,7 +720,7 @@ public class AWSProvider implements InfrastructureProvider {
                             "\" \n .\\telegraf_setup.sh ", scriptInputs);
 
                     customScript = "cd C:\\\"Program Files\"\\telegraf\n" +
-                            "curl http://169.254.169.254/latest/meta-data/instance-id -o instance_id.txt\n" +
+                            "curl http://169.254.169.254/latest/meta-data/instance-id -so instance_id.txt\n" +
                             windowsScript + "\n" +
                             ".\\telegraf.exe  --service install > service.log\n" +
                             "while(!(netstat -o | findstr 8086 | findstr ESTABLISHED)) " +
@@ -753,9 +729,9 @@ public class AWSProvider implements InfrastructureProvider {
                     String agentSetup = "if [[ ! -d /opt/testgrid ]]; then\n" +
                             "mkdir /opt/testgrid\n" +
                             "fi\n" +
-                            "wget https://wso2.org/jenkins/job/testgrid/job/testgrid/lastSuccessfulBuild/" +
+                            "wget -q https://wso2.org/jenkins/job/testgrid/job/testgrid/lastSuccessfulBuild/" +
                             "artifact/remoting-agent/target/agent.zip -O /opt/testgrid/agent.zip\n" +
-                            "unzip -o /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
+                            "unzip -qo /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
                             "cp /opt/testgrid/agent/testgrid-agent /etc/init.d\n" +
                             "SERVER=$(awk -F= '/^NAME/{print $2}' /etc/os-release)\n" +
                             "if [[ $SERVER = 'Ubuntu' ]]; then\n" +
@@ -768,10 +744,11 @@ public class AWSProvider implements InfrastructureProvider {
                     String awsCLISetup = "YUM_CMD=$(which yum) || echo 'yum is not available'\n" +
                             "APT_GET_CMD=$(which apt-get) || echo 'apt-get is not available'\n" +
                             "if [[ ! -z $YUM_CMD ]]; then\n" +
-                            "sudo yum -y install awscli\n" +
+                            "  sudo pip install awscli --upgrade\n" +
                             "elif [[ ! -z $APT_GET_CMD ]]; then\n" +
-                            "sudo apt -y install awscli\n" +
-                            "fi\n";
+                            "  sudo apt-get -y install awscli\n" +
+                            "fi\n" +
+                            "aws --version\n";
 
                     String perfMonitoringSetup = "if [ ! -f /opt/testgrid/agent/telegraf_setup.sh ]; then\n" +
                             "  wget https://s3.amazonaws.com/testgrid-resources/packer/Unix/" +
@@ -783,8 +760,8 @@ public class AWSProvider implements InfrastructureProvider {
 
                     customScript = StringUtil
                             .concatStrings(awsCLISetup, agentSetup, "/opt/testgrid/agent/init.sh ",
-                            deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,
-                            " ", deploymentTinkererPassword, "\n", perfMonitoringSetup,
+                                    deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,
+                                    " ", deploymentTinkererPassword, "\n", perfMonitoringSetup,
                                     "/opt/testgrid/agent/telegraf_setup.sh ", scriptInputs);
                 }
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
@@ -833,4 +810,3 @@ public class AWSProvider implements InfrastructureProvider {
         return amiMapper.getAMIFor(infraCombination);
     }
 }
-
