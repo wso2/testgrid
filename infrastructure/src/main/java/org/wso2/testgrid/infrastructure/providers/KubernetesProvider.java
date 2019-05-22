@@ -150,7 +150,6 @@ public class KubernetesProvider implements InfrastructureProvider {
         }
     }
 
-
     /**
      * This is used to set the infra properties
      *
