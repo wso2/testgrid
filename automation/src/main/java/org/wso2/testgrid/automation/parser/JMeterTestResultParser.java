@@ -109,20 +109,12 @@ public class JMeterTestResultParser extends ResultParser {
 
                 XMLEventReader eventReader = factory.createXMLEventReader(inputStream);
                 TestCase testCase = null;
-                boolean isValidJTL = false;
                 while (eventReader.hasNext()) {
                     XMLEvent event = eventReader.nextEvent();
                     switch (event.getEventType()) {
                         case XMLStreamConstants.START_ELEMENT:
                             StartElement startElement = event.asStartElement();
                             String elementName = startElement.getName().getLocalPart();
-                            if (!isValidJTL && "testResults".equals(elementName)) {
-                                isValidJTL = true;
-                            }
-                            if (!isValidJTL) {
-                                throw new IllegalArgumentException("Expected 'testResults' as the JTL root element "
-                                        + "name. Found: '" + elementName + "'.");
-                            }
                             if (HTTP_SAMPLE_ELEMENT.equalsIgnoreCase(elementName) ||
                                     SAMPLE_ELEMENT.equalsIgnoreCase(elementName)) {
                                 testCase = this.buildTestCase(startElement);
@@ -162,9 +154,6 @@ public class JMeterTestResultParser extends ResultParser {
             } catch (IOException e) {
                 throw new JTLResultParserException("Unable to close the input stream of scenario results file of " +
                         "the TestScenario : " + testScenarioName, e);
-            } catch (IllegalArgumentException e) {
-                throw new JTLResultParserException("ERROR: JTL parsing failed. Is this a valid JTL file: " + jtlFile +
-                        "?. Error: " + e.getMessage());
             }
         }
     }

@@ -656,7 +656,7 @@ public class AWSProvider implements InfrastructureProvider {
             } catch (WaiterUnrecoverableException e) {
 
                 throw new TestGridInfrastructureException("Error occurred while waiting for Stack :"
-                                                          + stackName + " deletion !");
+                        + stackName + " deletion !");
             }
         }
         return true;
@@ -673,7 +673,8 @@ public class AWSProvider implements InfrastructureProvider {
      * @throws IOException When there is an error reading the parameters file.
      */
     private List<Parameter> getParameters(List<TemplateParameter> expectedParameters,
-            Properties infraInputs, Properties infraCombinationProperties, TestPlan testPlan)
+                                          Properties infraInputs, Properties infraCombinationProperties,
+                                          TestPlan testPlan)
             throws IOException, TestGridInfrastructureException {
 
         String testPlanId = testPlan.getId();
@@ -685,8 +686,8 @@ public class AWSProvider implements InfrastructureProvider {
                             .getParameterKey())).findAny();
             if (!scriptParameter.isPresent() && expected.getParameterKey().equals("AMI")) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey())
-                            .withParameterValue(getAMIParameterValue(testPlan.getInfrastructureProperties(),
-                                    infraInputs));
+                        .withParameterValue(getAMIParameterValue(testPlan.getInfrastructureProperties(),
+                                infraInputs));
                 cfCompatibleParameters.add(awsParameter);
             }
 
@@ -760,8 +761,9 @@ public class AWSProvider implements InfrastructureProvider {
 
                     customScript = StringUtil
                             .concatStrings(awsCLISetup, agentSetup, "/opt/testgrid/agent/init.sh ",
-                            deploymentTinkererEP, " ", awsRegion, " ", testPlanId, " aws ", deploymentTinkererUserName,
-                            " ", deploymentTinkererPassword, "\n", perfMonitoringSetup,
+                                    deploymentTinkererEP, " ", awsRegion, " ", testPlanId,
+                                    " aws ", deploymentTinkererUserName,
+                                    " ", deploymentTinkererPassword, "\n", perfMonitoringSetup,
                                     "/opt/testgrid/agent/telegraf_setup.sh ", scriptInputs);
                 }
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
@@ -810,4 +812,3 @@ public class AWSProvider implements InfrastructureProvider {
         return amiMapper.getAMIFor(infraCombination);
     }
 }
-

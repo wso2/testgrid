@@ -191,6 +191,7 @@ public class KubernetesProvider implements InfrastructureProvider {
             logger.error("Wum username and passwords are not included.");
         }
 
+
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
             os.write(("\n" + TestGridConstants.WUM_USERNAME_PROPERTY + "=" + wumUserName).
                     getBytes(StandardCharsets.UTF_8));

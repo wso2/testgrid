@@ -66,14 +66,12 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
@@ -157,39 +155,11 @@ public class TestPlanService {
                         setMessage("Unable to find the requested TestPlan by id : '" + id + "'").build()).build();
             }
         } catch (TestGridDAOException e) {
-            return handleException(id, e);
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError().entity(
+                    new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
-    }
-
-    /**
-     * This has the implementation of the REST API for fetching a specific TestPlan by id.
-     *
-     * @return The requested Test-Plan.
-     */
-    @DELETE
-    @Path("/{id}")
-    public Response deleteTestPlan(@PathParam("id") String id) {
-        try {
-            TestPlanUOW testPlanUOW = new TestPlanUOW();
-            Optional<TestPlan> testPlan = testPlanUOW.getTestPlanById(id);
-            if (testPlan.isPresent()) {
-                testPlanUOW.deleteTestPlans(Collections.singletonList(id));
-                //todo cleanup s3 location for logs and archives
-                return Response.status(Response.Status.NO_CONTENT).build();
-            } else {
-                return Response.status(Response.Status.NOT_FOUND).entity(new ErrorResponse.ErrorResponseBuilder().
-                        setMessage("Unable to find the requested TestPlan by id : '" + id + "'").build()).build();
-            }
-        } catch (TestGridDAOException e) {
-            return handleException(id, e);
-        }
-    }
-
-    private static Response handleException(String id, TestGridDAOException e) {
-        String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
-        logger.error(msg, e);
-        return Response.serverError().entity(
-                new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
     }
 
     /**
@@ -319,7 +289,10 @@ public class TestPlanService {
             TestExecutionSummary testExecutionSummary = getTestExecutionSummary(testPlan);
             return Response.status(Response.Status.OK).entity(testExecutionSummary).build();
         } catch (TestGridDAOException e) {
-            return handleException(id, e);
+            String msg = "Error occurred while fetching the TestPlan by id : '" + id + "'";
+            logger.error(msg, e);
+            return Response.serverError()
+                    .entity(new ErrorResponse.ErrorResponseBuilder().setMessage(msg).build()).build();
         }
     }
 
