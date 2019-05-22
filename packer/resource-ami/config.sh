@@ -18,6 +18,9 @@
 # NAME: echoLogo
 # DESCRIPTION: Print the WSO2 TestGrid Logo.
 #===============================================================================
+
+set -o xtrace
+
 function echoLogo() {
 	echo "__          __ ____  ____ ___    _______        _    _____      _     _ "
 	echo "\ \        / / ____|/ __ \__ \  |__   __|      | |  / ____|    (_)   | |"
@@ -73,22 +76,33 @@ function installJDKs() {
     Ubuntu)
 	#Installing ORACLE_JAVA8
 	echo "Installing ORACLE_JAVA8"
-	sudo add-apt-repository -y ppa:webupd8team/java
+	sudo apt -y install oracle-java8-installer
+#Command line script to easily add new java directories to
+#'alternatives'. This sets the java as default, and you can switch your
+#default java with update-java-alternatives
+	sudo rm /var/lib/dpkg/info/oracle-java8-installer.postinst -f
 	sudo apt-get update -y
-	echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
-	echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
-	sudo apt-get -y install oracle-java8-installer
+	sudo apt -y install oracle-java8-installer
+#	sudo apt-get update -y
+#	echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
+#	echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
+#	sudo apt-get -y install oracle-java8-installer
 	#Installing OpenJDK8
 	echo "Installing OPENJDK 8"
 	sudo add-apt-repository -y ppa:openjdk-r/ppa
 	sudo apt-get update -y
 	sudo apt-get -y install openjdk-8-jdk
+	#Installing AdoptOpenJDK 8
+	echo "Installing AdoptOpenJDK 8"
+	wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u202-b08/OpenJDK8U-jdk_x64_linux_hotspot_8u202b08.tar.gz
+	sudo mkdir -p /opt/jdk/java-8-adoptOpenJdk
+	sudo tar -xf OpenJDK8U-jdk_x64_linux_hotspot_8u202b08.tar.gz -C /opt/jdk/java-8-adoptOpenJdk/
 	#Installing Amazon CorrettoJDK 8
 	echo "Installing CorrettoJDK-8"
 	wget https://d2znqt9b1bc64u.cloudfront.net/java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
 	sudo apt-get -y update && sudo apt-get -y install java-common
 	sudo dpkg --install java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
-
+	sudo cp /opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre/lib/security/cacerts /opt/jdk/java-8-correttoJdk/amazon-corretto-8.202.08.2-linux-x64/jre/lib/security/
 	;;
 
     CentOS)
@@ -99,15 +113,17 @@ function installJDKs() {
 	echo "Installing OPENJDK 8"
 	sudo yum install -y java-1.8.0-openjdk-devel
     sudo yum install -y wget #Dependency to download JCE policies
+    #Installing AdoptOpenJDK 8
 	echo "Installing AdoptOpenJDK 8"
 	wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u192-b12/OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz
 	sudo mkdir -p /opt/jdk/java-8-adoptOpenJdk
 	sudo tar -xf OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz -C /opt/jdk/java-8-adoptOpenJdk/
 	#Installing Amazon CorrettoJDK 8
 	echo "Installing CorrettoJDK-8"
-	wget https://d2znqt9b1bc64u.cloudfront.net/amazon-corretto-8.202.08.2-macosx-x64.tar.gz
+	wget https://d2znqt9b1bc64u.cloudfront.net/amazon-corretto-8.202.08.2-linux-x64.tar.gz
 	sudo mkdir -p /opt/jdk/java-8-correttoJdk
-	sudo tar -xf amazon-corretto-8.202.08.2-macosx-x64.tar.gz -C /opt/jdk/java-8-correttoJdk
+	sudo tar -xf amazon-corretto-8.202.08.2-linux-x64.tar.gz -C /opt/jdk/java-8-correttoJdk
+	sudo cp /opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre/lib/security/cacerts 	/opt/jdk/java-8-correttoJdk/amazon-corretto-8.202.08.2-linux-x64/jre/lib/security/
 	;;
 
     RHEL)
@@ -266,7 +282,7 @@ function addEnvVariables() {
     sudo su -c "echo 'ORACLE_JDK8=/usr/java/jdk1.8.0_181-amd64' > /etc/environment"
     sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-1.8.0-openjdk' >> /etc/environment"
     sudo su -c "echo 'ADOPT_OPEN_JDK8=/opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre' >> /etc/environment"
-    sudo su -c "echo 'CORRETTO_JDK8=/opt/jdk/java-8-correttojdk/amazon-corretto-8.jdk/Contents/Home' >> /etc/environment"
+    sudo su -c "echo 'CORRETTO_JDK8=/opt/jdk/java-8-correttoJdk/amazon-corretto-8.202.08.2-linux-x64/jre' >> /etc/environment"
     source /etc/environment
 }
 
@@ -339,6 +355,15 @@ function installPython() {
 #              of the instance to its CF Stack)
 #===============================================================================
 function installCfnSignalLibrary() {
+    case "$AMI_OS" in
+    Ubuntu)
+    wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+    tar -xzf aws-cfn-bootstrap-latest.tar.gz
+    cd /home/ubuntu/aws-cfn-bootstrap-1.4
+    python setup.py build
+    sudo python setup.py install
+    ;;
+    CentOS)
     #Download lib
     wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.amzn1.noarch.rpm
     #Installing python dependency for rpm installation
@@ -349,6 +374,8 @@ function installCfnSignalLibrary() {
     #To fix ImportError: No module named cfnbootstrap when executing Signal (Adding symbolic link)
     sudo ln -s /usr/local/lib/python2.7/site-packages/cfnbootstrap /usr/lib/python2.7/site-packages/cfnbootstrap
     ls /opt/aws/bin/cfn-signal
+    ;;
+    esac
 }
 
 #=== FUNCTION ==================================================================
@@ -437,6 +464,8 @@ function showInstallations() {
 	echo "----Environment Variables----"
 	echo OracleJDK8 env= $ORACLE_JDK8
 	echo OpenJDK8 env=$OPEN_JDK8
+	echo AdoptOpenJDK8 env=$ADOPT_OPEN_JDK8
+	echo CorrettoJDK8 env=$CORRETTO_JDK8
 	echo
 	echo "---- CFN Library ----"
     ls /opt/aws/bin/cfn-signal
