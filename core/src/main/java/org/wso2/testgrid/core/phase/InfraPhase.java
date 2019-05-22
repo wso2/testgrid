@@ -119,7 +119,7 @@ public class InfraPhase extends Phase {
             persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
             String msg = StringUtil
                     .concatStrings("Error on infrastructure creation for deployment pattern '",
-                            getTestPlan().getDeploymentPattern().getName(), "'");
+                            getTestPlan().getDeploymentPattern(), "', in TestPlan");
             logger.error(msg, e);
         } catch (InfrastructureProviderInitializationException | UnsupportedProviderException e) {
             persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);

@@ -103,7 +103,7 @@ class App extends Component {
                 }>
                 <Toolbar>
                   <div style={{color: 'white'}}>
-                    <i className="fa fa-user-circle" aria-hidden="true"></i>&nbsp;{this.state.name}
+                    <i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp;{this.state.name}
                   </div>
                 </Toolbar>
               </AppBar>

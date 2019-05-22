@@ -169,4 +169,41 @@ public class KubernetesProvider implements InfrastructureProvider {
         }
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * This sets the properties to be used by the deploy scripts.
+     *
+     * @param testPlan
+     */
+
+    private void setProperties(TestPlan testPlan) {
+        String wumUserName = null;
+        String wumPassword = null;
+        final Path location = DataBucketsHelper.getInputLocation(testPlan)
+                .resolve(DataBucketsHelper.INFRA_OUT_FILE);
+        logger.info(location.toString());
+        try {
+            wumUserName = ConfigurationContext.getProperty(ConfigurationContext.
+                    ConfigurationProperties.WUM_USERNAME);
+            wumPassword = ConfigurationContext.getProperty(ConfigurationContext.
+                    ConfigurationProperties.WUM_PASSWORD);
+        } catch (PropertyNotFoundException e) {
+            logger.error("Wum username and passwords are not included.");
+        }
+
+
+        try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
+            os.write(("\n" + TestGridConstants.WUM_USERNAME_PROPERTY + "=" + wumUserName).
+                    getBytes(StandardCharsets.UTF_8));
+            os.write(("\n" + TestGridConstants.WUM_PASSWORD_PROPERTY + "=" + wumPassword + "\n").
+                    getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            logger.error("Error while persisting infra input params to " + location, e);
+        }
+
+    }
+
+
+>>>>>>> c9687ab1ea068fe14954e04a1679b4b5278225c2
 }

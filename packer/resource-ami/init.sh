@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ubuntu_os_version="18.04"
+ubuntu_os_version="16.04"
 ubuntu_ssh_username="ubuntu"
 ubuntu_source_ami_filter_name="ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*"
 ubuntu_source_ami_filter_owner="099720109477"

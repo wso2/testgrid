@@ -37,7 +37,6 @@ import DoneIcon from '@material-ui/icons/Done';
 import CloseIcon from '@material-ui/icons/Close';
 import WaitIcon from '@material-ui/icons/DoneOutline';
 import IncompleteIcon from '@material-ui/icons/Flip';
-import IconButton from "@material-ui/core/IconButton/IconButton";
 
 /**
  * View responsible for displaying test run log and summary information.
@@ -60,9 +59,7 @@ class TestRunView extends Component {
       currentInfra: props.currentInfra,
       TruncatedRunLogUrlStatus:null,
       grafanaUrl: "",
-      wso2LogsUrl: "",
-      showLogDownloadStatusDialog: false,
-      showLogDownloadStatusMessage: ""
+      wso2LogsUrl: ""
     };
   }
 
@@ -462,15 +459,14 @@ class TestRunView extends Component {
         {divider}
       <br/>
         <table>
-          <tbody>
             <tr>
               {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
                 if (this.state.currentInfra.testPlanStatus === RUNNING) {
-                  return <td><Button id="tdd" size="medium" disabled variant="contained">
+                  return <td><Button id="tdd" size="sm" disabled variant="contained">
                    <i className="fa fa-id-card-o" aria-hidden="true" data-tip="Test plan is still running!"></i> &nbsp;
                     Test-Run log</Button> </td>
                 } else {
-                  return <td><Button id ="tdd" size="medium" variant="contained"
+                  return <td><Button id ="tdd" size="sm" variant="contained"
                                      onClick={() => (fetch(logAllContentUrl, {
                                          method: "GET",
                                          credentials: 'same-origin',
@@ -494,7 +490,7 @@ class TestRunView extends Component {
                 }
               })()}
               <td>
-              <Button id ="tdd" variant="contained" size="medium" style={{marginLeft: "10px"}}
+              <Button id ="tdd" variant="contained" size="sm" style={{marginLeft: "10px"}}
                       onClick={() => {
                         if(this.state.buildURL === null || this.state.buildURL === undefined ){
                           this.toggle("Error when accessing TestGrid console");
@@ -502,7 +498,7 @@ class TestRunView extends Component {
                           window.open(this.state.buildURL, '_blank', false);
                         }
                       }}
-              ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;Blue Ocean console</Button>
+              ><i className="fa fa-id-card-o" aria-hidden="true"> </i> &nbsp;TestGrid console </Button>
               </td>
               <td>
                 {this.state && this.state.currentInfra && this.state.currentInfra.testPlanStatus && (() => {
@@ -512,12 +508,11 @@ class TestRunView extends Component {
                       <i className="fa fa-download" aria-hidden="true"> </i>  &nbsp;Downloads
                       </Button> </div>
                   } else {
-                      return <OutputFilesPopover testPlanId={this.state.currentInfra.testPlanId}/>
+                    return <OutputFilesPopover testPlanId={this.state.currentInfra.testPlanId}/>
                   }
                 })()}
               </td>
             </tr>
-          </tbody>
         </table>
         <div style={{paddingLeft:"20px", display:"inline"}}>
         </div>
@@ -527,7 +522,7 @@ class TestRunView extends Component {
             if (this.state.currentInfra.testPlanStatus !== RUNNING) {
               return <CardMedia>
                 {/*Scenario execution summary*/}
-                <Collapsible trigger="Scenario execution summary" open={true}>
+                <Collapsible trigger="Scenario execution summary" open="true">
                   {(() => {
                     switch (this.state.testSummaryLoadStatus) {
                       case ERROR:
@@ -543,7 +538,7 @@ class TestRunView extends Component {
                       case SUCCESS:
                         return <div>
                           <Table responsive>
-                            <thead displayselectall="false" adjustforcheckbox="false">
+                            <thead displaySelectAll={false} adjustForCheckbox={false}>
                             <tr>
                               <th style={{width: "5%", textAlign: "center"}}/>
                               <th>Scenario</th>
@@ -552,34 +547,38 @@ class TestRunView extends Component {
                               <th style={{width: "15%", textAlign: "center"}}>Success Percentage</th>
                             </tr>
                             </thead>
-                            <tbody displayrowcheckbox="false" showrowhover="true">
+                            <tbody displayRowCheckbox={false} showRowHover={true}>
                             {this.state.testScenarioSummaries.map((data, index) => {
-                              return (<tr key={index} fontSize="15px">
+                              return (<tr key={index}>
                                 <td style={{width: "5%"}}>
                                   {(() => {
                                     switch (data.scenarioStatus) {
                                       case SUCCESS:
                                         return <div>
-                                          <IconButton>
-                                            <DoneIcon/>
-                                          </IconButton>
+                                          <Button outline color="success" size="sm" className="success-status-btn">
+                                            <i className="fa fa-check-circle" aria-hidden="true"
+                                               data-tip="Success!"> </i>
+                                            <ReactTooltip/>
+                                          </Button>
                                         </div>;
                                       case FAIL:
                                         return <div>
-                                          <IconButton>
-                                            <CloseIcon/>
-                                          </IconButton>
-                                          </div>;
+                                          <Button outline color="danger" size="sm">
+                                            <i className="fa fa-exclamation-circle" aria-hidden="true"
+                                               data-tip="Failed!"> </i>
+                                            <ReactTooltip/>
+                                          </Button>
+                                        </div>;
                                       case PENDING:
                                         return <div>
-                                          <Button size="large">
+                                          <Button outline color="info" size="sm">
                                             <i className="fa fa-tasks" aria-hidden="true" data-tip="Pending!"> </i>
                                             <ReactTooltip/>
                                           </Button>
                                         </div>;
                                       case INCOMPLETE:
                                         return <div>
-                                          <Button size="large" className="incomplete-status-btn">
+                                          <Button outline color="info" size="sm" className="incomplete-status-btn">
                                             <i className="fa fa-hourglass-half" aria-hidden="true"
                                                data-tip="Incomplete!"> </i>
                                             <ReactTooltip/>
@@ -587,21 +586,22 @@ class TestRunView extends Component {
                                         </div>;
                                       case DID_NOT_RUN:
                                         return <div>
-                                          <Button color="info" size="large" className="not-run-status-btn">
+                                          <Button outline color="info" size="sm" className="not-run-status-btn">
                                             <i className="fa fa-ban" aria-hidden="true" data-tip="Did Not Run!"> </i>
                                             <ReactTooltip/>
                                           </Button>
                                         </div>;
                                       case ERROR:
                                         return <div>
-                                          <IconButton>
-                                            <CloseIcon color="error"/>
-                                          </IconButton>
+                                          <Button outline color="danger" size="sm" className="error-status-btn">
+                                            <i className="fa fa-times-circle" aria-hidden="true" data-tip="Error!"> </i>
+                                            <ReactTooltip/>
+                                          </Button>
                                         </div>;
                                       case "RUNNING":
                                       default:
                                         return <div>
-                                          <Button size="large" className="running-status-btn">
+                                          <Button outline color="info" size="sm" className="running-status-btn">
                                             <i className="fa fa-spinner fa-pulse" data-tip="Running!"> </i>
                                             <span className="sr-only">Loading...</span>
                                             <ReactTooltip/>
@@ -615,7 +615,7 @@ class TestRunView extends Component {
                                   wordWrap: "break-word",
                                   whiteSpace: "wrap",
                                   textDecoration: "none"
-                                }}><FlatButton className='view-history' style={{textAlign: "left"}}
+                                }}><FlatButton class='view-history' style={{textAlign: "left"}}
                                                data-tip={data.scenarioConfigChangeSetDescription}>
                                   {(() => {
                                     if (data.scenarioConfigChangeSetName &&
@@ -684,7 +684,7 @@ class TestRunView extends Component {
                 </Collapsible>
 
                 {/*Scenario execution summary*/}
-                <Collapsible trigger="Failed tests" open={true} lazyRender={true}>
+                <Collapsible trigger="Failed tests" open="true" lazyRender={true}>
                   {(() => {
                     if (this.state.testSummaryLoadStatus === SUCCESS)
                       switch (this.state.testSummaryLoadStatus) {
@@ -716,13 +716,13 @@ class TestRunView extends Component {
                                             <td
                                               style={{width: "5%"}}>
                                               {entry.isTestSuccess ?
-                                                <Button outline color="success" size="large"
+                                                <Button outline color="success" size="sm"
                                                         className="success-status-btn">
                                                   <i className="fa fa-check-circle" aria-hidden="true"
                                                      data-tip="Success!"> </i>
                                                   <ReactTooltip/>
                                                 </Button> :
-                                                <Button outline color="danger" size="large">
+                                                <Button outline color="danger" size="sm">
                                                   <i className="fa fa-exclamation-circle" aria-hidden="true"
                                                      data-tip="Failed!"> </i>
                                                   <ReactTooltip/>
@@ -752,7 +752,7 @@ class TestRunView extends Component {
                                     <br/>
                                   </div>)
                               } else {
-                                return <div key={index} style={{padding: "10px"}}>No failed tests..</div>
+                                return <div style={{padding: "10px"}}>No failed tests..</div>
                               }
                             })}
                           </div>;
