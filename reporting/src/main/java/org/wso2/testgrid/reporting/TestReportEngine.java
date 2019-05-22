@@ -65,6 +65,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_SUMMARIZED_EMAIL_REPORT_NAME;
+import static org.wso2.testgrid.common.TestPlanPhase.DEPLOY_PHASE_SUCCEEDED;
+import static org.wso2.testgrid.common.TestPlanPhase.TEST_PHASE_STARTED;
+import static org.wso2.testgrid.common.TestPlanPhase.TEST_PHASE_SUCCEEDED;
+import static org.wso2.testgrid.common.TestPlanStatus.ERROR;
 import static org.wso2.testgrid.common.util.FileUtil.writeToFile;
 import static org.wso2.testgrid.reporting.AxisColumn.DEPLOYMENT;
 import static org.wso2.testgrid.reporting.AxisColumn.INFRASTRUCTURE;
@@ -105,6 +109,8 @@ public class TestReportEngine {
     private final String chartDirectoryName = "charts";
     private String summaryChartFileName = "summary.png";
     private String historyChartFileName = "history.png";
+    private static final Function<TestPlan, Boolean> INFRA_ERROR_TP_FILTER = (testPlan) ->
+            testPlan.getPhase().getValue() < DEPLOY_PHASE_SUCCEEDED.getValue() && testPlan.getStatus() == ERROR;
 
     public TestReportEngine(TestPlanUOW testPlanUOW, EmailReportProcessor emailReportProcessor, GraphDataProvider
             graphDataProvider) {
@@ -814,7 +820,7 @@ public class TestReportEngine {
      */
     public Optional<Path> generateSummarizedEmailReport(Product product, String workspace) throws ReportingException {
 
-        List<TestPlan> testPlans = getTestPlans(workspace);
+        final List<TestPlan> testPlans = getTestPlans(workspace);
         //start email generation
         boolean renderTestResultTable = true;
         boolean renderInfraErrors = false;
@@ -823,66 +829,72 @@ public class TestReportEngine {
                         + "Total test-plans: " + testPlans.size());
             renderTestResultTable = false;
         }
-        List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
 
-        Map<String, Object> results = new HashMap<>();
-        List<TestCaseResultSection> resultList = new ArrayList<>();
-
-        for (BuildFailureSummary buildFailureSummary : failureSummary) {
-            TestCaseResultSection resultSection = new TestCaseResultSection();
-            resultSection.setTestCaseName(buildFailureSummary.getTestCaseName());
-            resultSection.setTestCaseDescription(buildFailureSummary.getTestCaseDescription());
-            List<InfraCombination> combinations = buildFailureSummary.getInfraCombinations();
-            resultSection.setTestCaseExecutedOS(combinations.get(0).getOs());
-            resultSection.setTestCaseExecutedJDK(combinations.get(0).getJdk());
-            resultSection.setTestCaseExecutedDB(combinations.get(0).getDbEngine());
-
-            if (combinations.size() > 1) {
-                resultSection.setInfraCombinations(combinations.subList(1, combinations.size()));
-                resultSection.setRowSpan(combinations.size());
-            }
-            resultList.add(resultSection);
-        }
-
-        String productName = product.getName();
-        summaryChartFileName = StringUtil.concatStrings("summary-",
-                StringUtil.generateRandomString(8), imageExtension);
-        historyChartFileName = StringUtil.concatStrings("history-",
-                StringUtil.generateRandomString(8), imageExtension);
-        final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
-        final String summaryChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
-                chartDirectoryName, productName, summaryChartFileName);
-        final String historyChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
-                chartDirectoryName, productName, historyChartFileName);
-
-        Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
+        final Renderable renderer = RenderableFactory.getRenderable(EMAIL_REPORT_MUSTACHE);
+        final Map<String, Object> results = new HashMap<>();
         try {
-            Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
+            final List<BuildFailureSummary> failureSummary = graphDataProvider.getTestFailureSummary(workspace);
+            final List<TestCaseResultSection> tcResultList = new ArrayList<>();
+            for (BuildFailureSummary buildFailureSummary : failureSummary) {
+                TestCaseResultSection resultSection = new TestCaseResultSection();
+                resultSection.setTestCaseName(buildFailureSummary.getTestCaseName());
+                resultSection.setTestCaseDescription(buildFailureSummary.getTestCaseDescription());
+                List<InfraCombination> combinations = buildFailureSummary.getInfraCombinations();
+                resultSection.setTestCaseExecutedOS(combinations.get(0).getOs());
+                resultSection.setTestCaseExecutedJDK(combinations.get(0).getJdk());
+                resultSection.setTestCaseExecutedDB(combinations.get(0).getDbEngine());
+
+                if (combinations.size() > 1) {
+                    resultSection.setInfraCombinations(combinations.subList(1, combinations.size()));
+                    resultSection.setRowSpan(combinations.size());
+                }
+                tcResultList.add(resultSection);
+            }
+
+            final String productName = product.getName();
+            summaryChartFileName = StringUtil.concatStrings("summary-",
+                    StringUtil.generateRandomString(8), imageExtension);
+            historyChartFileName = StringUtil.concatStrings("history-",
+                    StringUtil.generateRandomString(8), imageExtension);
+            final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
+            final String summaryChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
+                    chartDirectoryName, productName, summaryChartFileName);
+            final String historyChartURL = String.join("/", S3StorageUtil.getS3BucketURL(),
+                    chartDirectoryName, productName, historyChartFileName);
+            final Map<String, InfrastructureBuildStatus> testCaseInfraSummaryMap = emailReportProcessor
                     .getSummaryTable(testPlans);
             postProcessSummaryTable(testCaseInfraSummaryMap);
-            String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testPlans);
+            final String testedInfrastructures = emailReportProcessor.getTestedInfrastructures(testPlans);
+
+            final Map<String, String> infraErrors = emailReportProcessor
+                    .getErroneousInfrastructuresOf(testPlans, INFRA_ERROR_TP_FILTER);
+
+            Function<TestPlan, Boolean> testErrorTPFilter = (testPlan) -> {
+                int phase = testPlan.getPhase().getValue();
+                return phase > TEST_PHASE_STARTED.getValue() && phase <= TEST_PHASE_SUCCEEDED.getValue()
+                        && testPlan.getStatus() == ERROR;
+            };
+            final Map<String, String> testErrors = emailReportProcessor.getErroneousInfrastructuresOf(testPlans,
+                    testErrorTPFilter);
+
+
             results.put("testedInfrastructures", testedInfrastructures);
-            Map<String, String> infraErrors = emailReportProcessor
-                    .getErroneousInfrastructures(testPlans);
-            if (infraErrors.size() > 0) {
-                renderInfraErrors = true;
-            }
-            results.put("renderInfraErrors", renderInfraErrors);
-            results.put("infrastructureErrors", emailReportProcessor
-                    .getErroneousInfrastructures(testPlans).entrySet());
+            results.put("infrastructureErrors", infraErrors.entrySet());
+            results.put("testErrors", testErrors.entrySet());
             results.put("testCaseInfraSummaryTable", testCaseInfraSummaryMap.entrySet());
+            results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
+            results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(testPlans));
+            results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
+            results.put(SUMMARY_CHART_TEMPLATE_KEY, summaryChartURL);
+            results.put(HISTORY_CHART_TEMPLATE_KEY, historyChartURL);
+            results.put(PER_TEST_CASE_TEMPLATE_KEY, tcResultList);
+            results.put("jobName", productName);
+            results.put("dashboardURL", dashboardURL);
+            results.put("renderTestResultTables", renderTestResultTable);
         } catch (TestGridDAOException e) {
             throw new ReportingException("Error occurred while getting failed infrastructures");
         }
-        results.put(PRODUCT_NAME_TEMPLATE_KEY, product.getName());
-        results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(testPlans));
-        results.put(PRODUCT_STATUS_TEMPLATE_KEY, emailReportProcessor.getProductStatus(product).toString());
-        results.put(SUMMARY_CHART_TEMPLATE_KEY, summaryChartURL);
-        results.put(HISTORY_CHART_TEMPLATE_KEY, historyChartURL);
-        results.put(PER_TEST_CASE_TEMPLATE_KEY, resultList);
-        results.put("jobName", productName);
-        results.put("dashboardURL", dashboardURL);
-        results.put("renderTestResultTables", renderTestResultTable);
+
         String htmlString = renderer.render(SUMMARIZED_EMAIL_REPORT_MUSTACHE, results);
 
         // Write to HTML file
@@ -920,23 +932,19 @@ public class TestReportEngine {
                     "Hence skipping infrastructure error email generation");
             return Optional.empty();
         }
-        try {
-            final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
-            Map<String, Object> results = new HashMap<>();
-            results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(collect));
-            results.put(PRODUCT_NAME_TEMPLATE_KEY, productName);
-            results.put(DASHBOARD_URL_TEMPLATE_KEY, dashboardURL);
-            results.put("infrastructureErrors", emailReportProcessor.getErroneousInfrastructures(testPlans).entrySet());
+        final String dashboardURL = TestGridUtil.getDashboardURLFor(productName);
+        Map<String, Object> results = new HashMap<>();
+        results.put(GIT_BUILD_DETAILS_TEMPLATE_KEY, emailReportProcessor.getGitBuildDetails(collect));
+        results.put(PRODUCT_NAME_TEMPLATE_KEY, productName);
+        results.put(DASHBOARD_URL_TEMPLATE_KEY, dashboardURL);
+        results.put("infrastructureErrors",
+                emailReportProcessor.getErroneousInfrastructuresOf(testPlans, INFRA_ERROR_TP_FILTER).entrySet());
 
-            Renderable renderer = RenderableFactory.getRenderable(INFRA_ERROR_EMAIL_REPORT_MUSTACHE);
-            String render = renderer.render(INFRA_ERROR_EMAIL_REPORT_MUSTACHE, results);
-            Path reportPath = Paths.get(workspace, "InfraErrorEmail.html");
-            writeHTMLToFile(reportPath, render);
-            return Optional.of(reportPath);
-        } catch (TestGridDAOException e) {
-            throw new ReportingException("Error occured while getting the erroneous infrastructures " +
-                    "for product " + productName, e);
-        }
+        Renderable renderer = RenderableFactory.getRenderable(INFRA_ERROR_EMAIL_REPORT_MUSTACHE);
+        String render = renderer.render(INFRA_ERROR_EMAIL_REPORT_MUSTACHE, results);
+        Path reportPath = Paths.get(workspace, "InfraErrorEmail.html");
+        writeHTMLToFile(reportPath, render);
+        return Optional.of(reportPath);
     }
 
     /**
