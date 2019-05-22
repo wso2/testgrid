@@ -95,6 +95,10 @@ public class ShellExecutor {
      */
     public int executeCommand(String command) throws CommandExecutionException {
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> ced188041a2c6e9bd5aba6857ff4206319e2a7d3
         logger.info("Running shell command : " + command + ", from working directory : " + workingDirectory);
 
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
