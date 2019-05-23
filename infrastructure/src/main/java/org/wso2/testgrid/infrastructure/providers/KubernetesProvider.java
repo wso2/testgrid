@@ -17,7 +17,6 @@
  */
 package org.wso2.testgrid.infrastructure.providers;
 
-import com.sun.javafx.fxml.PropertyNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.InfrastructureProvider;
@@ -25,7 +24,6 @@ import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.ShellExecutor;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
-import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
