@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
+import org.wso2.testgrid.common.config.JobConfig;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 
@@ -99,6 +100,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
 
     @Transient
     private DeploymentConfig deploymentConfig = new DeploymentConfig();
+
+    @Transient
+    private JobConfig jobConfig = new JobConfig();
 
     @Transient
     private List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
@@ -298,6 +302,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
         this.deploymentConfig = deploymentConfig;
     }
 
+    /**
+     * Returns the job configuration in the test-plan.
+     *
+     * @return the job configuration of the test plan
+     */
+    public JobConfig getJobConfig() {
+        return jobConfig;
+    }
+
+    /**
+     * Sets the job configuration of the test plan.
+     *
+     * @param jobConfig the job information of the test plan
+     */
+    public void setJobConfig(JobConfig jobConfig) {
+        this.jobConfig = jobConfig;
+    }
+
     public List<ScenarioConfig> getScenarioConfigs() {
         return scenarioConfigs;
     }
@@ -490,6 +512,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
             testPlan.setConfigChangeSetBranchName(configChangeSetBranchName);
             testPlan.setDeployerType(deployerType);
             testPlan.setDeploymentConfig(deploymentConfig);
+            testPlan.setJobConfig(jobConfig);
             testPlan.setDeploymentPattern(deploymentPattern);
             testPlan.setDeploymentRepository(deploymentRepository);
             testPlan.setInfraParameters(infraParameters);
