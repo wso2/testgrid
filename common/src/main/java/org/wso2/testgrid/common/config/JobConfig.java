@@ -20,6 +20,8 @@
 package org.wso2.testgrid.common.config;
 
 import org.apache.commons.collections4.ListUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -46,6 +48,11 @@ import java.util.List;
 public class JobConfig implements Serializable {
 
     private static final long serialVersionUID = 1234562940825641013L; //TODO: change this number
+    private static final Logger logger = LoggerFactory.getLogger(JobConfig.class);
+
+    private static final String PRE_DEFINED_ALGO = "pre_defined";
+    private static final String AT_LEAST_ONE_ALGO = "at_least_one";
+    private static final String ALL_COMBINATIONS_ALGO = "all_combinations";
 
     private List<Build> builds;
 
@@ -74,6 +81,84 @@ public class JobConfig implements Serializable {
     }
 
     /**
+     * Validate the testgridYaml. It must contain valid job configuration.
+     * @param testgridYaml TestgridYaml object
+     * @return True or False, based on the validity of the testgridYaml
+     */
+    public static boolean validateTestgridYamlJobConfig (TestgridYaml testgridYaml) {
+        JobConfig jobConfig = testgridYaml.getJobConfig();
+        if (jobConfig != null) {
+            if (jobConfig.getBuilds().isEmpty()) {
+                logger.debug("testgrid.yaml doesn't contain at least single build configuration. " +
+                        "Invalid testgrid.yaml");
+                return false;
+            }
+        } else {
+            logger.debug("testgrid.yaml doesn't have defined the job configuration. Invalid testgrid.yaml");
+            return false;
+        }
+        return validateTestgridYamlBuilds(jobConfig.getBuilds());
+    }
+
+    /**
+     * Validate the testgridYaml. It must contain valid builds in job configuration.
+     * @param builds Build object array
+     * @return True or False, based on the validity of the builds
+     */
+    private static boolean validateTestgridYamlBuilds (List<Build> builds) {
+        for (JobConfig.Build build : builds) {
+            if (build.getCombinationAlgorithm() == null) {
+                logger.debug("testgrid.yaml doesn't define combination algorithm for build. " +
+                        "Invalid testgrid.yaml");
+                return false;
+            }
+            if (build.getCombinationAlgorithm().equals(PRE_DEFINED_ALGO) && build.getCombinations().isEmpty()) {
+                logger.debug("testgrid.yaml doesn't contain at least single combination for build. " +
+                        "Invalid testgrid.yaml");
+                return false;
+            }
+            if (build.getCombinationAlgorithm().equals(AT_LEAST_ONE_ALGO) ||
+                    build.getCombinationAlgorithm().equals(ALL_COMBINATIONS_ALGO)) {
+                if (build.getInfraResources().isEmpty()) {
+                    logger.debug("testgrid.yaml doesn't contain at least single infrastructure resources set. " +
+                            "Invalid testgrid.yaml");
+                    return false;
+                }
+                if (!validateTestgridYamlInfraCombinations(build)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Validate the testgridYaml. It must contain valid infra combinations in a build.
+     * @param build Build object array
+     * @return True or False, based on the validity of the builds
+     */
+    private static boolean validateTestgridYamlInfraCombinations (Build build) {
+        for (JobConfig.InfraResource infraResource : build.getInfraResources()) {
+            if(infraResource.getOSResources().isEmpty()){
+                logger.debug("testgrid.yaml doesn't contain at least single operating system" +
+                        " resources set for build. I>nvalid testgrid.yaml");
+                return false;
+            }
+            if(infraResource.getDBResources().isEmpty()){
+                logger.debug("testgrid.yaml doesn't contain at least single database" +
+                        " resource for build. Invalid testgrid.yaml");
+                return false;
+            }
+            if(infraResource.getJDKResources().isEmpty()){
+                logger.debug("testgrid.yaml doesn't contain at least single JDK" +
+                        " resource for build. Invalid testgrid.yaml");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Describes a given build within a job configuration.
      * A build config should describe its schedule,
      * and what combinations are there that can be tested.
@@ -86,11 +171,11 @@ public class JobConfig implements Serializable {
         private List<Combination> combinations;
         private List<InfraResource> infraResources;
 
-        public String getTrigger() {
+        public String getSchedule() {
             return schedule;
         }
 
-        public void setTrigger(String schedule) {
+        public void setSchedule(String schedule) {
             this.schedule = schedule;
         }
 

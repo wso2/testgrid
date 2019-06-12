@@ -31,6 +31,7 @@ import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
+import org.wso2.testgrid.common.config.JobConfig;
 import org.wso2.testgrid.common.config.JobConfigFile;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
@@ -627,6 +628,6 @@ public class GenerateTestPlanCommand implements Command {
                 return false;
             }
         }
-        return true;
+        return (JobConfig.validateTestgridYamlJobConfig(testgridYaml));
     }
 }
