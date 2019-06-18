@@ -110,4 +110,13 @@ public class TestGridConstants {
     public static final String HELM_DESTROY_SCRIPT = "kubernetes_helmDestroy.sh";
 
 
+    public static final String EXACT_ALGO = "exact";
+    public static final String AT_LEAST_ONE_ALGO = "at_least_one";
+    public static final String ALL_ALGO = "all";
+
+    public static final String INFRASTRUCTURE_TYPE_OS = "OS";
+    public static final String INFRASTRUCTURE_TYPE_DB = "DBEngine";
+    public static final String INFRASTRUCTURE_TYPE_JDK = "JDK";
+
+    public static final String SCHEDULE_PARAMETER = "weekly";
 }
