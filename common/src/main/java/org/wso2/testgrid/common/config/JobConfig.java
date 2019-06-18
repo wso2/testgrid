@@ -24,8 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.wso2.testgrid.common.TestGridConstants.ALL_ALGO;
+import static org.wso2.testgrid.common.TestGridConstants.AT_LEAST_ONE_ALGO;
+import static org.wso2.testgrid.common.TestGridConstants.EXACT_ALGO;
 
 /**
  * This describes a job configurations.
@@ -49,10 +54,6 @@ public class JobConfig implements Serializable {
 
     private static final long serialVersionUID = 1234562940825641013L; //TODO: change this number
     private static final Logger logger = LoggerFactory.getLogger(JobConfig.class);
-
-    private static final String PRE_DEFINED_ALGO = "pre_defined";
-    private static final String AT_LEAST_ONE_ALGO = "at_least_one";
-    private static final String ALL_COMBINATIONS_ALGO = "all_combinations";
 
     private List<Build> builds;
 
@@ -78,6 +79,20 @@ public class JobConfig implements Serializable {
     public void setBuilds(
             List<Build> builds) {
         this.builds = builds;
+    }
+
+    /**
+     * Generate array of resources which needs to include for generation combinations.
+     * @param build Build Object
+     * @return List of String, Three resources (OS, DBEngine and JDK) that defined for build combination.
+     */
+    public static List<String> getResourceList (Build build) {
+        List<String> resourceList = new ArrayList<>();
+        Combination combination = build.getFirstCombination();
+        resourceList.add(combination.getOS());
+        resourceList.add(combination.getDBEngine());
+        resourceList.add(combination.getJDK());
+        return resourceList;
     }
 
     /**
@@ -112,13 +127,13 @@ public class JobConfig implements Serializable {
                         "Invalid testgrid.yaml");
                 return false;
             }
-            if (build.getCombinationAlgorithm().equals(PRE_DEFINED_ALGO) && build.getCombinations().isEmpty()) {
+            if (build.getCombinationAlgorithm().equals(EXACT_ALGO) && build.getCombinations().isEmpty()) {
                 logger.debug("testgrid.yaml doesn't contain at least single combination for build. " +
                         "Invalid testgrid.yaml");
                 return false;
             }
             if (build.getCombinationAlgorithm().equals(AT_LEAST_ONE_ALGO) ||
-                    build.getCombinationAlgorithm().equals(ALL_COMBINATIONS_ALGO)) {
+                    build.getCombinationAlgorithm().equals(ALL_ALGO)) {
                 if (build.getInfraResources().isEmpty()) {
                     logger.debug("testgrid.yaml doesn't contain at least single infrastructure resources set. " +
                             "Invalid testgrid.yaml");
@@ -199,8 +214,22 @@ public class JobConfig implements Serializable {
             return ListUtils.emptyIfNull(infraResources);
         }
 
+        public InfraResource getFirstInfraResource() {
+            if (infraResources == null || infraResources.isEmpty()) {
+                return null;
+            }
+            return infraResources.get(0);
+        }
+
         public void setInfraResources(List<InfraResource> infraResources) {
             this.infraResources = infraResources;
+        }
+
+        public Combination getFirstCombination() {
+            if (combinations == null || combinations.isEmpty()) {
+                return null;
+            }
+            return combinations.get(0);
         }
 
     }

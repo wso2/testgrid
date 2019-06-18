@@ -88,7 +88,7 @@ public class InfrastructureCombinationsProviderTest {
         valueSets.add(jdkValueSet);
 
         Set<InfrastructureCombination> combinations = new InfrastructureCombinationsProvider()
-                .getCombinations(valueSets);
+                .getCombinationsForAll(valueSets);
         logger.info("Generated infrastructure combinations: " + combinations);
         //Expected value should be the permutation count of distinct infra-param values.( 2! x 2! x 1!)
         Assert.assertEquals(combinations.size(), 4, "There must be two infrastructure combinations.");
