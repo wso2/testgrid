@@ -43,9 +43,9 @@ pipeline {
               cp ${keyLocation} ${INSTALLMENT}/${FILE_SEC}
               chmod 400 ${INSTALLMENT}/${FILE_SEC}
 
-              wget https://raw.githubusercontent.com/NishikaDeSilva/testgrid-jenkins-library/dev/resources/kubernetes/image-build/build_latest.sh
+              wget https://raw.githubusercontent.com/NishikaDeSilva/testgrid/master/resources/k8s/build_latest.sh
               chmod +x build_latest.sh
-              wget https://raw.githubusercontent.com/NishikaDeSilva/testgrid-jenkins-library/dev/resources/kubernetes/image-build/docker_build.sh
+              wget https://raw.githubusercontent.com/NishikaDeSilva/testgrid-/master/reources/k8s/docker_build.sh
               chmod +x docker_build.sh
 
               sh build_latest.sh
