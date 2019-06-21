@@ -5,27 +5,6 @@
 
 set -o xtrace
 
-IFS='' read -r -d '' wum_repo_info<<"EOF"
-defaultchannel: full
-repositories:
-  wso2:
-    enabled: false
-    name: WSO2 Update Repository
-    url: https://api.updates.wso2.com
-    tokenurl: https://api.updates.wso2.com/token
-    appkey: WUNMR2hnaGdIU25FajB4SngzNkRSeDFOT1pVYTp5enB4SWd6bWpncjVlWWNkdXFhblpYc2JCRXNh
-    refreshtoken: cf5daccb-8939-3b2c-a187-34441a12743d
-    accesstoken: 5b7bd3df-5df2-33f8-bb68-4f5e39433141
-  uat:
-    enabled: true
-    name: WSO2 UAT Repository
-    url: https://gateway.api.cloud.wso2.com/t/wso2umuat
-    tokenurl: https://api.updates.wso2.com/token
-    appkey: R0dnZThYMmk2T2E2ZldjbHhKWWplTV93REJFYTo5Q0FGbG1oR09ZbjRhTzkyNFp5REh6VEZFeTBh
-    refreshtoken: cf5daccb-8939-3b2c-a187-34441a12743d
-    accesstoken: 5b7bd3df-5df2-33f8-bb68-4f5e39433141
-EOF
-
 SERVICE_ACCOUNT="gke-bot@testgrid.iam.gserviceaccount.com"
 CLUSTER_NAME="chathurangi-test-cluster"
 ZONE="us-central1-a"
@@ -315,7 +294,7 @@ function download_docker_repo() {
 
 install_dependencies
 
-is_uat
+#is_uat
 
 download_docker_repo
 
