@@ -7,15 +7,9 @@ pipeline {
       INSTALLMENT="installment"
 
     }
-
-    stages {
-      stage('start') {
-        steps {
-          echo "build started"
-        }
-      }
       stage('run-script') {
         steps {
+          echo "Build started."
           withCredentials([string(credentialsId: 'GCP_GCR_IMGPULL_USERNAME', variable: 'WUM_USERNAME'),
                            string(credentialsId: 'GCP_GCR_IMGPULL_PASSWORD', variable: 'WUM_PASSWORD'),
                            file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation'),
@@ -51,16 +45,6 @@ pipeline {
               sh build_latest.sh
             """
             }
-        }
-      }
-      stage('end'){
-        steps {
-          echo "Image build were successfull. Pushed in to /asia.gcr.io/testgrid/chathurangi-test-cluster/ Registry"
-          script{
-            sh """
-              rm -r *
-            """
-          }
         }
       }
     }
