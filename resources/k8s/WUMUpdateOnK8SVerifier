@@ -41,8 +41,8 @@ pipeline
           steps
           {
             sh """
-              cd ${WORKSPACE}
               ls
+              cd ${WORKSPACE}
               git clone https://github.com/NishikaDeSilva/testgrid
             """
           }
@@ -60,6 +60,7 @@ pipeline
             ])
             {
               sh """
+                ls
                 chmod +x resources/k8s/build_latest.sh
                 chmod +x resources/k8s/docker_build.sh
                 sh resources/k8s/build_latest.sh
