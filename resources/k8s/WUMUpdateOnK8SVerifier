@@ -15,24 +15,27 @@ pipeline
           steps
           {
           echo "Build started."
-            sh """
-              if [ ! -d ${WORKSPACE} ]; then
-                mkdir ${WORKSPACE}
-              else
-                echo "Directory exists"
-                 rm -r ${WORKSPACE}/*
-              fi
+            withCredentials([file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation')])
+            {
+              sh """
+                if [ ! -d ${WORKSPACE} ]; then
+                  mkdir ${WORKSPACE}
+                else
+                  echo "Directory exists"
+                   rm -r ${WORKSPACE}/*
+                fi
 
-              cd ${WORKSPACE}
+                cd ${WORKSPACE}
 
 
-              if [ ! -d ${INSTALLMENT} ]; then
-                mkdir ${INSTALLMENT}
-              fi
+                if [ ! -d ${INSTALLMENT} ]; then
+                  mkdir ${INSTALLMENT}
+                fi
 
-              cp ${keyLocation} ${INSTALLMENT}/${FILE_SEC}
-              chmod 400 ${INSTALLMENT}/${FILE_SEC}
-            """
+                cp ${keyLocation} ${INSTALLMENT}/${FILE_SEC}
+                chmod 400 ${INSTALLMENT}/${FILE_SEC}
+              """
+            }
           }
         }
 
@@ -52,7 +55,6 @@ pipeline
           {
             withCredentials([string(credentialsId: 'GCP_GCR_IMGPULL_USERNAME', variable: 'WUM_USERNAME'),
                              string(credentialsId: 'GCP_GCR_IMGPULL_PASSWORD', variable: 'WUM_PASSWORD'),
-                             file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation'),
                              string(credentialsId: 'ORACLE_ACC_USER', variable: 'ORACLE_USER'),
                              string(credentialsId: 'ORACLE_ACC_PWD', variable: 'ORACLE_PASS'),
                              string(credentialsId: 'GITHUB_ACCESS_TOKEN', variable: 'ACCESS_TOKEN')
