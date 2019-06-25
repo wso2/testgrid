@@ -25,9 +25,6 @@ pipeline
                    rm -r ${WORKSPACE}/*
                 fi
 
-                cd ${WORKSPACE}
-
-
                 if [ ! -d ${INSTALLMENT} ]; then
                   mkdir ${INSTALLMENT}
                 fi
@@ -44,6 +41,8 @@ pipeline
           steps
           {
             sh """
+              cd ${WORKSPACE}
+              ls
               git clone https://github.com/NishikaDeSilva/testgrid
             """
           }
