@@ -1,51 +1,67 @@
-pipeline {
+pipeline
+{
     agent any
 
-    environment {
+    environment
+    {
       FILE_SEC = "key.json"
       WORKSPACE = "docker_build"
       INSTALLMENT="installment"
-
     }
-      stage('run-script') {
-        steps {
-          echo "Build started."
+      stage('prepare-workspace')
+      {
+        steps
+        {
+        echo "Build started."
+          sh """
+            if [ ! -d ${WORKSPACE} ]; then
+              mkdir ${WORKSPACE}
+            else
+              echo "Directory exists"
+               rm -r ${WORKSPACE}/*
+            fi
+
+            cd ${WORKSPACE}
+
+
+            if [ ! -d ${INSTALLMENT} ]; then
+              mkdir ${INSTALLMENT}
+            fi
+
+            cp ${keyLocation} ${INSTALLMENT}/${FILE_SEC}
+            chmod 400 ${INSTALLMENT}/${FILE_SEC}
+          """
+        }
+      }
+
+      stage ('clone-repo')
+      {
+        steps
+        {
+          sh """
+            git clone https://github.com/NishikaDeSilva/testgrid
+          """
+        }
+      }
+
+      stage('run-script')
+      {
+        steps
+        {
           withCredentials([string(credentialsId: 'GCP_GCR_IMGPULL_USERNAME', variable: 'WUM_USERNAME'),
                            string(credentialsId: 'GCP_GCR_IMGPULL_PASSWORD', variable: 'WUM_PASSWORD'),
                            file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation'),
                            string(credentialsId: 'ORACLE_ACC_USER', variable: 'ORACLE_USER'),
                            string(credentialsId: 'ORACLE_ACC_PWD', variable: 'ORACLE_PASS'),
                            string(credentialsId: 'GITHUB_ACCESS_TOKEN', variable: 'ACCESS_TOKEN')
-          ]){
+          ])
+          {
             sh """
-
-
-              if [ ! -d ${WORKSPACE} ]; then
-                mkdir ${WORKSPACE}
-              else
-                echo "Directory exists"
-                 rm -r ${WORKSPACE}/*
-              fi
-
-              cd ${WORKSPACE}
-
-
-              if [ ! -d ${INSTALLMENT} ]; then
-                mkdir ${INSTALLMENT}
-              fi
-
-              cp ${keyLocation} ${INSTALLMENT}/${FILE_SEC}
-              chmod 400 ${INSTALLMENT}/${FILE_SEC}
-
-              wget https://raw.githubusercontent.com/NishikaDeSilva/testgrid/master/resources/k8s/build_latest.sh
-              chmod +x build_latest.sh
-              wget https://raw.githubusercontent.com/NishikaDeSilva/testgrid/master/resources/k8s/docker_build.sh
-              chmod +x docker_build.sh
-
-              sh build_latest.sh
+              chmod +x resources/k8s/build_latest.sh
+              chmod +x resources/k8s/docker_build.sh
+              sh resources/k8s/build_latest.sh
             """
-            }
+          }
         }
       }
-    }
 }
