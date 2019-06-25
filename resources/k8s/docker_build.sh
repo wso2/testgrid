@@ -24,12 +24,12 @@ WUM_CONFIG_FILE=~/.wum3/config.yaml
 
 
 # Use default if not stored as environment variables
-if [ -z $(echo $SERVICE_ACCOUNT) ]; then; SERVICE_ACCOUNT="gke-bot@testgrid.iam.gserviceaccount.com"; fi
-if [ -z $(echo $CLUSTER_NAME) ]; then; CLUSTER_NAME="chathurangi-test-cluster";fi
-if [ -z $(echo $ZONE) ]; then; ZONE="us-central1-a"; fi
-if [ -z $(echo $PROJECT_NAME) ]; then; PROJECT_NAME="testgrid"; fi
-if [ -z $(echo $REG_LOCATION) ]; then; REG_LOCATION="asia.gcr.io"; fi
-if [ -z $(echo $PROJECT_ID) ]; then; PROJECT_ID="testgrid/wso2-docker"; fi
+if [ -z $(echo $SERVICE_ACCOUNT) ]; then SERVICE_ACCOUNT="gke-bot@testgrid.iam.gserviceaccount.com"; fi
+if [ -z $(echo $CLUSTER_NAME) ]; then CLUSTER_NAME="chathurangi-test-cluster";fi
+if [ -z $(echo $ZONE) ]; then ZONE="us-central1-a"; fi
+if [ -z $(echo $PROJECT_NAME) ]; then PROJECT_NAME="testgrid"; fi
+if [ -z $(echo $REG_LOCATION) ]; then REG_LOCATION="asia.gcr.io"; fi
+if [ -z $(echo $PROJECT_ID) ]; then PROJECT_ID="testgrid/wso2-docker"; fi
 
 
 while (( "$#" )); do
