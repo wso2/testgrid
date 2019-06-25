@@ -3,8 +3,10 @@
 set -o xtrace
 
 LOG_FILE="$(date +%F).log"
+BUILD_SCRIPT="resources/k8s/docker_build.sh"
 
 # Git repo URLs
+
 #TODO: Change URLs when it comes to the production stage.
 APIM_GIT_REPO_URL_260="https://github.com/NishikaDeSilva/docker-apim-support/archive/v2.6.0.1.zip"
 EI_GIT_REPO_URL_640="https://github.com/NishikaDeSilva/docker-ei-support/archive/v6.4.0.zip"
@@ -18,7 +20,7 @@ IS_GIT_REPO_NAME_570="docker-is-support-5.7.0"
 echo "----------------------------------------Building new images with latest updates--------------------------------------------------"
 
 echo "----------------------------------------Building wso2am-2.6.0---------------------------------------------------------"
-      ./docker_build.sh --log-file ${LOG_FILE} \
+      ./${BUILD_SCRIPT} --log-file ${LOG_FILE} \
       --git-repo-zip-url ${APIM_GIT_REPO_URL_260} \
       --product-name "wso2am-analytics" \
       --wso2-server-version "2.6.0" \
@@ -34,7 +36,7 @@ echo "WSO2APIM 2.6.0 Image build is successful !" | tee -a ${LOG_FILE}
 
 
 echo "---------------------------------------------------------Building wso2is-5.7.0---------------------------------------------------------"
-      ./docker_build.sh --log-file ${LOG_FILE} \
+      ./${BUILD_SCRIPT} --log-file ${LOG_FILE} \
       --git-repo-zip-url ${IS_GIT_REPO_URL_570} \
       --product-name "wso2is" \
       --wso2-server-version "5.7.0" \
@@ -49,7 +51,7 @@ echo "---------------------------------------------------------Building wso2is-5
 echo "WSO2IS 5.7.0 Image build is successful !" | tee -a ${LOG_FILE}
 
 echo "---------------------------------------------------------Building wso2ei-base:6.4.0---------------------------------------------------------"
-    ./docker_build.sh --log-file ${LOG_FILE} \
+    ./${BUILD_SCRIPT} --log-file ${LOG_FILE} \
       --git-repo-zip-url ${EI_GIT_REPO_URL_640} \
       --product-name "wso2ei" \
       --wso2-server-version "6.4.0" \
