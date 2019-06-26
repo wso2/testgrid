@@ -18,13 +18,6 @@ pipeline
             withCredentials([file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation')])
             {
               sh """
-                if [ ! -d ${WORKSPACE} ]; then
-                  mkdir ${WORKSPACE}
-                else
-                  echo "Directory exists"
-                   rm -r ${WORKSPACE}/*
-                fi
-
                 if [ ! -d ${INSTALLMENT} ]; then
                   mkdir ${INSTALLMENT}
                 fi
@@ -36,17 +29,12 @@ pipeline
           }
         }
 
-        stage ('clone-repo')
-        {
-          steps
-          {
-            sh """
-              ls
-              cd ${WORKSPACE}
-              git clone https://github.com/NishikaDeSilva/testgrid
-            """
-          }
-        }
+        /*
+        TODO: if location of the WUMUpdateOnK8sVerifier changes
+                1. clone the repo
+                2. change the directory path of .sh files in the next step
+                3. change $BUILD_SCRIPT in build_latest.sh
+        */
 
         stage('run-script')
         {
