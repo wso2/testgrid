@@ -321,7 +321,7 @@ function download_docker_repo() {
 
 install_dependencies
 
-is_uat
+#is_uat
 
 download_docker_repo
 
