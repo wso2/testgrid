@@ -20,6 +20,9 @@ pipeline
               sh """
                 if [ ! -d ${INSTALLMENT} ]; then
                   mkdir ${INSTALLMENT}
+                else
+                  echo "directory exists"
+                  rm -r ${INSTALLMENT}/*
                 fi
 
                 cp ${keyLocation} ${INSTALLMENT}/${FILE_SEC}
