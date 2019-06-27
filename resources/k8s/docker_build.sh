@@ -20,7 +20,7 @@ POSTGRESQL_URL="https://jdbc.postgresql.org/download/postgresql-42.2.5.jar"
 
 ORACLE_JDK_URL="http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz"
 
-WUM_CONFIG_FILE=~/.wum3/config.yaml
+WUM_CONFIG_FILE=~/.wum3/config.yaml; WUM_TMP="wum_conf.tmp"
 
 
 # Use default if not stored as environment variables
@@ -151,22 +151,46 @@ function install_dependencies() {
   cd ..
 
 }
-
+#wum temp ---> new filw
+#output -file/input file === wum config directory
 function is_uat(){
 
   cat $WUM_CONFIG_FILE
-  if ! cat $WUM_CONFIG_FILE | grep "uat"; then
-      top_conf=$(head -n 3 $WUM_CONFIG_FILE); bottom_conf=""
-      if cat $WUM_CONFIG_FILE | grep "products:"; then
-        line_product=$(awk '/products:/{ print NR; exit }' $WUM_CONFIG_FILE); line_end=$(cat $WUM_CONFIG_FILE | wc -l);
-        num_lines=`expr $line_end - $line_product + 1`
-        bottom_conf=$(tail -n $num_lines $WUM_CONFIG_FILE)
-      fi
-      echo "$top_conf" > $WUM_CONFIG_FILE
-      echo "$wum_repo_info" >> $WUM_CONFIG_FILE
-      echo "$bottom_conf" >> $WUM_CONFIG_FILE
-  fi
-  cat $WUM_CONFIG_FILE
+  if ! cat ${WUM_CONFIG_FILE | grep -q "uat"; then
+
+    cp $WUM_CONFIG_FILE $WUM_TMP
+    sed -i.bak 's/: true/: false/g' $WUM_TMP
+
+    line_end=$(cat $WUM_TMP | wc -l); bottom_conf="";
+
+    if cat ${WUM_TMP} | grep -q "products:"; then
+      line_product=$(awk '/products:/{ print NR; exit }' $WUM_TMP);
+      top_conf=$(head -n `expr $line_product - 1` $WUM_TMP)
+      bottom_conf=$(tail -n `expr $line_end - $line_product + 1` $WUM_TMP)
+    else
+      top_conf=$(head -n `expr $line_end` ${WUM_TMP})
+    fi
+    refresh_token=$(cat ${WUM_TMP} | grep "refreshtoken:" | head -1)
+    access_token=$(cat ${WUM_TMP} | grep "accesstoken:" | head -1)
+
+    echo "${top_conf}" > ${WUM_CONFIG_FILE}
+  cat >> $WUM_CONFIG_FILE << EOF
+  uat:
+    enabled: true
+    name: WSO2 UAT Repository
+    url: ${WUM_UAT_URL}
+    tokenurl: https://api.updates.wso2.com/token
+    appkey: ${WUM_UAT_APPKEY}
+EOF
+
+    echo "${refresh_token}" >> ${WUM_CONFIG_FILE}
+    echo "${access_token}" >> ${WUM_CONFIG_FILE}
+    echo "${bottom_conf}" >> $WUM_CONFIG_FILE
+
+    rm $WUM_TMP
+    rm "$WUM_TMP.bak"
+    fi
+    cat $WUM_CONFIG_FILE
 }
 
 function get_wum_update() {
@@ -297,7 +321,7 @@ function download_docker_repo() {
 
 install_dependencies
 
-#is_uat
+is_uat
 
 download_docker_repo
 
