@@ -18,12 +18,12 @@ pipeline
             withCredentials([file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation')])
             {
               sh """
-                if [ ! -d ${WORKSPACE} ]; then
-                  mkdir ${WORKSPACE}
+                if [ ! -d $WORKSPACE ]; then
+                  mkdir $WORKSPACE
                 else
                   echo "WORKSPACE exists"
-                  if [ "$(ls -A ${WORKSPACE})" ]; then
-                    rm -r ${WORKSPACE}/*
+                  if [ "$(ls -A $WORKSPACE)" ]; then
+                    rm -r $WORKSPACE/*
                   fi
                 fi
                 if [ ! -d ${INSTALLMENT} ]; then
