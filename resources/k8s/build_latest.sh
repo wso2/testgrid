@@ -3,7 +3,7 @@
 set -o xtrace
 
 LOG_FILE="$(date +%F).log"
-BUILD_SCRIPT="resources/k8s/docker_build.sh"
+BUILD_SCRIPT="../resources/k8s/docker_build.sh"
 
 # Git repo URLs
 

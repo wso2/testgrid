@@ -18,6 +18,12 @@ pipeline
             withCredentials([file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation')])
             {
               sh """
+                if [ ! -d ${WORKSPACE} ]; then
+                  mkdir ${WORKSPACE}
+                else
+                  echo "WORKSPACE exists"
+                  rm -r ${WORKSPACE}/*
+                fi
                 if [ ! -d ${INSTALLMENT} ]; then
                   mkdir ${INSTALLMENT}
                 else
@@ -52,9 +58,10 @@ pipeline
             {
               sh """
                 ls
-                chmod +x resources/k8s/build_latest.sh
-                chmod +x resources/k8s/docker_build.sh
-                sh resources/k8s/build_latest.sh
+                cd ${WORKSPACE}
+                chmod +x ../resources/k8s/build_latest.sh
+                chmod +x ../resources/k8s/docker_build.sh
+                sh ../resources/k8s/build_latest.sh
               """
             }
           }
