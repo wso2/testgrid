@@ -136,7 +136,7 @@ function install_dependencies() {
 
   if [ ! $(which wum) ]; then
     log_info "WUM is not configured! Configuring WUM."
-    rm -r * ~/.wum3/
+    rm -r ~/.wum3/*
     if [ ! -f wum-3.0.5-linux-i586.tar.gz ]; then
       wget --https-only http://product-dist.wso2.com/downloads/wum/3.0.5/wum-3.0.5-linux-i586.tar.gz
     fi
