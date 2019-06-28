@@ -51,7 +51,9 @@ pipeline
                              string(credentialsId: 'GCP_GCR_IMGPULL_PASSWORD', variable: 'WUM_PASSWORD'),
                              string(credentialsId: 'ORACLE_ACC_USER', variable: 'ORACLE_USER'),
                              string(credentialsId: 'ORACLE_ACC_PWD', variable: 'ORACLE_PASS'),
-                             string(credentialsId: 'GITHUB_ACCESS_TOKEN', variable: 'ACCESS_TOKEN')
+                             string(credentialsId: 'GITHUB_ACCESS_TOKEN', variable: 'ACCESS_TOKEN'),
+                             string(credentialsId: 'WUM_UAT_URL', variable: 'UAT_URL'),
+                             string(credentialsId: 'WUM_UAT_APPKEY', variable: 'UAT_APPKEY')
             ])
             {
               sh """

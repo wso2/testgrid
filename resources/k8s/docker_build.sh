@@ -187,9 +187,9 @@ function config_uat(){
   uat:
     enabled: true
     name: WSO2 UAT Repository
-    url: ${WUM_UAT_URL}
+    url: ${UAT_URL}
     tokenurl: https://api.updates.wso2.com/token
-    appkey: ${WUM_UAT_APPKEY}
+    appkey: ${UAT_APPKEY}
 EOF
 
     echo "${refresh_token}" >> ${WUM_CONFIG_FILE}
