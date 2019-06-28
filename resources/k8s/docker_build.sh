@@ -153,17 +153,17 @@ function install_dependencies() {
 }
 #wum temp ---> new filw
 #output -file/input file === wum config directory
-function is_uat(){
+function config_uat(){
 
   cat $WUM_CONFIG_FILE
-  if ! cat ${WUM_CONFIG_FILE | grep -q "uat"; then
+  if ! $(cat ${WUM_CONFIG_FILE | grep -q "uat"); then
 
     cp $WUM_CONFIG_FILE $WUM_TMP
     sed -i.bak 's/: true/: false/g' $WUM_TMP
 
     line_end=$(cat $WUM_TMP | wc -l); bottom_conf="";
 
-    if cat ${WUM_TMP} | grep -q "products:"; then
+    if $(cat ${WUM_TMP} | grep -q "products:"); then
       line_product=$(awk '/products:/{ print NR; exit }' $WUM_TMP);
       top_conf=$(head -n `expr $line_product - 1` $WUM_TMP)
       bottom_conf=$(tail -n `expr $line_end - $line_product + 1` $WUM_TMP)
@@ -321,7 +321,7 @@ function download_docker_repo() {
 
 install_dependencies
 
-#is_uat
+config_uat
 
 download_docker_repo
 
