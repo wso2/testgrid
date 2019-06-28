@@ -162,7 +162,7 @@ function config_uat(){
 
   cat $WUM_CONFIG_FILE
 
-  if ! cat ${WUM_CONFIG_FILE} | grep -q "uat"; then
+  if ! cat ${WUM_CONFIG_FILE} | grep "uat"; then
     echo "ok"
 
     cp $WUM_CONFIG_FILE $WUM_TMP
@@ -170,7 +170,7 @@ function config_uat(){
 
     line_end=$(cat $WUM_TMP | wc -l); bottom_conf="";
 
-    if ! cat ${WUM_TMP} | grep -q "products:"; then
+    if ! cat ${WUM_TMP} | grep "products:"; then
       line_product=$(awk '/products:/{ print NR; exit }' $WUM_TMP);
       top_count=`expr $line_product - 1`
       top_conf=$(head -n $top_count $WUM_TMP)
