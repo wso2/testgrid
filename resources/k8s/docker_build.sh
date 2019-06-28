@@ -172,8 +172,10 @@ function config_uat(){
 
     if ! cat ${WUM_TMP} | grep -q "products:"; then
       line_product=$(awk '/products:/{ print NR; exit }' $WUM_TMP);
-      top_conf=$(head -n `expr $line_product - 1` $WUM_TMP)
-      bottom_conf=$(tail -n `expr $line_end - $line_product + 1` $WUM_TMP)
+      top_count=`expr $line_product - 1`
+      top_conf=$(head -n $top_count $WUM_TMP)
+      bottom_count=`expr $line_end - $line_product + 1`
+      bottom_conf=$(tail -n $bottom_count $WUM_TMP)
     else
       top_conf=$(head -n `expr $line_end` ${WUM_TMP})
     fi
