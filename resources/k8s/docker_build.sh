@@ -105,7 +105,7 @@ echo ${time_stamp}
 
 function install_dependencies() {
 
-  cd $INSTALLMENT
+  cd ../$INSTALLMENT
 
   if [ ! $(which gcloud) ]; then
     log_info "Gcloud is not confiured ! Configuring Gcloud."
@@ -148,7 +148,7 @@ function install_dependencies() {
 
   fi
 
-  cd ..
+  cd ../${WORKSPACE}
 
 }
 #wum temp ---> new filw
