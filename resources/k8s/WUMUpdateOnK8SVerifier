@@ -17,26 +17,25 @@ pipeline
           echo "Build started."
             withCredentials([file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation')])
             {
-              bash """
-                #!/bin/bash
-                if [ ! -d $WORKSPACE ]; then
-                  mkdir $WORKSPACE
-                else
-                  echo "WORKSPACE exists"
-                  if [ ! -z ls $WORKSPACE ]; then
-                    rm -r $WORKSPACE/*
-                  fi
+              bash '''#!/bin/bash
+              if [ ! -d $WORKSPACE ]; then
+                mkdir $WORKSPACE
+              else
+                echo "WORKSPACE exists"
+                if [ ! -z ls $WORKSPACE ]; then
+                  rm -r $WORKSPACE/*
                 fi
-                if [ ! -d ${INSTALLMENT} ]; then
-                  mkdir ${INSTALLMENT}
-                else
-                  echo "directory exists"
-                  rm -r ${INSTALLMENT}/*
-                fi
+              fi
+              if [ ! -d ${INSTALLMENT} ]; then
+                mkdir ${INSTALLMENT}
+              else
+                echo "directory exists"
+                rm -r ${INSTALLMENT}/*
+              fi
 
-                cp ${keyLocation} ${INSTALLMENT}/${FILE_SEC}
-                chmod 400 ${INSTALLMENT}/${FILE_SEC}
-              """
+              cp ${keyLocation} ${INSTALLMENT}/${FILE_SEC}
+              chmod 400 ${INSTALLMENT}/${FILE_SEC}
+              '''
             }
           }
         }
