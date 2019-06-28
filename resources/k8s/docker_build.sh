@@ -146,6 +146,10 @@ function install_dependencies() {
     log_info "wum-3.0.5-linux-i586.tar.gz is extracted successfully."
     export PATH=$PATH:/usr/local/wum/bin
 
+    if ! wum init -u ${WUM_USERNAME} -p ${WUM_PASSWORD}; then
+      log_error "WUM initiation failed for ${WUM_USERNAME}"
+    fi
+
   fi
 
   cd ../${WORKSPACE}
@@ -196,10 +200,6 @@ EOF
 }
 
 function get_wum_update() {
-
-    if ! wum init -u ${WUM_USERNAME} -p ${WUM_PASSWORD}; then
-      log_error "WUM initiation failed for ${WUM_USERNAME}"
-    fi
 
     if ! $(wum list | grep -q ${PRODUCT}) ; then
        log_info "${PRODUCT} is not configured !."
