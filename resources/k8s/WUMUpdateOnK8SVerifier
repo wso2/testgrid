@@ -22,7 +22,9 @@ pipeline
                   mkdir ${WORKSPACE}
                 else
                   echo "WORKSPACE exists"
-                  rm -r ${WORKSPACE}/*
+                  if [ ! find ${WORKSPACE} -type -f -exec command {} \ ]
+                    rm -r ${WORKSPACE}/*
+                  fi
                 fi
                 if [ ! -d ${INSTALLMENT} ]; then
                   mkdir ${INSTALLMENT}
