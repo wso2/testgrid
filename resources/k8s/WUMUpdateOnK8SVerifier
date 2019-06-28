@@ -17,7 +17,7 @@ pipeline
           echo "Build started."
             withCredentials([file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation')])
             {
-              bash '''#!/bin/bash
+              sh '''#!/bin/bash
               if [ ! -d $WORKSPACE ]; then
                 mkdir $WORKSPACE
               else
