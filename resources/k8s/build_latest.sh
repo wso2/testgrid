@@ -19,20 +19,20 @@ IS_GIT_REPO_NAME_570="docker-is-support-5.7.0"
 
 #echo "----------------------------------------Building new images with latest updates--------------------------------------------------"
 
-# echo "----------------------------------------Building wso2am-2.6.0---------------------------------------------------------"
-#       ./${BUILD_SCRIPT} --log-file ${LOG_FILE} \
-#       --git-repo-zip-url ${APIM_GIT_REPO_URL_260} \
-#       --product-name "wso2am-analytics" \
-#       --wso2-server-version "2.6.0" \
-#       --git-repo-name ${APIM_GIT_REPO_NAME_260} \
-#       --docker-file-dir "ubuntu/apim-analytics/base/" \
-#       --tag "2.6.0" \
-#
-#       if [ $? -ne 0 ]; then
-#        exit 1
-#       fi
-#
-# echo "WSO2APIM 2.6.0 Image build is successful !" | tee -a ${LOG_FILE}
+echo "----------------------------------------Building wso2am-2.6.0---------------------------------------------------------"
+      ./${BUILD_SCRIPT} --log-file ${LOG_FILE} \
+      --git-repo-zip-url ${APIM_GIT_REPO_URL_260} \
+      --product-name "wso2am-analytics" \
+      --wso2-server-version "2.6.0" \
+      --git-repo-name ${APIM_GIT_REPO_NAME_260} \
+      --docker-file-dir "ubuntu/apim-analytics/base/" \
+      --tag "2.6.0" \
+
+      if [ $? -ne 0 ]; then
+       exit 1
+      fi
+
+echo "WSO2APIM 2.6.0 Image build is successful !" | tee -a ${LOG_FILE}
 
 
 echo "---------------------------------------------------------Building wso2is-5.7.0---------------------------------------------------------"
