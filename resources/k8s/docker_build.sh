@@ -20,7 +20,7 @@ POSTGRESQL_URL="https://jdbc.postgresql.org/download/postgresql-42.2.5.jar"
 
 ORACLE_JDK_URL="http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz"
 
-WUM_CONFIG_FILE=~/.wum3/config.yaml; WUM_TMP="wum_conf.tmp"
+WUM_CONFIG_FILE=~/.wum3/config.yaml; WUM_TMP="wum_conf.tmp";
 
 
 # Use default if not stored as environment variables
@@ -156,14 +156,16 @@ function install_dependencies() {
 function config_uat(){
 
   cat $WUM_CONFIG_FILE
-  if ! $(cat ${WUM_CONFIG_FILE | grep -q "uat"); then
+
+  if ! cat ${WUM_CONFIG_FILE} | grep -q "uat"; then
+    echo "ok"
 
     cp $WUM_CONFIG_FILE $WUM_TMP
     sed -i.bak 's/: true/: false/g' $WUM_TMP
 
     line_end=$(cat $WUM_TMP | wc -l); bottom_conf="";
 
-    if $(cat ${WUM_TMP} | grep -q "products:"); then
+    if ! cat ${WUM_TMP} | grep -q "products:"; then
       line_product=$(awk '/products:/{ print NR; exit }' $WUM_TMP);
       top_conf=$(head -n `expr $line_product - 1` $WUM_TMP)
       bottom_conf=$(tail -n `expr $line_end - $line_product + 1` $WUM_TMP)
@@ -185,12 +187,12 @@ EOF
 
     echo "${refresh_token}" >> ${WUM_CONFIG_FILE}
     echo "${access_token}" >> ${WUM_CONFIG_FILE}
-    echo "${bottom_conf}" >> $WUM_CONFIG_FILE
+    echo "${bottom_conf}" >> ${WUM_CONFIG_FILE}
 
     rm $WUM_TMP
     rm "$WUM_TMP.bak"
-    fi
-    cat $WUM_CONFIG_FILE
+   fi
+     cat $WUM_CONFIG_FILE
 }
 
 function get_wum_update() {
