@@ -202,8 +202,8 @@ public class JobConfig implements Serializable {
      */
     private static boolean validateTestgridYamlBuldCombinations(Build build) {
         List<Map<String, String>> combinations = build.getCombinations();
-        for (Map<String, String> combination : combinations ){
-            if (combination.values().contains(null)){
+        for (Map<String, String> combination : combinations) {
+            if (combination.values().contains(null)) {
                 logger.warn("testgrid.yaml contain a invalid combination resource for given build combination. " +
                         "Invalid testgrid.yaml");
                 return false;
@@ -220,8 +220,8 @@ public class JobConfig implements Serializable {
      */
     private static boolean validateTestgridYamlInfraResources(Build build) {
         List<Map<String, List<String>>> infraResources = build.getInfraResources();
-        for (Map<String, List<String>> infraResource : infraResources ){
-            if (infraResource.values().contains(null)){
+        for (Map<String, List<String>> infraResource : infraResources) {
+            if (infraResource.values().contains(null)) {
                 logger.warn("testgrid.yaml contain a invalid infrastructure resource for a given type. " +
                         "Invalid testgrid.yaml");
                 return false;
