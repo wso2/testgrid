@@ -102,12 +102,12 @@ public class TestGridConstants {
 
     public static final String MAVEN_RELATED_DIR = "target";
 
-    public static final String KUBERNETES_INFRA_SCRIPT = "infra.sh";
-    public static final String KUBERNETES_DEPLOY_SCRIPT = "deploy.sh";
-    public static final String KUBERNETES_DESTROY_SCRIPT = "destroy.sh";
-    public static final String HELM_INFRA_SCRIPT = "helmInfra.sh";
-    public static final String HELM_DEPLOY_SCRIPT = "helmDeploy.sh";
-    public static final String HELM_DESTROY_SCRIPT = "helmDestroy.sh";
+    public static final String KUBERNETES_INFRA_SCRIPT = "kubernetes_infra.sh";
+    public static final String KUBERNETES_DEPLOY_SCRIPT = "kubernetes_deploy.sh";
+    public static final String KUBERNETES_DESTROY_SCRIPT = "kubernetes_destroy.sh";
+    public static final String HELM_INFRA_SCRIPT = "kubernetes_helmInfra.sh";
+    public static final String HELM_DEPLOY_SCRIPT = "kubernetes_helmDeploy.sh";
+    public static final String HELM_DESTROY_SCRIPT = "kubernetes_helmDestroy.sh";
 
 
 }
