@@ -40,8 +40,6 @@ import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.GetConsoleOutputRequest;
-import com.amazonaws.services.ec2.model.GetConsoleOutputResult;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.waiters.Waiter;
@@ -106,10 +104,9 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String AWS_REGION_PARAMETER = "region";
     private static final String CUSTOM_USER_DATA = "CustomUserData";
     private static final String DEFAULT_REGION = "us-east-1";
-    private static final int EC2_SYSTEM_LOG_NO_OF_LINES = 30;
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     private AWSResourceManager awsResourceManager;
-    private static final int TIMEOUT = 75;
+    private static final int TIMEOUT = 60;
     private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MINUTES;
     private static final int POLL_INTERVAL = 1;
     private static final TimeUnit POLL_UNIT = TimeUnit.MINUTES;
@@ -137,7 +134,7 @@ public class AWSProvider implements InfrastructureProvider {
             Path limitsYamlPath = Paths.get(TestGridUtil.getTestGridHomePath(), TestGridConstants.AWS_LIMITS_YAML);
             List<AWSResourceLimit> awsResourceLimits = awsResourceManager.populateInitialResourceLimits(limitsYamlPath);
             if (awsResourceLimits == null || awsResourceLimits.isEmpty()) {
-                logger.warn("Not using current AWS resource limits. awsLimits.yaml may be missing.");
+                logger.warn("Could not populate AWS resource limits. ");
             }
         } catch (TestGridDAOException e) {
             throw new TestGridInfrastructureException("Error while retrieving aws limits.", e);
@@ -275,20 +272,12 @@ public class AWSProvider implements InfrastructureProvider {
 
             return result;
         } catch (IOException e) {
-            throw new TestGridInfrastructureException("Error while Reading CloudFormation script", e);
+            throw new TestGridInfrastructureException("Error occurred while Reading CloudFormation script", e);
         } catch (ConditionTimeoutException e) {
-            getAllEC2InstanceConsoleLogs(stackName, region);
             throw new TestGridInfrastructureException(
-                    "ERROR: cloudformation stack creation has timed out. Analyze cause via stack logs in AWS console: "
-                            + stackName, e);
+                    StringUtil.concatStrings("Error occurred while waiting for stack ", stackName), e);
         } catch (TestGridDAOException e) {
-            throw new TestGridInfrastructureException("Error while retrieving resource requirements for " + stackName,
-                    e);
-        } catch (TestGridInfrastructureException e) {
-            logger.warn("Cloudformation stack creation has failed. Collecting EC2 instance logs. Name: {}. Error: {}",
-                    stackName, e.getMessage());
-            getAllEC2InstanceConsoleLogs(stackName, region);
-            throw e;
+            throw new TestGridInfrastructureException("Error occurred while retrieving resource requirements", e);
         }
     }
 
@@ -306,7 +295,15 @@ public class AWSProvider implements InfrastructureProvider {
     private void deriveLogDashboardUrl(TestPlan testPlan, String stackName, String region) {
         try {
             // Filter the EC2 instance corresponding to the stack
-            DescribeInstancesResult result = getDescribeInstancesResult(stackName, region);
+            Path configFilePath = TestGridUtil.getConfigFilePath();
+            AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.standard()
+                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                    .withRegion(region)
+                    .build();
+            DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
+            describeInstancesRequest.withFilters(
+                    new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
+            DescribeInstancesResult result = amazonEC2.describeInstances(describeInstancesRequest);
 
             // Add instance id and name to a map
             Map<String, String> instancesMap = result.getReservations().stream()
@@ -348,8 +345,18 @@ public class AWSProvider implements InfrastructureProvider {
      */
     private void logEC2SshAccessDetails(String stackName, Properties inputs) {
         try {
+            Path configFilePath = TestGridUtil.getConfigFilePath();
             String region = inputs.getProperty(AWS_REGION_PARAMETER);
-            DescribeInstancesResult result = getDescribeInstancesResult(stackName, region);
+            final AmazonEC2 amazonEC2 = AmazonEC2ClientBuilder.standard()
+                    .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
+                    .withRegion(region)
+                    .build();
+
+            DescribeInstancesRequest request = new DescribeInstancesRequest();
+            request.withFilters(
+                    new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
+
+            DescribeInstancesResult result = amazonEC2.describeInstances(request);
             final long instanceCount = result.getReservations().stream()
                     .map(Reservation::getInstances)
                     .mapToLong(Collection::size)
@@ -402,82 +409,7 @@ public class AWSProvider implements InfrastructureProvider {
         return "ssh -i " + keyName + " root@" + ip + ";   " + instanceName + platform;
     }
 
-    /**
-     * Get logs of all the ec2 instances created by this #stackName.
-     *
-     * @param stackName the stack that created the ec2 instances
-     * @param region aws region of the stack
-     */
-    private void getAllEC2InstanceConsoleLogs(String stackName, String region) {
-        try {
-            final DescribeInstancesResult result = getDescribeInstancesResult(stackName, region);
-            final long instanceCount = result.getReservations().stream()
-                    .map(Reservation::getInstances)
-                    .mapToLong(Collection::size)
-                    .sum();
-
-            logger.info("");
-            logger.info("Downloading logs of " + instanceCount + " EC2 instances in this AWS Cloudformation stack: {");
-            for (Reservation reservation : result.getReservations()) {
-                for (Instance instance : reservation.getInstances()) {
-                    final String logs = getEC2InstanceConsoleLogs(instance, getAmazonEC2(region));
-                    logger.info(logs);
-                }
-            }
-            logger.info("}");
-            logger.info("Further details about this EC2 instance console outputs can be found at: "
-                    + "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-console.html");
-            logger.info("");
-        } catch (RuntimeException e) {
-            logger.warn("Error while trying to download the instance console output from ec2 instances of {}@{}. "
-                    + "Error: ", stackName, region, e.getMessage());
-        }
-    }
-
-    /**
-     *
-     * Logs are retrieved via aws api that looks similar to this cli command:
-     * aws ec2 get-console-output --instance-id i-123456789abcd --output text
-     *
-     * This won't contain the entire ec2 instance console (system) log.
-     * It'll be truncated to last {@link #EC2_SYSTEM_LOG_NO_OF_LINES} lines.
-     *
-     * @param instance the ec2 instance object
-     * @param amazonEC2 AmazonEC2 command handler
-     * @return return string will be of following format:
-     * <pre>
-     *  ${ec2-nickname} logs {
-     *      <br/>
-     *      ${truncated-logs}
-     *      <br/>
-     *  }
-     * </pre>
-     */
-    private String getEC2InstanceConsoleLogs(Instance instance, AmazonEC2 amazonEC2) {
-        String decodedOutput;
-        String instanceName = instance.getTags().stream()
-                .filter(t -> t.getKey().equals("Name"))
-                .map(com.amazonaws.services.ec2.model.Tag::getValue)
-                .findAny().orElse("<name-empty>");
-        try {
-            GetConsoleOutputRequest consoleOutputRequest = new GetConsoleOutputRequest(instance.getInstanceId());
-            final GetConsoleOutputResult consoleOutputResult = amazonEC2.getConsoleOutput(consoleOutputRequest);
-            decodedOutput = consoleOutputResult.getDecodedOutput();
-            decodedOutput = reduceLogVerbosity(decodedOutput);
-
-        } catch (NullPointerException e) {
-            String error = e.getMessage() +
-                    (e.getStackTrace().length > 0 ? "at " + e.getStackTrace()[0].toString() : "");
-            decodedOutput = "Error occurred while retrieving instance console logs for " + instance.getInstanceId() +
-                    ". Error: " + error;
-        }
-
-        return instanceName + " logs {\n" +
-                decodedOutput + "\n" +
-                "}\n";
-    }
-
-    private static Properties getCloudformationOutputs(AmazonCloudFormation cloudFormation, CreateStackResult stack) {
+    private Properties getCloudformationOutputs(AmazonCloudFormation cloudFormation, CreateStackResult stack) {
         DescribeStacksRequest describeStacksRequest = new DescribeStacksRequest();
         describeStacksRequest.setStackName(stack.getStackId());
         final DescribeStacksResult describeStacksResult = cloudFormation
@@ -494,52 +426,6 @@ public class AWSProvider implements InfrastructureProvider {
             logger.info(outputsStr.toString() + "\n}");
         }
         return outputProps;
-    }
-
-    private static DescribeInstancesResult getDescribeInstancesResult(String stackName, String region) {
-        final AmazonEC2 amazonEC2 = getAmazonEC2(region);
-
-        DescribeInstancesRequest request = new DescribeInstancesRequest();
-        request.withFilters(
-                new Filter("tag:" + STACK_NAME_TAG_KEY).withValues(stackName));
-
-        return amazonEC2.describeInstances(request);
-    }
-
-    private String reduceLogVerbosity(String decodedOutput) {
-        final String[] lines = decodedOutput.split("\n");
-        StringBuilder sb = new StringBuilder();
-        int count = 0;
-        for (int i = lines.length - 1; i >= 0; i--) {
-            final String line = lines[i];
-            if (line.contains("user-data: ")) {
-                sb.insert(0, "\n  ").insert(0, line);
-            }
-            if (++count > EC2_SYSTEM_LOG_NO_OF_LINES) {
-                break;
-            }
-        }
-
-        if (sb.toString().split("\n").length < EC2_SYSTEM_LOG_NO_OF_LINES / 5) {
-            count = 0;
-            for (int i = lines.length - 1; i >= EC2_SYSTEM_LOG_NO_OF_LINES; i--) {
-                final String line = lines[i].trim().isEmpty() ? "" :  lines[i].trim() + "\n  ";
-                sb.insert(0, "\n  ").insert(0, line);
-                if (++count > EC2_SYSTEM_LOG_NO_OF_LINES) {
-                    break;
-                }
-            }
-        }
-
-        return sb.insert(0, "  ").toString();
-    }
-
-    private static AmazonEC2 getAmazonEC2(String region) {
-        Path configFilePath = TestGridUtil.getConfigFilePath();
-        return AmazonEC2ClientBuilder.standard()
-                .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
-                .withRegion(region)
-                .build();
     }
 
     /**
@@ -720,7 +606,7 @@ public class AWSProvider implements InfrastructureProvider {
                             "\" \n .\\telegraf_setup.sh ", scriptInputs);
 
                     customScript = "cd C:\\\"Program Files\"\\telegraf\n" +
-                            "curl http://169.254.169.254/latest/meta-data/instance-id -so instance_id.txt\n" +
+                            "curl http://169.254.169.254/latest/meta-data/instance-id -o instance_id.txt\n" +
                             windowsScript + "\n" +
                             ".\\telegraf.exe  --service install > service.log\n" +
                             "while(!(netstat -o | findstr 8086 | findstr ESTABLISHED)) " +
@@ -729,9 +615,9 @@ public class AWSProvider implements InfrastructureProvider {
                     String agentSetup = "if [[ ! -d /opt/testgrid ]]; then\n" +
                             "mkdir /opt/testgrid\n" +
                             "fi\n" +
-                            "wget -q https://wso2.org/jenkins/job/testgrid/job/testgrid/lastSuccessfulBuild/" +
+                            "wget https://wso2.org/jenkins/job/testgrid/job/testgrid/lastSuccessfulBuild/" +
                             "artifact/remoting-agent/target/agent.zip -O /opt/testgrid/agent.zip\n" +
-                            "unzip -qo /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
+                            "unzip -o /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
                             "cp /opt/testgrid/agent/testgrid-agent /etc/init.d\n" +
                             "SERVER=$(awk -F= '/^NAME/{print $2}' /etc/os-release)\n" +
                             "if [[ $SERVER = 'Ubuntu' ]]; then\n" +
@@ -744,11 +630,10 @@ public class AWSProvider implements InfrastructureProvider {
                     String awsCLISetup = "YUM_CMD=$(which yum) || echo 'yum is not available'\n" +
                             "APT_GET_CMD=$(which apt-get) || echo 'apt-get is not available'\n" +
                             "if [[ ! -z $YUM_CMD ]]; then\n" +
-                            "  sudo pip install awscli --upgrade\n" +
+                            "sudo yum -y install awscli\n" +
                             "elif [[ ! -z $APT_GET_CMD ]]; then\n" +
-                            "  sudo apt-get -y install awscli\n" +
-                            "fi\n" +
-                            "aws --version\n";
+                            "sudo apt -y install awscli\n" +
+                            "fi\n";
 
                     String perfMonitoringSetup = "if [ ! -f /opt/testgrid/agent/telegraf_setup.sh ]; then\n" +
                             "  wget https://s3.amazonaws.com/testgrid-resources/packer/Unix/" +

@@ -28,15 +28,15 @@ import java.net.URL;
 import java.nio.file.Paths;
 
 /**
- * This class performs Kubernetes related deployment tasks. This class is used to deploy
- * the kubernetes deployer script which is used to deploy the deployments and services
- * in the kubernetes engine.
+ * This class performs Kubernetes related deployment tasks using helm. This class is used to deploy
+ * the helm deployer script which is used to deploy the deployments and services
+ * in the kubernetes engine using helm charts.
  *
  * @since 1.0.0
  */
-public class KubernetesDeployer implements Deployer {
+public class HelmDeployer implements Deployer {
 
-    private static final String DEPLOYER_NAME = TestPlan.DeployerType.KUBERNETES.toString();
+    private static final String DEPLOYER_NAME = TestPlan.DeployerType.HELM.toString();
 
     @Override
     public String getDeployerName() {
@@ -44,7 +44,7 @@ public class KubernetesDeployer implements Deployer {
     }
 
     /**
-     * This class is used to invoke the script to deploy the deployments in Kubernetes Engine
+     * This class is used to invoke the script to deploy the deployments in Kubernetes Engine using helm
      *
      * @param testPlan current testPlan configurations
      * @param infrastructureProvisionResult infrastructure provisioning output
@@ -56,7 +56,7 @@ public class KubernetesDeployer implements Deployer {
                                            InfrastructureProvisionResult infrastructureProvisionResult)
             throws TestGridDeployerException {
         ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.KUBERNETES_DEPLOY_SCRIPT);
+        URL resource = classLoader.getResource(TestGridConstants.HELM_DEPLOY_SCRIPT);
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
                 infrastructureProvisionResult, Paths
                         .get(resource.getPath()));

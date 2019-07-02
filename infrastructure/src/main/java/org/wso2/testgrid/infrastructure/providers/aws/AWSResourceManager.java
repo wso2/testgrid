@@ -84,7 +84,7 @@ public class AWSResourceManager {
             throws TestGridInfrastructureException, TestGridDAOException {
 
         if (!limitsFilePath.toFile().exists()) {
-            logger.debug(limitsFilePath.toString() + " file not found.");
+            logger.warn(limitsFilePath.toString() + " file not found.");
             return null;
         }
         Yaml yaml;

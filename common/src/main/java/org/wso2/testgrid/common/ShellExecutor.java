@@ -95,8 +95,9 @@ public class ShellExecutor {
      */
     public int executeCommand(String command) throws CommandExecutionException {
 
-        logger.info("Running shell command : " + command + ", from working directory : " + workingDirectory);
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Running shell command : " + command + ", from working directory : " + workingDirectory);
+        }
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
@@ -138,7 +139,7 @@ public class ShellExecutor {
     }
 
     private String reduceLogVerbosity(String msg) {
-        return msg.replaceAll("INFO\\s*.org.wso2.carbon.automation.extensions.servers.utils.ServerLogReader. - ",
+        return msg.replace("INFO  [org.wso2.carbon.automation.extensions.servers.utils.ServerLogReader] - ",
                 "[Server] - ");
     }
 
