@@ -116,34 +116,33 @@ public class InfrastructureCombinationsProvider {
 
         for (Map<String, String> combination : scheduledBuild.getCombinations()) {
             InfrastructureCombination infraCombination = new InfrastructureCombination();
-            Set<String> infrastructureTypes = combination.keySet();
             StringBuilder infraCombinationId = new StringBuilder();
             boolean isValidResource = true;
-            for (String infrastructureType : infrastructureTypes) {
+            for (Map.Entry<String, String> entry : combination.entrySet()) {
                 Set<InfrastructureParameter> infrastructureParameters;
-                if (findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
+                if (findInfraValueSetByType(valueSets, entry.getKey()).isPresent()) {
                     infrastructureParameters = findInfraValueSetByType(
-                            valueSets, infrastructureType).get().getValues();
-                    if (findInfraParameterByName(infrastructureParameters, combination.get(
-                            infrastructureType)).isPresent()) {
+                            valueSets, entry.getKey()).get().getValues();
+                    if (findInfraParameterByName(infrastructureParameters, entry.getValue()).isPresent()) {
                         InfrastructureParameter infraParameter = findInfraParameterByName(
-                                infrastructureParameters, combination.get(infrastructureType)).get();
+                                infrastructureParameters, entry.getValue()).get();
                         infraCombination.addParameter(infraParameter);
-                        infraCombinationId.append("_").append(combination.get(infrastructureType));
+                        infraCombinationId.append("_").append(entry.getValue());
                     } else {
-                        logger.warn("Since the given " + infrastructureType + " resource not exist in database, " +
+                        logger.warn("Since the given " + entry.getKey() + " resource not exist in database, " +
                                 "can not generate combination.");
                         isValidResource = false;
                         break;
                     }
                 } else {
                     InfrastructureParameter infraParameter = new InfrastructureParameter(
-                            combination.get(infrastructureType), infrastructureType,
+                            entry.getValue(), entry.getKey(),
                             null, true);
                     infraCombination.addParameter(infraParameter);
-                    infraCombinationId.append("_").append(combination.get(infrastructureType));
+                    infraCombinationId.append("_").append(entry.getValue());
                 }
             }
+
             if (isValidResource) {
                 String infraCombinationIdStr = infraCombinationId.toString();
                 infraCombinationIdStr = infraCombinationIdStr.startsWith("_") ?
@@ -165,36 +164,35 @@ public class InfrastructureCombinationsProvider {
         int infrastructureCount = 0;
         Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
         List<List<InfrastructureParameter>> listOfInfrastructureList = new ArrayList<>();
-
         for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()) {
-            Set<String> infrastructureTypes = infraResources.keySet();
-            List<InfrastructureParameter> infrastructureList = new ArrayList<>();
-            String infrastructureType = infrastructureTypes.iterator().next();
-            if (findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
-                Set<InfrastructureParameter> infrastructureParameters = findInfraValueSetByType(
-                        valueSets, infrastructureType).get().getValues();
-                for (String name : infraResources.get(infrastructureType)) {
-                    if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
-                        infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
-                    } else {
-                        logger.warn("Since the given " + name + " resource is not exist in database, " +
-                                " skip given resource combinations.");
+            for (Map.Entry<String, List<String>> entry : infraResources.entrySet()) {
+                List<InfrastructureParameter> infrastructureList = new ArrayList<>();
+                if (findInfraValueSetByType(valueSets, entry.getKey()).isPresent()) {
+                    Set<InfrastructureParameter> infrastructureParameters = findInfraValueSetByType(
+                            valueSets, entry.getKey()).get().getValues();
+                    for (String name : entry.getValue()) {
+                        if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
+                            infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
+                        } else {
+                            logger.warn("Since the given " + name + " resource is not exist in database, " +
+                                    " skip given resource combinations.");
+                        }
+                    }
+                } else {
+                    logger.warn("Since the given " + entry.getKey() + " infrastructure is not exist in database, " +
+                            " adding resources without properties.");
+                    for (String name : entry.getValue()) {
+                        InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
+                                name, entry.getKey(), null, true);
+                        infrastructureList.add(infrastructureParameter);
                     }
                 }
-            } else {
-                logger.warn("Since the given " + infrastructureType + " infrastructure is not exist in database, " +
-                        " adding resources without properties.");
-                for (String name : infraResources.get(infrastructureType)) {
-                    InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
-                            name, infrastructureType, null, true);
-                    infrastructureList.add(infrastructureParameter);
+                if (maxSize < entry.getValue().size()) {
+                    maxSize = entry.getValue().size();
                 }
+                listOfInfrastructureList.add(infrastructureList);
+                infrastructureCount++;
             }
-            if (maxSize < infraResources.get(infrastructureType).size()) {
-                maxSize = infraResources.get(infrastructureType).size();
-            }
-            listOfInfrastructureList.add(infrastructureList);
-            infrastructureCount++;
         }
 
         for (int combinationCount = 0; combinationCount < maxSize; combinationCount++) {
@@ -225,30 +223,30 @@ public class InfrastructureCombinationsProvider {
 
         List<List<InfrastructureParameter>> listOfInfrastructureList = new ArrayList<>();
         for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()) {
-            Set<String> infrastructureTypes = infraResources.keySet();
-            List<InfrastructureParameter> infrastructureList = new ArrayList<>();
-            String infrastructureType = infrastructureTypes.iterator().next();
-            if (findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
-                Set<InfrastructureParameter> infrastructureParameters = findInfraValueSetByType(
-                        valueSets, infrastructureType).get().getValues();
-                for (String name : infraResources.get(infrastructureType)) {
-                    if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
-                        infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
-                    } else {
-                        logger.warn("Since the given " + name + " resource is not  exist in database, " +
-                                " skip given resource combinations.");
+            for (Map.Entry<String, List<String>> entry : infraResources.entrySet()) {
+                List<InfrastructureParameter> infrastructureList = new ArrayList<>();
+                if (findInfraValueSetByType(valueSets, entry.getKey()).isPresent()) {
+                    Set<InfrastructureParameter> infrastructureParameters = findInfraValueSetByType(
+                            valueSets, entry.getKey()).get().getValues();
+                    for (String name : entry.getValue()) {
+                        if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
+                            infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
+                        } else {
+                            logger.warn("Since the given " + name + " resource is not  exist in database, " +
+                                    " skip given resource combinations.");
+                        }
+                    }
+                } else {
+                    logger.warn("Since the given " + entry.getKey() + " infrastructure is not exist in database, " +
+                            " adding resources without properties.");
+                    for (String name : entry.getValue()) {
+                        InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
+                                name, entry.getKey(), null, true);
+                        infrastructureList.add(infrastructureParameter);
                     }
                 }
-            } else {
-                logger.warn("Since the given " + infrastructureType + " infrastructure is not exist in database, " +
-                        " adding resources without properties.");
-                for (String name : infraResources.get(infrastructureType)) {
-                    InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
-                            name, infrastructureType, null, true);
-                    infrastructureList.add(infrastructureParameter);
-                }
+                listOfInfrastructureList.add(infrastructureList);
             }
-            listOfInfrastructureList.add(infrastructureList);
         }
 
         InfrastructureCombination infrastructureCombination = new InfrastructureCombination();
