@@ -85,7 +85,7 @@ public class InfrastructureCombinationsProvider {
                     infrastructureCombinations = getCombinationsForLeastOne(ivSets, scheduledBuild.get());
                     break;
                 case ALL_ALGO:
-                    infrastructureCombinations = getCombinationsForAll(ivSets,scheduledBuild.get());
+                    infrastructureCombinations = getCombinationsForAll(ivSets, scheduledBuild.get());
                     break;
                 default:
                     logger.warn("Selected combination algorithm is not valid for given schedule. " +
@@ -114,18 +114,18 @@ public class InfrastructureCombinationsProvider {
 
         Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
 
-        for (Map<String, String> combination : scheduledBuild.getCombinations()){
+        for (Map<String, String> combination : scheduledBuild.getCombinations()) {
             InfrastructureCombination infraCombination = new InfrastructureCombination();
             Set<String> infrastructureTypes = combination.keySet();
             StringBuilder infraCombinationId = new StringBuilder();
             boolean isValidResource = true;
-            for (String infrastructureType : infrastructureTypes){
+            for (String infrastructureType : infrastructureTypes) {
                 Set<InfrastructureParameter> infrastructureParameters;
-                if(findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
+                if (findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
                     infrastructureParameters = findInfraValueSetByType(
                             valueSets, infrastructureType).get().getValues();
                     if (findInfraParameterByName(infrastructureParameters, combination.get(
-                            infrastructureType)).isPresent()){
+                            infrastructureType)).isPresent()) {
                         InfrastructureParameter infraParameter = findInfraParameterByName(
                                 infrastructureParameters, combination.get(infrastructureType)).get();
                         infraCombination.addParameter(infraParameter);
@@ -138,7 +138,8 @@ public class InfrastructureCombinationsProvider {
                     }
                 } else {
                     InfrastructureParameter infraParameter = new InfrastructureParameter(
-                            combination.get(infrastructureType),infrastructureType,null,true);
+                            combination.get(infrastructureType), infrastructureType,
+                            null, true);
                     infraCombination.addParameter(infraParameter);
                     infraCombinationId.append("_").append(combination.get(infrastructureType));
                 }
@@ -165,18 +166,17 @@ public class InfrastructureCombinationsProvider {
         Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
         List<List<InfrastructureParameter>> listOfInfrastructureList = new ArrayList<>();
 
-        for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()){
+        for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()) {
             Set<String> infrastructureTypes = infraResources.keySet();
             List<InfrastructureParameter> infrastructureList = new ArrayList<>();
             String infrastructureType = infrastructureTypes.iterator().next();
-            if(findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
+            if (findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
                 Set<InfrastructureParameter> infrastructureParameters = findInfraValueSetByType(
                         valueSets, infrastructureType).get().getValues();
                 for (String name : infraResources.get(infrastructureType)) {
                     if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
                         infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
-                    }
-                    else {
+                    } else {
                         logger.warn("Since the given " + name + " resource is not exist in database, " +
                                 " skip given resource combinations.");
                     }
@@ -186,7 +186,7 @@ public class InfrastructureCombinationsProvider {
                         " adding resources without properties.");
                 for (String name : infraResources.get(infrastructureType)) {
                     InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
-                            name,infrastructureType,null,true);
+                            name, infrastructureType, null, true);
                     infrastructureList.add(infrastructureParameter);
                 }
             }
@@ -200,7 +200,7 @@ public class InfrastructureCombinationsProvider {
         for (int combinationCount = 0; combinationCount < maxSize; combinationCount++) {
             InfrastructureCombination infrastructureCombination = new InfrastructureCombination();
             StringBuilder infraCombinationId = new StringBuilder();
-            for (int resourceCount = 0; resourceCount < infrastructureCount; resourceCount++){
+            for (int resourceCount = 0; resourceCount < infrastructureCount; resourceCount++) {
                 InfrastructureParameter infrastructureParameter = listOfInfrastructureList.get(resourceCount).get(
                         combinationCount % listOfInfrastructureList.get(resourceCount).size());
                 infrastructureCombination.addParameter(infrastructureParameter);
@@ -224,18 +224,17 @@ public class InfrastructureCombinationsProvider {
         }
 
         List<List<InfrastructureParameter>> listOfInfrastructureList = new ArrayList<>();
-        for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()){
+        for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()) {
             Set<String> infrastructureTypes = infraResources.keySet();
             List<InfrastructureParameter> infrastructureList = new ArrayList<>();
             String infrastructureType = infrastructureTypes.iterator().next();
-            if(findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
+            if (findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
                 Set<InfrastructureParameter> infrastructureParameters = findInfraValueSetByType(
                         valueSets, infrastructureType).get().getValues();
                 for (String name : infraResources.get(infrastructureType)) {
                     if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
                         infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
-                    }
-                    else {
+                    } else {
                         logger.warn("Since the given " + name + " resource is not  exist in database, " +
                                 " skip given resource combinations.");
                     }
@@ -245,7 +244,7 @@ public class InfrastructureCombinationsProvider {
                         " adding resources without properties.");
                 for (String name : infraResources.get(infrastructureType)) {
                     InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
-                            name,infrastructureType,null,true);
+                            name, infrastructureType, null, true);
                     infrastructureList.add(infrastructureParameter);
                 }
             }
@@ -254,15 +253,15 @@ public class InfrastructureCombinationsProvider {
 
         InfrastructureCombination infrastructureCombination = new InfrastructureCombination();
         Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
-        generateAllCombinations(listOfInfrastructureList,infrastructureCombinations,0,
-                infrastructureCombination,"");
+        generateAllCombinations(listOfInfrastructureList, infrastructureCombinations, 0,
+                infrastructureCombination, "");
         return infrastructureCombinations;
     }
 
     private Optional<JobConfig.Build> findScheduledBuild(List<JobConfig.Build> builds) {
 
         for (JobConfig.Build build : builds) {
-            if (build.getSchedule().equals(SCHEDULE_PARAMETER)) { //TODO : get this parameter from jenkins
+            if (build.getSchedule().equals(SCHEDULE_PARAMETER)) {
                 return Optional.of(build);
             }
         }
@@ -307,7 +306,7 @@ public class InfrastructureCombinationsProvider {
             tmp.addParameters(current.getParameters());
             tmp.addParameter(lists.get(depth).get(i));
             generateAllCombinations(lists, result, depth + 1,
-                    tmp,infraCombinationId + "_" + lists.get(depth).get(i).getName());
+                    tmp, infraCombinationId + "_" + lists.get(depth).get(i).getName());
         }
     }
 
@@ -423,7 +422,8 @@ public class InfrastructureCombinationsProvider {
 //     * This class provides set of filtered infrastructure values.
 //     * <p>
 //     * The filtering is executed by reading exclude and include attributes in the @{@link TestgridYaml} file.
-//     * If exclude attribute is set in @{@link TestgridYaml} and if those exist in the current infrastructure value set,
+//     * If exclude attribute is set in @{@link TestgridYaml} and if those exist in the current infrastructure value
+// set,
 //     * those will be eliminated. Further, if include attribute is set in @{@link TestgridYaml} and if those
 //     * exist in the current infrastructure value set, only those infrastructures will be considered when creating
 //     * combinations.
