@@ -55,6 +55,13 @@ public class InfrastructureCombinationsProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(InfrastructureCombinationsProvider.class);
 
+    /**
+     * This function is used for generate combination read from the testgrid.yaml file. The combinations are created
+     * according to the given schedule.
+     *
+     * @param testgridYaml          testgrid yaml file
+     * @return  infrastructure combination set
+     */
     public Set<InfrastructureCombination> getCombinations(TestgridYaml testgridYaml) throws TestGridDAOException {
 
         Set<InfrastructureValueSet> ivSets = new InfrastructureParameterUOW().getValueSet();
@@ -105,6 +112,14 @@ public class InfrastructureCombinationsProvider {
         return Collections.emptySet();
     }
 
+    /**
+     * This function is used to generate combination using given infrastructure resources in testgrid.yaml file
+     * according to the exact algorithm.
+     *
+     * @param valueSets          set of infrastructure parameters
+     * @param scheduledBuild    scheduled build
+     * @return  infrastructure combination set
+     */
     private Set<InfrastructureCombination> getCombinationsForExact(
             Set<InfrastructureValueSet> valueSets, JobConfig.Build scheduledBuild) {
 
@@ -154,6 +169,14 @@ public class InfrastructureCombinationsProvider {
         return infrastructureCombinations;
     }
 
+    /**
+     * This function is used to generate combination using given infrastructure resources in testgrid.yaml file
+     * according to the at least one resource algorithm.
+     *
+     * @param valueSets          set of infrastructure parameters
+     * @param scheduledBuild    scheduled build
+     * @return  infrastructure combination set
+     */
     private Set<InfrastructureCombination> getCombinationsForLeastOne(Set<InfrastructureValueSet> valueSets,
                                                                       JobConfig.Build scheduledBuild) {
         if (valueSets.size() == 0) {
@@ -214,6 +237,14 @@ public class InfrastructureCombinationsProvider {
         return infrastructureCombinations;
     }
 
+    /**
+     * This function is used to generate combination using given infrastructure resources in testgrid.yaml file
+     * according to the all combinations algorithm.
+     *
+     * @param valueSets          set of infrastructure parameters
+     * @param scheduledBuild    scheduled build
+     * @return  infrastructure combination set
+     */
     private Set<InfrastructureCombination> getCombinationsForAll(
             Set<InfrastructureValueSet> valueSets, JobConfig.Build scheduledBuild) {
 
@@ -256,6 +287,12 @@ public class InfrastructureCombinationsProvider {
         return infrastructureCombinations;
     }
 
+    /**
+     * This function is used to select specified scheduled build from builds defined in testgrid.yaml file.
+     *
+     * @param builds          list of builds
+     * @return  build optional object
+     */
     private Optional<JobConfig.Build> findScheduledBuild(List<JobConfig.Build> builds) {
 
         for (JobConfig.Build build : builds) {
@@ -266,6 +303,13 @@ public class InfrastructureCombinationsProvider {
         return Optional.empty();
     }
 
+    /**
+     * This function is used to filter infrastructure parameters by given infrastructure type.
+     *
+     * @param valueSets     set of infrastructure value set
+     * @param type          infrastructure type
+     * @return  build optional object
+     */
     private Optional<InfrastructureValueSet> findInfraValueSetByType(
             Set<InfrastructureValueSet> valueSets, String type) {
 
@@ -277,6 +321,13 @@ public class InfrastructureCombinationsProvider {
         return Optional.empty();
     }
 
+    /**
+     * This function is used to filter infrastructure parameters by given infrastructure type.
+     *
+     * @param infrastructureParameters     set of infrastructure parameters
+     * @param name          infrastructure name
+     * @return  build optional object
+     */
     private Optional<InfrastructureParameter> findInfraParameterByName(
             Set<InfrastructureParameter> infrastructureParameters, String name) {
 
@@ -288,6 +339,15 @@ public class InfrastructureCombinationsProvider {
         return Optional.empty();
     }
 
+    /**
+     * This recursive function is used to generate all combination for given list of infrastructure parameter lists.
+     *
+     * @param lists                 set of infrastructure parameters
+     * @param result                infrastructure name
+     * @param depth                 number of infrastructure parameter lists exists
+     * @param current               current using infrastructure combination
+     * @param infraCombinationId    infrastructure combination name
+     */
     private void generateAllCombinations(List<List<InfrastructureParameter>> lists,
                                          Set<InfrastructureCombination> result, int depth,
                                          InfrastructureCombination current, String infraCombinationId) {
