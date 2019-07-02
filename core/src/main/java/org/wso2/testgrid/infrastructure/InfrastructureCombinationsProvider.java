@@ -73,10 +73,10 @@ public class InfrastructureCombinationsProvider {
 
         logger.info("List of infrastructure value sets: " + ivSets);
 
-        JobConfig jobconfig = testgridYaml.getJobConfig();  //get jobconfig part
-        List<JobConfig.Build> builds = jobconfig.getBuilds(); //get all the builds defined in the yaml
+        JobConfig jobconfig = testgridYaml.getJobConfig();
+        List<JobConfig.Build> builds = jobconfig.getBuilds();
 
-        Optional<JobConfig.Build> scheduledBuild = findScheduledBuild(builds); //get scheduled build
+        Optional<JobConfig.Build> scheduledBuild = findScheduledBuild(builds);
         if (scheduledBuild.isPresent()) {
             if (logger.isDebugEnabled()) {
                 logger.debug(String.format("Scheduled build : %s", scheduledBuild.get()));

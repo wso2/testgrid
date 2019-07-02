@@ -93,7 +93,6 @@ public class JobConfig implements Serializable {
         // either mention combiations or infraResources.
         // 'exact' algorithm can only take combinations, while others can take infraResources.
         private List<TreeMap<String, String>> combinations;
-        //todo sort the combinations by type
         private List<Map<String, List<String>>> infraResources;
 
         public String getSchedule() {
@@ -183,6 +182,10 @@ public class JobConfig implements Serializable {
                 if (!validateTestgridYamlBuldCombinations(build)) {
                     return false;
                 }
+                if (!build.getInfraResources().isEmpty()) {
+                    logger.warn("testgrid.yaml contains infrastructure resources field with exact algorithm build and" +
+                            " Infrastructure resources field has been ignored.");
+                }
             }
             if (build.getCombinationAlgorithm().equals(AT_LEAST_ONE_ALGO) ||
                     build.getCombinationAlgorithm().equals(ALL_ALGO)) {
@@ -193,6 +196,10 @@ public class JobConfig implements Serializable {
                 }
                 if (!validateTestgridYamlInfraResources(build)) {
                     return false;
+                }
+                if (!build.getCombinations().isEmpty()) {
+                    logger.warn("testgrid.yaml contains combinations field without exact algorithm build and" +
+                            " combinations field has been ignored.");
                 }
             }
         }
