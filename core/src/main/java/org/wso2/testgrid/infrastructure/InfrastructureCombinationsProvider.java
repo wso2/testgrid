@@ -19,7 +19,6 @@
 
 package org.wso2.testgrid.infrastructure;
 
-import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.JobConfig;
@@ -30,8 +29,6 @@ import org.wso2.testgrid.common.infrastructure.InfrastructureValueSet;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,18 +36,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import static org.wso2.testgrid.common.TestGridConstants.ALL_ALGO;
 import static org.wso2.testgrid.common.TestGridConstants.AT_LEAST_ONE_ALGO;
 import static org.wso2.testgrid.common.TestGridConstants.EXACT_ALGO;
-import static org.wso2.testgrid.common.TestGridConstants.INFRASTRUCTURE_TYPE_DB;
-import static org.wso2.testgrid.common.TestGridConstants.INFRASTRUCTURE_TYPE_JDK;
-import static org.wso2.testgrid.common.TestGridConstants.INFRASTRUCTURE_TYPE_OS;
 import static org.wso2.testgrid.common.TestGridConstants.SCHEDULE_PARAMETER;
 
 /**
@@ -75,10 +64,10 @@ public class InfrastructureCombinationsProvider {
 
         logger.info("List of infrastructure value sets: " + ivSets);
 
-        JobConfig jobconfig = testgridYaml.getJobConfig();
-        List<JobConfig.Build> builds = jobconfig.getBuilds();
+        JobConfig jobconfig = testgridYaml.getJobConfig();  //get jobconfig part
+        List<JobConfig.Build> builds = jobconfig.getBuilds(); //get all the builds defined in the yaml
 
-        Optional<JobConfig.Build> scheduledBuild = findScheduledBuild(builds);
+        Optional<JobConfig.Build> scheduledBuild = findScheduledBuild(builds); //get scheduled build
         if (scheduledBuild.isPresent()) {
             if (logger.isDebugEnabled()) {
                 logger.debug(String.format("Scheduled build : %s", scheduledBuild.get()));
@@ -87,22 +76,21 @@ public class InfrastructureCombinationsProvider {
             if (logger.isDebugEnabled()) {
                 logger.debug(String.format("Selected combination algorithm: %s", combinationAlgorithm));
             }
-            Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
+            Set<InfrastructureCombination> infrastructureCombinations;
             switch (combinationAlgorithm) {
                 case EXACT_ALGO:
                     infrastructureCombinations = getCombinationsForExact(ivSets, scheduledBuild.get());
                     break;
-                case ALL_ALGO:
-                    ivSets = filterInfrastructureResources(ivSets, scheduledBuild.get());
-                    infrastructureCombinations = getCombinationsForAll(ivSets);
-                    break;
                 case AT_LEAST_ONE_ALGO:
-                    ivSets = filterInfrastructureResources(ivSets, scheduledBuild.get());
-                    infrastructureCombinations = getCombinationsForLeastOne(ivSets);
+                    infrastructureCombinations = getCombinationsForLeastOne(ivSets, scheduledBuild.get());
+                    break;
+                case ALL_ALGO:
+                    infrastructureCombinations = getCombinationsForAll(ivSets,scheduledBuild.get());
                     break;
                 default:
                     logger.warn("Selected combination algorithm is not valid for given schedule. " +
                             "Selected combination algorithm: " + combinationAlgorithm);
+                    return Collections.emptySet();
             }
 
             if (logger.isDebugEnabled()) {
@@ -113,145 +101,168 @@ public class InfrastructureCombinationsProvider {
             return infrastructureCombinations;
         }
 
-        logger.warn("Can not find any build from configuration yaml for selected schedule");
+        logger.warn("Can not find any build from configuration yaml for given schedule builder");
         return Collections.emptySet();
     }
 
-    private Set<InfrastructureCombination> getCombinationsForLeastOne(Set<InfrastructureValueSet> valueSets) {
+    private Set<InfrastructureCombination> getCombinationsForExact(
+            Set<InfrastructureValueSet> valueSets, JobConfig.Build scheduledBuild) {
 
         if (valueSets.size() == 0) {
             return Collections.emptySet();
         }
 
-        List<InfrastructureParameter> osInfrastructureList = new ArrayList<>();
-        List<InfrastructureParameter> jdkInfrastructureList = new ArrayList<>();
-        List<InfrastructureParameter> dbEngineInfrastructureList = new ArrayList<>();
+        Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
+
+        for (Map<String, String> combination : scheduledBuild.getCombinations()){
+            InfrastructureCombination infraCombination = new InfrastructureCombination();
+            Set<String> infrastructureTypes = combination.keySet();
+            StringBuilder infraCombinationId = new StringBuilder();
+            boolean isValidResource = true;
+            for (String infrastructureType : infrastructureTypes){
+                Set<InfrastructureParameter> infrastructureParameters;
+                if(findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
+                    infrastructureParameters = findInfraValueSetByType(
+                            valueSets, infrastructureType).get().getValues();
+                    if (findInfraParameterByName(infrastructureParameters, combination.get(
+                            infrastructureType)).isPresent()){
+                        InfrastructureParameter infraParameter = findInfraParameterByName(
+                                infrastructureParameters, combination.get(infrastructureType)).get();
+                        infraCombination.addParameter(infraParameter);
+                        infraCombinationId.append("_").append(combination.get(infrastructureType));
+                    } else {
+                        logger.warn("Since the given " + infrastructureType + " resource not exist in database, " +
+                                "can not generate combination.");
+                        isValidResource = false;
+                        break;
+                    }
+                } else {
+                    InfrastructureParameter infraParameter = new InfrastructureParameter(
+                            combination.get(infrastructureType),infrastructureType,null,true);
+                    infraCombination.addParameter(infraParameter);
+                    infraCombinationId.append("_").append(combination.get(infrastructureType));
+                }
+            }
+            if (isValidResource) {
+                String infraCombinationIdStr = infraCombinationId.toString();
+                infraCombinationIdStr = infraCombinationIdStr.startsWith("_") ?
+                        infraCombinationIdStr.substring(1) : infraCombinationIdStr;
+                infraCombination.setInfraCombinationId(infraCombinationIdStr);
+                infrastructureCombinations.add(infraCombination);
+            }
+        }
+        return infrastructureCombinations;
+    }
+
+    private Set<InfrastructureCombination> getCombinationsForLeastOne(Set<InfrastructureValueSet> valueSets,
+                                                                      JobConfig.Build scheduledBuild) {
+        if (valueSets.size() == 0) {
+            return Collections.emptySet();
+        }
 
         int maxSize = 0;
-        for (InfrastructureValueSet infrastructureValueSet : valueSets) {
-            if (infrastructureValueSet.getValues().size() == 0) {
-                return Collections.emptySet();
-            }
-            switch (infrastructureValueSet.getType()) {
-                case INFRASTRUCTURE_TYPE_OS:
-                    osInfrastructureList.addAll(infrastructureValueSet.getValues());
-                    break;
-                case INFRASTRUCTURE_TYPE_JDK:
-                    jdkInfrastructureList.addAll(infrastructureValueSet.getValues());
-                    break;
-                case INFRASTRUCTURE_TYPE_DB:
-                    dbEngineInfrastructureList.addAll(infrastructureValueSet.getValues());
-                    break;
-            }
-            if (maxSize < infrastructureValueSet.getValues().size()) {
-                maxSize = infrastructureValueSet.getValues().size();
-            }
-        }
-
+        int infrastructureCount = 0;
         Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
+        List<List<InfrastructureParameter>> listOfInfrastructureList = new ArrayList<>();
 
-        if (osInfrastructureList.size() > 0 && jdkInfrastructureList.size() > 0 &&
-                dbEngineInfrastructureList.size() > 0){
-            for (int i = 0; i < maxSize; i++) {
-                InfrastructureCombination infrastructureCombination = new InfrastructureCombination(
-                        osInfrastructureList.get(i % osInfrastructureList.size()),
-                        jdkInfrastructureList.get(i % jdkInfrastructureList.size()),
-                        dbEngineInfrastructureList.get(i % dbEngineInfrastructureList.size())
-                );
-                infrastructureCombination.setInfraCombinationId(
-                        osInfrastructureList.get(i % osInfrastructureList.size()).getName() + "_" +
-                                jdkInfrastructureList.get(i % jdkInfrastructureList.size()).getName() + "_" +
-                                dbEngineInfrastructureList.get(i % dbEngineInfrastructureList.size()).getName()
-                );
-                infrastructureCombinations.add(infrastructureCombination);
+        for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()){
+            Set<String> infrastructureTypes = infraResources.keySet();
+            List<InfrastructureParameter> infrastructureList = new ArrayList<>();
+            String infrastructureType = infrastructureTypes.iterator().next();
+            if(findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
+                Set<InfrastructureParameter> infrastructureParameters = findInfraValueSetByType(
+                        valueSets, infrastructureType).get().getValues();
+                for (String name : infraResources.get(infrastructureType)) {
+                    if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
+                        infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
+                    }
+                    else {
+                        logger.warn("Since the given " + name + " resource is not exist in database, " +
+                                " skip given resource combinations.");
+                    }
+                }
+            } else {
+                logger.warn("Since the given " + infrastructureType + " infrastructure is not exist in database, " +
+                        " adding resources without properties.");
+                for (String name : infraResources.get(infrastructureType)) {
+                    InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
+                            name,infrastructureType,null,true);
+                    infrastructureList.add(infrastructureParameter);
+                }
             }
-
-            return infrastructureCombinations;
+            if (maxSize < infraResources.get(infrastructureType).size()) {
+                maxSize = infraResources.get(infrastructureType).size();
+            }
+            listOfInfrastructureList.add(infrastructureList);
+            infrastructureCount++;
         }
 
-        logger.warn("Can not find infrastructure resources to create combinations. " +
-                "A possible cause is incorrect infraResources configuration in the" +
-                "testgrid.yaml's jobConfig section.");
-        return Collections.emptySet();
+        for (int combinationCount = 0; combinationCount < maxSize; combinationCount++) {
+            InfrastructureCombination infrastructureCombination = new InfrastructureCombination();
+            StringBuilder infraCombinationId = new StringBuilder();
+            for (int resourceCount = 0; resourceCount < infrastructureCount; resourceCount++){
+                InfrastructureParameter infrastructureParameter = listOfInfrastructureList.get(resourceCount).get(
+                        combinationCount % listOfInfrastructureList.get(resourceCount).size());
+                infrastructureCombination.addParameter(infrastructureParameter);
+                infraCombinationId.append("_").append(infrastructureParameter.getName());
+            }
+            String infraCombinationIdStr = infraCombinationId.toString();
+            infraCombinationIdStr = infraCombinationIdStr.startsWith("_") ?
+                    infraCombinationIdStr.substring(1) : infraCombinationIdStr;
+            infrastructureCombination.setInfraCombinationId(infraCombinationIdStr);
+            infrastructureCombinations.add(infrastructureCombination);
+        }
+
+        return infrastructureCombinations;
     }
 
-    private Set<InfrastructureCombination> getCombinationsForExact(Set<InfrastructureValueSet> valueSets, JobConfig.Build scheduledBuild) {
+    private Set<InfrastructureCombination> getCombinationsForAll(
+            Set<InfrastructureValueSet> valueSets, JobConfig.Build scheduledBuild) {
 
         if (valueSets.size() == 0) {
             return Collections.emptySet();
         }
 
-        Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
-        for (JobConfig.Combination combination : scheduledBuild.getCombinations()) {
-            InfrastructureCombination infraCombination = new InfrastructureCombination();
-            String infraCombinationId;
-            if(findInfraValueSetByType(valueSets, INFRASTRUCTURE_TYPE_OS).isPresent()) {
-                Set<InfrastructureParameter> infrastructureValueSet = findInfraValueSetByType(
-                        valueSets, INFRASTRUCTURE_TYPE_OS).get().getValues();
-                if (findInfraParameterByName(infrastructureValueSet, combination.getOS()).isPresent()){
-                    InfrastructureParameter osInfraParameter = findInfraParameterByName(
-                            infrastructureValueSet, combination.getOS()).get();
-                    infraCombination.addParameter(osInfraParameter);
-                    infraCombinationId = osInfraParameter.getName();
-                } else {
-                    logger.warn("Since the given " + INFRASTRUCTURE_TYPE_OS + " resource not exist in database, " +
-                            "can not generate combination.");
-                    continue;
+        List<List<InfrastructureParameter>> listOfInfrastructureList = new ArrayList<>();
+        for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()){
+            Set<String> infrastructureTypes = infraResources.keySet();
+            List<InfrastructureParameter> infrastructureList = new ArrayList<>();
+            String infrastructureType = infrastructureTypes.iterator().next();
+            if(findInfraValueSetByType(valueSets, infrastructureType).isPresent()) {
+                Set<InfrastructureParameter> infrastructureParameters = findInfraValueSetByType(
+                        valueSets, infrastructureType).get().getValues();
+                for (String name : infraResources.get(infrastructureType)) {
+                    if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
+                        infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
+                    }
+                    else {
+                        logger.warn("Since the given " + name + " resource is not  exist in database, " +
+                                " skip given resource combinations.");
+                    }
                 }
             } else {
-                logger.warn("Can not find infrastructure value set for " + INFRASTRUCTURE_TYPE_OS +
-                        " resources.");
-                return Collections.emptySet();
-            }
-
-            if(findInfraValueSetByType(valueSets, INFRASTRUCTURE_TYPE_DB).isPresent()) {
-                Set<InfrastructureParameter> infrastructureValueSet = findInfraValueSetByType(
-                        valueSets, INFRASTRUCTURE_TYPE_DB).get().getValues();
-                if (findInfraParameterByName(infrastructureValueSet, combination.getDBEngine()).isPresent()){
-                    InfrastructureParameter dbInfraParameter = findInfraParameterByName(
-                            infrastructureValueSet, combination.getDBEngine()).get();
-                    infraCombination.addParameter(dbInfraParameter);
-                    infraCombinationId = infraCombinationId + "_" + dbInfraParameter.getName();
-                } else {
-                    logger.warn("Since the given " + INFRASTRUCTURE_TYPE_DB + " resource not exist in database, " +
-                            "can not generate combination.");
-                    continue;
+                logger.warn("Since the given " + infrastructureType + " infrastructure is not exist in database, " +
+                        " adding resources without properties.");
+                for (String name : infraResources.get(infrastructureType)) {
+                    InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
+                            name,infrastructureType,null,true);
+                    infrastructureList.add(infrastructureParameter);
                 }
-            } else {
-                logger.warn("Can not find infrastructure value set for " + INFRASTRUCTURE_TYPE_DB +
-                        " resources.");
-                return Collections.emptySet();
             }
-
-            if(findInfraValueSetByType(valueSets, INFRASTRUCTURE_TYPE_JDK).isPresent()) {
-                Set<InfrastructureParameter> infrastructureValueSet = findInfraValueSetByType(
-                        valueSets, INFRASTRUCTURE_TYPE_JDK).get().getValues();
-                if (findInfraParameterByName(infrastructureValueSet, combination.getJDK()).isPresent()){
-                    InfrastructureParameter jdkInfraParameter = findInfraParameterByName(
-                            infrastructureValueSet, combination.getJDK()).get();
-                    infraCombination.addParameter(jdkInfraParameter);
-                    infraCombinationId = infraCombinationId + "_" + jdkInfraParameter.getName();
-                } else {
-                    logger.warn("Since the given " + INFRASTRUCTURE_TYPE_JDK + " resource not exist in database, " +
-                            "can not generate combination.");
-                    continue;
-                }
-            } else {
-                logger.warn("Can not find infrastructure value set for " + INFRASTRUCTURE_TYPE_JDK +
-                        " resources.");
-                return Collections.emptySet();
-            }
-
-            infraCombination.setInfraCombinationId(infraCombinationId);
-            infrastructureCombinations.add(infraCombination);
+            listOfInfrastructureList.add(infrastructureList);
         }
+
+        InfrastructureCombination infrastructureCombination = new InfrastructureCombination();
+        Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
+        generateAllCombinations(listOfInfrastructureList,infrastructureCombinations,0,
+                infrastructureCombination,"");
         return infrastructureCombinations;
     }
 
     private Optional<JobConfig.Build> findScheduledBuild(List<JobConfig.Build> builds) {
 
         for (JobConfig.Build build : builds) {
-            if (build.getSchedule().equals(SCHEDULE_PARAMETER)) {
+            if (build.getSchedule().equals(SCHEDULE_PARAMETER)) { //TODO : get this parameter from jenkins
                 return Optional.of(build);
             }
         }
@@ -278,6 +289,26 @@ public class InfrastructureCombinationsProvider {
             }
         }
         return Optional.empty();
+    }
+
+    private void generateAllCombinations(List<List<InfrastructureParameter>> lists,
+                                         Set<InfrastructureCombination> result, int depth,
+                                         InfrastructureCombination current, String infraCombinationId) {
+        if (depth == lists.size()) {
+            infraCombinationId = infraCombinationId.startsWith("_") ?
+                    infraCombinationId.substring(1) : infraCombinationId;
+            current.setInfraCombinationId(infraCombinationId);
+            result.add(current);
+            return;
+        }
+
+        for (int i = 0; i < lists.get(depth).size(); i++) {
+            InfrastructureCombination tmp = new InfrastructureCombination();
+            tmp.addParameters(current.getParameters());
+            tmp.addParameter(lists.get(depth).get(i));
+            generateAllCombinations(lists, result, depth + 1,
+                    tmp,infraCombinationId + "_" + lists.get(depth).get(i).getName());
+        }
     }
 
     public Set<InfrastructureCombination> getCombinationsForAll(Set<InfrastructureValueSet> valueSets) {
@@ -325,128 +356,130 @@ public class InfrastructureCombinationsProvider {
         return finalInfrastructureCombinations;
     }
 
-    public Set<InfrastructureParameter> getProcessedInfrastructureParameters(InfrastructureParameter infraParam) {
+//    public Set<InfrastructureParameter> getProcessedInfrastructureParameters(InfrastructureParameter infraParam) {
+//
+//        Set<InfrastructureParameter> processedInfraParams = new HashSet<>();
+//        Properties properties = new Properties();
+//        try {
+//            properties.load(new StringReader(infraParam.getProperties()));
+//        } catch (IOException e) {
+//            logger.warn("Error while loading the infrastructure parameter's properties string for: " + infraParam);
+//        }
+//        for (Map.Entry entry : properties.entrySet()) {
+//            String name = (String) entry.getValue();
+//            String type = (String) entry.getKey();
+//            String regex = "[\\w,-\\.@:]*";
+//            if (type.isEmpty() || !type.matches(regex)
+//                    || name.isEmpty() || !name.matches(regex)) {
+//                continue;
+//            }
+//            InfrastructureParameter infraParameter = new InfrastructureParameter();
+//            infraParameter.setName(name);
+//            infraParameter.setType(type);
+//            infraParameter.setReadyForTestGrid(true);
+//            infraParameter.setProperties(infraParam.getProperties());
+//            processedInfraParams.add(infraParameter);
+//        }
+//        return processedInfraParams;
+//    }
 
-        Set<InfrastructureParameter> processedInfraParams = new HashSet<>();
-        Properties properties = new Properties();
-        try {
-            properties.load(new StringReader(infraParam.getProperties()));
-        } catch (IOException e) {
-            logger.warn("Error while loading the infrastructure parameter's properties string for: " + infraParam);
-        }
-        for (Map.Entry entry : properties.entrySet()) {
-            String name = (String) entry.getValue();
-            String type = (String) entry.getKey();
-            String regex = "[\\w,-\\.@:]*";
-            if (type.isEmpty() || !type.matches(regex)
-                    || name.isEmpty() || !name.matches(regex)) {
-                continue;
-            }
-            InfrastructureParameter infraParameter = new InfrastructureParameter();
-            infraParameter.setName(name);
-            infraParameter.setType(type);
-            infraParameter.setReadyForTestGrid(true);
-            infraParameter.setProperties(infraParam.getProperties());
-            processedInfraParams.add(infraParameter);
-        }
-        return processedInfraParams;
-    }
+//    private Set<InfrastructureValueSet> filterInfrastructureResources(Set<InfrastructureValueSet> ivSetsSet,
+//                                                                      JobConfig.Build scheduledBuild) {
+//
+//        if (ivSetsSet.isEmpty()) {
+//            logger.warn("Received zero infrastructure-parameters from database.");
+//            return ivSetsSet;
+//        }
+//
+//        ArrayList<String> includes = new ArrayList<>();
+//        for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()){
+//            Set<String> infrastructureTypes = infraResources.keySet();
+//            String infrastructureType = infrastructureTypes.iterator().next();
+//            includes.addAll(infraResources.get(infrastructureType));
+//        }
+//        Set<InfrastructureValueSet> selectedIVSet;
+//
+//        if (!ListUtils.emptyIfNull(includes).isEmpty()) {
+//            selectedIVSet = ivSetsSet.stream()
+//                    .map(ivSet -> getSelectedIVSet(ip -> includes.contains(ip.getName()), ivSet))
+//                    .filter(ivSet -> !ivSet.getValues().isEmpty())
+//                    .collect(Collectors.toSet());
+//        } else {
+//            selectedIVSet = ConcurrentHashMap.newKeySet();
+//            selectedIVSet.addAll(ivSetsSet);
+//        }
+//
+//        if (selectedIVSet.isEmpty()) {
+//            logger.warn("Filtered infrastructure value-set is empty. A possible cause is incorrect includes/excludes "
+//                    + "configuration in the testgrid.yaml's infrastructureConfig section.");
+//            logger.warn("Infrastructure value-set from the database: " + ivSetsSet);
+//            logger.warn("Testgrid.yaml's includes: " + includes);
+//        }
+//
+//        return selectedIVSet;
+//    }
 
-    private Set<InfrastructureValueSet> filterInfrastructureResources(Set<InfrastructureValueSet> ivSetsSet,
-                                                                      JobConfig.Build build) {
+//    /**
+//     * This class provides set of filtered infrastructure values.
+//     * <p>
+//     * The filtering is executed by reading exclude and include attributes in the @{@link TestgridYaml} file.
+//     * If exclude attribute is set in @{@link TestgridYaml} and if those exist in the current infrastructure value set,
+//     * those will be eliminated. Further, if include attribute is set in @{@link TestgridYaml} and if those
+//     * exist in the current infrastructure value set, only those infrastructures will be considered when creating
+//     * combinations.
+//     *
+//     * @param ivSetsSet    entire infrastructure value set
+//     * @param testgridYaml object model of testgrid.yaml config file
+//     * @return filtered infrastructure value set
+//     */
+//    private Set<InfrastructureValueSet> filterInfrastructures(Set<InfrastructureValueSet> ivSetsSet,
+//                                                              TestgridYaml testgridYaml) {
+//
+//        if (ivSetsSet.isEmpty()) {
+//            logger.warn("Received zero infrastructure-parameters from database.");
+//            return ivSetsSet;
+//        }
+//        List<String> excludes = testgridYaml.getInfrastructureConfig().getExcludes();
+//        List<String> includes = testgridYaml.getInfrastructureConfig().getIncludes();
+//        Set<InfrastructureValueSet> selectedIVSet;
+//
+//        if (!ListUtils.emptyIfNull(excludes).isEmpty()) {
+//            selectedIVSet = ivSetsSet.stream()
+//                    .map(ivSet -> getSelectedIVSet(ip -> !excludes.contains(ip.getName()), ivSet))
+//                    .filter(ivSet -> !ivSet.getValues().isEmpty())
+//                    .collect(Collectors.toSet());
+//        } else if (!ListUtils.emptyIfNull(includes).isEmpty()) {
+//            selectedIVSet = ivSetsSet.stream()
+//                    .map(ivSet -> getSelectedIVSet(ip -> includes.contains(ip.getName()), ivSet))
+//                    .filter(ivSet -> !ivSet.getValues().isEmpty())
+//                    .collect(Collectors.toSet());
+//        } else {
+//            selectedIVSet = ConcurrentHashMap.newKeySet();
+//            selectedIVSet.addAll(ivSetsSet);
+//        }
+//
+//        if (selectedIVSet.isEmpty()) {
+//            logger.warn("Filtered infrastructure value-set is empty. A possible cause is incorrect includes/excludes "
+//                    + "configuration in the testgrid.yaml's infrastructureConfig section.");
+//            logger.warn("Infrastructure value-set from the database: " + ivSetsSet);
+//            logger.warn("Testgrid.yaml's excludes: " + excludes);
+//            logger.warn("Testgrid.yaml's includes: " + includes);
+//        }
+//
+//        return selectedIVSet;
+//    }
 
-        if (ivSetsSet.isEmpty()) {
-            logger.warn("Received zero infrastructure-parameters from database.");
-            return ivSetsSet;
-        }
-        JobConfig.InfraResource selectedInfraResource = build.getFirstInfraResource();
-
-        List<String> includes = selectedInfraResource.getOSResources();
-        includes.addAll(selectedInfraResource.getDBResources());
-        includes.addAll(selectedInfraResource.getJDKResources());
-        Set<InfrastructureValueSet> selectedIVSet;
-
-        if (!ListUtils.emptyIfNull(includes).isEmpty()) {
-            selectedIVSet = ivSetsSet.stream()
-                    .map(ivSet -> getSelectedIVSet(ip -> includes.contains(ip.getName()), ivSet))
-                    .filter(ivSet -> !ivSet.getValues().isEmpty())
-                    .collect(Collectors.toSet());
-        } else {
-            selectedIVSet = ConcurrentHashMap.newKeySet();
-            selectedIVSet.addAll(ivSetsSet);
-        }
-
-        if (selectedIVSet.isEmpty()) {
-            logger.warn("Filtered infrastructure value-set is empty. A possible cause is incorrect includes/excludes "
-                    + "configuration in the testgrid.yaml's infrastructureConfig section.");
-            logger.warn("Infrastructure value-set from the database: " + ivSetsSet);
-            logger.warn("Testgrid.yaml's includes: " + includes);
-        }
-
-        return selectedIVSet;
-    }
-
-    /**
-     * This class provides set of filtered infrastructure values.
-     * <p>
-     * The filtering is executed by reading exclude and include attributes in the @{@link TestgridYaml} file.
-     * If exclude attribute is set in @{@link TestgridYaml} and if those exist in the current infrastructure value set,
-     * those will be eliminated. Further, if include attribute is set in @{@link TestgridYaml} and if those
-     * exist in the current infrastructure value set, only those infrastructures will be considered when creating
-     * combinations.
-     *
-     * @param ivSetsSet    entire infrastructure value set
-     * @param testgridYaml object model of testgrid.yaml config file
-     * @return filtered infrastructure value set
-     */
-    private Set<InfrastructureValueSet> filterInfrastructures(Set<InfrastructureValueSet> ivSetsSet,
-                                                              TestgridYaml testgridYaml) {
-
-        if (ivSetsSet.isEmpty()) {
-            logger.warn("Received zero infrastructure-parameters from database.");
-            return ivSetsSet;
-        }
-        List<String> excludes = testgridYaml.getInfrastructureConfig().getExcludes();
-        List<String> includes = testgridYaml.getInfrastructureConfig().getIncludes();
-        Set<InfrastructureValueSet> selectedIVSet;
-
-        if (!ListUtils.emptyIfNull(excludes).isEmpty()) {
-            selectedIVSet = ivSetsSet.stream()
-                    .map(ivSet -> getSelectedIVSet(ip -> !excludes.contains(ip.getName()), ivSet))
-                    .filter(ivSet -> !ivSet.getValues().isEmpty())
-                    .collect(Collectors.toSet());
-        } else if (!ListUtils.emptyIfNull(includes).isEmpty()) {
-            selectedIVSet = ivSetsSet.stream()
-                    .map(ivSet -> getSelectedIVSet(ip -> includes.contains(ip.getName()), ivSet))
-                    .filter(ivSet -> !ivSet.getValues().isEmpty())
-                    .collect(Collectors.toSet());
-        } else {
-            selectedIVSet = ConcurrentHashMap.newKeySet();
-            selectedIVSet.addAll(ivSetsSet);
-        }
-
-        if (selectedIVSet.isEmpty()) {
-            logger.warn("Filtered infrastructure value-set is empty. A possible cause is incorrect includes/excludes "
-                    + "configuration in the testgrid.yaml's infrastructureConfig section.");
-            logger.warn("Infrastructure value-set from the database: " + ivSetsSet);
-            logger.warn("Testgrid.yaml's excludes: " + excludes);
-            logger.warn("Testgrid.yaml's includes: " + includes);
-        }
-
-        return selectedIVSet;
-    }
-
-    /**
-     * The infrastructureValueSet Consumer function. This function is used in lambdas to either include/exclude
-     * infrastructure parameters based on the testgrid.yaml.
-     */
-    private InfrastructureValueSet getSelectedIVSet(Predicate<InfrastructureParameter> filter,
-                                                    InfrastructureValueSet ivSet) {
-
-        final Set<InfrastructureParameter> selectedIPSet = ivSet.getValues().stream()
-                .filter(filter)
-                .collect(Collectors.toSet());
-        return new InfrastructureValueSet(ivSet.getType(), selectedIPSet);
-    }
+//    /**
+//     * The infrastructureValueSet Consumer function. This function is used in lambdas to either include/exclude
+//     * infrastructure parameters based on the testgrid.yaml.
+//     */
+//    private InfrastructureValueSet getSelectedIVSet(Predicate<InfrastructureParameter> filter,
+//                                                    InfrastructureValueSet ivSet) {
+//
+//        final Set<InfrastructureParameter> selectedIPSet = ivSet.getValues().stream()
+//                .filter(filter)
+//                .collect(Collectors.toSet());
+//        return new InfrastructureValueSet(ivSet.getType(), selectedIPSet);
+//    }
 
 }
