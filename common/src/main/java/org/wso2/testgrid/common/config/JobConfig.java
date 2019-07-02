@@ -27,6 +27,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static org.wso2.testgrid.common.TestGridConstants.ALL_ALGO;
 import static org.wso2.testgrid.common.TestGridConstants.AT_LEAST_ONE_ALGO;
@@ -88,7 +89,11 @@ public class JobConfig implements Serializable {
 
         private String schedule;
         private String combinationAlgorithm;
-        private List<Map<String, String>> combinations;
+
+        // either mention combiations or infraResources.
+        // 'exact' algorithm can only take combinations, while others can take infraResources.
+        private List<TreeMap<String, String>> combinations;
+        //todo sort the combinations by type
         private List<Map<String, List<String>>> infraResources;
 
         public String getSchedule() {
@@ -111,12 +116,12 @@ public class JobConfig implements Serializable {
             this.combinationAlgorithm = combinationAlgorithm;
         }
 
-        public List<Map<String, String>> getCombinations() {
+        public List<TreeMap<String, String>> getCombinations() {
 
             return ListUtils.emptyIfNull(combinations);
         }
 
-        public void setCombinations(List<Map<String, String>> combinations) {
+        public void setCombinations(List<TreeMap<String, String>> combinations) {
 
             this.combinations = combinations;
         }
@@ -201,7 +206,7 @@ public class JobConfig implements Serializable {
      * @return True or False, based on the validity of the builds
      */
     private static boolean validateTestgridYamlBuldCombinations(Build build) {
-        List<Map<String, String>> combinations = build.getCombinations();
+        List<TreeMap<String, String>> combinations = build.getCombinations();
         for (Map<String, String> combination : combinations) {
             if (combination.values().contains(null)) {
                 logger.warn("testgrid.yaml contain a invalid combination resource for given build combination. " +
@@ -229,8 +234,5 @@ public class JobConfig implements Serializable {
         }
         return true;
     }
-
-
-
 
 }
