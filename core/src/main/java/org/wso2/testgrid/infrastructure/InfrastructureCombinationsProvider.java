@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
+
 import static org.wso2.testgrid.common.TestGridConstants.ALL_ALGO;
 import static org.wso2.testgrid.common.TestGridConstants.AT_LEAST_ONE_ALGO;
 import static org.wso2.testgrid.common.TestGridConstants.EXACT_ALGO;
@@ -129,23 +131,25 @@ public class InfrastructureCombinationsProvider {
 
         Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
 
-        for (Map<String, String> combination : scheduledBuild.getCombinations()) {
+        for (TreeMap<String, String> combination : scheduledBuild.getCombinations()) {
             InfrastructureCombination infraCombination = new InfrastructureCombination();
             StringBuilder infraCombinationId = new StringBuilder();
             boolean isValidResource = true;
             for (Map.Entry<String, String> entry : combination.entrySet()) {
                 Set<InfrastructureParameter> infrastructureParameters;
-                if (findInfraValueSetByType(valueSets, entry.getKey()).isPresent()) {
-                    infrastructureParameters = findInfraValueSetByType(
-                            valueSets, entry.getKey()).get().getValues();
+
+                Optional<InfrastructureValueSet> infraValueSet = findInfraValueSetByType(valueSets, entry.getKey());
+                if (infraValueSet.isPresent()) {
+                    infrastructureParameters = infraValueSet.get().getValues();
                     if (findInfraParameterByName(infrastructureParameters, entry.getValue()).isPresent()) {
                         InfrastructureParameter infraParameter = findInfraParameterByName(
                                 infrastructureParameters, entry.getValue()).get();
                         infraCombination.addParameter(infraParameter);
                         infraCombinationId.append("_").append(entry.getValue());
                     } else {
-                        logger.warn("Since the given " + entry.getKey() + " resource not exist in database, " +
-                                "can not generate combination.");
+                        logger.warn("Since the given " + entry.getKey() + " infrastructure type is a reserved type " +
+                                "and " + entry.getValue() + " not exist in database, can not generate combination. " +
+                                "Please use existing infrastructure resource for reserved type.");
                         isValidResource = false;
                         break;
                     }
@@ -171,7 +175,9 @@ public class InfrastructureCombinationsProvider {
 
     /**
      * This function is used to generate combination using given infrastructure resources in testgrid.yaml file
-     * according to the at least one resource algorithm.
+     * according to the at least one resource algorithm. The algorithm select largest list and identify the size of
+     * largest list. Then increasing index from 0 to size of the largest list while selecting elements by
+     * getting the modulus of index of each list. This will enable circular iteration for smaller lists.
      *
      * @param valueSets          set of infrastructure parameters
      * @param scheduledBuild    scheduled build
@@ -197,12 +203,13 @@ public class InfrastructureCombinationsProvider {
                         if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
                             infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
                         } else {
-                            logger.warn("Since the given " + name + " resource is not exist in database, " +
-                                    " skip given resource combinations.");
+                            logger.warn("Since the given " + entry.getKey() + " infrastructure type is a reserved " +
+                                    "type and " + name + " not exist in database, can not generate " +
+                                    "combination. Please use existing infrastructure resource for reserved type.");
                         }
                     }
                 } else {
-                    logger.warn("Since the given " + entry.getKey() + " infrastructure is not exist in database, " +
+                    logger.warn("Since the given " + entry.getKey() + " infrastructure is not a reserved type," +
                             " adding resources without properties.");
                     for (String name : entry.getValue()) {
                         InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
@@ -239,7 +246,7 @@ public class InfrastructureCombinationsProvider {
 
     /**
      * This function is used to generate combination using given infrastructure resources in testgrid.yaml file
-     * according to the all combinations algorithm.
+     * according to the all combinations algorithm. This function uses a recursive function to generate combinations.
      *
      * @param valueSets          set of infrastructure parameters
      * @param scheduledBuild    scheduled build
@@ -263,13 +270,14 @@ public class InfrastructureCombinationsProvider {
                         if (findInfraParameterByName(infrastructureParameters, name).isPresent()) {
                             infrastructureList.add(findInfraParameterByName(infrastructureParameters, name).get());
                         } else {
-                            logger.warn("Since the given " + name + " resource is not  exist in database, " +
-                                    " skip given resource combinations.");
+                            logger.warn("Since the given " + entry.getKey() + " infrastructure type is a reserved " +
+                                    "type and " + name + " not exist in database, can not generate " +
+                                    "combination. Please use existing infrastructure resource for reserved type.");
                         }
                     }
                 } else {
-                    logger.warn("Since the given " + entry.getKey() + " infrastructure is not exist in database, " +
-                            " adding resources without properties.");
+                    logger.warn("Since the given " + entry.getKey() + " infrastructure is not a reserved type, " +
+                            "adding resources without properties.");
                     for (String name : entry.getValue()) {
                         InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
                                 name, entry.getKey(), null, true);
@@ -313,16 +321,13 @@ public class InfrastructureCombinationsProvider {
     private Optional<InfrastructureValueSet> findInfraValueSetByType(
             Set<InfrastructureValueSet> valueSets, String type) {
 
-        for (InfrastructureValueSet valueSet : valueSets) {
-            if (valueSet.getType().equals(type)) {
-                return Optional.of(valueSet);
-            }
-        }
-        return Optional.empty();
+        return valueSets.stream()
+                .filter(valueSet -> valueSet.getType().equals(type))
+                .findAny();
     }
 
     /**
-     * This function is used to filter infrastructure parameters by given infrastructure type.
+     * This function is used to filter infrastructure parameters by given infrastructure name.
      *
      * @param infrastructureParameters     set of infrastructure parameters
      * @param name          infrastructure name
@@ -331,16 +336,14 @@ public class InfrastructureCombinationsProvider {
     private Optional<InfrastructureParameter> findInfraParameterByName(
             Set<InfrastructureParameter> infrastructureParameters, String name) {
 
-        for (InfrastructureParameter infrastructureParameter : infrastructureParameters) {
-            if (infrastructureParameter.getName().equals(name)) {
-                return Optional.of(infrastructureParameter);
-            }
-        }
-        return Optional.empty();
+        return infrastructureParameters.stream()
+                .filter(infrastructureParameter -> infrastructureParameter.getName().equals(name))
+                .findAny();
     }
 
     /**
      * This recursive function is used to generate all combination for given list of infrastructure parameter lists.
+     * This function iterate through each and every list and select each element to generate the combination set.
      *
      * @param lists                 set of infrastructure parameters
      * @param result                infrastructure name
