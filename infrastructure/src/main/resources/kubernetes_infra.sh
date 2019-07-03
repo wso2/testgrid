@@ -57,13 +57,15 @@ function check_tools() {
 function auth() {
 
      #authentication access to the google cloud
-    gcloud auth activate-service-account --key-file=key.json
+    gcloud auth activate-service-account --key-file=$INPUT_DIR/key.json
 
     #service account setup
     gcloud config set account $SERVICE_ACCOUNT
 
     #access the cluster
     gcloud container clusters get-credentials $CLUSTER_NAME --zone $ZONE --project $PROJECT_NAME
+
+    rm $INPUT_DIR/key.json
 
 }
 
