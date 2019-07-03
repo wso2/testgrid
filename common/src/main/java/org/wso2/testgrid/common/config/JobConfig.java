@@ -93,7 +93,7 @@ public class JobConfig implements Serializable {
         // either mention combiations or infraResources.
         // 'exact' algorithm can only take combinations, while others can take infraResources.
         private List<TreeMap<String, String>> combinations;
-        private List<Map<String, List<String>>> infraResources;
+        private List<TreeMap<String, List<String>>> infraResources;
 
         public String getSchedule() {
 
@@ -125,12 +125,12 @@ public class JobConfig implements Serializable {
             this.combinations = combinations;
         }
 
-        public List<Map<String, List<String>>> getInfraResources() {
+        public List<TreeMap<String, List<String>>> getInfraResources() {
 
             return ListUtils.emptyIfNull(infraResources);
         }
 
-        public void setInfraResources(List<Map<String, List<String>>> infraResources) {
+        public void setInfraResources(List<TreeMap<String, List<String>>> infraResources) {
 
             this.infraResources = infraResources;
         }
@@ -183,8 +183,8 @@ public class JobConfig implements Serializable {
                     return false;
                 }
                 if (!build.getInfraResources().isEmpty()) {
-                    logger.warn("testgrid.yaml contains infrastructure resources field with exact algorithm build and" +
-                            " Infrastructure resources field has been ignored.");
+                    logger.warn("testgrid.yaml contains infrastructure resources field with exact algorithm build " +
+                            "and Infrastructure resources field has been ignored.");
                 }
             }
             if (build.getCombinationAlgorithm().equals(AT_LEAST_ONE_ALGO) ||
@@ -231,8 +231,8 @@ public class JobConfig implements Serializable {
      * @return True or False, based on the validity of the builds
      */
     private static boolean validateTestgridYamlInfraResources(Build build) {
-        List<Map<String, List<String>>> infraResources = build.getInfraResources();
-        for (Map<String, List<String>> infraResource : infraResources) {
+        List<TreeMap<String, List<String>>> infraResources = build.getInfraResources();
+        for (TreeMap<String, List<String>> infraResource : infraResources) {
             if (infraResource.values().contains(null)) {
                 logger.warn("testgrid.yaml contain a invalid infrastructure resource for a given type. " +
                         "Invalid testgrid.yaml");

@@ -166,9 +166,6 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
                 return properties;
             } catch (IOException e) {
                 logger.warn("Error while loading the infrastructure parameter's properties string for: " + this);
-            } catch (NullPointerException e) {
-                logger.warn("No sub properties found while loading the infrastructure parameter's properties " +
-                        "string for: " + this);
             }
         return null;
     }
