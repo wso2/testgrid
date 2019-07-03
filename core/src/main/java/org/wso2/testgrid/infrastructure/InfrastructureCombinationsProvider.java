@@ -32,7 +32,6 @@ import org.wso2.testgrid.dao.uow.InfrastructureParameterUOW;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -156,7 +155,7 @@ public class InfrastructureCombinationsProvider {
                 } else {
                     InfrastructureParameter infraParameter = new InfrastructureParameter(
                             entry.getValue(), entry.getKey(),
-                            null, true);
+                            "", true);
                     infraCombination.addParameter(infraParameter);
                     infraCombinationId.append("_").append(entry.getValue());
                 }
@@ -193,7 +192,7 @@ public class InfrastructureCombinationsProvider {
         int infrastructureCount = 0;
         Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
         List<List<InfrastructureParameter>> listOfInfrastructureList = new ArrayList<>();
-        for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()) {
+        for (TreeMap<String, List<String>> infraResources : scheduledBuild.getInfraResources()) {
             for (Map.Entry<String, List<String>> entry : infraResources.entrySet()) {
                 List<InfrastructureParameter> infrastructureList = new ArrayList<>();
                 if (findInfraValueSetByType(valueSets, entry.getKey()).isPresent()) {
@@ -213,7 +212,7 @@ public class InfrastructureCombinationsProvider {
                             " adding resources without properties.");
                     for (String name : entry.getValue()) {
                         InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
-                                name, entry.getKey(), null, true);
+                                name, entry.getKey(), "", true);
                         infrastructureList.add(infrastructureParameter);
                     }
                 }
@@ -252,7 +251,7 @@ public class InfrastructureCombinationsProvider {
      * @param scheduledBuild    scheduled build
      * @return  infrastructure combination set
      */
-    private Set<InfrastructureCombination> getCombinationsForAll(
+    public Set<InfrastructureCombination> getCombinationsForAll(
             Set<InfrastructureValueSet> valueSets, JobConfig.Build scheduledBuild) {
 
         if (valueSets.size() == 0) {
@@ -260,7 +259,7 @@ public class InfrastructureCombinationsProvider {
         }
 
         List<List<InfrastructureParameter>> listOfInfrastructureList = new ArrayList<>();
-        for (Map<String, List<String>> infraResources : scheduledBuild.getInfraResources()) {
+        for (TreeMap<String, List<String>> infraResources : scheduledBuild.getInfraResources()) {
             for (Map.Entry<String, List<String>> entry : infraResources.entrySet()) {
                 List<InfrastructureParameter> infrastructureList = new ArrayList<>();
                 if (findInfraValueSetByType(valueSets, entry.getKey()).isPresent()) {
@@ -280,7 +279,7 @@ public class InfrastructureCombinationsProvider {
                             "adding resources without properties.");
                     for (String name : entry.getValue()) {
                         InfrastructureParameter infrastructureParameter = new InfrastructureParameter(
-                                name, entry.getKey(), null, true);
+                                name, entry.getKey(), "", true);
                         infrastructureList.add(infrastructureParameter);
                     }
                 }
@@ -371,50 +370,50 @@ public class InfrastructureCombinationsProvider {
         }
     }
 
-    public Set<InfrastructureCombination> getCombinationsForAll(Set<InfrastructureValueSet> valueSets) {
-
-        if (valueSets.size() == 0) {
-            return Collections.emptySet();
-        }
-
-        if (valueSets.size() == 1) {
-            Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
-            for (InfrastructureParameter value : valueSets.iterator().next().getValues()) {
-                InfrastructureParameter infraParameter = new InfrastructureParameter();
-                infraParameter.setName(value.getName());
-                infraParameter.setType(value.getType());
-                infraParameter.setReadyForTestGrid(value.isReadyForTestGrid());
-                infraParameter.setProperties(value.getProperties());
-                InfrastructureCombination infraCombination =
-                        new InfrastructureCombination(infraParameter);
-                infraCombination.setInfraCombinationId(value.getName());
-                infrastructureCombinations.add(infraCombination);
-            }
-            return infrastructureCombinations;
-        }
-
-        Iterator<InfrastructureValueSet> valueSetIterator = valueSets.iterator();
-        InfrastructureValueSet currentValueSet = valueSetIterator.next();
-        valueSetIterator.remove();
-        Set<InfrastructureCombination> combinationsSubSet = getCombinationsForAll(valueSets);
-        Set<InfrastructureCombination> finalInfrastructureCombinations = new HashSet<>(
-                combinationsSubSet.size() * currentValueSet.getValues().size());
-        //add the currentValueSet to the returning combinations and create a new combination set.
-        for (InfrastructureParameter value : currentValueSet.getValues()) {
-            for (InfrastructureCombination infrastructureCombination : combinationsSubSet) {
-                InfrastructureCombination clone = infrastructureCombination.clone();
-                InfrastructureParameter infraParameter = new InfrastructureParameter();
-                infraParameter.setName(value.getName());
-                infraParameter.setType(value.getType());
-                infraParameter.setReadyForTestGrid(value.isReadyForTestGrid());
-                infraParameter.setProperties(value.getProperties());
-                clone.addParameter(infraParameter);
-                clone.setInfraCombinationId(clone.getInfraCombinationId() + "_" + value.getName());
-                finalInfrastructureCombinations.add(clone);
-            }
-        }
-        return finalInfrastructureCombinations;
-    }
+//    public Set<InfrastructureCombination> getCombinationsForAll(Set<InfrastructureValueSet> valueSets) {
+//
+//        if (valueSets.size() == 0) {
+//            return Collections.emptySet();
+//        }
+//
+//        if (valueSets.size() == 1) {
+//            Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
+//            for (InfrastructureParameter value : valueSets.iterator().next().getValues()) {
+//                InfrastructureParameter infraParameter = new InfrastructureParameter();
+//                infraParameter.setName(value.getName());
+//                infraParameter.setType(value.getType());
+//                infraParameter.setReadyForTestGrid(value.isReadyForTestGrid());
+//                infraParameter.setProperties(value.getProperties());
+//                InfrastructureCombination infraCombination =
+//                        new InfrastructureCombination(infraParameter);
+//                infraCombination.setInfraCombinationId(value.getName());
+//                infrastructureCombinations.add(infraCombination);
+//            }
+//            return infrastructureCombinations;
+//        }
+//
+//        Iterator<InfrastructureValueSet> valueSetIterator = valueSets.iterator();
+//        InfrastructureValueSet currentValueSet = valueSetIterator.next();
+//        valueSetIterator.remove();
+//        Set<InfrastructureCombination> combinationsSubSet = getCombinationsForAll(valueSets);
+//        Set<InfrastructureCombination> finalInfrastructureCombinations = new HashSet<>(
+//                combinationsSubSet.size() * currentValueSet.getValues().size());
+//        //add the currentValueSet to the returning combinations and create a new combination set.
+//        for (InfrastructureParameter value : currentValueSet.getValues()) {
+//            for (InfrastructureCombination infrastructureCombination : combinationsSubSet) {
+//                InfrastructureCombination clone = infrastructureCombination.clone();
+//                InfrastructureParameter infraParameter = new InfrastructureParameter();
+//                infraParameter.setName(value.getName());
+//                infraParameter.setType(value.getType());
+//                infraParameter.setReadyForTestGrid(value.isReadyForTestGrid());
+//                infraParameter.setProperties(value.getProperties());
+//                clone.addParameter(infraParameter);
+//                clone.setInfraCombinationId(clone.getInfraCombinationId() + "_" + value.getName());
+//                finalInfrastructureCombinations.add(clone);
+//            }
+//        }
+//        return finalInfrastructureCombinations;
+//    }
 
 //    public Set<InfrastructureParameter> getProcessedInfrastructureParameters(InfrastructureParameter infraParam) {
 //
