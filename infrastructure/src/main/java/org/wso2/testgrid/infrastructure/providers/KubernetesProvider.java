@@ -17,7 +17,6 @@
  */
 package org.wso2.testgrid.infrastructure.providers;
 
-import com.sun.javafx.fxml.PropertyNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.InfrastructureProvider;
@@ -149,7 +148,7 @@ public class KubernetesProvider implements InfrastructureProvider {
                     ConfigurationProperties.WUM_USERNAME);
             wumPassword = ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.WUM_PASSWORD);
-        } catch (PropertyNotFoundException e) {
+        } catch (Exception e) {
             logger.error("Wum username and passwords are not included.");
         }
 
