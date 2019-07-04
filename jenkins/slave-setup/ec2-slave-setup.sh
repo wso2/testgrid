@@ -45,7 +45,7 @@ scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}
 echo "Copying config.properties from master!"
 scp -i ${MASTER_KEY_LOCATION} -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:${TESTGRID_HOME}/config.properties ${TESTGRID_HOME}
 echo "Copying JMETER from master!"
-scp -i ${MASTER_KEY_LOCATION} -r -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:/testgrid/apache-jmeter-3.3 /testgrid
+scp -qi ${MASTER_KEY_LOCATION} -r -o StrictHostKeyChecking=no ubuntu@${TG_MASTER_IP}:/testgrid/apache-jmeter-3.3 /testgrid
 echo "set JMETER_HOME"
 export JMETER_HOME=/testgrid/apache-jmeter-3.3
 echo 'JMETER_HOME="/testgrid/apache-jmeter-3.3"' >> /etc/environment
@@ -61,6 +61,8 @@ nohup Xvfb :95 -screen 0 1024x768x16 > /dev/null 2>&1 &
 
 # Changing the testgrid home ownership
 chown -R ubuntu:ubuntu ${TESTGRID_HOME}
+
+rm ${MASTER_KEY_LOCATION}
 
 # Install GCloud
 #export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
