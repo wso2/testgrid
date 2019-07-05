@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -148,9 +147,9 @@ public class AWSResourceManagerTest extends PowerMockTestCase {
         script.setType(Script.ScriptType.CLOUDFORMATION);
         script.setFile("template.yaml");
         script.setName("mockStack");
-        Properties scriptParameters = new Properties();
-        scriptParameters.setProperty("EC2KeyPair", "test-grid.key");
-        scriptParameters.setProperty("region", "us-east-1");
+        HashMap scriptParameters = new HashMap();
+        scriptParameters.put("EC2KeyPair", "test-grid.key");
+        scriptParameters.put("region", "us-east-1");
         script.setInputParameters(scriptParameters);
 
         InfrastructureConfig infrastructureConfig = new InfrastructureConfig();

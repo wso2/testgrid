@@ -194,7 +194,7 @@ public class AWSProvider implements InfrastructureProvider {
             logger.info("Region is not provided as an input parameter, Setting " +
                     "the region as : " + DEFAULT_REGION);
         }
-        script.getInputParameters().setProperty(AWS_REGION_PARAMETER, region);
+        script.getInputParameters().put(AWS_REGION_PARAMETER, region);
         AmazonCloudFormation cloudFormation = AmazonCloudFormationClientBuilder.standard()
                 .withCredentials(new PropertiesFileCredentialsProvider(configFilePath.toString()))
                 .withRegion(region)

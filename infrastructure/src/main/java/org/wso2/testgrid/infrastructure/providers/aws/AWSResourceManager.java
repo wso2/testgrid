@@ -173,7 +173,7 @@ public class AWSResourceManager {
      */
     public void notifyStackCreation(TestPlan testPlan, Script script, List<StackEvent> stackEventList)
             throws TestGridDAOException, TestGridInfrastructureException {
-        String region = script.getInputParameters().getProperty(AWS_REGION_PARAMETER);
+        String region = (String) script.getInputParameters().get(AWS_REGION_PARAMETER);
 
         /*
         * Persist AWS resource requirements only if it is the first test plan for
