@@ -17,11 +17,18 @@
 #--------------------------------------------------------------------------------
 set -o xtrace
 
+#
+#This script contains creation of infrastructure through helm. Basic authenticaiton and
+#creation of namespace is done by this script
+#
+
 ClusterName=""
 INPUT_DIR=$2
 OUTPUT_DIR=$4
 source $INPUT_DIR/testplan-props.properties
 
+#if the cluster name is not specified through input parametes it is assumed that the default
+#testgrid cluster is used for the creation of resources.
 
 if [ -z $ClusterName ]
 then
@@ -30,7 +37,7 @@ then
     ZONE="us-central1-a"
     PROJECT_NAME="testgrid" 
 fi
-#TODO
+
 #functions
 
 function check_tools() {
@@ -67,24 +74,9 @@ function auth() {
     gcloud container clusters get-credentials $CLUSTER_NAME --zone $ZONE --project $PROJECT_NAME
 
     rm $INPUT_DIR/key.json
-    
-
-    #install helm in not installed
-    install_helm
 
 }
 
-function install_helm() {
-
-    if ! type 'helm'
-    then
-        curl -LO https://git.io/get_helm.sh
-        chmod 700 get_helm.sh
-        ./get_helm.sh
-        helm init
-    fi
-    
-}
 function create_randomName() {
     if [ -z $name ]
     then 
@@ -94,6 +86,7 @@ function create_randomName() {
     echo $NAME
 }
 
+#creation of namespace for the deployment of resources.
 function create_namespace() {
     create_randomName
     kubectl create namespace $NAME
@@ -101,6 +94,7 @@ function create_namespace() {
     kubectl config view | grep namespace:
 }
 
+#This function will set properties which will be used by the deploy phase
 function set_properties() {
     echo "namespace=$NAME" >> $OUTPUT_DIR/infrastructure.properties
     echo "randomPort=True">> $OUTPUT_DIR/infrastructure.properties

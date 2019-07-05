@@ -18,6 +18,11 @@
 #--------------------------------------------------------------------------------
 
 set -o xtrace
+#
+#this script would destroy the resources created. The namespace will contain all the
+#resources created for this testPlan. Hence the namespace will be destroyed to destroy all
+#the resources created.
+#
 
 #definitions
 INPUT_DIR=$2

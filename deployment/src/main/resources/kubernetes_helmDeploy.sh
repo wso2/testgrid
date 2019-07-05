@@ -17,6 +17,12 @@
 #--------------------------------------------------------------------------------
 
 set -o xtrace
+
+#
+#This class is used for the deployment of resources into the namespace using helm
+#The created resources will be exposed using an Ingress to the external usage
+#
+
 echo "deploy file is found"
 dryRun=False
 
@@ -34,6 +40,7 @@ yamls=($YAMLS)
 no_yamls=${#yamls[@]}
 dep=($deployments)
 dep_num=${#dep[@]}
+
 
 function create_k8s_resources() {
 
@@ -148,6 +155,7 @@ EOF
     echo "loadBalancerHostName=$loadBalancerHostName" >> $OUTPUT_DIR/deployment.properties
 }
 
+#This function constantly check whether the deployments are correctly deployed in the cluster
 function readiness_deployments(){
     start=`date +%s`
     i=0;
@@ -169,6 +177,7 @@ function readiness_deployments(){
     echo
 }
 
+#This function check whether the ingress service created is correctly deployed in the cluster
 function readinesss_services(){
     start=`date +%s`
     i=0;
@@ -191,6 +200,8 @@ function readinesss_services(){
 
 }
 
+#This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
+#Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
     env=${TESTGRID_ENVIRONMENT} || 'dev'
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
@@ -280,8 +291,10 @@ function transfer_yaml_files(){
 
 }
 
+#deployment of resources using helm
 function install_helm(){
 
+  #if helm is not installed in the cluster, helm and tiller will be installed.
   if [ -z helm ]
   then
     curl -LO https://git.io/get_helm.sh
@@ -292,6 +305,8 @@ function install_helm(){
     kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
     kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
   fi
+
+  #install resources using helm
   helmDeployment="wso2apim$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)"
   helm install --name $helmDeployment $deploymentRepositoryLocation/
 
@@ -299,6 +314,8 @@ function install_helm(){
 
 }
 
+#installation of database differs accoring to the type of database resource found.
+#This function is to deploy the database correctly as found in the test plan.
 function resources_deployment(){
 
     if [ "$DBEngine" == "mysql"]

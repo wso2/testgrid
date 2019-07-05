@@ -17,12 +17,18 @@
 #--------------------------------------------------------------------------------
 set -o xtrace
 
+#
+#This script contains creation of infrastructure through kubectl commands.
+# Basic authenticaiton and creation of namespace is done by this script
+#
+
 ClusterName=""
 INPUT_DIR=$2
 OUTPUT_DIR=$4
 source $INPUT_DIR/testplan-props.properties
 
-
+#if the cluster name is not specified through input parametes it is assumed that the default
+#testgrid cluster is used for the creation of resources.
 if [ -z $ClusterName ]
 then
     SERVICE_ACCOUNT="gke-bot@testgrid.iam.gserviceaccount.com"
@@ -78,6 +84,7 @@ function create_randomName() {
     echo $NAME
 }
 
+#random namespace will be created for the deployment of resources
 function create_namespace() {
     create_randomName
     kubectl create namespace $NAME
@@ -85,6 +92,7 @@ function create_namespace() {
     kubectl config view | grep namespace:
 }
 
+#these properties will be used by the deploy phase.
 function set_properties() {
     echo "namespace=$NAME" >> $OUTPUT_DIR/infrastructure.properties
     echo "randomPort=True">> $OUTPUT_DIR/infrastructure.properties
