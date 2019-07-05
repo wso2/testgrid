@@ -43,7 +43,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+
 
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
@@ -183,7 +189,7 @@ public class InfraPhase extends Phase {
                 printWriter.println(key + "=" + infraParameters.getProperty(key));
             }
             printWriter.println((TestGridConstants.KEY_FILE_LOCATION + "=" + keyFileLocation));
-            for (Script script : getTestPlan().getInfrastructureConfig().getFirstProvisioner().getScripts()){
+            for (Script script : getTestPlan().getInfrastructureConfig().getFirstProvisioner().getScripts()) {
                 HashMap inputParams = script.getInputParameters();
                 Iterator it = inputParams.entrySet().iterator();
                 while (it.hasNext()) {
