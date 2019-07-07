@@ -179,10 +179,9 @@ function config_uat(){
     else
       top_conf=$(head -n `expr $line_end` ${WUM_TMP})
     fi
-    refresh_token=$(cat ${WUM_TMP} | grep "refreshtoken:" | head -1)
-    access_token=$(cat ${WUM_TMP} | grep "accesstoken:" | head -1)
 
     echo "${top_conf}" > ${WUM_CONFIG_FILE}
+
   cat >> $WUM_CONFIG_FILE << EOF
   uat:
     enabled: true
@@ -190,10 +189,10 @@ function config_uat(){
     url: ${UAT_URL}
     tokenurl: https://api.updates.wso2.com/token
     appkey: ${UAT_APPKEY}
+    refreshtoken:
+    accesstoken:
 EOF
 
-    echo "${refresh_token}" >> ${WUM_CONFIG_FILE}
-    echo "${access_token}" >> ${WUM_CONFIG_FILE}
     echo "${bottom_conf}" >> ${WUM_CONFIG_FILE}
 
     rm $WUM_TMP
