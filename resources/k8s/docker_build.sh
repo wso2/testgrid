@@ -148,7 +148,7 @@ function install_dependencies() {
     export PATH=$PATH:/usr/local/wum/bin
 
     if ! wum init -u ${WUM_USERNAME} -p ${WUM_PASSWORD}; then
-      log_error "WUM initiation failed for ${WUM_USERNAME}"
+      log_error "WUM initiation failed."
     fi
 
   fi
@@ -202,6 +202,8 @@ EOF
 }
 
 function get_wum_update() {
+
+    wum init -u ${WUM_USERNAME} -p ${WUM_PASSWORD}
 
     if ! $(wum list | grep -q ${PRODUCT}) ; then
        log_info "${PRODUCT} is not configured !."
