@@ -205,7 +205,7 @@ function get_wum_update() {
 
     if ! $(wum list | grep -q ${PRODUCT}) ; then
        log_info "${PRODUCT} is not configured !."
-       if ! wum add --assumeyes ${PRODUCT} ; then
+       if ! wum add --assumeyes -v ${PRODUCT} ; then
            log_error "Cannot add ${PRODUCT} to the WUM"
           else
            log_info "${PRODUCT} is added to WUM !"
