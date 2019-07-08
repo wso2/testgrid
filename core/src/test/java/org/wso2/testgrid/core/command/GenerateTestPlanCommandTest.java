@@ -143,6 +143,8 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
                 .replaceAll(repoPath, Paths.get(repoPath).toAbsolutePath().normalize().toString());
         expectedTestPlanContent = expectedTestPlanContent.replace("<workspace-to-be-added-at-runtime>",
                 testPlan.getWorkspace());
+        logger.info("Generated Test Plan: " + generatedTestPlanContent);
+        logger.info("Expected Test Paln : " + expectedTestPlanContent);
         Assert.assertEquals(generatedTestPlanContent, expectedTestPlanContent, "Generated test-plan is not correct.");
     }
 

@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
@@ -62,7 +61,7 @@ public class InfrastructureCombinationsProviderTest {
     private final ArrayList<String> dbParamVals = new ArrayList<>();
 
     private final JobConfig.Build scheduledBuild = new JobConfig.Build();
-    private final TreeMap<String,List<String>> infraResourceMap = new TreeMap<>();
+    private final TreeMap<String, List<String>> infraResourceMap = new TreeMap<>();
     private final List<TreeMap<String, List<String>>> infraResources = new ArrayList<>();
 
     @BeforeTest
@@ -70,9 +69,9 @@ public class InfrastructureCombinationsProviderTest {
         osParamVals.addAll(Arrays.asList("Ubuntu-18.04", "Windows-2016", "CentOS-7.5"));
         jdkParamVals.addAll(Arrays.asList("ORACLE_JDK8", "OPEN_JDK8", "ADOPT_JDK8"));
         dbParamVals.addAll(Arrays.asList("MySQL-5.6", "SQLServer-SE-13.00", "Postgres-10.5"));
-        infraResourceMap.put(osPramKey,osParamVals);
-        infraResourceMap.put(jdkParamKey,jdkParamVals);
-        infraResourceMap.put(dbEngineParamKey,dbParamVals);
+        infraResourceMap.put(osPramKey, osParamVals);
+        infraResourceMap.put(jdkParamKey, jdkParamVals);
+        infraResourceMap.put(dbEngineParamKey, dbParamVals);
         infraResources.add(infraResourceMap);
         scheduledBuild.setSchedule("monthly");
         scheduledBuild.setCombinationAlgorithm("all");
@@ -102,7 +101,7 @@ public class InfrastructureCombinationsProviderTest {
         valueSets.add(jdkValueSet);
 
         Set<InfrastructureCombination> combinations = new InfrastructureCombinationsProvider()
-                .getCombinationsForAll(valueSets,scheduledBuild);
+                .getCombinationsForAll(valueSets, scheduledBuild);
         logger.info("Generated infrastructure combinations: " + combinations);
         //Expected value should be the permutation count of distinct infra-param values.( 2! x 2! x 1!)
         Assert.assertEquals(combinations.size(), 4, "There must be two infrastructure combinations.");

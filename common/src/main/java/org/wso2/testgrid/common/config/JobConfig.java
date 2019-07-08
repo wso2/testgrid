@@ -144,19 +144,40 @@ public class JobConfig implements Serializable {
      * @return True or False, based on the validity of the testgridYaml
      */
     public static boolean validateTestgridYamlJobConfig(TestgridYaml testgridYaml) {
-
         JobConfig jobConfig = testgridYaml.getJobConfig();
         if (jobConfig != null) {
             if (jobConfig.getBuilds().isEmpty()) {
-                logger.warn("testgrid.yaml doesn't contain at least single build configuration. " +
-                        "Invalid testgrid.yaml");
-                return false;
+                logger.warn("Since testgrid.yaml file doesn't contain at least single build configuration, checking " +
+                        "infrastructure includes or excludes section on testgrid.yaml file.");
+                 InfrastructureConfig infrastructureConfig = testgridYaml.getInfrastructureConfig();
+                 return (validateInfrastructureIncludesExcludes(infrastructureConfig));
             }
         } else {
-            logger.warn("testgrid.yaml doesn't have defined the job configuration. Invalid testgrid.yaml");
-            return false;
+            logger.warn("Since testgrid.yaml file doesn't have defined the job configuration, checking " +
+                    "infrastructure includes or excludes section on testgrid.yaml file.");
+            InfrastructureConfig infrastructureConfig = testgridYaml.getInfrastructureConfig();
+            return (validateInfrastructureIncludesExcludes(infrastructureConfig));
+
         }
         return validateTestgridYamlBuilds(jobConfig.getBuilds());
+    }
+
+    /**
+     * Validate the testgridYaml. It must contain infrastructure includes or excludes section if it does not contain
+     * a jobconfig section.
+     *
+     * @param infrastructureConfig Infrastructure configuration
+     * @return True or False, based on the validity of the infrastructure include
+     */
+    private static boolean validateInfrastructureIncludesExcludes(InfrastructureConfig infrastructureConfig) {
+        List<String> include = infrastructureConfig.getIncludes();
+        List<String> excludes = infrastructureConfig.getExcludes();
+        if ((excludes == null || excludes.isEmpty()) && (include == null || include.isEmpty())) {
+            logger.warn("testgrid.yaml does not contain infrastructure resources in includes or excludes section. " +
+                    "Invalid testgrid.yaml");
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -166,7 +187,6 @@ public class JobConfig implements Serializable {
      * @return True or False, based on the validity of the builds
      */
     private static boolean validateTestgridYamlBuilds(List<Build> builds) {
-
         for (JobConfig.Build build : builds) {
             if (build.getCombinationAlgorithm() == null) {
                 logger.warn("testgrid.yaml doesn't define combination algorithm for build. " +

@@ -19,6 +19,7 @@
 
 package org.wso2.testgrid.infrastructure;
 
+import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.JobConfig;
@@ -37,6 +38,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.wso2.testgrid.common.TestGridConstants.ALL_ALGO;
 import static org.wso2.testgrid.common.TestGridConstants.AT_LEAST_ONE_ALGO;
@@ -66,15 +69,34 @@ public class InfrastructureCombinationsProvider {
     public Set<InfrastructureCombination> getCombinations(TestgridYaml testgridYaml) throws TestGridDAOException {
 
         Set<InfrastructureValueSet> ivSets = new InfrastructureParameterUOW().getValueSet();
+
         if (logger.isDebugEnabled()) {
             logger.debug(String.format("Retrieved value-set from database: %s", ivSets));
         }
 
-        logger.info("List of infrastructure value sets: " + ivSets);
-
         JobConfig jobconfig = testgridYaml.getJobConfig();
-        List<JobConfig.Build> builds = jobconfig.getBuilds();
+        if (jobconfig == null || jobconfig.getBuilds().isEmpty()) {
+            logger.warn("Since testgrid.yaml file doesn't contain jobConfig section to define infrastructure " +
+                    "combinations, retrieve infrastructure resources from includes or excludes section in " +
+                    "testgrid.yaml file.");
+            List<List<InfrastructureParameter>> listOfInfrastructureList;
+            ivSets = filterInfrastructures(ivSets, testgridYaml);
+            listOfInfrastructureList = getListOfInfrastructureList(ivSets);
 
+            if (listOfInfrastructureList.isEmpty()) {
+                logger.warn("Received zero infrastructure-parameters from includes or excludes section of " +
+                        "testgrid.yaml file.");
+                return Collections.emptySet();
+            }
+
+            Set<InfrastructureCombination> infrastructureCombinations = new HashSet<>();
+            InfrastructureCombination infrastructureCombination = new InfrastructureCombination();
+            generateAllCombinations(listOfInfrastructureList, infrastructureCombinations, 0,
+                    infrastructureCombination, "");
+            return infrastructureCombinations;
+        }
+
+        List<JobConfig.Build> builds = jobconfig.getBuilds();
         Optional<JobConfig.Build> scheduledBuild = findScheduledBuild(builds);
         if (scheduledBuild.isPresent()) {
             if (logger.isDebugEnabled()) {
@@ -100,15 +122,12 @@ public class InfrastructureCombinationsProvider {
                             "Selected combination algorithm: " + combinationAlgorithm);
                     return Collections.emptySet();
             }
-
             if (logger.isDebugEnabled()) {
                 logger.info(String.format(
                         "Generated set of infrastructure combinations: %s", infrastructureCombinations));
             }
-
             return infrastructureCombinations;
         }
-
         logger.warn("Can not find any build from configuration yaml for given schedule builder");
         return Collections.emptySet();
     }
@@ -295,6 +314,32 @@ public class InfrastructureCombinationsProvider {
     }
 
     /**
+     * This function is used to generate combination using given infrastructure resources in testgrid.yaml file
+     * according to the all combinations algorithm. This function uses a recursive function to generate combinations.
+     *
+     * @param valueSets      filtered infrastructure value set
+     * @return  list of infrastructure parameter lists
+     */
+    private List<List<InfrastructureParameter>> getListOfInfrastructureList(
+            Set<InfrastructureValueSet> valueSets) {
+
+        if (valueSets.size() == 0) {
+            logger.warn("Received zero infrastructure-parameters from database.");
+            return Collections.emptyList();
+        }
+        logger.info("Since usage of include section in testgrid.yaml to retrieve infrastructure resources, " +
+                "build combinations will be generated using infrastructure resources defined in database.");
+
+        List<List<InfrastructureParameter>> listOfInfrastructureList = new ArrayList<>();
+        for (InfrastructureValueSet infrastructureValueSet : valueSets) {
+            List<InfrastructureParameter> infrastructureParameters = new ArrayList<>(
+                    infrastructureValueSet.getValues());
+            listOfInfrastructureList.add(infrastructureParameters);
+        }
+        return listOfInfrastructureList;
+    }
+
+    /**
      * This function is used to select specified scheduled build from builds defined in testgrid.yaml file.
      *
      * @param builds          list of builds
@@ -368,5 +413,64 @@ public class InfrastructureCombinationsProvider {
             generateAllCombinations(lists, result, depth + 1,
                     tmp, infraCombinationId + "_" + lists.get(depth).get(i).getName());
         }
+    }
+
+    /**
+     * This class provides set of filtered infrastructure values.
+     * <p>
+     * The filtering is executed by reading exclude and include attributes in the @{@link TestgridYaml} file.
+     * If exclude attribute is set in @{@link TestgridYaml} and if those exist in the current infrastructure value set,
+     * those will be eliminated. Further, if include attribute is set in @{@link TestgridYaml} and if those
+     * exist in the current infrastructure value set, only those infrastructures will be considered when creating
+     * combinations.
+     *
+     * @param ivSetsSet entire infrastructure value set
+     * @param testgridYaml    object model of testgrid.yaml config file
+     * @return filtered infrastructure value set
+     */
+    private Set<InfrastructureValueSet> filterInfrastructures(Set<InfrastructureValueSet> ivSetsSet,
+                                                              TestgridYaml testgridYaml) {
+
+        if (ivSetsSet.isEmpty()) {
+            logger.warn("Received zero infrastructure-parameters from database.");
+            return Collections.emptySet();
+        }
+        List<String> excludes = testgridYaml.getInfrastructureConfig().getExcludes();
+        List<String> includes = testgridYaml.getInfrastructureConfig().getIncludes();
+        Set<InfrastructureValueSet> selectedIVSet;
+
+        if (!ListUtils.emptyIfNull(excludes).isEmpty()) {
+            selectedIVSet = ivSetsSet.stream()
+                    .map(ivSet -> getSelectedIVSet(ip -> !excludes.contains(ip.getName()), ivSet))
+                    .filter(ivSet -> !ivSet.getValues().isEmpty())
+                    .collect(Collectors.toSet());
+        } else if (!ListUtils.emptyIfNull(includes).isEmpty()) {
+            selectedIVSet = ivSetsSet.stream()
+                    .map(ivSet -> getSelectedIVSet(ip -> includes.contains(ip.getName()), ivSet))
+                    .filter(ivSet -> !ivSet.getValues().isEmpty())
+                    .collect(Collectors.toSet());
+        } else {
+            logger.warn("Filtered infrastructure value-set is empty. A possible cause is incorrect includes/excludes "
+                    + "configuration in the testgrid.yaml's infrastructureConfig section.");
+            logger.warn("Infrastructure value-set from the database: " + ivSetsSet);
+            logger.warn("Testgrid.yaml's excludes: " + excludes);
+            logger.warn("Testgrid.yaml's includes: " + includes);
+            return Collections.emptySet();
+        }
+
+        return selectedIVSet;
+    }
+
+    /**
+     * The infrastructureValueSet Consumer function. This function is used in lambdas to either include/exclude
+     * infrastructure parameters based on the testgrid.yaml.
+     *
+     */
+    private InfrastructureValueSet getSelectedIVSet(Predicate<InfrastructureParameter> filter,
+                                                    InfrastructureValueSet ivSet) {
+        final Set<InfrastructureParameter> selectedIPSet = ivSet.getValues().stream()
+                .filter(filter)
+                .collect(Collectors.toSet());
+        return new InfrastructureValueSet(ivSet.getType(), selectedIPSet);
     }
 }
