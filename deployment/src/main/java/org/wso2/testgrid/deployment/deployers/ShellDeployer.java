@@ -44,13 +44,13 @@ public class ShellDeployer implements Deployer {
 
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-            InfrastructureProvisionResult infrastructureProvisionResult,Script script)
+            InfrastructureProvisionResult infrastructureProvisionResult, Script script)
             throws TestGridDeployerException {
 
         String deployScriptLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
 
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
-                infrastructureProvisionResult, Paths.get(deployScriptLocation,script.getFile()));
+                infrastructureProvisionResult, Paths.get(deployScriptLocation, script.getFile()));
         return deploymentCreationResult;
     }
 
