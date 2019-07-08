@@ -22,7 +22,6 @@ import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestPlan;
-import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import java.nio.file.Paths;
