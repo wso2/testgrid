@@ -17,6 +17,12 @@
 #--------------------------------------------------------------------------------
 
 set -o xtrace
+
+#
+#This class is used for the deployment of resources into the namespace using helm
+#The created resources will be exposed using an Ingress to the external usage
+#
+
 echo "deploy file is found"
 
 OUTPUT_DIR=$4
@@ -163,6 +169,7 @@ function readiness_deployments(){
     echo
 }
 
+#This function constantly check whether the deployments are correctly deployed in the cluster
 function readinesss_services(){
     start=`date +%s`
     i=0;
@@ -185,6 +192,8 @@ function readinesss_services(){
 
 }
 
+#This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
+#Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
     env=${TESTGRID_ENVIRONMENT} || 'dev'
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
@@ -281,15 +290,20 @@ function transfer_public_key(){
 }
 function install_helm(){
 
+  #if helm is not installed in the cluster, helm and tiller will be installed.
   if [ -z helm ]
   then
     curl -LO https://git.io/get_helm.sh
     chmod 700 get_helm.sh
-    ./get_helm.sh
+    ./get_helm.
+
+    #resources_deployment
     kubectl create serviceaccount --namespace kube-system tiller
     kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
     kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
   fi
+
+  #install resources using helm
   helmDeployment="wso2apim$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)"
   resources_deployment
   helm install --name $helmDeployment $deploymentRepositoryLocation/apim-single-node/ --namespace=$namespace
@@ -297,6 +311,9 @@ function install_helm(){
   readiness_deployments
 
 }
+
+#installation of database differs accoring to the type of database resource found.
+#This function is to deploy the database correctly as found in the test plan.
 
 function resources_deployment(){
 

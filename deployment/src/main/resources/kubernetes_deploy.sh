@@ -17,6 +17,12 @@
 #--------------------------------------------------------------------------------
 
 set -o xtrace
+
+#
+#This class is used for the deployment of resources into the namespace using kubectl commands
+#The created resources will be exposed using an Ingress to the external usage
+#
+
 echo "deploy file is found"
 dryRun=False
 
@@ -139,6 +145,7 @@ EOF
     echo "loadBalancerHostName=$loadBalancerHostName" >> $OUTPUT_DIR/deployment.properties
 }
 
+#This function constantly check whether the deployments are correctly deployed in the cluster
 function readiness_deployments(){
     start=`date +%s`
     i=0;
@@ -160,6 +167,7 @@ function readiness_deployments(){
     echo
 }
 
+#This function check whether the ingress service created is correctly deployed in the cluster
 function readinesss_services(){
     start=`date +%s`
     i=0;
@@ -183,6 +191,8 @@ function readinesss_services(){
 
 }
 
+#This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
+#Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
     env=${TESTGRID_ENVIRONMENT} || 'dev'
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
