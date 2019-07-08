@@ -18,6 +18,7 @@
 
 package org.wso2.testgrid.common;
 
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 
 /**
@@ -39,7 +40,7 @@ public interface Deployer {
      * @return Deployment deployment object along with it's matched hosts and ports
      * @throws TestGridDeployerException If an error occurs in the product deployment process.
      */
-    DeploymentCreationResult deploy(TestPlan testPlan, InfrastructureProvisionResult infrastructureProvisionResult)
+    DeploymentCreationResult deploy(TestPlan testPlan, InfrastructureProvisionResult infrastructureProvisionResult, Script script)
             throws TestGridDeployerException;
 
 }

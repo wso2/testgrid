@@ -34,6 +34,7 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TimeOutBuilder;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.deployment.DeploymentValidator;
@@ -68,7 +69,7 @@ public class AWSDeployer implements Deployer {
 
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-                                           InfrastructureProvisionResult infrastructureProvisionResult)
+                                           InfrastructureProvisionResult infrastructureProvisionResult, Script script)
             throws TestGridDeployerException {
         //wait for server startup
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()

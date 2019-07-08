@@ -44,14 +44,13 @@ public class ShellDeployer implements Deployer {
 
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-            InfrastructureProvisionResult infrastructureProvisionResult)
+            InfrastructureProvisionResult infrastructureProvisionResult,Script script)
             throws TestGridDeployerException {
 
-        Script deployment = getScriptToExecute(testPlan.getDeploymentConfig(), Script.Phase.CREATE);
         String deployScriptLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
 
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
-                infrastructureProvisionResult, Paths.get(deployScriptLocation, deployment.getFile()));
+                infrastructureProvisionResult, Paths.get(deployScriptLocation,script.getFile()));
         return deploymentCreationResult;
     }
 
@@ -63,22 +62,5 @@ public class ShellDeployer implements Deployer {
      * @return the matching script from deployment configuration
      * @throws TestGridDeployerException if there is no matching script for phase defined
      */
-    private Script getScriptToExecute(DeploymentConfig deploymentConfig, Script.Phase scriptPhase)
-            throws TestGridDeployerException {
 
-        for (Script script : deploymentConfig.getDeploymentPatterns().get(0).getScripts()) {
-            if (scriptPhase.equals(script.getPhase())) {
-                return script;
-            }
-        }
-        if (Script.Phase.CREATE.equals(scriptPhase)) {
-            for (Script script : deploymentConfig.getDeploymentPatterns().get(0).getScripts()) {
-                if (script.getPhase() == null) {
-                    return script;
-                }
-            }
-        }
-        throw new TestGridDeployerException("The Script list Provided doesn't containt a " + scriptPhase.toString() +
-                "Type script to succesfully complete the execution!");
-    }
 }

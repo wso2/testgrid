@@ -17,14 +17,7 @@
 #--------------------------------------------------------------------------------
 
 set -o xtrace
-
-#
-#This class is used for the deployment of resources into the namespace using helm
-#The created resources will be exposed using an Ingress to the external usage
-#
-
 echo "deploy file is found"
-dryRun=False
 
 OUTPUT_DIR=$4
 INPUT_DIR=$2
@@ -40,7 +33,6 @@ yamls=($YAMLS)
 no_yamls=${#yamls[@]}
 dep=($deployments)
 dep_num=${#dep[@]}
-
 
 function create_k8s_resources() {
 
@@ -67,7 +59,7 @@ function create_k8s_resources() {
     create_value_yaml
 
     #transfer yaml files created to deploy helm deployments
-    transfer_yaml_files
+    #transfer_yaml_files
 
     #install helm
     install_helm
@@ -78,14 +70,6 @@ function create_k8s_resources() {
         loadBalancerHostName=wso2am-$(($RANDOM % 10000)).gke.wso2testgrid.com # randomized hostname
     else
         echo DEBUG: loadBalanceHostName: ${loadBalancerHostName}
-    fi
-
-    if [[ ${dryRun^^} != TRUE ]]; then
-        i=0;
-        for ((i=0; i<$no_yamls; i++))
-        do
-          kubectl create -f $yamlFilesLocation/${yamls[$i]}
-        done
     fi
 
     readiness_deployments
@@ -99,6 +83,9 @@ ingressName=tg-ingress
 kubectl create secret tls ${tlskeySecret} \
     --cert deploymentRepository/keys/testgrid-certs-v2.crt  \
     --key deploymentRepository/keys/testgrid-certs-v2.key -n $namespace
+
+#transfer public key to be used by scenario tests.
+transfer_public_key
 
     cat > ${ingressName}.yaml << EOF
 apiVersion: extensions/v1beta1
@@ -155,7 +142,6 @@ EOF
     echo "loadBalancerHostName=$loadBalancerHostName" >> $OUTPUT_DIR/deployment.properties
 }
 
-#This function constantly check whether the deployments are correctly deployed in the cluster
 function readiness_deployments(){
     start=`date +%s`
     i=0;
@@ -177,7 +163,6 @@ function readiness_deployments(){
     echo
 }
 
-#This function check whether the ingress service created is correctly deployed in the cluster
 function readinesss_services(){
     start=`date +%s`
     i=0;
@@ -200,8 +185,6 @@ function readinesss_services(){
 
 }
 
-#This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
-#Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
     env=${TESTGRID_ENVIRONMENT} || 'dev'
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
@@ -275,7 +258,7 @@ dbType: $DBEngine
 operatingSystem: $OS
 jdkType: $JDK
 EOF
-yes | cp -rf values.yaml $deploymentRepositoryLocation/
+yes | cp -rf values.yaml $deploymentRepositoryLocation/apim-single-node/
 
 }
 
@@ -286,49 +269,48 @@ function transfer_yaml_files(){
  for ((i=0; i<$no_yamls; i++))
  do
  echo ${yamls[$i]}
- yes | cp -rf ${yamls[$i]} $deploymentRepositoryLocation/templates/
+ yes | cp -rf ${yamls[$i]} $deploymentRepositoryLocation/apim-single-node/templates/
  done
-
 }
 
-#deployment of resources using helm
+#function to transfer public key to log into ingress to be used by scenario tests into the data bucket
+function transfer_public_key(){
+ yes | cp -rf keys/testgrid-certs-v2.crt $OUTPUT_DIR/
+ echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
+
+}
 function install_helm(){
 
-  #if helm is not installed in the cluster, helm and tiller will be installed.
   if [ -z helm ]
   then
     curl -LO https://git.io/get_helm.sh
     chmod 700 get_helm.sh
     ./get_helm.sh
-    #resources_deployment
     kubectl create serviceaccount --namespace kube-system tiller
     kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
     kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
   fi
-
-  #install resources using helm
   helmDeployment="wso2apim$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)"
-  helm install --name $helmDeployment $deploymentRepositoryLocation/
+  resources_deployment
+  helm install --name $helmDeployment $deploymentRepositoryLocation/apim-single-node/ --namespace=$namespace
 
   readiness_deployments
 
 }
 
-#installation of database differs accoring to the type of database resource found.
-#This function is to deploy the database correctly as found in the test plan.
 function resources_deployment(){
 
-    if [ "$DBEngine" == "mysql"]
+    if [ "$DBEngine" == "mysql" ]
     then
-        helm install --name wso2is-rdbms-service -f $deploymentRepositoryLocation/mysql/values.yaml stable/mysql --namespace $namespace
+        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/mysql/values.yaml stable/mysql --namespace $namespace
     fi
-    if [ "$DBEngine" == "postgresql"]
+    if [ "$DBEngine" == "postgresql" ]
     then
-        helm install --name wso2is-rdbms-service -f $deploymentRepositoryLocation/postgresql/values.yaml stable/postgresql --namespace $namespace
+        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/postgresql/values.yaml stable/postgresql --namespace $namespace
     fi
-    if [ "$DBEngine" == "mssql"]
+    if [ "$DBEngine" == "mssql" ]
     then
-        helm install --name wso2is-rdbms-service -f $deploymentRepositoryLocation/mssql/values.yaml stable/mssql-linux --namespace $namespace
+        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/mssql/values.yaml stable/mssql-linux --namespace $namespace
         kubectl create -f $deploymentRepositoryLocation/jobs/db_provisioner_job.yaml --namespace $namespace
     fi
 

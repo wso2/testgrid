@@ -22,6 +22,7 @@ import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 
 import java.net.URL;
@@ -53,7 +54,7 @@ public class KubernetesDeployer implements Deployer {
      */
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-                                           InfrastructureProvisionResult infrastructureProvisionResult)
+                                           InfrastructureProvisionResult infrastructureProvisionResult, Script script)
             throws TestGridDeployerException {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource(TestGridConstants.KUBERNETES_DEPLOY_SCRIPT);
