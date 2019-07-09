@@ -2,3 +2,4 @@ org.wso2.testgrid.infrastructure.providers.ShellScriptProvider
 org.wso2.testgrid.infrastructure.providers.OpenStackProvider
 org.wso2.testgrid.infrastructure.providers.AWSProvider
 org.wso2.testgrid.infrastructure.providers.KubernetesProvider
+org.wso2.testgrid.infrastructure.providers.HelmProvider

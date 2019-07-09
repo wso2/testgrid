@@ -57,8 +57,10 @@ public class TestGridConstants {
 
     public static final String DEFAULT_DEPLOYMENT_PATTERN_NAME = "default";
     public static final String DEFAULT_DEPLOYMENT_SCRIPT_NAME = "deploy.sh";
+    public static final String YAML_FILES_LOCATION = "yamlFilesLocation";
     public static final String TESTGRID_CONFIG_FILE = "config.properties";
     public static final String TESTGRID_SCENARIO_OUTPUT_PROPERTY_FILE = "output.properties";
+    public static final String DEPLOYMENT_REPOSITORY_LOCATION = "deploymentRepositoryLocation";
 
     public static final String WUM_USERNAME_PROPERTY = "WUMUsername";
     public static final String WUM_PASSWORD_PROPERTY = "WUMPassword";
@@ -100,10 +102,12 @@ public class TestGridConstants {
 
     public static final String MAVEN_RELATED_DIR = "target";
 
-    public static final String INFRA_SCRIPT = "infrastructureRepository/infra.sh";
+    public static final String KUBERNETES_INFRA_SCRIPT = "kubernetes_infra.sh";
+    public static final String KUBERNETES_DEPLOY_SCRIPT = "kubernetes_deploy.sh";
+    public static final String KUBERNETES_DESTROY_SCRIPT = "kubernetes_destroy.sh";
+    public static final String HELM_INFRA_SCRIPT = "kubernetes_helmInfra.sh";
+    public static final String HELM_DEPLOY_SCRIPT = "kubernetes_helmDeploy.sh";
+    public static final String HELM_DESTROY_SCRIPT = "kubernetes_helmDestroy.sh";
 
-    public static final String DEPLOY_SCRIPT = "deploymentRepository/deploy.sh";
-
-    public static final String DESTROY_SCRIPT = "infrastructureRepository/destroy.sh";
 
 }

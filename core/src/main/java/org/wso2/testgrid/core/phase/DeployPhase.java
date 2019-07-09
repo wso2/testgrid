@@ -134,7 +134,8 @@ public class DeployPhase extends Phase {
                 persistAdditionalInputs(deplInputs, infraOutFilePath);
                 Deployer deployerService = DeployerFactory.getDeployerService(script);
                 DeploymentCreationResult aresult =
-                        deployerService.deploy(getTestPlan(), infrastructureProvisionResult);
+                        deployerService.deploy(getTestPlan(),
+                                infrastructureProvisionResult, script);
                 addTo(result, aresult);
                 logger.debug("Deployment result: " + result);
             }
