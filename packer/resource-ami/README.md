@@ -111,20 +111,20 @@ Following lists some practical information that is useful for testing your chang
         In TestGrid S3, there are packer resource directories that can be used to this kind of requirements. What you can do is, download the lib/file to your local machine using your browser and then upload to the relevant packer resource directory in S3.
 
 Packer resource directories are as;
-Ubuntu →  resources only used when configuring Ubuntu
-CentOS → resources only used when configuring CentOS
-Unix → resources used when configuring both Ubuntu & CentOS, and other Linux dists
-Windows →  resource used when configuring Windows
-Common → resource used across all the OSes.
+- Ubuntu →  resources only used when configuring Ubuntu
+- CentOS → resources only used when configuring CentOS
+- Unix → resources used when configuring both Ubuntu & CentOS, and other Linux dists
+- Windows →  resource used when configuring Windows
+- Common → resource used across all the OSes.
+
 When creating the AMI, all the relevant S3 directories (eg: if CentOS ⇒ Common, Unix, CentOS directories) will copied to the environment, so that from the script you can directly refer the files (Files will be copied to home/<ssh_user>/resource/)
-
-![Testgrid S3 location](https://user-images.githubusercontent.com/936037/60871584-ade41480-a250-11e9-8a2a-c7b3573f4f17.png)
-
 
 So you can call 
   `sudo yum -y localinstall resource/<file>.rpm`
-  
-https://s3.console.aws.amazon.com/s3/buckets/testgrid-resources/packer
+
+![Testgrid S3 location](https://user-images.githubusercontent.com/936037/60871584-ade41480-a250-11e9-8a2a-c7b3573f4f17.png)
+
+S3 location: https://s3.console.aws.amazon.com/s3/buckets/testgrid-resources/packer
 
 3. Once you have the script that can automatically configure the environment, create a EC2 instance from the existing TestGrid AMI.
 Run your script there (you may have to manually scp the files which you hope to add to S3 in this case) and verify its successful.
