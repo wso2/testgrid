@@ -54,7 +54,8 @@ public class HelmDeployer implements Deployer {
      */
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-                                           InfrastructureProvisionResult infrastructureProvisionResult, Script script)
+                                           InfrastructureProvisionResult infrastructureProvisionResult,
+                                           Script script)
             throws TestGridDeployerException {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource(TestGridConstants.HELM_DEPLOY_SCRIPT);
