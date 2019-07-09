@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 import static org.wso2.testgrid.common.TestGridConstants.ALL_ALGO;
 import static org.wso2.testgrid.common.TestGridConstants.AT_LEAST_ONE_ALGO;
 import static org.wso2.testgrid.common.TestGridConstants.EXACT_ALGO;
-import static org.wso2.testgrid.common.TestGridConstants.SCHEDULE_PARAMETER;
 
 /**
  * This class provides list of infrastructure combinations. Scenario tests
@@ -66,7 +65,8 @@ public class InfrastructureCombinationsProvider {
      * @param testgridYaml          testgrid yaml file
      * @return  infrastructure combination set
      */
-    public Set<InfrastructureCombination> getCombinations(TestgridYaml testgridYaml) throws TestGridDAOException {
+    public Set<InfrastructureCombination> getCombinations(
+            TestgridYaml testgridYaml, String schedule) throws TestGridDAOException {
 
         Set<InfrastructureValueSet> ivSets = new InfrastructureParameterUOW().getValueSet();
 
@@ -97,7 +97,7 @@ public class InfrastructureCombinationsProvider {
         }
 
         List<JobConfig.Build> builds = jobconfig.getBuilds();
-        Optional<JobConfig.Build> scheduledBuild = findScheduledBuild(builds);
+        Optional<JobConfig.Build> scheduledBuild = findScheduledBuild(builds, schedule);
         if (scheduledBuild.isPresent()) {
             if (logger.isDebugEnabled()) {
                 logger.debug(String.format("Scheduled build : %s", scheduledBuild.get()));
@@ -345,10 +345,10 @@ public class InfrastructureCombinationsProvider {
      * @param builds          list of builds
      * @return  build optional object
      */
-    private Optional<JobConfig.Build> findScheduledBuild(List<JobConfig.Build> builds) {
+    private Optional<JobConfig.Build> findScheduledBuild(List<JobConfig.Build> builds, String schedule) {
 
         for (JobConfig.Build build : builds) {
-            if (build.getSchedule().equals(SCHEDULE_PARAMETER)) {
+            if (build.getSchedule().equals(schedule)) {
                 return Optional.of(build);
             }
         }

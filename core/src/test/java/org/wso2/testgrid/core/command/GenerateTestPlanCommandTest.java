@@ -69,6 +69,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
     private static final String EXPECTED_TEST_PLAN_PATH = Paths.get("src", "test", "resources", "test-plan-01.yaml")
             .toString();
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
+    private static final String DEFAULT_SCHEDULE = "manual";
     private String actualTestPlanFileLocation;
     @Mock
     private InfrastructureCombinationsProvider infrastructureCombinationsProvider;
@@ -117,7 +118,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "", true);
         InfrastructureCombination infrastructureCombination = new InfrastructureCombination(param);
-        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class)))
+        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class), DEFAULT_SCHEDULE))
                 .thenReturn(Collections.singleton(infrastructureCombination));
 
         logger.info("Product : " + product.getName());
@@ -127,7 +128,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
                 thenReturn(Optional.of(deploymentPattern));
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFileLocation, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
+                jobConfigFileLocation, DEFAULT_SCHEDULE, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
                 testPlanUOW);
         generateTestPlanCommand.execute();
 
