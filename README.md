@@ -48,7 +48,7 @@ You need Oracle JDK 8, Node JS, MySQL Server 5 and Apache Maven 3.5 to build Tes
 
 `mvn clean install`
 
-NOTE: For Ubuntu/Debiam to install NodeJS simply issue the following commands 
+NOTE: For Ubuntu/Debian to install NodeJS, issue the following commands 
 1. `sudo apt update` 
 2. `sudo apt install nodejs`
 
