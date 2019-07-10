@@ -39,7 +39,7 @@ public class Script implements Serializable, Cloneable {
     private Phase phase;
     private String description;
     private String file;
-    private HashMap inputParameters = new HashMap();
+    private HashMap<String, Object> inputParameters = new HashMap<>();
 
     public String getName() {
         return name;
@@ -69,7 +69,7 @@ public class Script implements Serializable, Cloneable {
         return inputParameters;
     }
 
-    public void setInputParameters(HashMap inputParameters) {
+    public void setInputParameters(HashMap<String, Object> inputParameters) {
         this.inputParameters = inputParameters;
     }
 

@@ -134,7 +134,7 @@ public class DeployPhase extends Phase {
                 }
 
                 // Append deploymentConfig inputs in testgrid yaml to infra outputs file
-                HashMap deplInputs = script.getInputParameters();
+                HashMap<String, Object> deplInputs = script.getInputParameters();
                 persistAdditionalInputs(deplInputs, infraOutFilePath);
                 Deployer deployerService = DeployerFactory.getDeployerService(script);
                 DeploymentCreationResult aresult =
