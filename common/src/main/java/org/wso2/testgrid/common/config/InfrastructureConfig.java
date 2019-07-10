@@ -226,6 +226,7 @@ public class InfrastructureConfig implements Serializable, Cloneable {
             infrastructureConfig.setContainerOrchestrationEngine(containerOrchestrationEngine);
             infrastructureConfig.setIacProvider(iacProvider);
             infrastructureConfig.setInfrastructureProvider(infrastructureProvider);
+            infrastructureConfig.setIncludes(includes);
 
             return infrastructureConfig;
         } catch (CloneNotSupportedException e) {

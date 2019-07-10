@@ -42,25 +42,26 @@ import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
- * This class provide infrastructure for the kubernetes architecture.
+ * This class provide infrastructure for the helm architecture.
  */
-public class KubernetesProvider implements InfrastructureProvider {
+public class HelmProvider implements InfrastructureProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(KubernetesProvider.class);
-    private static final String KUBERNETES_PROVIDER = TestPlan.DeployerType.KUBERNETES.toString();
+    private static final Logger logger = LoggerFactory.getLogger(HelmProvider.class);
+    private static final String HELM_PROVIDER = TestPlan.DeployerType.HELM.toString();
 
     @Override
     public String getProviderName() {
-        return KUBERNETES_PROVIDER;
+        return HELM_PROVIDER;
     }
 
     @Override
     public boolean canHandle(Script.ScriptType scriptType) {
-        return scriptType == Script.ScriptType.KUBERNETES;
+        return scriptType == Script.ScriptType.HELM;
     }
 
     @Override
     public void init(TestPlan testPlan) throws TestGridInfrastructureException {
+
     }
 
     @Override
@@ -70,7 +71,7 @@ public class KubernetesProvider implements InfrastructureProvider {
 
     /**
      * This method invoke the infrastructure creation script which would create the
-     * basic infrastructure in the Kubernetes Engine
+     * basic infrastructure in the Kubernetes Engine using helm charts
      *
      * @param testPlan {@link TestPlan} with current test run specifications
      * @param script with the details of the infra creation script specifications
@@ -83,7 +84,7 @@ public class KubernetesProvider implements InfrastructureProvider {
         setInfraProperties(testPlan);
         setProperties(testPlan);
         ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.KUBERNETES_INFRA_SCRIPT);
+        URL resource = classLoader.getResource(TestGridConstants.HELM_INFRA_SCRIPT);
         InfrastructureProvisionResult result = ShellScriptProviderFactory.provision(testPlan,
                 Paths.get(resource.getPath()));
         return result;
@@ -103,11 +104,10 @@ public class KubernetesProvider implements InfrastructureProvider {
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
                            TestPlan testPlan, Script script) throws TestGridInfrastructureException {
         ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.KUBERNETES_DESTROY_SCRIPT);
-        assert resource != null;
-        boolean release = ShellScriptProviderFactory.release(infrastructureConfig,
+        URL resource = classLoader.getResource(TestGridConstants.HELM_DESTROY_SCRIPT);
+        boolean exitCode = ShellScriptProviderFactory.release(infrastructureConfig,
                 testPlan, Paths.get(resource.getPath()));
-        return release;
+        return exitCode;
     }
 
 
@@ -153,6 +153,8 @@ public class KubernetesProvider implements InfrastructureProvider {
         }
 
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
+            os.write(("\n" + TestGridConstants.DEPLOYMENT_REPOSITORY_LOCATION + "=" + deployRepositoryLocation).
+                    getBytes(StandardCharsets.UTF_8));
             os.write(("\n" + TestGridConstants.YAML_FILES_LOCATION + "=" + yamlFileLocation).
                     getBytes(StandardCharsets.UTF_8));
             os.write(("\n" + TestGridConstants.WUM_USERNAME_PROPERTY + "=" + wumUserName).

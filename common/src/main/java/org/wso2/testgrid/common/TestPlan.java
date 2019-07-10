@@ -621,6 +621,11 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
         KUBERNETES("KUBERNETES"),
 
         /**
+         * Defines the Helm based deployment
+         */
+        HELM("HELM"),
+
+        /**
          * Defines the Shell based deployment
          */
         SHELL("SHELL");

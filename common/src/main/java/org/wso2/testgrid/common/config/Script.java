@@ -147,6 +147,12 @@ public class Script implements Serializable, Cloneable {
         KUBERNETES("KUBERNETES"),
 
         /**
+         * Defines the Helm script type
+         */
+
+        HELM("HELM"),
+
+        /**
          * Defines the AWS cloud-formation script type.
          * TODO: think how we can remove this.
          */
