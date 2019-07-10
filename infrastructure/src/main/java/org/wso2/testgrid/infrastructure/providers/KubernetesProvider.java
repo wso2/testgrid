@@ -19,10 +19,7 @@ package org.wso2.testgrid.infrastructure.providers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.testgrid.common.InfrastructureProvider;
-import org.wso2.testgrid.common.InfrastructureProvisionResult;
-import org.wso2.testgrid.common.TestGridConstants;
-import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.*;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -30,9 +27,11 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -82,10 +81,21 @@ public class KubernetesProvider implements InfrastructureProvider {
             throws TestGridInfrastructureException {
         setInfraProperties(testPlan);
         setProperties(testPlan);
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.KUBERNETES_INFRA_SCRIPT);
+        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository()).toString();
+        String deployScriptLocation = Paths.get(infrastructureRepositoryLocation,
+                TestGridConstants.KUBERNETES_INFRA_SCRIPT).toString();
+        try {
+            InputStream resourceFileStream = getClass().getClassLoader().getResourceAsStream(TestGridConstants.KUBERNETES_INFRA_SCRIPT);
+            byte[] buffer = new byte[resourceFileStream.available()];
+            resourceFileStream.read(buffer);
+            File targetFile = new File(deployScriptLocation);
+            OutputStream outStream = new FileOutputStream(targetFile);
+            outStream.write(buffer);
+        }catch (IOException e){
+            logger.error("file is not found");
+        }
         InfrastructureProvisionResult result = ShellScriptProviderFactory.provision(testPlan,
-                Paths.get(resource.getPath()));
+                Paths.get(infrastructureRepositoryLocation, TestGridConstants.KUBERNETES_INFRA_SCRIPT));
         return result;
     }
 
@@ -102,11 +112,21 @@ public class KubernetesProvider implements InfrastructureProvider {
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
                            TestPlan testPlan, Script script) throws TestGridInfrastructureException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.KUBERNETES_DESTROY_SCRIPT);
-        assert resource != null;
+        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository()).toString();
+        String deployScriptLocation = Paths.get(infrastructureRepositoryLocation,
+                TestGridConstants.KUBERNETES_INFRA_SCRIPT).toString();
+        try {
+            InputStream resourceFileStream = getClass().getClassLoader().getResourceAsStream(TestGridConstants.KUBERNETES_INFRA_SCRIPT);
+            byte[] buffer = new byte[resourceFileStream.available()];
+            resourceFileStream.read(buffer);
+            File targetFile = new File(deployScriptLocation);
+            OutputStream outStream = new FileOutputStream(targetFile);
+            outStream.write(buffer);
+        }catch (IOException e){
+            logger.error("file is not found");
+        }
         boolean release = ShellScriptProviderFactory.release(infrastructureConfig,
-                testPlan, Paths.get(resource.getPath()));
+                testPlan, Paths.get(infrastructureRepositoryLocation, TestGridConstants.HELM_DESTROY_SCRIPT));
         return release;
     }
 
