@@ -266,7 +266,7 @@ public class RunTestPlanCommand implements Command {
      * @throws CommandExecutionException thrown when error on executing test plan
      */
     private boolean executeTestPlan(TestPlan testPlan, InfrastructureConfig infrastructureConfig)
-            throws CommandExecutionException {
+            throws CommandExecutionException, IOException {
         testPlan.setInfrastructureConfig(infrastructureConfig);
         try {
             String infraCmb = testPlan.getInfrastructureConfig().getParameters().entrySet().stream()
@@ -282,4 +282,3 @@ public class RunTestPlanCommand implements Command {
         }
     }
 }
-

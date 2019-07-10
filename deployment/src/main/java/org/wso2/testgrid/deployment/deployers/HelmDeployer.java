@@ -17,8 +17,6 @@
  */
 package org.wso2.testgrid.deployment.deployers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
@@ -44,7 +42,6 @@ import java.nio.file.Paths;
 public class HelmDeployer implements Deployer {
 
     private static final String DEPLOYER_NAME = TestPlan.DeployerType.HELM.toString();
-    final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
     public String getDeployerName() {
@@ -63,20 +60,32 @@ public class HelmDeployer implements Deployer {
     public DeploymentCreationResult deploy(TestPlan testPlan,
                                            InfrastructureProvisionResult infrastructureProvisionResult,
                                            Script script)
-            throws TestGridDeployerException {
+            throws TestGridDeployerException, IOException {
         String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
         String deployScriptLocation = Paths.get(deployRepositoryLocation,
                 TestGridConstants.HELM_DEPLOY_SCRIPT).toString();
+        InputStream resourceFileStream = null;
+        OutputStream outStream = null;
+
         try {
-            InputStream resourceFileStream = getClass().getResourceAsStream(TestGridConstants.HELM_DEPLOY_SCRIPT);
-            byte[] buffer = new byte[resourceFileStream.available()];
-            resourceFileStream.read(buffer);
+            resourceFileStream = getClass().getClassLoader()
+                    .getResourceAsStream(TestGridConstants.HELM_DEPLOY_SCRIPT);
             File targetFile = new File(deployScriptLocation);
-            OutputStream outStream = new FileOutputStream(targetFile);
-            outStream.write(buffer);
-        }catch (IOException e){
-            logger.error("file is not found");
+            outStream = new FileOutputStream(targetFile);
+            int c;
+            while ((c = resourceFileStream.read()) != -1) {
+                outStream.write(c);
+            }
+        } finally {
+            if (outStream != null) {
+                outStream.close();
+            }
+            if (resourceFileStream != null) {
+                resourceFileStream.close();
+            }
+
         }
+
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
                 infrastructureProvisionResult,
                 Paths.get(deployRepositoryLocation, TestGridConstants.HELM_DEPLOY_SCRIPT));

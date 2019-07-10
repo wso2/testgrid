@@ -82,21 +82,33 @@ public class HelmProvider implements InfrastructureProvider {
      */
     @Override
     public InfrastructureProvisionResult provision(TestPlan testPlan, Script script)
-            throws TestGridInfrastructureException {
+            throws TestGridInfrastructureException, IOException {
         setInfraProperties(testPlan);
         setProperties(testPlan);
-        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository()).toString();
+        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
+                .toString();
         String deployScriptLocation = Paths.get(infrastructureRepositoryLocation,
                 TestGridConstants.HELM_INFRA_SCRIPT).toString();
+        InputStream resourceFileStream = null;
+        OutputStream outStream = null;
+
         try {
-            InputStream resourceFileStream = getClass().getClassLoader().getResourceAsStream(TestGridConstants.KUBERNETES_INFRA_SCRIPT);
-            byte[] buffer = new byte[resourceFileStream.available()];
-            resourceFileStream.read(buffer);
+            resourceFileStream = getClass().getClassLoader()
+                    .getResourceAsStream(TestGridConstants.HELM_INFRA_SCRIPT);
             File targetFile = new File(deployScriptLocation);
-            OutputStream outStream = new FileOutputStream(targetFile);
-            outStream.write(buffer);
-        }catch (IOException e){
-            logger.error("file is not found");
+            outStream = new FileOutputStream(targetFile);
+            int c;
+            while ((c = resourceFileStream.read()) != -1) {
+                outStream.write(c);
+            }
+        } finally {
+            if (outStream != null) {
+                    outStream.close();
+            }
+            if (resourceFileStream != null) {
+                    resourceFileStream.close();
+            }
+
         }
         InfrastructureProvisionResult result = ShellScriptProviderFactory.provision(testPlan,
                 Paths.get(infrastructureRepositoryLocation, TestGridConstants.HELM_INFRA_SCRIPT));
@@ -115,25 +127,36 @@ public class HelmProvider implements InfrastructureProvider {
      */
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
-                           TestPlan testPlan, Script script) throws TestGridInfrastructureException {
+                           TestPlan testPlan, Script script) throws IOException, TestGridInfrastructureException {
 
-        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository()).toString();
+        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
+                .toString();
         String deployScriptLocation = Paths.get(infrastructureRepositoryLocation,
                 TestGridConstants.HELM_DESTROY_SCRIPT).toString();
-        try {
-            InputStream resourceFileStream = getClass().getClassLoader().getResourceAsStream(TestGridConstants.HELM_DESTROY_SCRIPT);
-            byte[] buffer = new byte[resourceFileStream.available()];
-            resourceFileStream.read(buffer);
-            File targetFile = new File(deployScriptLocation);
-            OutputStream outStream = new FileOutputStream(targetFile);
-            outStream.write(buffer);
-        }catch (IOException e){
-            logger.error("file is not found");
-        }
+        InputStream resourceFileStream = null;
+        OutputStream outStream = null;
 
-        boolean exitCode = ShellScriptProviderFactory.release(infrastructureConfig,
+        try {
+            resourceFileStream = getClass().getClassLoader().
+                    getResourceAsStream(TestGridConstants.HELM_DESTROY_SCRIPT);
+            File targetFile = new File(deployScriptLocation);
+            outStream = new FileOutputStream(targetFile);
+            int c;
+            while ((c = resourceFileStream.read()) != -1) {
+                outStream.write(c);
+            }
+        } finally {
+            if (outStream != null) {
+                outStream.close();
+            }
+            if (resourceFileStream != null) {
+                resourceFileStream.close();
+            }
+
+        }
+        boolean release = ShellScriptProviderFactory.release(infrastructureConfig,
                 testPlan, Paths.get(infrastructureRepositoryLocation, TestGridConstants.HELM_DESTROY_SCRIPT));
-        return exitCode;
+        return release;
     }
 
 

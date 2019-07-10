@@ -58,9 +58,9 @@ public class InfraPhase extends Phase {
                 getTestPlan().getStatus().equals(TestPlanStatus.RUNNING)) {
             return true;
         } else {
-                logger.error("PREPARATION phase was not succeeded for test-plan: " + getTestPlan().getId() + ". Hence" +
-                        "not starting other phases..");
-                persistTestPlanProgress(TestPlanPhase.PREPARATION_ERROR, TestPlanStatus.ERROR);
+            logger.error("PREPARATION phase was not succeeded for test-plan: " + getTestPlan().getId() + ". Hence" +
+                    "not starting other phases..");
+            persistTestPlanProgress(TestPlanPhase.PREPARATION_ERROR, TestPlanStatus.ERROR);
             return false;
         }
     }

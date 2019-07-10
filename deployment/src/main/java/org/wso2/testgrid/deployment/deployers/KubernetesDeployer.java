@@ -25,7 +25,12 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 
-import java.net.URL;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Paths;
 
 /**
@@ -54,13 +59,38 @@ public class KubernetesDeployer implements Deployer {
      */
     @Override
     public DeploymentCreationResult deploy(TestPlan testPlan,
-                                           InfrastructureProvisionResult infrastructureProvisionResult, Script script)
-            throws TestGridDeployerException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.KUBERNETES_DEPLOY_SCRIPT);
+                                           InfrastructureProvisionResult infrastructureProvisionResult,
+                                           Script script)
+            throws TestGridDeployerException, IOException {
+
+        String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
+        String deployScriptLocation = Paths.get(deployRepositoryLocation,
+                TestGridConstants.KUBERNETES_DEPLOY_SCRIPT).toString();
+        InputStream resourceFileStream = null;
+        OutputStream outStream = null;
+
+        try {
+            resourceFileStream = getClass().getClassLoader()
+                    .getResourceAsStream(TestGridConstants.KUBERNETES_DEPLOY_SCRIPT);
+            File targetFile = new File(deployScriptLocation);
+            outStream = new FileOutputStream(targetFile);
+            int c;
+            while ((c = resourceFileStream.read()) != -1) {
+                outStream.write(c);
+            }
+        } finally {
+            if (outStream != null) {
+                outStream.close();
+            }
+            if (resourceFileStream != null) {
+                resourceFileStream.close();
+            }
+
+        }
+
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
-                infrastructureProvisionResult, Paths
-                        .get(resource.getPath()));
+                infrastructureProvisionResult,
+                Paths.get(deployRepositoryLocation, TestGridConstants.KUBERNETES_DEPLOY_SCRIPT));
         return deploymentCreationResult;
     }
 }
