@@ -44,7 +44,7 @@ repositories.
 
 ## Building Testgrid
 
-You need Oracle/OpenJDK 8 and Apache Maven 3.5 to build Testgrid. 
+You need Oracle/OpenJDK 8, Node JS, React and Apache Maven 3.5 to build Testgrid. 
 
 `mvn clean install`
 
