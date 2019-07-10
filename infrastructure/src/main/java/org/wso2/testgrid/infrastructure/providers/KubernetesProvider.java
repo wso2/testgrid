@@ -126,7 +126,8 @@ public class KubernetesProvider implements InfrastructureProvider {
      */
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
-                           TestPlan testPlan, Script script) throws TestGridInfrastructureException, IOException {
+                           TestPlan testPlan, Script script) throws TestGridInfrastructureException,
+            IOException {
         String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
                 .toString();
         String infraScriptLocation = Paths.get(infrastructureRepositoryLocation,
@@ -153,7 +154,8 @@ public class KubernetesProvider implements InfrastructureProvider {
 
         }
         boolean release = ShellScriptProviderFactory.release(infrastructureConfig,
-                testPlan, Paths.get(infrastructureRepositoryLocation, TestGridConstants.KUBERNETES_DESTROY_SCRIPT));
+                testPlan, Paths.get(infrastructureRepositoryLocation,
+                        TestGridConstants.KUBERNETES_DESTROY_SCRIPT));
         return release;
     }
 
@@ -167,8 +169,8 @@ public class KubernetesProvider implements InfrastructureProvider {
     private void setInfraProperties(TestPlan testPlan) {
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
-        DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
-                .getDeploymentPatterns().get(0);
+        DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.
+                getDeploymentConfig().getDeploymentPatterns().get(0);
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
             os.write(("\nname=" + deploymentPatternConfig.getName()).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
@@ -187,7 +189,8 @@ public class KubernetesProvider implements InfrastructureProvider {
         String wumPassword = null;
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
-        String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
+        String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).
+                toString();
         String yamlFileLocation = Paths.get(deployRepositoryLocation).toString();
         logger.info(location.toString());
         try {

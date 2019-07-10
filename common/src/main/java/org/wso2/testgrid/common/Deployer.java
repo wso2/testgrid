@@ -21,6 +21,8 @@ package org.wso2.testgrid.common;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 
+import java.io.IOException;
+
 /**
  * Interface for the deployment of the artifacts.
  */
@@ -41,7 +43,8 @@ public interface Deployer {
      * @throws TestGridDeployerException If an error occurs in the product deployment process.
      */
     DeploymentCreationResult deploy(TestPlan testPlan,
-                                    InfrastructureProvisionResult infrastructureProvisionResult, Script script)
-            throws TestGridDeployerException;
+                                    InfrastructureProvisionResult infrastructureProvisionResult,
+                                    Script script)
+            throws TestGridDeployerException, IOException;
 
 }

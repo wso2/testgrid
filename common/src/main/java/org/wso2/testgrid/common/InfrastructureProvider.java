@@ -22,6 +22,8 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 
+import java.io.IOException;
+
 /**
  * This Interface has to be implemented by the InfrastructureProviders like AWS, GCC, OpenStack.
  */
@@ -62,7 +64,7 @@ public interface InfrastructureProvider {
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure creation process.
      */
     InfrastructureProvisionResult provision(TestPlan testPlan, Script script) throws
-            TestGridInfrastructureException;
+            TestGridInfrastructureException, IOException;
 
     /**
      * This method executes commands needed to remove the infrastructure.
@@ -73,6 +75,6 @@ public interface InfrastructureProvider {
      * @throws TestGridInfrastructureException thrown when error occurs in the infrastructure destroy process.
      */
     boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir, TestPlan testPlan, Script script)
-            throws TestGridInfrastructureException;
+            throws TestGridInfrastructureException, IOException;
 
 }
