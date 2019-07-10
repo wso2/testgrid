@@ -82,7 +82,7 @@ public class HelmProvider implements InfrastructureProvider {
      */
     @Override
     public InfrastructureProvisionResult provision(TestPlan testPlan, Script script)
-            throws TestGridInfrastructureException, IOException {
+            throws TestGridInfrastructureException {
         setInfraProperties(testPlan);
         setProperties(testPlan);
         String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
@@ -101,12 +101,22 @@ public class HelmProvider implements InfrastructureProvider {
             while ((c = resourceFileStream.read()) != -1) {
                 outStream.write(c);
             }
+        } catch (IOException e) {
+            logger.error("An exception occurred " + e);
         } finally {
             if (outStream != null) {
+                try {
                     outStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
             if (resourceFileStream != null) {
+                try {
                     resourceFileStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
 
         }
@@ -127,7 +137,7 @@ public class HelmProvider implements InfrastructureProvider {
      */
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
-                           TestPlan testPlan, Script script) throws IOException, TestGridInfrastructureException {
+                           TestPlan testPlan, Script script) throws TestGridInfrastructureException {
 
         String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
                 .toString();
@@ -145,12 +155,22 @@ public class HelmProvider implements InfrastructureProvider {
             while ((c = resourceFileStream.read()) != -1) {
                 outStream.write(c);
             }
+        } catch (IOException e) {
+            logger.error("An exception occurred " + e);
         } finally {
             if (outStream != null) {
-                outStream.close();
+                try {
+                    outStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
             if (resourceFileStream != null) {
-                resourceFileStream.close();
+                try {
+                    resourceFileStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
 
         }

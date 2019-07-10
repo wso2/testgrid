@@ -34,7 +34,6 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -78,7 +77,7 @@ public class TestPlanExecutor {
      * @param testPlan an instance of {@link TestPlan} in which the tests should be executed
      * @throws TestPlanExecutorException thrown when error on executing test plan
      */
-    public boolean execute(TestPlan testPlan) throws TestPlanExecutorException, TestGridDAOException, IOException {
+    public boolean execute(TestPlan testPlan) throws TestPlanExecutorException, TestGridDAOException {
         long startTime = System.currentTimeMillis();
 
         testPhase.execute(deployPhase.execute(infraPhase.execute(testPlan)));

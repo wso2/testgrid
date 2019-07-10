@@ -45,7 +45,6 @@ import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -70,7 +69,7 @@ public class DeployPhase extends Phase {
     }
 
     @Override
-    void executePhase() throws IOException {
+    void executePhase() {
         try {
             DeploymentCreationResult deploymentCreationResult = createDeployment();
             getTestPlan().setDeploymentCreationResult(deploymentCreationResult);
@@ -203,7 +202,7 @@ public class DeployPhase extends Phase {
      *                                   infrastructure
      */
     private void releaseInfrastructure()
-            throws TestPlanExecutorException, IOException {
+            throws TestPlanExecutorException {
         InfrastructureProvisionResult infrastructureProvisionResult = getTestPlan().getInfrastructureProvisionResult();
         DeploymentCreationResult deploymentCreationResult = getTestPlan().getDeploymentCreationResult();
 

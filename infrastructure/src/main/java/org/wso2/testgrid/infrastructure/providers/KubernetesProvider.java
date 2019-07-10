@@ -81,7 +81,7 @@ public class KubernetesProvider implements InfrastructureProvider {
      */
     @Override
     public InfrastructureProvisionResult provision(TestPlan testPlan, Script script)
-            throws TestGridInfrastructureException, IOException {
+            throws TestGridInfrastructureException {
         setInfraProperties(testPlan);
         setProperties(testPlan);
         String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
@@ -100,14 +100,23 @@ public class KubernetesProvider implements InfrastructureProvider {
             while ((c = resourceFileStream.read()) != -1) {
                 outStream.write(c);
             }
+        } catch (IOException e) {
+            logger.error("An exception occurred " + e);
         } finally {
             if (outStream != null) {
-                outStream.close();
+                try {
+                    outStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
             if (resourceFileStream != null) {
-                resourceFileStream.close();
+                try {
+                    resourceFileStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
-
         }
         InfrastructureProvisionResult result = ShellScriptProviderFactory.provision(testPlan,
                 Paths.get(infrastructureRepositoryLocation, TestGridConstants.KUBERNETES_INFRA_SCRIPT));
@@ -126,8 +135,7 @@ public class KubernetesProvider implements InfrastructureProvider {
      */
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
-                           TestPlan testPlan, Script script) throws TestGridInfrastructureException,
-            IOException {
+                           TestPlan testPlan, Script script) throws TestGridInfrastructureException {
         String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
                 .toString();
         String infraScriptLocation = Paths.get(infrastructureRepositoryLocation,
@@ -144,14 +152,23 @@ public class KubernetesProvider implements InfrastructureProvider {
             while ((c = resourceFileStream.read()) != -1) {
                 outStream.write(c);
             }
+        } catch (IOException e) {
+            logger.error("An exception occurred " + e);
         } finally {
             if (outStream != null) {
-                outStream.close();
+                try {
+                    outStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
             if (resourceFileStream != null) {
-                resourceFileStream.close();
+                try {
+                    resourceFileStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
-
         }
         boolean release = ShellScriptProviderFactory.release(infrastructureConfig,
                 testPlan, Paths.get(infrastructureRepositoryLocation,

@@ -29,7 +29,6 @@ import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
 
-import java.io.IOException;
 
 /**
  * This class is represents abstract Phase which will include common methods of each Infra, Deploy, Test phases.
@@ -49,7 +48,7 @@ public abstract class Phase {
      * @param testPlan test-plan needed to be executed
      * @return updated test-plan after the execution of phase
      */
-    public TestPlan execute(TestPlan testPlan) throws IOException {
+    public TestPlan execute(TestPlan testPlan) {
         if (testPlanUOW == null) {
             testPlanUOW = new TestPlanUOW();
         }
@@ -76,7 +75,7 @@ public abstract class Phase {
     /**
      *
      */
-    abstract void executePhase() throws IOException;
+    abstract void executePhase();
 
     void persistTestPlanProgress(TestPlanPhase phase, TestPlanStatus status) {
         logger.info("Updating testplan status " + testPlan.getStatus() + " --> " + status + " and " +

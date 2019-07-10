@@ -328,7 +328,7 @@ function resources_deployment(){
     if [ "$DBEngine" == "mssql" ]
     then
         helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mssql/values.yaml stable/mssql-linux --namespace $namespace
-        kubectl create -f $deploymentRepositoryLocation/jobs/db_provisioner_job.yaml --namespace $namespace
+        kubectl create -f $deploymentRepositoryLocation/helm/jobs/db_provisioner_job.yaml --namespace $namespace
     fi
 
 }

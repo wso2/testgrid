@@ -96,7 +96,7 @@ public class TestPhase extends Phase {
     }
 
     @Override
-    void executePhase() throws IOException {
+    void executePhase() {
         try {
             runScenarioTests();
             if (!getTestPlan().getStatus().equals(TestPlanStatus.RUNNING) ||
@@ -481,7 +481,7 @@ public class TestPhase extends Phase {
      *                                   infrastructure
      */
     private void releaseInfrastructure()
-            throws TestPlanExecutorException, IOException {
+            throws TestPlanExecutorException {
         try {
             InfrastructureConfig infrastructureConfig = getTestPlan().getInfrastructureConfig();
             printMessage("\t\t Releasing infrastructure: " + infrastructureConfig.getFirstProvisioner().getName());

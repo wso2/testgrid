@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.deployment.deployers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
@@ -43,6 +45,7 @@ import java.nio.file.Paths;
 public class KubernetesDeployer implements Deployer {
 
     private static final String DEPLOYER_NAME = TestPlan.DeployerType.KUBERNETES.toString();
+    private static final Logger logger = LoggerFactory.getLogger(KubernetesDeployer.class);
 
     @Override
     public String getDeployerName() {
@@ -61,7 +64,7 @@ public class KubernetesDeployer implements Deployer {
     public DeploymentCreationResult deploy(TestPlan testPlan,
                                            InfrastructureProvisionResult infrastructureProvisionResult,
                                            Script script)
-            throws TestGridDeployerException, IOException {
+            throws TestGridDeployerException {
 
         String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
         String deployScriptLocation = Paths.get(deployRepositoryLocation,
@@ -78,14 +81,23 @@ public class KubernetesDeployer implements Deployer {
             while ((c = resourceFileStream.read()) != -1) {
                 outStream.write(c);
             }
+        } catch (IOException e) {
+            logger.error("An exception occurred " + e);
         } finally {
             if (outStream != null) {
-                outStream.close();
+                try {
+                    outStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
             if (resourceFileStream != null) {
-                resourceFileStream.close();
+                try {
+                    resourceFileStream.close();
+                } catch (IOException e) {
+                    logger.error("An exception occurred " + e);
+                }
             }
-
         }
 
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
