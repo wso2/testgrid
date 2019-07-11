@@ -30,8 +30,6 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -87,39 +85,17 @@ public class HelmProvider implements InfrastructureProvider {
         setProperties(testPlan);
         String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
                 .toString();
-        String deployScriptLocation = Paths.get(infrastructureRepositoryLocation,
-                TestGridConstants.HELM_INFRA_SCRIPT).toString();
-        InputStream resourceFileStream = null;
-        OutputStream outStream = null;
 
+        InputStream resourceFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.HELM_INFRA_SCRIPT);
         try {
-            resourceFileStream = getClass().getClassLoader()
-                    .getResourceAsStream(TestGridConstants.HELM_INFRA_SCRIPT);
-            File targetFile = new File(deployScriptLocation);
-            outStream = new FileOutputStream(targetFile);
-            int c;
-            while ((c = resourceFileStream.read()) != -1) {
-                outStream.write(c);
-            }
+            Files.copy(resourceFileStream, Paths.get(testPlan.getInfrastructureRepository(),
+                    TestGridConstants.HELM_INFRA_SCRIPT));
         } catch (IOException e) {
-            logger.error("An exception occurred " + e);
-        } finally {
-            if (outStream != null) {
-                try {
-                    outStream.close();
-                } catch (IOException e) {
-                    logger.error("An exception occurred " + e);
-                }
-            }
-            if (resourceFileStream != null) {
-                try {
-                    resourceFileStream.close();
-                } catch (IOException e) {
-                    logger.error("An exception occurred " + e);
-                }
-            }
-
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.HELM_INFRA_SCRIPT, e);
         }
+
         InfrastructureProvisionResult result = ShellScriptProviderFactory.provision(testPlan,
                 Paths.get(infrastructureRepositoryLocation, TestGridConstants.HELM_INFRA_SCRIPT));
         return result;
@@ -141,39 +117,17 @@ public class HelmProvider implements InfrastructureProvider {
 
         String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
                 .toString();
-        String deployScriptLocation = Paths.get(infrastructureRepositoryLocation,
-                TestGridConstants.HELM_DESTROY_SCRIPT).toString();
-        InputStream resourceFileStream = null;
-        OutputStream outStream = null;
 
+        InputStream resourceFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.HELM_DESTROY_SCRIPT);
         try {
-            resourceFileStream = getClass().getClassLoader().
-                    getResourceAsStream(TestGridConstants.HELM_DESTROY_SCRIPT);
-            File targetFile = new File(deployScriptLocation);
-            outStream = new FileOutputStream(targetFile);
-            int c;
-            while ((c = resourceFileStream.read()) != -1) {
-                outStream.write(c);
-            }
+            Files.copy(resourceFileStream, Paths.get(testPlan.getInfrastructureRepository(),
+                    TestGridConstants.HELM_DESTROY_SCRIPT));
         } catch (IOException e) {
-            logger.error("An exception occurred " + e);
-        } finally {
-            if (outStream != null) {
-                try {
-                    outStream.close();
-                } catch (IOException e) {
-                    logger.error("An exception occurred " + e);
-                }
-            }
-            if (resourceFileStream != null) {
-                try {
-                    resourceFileStream.close();
-                } catch (IOException e) {
-                    logger.error("An exception occurred " + e);
-                }
-            }
-
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.HELM_DESTROY_SCRIPT, e);
         }
+
         boolean release = ShellScriptProviderFactory.release(infrastructureConfig,
                 testPlan, Paths.get(infrastructureRepositoryLocation, TestGridConstants.HELM_DESTROY_SCRIPT));
         return release;

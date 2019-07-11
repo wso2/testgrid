@@ -27,11 +27,9 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
@@ -65,37 +63,15 @@ public class HelmDeployer implements Deployer {
                                            Script script)
             throws TestGridDeployerException {
         String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
-        String deployScriptLocation = Paths.get(deployRepositoryLocation,
-                TestGridConstants.HELM_DEPLOY_SCRIPT).toString();
-        InputStream resourceFileStream = null;
-        OutputStream outStream = null;
 
+        InputStream resourceFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.HELM_DEPLOY_SCRIPT);
         try {
-            resourceFileStream = getClass().getClassLoader()
-                    .getResourceAsStream(TestGridConstants.HELM_DEPLOY_SCRIPT);
-            File targetFile = new File(deployScriptLocation);
-            outStream = new FileOutputStream(targetFile);
-            int c;
-            while ((c = resourceFileStream.read()) != -1) {
-                outStream.write(c);
-            }
+            Files.copy(resourceFileStream, Paths.get(testPlan.getDeploymentRepository(),
+                    TestGridConstants.HELM_DEPLOY_SCRIPT));
         } catch (IOException e) {
-            logger.error("An exception occurred " + e);
-        } finally {
-            if (outStream != null) {
-                try {
-                    outStream.close();
-                } catch (IOException e) {
-                    logger.error("An exception occurred " + e);
-                }
-            }
-            if (resourceFileStream != null) {
-                try {
-                    resourceFileStream.close();
-                } catch (IOException e) {
-                    logger.error("An exception occurred " + e);
-                }
-            }
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.HELM_DEPLOY_SCRIPT, e);
         }
 
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
