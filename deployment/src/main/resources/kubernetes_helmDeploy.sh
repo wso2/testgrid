@@ -267,7 +267,7 @@ dbType: $DBEngine
 operatingSystem: $OS
 jdkType: $JDK
 EOF
-yes | cp -rf values.yaml $deploymentRepositoryLocation/apim-single-node/
+yes | cp -rf values.yaml $deploymentRepositoryLocation/helm/
 
 }
 
@@ -278,7 +278,7 @@ function transfer_yaml_files(){
  for ((i=0; i<$no_yamls; i++))
  do
  echo ${yamls[$i]}
- yes | cp -rf ${yamls[$i]} $deploymentRepositoryLocation/apim-single-node/templates/
+ yes | cp -rf ${yamls[$i]} $deploymentRepositoryLocation/helm/product/templates/
  done
 }
 
@@ -306,7 +306,7 @@ function install_helm(){
   #install resources using helm
   helmDeployment="wso2apim$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)"
   resources_deployment
-  helm install --name $helmDeployment $deploymentRepositoryLocation/apim-single-node/ --namespace=$namespace
+  helm install --name $helmDeployment $deploymentRepositoryLocation/helm/ --namespace=$namespace
 
   readiness_deployments
 
@@ -319,16 +319,16 @@ function resources_deployment(){
 
     if [ "$DBEngine" == "mysql" ]
     then
-        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/mysql/values.yaml stable/mysql --namespace $namespace
+        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mysql/values.yaml stable/mysql --namespace $namespace
     fi
     if [ "$DBEngine" == "postgresql" ]
     then
-        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/postgresql/values.yaml stable/postgresql --namespace $namespace
+        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/helm/postgresql/values.yaml stable/postgresql --namespace $namespace
     fi
     if [ "$DBEngine" == "mssql" ]
     then
-        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/mssql/values.yaml stable/mssql-linux --namespace $namespace
-        kubectl create -f $deploymentRepositoryLocation/jobs/db_provisioner_job.yaml --namespace $namespace
+        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mssql/values.yaml stable/mssql-linux --namespace $namespace
+        kubectl create -f $deploymentRepositoryLocation/helm/jobs/db_provisioner_job.yaml --namespace $namespace
     fi
 
 }

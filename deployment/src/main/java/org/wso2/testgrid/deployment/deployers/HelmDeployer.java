@@ -17,6 +17,8 @@
  */
 package org.wso2.testgrid.deployment.deployers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
@@ -25,7 +27,9 @@ import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 
-import java.net.URL;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
@@ -38,6 +42,7 @@ import java.nio.file.Paths;
 public class HelmDeployer implements Deployer {
 
     private static final String DEPLOYER_NAME = TestPlan.DeployerType.HELM.toString();
+    private static final Logger logger = LoggerFactory.getLogger(HelmDeployer.class);
 
     @Override
     public String getDeployerName() {
@@ -57,11 +62,22 @@ public class HelmDeployer implements Deployer {
                                            InfrastructureProvisionResult infrastructureProvisionResult,
                                            Script script)
             throws TestGridDeployerException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.HELM_DEPLOY_SCRIPT);
+        String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
+
+        InputStream resourceFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.HELM_DEPLOY_SCRIPT);
+        try {
+            Files.copy(resourceFileStream, Paths.get(testPlan.getDeploymentRepository(),
+                    TestGridConstants.HELM_DEPLOY_SCRIPT));
+        } catch (IOException e) {
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.HELM_DEPLOY_SCRIPT, e);
+        }
+
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
-                infrastructureProvisionResult, Paths
-                        .get(resource.getPath()));
+                infrastructureProvisionResult,
+                Paths.get(deployRepositoryLocation, TestGridConstants.HELM_DEPLOY_SCRIPT));
+
         return deploymentCreationResult;
     }
 }

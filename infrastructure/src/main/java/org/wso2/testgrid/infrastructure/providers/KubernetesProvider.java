@@ -31,8 +31,8 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -82,10 +82,22 @@ public class KubernetesProvider implements InfrastructureProvider {
             throws TestGridInfrastructureException {
         setInfraProperties(testPlan);
         setProperties(testPlan);
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.KUBERNETES_INFRA_SCRIPT);
+        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
+                .toString();
+
+        InputStream resourceFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.KUBERNETES_INFRA_SCRIPT);
+        try {
+            Files.copy(resourceFileStream, Paths.get(testPlan.getInfrastructureRepository(),
+                    TestGridConstants.KUBERNETES_INFRA_SCRIPT));
+        } catch (IOException e) {
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.KUBERNETES_DEPLOY_SCRIPT, e);
+        }
+
         InfrastructureProvisionResult result = ShellScriptProviderFactory.provision(testPlan,
-                Paths.get(resource.getPath()));
+                Paths.get(infrastructureRepositoryLocation,
+                        TestGridConstants.KUBERNETES_INFRA_SCRIPT));
         return result;
     }
 
@@ -102,11 +114,21 @@ public class KubernetesProvider implements InfrastructureProvider {
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
                            TestPlan testPlan, Script script) throws TestGridInfrastructureException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.KUBERNETES_DESTROY_SCRIPT);
-        assert resource != null;
+        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
+                .toString();
+        InputStream resourceFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.KUBERNETES_DESTROY_SCRIPT);
+        try {
+            Files.copy(resourceFileStream, Paths.get(testPlan.getInfrastructureRepository(),
+                    TestGridConstants.KUBERNETES_DESTROY_SCRIPT));
+        } catch (IOException e) {
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.KUBERNETES_DESTROY_SCRIPT, e);
+        }
+
         boolean release = ShellScriptProviderFactory.release(infrastructureConfig,
-                testPlan, Paths.get(resource.getPath()));
+                testPlan, Paths.get(infrastructureRepositoryLocation,
+                        TestGridConstants.KUBERNETES_DESTROY_SCRIPT));
         return release;
     }
 
@@ -120,8 +142,8 @@ public class KubernetesProvider implements InfrastructureProvider {
     private void setInfraProperties(TestPlan testPlan) {
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
-        DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
-                .getDeploymentPatterns().get(0);
+        DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.
+                getDeploymentConfig().getDeploymentPatterns().get(0);
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
             os.write(("\nname=" + deploymentPatternConfig.getName()).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
@@ -140,7 +162,8 @@ public class KubernetesProvider implements InfrastructureProvider {
         String wumPassword = null;
         final Path location = DataBucketsHelper.getInputLocation(testPlan)
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
-        String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
+        String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).
+                toString();
         String yamlFileLocation = Paths.get(deployRepositoryLocation).toString();
         logger.info(location.toString());
         try {
