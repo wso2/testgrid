@@ -290,7 +290,7 @@ function install_helm(){
     mv linux-amd64/helm ~/.local/bin/
     cd ~/.local/bin/
     helm help
-    PATH=~/.local/bin/helm:~/opt/bin
+    PATH=~/.local/bin:~/opt/bin:$PATH
   fi
 
   #install resources using helm
