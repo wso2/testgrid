@@ -282,4 +282,3 @@ public class RunTestPlanCommand implements Command {
         }
     }
 }
-

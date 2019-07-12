@@ -31,8 +31,8 @@ import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,10 +83,21 @@ public class HelmProvider implements InfrastructureProvider {
             throws TestGridInfrastructureException {
         setInfraProperties(testPlan);
         setProperties(testPlan);
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.HELM_INFRA_SCRIPT);
+        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
+                .toString();
+
+        InputStream resourceFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.HELM_INFRA_SCRIPT);
+        try {
+            Files.copy(resourceFileStream, Paths.get(testPlan.getInfrastructureRepository(),
+                    TestGridConstants.HELM_INFRA_SCRIPT));
+        } catch (IOException e) {
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.HELM_INFRA_SCRIPT, e);
+        }
+
         InfrastructureProvisionResult result = ShellScriptProviderFactory.provision(testPlan,
-                Paths.get(resource.getPath()));
+                Paths.get(infrastructureRepositoryLocation, TestGridConstants.HELM_INFRA_SCRIPT));
         return result;
     }
 
@@ -103,11 +114,23 @@ public class HelmProvider implements InfrastructureProvider {
     @Override
     public boolean release(InfrastructureConfig infrastructureConfig, String infraRepoDir,
                            TestPlan testPlan, Script script) throws TestGridInfrastructureException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource(TestGridConstants.HELM_DESTROY_SCRIPT);
-        boolean exitCode = ShellScriptProviderFactory.release(infrastructureConfig,
-                testPlan, Paths.get(resource.getPath()));
-        return exitCode;
+
+        String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
+                .toString();
+
+        InputStream resourceFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.HELM_DESTROY_SCRIPT);
+        try {
+            Files.copy(resourceFileStream, Paths.get(testPlan.getInfrastructureRepository(),
+                    TestGridConstants.HELM_DESTROY_SCRIPT));
+        } catch (IOException e) {
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.HELM_DESTROY_SCRIPT, e);
+        }
+
+        boolean release = ShellScriptProviderFactory.release(infrastructureConfig,
+                testPlan, Paths.get(infrastructureRepositoryLocation, TestGridConstants.HELM_DESTROY_SCRIPT));
+        return release;
     }
 
 

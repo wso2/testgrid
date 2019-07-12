@@ -29,7 +29,7 @@ source $INPUT_DIR/testplan-props.properties
 
 #if the cluster name is not specified through input parametes it is assumed that the default
 #testgrid cluster is used for the creation of resources.
-if [ -z $ClusterName ]
+if [ -z $CLUSTER_NAME ]
 then
     SERVICE_ACCOUNT="gke-bot@testgrid.iam.gserviceaccount.com"
     CLUSTER_NAME="dev-test-cluster"

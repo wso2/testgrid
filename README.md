@@ -44,12 +44,13 @@ repositories.
 
 ## Building Testgrid
 
-You need Oracle/OpenJDK 8, Node JS, React and Apache Maven 3.5 to build Testgrid. 
+You need Oracle JDK 8, Node JS, MySQL Server 5 and Apache Maven 3.5 to build Testgrid.
 
 `mvn clean install`
 
-NOTE: if you are using OpenJDK 8, then you'll need to install JFX libraries. 
-For Ubuntu/Debian, it's available in openjfx package. You can install it via `apt install openjfx`.
+NOTE: For Ubuntu/Debian to install NodeJS, issue the following commands
+1. `sudo apt update`
+2. `sudo apt install nodejs`
 
 ## Testgrid architecture
 

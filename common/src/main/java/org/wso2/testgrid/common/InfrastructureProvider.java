@@ -22,6 +22,7 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 
+
 /**
  * This Interface has to be implemented by the InfrastructureProviders like AWS, GCC, OpenStack.
  */
