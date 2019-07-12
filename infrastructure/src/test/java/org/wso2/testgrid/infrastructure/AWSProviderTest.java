@@ -77,7 +77,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -289,9 +288,9 @@ public class AWSProviderTest extends PowerMockTestCase {
         script.setType(Script.ScriptType.CLOUDFORMATION);
         script.setFile(scriptFile);
         script.setName(mockStackName);
-        Properties scriptParameters = new Properties();
-        scriptParameters.setProperty("EC2KeyPair", "test-grid.key");
-        scriptParameters.setProperty("region", "us-east-1");
+        HashMap scriptParameters = new HashMap();
+        scriptParameters.put("EC2KeyPair", "test-grid.key");
+        scriptParameters.put("region", "us-east-1");
         script.setInputParameters(scriptParameters);
 
         InfrastructureConfig infrastructureConfig = new InfrastructureConfig();

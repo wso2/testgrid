@@ -37,12 +37,18 @@ import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
+
 
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
@@ -171,10 +177,25 @@ public class InfraPhase extends Phase {
         final Properties jobProperties = getTestPlan().getJobProperties();
         final String keyFileLocation = getTestPlan().getKeyFileLocation();
         final Properties infraParameters = getTestPlan().getInfrastructureConfig().getParameters();
-        try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
-            jobProperties.store(os, null);
-            infraParameters.store(os, null);
-            os.write((TestGridConstants.KEY_FILE_LOCATION + "=" + keyFileLocation).getBytes(StandardCharsets.UTF_8));
+        try (PrintWriter printWriter = new PrintWriter(
+                new OutputStreamWriter(Files.newOutputStream(location, CREATE, APPEND), StandardCharsets.UTF_8))) {
+            for (Enumeration en = jobProperties.propertyNames(); en.hasMoreElements();) {
+                String key = (String) en.nextElement();
+                printWriter.println(key + "=" + jobProperties.getProperty(key));
+            }
+            for (Enumeration en = infraParameters.propertyNames(); en.hasMoreElements();) {
+                String key = (String) en.nextElement();
+                printWriter.println(key + "=" + infraParameters.getProperty(key));
+            }
+            printWriter.println((TestGridConstants.KEY_FILE_LOCATION + "=" + keyFileLocation));
+            for (Script script : getTestPlan().getInfrastructureConfig().getFirstProvisioner().getScripts()) {
+                Map<String, Object> inputParams = script.getInputParameters();
+                Iterator it = inputParams.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry pair = (Map.Entry) it.next();
+                    printWriter.println(pair.getKey() + "=" + pair.getValue());
+                }
+            }
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
         }

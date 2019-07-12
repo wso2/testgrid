@@ -9,6 +9,9 @@ deploymentConfig:
     scripts:
     - description: Do a IS two node deployment.
       file: deploy.sh
+      inputParameters:
+        url: https://sample-wso2-product.zip/
+        adminpermissions: true
       name: deploy-
       phase: CREATE
       type: SHELL
@@ -28,12 +31,14 @@ infrastructureConfig:
     scripts:
     - description: Creates infrastructure for a IS node deployment.
       file: infra-provision.sh
+      inputParameters:
+        Privilege: true
       name: infra-for-dummy-deployment-
       phase: CREATE
       type: SHELL
     - file: infra-destroy.sh
-      inputParameters: {
-        }
+      inputParameters:
+        RootPermissions: true
       name: destroy-
       phase: DESTROY
       type: SHELL
@@ -48,6 +53,8 @@ scenarioConfigs:
   inputParameters:
     DBPassword: DB_Password
     DBUsername: wso2carbon
+    url: https://wso2.com
+    nologin: true
   name: integration-tests
   outputDir: wso2-ei-scenarios
   remoteBranch: master
