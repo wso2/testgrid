@@ -324,12 +324,25 @@ public class GenerateTestPlanCommand implements Command {
         representer.getPropertyUtils().setSkipMissingProperties(true); // Skip missing properties in testgrid.yaml
         TestgridYaml testgridYaml = new Yaml(new Constructor(TestgridYaml.class), representer)
                 .loadAs(testgridYamlContent, TestgridYaml.class);
+        validateDeploymentConfigName(testgridYaml);
         insertJobConfigFilePropertiesTo(testgridYaml, jobConfigFile);
 
         if (logger.isDebugEnabled()) {
             logger.debug("The testgrid.yaml content for this product build: " + testgridYamlContent);
         }
         return testgridYaml;
+    }
+
+    /**
+     * Validate deploymentConfig name and replace invalid characters with '-'.
+     *
+     * @param testgridYaml testgridYaml
+     */
+    private void validateDeploymentConfigName(TestgridYaml testgridYaml) {
+        for (DeploymentConfig.DeploymentPattern deploymentPattern : testgridYaml.getDeploymentConfig()
+                .getDeploymentPatterns()) {
+            deploymentPattern.setName(deploymentPattern.getName().replaceAll("[^a-zA-Z0-9:/]", "-"));
+        }
     }
 
     /**
