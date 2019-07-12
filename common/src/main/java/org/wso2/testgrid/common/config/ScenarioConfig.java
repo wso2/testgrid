@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represent the scenario configuration in the testgrid.yaml file that is
@@ -126,7 +127,7 @@ public class ScenarioConfig implements Serializable {
         this.testType = testType;
     }
 
-    private HashMap inputParameters = new HashMap<>();
+    private Map<String, Object> inputParameters = new HashMap<>();
 
     private String file;
 
@@ -162,7 +163,7 @@ public class ScenarioConfig implements Serializable {
      *
      * @return List of inputParameters
      */
-    public HashMap getInputParameters() {
+    public Map<String, Object> getInputParameters() {
         return inputParameters;
     }
 
@@ -171,7 +172,7 @@ public class ScenarioConfig implements Serializable {
      *
      * @param inputParameters List of input parameters taken from scenarioConfig
      */
-    public void setInputParameters(HashMap<String, Object> inputParameters) {
+    public void setInputParameters(Map<String, Object> inputParameters) {
         this.inputParameters = inputParameters;
     }
 

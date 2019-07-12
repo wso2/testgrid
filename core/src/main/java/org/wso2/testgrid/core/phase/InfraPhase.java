@@ -45,7 +45,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -190,7 +189,7 @@ public class InfraPhase extends Phase {
             }
             printWriter.println((TestGridConstants.KEY_FILE_LOCATION + "=" + keyFileLocation));
             for (Script script : getTestPlan().getInfrastructureConfig().getFirstProvisioner().getScripts()) {
-                HashMap<String, Object> inputParams = script.getInputParameters();
+                Map<String, Object> inputParams = script.getInputParameters();
                 Iterator it = inputParams.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry pair = (Map.Entry) it.next();

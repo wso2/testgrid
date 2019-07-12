@@ -92,12 +92,12 @@ public class DeployPhase extends Phase {
                 persistTestPlanPhase(TestPlanPhase.DEPLOY_PHASE_SUCCEEDED);
 
                 //Append TestPlan id to deployment.properties file
-                HashMap tgProperties = new HashMap<>();
+                Map<String, Object> tgProperties = new HashMap<>();
                 tgProperties.put("TEST_PLAN_ID", getTestPlan().getId());
                 persistAdditionalInputs(tgProperties, DataBucketsHelper.getOutputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.DEPL_OUT_FILE));
                 // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
-                HashMap sceProperties = new HashMap();
+                Map<String, Object> sceProperties = new HashMap<>();
                 for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
                     sceProperties.putAll(scenarioConfig.getInputParameters());
                     persistAdditionalInputs(sceProperties, DataBucketsHelper.getOutputLocation(getTestPlan())
@@ -134,7 +134,7 @@ public class DeployPhase extends Phase {
                 }
 
                 // Append deploymentConfig inputs in testgrid yaml to infra outputs file
-                HashMap<String, Object> deplInputs = script.getInputParameters();
+                Map<String, Object> deplInputs = script.getInputParameters();
                 persistAdditionalInputs(deplInputs, infraOutFilePath);
                 Deployer deployerService = DeployerFactory.getDeployerService(script);
                 DeploymentCreationResult aresult =
@@ -254,7 +254,7 @@ public class DeployPhase extends Phase {
      * @param propFilePath path of the property file
      * @throws TestPlanExecutorException if writing to the property file fails
      */
-    private void persistAdditionalInputs(HashMap properties, Path propFilePath) throws TestPlanExecutorException {
+    private void persistAdditionalInputs(Map properties, Path propFilePath) throws TestPlanExecutorException {
         try (PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(
                 new FileOutputStream(propFilePath.toString(), true), StandardCharsets.UTF_8))) {
             Iterator it = properties.entrySet().iterator();

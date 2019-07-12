@@ -25,6 +25,7 @@ import org.wso2.testgrid.common.TestGridError;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Defines a model object for a provided custom script.
@@ -39,7 +40,7 @@ public class Script implements Serializable, Cloneable {
     private Phase phase;
     private String description;
     private String file;
-    private HashMap<String, Object> inputParameters = new HashMap<>();
+    private Map<String, Object> inputParameters = new HashMap<>();
 
     public String getName() {
         return name;
@@ -65,11 +66,11 @@ public class Script implements Serializable, Cloneable {
         this.file = file;
     }
 
-    public HashMap getInputParameters() {
+    public Map<String, Object> getInputParameters() {
         return inputParameters;
     }
 
-    public void setInputParameters(HashMap<String, Object> inputParameters) {
+    public void setInputParameters(Map<String, Object> inputParameters) {
         this.inputParameters = inputParameters;
     }
 
