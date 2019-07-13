@@ -42,11 +42,6 @@ dep_num=${#dep[@]}
 
 function create_k8s_resources() {
 
-    if [ -z $YAMLS ]
-    then
-      echo "the yaml file is not created or the yaml file is not available"
-      exit 1
-    fi
     #create the deployments
 
     if [ -z $deployments ]
@@ -55,7 +50,6 @@ function create_k8s_resources() {
       exit 1
     fi
 
-
     if [ -z $yamlFilesLocation ]; then
       echo "the yaml files location is not given"
       exit 1
@@ -63,9 +57,6 @@ function create_k8s_resources() {
 
     #create values.yaml file
     create_value_yaml
-
-    #transfer yaml files created to deploy helm deployments
-    #transfer_yaml_files
 
     #install helm
     install_helm
@@ -267,7 +258,7 @@ dbType: $DBEngine
 operatingSystem: $OS
 jdkType: $JDK
 EOF
-yes | cp -rf values.yaml $deploymentRepositoryLocation/helm/
+yes | cp -rf values.yaml $deploymentRepositoryLocation/helm/product/
 
 }
 
@@ -293,20 +284,19 @@ function install_helm(){
   #if helm is not installed in the cluster, helm and tiller will be installed.
   if [ -z helm ]
   then
-    curl -LO https://git.io/get_helm.sh
-    chmod 700 get_helm.sh
-    ./get_helm.
-
-    #resources_deployment
-    kubectl create serviceaccount --namespace kube-system tiller
-    kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-    kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+    wget https://get.helm.sh/helm-v3.0.0-alpha.1-linux-amd64.tar.gz
+    tar -zxvf helm-v3.0.0-alpha.1-linux-amd64.tar.gz
+    mkdir ~/.local/bin/
+    mv linux-amd64/helm ~/.local/bin/
+    cd ~/.local/bin/
+    helm help
+    PATH=~/.local/bin:~/opt/bin:$PATH
   fi
 
   #install resources using helm
-  helmDeployment="wso2apim$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)"
+  helmDeployment="wso2product$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)"
   resources_deployment
-  helm install --name $helmDeployment $deploymentRepositoryLocation/helm/ --namespace=$namespace
+  helm install $helmDeployment $deploymentRepositoryLocation/helm/product/
 
   readiness_deployments
 
@@ -319,15 +309,15 @@ function resources_deployment(){
 
     if [ "$DBEngine" == "mysql" ]
     then
-        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mysql/values.yaml stable/mysql --namespace $namespace
+        helm install wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mysql/values.yaml stable/mysql
     fi
     if [ "$DBEngine" == "postgresql" ]
     then
-        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/helm/postgresql/values.yaml stable/postgresql --namespace $namespace
+        helm install wso2-rdbms-service -f $deploymentRepositoryLocation/helm/postgresql/values.yaml stable/postgresql
     fi
     if [ "$DBEngine" == "mssql" ]
     then
-        helm install --name wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mssql/values.yaml stable/mssql-linux --namespace $namespace
+        helm install wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mssql/values.yaml stable/mssql-linux
         kubectl create -f $deploymentRepositoryLocation/helm/jobs/db_provisioner_job.yaml --namespace $namespace
     fi
 
