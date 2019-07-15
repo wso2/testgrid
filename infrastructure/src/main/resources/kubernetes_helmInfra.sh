@@ -75,8 +75,8 @@ function auth() {
 
 
 
-}
 
+}
 function create_randomName() {
     if [ -z $name ]
     then 
