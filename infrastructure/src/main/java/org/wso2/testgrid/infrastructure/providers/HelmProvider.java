@@ -168,7 +168,7 @@ public class HelmProvider implements InfrastructureProvider {
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
             os.write(("\n" + TestGridConstants.DEPLOYMENT_REPOSITORY_LOCATION + "=" + deployRepositoryLocation).
                     getBytes(StandardCharsets.UTF_8));
-            os.write(("\n" + TestGridConstants.YAML_FILES_LOCATION + "=" + yamlFileLocation).
+            os.write(("\n" + TestGridConstants.YAML_FILES_LOCATION + "=" + yamlFileLocation  + "\n").
                     getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);

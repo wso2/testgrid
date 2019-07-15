@@ -166,7 +166,7 @@ public class KubernetesProvider implements InfrastructureProvider {
         logger.info(location.toString());
 
         try (OutputStream os = Files.newOutputStream(location, CREATE, APPEND)) {
-            os.write(("\n" + TestGridConstants.YAML_FILES_LOCATION + "=" + yamlFileLocation).
+            os.write(("\n" + TestGridConstants.YAML_FILES_LOCATION + "=" + yamlFileLocation  + "\n").
                     getBytes(StandardCharsets.UTF_8));
           } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
