@@ -282,7 +282,7 @@ function transfer_public_key(){
 function install_helm(){
 
   #if helm is not installed in the cluster, helm and tiller will be installed.
-  if [ -z helm ]
+  if ! type 'helm'
   then
     wget https://get.helm.sh/helm-v3.0.0-alpha.1-linux-amd64.tar.gz
     tar -zxvf helm-v3.0.0-alpha.1-linux-amd64.tar.gz
