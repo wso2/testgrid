@@ -58,6 +58,7 @@ import java.util.Random;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -118,7 +119,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "", true);
         InfrastructureCombination infrastructureCombination = new InfrastructureCombination(param);
-        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class), DEFAULT_SCHEDULE))
+        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class), eq(DEFAULT_SCHEDULE)))
                 .thenReturn(Collections.singleton(infrastructureCombination));
 
         logger.info("Product : " + product.getName());
