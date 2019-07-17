@@ -128,8 +128,8 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
                 thenReturn(Optional.of(deploymentPattern));
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFileLocation, DEFAULT_SCHEDULE, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
-                testPlanUOW);
+                jobConfigFileLocation, infrastructureCombinationsProvider, productUOW,
+                deploymentPatternUOW, testPlanUOW);
         generateTestPlanCommand.execute();
 
         Path actualTestPlanPath = Paths.get(actualTestPlanFileLocation);
