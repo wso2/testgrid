@@ -61,6 +61,20 @@
                 <include>org.wso2.testgrid:org.wso2.testgrid.automation:jar</include>
                 <include>org.wso2.testgrid:org.wso2.testgrid.reporting:jar</include>
                 <include>org.wso2.testgrid:org.wso2.testgrid.logging:jar</include>
+                <include>com.amazonaws:aws-java-sdk-s3</include>
+            </includes>
+            <unpack>false</unpack>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <useProjectArtifact>false</useProjectArtifact>
+            <includes>
+                <include>com.amazonaws:aws-java-sdk-s3</include>
+		<include>com.amazonaws:aws-java-sdk-discovery</include>
+		<include>com.amazonaws:aws-java-sdk-cloudformation</include>
+		<include>com.amazonaws:aws-java-sdk-ec2</include>
+                <include>com.amazonaws:aws-java-sdk-kms</include>
+                <include>com.amazonaws:jmespath-java</include>
             </includes>
             <unpack>false</unpack>
         </dependencySet>
@@ -71,6 +85,7 @@
             <unpack>false</unpack>
             <excludes>
                 <exclude>${project.groupId}:*</exclude>
+                <exclude>com.amazonaws:*</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>
