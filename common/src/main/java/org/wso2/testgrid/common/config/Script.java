@@ -24,7 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridError;
 
 import java.io.Serializable;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Defines a model object for a provided custom script.
@@ -39,7 +40,7 @@ public class Script implements Serializable, Cloneable {
     private Phase phase;
     private String description;
     private String file;
-    private Properties inputParameters = new Properties();
+    private Map<String, Object> inputParameters = new HashMap<>();
 
     public String getName() {
         return name;
@@ -65,11 +66,11 @@ public class Script implements Serializable, Cloneable {
         this.file = file;
     }
 
-    public Properties getInputParameters() {
+    public Map<String, Object> getInputParameters() {
         return inputParameters;
     }
 
-    public void setInputParameters(Properties inputParameters) {
+    public void setInputParameters(Map<String, Object> inputParameters) {
         this.inputParameters = inputParameters;
     }
 

@@ -18,8 +18,11 @@ infrastructureConfig:
           phase: CREATE
           file: infra-provision.sh
           inputParameters:
+            Privilege: true
         - name: destroy
           file: infra-destroy.sh
+          inputParameters:
+            RootPermissions: true
           type: SHELL
           phase: DESTROY
 scenarioConfigs:
@@ -27,6 +30,8 @@ scenarioConfigs:
   inputParameters:
     DBPassword: DB_Password
     DBUsername: wso2carbon
+    url: https://wso2.com
+    nologin: true
   name: integration-tests
   outputDir: wso2-ei-scenarios
   remoteBranch: master
@@ -44,3 +49,5 @@ deploymentConfig:
           name: "deploy"
           phase: CREATE
           inputParameters:
+            url: https://sample-wso2-product.zip/
+            adminpermissions: true

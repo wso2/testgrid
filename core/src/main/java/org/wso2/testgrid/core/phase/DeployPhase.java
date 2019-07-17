@@ -45,10 +45,14 @@ import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This class includes implementation of deployment-creation phase.
@@ -88,12 +92,12 @@ public class DeployPhase extends Phase {
                 persistTestPlanPhase(TestPlanPhase.DEPLOY_PHASE_SUCCEEDED);
 
                 //Append TestPlan id to deployment.properties file
-                Properties tgProperties = new Properties();
-                tgProperties.setProperty("TEST_PLAN_ID", getTestPlan().getId());
+                Map<String, Object> tgProperties = new HashMap<>();
+                tgProperties.put("TEST_PLAN_ID", getTestPlan().getId());
                 persistAdditionalInputs(tgProperties, DataBucketsHelper.getOutputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.DEPL_OUT_FILE));
                 // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
-                Properties sceProperties = new Properties();
+                Map<String, Object> sceProperties = new HashMap<>();
                 for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
                     sceProperties.putAll(scenarioConfig.getInputParameters());
                     persistAdditionalInputs(sceProperties, DataBucketsHelper.getOutputLocation(getTestPlan())
@@ -130,7 +134,7 @@ public class DeployPhase extends Phase {
                 }
 
                 // Append deploymentConfig inputs in testgrid yaml to infra outputs file
-                Properties deplInputs = script.getInputParameters();
+                Map<String, Object> deplInputs = script.getInputParameters();
                 persistAdditionalInputs(deplInputs, infraOutFilePath);
                 Deployer deployerService = DeployerFactory.getDeployerService(script);
                 DeploymentCreationResult aresult =
@@ -250,10 +254,14 @@ public class DeployPhase extends Phase {
      * @param propFilePath path of the property file
      * @throws TestPlanExecutorException if writing to the property file fails
      */
-    private void persistAdditionalInputs(Properties properties, Path propFilePath) throws TestPlanExecutorException {
-        try (OutputStream outputStream = new FileOutputStream(
-                propFilePath.toString(), true)) {
-                    properties.store(outputStream, null);
+    private void persistAdditionalInputs(Map properties, Path propFilePath) throws TestPlanExecutorException {
+        try (PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(
+                new FileOutputStream(propFilePath.toString(), true), StandardCharsets.UTF_8))) {
+            Iterator it = properties.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry) it.next();
+                printWriter.println(pair.getKey() + "=" + pair.getValue());
+            }
         } catch (Throwable e) {
             throw new TestPlanExecutorException("Error occurred while writing deployment outputs.", e);
         }
