@@ -200,6 +200,12 @@ public class JobConfigFile {
         this.keyFileLocation = keyFileLocation;
     }
 
+    /**
+     * Get the schedule from jobconfig.yaml to retrieve combination generate algorithm and
+     * generate infrastructure combinations.
+     *
+     * @return defined schedule for generate combinations.
+     */
     public String getSchedule() {
         return schedule;
     }
