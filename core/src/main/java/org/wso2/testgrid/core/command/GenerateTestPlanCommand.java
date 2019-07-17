@@ -100,12 +100,8 @@ public class GenerateTestPlanCommand implements Command {
             aliases = { "-f" })
     private String jobConfigFilePath = "";
 
-    @Option(name = "--schedule",
-            usage = "Provide the schedule to generate infrastructure combinations.",
-            aliases = { "-s" })
-    private String schedule = "";
-
     private String testgridYamlLocation = "";
+    private String schedule = "";
 
     private InfrastructureCombinationsProvider infrastructureCombinationsProvider;
 
@@ -129,12 +125,11 @@ public class GenerateTestPlanCommand implements Command {
      * @param combinationsProvider infrastructure Combinations Provider
      * @param productUOW           the ProductUOW
      */
-    GenerateTestPlanCommand(String productName, String jobConfigFilePath, String schedule,
-            InfrastructureCombinationsProvider combinationsProvider, ProductUOW productUOW,
+    GenerateTestPlanCommand(String productName, String jobConfigFilePath,
+                            InfrastructureCombinationsProvider combinationsProvider, ProductUOW productUOW,
                             DeploymentPatternUOW deploymentPatternUOW, TestPlanUOW testPlanUOW) {
         this.productName = productName;
         this.jobConfigFilePath = jobConfigFilePath;
-        this.schedule = schedule;
         this.infrastructureCombinationsProvider = combinationsProvider;
         this.productUOW = productUOW;
         this.deploymentPatternUOW = deploymentPatternUOW;
@@ -169,7 +164,8 @@ public class GenerateTestPlanCommand implements Command {
             throws IOException, CommandExecutionException, TestGridDAOException {
         JobConfigFile jobConfigFile = FileUtil.readYamlFile(jobConfigFilePath, JobConfigFile.class);
         Pattern pattern = Pattern.compile(StringUtil
-                .concatStrings(Paths.get(TestGridUtil.getTestGridHomePath(), TESTGRID_JOB_DIR).toString(), "*"));
+                .concatStrings(Paths.get(
+                        TestGridUtil.getTestGridHomePath(), TESTGRID_JOB_DIR).toString(), "*"));
         Matcher matcher = pattern.matcher(jobConfigFilePath);
         if (!matcher.find()) {
             Path directory = Paths.
@@ -187,6 +183,7 @@ public class GenerateTestPlanCommand implements Command {
             }
         }
         this.testgridYamlLocation = resolvePath(jobConfigFile.getTestgridYamlLocation(), jobConfigFile);
+        this.schedule = jobConfigFile.getSchedule();
         TestgridYaml testgridYaml = buildTestgridYamlContent(jobConfigFile);
         processTestgridYaml(testgridYaml, jobConfigFile, schedule);
     }
@@ -203,6 +200,8 @@ public class GenerateTestPlanCommand implements Command {
             combinations = infrastructureCombinationsProvider.getCombinations(
                     testgridYaml, schedule);
         } else {
+            logger.warn("Could not found schedule property. Using default schedule for generate combination.");
+            logger.warn("Default schedule: " + DEFAULT_SCHEDULE);
             combinations = infrastructureCombinationsProvider.getCombinations(
                     testgridYaml, DEFAULT_SCHEDULE);
         }

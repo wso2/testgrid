@@ -161,7 +161,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         doMock();
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFile, DEFAULT_SCHEDULE, infrastructureCombinationsProvider, productUOW,
+                jobConfigFile, infrastructureCombinationsProvider, productUOW,
                 deploymentPatternUOW, testPlanUOW);
         generateTestPlanCommand.execute();
 

@@ -39,6 +39,7 @@ public class JobConfigFile {
     private String configChangeSetRepository;
     private String configChangeSetBranchName;
     private String keyFileLocation;
+    private String schedule;
     private Properties properties;
 
     /**
@@ -199,6 +200,14 @@ public class JobConfigFile {
         this.keyFileLocation = keyFileLocation;
     }
 
+    public String getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(String schedule) {
+        this.schedule = schedule;
+    }
+
     /**
      * Get a list of dynamic properties added to the job-config.yaml.
      * An example include the product dist download location.
@@ -227,6 +236,7 @@ public class JobConfigFile {
                 ", isRelativePaths=" + isRelativePaths +
                 ", testgridYamlLocation='" + testgridYamlLocation + '\'' +
                 ", testgridKeyFileLocation='" + keyFileLocation + '\'' +
+                ", schedule='" + schedule + '\'' +
                 '}';
     }
 
