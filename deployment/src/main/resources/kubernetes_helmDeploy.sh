@@ -55,11 +55,10 @@ function create_k8s_resources() {
       exit 1
     fi
 
-    #create values.yaml file
-    create_value_yaml
-
     #install helm
     install_helm
+
+    source $helmDeployScript
 
     if [ -z ${loadBalancerHostName} ]; then
         echo WARN: loadBalancerHostName not found in deployment.properties. Generating a random name under \
@@ -246,22 +245,7 @@ echo "AWS Route53 DNS server configured to access the ingress IP  ${external_ip}
 echo
 }
 
-function create_value_yaml(){
 
-cat > values.yaml << EOF
-username: $WUMUsername
-password: $WUMPassword
-email: $WUMUsername
-
-namespace: $namespace
-svcaccount: "wso2svc-account"
-dbType: $DBEngine
-operatingSystem: $OS
-jdkType: $JDK
-EOF
-yes | cp -rf $deploymentRepositoryLocation/values.yaml $deploymentRepositoryLocation/helm/product/
-
-}
 
 
 function install_helm(){
@@ -279,37 +263,10 @@ function install_helm(){
 
   fi
 
-  #install resources using helm
-  helmDeployment="wso2product$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)"
-  resources_deployment
-  helm install $helmDeployment $deploymentRepositoryLocation/helm/product/
-
-  readiness_deployments
 
 }
 
-#installation of database differs accoring to the type of database resource found.
-#This function is to deploy the database correctly as found in the test plan.
 
-function resources_deployment(){
-
-    DB=$(echo $DBEngine | cut -d'-' -f 1  | tr '[:upper:]' '[:lower:]')
-
-    if [ "$DB" == "mysql" ]
-    then
-        helm install wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mysql/values.yaml stable/mysql
-    fi
-    if [ "$DB" == "postgres" ]
-    then
-        helm install wso2-rdbms-service -f $deploymentRepositoryLocation/helm/postgresql/values.yaml stable/postgresql
-    fi
-    if [ "$DB" == "mssql" ]
-    then
-        helm install wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mssql/values.yaml stable/mssql-linux
-        kubectl create -f $deploymentRepositoryLocation/helm/jobs/db_provisioner_job.yaml --namespace $namespace
-    fi
-
-}
 
 #DEBUG parameters: TODO: remove
 TESTGRID_ENVIRONMENT=dev
