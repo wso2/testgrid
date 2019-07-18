@@ -278,7 +278,6 @@
                 <artifactId>aws-java-sdk</artifactId>
                 <version>${com.aws.version}</version>
             </dependency>
-
             <!-- Required for AWS SDK -->
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>

@@ -133,6 +133,5 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk</artifactId>
         </dependency>
-
     </dependencies>
 </project>
