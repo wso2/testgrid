@@ -86,6 +86,12 @@
             <version>${com.aws.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-core</artifactId>
+            <version>${com.aws.version}</version>
+        </dependency>
+
         <!-- Glass fish / jersey dependencies -->
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
