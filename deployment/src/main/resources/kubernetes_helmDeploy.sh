@@ -81,8 +81,9 @@ kubectl create secret tls ${tlskeySecret} \
     --cert deploymentRepository/keys/testgrid-certs-v2.crt  \
     --key deploymentRepository/keys/testgrid-certs-v2.key -n $namespace
 
-#transfer public key to be used by scenario tests.
-transfer_public_key
+
+echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
+
 
     cat > ${ingressName}.yaml << EOF
 apiVersion: extensions/v1beta1
@@ -258,27 +259,11 @@ dbType: $DBEngine
 operatingSystem: $OS
 jdkType: $JDK
 EOF
-yes | cp -rf values.yaml $deploymentRepositoryLocation/helm/product/
+yes | cp -rf $deploymentRepositoryLocation/values.yaml $deploymentRepositoryLocation/helm/product/
 
 }
 
-#transfer yaml files to templates to be used as helm deployments.
-function transfer_yaml_files(){
 
- i=0;
- for ((i=0; i<$no_yamls; i++))
- do
- echo ${yamls[$i]}
- yes | cp -rf ${yamls[$i]} $deploymentRepositoryLocation/helm/product/templates/
- done
-}
-
-#function to transfer public key to log into ingress to be used by scenario tests into the data bucket
-function transfer_public_key(){
- yes | cp -rf keys/testgrid-certs-v2.crt $OUTPUT_DIR/
- echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
-
-}
 function install_helm(){
 
   #if helm is not installed in the cluster, helm and tiller will be installed.
@@ -308,15 +293,17 @@ function install_helm(){
 
 function resources_deployment(){
 
-    if [ "$DBEngine" == "mysql" ]
+    DB=$(echo $DBEngine | cut -d'-' -f 1  | tr '[:upper:]' '[:lower:]')
+
+    if [ "$DB" == "mysql" ]
     then
         helm install wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mysql/values.yaml stable/mysql
     fi
-    if [ "$DBEngine" == "postgresql" ]
+    if [ "$DB" == "postgres" ]
     then
         helm install wso2-rdbms-service -f $deploymentRepositoryLocation/helm/postgresql/values.yaml stable/postgresql
     fi
-    if [ "$DBEngine" == "mssql" ]
+    if [ "$DB" == "mssql" ]
     then
         helm install wso2-rdbms-service -f $deploymentRepositoryLocation/helm/mssql/values.yaml stable/mssql-linux
         kubectl create -f $deploymentRepositoryLocation/helm/jobs/db_provisioner_job.yaml --namespace $namespace
