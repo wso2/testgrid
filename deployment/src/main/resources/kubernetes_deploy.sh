@@ -79,8 +79,8 @@ function create_k8s_resources() {
 tlskeySecret=testgrid-certs
 ingressName=tg-ingress
 kubectl create secret tls ${tlskeySecret} \
-    --cert deploymentRepository/keys/testgrid-certs-v2.crt  \
-    --key deploymentRepository/keys/testgrid-certs-v2.key -n $namespace
+    --cert $INPUT_DIR/testgrid-certs-v2.crt  \
+    --key $INPUT_DIR/testgrid-certs-v2.key -n $namespace
 
     cat > ${ingressName}.yaml << EOF
 apiVersion: extensions/v1beta1
