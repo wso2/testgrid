@@ -33,32 +33,31 @@ source $OUTPUT_DIR/deployment.properties
 cat $OUTPUT_DIR/deployment.properties
 #definitions
 
-YAMLS=$yamls
-
-yamls=($YAMLS)
-no_yamls=${#yamls[@]}
-dep=($deployments)
+dep=($exposedDeployments)
 dep_num=${#dep[@]}
 
 function create_k8s_resources() {
 
     #create the deployments
 
-    if [ -z $deployments ]
+    if [ -z $exposedDeployments ]
     then
-      echo "No deployment is given. Please makesure to give atleast one deployment"
+      echo "No deployment to be externally exposed is given. Please makesure to give atleast one deployment"
       exit 1
     fi
 
-    if [ -z $yamlFilesLocation ]; then
-      echo "the yaml files location is not given"
+    if [ -z $helmDeployScript ]; then
+      echo "The script for the helm deployment is not given. Please makesure to give the helm deployment script"
       exit 1
     fi
 
     #install helm
     install_helm
 
+    #deploy the helm configurations into the kubernetes cluster
     source $helmDeployScript
+
+    readiness_deployments
 
     if [ -z ${loadBalancerHostName} ]; then
         echo WARN: loadBalancerHostName not found in deployment.properties. Generating a random name under \

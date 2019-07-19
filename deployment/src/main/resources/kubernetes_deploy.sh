@@ -34,33 +34,25 @@ source $OUTPUT_DIR/deployment.properties
 cat $OUTPUT_DIR/deployment.properties
 #definitions
 
-YAMLS=$yamls
-
-yamls=($YAMLS)
-no_yamls=${#yamls[@]}
-dep=($deployments)
+deploymentYamlFiles=($deploymentYamlFiles)
+no_yamls=${#deploymentYamlFiles[@]}
+dep=($exposedDeployments)
 dep_num=${#dep[@]}
 
 function create_k8s_resources() {
 
-    if [ -z $YAMLS ]
+    if [ -z $deploymentYamlFiles ]
     then
       echo "the yaml file is not created or the yaml file is not available"
       exit 1
     fi
-    #create the deployments
 
-    if [ -z $deployments ]
+    if [ -z $exposedDeployments ]
     then
       echo "No deployment is given. Please makesure to give atleast one deployment"
       exit 1
     fi
 
-
-    if [ -z $yamlFilesLocation ]; then
-      echo "the yaml files location is not given"
-      exit 1
-    fi
 
     if [ -z ${loadBalancerHostName} ]; then
         echo WARN: loadBalancerHostName not found in deployment.properties. Generating a random name under \
@@ -74,7 +66,7 @@ function create_k8s_resources() {
         i=0;
         for ((i=0; i<$no_yamls; i++))
         do
-          kubectl create -f $yamlFilesLocation/${yamls[$i]}
+          kubectl create -f $yamlFilesLocation/${deploymentYamlFiles[$i]}
         done
     fi
 
