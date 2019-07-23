@@ -16,6 +16,8 @@
 # limitations under the License.
 #--------------------------------------------------------------------------------
 set -o xtrace
+alias wget='wget -q'
+alias unzip='unzip -q'
 
 #
 #This script contains creation of infrastructure through helm. Basic authenticaiton and
