@@ -39,6 +39,17 @@ no_yamls=${#deploymentYamlFiles[@]}
 dep=($exposedDeployments)
 dep_num=${#dep[@]}
 
+function edit_deployments(){
+        i=0;
+        for ((i=0; i<$no_yamls; i++))
+        do
+          groovy kubedeployment_editor.groovy deployment${i}_temp.yaml $TestFileLocation $yamlFilesLocation/${deploymentYamlFiles[$i]}
+          rm $yamlFilesLocation/${deploymentYamlFiles[$i]}
+          mv kubedeployment_editor.groovy deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
+        done
+}
+
+
 function create_k8s_resources() {
 
     if [ -z $deploymentYamlFiles ]
@@ -248,5 +259,7 @@ echo
 #DEBUG parameters: TODO: remove
 TESTGRID_ENVIRONMENT=dev
 
+
+edit_deployments
 create_k8s_resources
 add_route53_entry
