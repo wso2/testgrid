@@ -132,7 +132,8 @@ public class RunTestPlanCommand implements Command {
                 if (testPlan.getPhase().equals(TestPlanPhase.PREPARATION_SUCCEEDED)) {
                     final boolean success = executeTestPlan(testPlan, infrastructureConfig);
                     if (!success) {
-                        throw new IllegalStateException("Test plan execution was not succeeded.");
+                        throw new IllegalStateException(
+                                "Test plan execution was not succeeded. Last phase: " + testPlan.getPhase());
                     }
                 } else {
                     logger.error("PREPARATION phase was not succeeded for test-plan: " + testPlan.getId() + ". Hence" +

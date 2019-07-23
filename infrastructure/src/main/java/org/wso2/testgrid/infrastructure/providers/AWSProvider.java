@@ -106,7 +106,7 @@ public class AWSProvider implements InfrastructureProvider {
     private static final String AWS_REGION_PARAMETER = "region";
     private static final String CUSTOM_USER_DATA = "CustomUserData";
     private static final String DEFAULT_REGION = "us-east-1";
-    private static final int EC2_SYSTEM_LOG_NO_OF_LINES = 30;
+    private static final int EC2_SYSTEM_LOG_NO_OF_LINES = 50;
     private CloudFormationScriptPreprocessor cfScriptPreprocessor;
     private AWSResourceManager awsResourceManager;
     private static final int TIMEOUT = 75;
@@ -512,6 +512,9 @@ public class AWSProvider implements InfrastructureProvider {
         int count = 0;
         for (int i = lines.length - 1; i >= 0; i--) {
             final String line = lines[i];
+            if (line.trim().isEmpty()) {
+                continue;
+            }
             if (line.contains("user-data: ")) {
                 sb.insert(0, "\n  ").insert(0, line);
             }
