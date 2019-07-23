@@ -5,6 +5,7 @@
 
 set -o xtrace
 alias wget='wget -q'
+alias unzip='unzip -q'
 
 LOG_FILE="" # log.txt
 GIT_REPO_ZIP_URL=""
