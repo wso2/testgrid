@@ -80,10 +80,10 @@ public class KubernetesDeployer implements Deployer {
                     TestGridConstants.KUBERNETES_DEPLOY_SCRIPT, e);
         }
 
-        try{
+        try {
             Files.copy(helperFileStream , Paths.get(testPlan.getDeploymentRepository(),
                     TestGridConstants.KUBERNETES_GROOVY_HELPER));
-        }catch (IOException e){
+        } catch (IOException e) {
             logger.error("IO error occurred while reading " +
                     TestGridConstants.KUBERNETES_GROOVY_HELPER, e);
         }
