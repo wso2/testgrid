@@ -266,7 +266,7 @@ read_property_file() {
     IFS="="
     while read -r key value
     do
-         configArray[$key]=$value
+      [[ -n ${key} ]] && configArray[$key]=$value
     done < ${property_file_path}
     unset IFS
 }
