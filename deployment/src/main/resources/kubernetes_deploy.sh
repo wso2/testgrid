@@ -130,15 +130,22 @@ function readiness_deployments(){
     start=`date +%s`
     i=0;
     # todo add a terminal condition/timeout.
+    TIMEOUT=600 # 10mins
     for ((i=0; i<$dep_num; i++)) ; do
-      num_true=0;
-      while [ "$num_true" -eq "0" ] ; do
-        sleep 5
-        deployment_status=$(kubectl get deployments -n $namespace ${dep[$i]} -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
-        if [ "$deployment_status" == "True" ] ; then
-          num_true=1;
-        fi
-      done
+        total_count=$((TIMEOUT/5))
+        echo $total_count
+        count=0
+        echo Running kubectl get deployments -n $namespace ${dep[$i]} -o jsonpath='{.status.conditions[?(@.type=="Available")].status}'
+        until [[ $count -ge $total_count ]]
+        do
+            deployment_status=$(kubectl get deployments -n $namespace ${dep[$i]} -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
+            [[ "$deployment_status" == "True" ]] && break
+            count=$(($count+1))
+            sleep 5;
+        done
+        [[ "$deployment_status" != "True" ]] && echo "[ERROR] timeout while waiting for deployment, '${dep[$i]}', in \
+        namespace, '$namespace', to succeed." && exit 78
+
     done
 
     end=`date +%s`
