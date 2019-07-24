@@ -21,7 +21,7 @@ infrastructureConfig:
           type: CLOUDFORMATION
           file: integrator/Sample-Backends/vfs-be.yaml
           inputParameters:
-            KeyPairName: "deployment-dev"
+            KeyPairName: "deployment-prod"
             FTPUserName: "wso2user"
             FTPUserPassword: "FTPUserPassword"
         - name: 'prod-wso2-ei-scenario-activemq-be-deployment'
@@ -29,14 +29,14 @@ infrastructureConfig:
           type: CLOUDFORMATION
           file: integrator/Sample-Backends/activemq-be.yaml
           inputParameters:
-            KeyPairName: "deployment-dev"
+            KeyPairName: "deployment-prod"
         - name: 'prod-wso2-ei-scenario-deployment'
           description: ''
           type: CLOUDFORMATION
           file: integrator/Minimum-HA/integrator-ha.yaml
           inputParameters:
             parseInfrastructureScript: false
-            KeyPairName: "deployment-dev"
+            KeyPairName: "deployment-prod"
             CertificateName: "self-signed-cert"
             DBUsername: "wso2carbon"
             DBPassword: "DB_Password"
