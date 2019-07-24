@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
+import org.wso2.testgrid.common.config.JobConfig;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
@@ -101,6 +102,9 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private DeploymentConfig deploymentConfig = new DeploymentConfig();
 
     @Transient
+    private JobConfig jobConfig = new JobConfig();
+
+    @Transient
     private List<ScenarioConfig> scenarioConfigs = new ArrayList<>();
 
     @Transient
@@ -150,7 +154,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     private String buildURL;
 
     /**
-     * Returns the phase of the test-plan
+     * Returns the phase of the test-plan.
      *
      */
     public TestPlanPhase getPhase() {
@@ -158,7 +162,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
-     * Set the phase of the test-plan
+     * Set the phase of the test-plan.
      */
     public void setPhase(TestPlanPhase testPlanPhase) {
         this.phase = testPlanPhase;
@@ -298,6 +302,24 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
         this.deploymentConfig = deploymentConfig;
     }
 
+    /**
+     * Returns the job configuration in the test-plan.
+     *
+     * @return the job configuration of the test plan
+     */
+    public JobConfig getJobConfig() {
+        return jobConfig;
+    }
+
+    /**
+     * Sets the job configuration of the test plan.
+     *
+     * @param jobConfig the job information of the test plan
+     */
+    public void setJobConfig(JobConfig jobConfig) {
+        this.jobConfig = jobConfig;
+    }
+
     public List<ScenarioConfig> getScenarioConfigs() {
         return scenarioConfigs;
     }
@@ -343,7 +365,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
-     * Get config change set repository branch name
+     * Get config change set repository branch name.
      *
      * @return
      */
@@ -352,7 +374,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
-     * Set config change set repository branch name
+     * Set config change set repository branch name.
      *
      * @param configChangeSetBranchName
      */
@@ -408,7 +430,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
-     * See {@link #getJobProperties()}
+     * See {@link #getJobProperties()}.
      *
      * @param jobProperties build properties
      */
@@ -417,7 +439,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
-     * Returns the ResultFormatter object fot the specific TestPlan
+     * Returns the ResultFormatter object fot the specific TestPlan.
      *
      * @return ResultFormatter object of TestPlan
      */
@@ -426,7 +448,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
     }
 
     /**
-     * Set the ResultFormatter object for the TestPlan
+     * Set the ResultFormatter object for the TestPlan.
      *
      * @param resultFormat ResultFormatter object to be set
      */
@@ -490,6 +512,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
             testPlan.setConfigChangeSetBranchName(configChangeSetBranchName);
             testPlan.setDeployerType(deployerType);
             testPlan.setDeploymentConfig(deploymentConfig);
+            testPlan.setJobConfig(jobConfig);
             testPlan.setDeploymentPattern(deploymentPattern);
             testPlan.setDeploymentRepository(deploymentRepository);
             testPlan.setInfraParameters(infraParameters);
@@ -616,7 +639,7 @@ public class TestPlan extends AbstractUUIDEntity implements Serializable, Clonea
         CHEF("CHEF"),
 
         /**
-         * Defines the Kubernetes based deployment
+         * Defines the Kubernetes based deployment.
          */
         KUBERNETES("KUBERNETES"),
 

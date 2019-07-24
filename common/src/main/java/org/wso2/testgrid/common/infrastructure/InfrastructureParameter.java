@@ -151,7 +151,8 @@ public class InfrastructureParameter extends AbstractUUIDEntity implements
     public Properties getSubProperties() {
             try {
                 Properties properties = new Properties();
-                properties.load(new StringReader(this.getProperties()));
+                String propertiesStr = this.getProperties();
+                properties.load(new StringReader(propertiesStr));
                 //Remove if invalid properties found
                 for (Map.Entry entry : properties.entrySet()) {
                     String name = (String) entry.getValue();

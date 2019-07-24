@@ -76,8 +76,8 @@ function create_k8s_resources() {
 tlskeySecret=testgrid-certs
 ingressName=tg-ingress
 kubectl create secret tls ${tlskeySecret} \
-    --cert deploymentRepository/keys/testgrid-certs-v2.crt  \
-    --key deploymentRepository/keys/testgrid-certs-v2.key -n $namespace
+    --cert $INPUT_DIR/testgrid-certs-v2.crt  \
+    --key $INPUT_DIR/testgrid-certs-v2.key -n $namespace
 
 
 echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties

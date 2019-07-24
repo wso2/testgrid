@@ -58,6 +58,7 @@ import java.util.Random;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -69,6 +70,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
     private static final String EXPECTED_TEST_PLAN_PATH = Paths.get("src", "test", "resources", "test-plan-01.yaml")
             .toString();
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
+    private static final String DEFAULT_SCHEDULE = "manual";
     private String actualTestPlanFileLocation;
     @Mock
     private InfrastructureCombinationsProvider infrastructureCombinationsProvider;
@@ -117,7 +119,7 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "", true);
         InfrastructureCombination infrastructureCombination = new InfrastructureCombination(param);
-        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class)))
+        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class), eq(DEFAULT_SCHEDULE)))
                 .thenReturn(Collections.singleton(infrastructureCombination));
 
         logger.info("Product : " + product.getName());
@@ -127,8 +129,8 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
                 thenReturn(Optional.of(deploymentPattern));
 
         GenerateTestPlanCommand generateTestPlanCommand = new GenerateTestPlanCommand(product.getName(),
-                jobConfigFileLocation, infrastructureCombinationsProvider, productUOW, deploymentPatternUOW,
-                testPlanUOW);
+                jobConfigFileLocation, infrastructureCombinationsProvider, productUOW,
+                deploymentPatternUOW, testPlanUOW);
         generateTestPlanCommand.execute();
 
         Path actualTestPlanPath = Paths.get(actualTestPlanFileLocation);
@@ -143,6 +145,8 @@ public class GenerateTestPlanCommandTest extends PowerMockTestCase {
                 .replaceAll(repoPath, Paths.get(repoPath).toAbsolutePath().normalize().toString());
         expectedTestPlanContent = expectedTestPlanContent.replace("<workspace-to-be-added-at-runtime>",
                 testPlan.getWorkspace());
+        logger.info("Generated Test Plan: " + generatedTestPlanContent);
+        logger.info("Expected Test Paln : " + expectedTestPlanContent);
         Assert.assertEquals(generatedTestPlanContent, expectedTestPlanContent, "Generated test-plan is not correct.");
     }
 

@@ -20,6 +20,9 @@ id: abc
 infrastructureConfig:
   containerOrchestrationEngine: None
   iacProvider: None
+  includes:
+  - Ubuntu_16.04
+  - ORACLE_JDK8
   infrastructureProvider: SHELL
   parameters:
     operating_system: ubuntu_16.04
@@ -45,6 +48,9 @@ infrastructureConfig:
 infrastructureProperties:
   operating_system: ubuntu_16.04
 infrastructureRepository: workspace/infrastructure
+jobConfig:
+  builds: [
+    ]
 jobProperties:
   PROPERTY1: value1
 keyFileLocation: workspace/testkey.pem
