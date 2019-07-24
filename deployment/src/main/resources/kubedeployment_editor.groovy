@@ -25,57 +25,85 @@ import com.esotericsoftware.yamlbeans.YamlWriter
 import com.esotericsoftware.yamlbeans.YamlConfig
 
 
+/*
+   Makes and Adds
+    1.NFS server deployment , service -> provides cluster IP
+    2. Create persistant volume with cluster IP
+    3. Add Claim
+ */
+def AddPersistantVolume(){
+
+}
+
+/*
+This method adds a new YamlGroup to the File
+ */
 def writeToFile(outputYamlPath,Yamlcontent){
     FileWriter filewrite = new FileWriter(outputYamlPath,true)
     YamlWriter writer = new YamlWriter(filewrite);
     writer.getConfig().writeConfig.setIndentSize(2);
     writer.getConfig().writeConfig.setAutoAnchor(false);
-    writer.getConfig().writeConfig.setWriteDefaultValues(true);
+    writer.getConfig().writeConfig.setWriteDefaultValues(false);
     writer.getConfig().writeConfig.setWriteRootTags(false);
     writer.getConfig().writeConfig.setWriteClassname(YamlConfig.WriteClassName.NEVER);
     writer.write(Yamlcontent)
     filewrite.write("---\n\n");
     writer.close()
 }
-/*
-Adds persistant disk to Deployment.yaml
- */
-def AddPersistantDisk(String outputYaml){
-    Map persistantDiskYaml = [ "apiVersion": "v1" ,"kind": "PersistentVolumeClaim" ,"metadata": [ "name": "myclaim" ] ,"spec" : [ "accessModes":  ["ReadWriteOnce"]
-                                                                                                                                  ,"volumeMode": "Filesystem" , "resources " : [ "requests" : [ "storage": "8Gi" ] ], "selector":  ["matchLabels": [ "release" : "stable"]]]]
-    writeToFile(outputYaml,persistantDiskYaml )
-}
 
 /*
 This method adds a new object to an already exiting property within a yaml file
  */
 def EditProperty(Map variable, String propertyName , Object new_Value){
-    ArrayList prev_property = (ArrayList)variable.get(propertyName)
-    prev_property.add(new_Value);
-    variable.put(propertyName,prev_property)
-    return variable
+
+    try{
+        ArrayList prev_property = (ArrayList)variable.get(propertyName)
+        prev_property.add(new_Value)
+        variable.put(propertyName,prev_property)
+        return variable
+    }catch(RuntimeException e){
+        println(e)
+    }
+
+
 }
 
 /*
-Adds the Persistant Volume Claims to the Deployment
+Adds Mount path and Sidecar container to the Deployment
  */
 def EditDeployments(String outputYaml, String pathToOutputs, String pathToDeployment){
-    YamlReader reader = new YamlReader(new FileReader(pathToDeployment));
+
+    YamlReader reader = new YamlReader(new FileReader(pathToDeployment))
+    reader.getConfig().readConfig.setGuessNumberTypes(true);
     while (true) {
         try{
-            Map deployments = reader.read();
-            if (deployments == null) break;
-            if( deployments.get("kind").equals("Deployment")){
-                new_Value = ["name":"logfilesmount", "mountPath":pathToOutputs]
-                for ( Map container in deployments.get("spec").get("template").get("spec").get("containers")){
-                    deployments.get("spec").get("template").get("spec").put("containers",EditProperty(container,"volumeMounts",new_Value));
-                }
-                new_Volume = ["name": "logfilesmount", "PersistentVolumeClaim": ["claimName": "testgridclaim"] ]
-                deployments.get("spec").get("template").put("spec",EditProperty(deployments.get("spec").get("template").get("spec"),"volumes",new_Volume))
-            }
-            writeToFile(outputYaml, deployments)
-        }catch(RuntimeException e){
+            Map YamlGroup = reader.read();
+            if (YamlGroup == null) break;
+            if( YamlGroup.get("kind").equals("Deployment")){
 
+                new_VolumeMount = ["name":"logfilesmount", "mountPath":pathToOutputs]
+                ArrayList newcontainerlist = []
+                for ( Map container in YamlGroup.get("spec").get("template").get("spec").get("containers")){
+                    newcontainerlist.add(EditProperty(container,"volumeMounts",new_VolumeMount))
+                }
+                YamlGroup.get("spec").get("template").get("spec").put("containers", newcontainerlist)
+
+                /*
+                Change to persistent disk claim if using persistent disk
+                 */
+                Map new_Volume = ["name": "logfilesmount" ]
+                YamlGroup.get("spec").get("template").put("spec",EditProperty(YamlGroup.get("spec").get("template").get("spec"),"volumes",new_Volume))
+
+                /*
+               Remove entirely if using persistent disk
+                */
+                Map new_Container = [ "name": "logfile-sidecar" , "image":"nginx", "volumeMounts":[ ["name":"logfilesmount", "mountPath":"/testdata"]]]
+                YamlGroup.get("spec").get("template").put("spec",EditProperty(YamlGroup.get("spec").get("template").get("spec"),"containers",new_Container))
+
+            }
+            writeToFile(outputYaml, YamlGroup)
+        }catch(RuntimeException e){
+            println("error occured")
         }
 
 
@@ -83,4 +111,3 @@ def EditDeployments(String outputYaml, String pathToOutputs, String pathToDeploy
 }
 
 EditDeployments(args[0],args[1],args[2])
-AddPersistantDisk(args[0])

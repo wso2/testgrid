@@ -75,11 +75,17 @@ public class KubernetesDeployer implements Deployer {
         try {
             Files.copy(resourceFileStream, Paths.get(testPlan.getDeploymentRepository(),
                     TestGridConstants.KUBERNETES_DEPLOY_SCRIPT));
-            Files.copy(helperFileStream , Paths.get(testPlan.getDeploymentRepository(),
-                    TestGridConstants.KUBERNETES_GROOVY_HELPER));
         } catch (IOException e) {
             logger.error("IO error occurred while reading " +
                     TestGridConstants.KUBERNETES_DEPLOY_SCRIPT, e);
+        }
+
+        try{
+            Files.copy(helperFileStream , Paths.get(testPlan.getDeploymentRepository(),
+                    TestGridConstants.KUBERNETES_GROOVY_HELPER));
+        }catch (IOException e){
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.KUBERNETES_GROOVY_HELPER, e);
         }
 
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
