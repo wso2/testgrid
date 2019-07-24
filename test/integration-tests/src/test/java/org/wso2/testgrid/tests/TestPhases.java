@@ -62,7 +62,7 @@ public class TestPhases {
     }
 
     @Test(dataProvider = "jobs")
-    public void buildTriggerTest(String jobName) {
+    public void buildTriggerTest(String jobName) throws Exception {
 
         JenkinsJob currentBuild = null;
         HttpsURLConnection connection = null;
@@ -77,7 +77,7 @@ public class TestPhases {
                     new URL(TestProperties.jenkinsUrl + "/job/" + jobName + "/lastBuild/api/json");
 
             JenkinsJob jenkinsJob = getLastJob(buildStatusUrl, authorizationHeader);
-            logger.info("Job status for job ID : " + jenkinsJob.id + " : " + jenkinsJob.status);
+            logger.info("Build status of the last build ID: " + jenkinsJob.id + " : " + jenkinsJob.status);
 
             connection = (HttpsURLConnection) buildTriggerUrl.openConnection();
             connection.setRequestProperty("Authorization", authorizationHeader);
@@ -88,14 +88,12 @@ public class TestPhases {
             connection.setSSLSocketFactory(sslSocketFactory);
 
             int response = connection.getResponseCode();
-            if (response == 201) {
-                logger.info("build Triggered");
-            } else {
-                Assert.fail("Phase 1 build couldn't be triggered. Response code : " + response);
+            if (response != 201) {
+                Assert.fail(jobName + " build couldn't be triggered. Response code : " + response);
             }
 
             jenkinsJob = getLastJob(buildStatusUrl, authorizationHeader);
-
+            logger.info("Build URL: " + jenkinsJob.buildUrl);
             while (jenkinsJob.building) {
                 jenkinsJob = getLastJob(buildStatusUrl, authorizationHeader);
                 logger.info(jobName + " #(" + jenkinsJob.id + ") building ");
@@ -103,14 +101,13 @@ public class TestPhases {
             }
 
             currentBuild = getLastJob(buildStatusUrl, authorizationHeader);
+            logger.info("Final build status for build ID: " + currentBuild.id + " : " + currentBuild.status);
             Assert.assertEquals(currentBuild.status, "SUCCESS", jobName + " has status " + currentBuild.status);
 
             logger.info("Checking the Email content of " + jobName);
             EmailUtils emailUtils = connectToEmail();
             testTextContained(emailUtils, jenkinsJob.id, jobName);
 
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -118,44 +115,24 @@ public class TestPhases {
         }
 
         // Validating the logs
-        logTest(jobName, currentBuild.id, authorizationHeader);
-        summaryTest(jobName, currentBuild.id, authorizationHeader);
-    }
-
-    private void logTest(String jobName, String buildID, String authorizationHeader) {
-
-        try {
-            validateLog(getTestPlanID(jobName, buildID, authorizationHeader));
-        } catch (Exception e) {
-            Assert.fail(e.getMessage());
-        }
-
-    }
-
-    private void summaryTest(String jobName, String buildID, String authorizationHeader) {
-
-        try {
-            testSummaryValidate(getTestPlanID(jobName, buildID, authorizationHeader), jobName);
-        } catch (Exception e) {
-            Assert.fail(e.getMessage());
-        }
+        validateLog(getTestPlanID(jobName, currentBuild.id, authorizationHeader));
+        testSummaryValidate(getTestPlanID(jobName, currentBuild.id, authorizationHeader), jobName);
     }
 
     private void validateLog(String testPlan) throws Exception {
-
-        String webPage = testProperties.tgDashboardApiUrl + "/test-plans/log/" + testPlan;
+        String webPage = TestProperties.tgDashboardApiUrl + "/test-plans/log/" + testPlan;
 
         URL url = new URL(webPage);
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setDoOutput(true);
-        connection.setRequestProperty("Authorization", testProperties.tgApiToken);
+        connection.setRequestProperty("Authorization", TestProperties.tgApiToken);
         SSLSocketFactory sslSocketFactory = createSslSocketFactory();
         connection.setSSLSocketFactory(sslSocketFactory);
 
         try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
             String inputLine;
-            StringBuffer response = new StringBuffer();
+            StringBuilder response = new StringBuilder();
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
             }
@@ -169,7 +146,7 @@ public class TestPhases {
 
     private String getTestPlanID(String jobName, String buildNo, String authorizationHeader) throws Exception {
 
-        URL url = new URL(testProperties.jenkinsUrl + "/job/" + jobName + "/" + buildNo +
+        URL url = new URL(TestProperties.jenkinsUrl + "/job/" + jobName + "/" + buildNo +
                           "/consoleText");
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
@@ -294,10 +271,11 @@ public class TestPhases {
         JSONObject responseObj = new JSONObject(response.toString());
         JenkinsJob jenkinsJob;
         if (responseObj.getBoolean("building")) {
-            jenkinsJob = new JenkinsJob(responseObj.getString("id"), responseObj.getBoolean("building"));
-        } else {
-            jenkinsJob = new JenkinsJob(responseObj.getString("result"), responseObj.getString("id"),
+            jenkinsJob = new JenkinsJob(responseObj.getString("url"), responseObj.getString("id"),
                     responseObj.getBoolean("building"));
+        } else {
+            jenkinsJob = new JenkinsJob(responseObj.getString("url"), responseObj.getString("result"),
+                    responseObj.getString("id"), responseObj.getBoolean("building"));
         }
         con.disconnect();
         return jenkinsJob;
@@ -308,19 +286,20 @@ public class TestPhases {
      */
     public static class JenkinsJob {
 
+        public String buildUrl;
         public String status;
         public String id;
         public boolean building;
 
-        public JenkinsJob(String status, String id, Boolean building) {
-
+        public JenkinsJob(String buildUrl, String status, String id, Boolean building) {
+            this.buildUrl = buildUrl;
             this.status = status;
             this.id = id;
             this.building = building;
         }
 
-        private JenkinsJob(String id, Boolean building) {
-            this(null, id, building);
+        private JenkinsJob(String buildUrl, String id, Boolean building) {
+            this(buildUrl, null, id, building);
         }
     }
 

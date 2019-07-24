@@ -49,12 +49,14 @@ function check_tools() {
     if ! type 'gcloud'
     then
         echo "installing gcloud - google cloud command line tool..."
+        set -x
         wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
         tar -xzf google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
         cd google-cloud-sdk
         CLOUDSDK_CORE_DISABLE_PROMPTS=1 ./install.sh
         source path.bash.inc && source completion.bash.inc
         cd ..
+        set +x
     fi
 
     if ! type 'kubectl'
