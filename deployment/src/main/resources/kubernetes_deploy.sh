@@ -50,7 +50,7 @@ function create_k8s_resources() {
         i=0;
         for ((i=0; i<$no_yamls; i++))
         do
-          kubectl create -f ${yamlFilesLocation}/${deploymentYamlFiles[$i]}
+          kubectl create -f ${yamlFilesLocation}/${deploymentYamlFiles[$i]} -n ${namespace}
         done
     fi
 
