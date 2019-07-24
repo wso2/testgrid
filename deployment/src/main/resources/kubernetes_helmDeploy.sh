@@ -25,14 +25,14 @@ set -o xtrace
 
 function create_k8s_resources() {
 
-    if [ -z $exposedDeployments ]
+    if [ -z ${exposedDeployments} ]
     then
-      echo "No deployment to be externally exposed is given. Please makesure to give atleast one deployment"
-      exit 1
+      echo "[WARN] Could not find inputParameter 'exposedDeployments' in deploymentConfig. No deployments will be
+      exposed."
     fi
 
-    if [ -z $helmDeployScript ]; then
-      echo "The script for the helm deployment is not given. Please makesure to give the helm deployment script"
+    if [ -z ${helmDeployScript} ]; then
+      echo "[ERROR] Could not find inputParameter 'helmDeployScript' in deploymentConfig. Nothing to do. Exiting..."
       exit 1
     fi
 
@@ -44,7 +44,7 @@ function create_k8s_resources() {
 
     readiness_deployments
 
-    if [ -z ${loadBalancerHostName} ]; then
+    if [[ -z ${loadBalancerHostName} ]]; then
         echo WARN: loadBalancerHostName not found in deployment.properties. Generating a random name under \
         *.gke.wso2testgrid.com CN
         loadBalancerHostName=wso2am-$(($RANDOM % 10000)).gke.wso2testgrid.com # randomized hostname
@@ -65,7 +65,7 @@ kubectl create secret tls ${tlskeySecret} \
     --key ${INPUT_DIR}/testgrid-certs-v2.key -n ${namespace}
 
 
-echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
+echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> ${OUTPUT_DIR}/deployment.properties
 
 
     cat > ${ingressName}.yaml << EOF
@@ -286,6 +286,7 @@ read_property_file "${OUTPUT_DIR}/deployment.properties" deploy_props
 deploymentYamlFiles=(${infra_props["deploymentYamlFiles"]})
 no_yamls=${#deploymentYamlFiles[@]}
 exposedDeployments=${infra_props["exposedDeployments"]}
+helmDeployScript=${infra_props["helmDeployScript"]}
 dep=(${infra_props["exposedDeployments"]})
 dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}

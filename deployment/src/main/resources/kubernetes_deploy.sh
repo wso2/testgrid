@@ -27,14 +27,14 @@ function create_k8s_resources() {
 
     if [[ -z ${deploymentYamlFiles} ]]
     then
-      echo "the yaml file is not created or the yaml file is not available"
+      echo "[ERROR] Could not find inputParameter 'deploymentYamlFiles' in deploymentConfig."
       exit 1
     fi
 
     if [[ -z ${exposedDeployments} ]]
     then
-      echo "No deployment is given. Please makesure to give atleast one deployment"
-      exit 1
+      echo "[WARN] Could not find inputParameter 'exposedDeployments' in deploymentConfig. No deployments will be
+      exposed."
     fi
 
 
