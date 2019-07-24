@@ -50,7 +50,7 @@ function check_tools() {
     then
         echo "installing gcloud - google cloud command line tool..."
         set -x
-        wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
+        wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
         tar -xzf google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
         cd google-cloud-sdk
         CLOUDSDK_CORE_DISABLE_PROMPTS=1 ./install.sh

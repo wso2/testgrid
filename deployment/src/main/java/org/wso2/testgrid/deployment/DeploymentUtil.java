@@ -42,10 +42,12 @@ public class DeploymentUtil {
     /**
      * Reads the deployment.json file and constructs the deployment object.
      *
+     * @deprecated We no longer use the deployment.json file. Hence, the entire logic in here is deprecated.
      * @param workspace location String of the test plan
      * @return the deployment information ObjectMapper
      * @throws TestGridDeployerException If reading the deployment.json file fails
      */
+    @Deprecated
     public static DeploymentCreationResult getDeploymentCreationResult(String workspace)
             throws TestGridDeployerException {
         DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
@@ -54,7 +56,7 @@ public class DeploymentUtil {
         File file = new File(Paths.get(workspace, DeployerConstants.DEPLOYMENT_FILE).toString());
         try {
             if (!file.exists()) {
-                logger.warn("The deployment.json file was not found at: " + file.getPath() + ". This is where the "
+                logger.debug("The deployment.json file was not found at: " + file.getPath() + ". This is where the "
                         + "deployment creation outputs are stored. Continuing without the deployment outputs.");
                 return deploymentCreationResult;
             }
