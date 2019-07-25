@@ -29,9 +29,7 @@ def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeploym
     try{
         Yaml yaml = new Yaml()
 
-        InputStream inputStream = this.getClass()
-                .getClassLoader()
-                .getResourceAsStream(pathToDeployment);
+        InputStream inputStream = new FileInputStream(pathToDeployment)
 
         Iterable<Object> KubeGroups = yaml.loadAll(inputStream);
         FileWriter fileWriter = new FileWriter(outputYaml)

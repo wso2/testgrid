@@ -103,29 +103,24 @@
             <classifier>runtime</classifier>
         </dependency>
 
+        <!-- Optional Groovy Script dependencies
+             Enable if IDE debugging is required-->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>2.4.3</version>
+            <version>${groovy.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.ivy</groupId>
             <artifactId>ivy</artifactId>
-            <version>2.4.0</version>
+            <version>${apache.ivy.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>io.kubernetes</groupId>
-            <artifactId>client-java</artifactId>
-            <version>5.0.0</version>
-        </dependency>
-
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.24</version>
+            <version>${snakeyaml.version}</version>
         </dependency>
+        <!---->
 
     </dependencies>
 </project>

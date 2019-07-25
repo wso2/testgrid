@@ -45,7 +45,7 @@ function edit_deployments(){
         do
           groovy kubedeployment_editor.groovy deployment${i}_temp.yaml $TestFileLocation $yamlFilesLocation/${deploymentYamlFiles[$i]}
           rm $yamlFilesLocation/${deploymentYamlFiles[$i]}
-          mv kubedeployment_editor.groovy deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
+          mv deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
         done
 }
 
