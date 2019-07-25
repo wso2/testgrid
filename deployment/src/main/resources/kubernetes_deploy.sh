@@ -40,6 +40,7 @@ dep=($exposedDeployments)
 dep_num=${#dep[@]}
 
 function edit_deployments(){
+
         i=0;
         for ((i=0; i<$no_yamls; i++))
         do
@@ -47,6 +48,7 @@ function edit_deployments(){
           rm $yamlFilesLocation/${deploymentYamlFiles[$i]}
           mv deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
         done
+
 }
 
 
@@ -259,7 +261,11 @@ echo
 #DEBUG parameters: TODO: remove
 TESTGRID_ENVIRONMENT=dev
 
-
-edit_deployments
+if [ -z "$TestFileLocation" ]; then
+    echo "Test Result location not set not changing deployment.yaml"
+else
+    echo "Test Result location set editing deployment.yaml"
+    edit_deployments
+fi
 create_k8s_resources
 add_route53_entry
