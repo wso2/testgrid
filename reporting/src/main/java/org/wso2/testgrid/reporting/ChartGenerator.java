@@ -72,7 +72,7 @@ public class ChartGenerator {
         List<PieChart.Data> data = new ArrayList<>();
             data.add(new PieChart.Data(StringUtil.concatStrings("Test Failures (", Integer.toString(failedCount), ")"),
                     failedCount));
-            data.add(new PieChart.Data(StringUtil.concatStrings("Infra Failures (", Integer.toString
+            data.add(new PieChart.Data(StringUtil.concatStrings("Deployment Errors (", Integer.toString
                     (skippedCount), ")"), skippedCount));
             data.add(new PieChart.Data(StringUtil.concatStrings("Passed (", Integer.toString(passedCount), ")"),
                     passedCount));
@@ -80,7 +80,8 @@ public class ChartGenerator {
         final PieChart chart = new PieChart(pieChartData);
         chart.setAnimated(false);
         chart.setLabelsVisible(true);
-        chart.setTitle("Build Summary by Infrastructure Combinations");
+        chart.setTitle("Build Summary of Infrastructure Combinations ("
+                + (failedCount + skippedCount + passedCount) + ")");
         genChart(chart, 600, 600, summaryChartFileName, "styles/summary.css");
     }
 
@@ -105,17 +106,17 @@ public class ChartGenerator {
         yAxis.setAnimated(false);
         stackedBarChart.setAnimated(false);
         // Set Axis Names
-        xAxis.setLabel("Build Timestamp");
-        yAxis.setLabel("Number of Infra Combinations");
+        xAxis.setLabel("Build date");
+        yAxis.setLabel("Number of infrastructure combinations");
 
         // Setting series names
-        seriesSet[0].setName("Build Failed Combinations");
-        seriesSet[1].setName("Infra Failed Combinations");
-        seriesSet[2].setName("Build Passed Combinations");
+        seriesSet[0].setName("Test failures");
+        seriesSet[1].setName("Deployment errors");
+        seriesSet[2].setName("Test passed");
         // Setting space between the bars
         stackedBarChart.setCategoryGap(50);
         //Setting the title of the bar chart.
-        stackedBarChart.setTitle("History of test execution summary");
+        stackedBarChart.setTitle("Test Run History");
 
         dataSet.forEach((key, summary) -> {
             seriesSet[0].getData().add(new XYChart.Data<>(key, summary.getFailedTestPlans()));

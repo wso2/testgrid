@@ -31,6 +31,7 @@ import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.DeploymentConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.InfrastructureConfig.Provisioner;
+import org.wso2.testgrid.common.config.JobConfig;
 import org.wso2.testgrid.common.config.JobConfigFile;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
@@ -73,6 +74,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.wso2.testgrid.common.TestGridConstants.DEFAULT_SCHEDULE;
 import static org.wso2.testgrid.common.TestGridConstants.PRODUCT_TEST_PLANS_DIR;
 import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_JOB_DIR;
 
@@ -99,6 +101,7 @@ public class GenerateTestPlanCommand implements Command {
     private String jobConfigFilePath = "";
 
     private String testgridYamlLocation = "";
+    private String schedule = "";
 
     private InfrastructureCombinationsProvider infrastructureCombinationsProvider;
 
@@ -123,7 +126,7 @@ public class GenerateTestPlanCommand implements Command {
      * @param productUOW           the ProductUOW
      */
     GenerateTestPlanCommand(String productName, String jobConfigFilePath,
-            InfrastructureCombinationsProvider combinationsProvider, ProductUOW productUOW,
+                            InfrastructureCombinationsProvider combinationsProvider, ProductUOW productUOW,
                             DeploymentPatternUOW deploymentPatternUOW, TestPlanUOW testPlanUOW) {
         this.productName = productName;
         this.jobConfigFilePath = jobConfigFilePath;
@@ -161,7 +164,8 @@ public class GenerateTestPlanCommand implements Command {
             throws IOException, CommandExecutionException, TestGridDAOException {
         JobConfigFile jobConfigFile = FileUtil.readYamlFile(jobConfigFilePath, JobConfigFile.class);
         Pattern pattern = Pattern.compile(StringUtil
-                .concatStrings(Paths.get(TestGridUtil.getTestGridHomePath(), TESTGRID_JOB_DIR).toString(), "*"));
+                .concatStrings(Paths.get(
+                        TestGridUtil.getTestGridHomePath(), TESTGRID_JOB_DIR).toString(), "*"));
         Matcher matcher = pattern.matcher(jobConfigFilePath);
         if (!matcher.find()) {
             Path directory = Paths.
@@ -179,18 +183,28 @@ public class GenerateTestPlanCommand implements Command {
             }
         }
         this.testgridYamlLocation = resolvePath(jobConfigFile.getTestgridYamlLocation(), jobConfigFile);
+        this.schedule = jobConfigFile.getSchedule();
         TestgridYaml testgridYaml = buildTestgridYamlContent(jobConfigFile);
-        processTestgridYaml(testgridYaml, jobConfigFile);
+        processTestgridYaml(testgridYaml, jobConfigFile, schedule);
     }
 
-    private void processTestgridYaml(TestgridYaml testgridYaml, JobConfigFile jobConfigFile)
+    private void processTestgridYaml(TestgridYaml testgridYaml, JobConfigFile jobConfigFile, String schedule)
             throws CommandExecutionException, TestGridDAOException {
         if (!validateTestgridYaml(testgridYaml)) {
             throw new CommandExecutionException(
                     "Invalid tesgridYaml file is found. Please verify the content of the testgridYaml file");
         }
         populateDefaults(testgridYaml);
-        Set<InfrastructureCombination> combinations = infrastructureCombinationsProvider.getCombinations(testgridYaml);
+        Set<InfrastructureCombination> combinations;
+        if (!StringUtil.isStringNullOrEmpty(schedule)) {
+            combinations = infrastructureCombinationsProvider.getCombinations(
+                    testgridYaml, schedule);
+        } else {
+            logger.warn("Could not found schedule property. Using default schedule for generate combination.");
+            logger.warn("Default schedule: " + DEFAULT_SCHEDULE);
+            combinations = infrastructureCombinationsProvider.getCombinations(
+                    testgridYaml, DEFAULT_SCHEDULE);
+        }
         List<TestPlan> testPlans = generateTestPlans(combinations, testgridYaml);
 
         Product product = createOrReturnProduct(productName);
@@ -627,6 +641,6 @@ public class GenerateTestPlanCommand implements Command {
                 return false;
             }
         }
-        return true;
+        return (JobConfig.validateTestgridYamlJobConfig(testgridYaml));
     }
 }

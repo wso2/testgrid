@@ -22,6 +22,7 @@ package org.wso2.testgrid.common;
 import org.apache.http.entity.ContentType;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
+import org.influxdb.InfluxDBIOException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,9 +90,9 @@ public class GrafanaDashboardHandler {
             logger.error("Cannot create a new Database. Test plan ID: " + testplanID, e);
         } catch (IllegalArgumentException e) {
             logger.error("INFLUXDB_USER and INFLUXDB_PASS cannot be empty. Test plan ID: " + testplanID, e);
-        } catch (Exception e) {
-            logger.error("Unknown error occurred while creating deployment monitor database (InfluxDB). Test plan ID: "
-                    + testplanID, e);
+        } catch (InfluxDBIOException e) {
+            logger.warn("InfluxDB is temporarily disabled. Hence, not creating deployment monitor database (InfluxDB). "
+                    + "Test plan ID: " + testplanID + ". Root cause: " + e.getMessage());
         } finally {
             if (influxDB != null) {
                 try {

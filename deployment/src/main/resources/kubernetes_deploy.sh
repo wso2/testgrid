@@ -23,22 +23,6 @@ set -o xtrace
 #The created resources will be exposed using an Ingress to the external usage
 #
 
-echo "deploy file is found"
-dryRun=False
-
-OUTPUT_DIR=$4
-INPUT_DIR=$2
-source $INPUT_DIR/infrastructure.properties
-source $OUTPUT_DIR/deployment.properties
-
-cat $OUTPUT_DIR/deployment.properties
-#definitions
-
-deploymentYamlFiles=($deploymentYamlFiles)
-no_yamls=${#deploymentYamlFiles[@]}
-dep=($exposedDeployments)
-dep_num=${#dep[@]}
-
 function edit_deployments(){
 
         i=0;
@@ -54,20 +38,20 @@ function edit_deployments(){
 
 function create_k8s_resources() {
 
-    if [ -z $deploymentYamlFiles ]
+    if [[ -z ${deploymentYamlFiles} ]]
     then
-      echo "the yaml file is not created or the yaml file is not available"
+      echo "[ERROR] Could not find inputParameter 'deploymentYamlFiles' in deploymentConfig."
       exit 1
     fi
 
-    if [ -z $exposedDeployments ]
+    if [[ -z ${exposedDeployments} ]]
     then
-      echo "No deployment is given. Please makesure to give atleast one deployment"
-      exit 1
+      echo "[WARN] Could not find inputParameter 'exposedDeployments' in deploymentConfig. No deployments will be
+      exposed."
     fi
 
 
-    if [ -z ${loadBalancerHostName} ]; then
+    if [[ -z ${loadBalancerHostName} ]]; then
         echo WARN: loadBalancerHostName not found in deployment.properties. Generating a random name under \
         *.gke.wso2testgrid.com CN
         loadBalancerHostName=wso2am-$(($RANDOM % 10000)).gke.wso2testgrid.com # randomized hostname
@@ -79,7 +63,7 @@ function create_k8s_resources() {
         i=0;
         for ((i=0; i<$no_yamls; i++))
         do
-          kubectl create -f $yamlFilesLocation/${deploymentYamlFiles[$i]}
+          kubectl create -f ${yamlFilesLocation}/${deploymentYamlFiles[$i]} -n ${namespace}
         done
     fi
 
@@ -92,8 +76,12 @@ function create_k8s_resources() {
 tlskeySecret=testgrid-certs
 ingressName=tg-ingress
 kubectl create secret tls ${tlskeySecret} \
-    --cert $INPUT_DIR/testgrid-certs-v2.crt  \
-    --key $INPUT_DIR/testgrid-certs-v2.key -n $namespace
+    --cert ${INPUT_DIR}/testgrid-certs-v2.crt  \
+    --key ${INPUT_DIR}/testgrid-certs-v2.key -n ${namespace}
+
+
+echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
+
 
     cat > ${ingressName}.yaml << EOF
 apiVersion: extensions/v1beta1
@@ -117,7 +105,7 @@ EOF
     for ((i=0; i<$dep_num; i++))
     do
       echo
-      kubectl expose deployment ${dep[$i]} --name=${dep[$i]} -n $namespace
+      kubectl expose deployment ${dep[$i]} --name=${dep[$i]} -n ${namespace}
 #      kubectl expose deployment ${dep[$i]} --name=${dep[$i]}  --type=LoadBalancer -n $namespace
       cat >> ${ingressName}.yaml << EOF
   - host: mgt-${loadBalancerHostName}
@@ -146,8 +134,8 @@ EOF
 
     readinesss_services
 
-    echo "namespace=$namespace" >> $OUTPUT_DIR/deployment.properties
-    echo "loadBalancerHostName=$loadBalancerHostName" >> $OUTPUT_DIR/deployment.properties
+    echo "namespace=$namespace" >> ${OUTPUT_DIR}/deployment.properties
+    echo "loadBalancerHostName=$loadBalancerHostName" >> ${OUTPUT_DIR}/deployment.properties
 }
 
 #This function constantly check whether the deployments are correctly deployed in the cluster
@@ -155,15 +143,22 @@ function readiness_deployments(){
     start=`date +%s`
     i=0;
     # todo add a terminal condition/timeout.
+    TIMEOUT=600 # 10mins
     for ((i=0; i<$dep_num; i++)) ; do
-      num_true=0;
-      while [ "$num_true" -eq "0" ] ; do
-        sleep 5
-        deployment_status=$(kubectl get deployments -n $namespace ${dep[$i]} -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
-        if [ "$deployment_status" == "True" ] ; then
-          num_true=1;
-        fi
-      done
+        total_count=$((TIMEOUT/5))
+        echo $total_count
+        count=0
+        echo Running kubectl get deployments -n $namespace ${dep[$i]} -o jsonpath='{.status.conditions[?(@.type=="Available")].status}'
+        until [[ $count -ge $total_count ]]
+        do
+            deployment_status=$(kubectl get deployments -n $namespace ${dep[$i]} -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
+            [[ "$deployment_status" == "True" ]] && break
+            count=$(($count+1))
+            sleep 5;
+        done
+        [[ "$deployment_status" != "True" ]] && echo "[ERROR] timeout while waiting for deployment, '${dep[$i]}', in \
+        namespace, '$namespace', to succeed." && exit 78
+
     done
 
     end=`date +%s`
@@ -185,9 +180,8 @@ function readinesss_services(){
         external_ip=$(kubectl get ingress ${ingressName} --template="{{range .status.loadBalancer.ingress}}{{.ip}}{{end}}" --namespace ${namespace})
         [ -z "$external_ip" ] && sleep 10
       done
-    echo "loadBalancerHostName=${loadBalancerHostName}" >> $OUTPUT_DIR/deployment.properties
-    echo "loadBalancerIP=${external_ip}" >> $OUTPUT_DIR/deployment.properties
-
+    echo "loadBalancerHostName=${loadBalancerHostName}" >> ${OUTPUT_DIR}/deployment.properties
+    echo "loadBalancerIP=${external_ip}" >> ${OUTPUT_DIR}/deployment.properties
     done
 
     end=`date +%s`
@@ -257,6 +251,48 @@ aws route53 wait resource-record-sets-changed --id ${change_id}
 echo "AWS Route53 DNS server configured to access the ingress IP  ${external_ip} via hostname ${loadBalancerHostName}"
 echo
 }
+
+# Read a property file to a given associative array
+#
+# $1 - Property file
+# $2 - associative array
+# How to call
+# declare -A somearray
+# read_property_file testplan-props.properties somearray
+read_property_file() {
+    local property_file_path=$1
+    # Read configuration into an associative array
+    # IFS is the 'internal field separator'. In this case, your file uses '='
+    local -n configArray=$2
+    IFS="="
+    while read -r key value
+    do
+      [[ -n ${key} ]] && configArray[$key]=$value
+    done < ${property_file_path}
+    unset IFS
+}
+
+echo "Starting kubernetes artifact deployment.."
+dryRun=False
+
+OUTPUT_DIR=$4
+INPUT_DIR=$2
+declare -g -A infra_props
+declare -g -A deploy_props
+read_property_file "${INPUT_DIR}/infrastructure.properties" infra_props
+read_property_file "${OUTPUT_DIR}/deployment.properties" deploy_props
+#source $INPUT_DIR/infrastructure.properties
+#source $OUTPUT_DIR/deployment.properties
+
+deploymentYamlFiles=(${infra_props["deploymentYamlFiles"]})
+no_yamls=${#deploymentYamlFiles[@]}
+exposedDeployments=${infra_props["exposedDeployments"]}
+dep=(${infra_props["exposedDeployments"]})
+dep_num=${#dep[@]}
+namespace=${infra_props["namespace"]}
+yamlFilesLocation=${infra_props["yamlFilesLocation"]}
+loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
+TestFileLocation=${deploy_props["TestFileLocation"]}
 
 #DEBUG parameters: TODO: remove
 TESTGRID_ENVIRONMENT=dev

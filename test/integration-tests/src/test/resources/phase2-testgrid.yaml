@@ -6,31 +6,43 @@ infrastructureConfig:
   iacProvider: CLOUDFORMATION
   infrastructureProvider: AWS
   containerOrchestrationEngine: None
-  parameters:
-    - JDK : ORACLE_JDK8
   includes:
-     - Ubuntu-18.04
-     - MySQL-5.7
-     - OracleJDK-8
+    - CentOS-7.5
+    - MySQL-5.7
+    - OPEN_JDK8
   provisioners:
-    - name: prod-wso2-ei-scenario-deployment
+    - name: single-node-deployment
       remoteRepository: "git@github.com:wso2-support/aws-ei.git"
       remoteBranch: "6.4.0"
       description: Provision Infra for running intg tests
       scripts:
-        - name: 'phase2-wso2-ei-scenario-deployment'
+        - name: 'prod-wso2-ei-scenario-vfs-be-deployment'
+          description: ''
+          type: CLOUDFORMATION
+          file: integrator/Sample-Backends/vfs-be.yaml
+          inputParameters:
+            KeyPairName: "deployment-prod"
+            FTPUserName: "wso2user"
+            FTPUserPassword: "FTPUserPassword"
+        - name: 'prod-wso2-ei-scenario-activemq-be-deployment'
+          description: ''
+          type: CLOUDFORMATION
+          file: integrator/Sample-Backends/activemq-be.yaml
+          inputParameters:
+            KeyPairName: "deployment-prod"
+        - name: 'prod-wso2-ei-scenario-deployment'
           description: ''
           type: CLOUDFORMATION
           file: integrator/Minimum-HA/integrator-ha.yaml
           inputParameters:
             parseInfrastructureScript: false
-            KeyPairName: "deployment-dev"
+            KeyPairName: "deployment-prod"
             CertificateName: "self-signed-cert"
             DBUsername: "wso2carbon"
             DBPassword: "DB_Password"
             ProductVersion: "6.4.0"
             InternalPrepareForTest: "True"
-            ElasticSearchEndpoint: "dummy"
+            region: "us-east-2"
 scenarioConfigs:
   - testType: TESTNG
     remoteRepository: "https://github.com/pasindujw/phase2-dummy-tests.git"

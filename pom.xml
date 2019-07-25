@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.testgrid</groupId>
     <artifactId>testgrid-parent</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.8-SNAPSHOT</version>
     <name>WSO2 TestGrid Project - Aggregator POM</name>
     <url>http://wso2.org</url>
     <packaging>pom</packaging>
@@ -605,7 +605,7 @@
         <!-- Plugin versions -->
         <jacoco.version>0.7.9</jacoco.version>
         <!-- TestGrid version-->
-        <test.grid.version>1.0.5-SNAPSHOT</test.grid.version>
+        <test.grid.version>1.0.8-SNAPSHOT</test.grid.version>
         <!-- Test Grid core dependencies -->
         <jgit.version>4.1.1.201511131810-r</jgit.version>
         <!-- TestGrid infrastructure dependencies -->

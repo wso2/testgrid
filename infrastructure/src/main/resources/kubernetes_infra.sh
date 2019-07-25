@@ -15,12 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #--------------------------------------------------------------------------------
-set -o xtrace
+
+#set -o xtrace
+alias wget='wget -q'
+alias unzip='unzip -q'
 
 #
 #This script contains creation of infrastructure through kubectl commands.
 # Basic authenticaiton and creation of namespace is done by this script
 #
+
+echo "Setting up Kubernetes infrastructure on GKE..."
 
 ClusterName=""
 INPUT_DIR=$2
@@ -43,26 +48,28 @@ function check_tools() {
     echo "Please enable google cluster API, if not enabled."
     if ! type 'gcloud'
     then
-        echo "installing gcloud - google cloud command line tool before you start with the setup"
-        wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
+        echo "installing gcloud - google cloud command line tool..."
+        set -x
+        wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
         tar -xzf google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
         cd google-cloud-sdk
         CLOUDSDK_CORE_DISABLE_PROMPTS=1 ./install.sh
         source path.bash.inc && source completion.bash.inc
         cd ..
+        set +x
     fi
 
     if ! type 'kubectl'
     then
-        echo "installing Kubernetes command-line tool (kubectl) before you start with the setup"
+        echo "installing kubectl - Kubernetes command-line tool..."
         gcloud components install kubectl
     fi
 }
 
 
 function auth() {
-
-     #authentication access to the google cloud
+    echo 'setting up authentication...'
+    #authentication access to the google cloud
     gcloud auth activate-service-account --key-file=$INPUT_DIR/key.json
 
     #service account setup
@@ -78,14 +85,14 @@ function auth() {
 function create_randomName() {
     if [ -z $name ]
     then 
-      echo "The name is not set"
+      echo "The namespace prefix is not set"
     fi
     NAME="$name$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)"
-    echo $NAME
 }
 
 #random namespace will be created for the deployment of resources
 function create_namespace() {
+    echo "generating random namespace for deployment..."
     create_randomName
     kubectl create namespace $NAME
     kubectl config set-context $(kubectl config current-context) --namespace=$NAME
@@ -98,11 +105,27 @@ function set_properties() {
     echo "randomPort=True">> $OUTPUT_DIR/infrastructure.properties
 }
 
+function print_summary() {
+    echo "
+    ---------------------- Kubernetes cluster details ----------------------
+    KUBERNETES_CLOUD_PROVIDER=GCP-GKE
+    KUBERNETES_CLUSTER_NAME=$CLUSTER_NAME
+    KUBERNETES_NAMESPACE=$NAME
+    SERVICE_ACCOUNT=$SERVICE_ACCOUNT
+    GCP_PROJECT_NAME=$PROJECT_NAME
+    GCP_ZONE=$ZONE
+    GCP_URL=https://console.cloud.google.com/kubernetes/list?project=$PROJECT_NAME&authuser=0
+    ------------------------------------------------------------------------
+    "
+}
+
 function infra_creation() {
     check_tools
     auth
     create_namespace
     set_properties
+    print_summary
+    echo "Kubernetes infrastructure setup completed."
 }
 
 infra_creation

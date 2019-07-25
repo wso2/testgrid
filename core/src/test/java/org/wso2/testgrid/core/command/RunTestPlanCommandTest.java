@@ -87,6 +87,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String infraParamsString = "{\"operating_system\":\"ubuntu_16.04\"}";
     private static final String TESTPLAN_ID = "TP_1";
+    private static final String DEFAULT_SCHEDULE = "manual";
 
     @InjectMocks
     private RunTestPlanCommand runTestPlanCommand;
@@ -198,7 +199,7 @@ public class RunTestPlanCommandTest extends PowerMockTestCase {
         InfrastructureParameter param = new InfrastructureParameter("ubuntu_16.04", DefaultInfrastructureTypes
                 .OPERATING_SYSTEM, "{}", true);
         InfrastructureCombination comb1 = new InfrastructureCombination(param);
-        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class)))
+        when(infrastructureCombinationsProvider.getCombinations(any(TestgridYaml.class), eq(DEFAULT_SCHEDULE)))
                 .thenReturn(Collections.singleton(comb1));
 
         logger.info("Product : " + product.getName());

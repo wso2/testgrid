@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -39,6 +39,7 @@ public class JobConfigFile {
     private String configChangeSetRepository;
     private String configChangeSetBranchName;
     private String keyFileLocation;
+    private String schedule;
     private Properties properties;
 
     /**
@@ -200,6 +201,20 @@ public class JobConfigFile {
     }
 
     /**
+     * Get the schedule from jobconfig.yaml to retrieve combination generate algorithm and
+     * generate infrastructure combinations.
+     *
+     * @return defined schedule for generate combinations.
+     */
+    public String getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(String schedule) {
+        this.schedule = schedule;
+    }
+
+    /**
      * Get a list of dynamic properties added to the job-config.yaml.
      * An example include the product dist download location.
      *
@@ -227,6 +242,7 @@ public class JobConfigFile {
                 ", isRelativePaths=" + isRelativePaths +
                 ", testgridYamlLocation='" + testgridYamlLocation + '\'' +
                 ", testgridKeyFileLocation='" + keyFileLocation + '\'' +
+                ", schedule='" + schedule + '\'' +
                 '}';
     }
 

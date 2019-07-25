@@ -3,9 +3,9 @@ infrastructureConfig:
   iacProvider: None
   infrastructureProvider: SHELL
   containerOrchestrationEngine: None
-  parameters:
-    JDK : ORACLE_JDK8
-    OS  : Ubuntu_16.04
+  includes:
+    - Ubuntu_16.04
+    - ORACLE_JDK8
   provisioners:
     - name: 01-dummy-deployment
       description: Provision Infra for a dummy deployment
