@@ -17,6 +17,8 @@
 #--------------------------------------------------------------------------------
 
 set -o xtrace
+alias wget='wget -q'
+alias unzip='unzip -q'
 
 #
 #This class is used for the deployment of resources into the namespace using helm
