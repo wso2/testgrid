@@ -298,6 +298,7 @@ dep=(${infra_props["exposedDeployments"]})
 dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
+deploymentRepositoryLocation=${infra_props["deploymentRepositoryLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
 
 #DEBUG parameters: TODO: remove
