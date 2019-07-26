@@ -17,7 +17,7 @@ import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({ StringUtil.class, TestExecutorFactory.class })
 @PowerMockIgnore({ "javax.management.*", "javax.script.*", "org.apache.logging.log4j.*" })
-public class DeployFailTest extends BaseTest {
+public class DeployFailTest extends TestBase {
     private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommandTest.class);
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
     private static final String infraParamsString = "{\"operating_system\":\"ubuntu_16.04\"}";

@@ -47,7 +47,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 
 @PrepareForTest({ StringUtil.class, TestExecutorFactory.class })
 @PowerMockIgnore({ "javax.management.*", "javax.script.*", "org.apache.logging.log4j.*" })
-class BaseTest extends PowerMockTestCase {
+class TestBase extends PowerMockTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(RunTestPlanCommandTest.class);
     private static final String TESTGRID_HOME = Paths.get("target", "testgrid-home").toString();
@@ -80,7 +80,7 @@ class BaseTest extends PowerMockTestCase {
     protected String actualTestPlanFileLocation;
     protected String workspaceDir;
 
-    public BaseTest(String workspaceDir) {
+    public TestBase(String workspaceDir) {
         this.workspaceDir = workspaceDir;
     }
 
