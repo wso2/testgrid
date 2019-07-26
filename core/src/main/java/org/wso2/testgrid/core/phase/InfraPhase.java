@@ -109,10 +109,15 @@ public class InfraPhase extends Phase {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(getTestPlan());
+                    logger.info("");
                     logger.info("--- executing script: " + script.getName() + ", file: " + script.getFile());
                     InfrastructureProvisionResult aProvisionResult =
                             infrastructureProvider.provision(getTestPlan(), script);
                     addTo(provisionResult, aProvisionResult);
+                    if (!aProvisionResult.isSuccess()) {
+                        logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
+                        break;
+                    }
                 }
             }
 

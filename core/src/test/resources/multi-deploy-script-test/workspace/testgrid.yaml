@@ -1,0 +1,58 @@
+# A testGrid Job 
+version: '0.9'
+emailToList: "kasung@wso2.com"
+infrastructureConfig:
+  iacProvider: CLOUDFORMATION
+  infrastructureProvider: AWS
+  containerOrchestrationEngine: None
+  includes:
+     - CentOS-7.5
+     - Ubuntu-18.04
+     - MySQL-5.7
+     - Oracle-SE-12.1
+     - Postgres-9.6
+     - Postgres-10.5
+     - OracleJDK-8
+     - ADOPT_OPEN_JDK8
+  provisioners:
+    - name: prod-wso2-ei-scenario-deployment
+      remoteRepository: "git@github.com:wso2/testgrid.git"
+      description: Provision Infra for running intg tests
+      scripts:
+        - name: 'Test-Phase-1-Deployment'
+          description: ''
+          type: SHELL
+          phase: CREATE
+          file: infra.sh
+        - name: destroy
+          file: destroy.sh
+          type: SHELL
+          phase: DESTROY
+deploymentConfig:
+  deploymentPatterns:
+    - name: 'deployment'
+      remoteRepository: "git@github.com:wso2/testgrid.git"
+      description: 'dummy'
+      dir: .
+      scripts:
+        - name: 'default'
+          type: SHELL
+          file: deploy.sh
+        - name: 'default'
+          type: SHELL
+          file: deploy-fail.sh
+        - name: 'default'
+          type: SHELL
+          file: deploy-3.sh
+scenarioConfigs:
+  - testType: TESTNG
+    remoteRepository: "git@github.com:wso2/testgrid.git"
+    name: "ref-scenario"
+    description: "Test-Phase-1"
+    file: tests/test.sh
+  - testType: JMETER 
+    remoteRepository: "git@github.com:wso2/testgrid.git"
+    name: "ref-scenario-jmeter"
+    description: "Test-Jmeter"
+    file: tests/test.sh
+
