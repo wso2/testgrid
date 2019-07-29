@@ -93,7 +93,7 @@ def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeploym
                Remove entirely if using persistent disk
                 */
                 Properties configprops = readconfigProperties()
-                Map new_Container = [ "name": "logfile-sidecar" , "image":"nginx", "volumeMounts":[ ["name":"logfilesmount", "mountPath":"/testdata"]],
+                Map new_Container = [ "name": "logfile-sidecar" , "image":"ranikamadurawe/mytag", "volumeMounts":[ ["name":"logfilesmount", "mountPath":"/testdata"]],
                                         "env": [ ["name": "nodename" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.nodeName"]] ],
                                                  ["name": "podname" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.name"]] ],
                                                  ["name": "podnamespace" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.metadata.namespace"]] ],
@@ -106,7 +106,7 @@ def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeploym
                                                  ["name": "Password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
 
                                         ],
-                                      "commands": ["/bin/bash", "-c", "./kubernetes_startup.sh && tail -f /dev/null" ]
+                                      "command": ["/bin/bash", "-c", "./kubernetes_startup.sh && tail -f /dev/null" ]
                                     ]
                 group.get("spec").get("template").put("spec",AddNewItem(group.get("spec").get("template").get("spec"),"containers",new_Container))
 
