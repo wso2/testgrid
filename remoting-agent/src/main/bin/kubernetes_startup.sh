@@ -20,17 +20,18 @@
 #
 # Startup Script to get argument values for init.sh
 #
+wsEndpoint=ws://testgridagent.com
+region=usa
+testplanid=someid-mysql7
+provider=k8s
+username=theusername
+password=thepassword
 echo "wsEndpoint=$wsEndpoint" > /opt/testgrid/agent-config.properties
 echo "region=$region" >> /opt/testgrid/agent-config.properties
 echo "testPlanId=$testPlanId" >> /opt/testgrid/agent-config.properties
 echo "provider=$provider" >> /opt/testgrid/agent-config.properties
 echo "userName=$userName" >> /opt/testgrid/agent-config.properties
 echo "password=$password" >> /opt/testgrid/agent-config.properties
-echo "instanceId=$(wget -qO- http://169.254.169.254/latest/meta-data/instance-id)" >> /opt/testgrid/agent-config.properties
-
-localIp=$(wget -qO- http://169.254.169.254/latest/meta-data/public-ipv4)
-if [[ -z $localIp ]]; then
-   localIp=$(wget -qO- http://169.254.169.254/latest/meta-data/local-ipv4)
-fi
-echo "instanceIP=$localIp" >> /opt/testgrid/agent-config.properties
-service testgrid-agent restart
+echo "instanceId=someid" >> /opt/testgrid/agent-config.properties
+echo "instanceIP=192.126.0.1" >> /opt/testgrid/agent-config.properties
+./testgrid-agent restart

@@ -99,13 +99,15 @@ def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeploym
                                                  ["name": "podnamespace" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.metadata.namespace"]] ],
                                                  ["name": "podip" , "valueFrom" : ["fieldRef" : ["fieldPath" : "status.podIP"]] ],
                                                  ["name": "wsEndpoint" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_EP") ],
-        /* --NEED TO CHANGE -- */                ["name": "region" , "value": configprops.getProperty("US")  ],
+        /* --NEED TO CHANGE -- */                ["name": "region" , "value": "US"  ],
                                                  ["name": "provider" , "value": "K8S" ],
-                                                 ["name": "testplanID" , "value": configprops.getProperty("TESTPLANID")  ],
+                                                 ["name": "testplanId" , "value": configprops.getProperty("TESTPLANID")  ],
                                                  ["name": "userName" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_USERNAME") ],
                                                  ["name": "Password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
 
-                                        ] ]
+                                        ],
+                                      "commands": ["/bin/bash", "-c", "./kubernetes_startup.sh && tail -f /dev/null" ]
+                                    ]
                 group.get("spec").get("template").put("spec",AddNewItem(group.get("spec").get("template").get("spec"),"containers",new_Container))
 
             }
