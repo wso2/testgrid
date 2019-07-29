@@ -292,7 +292,7 @@ dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
-TestFileLocation=${deploy_props["TestFileLocation"]}
+TestFileLocation=${infra_props["TestFileLocation"]}
 
 #DEBUG parameters: TODO: remove
 TESTGRID_ENVIRONMENT=dev
