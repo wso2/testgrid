@@ -40,6 +40,7 @@ INSERT INTO `infrastructure_parameter` VALUES
 ('1bd03ead-84ff-4bfc-b796-8726d834569','2019-03-13 07:56:48','2019-03-13 07:56:48','Postgres-9.4.12','DBEngineVersion=9.4.12\nDB=Postgres-9.4.12\nDBEngine=postgres',1,'DBEngine'),
 ('1bd03ead-84ff-4bfc-b796-8726d88567d3','2018-07-13 07:52:43','2018-12-12 11:57:56','Oracle-SE2-12.1','DBEngineVersion=12.1.0.2.v12\nDBEngine=oracle-se2\nDB=Oracle-SE2-12.1',1,'DBEngine'),
 ('1bd03ead-84ff-4bfc-b796-8726d934567','2019-04-17 13:37:21','2019-04-17 13:37:21','RHEL-7.6','OSVersion=7.6\nOS=RHEL\nOperatingSystem=RHEL76',1,'OS'),
+('1bd03ead-84ff-4bfc-b796-9726d834569','2019-03-13 07:56:48','2019-03-13 07:56:48','Postgres-9.4','DBEngineVersion=9.4\nDB=Postgres-9.4\nDBEngine=postgres',1,'DBEngine'),
 ('1bd03ead-84ff-4bfc-b896-8026d8849c3','2018-02-13 01:46:49','2018-12-07 12:35:51','Postgres-10.3','DBEngineVersion=10.3\nDB=postgres-10.3\nDBEngine=postgres',1,'DBEngine'),
 ('1bd03ead-84ff-4cfc-b796-8025d8849c8','2018-03-23 05:23:01','2018-12-12 11:43:22','Postgres-10.5','DBEngineVersion=10.5\nDB=Postgres-10.5\nDBEngine=postgres',1,'DBEngine'),
 ('1bd03ead-84ff-4dfc-b796-8025d8849d9','2018-03-23 05:23:31','2018-12-17 07:25:13','Postgres-9.6','DBEngineVersion=9.6\nDB=Postgres-9.6\nDBEngine=postgres',1,'DBEngine'),
