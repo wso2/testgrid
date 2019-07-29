@@ -28,11 +28,13 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
+import java.util.Properties;
 /**
  * This class performs Kubernetes related deployment tasks. This class is used to deploy
  * the kubernetes deployer script which is used to deploy the deployments and services
@@ -81,6 +83,21 @@ public class KubernetesDeployer implements Deployer {
         }
 
         try {
+
+            Properties temptestplanID = new Properties();
+            temptestplanID.setProperty("tpID", testPlan.getId());
+            if (Paths.get(testPlan.getDeploymentRepository()).endsWith("/")) {
+                OutputStream outputfile =
+                        new FileOutputStream(Paths.get(testPlan.getDeploymentRepository()) + "tpid.properties");
+                temptestplanID.save(outputfile, "");
+                outputfile.close();
+            } else {
+                OutputStream outputfile =
+                        new FileOutputStream(Paths.get(testPlan.getDeploymentRepository()) + "/tpid.properties");
+                temptestplanID.save(outputfile, "");
+                outputfile.close();
+            }
+
             Files.copy(helperFileStream , Paths.get(testPlan.getDeploymentRepository(),
                     TestGridConstants.KUBERNETES_GROOVY_HELPER));
         } catch (IOException e) {

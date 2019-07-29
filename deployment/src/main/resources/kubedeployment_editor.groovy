@@ -16,6 +16,7 @@
  * under the License.
  */
 
+
 @Grapes(
         @Grab(group='org.yaml', module='snakeyaml', version='1.24')
 )
@@ -34,6 +35,23 @@ def AddNewItem(Map variable, String propertyName , Object new_Value){
     }catch(RuntimeException e){
         println(e)
     }
+}
+
+/*
+This method reads the config.properties file
+ */
+def readconfigProperties(){
+
+    InputStream testplanInput = new FileInputStream("tpid.properties")
+    InputStream configinput = new FileInputStream("/opt/testgrid/home/config.properties")
+    Properties config = new Properties();
+    Properties tpid = new Properties();
+    config.load(configinput)
+    tpid.load(testplanInput)
+    config.setProperty("TESTPLANID",tpid.getProperty("tpID"))
+
+    testplanInput.close()
+    return config
 }
 
 /*
@@ -74,7 +92,20 @@ def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeploym
                 /*
                Remove entirely if using persistent disk
                 */
-                Map new_Container = [ "name": "logfile-sidecar" , "image":"nginx", "volumeMounts":[ ["name":"logfilesmount", "mountPath":"/testdata"]]]
+                Properties configprops = readconfigProperties()
+                Map new_Container = [ "name": "logfile-sidecar" , "image":"nginx", "volumeMounts":[ ["name":"logfilesmount", "mountPath":"/testdata"]],
+                                        "env": [ ["name": "nodename" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.nodeName"]] ],
+                                                 ["name": "podname" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.name"]] ],
+                                                 ["name": "podnamespace" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.metadata.namespace"]] ],
+                                                 ["name": "podip" , "valueFrom" : ["fieldRef" : ["fieldPath" : "status.podIP"]] ],
+                                                 ["name": "wsEndpoint" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_EP") ],
+        /* --NEED TO CHANGE -- */                ["name": "region" , "value": configprops.getProperty("US")  ],
+                                                 ["name": "provider" , "value": "K8S" ],
+                                                 ["name": "testplanID" , "value": configprops.getProperty("TESTPLANID")  ],
+                                                 ["name": "userName" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_USERNAME") ],
+                                                 ["name": "Password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
+
+                                        ] ]
                 group.get("spec").get("template").put("spec",AddNewItem(group.get("spec").get("template").get("spec"),"containers",new_Container))
 
             }
@@ -83,6 +114,7 @@ def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeploym
 
         }
         fileWriter.close()
+        new File("tpid.properties").delete()
     }catch(RuntimeException e){
         println(e)
     }
