@@ -14,6 +14,8 @@ pipeline
         {
           steps
           {
+          wrap([$class: 'MaskPasswordsBuildWrapper']) { // to enable mask-password plugin
+
           echo "Build started."
             withCredentials([file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation')])
             {
@@ -33,6 +35,7 @@ pipeline
               chmod 400 ${INSTALLMENT}/${FILE_SEC}
               '''
             }
+            }
           }
         }
 
@@ -47,6 +50,7 @@ pipeline
         {
           steps
           {
+          wrap([$class: 'MaskPasswordsBuildWrapper']) { // to enable mask-password plugin
             withCredentials([string(credentialsId: 'GCP_GCR_IMGPULL_USERNAME', variable: 'WUM_USERNAME'),
                              string(credentialsId: 'GCP_GCR_IMGPULL_PASSWORD', variable: 'WUM_PASSWORD'),
                              string(credentialsId: 'ORACLE_ACC_USER', variable: 'ORACLE_USER'),
@@ -64,6 +68,7 @@ pipeline
                 sh ../resources/k8s/build_latest.sh
               """
             }
+          }
           }
         }
     }
