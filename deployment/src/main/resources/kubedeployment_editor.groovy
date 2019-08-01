@@ -101,9 +101,9 @@ def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeploym
                                                  ["name": "wsEndpoint" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_EP") ],
         /* --NEED TO CHANGE -- */                ["name": "region" , "value": "US"  ],
                                                  ["name": "provider" , "value": "K8S" ],
-                                                 ["name": "testplanId" , "value": configprops.getProperty("TESTPLANID")  ],
+                                                 ["name": "testPlanId" , "value": configprops.getProperty("TESTPLANID")  ],
                                                  ["name": "userName" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_USERNAME") ],
-                                                 ["name": "Password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
+                                                 ["name": "password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
 
                                         ],
                                       "command": ["/bin/bash", "-c", "./kubernetes_startup.sh && tail -f /dev/null" ]
