@@ -1,0 +1,9 @@
+{
+
+testgridYamlLocation: testgrid.yaml, 
+infrastructureRepository: infrastructure/,
+deploymentRepository: deployment/,
+scenarioTestsRepository: scenarioTests/,
+
+}
+

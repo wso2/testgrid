@@ -26,6 +26,7 @@
             <class name="org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider"/>
             <class name="org.wso2.testgrid.core.command.GenerateTestPlanCommandTest"/>
             <class name="org.wso2.testgrid.core.command.RunTestPlanCommandTest"/>
+            <class name="org.wso2.testgrid.core.command.DeployFailTest"/>
         </classes>
     </test>
 </suite>
