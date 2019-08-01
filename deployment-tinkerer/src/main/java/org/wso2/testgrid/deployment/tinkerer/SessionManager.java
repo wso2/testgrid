@@ -83,10 +83,20 @@ public class SessionManager {
      * @param agentSession - {@link Session} belongs to the agent.
      */
     public synchronized void createAgentSession(String agentId, Session agentSession) {
+
         Agent agent = new Agent(agentId);
         String provider = agent.getProvider();
         String region = agent.getRegion();
         String instanceId = agent.getInstanceId();
+
+        /*
+        Set instanceID to instance Name if deployed using Kubernetes
+         */
+        if (provider != null && provider.equalsIgnoreCase("K8S")) {
+            agent.setInstanceName(instanceId);
+            agent.setInstanceUser("WSO2");
+        }
+
         if (provider != null && region != null && instanceId != null) {
             Optional<Provider> infrastructureProvider = InfraProviderFactory
                     .getInfrastructureProvider(provider);
