@@ -28,7 +28,7 @@ function edit_deployments(){
         i=0;
         for ((i=0; i<$no_yamls; i++))
         do
-          groovy kubedeployment_editor.groovy deployment${i}_temp.yaml $TestFileLocation $yamlFilesLocation/${deploymentYamlFiles[$i]}
+          groovy kubedeployment_editor.groovy deployment${i}_temp.yaml "${OUTPUT_DIR}/infrastructure.json"  $yamlFilesLocation/${deploymentYamlFiles[$i]}
           rm $yamlFilesLocation/${deploymentYamlFiles[$i]}
           mv deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
         done
@@ -292,12 +292,12 @@ dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
-TestFileLocation=${infra_props["TestFileLocation"]}
+LogFileLocations=${infra_props["LogFileLocations"]}
 
 #DEBUG parameters: TODO: remove
 TESTGRID_ENVIRONMENT=dev
 
-if [ -z "$TestFileLocation" ]; then
+if [ -z "$LogFileLocations" ]; then
     echo "Test Result location not set not changing deployment.yaml"
 else
     echo "Test Result location set editing deployment.yaml"
