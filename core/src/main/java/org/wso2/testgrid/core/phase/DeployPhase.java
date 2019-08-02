@@ -293,7 +293,9 @@ public class DeployPhase extends Phase {
                 while (it.hasNext()) {
                     Map.Entry pair = (Map.Entry) it.next();
                     if (pair.getValue() != null) {
-                        inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                        if (inputJson.has("general")) {
+                            inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                        }
                     }
                 }
 
@@ -372,7 +374,9 @@ public class DeployPhase extends Phase {
                 // Add new value to a flatlist level of the script
                 while (it.hasNext()) {
                     Map.Entry pair = (Map.Entry) it.next();
-                    inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                    if (inputJson.has("general")) {
+                        inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                    }
                 }
                 // Append to json file
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
@@ -405,13 +409,18 @@ public class DeployPhase extends Phase {
                 JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
                 JSONObject inputJson = new JSONObject(jsonTokener);
 
-                JSONObject scriptParamsJson = inputJson.getJSONObject("general");
+                JSONObject scriptParamsJson = null;
+                if (inputJson.has("general")) {
+                    scriptParamsJson = inputJson.getJSONObject("general");
+                }
                 JSONObject scriptParamsOnly = new JSONObject(properties);
 
                 Iterator it = properties.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry pair = (Map.Entry) it.next();
-                    scriptParamsJson.put((String) pair.getKey(), pair.getValue());
+                    if (scriptParamsJson != null) {
+                        scriptParamsJson.put((String) pair.getKey(), pair.getValue());
+                    }
                 }
                 String scriptNameString = scriptName.get();
                 inputJson.put(scriptNameString, scriptParamsOnly);

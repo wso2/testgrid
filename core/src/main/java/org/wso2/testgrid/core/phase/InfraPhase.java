@@ -190,7 +190,9 @@ public class InfraPhase extends Phase {
             Iterator it = properties.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
-                inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                if (inputJson.has("general")) {
+                    inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                }
             }
 
             try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
@@ -224,14 +226,18 @@ public class InfraPhase extends Phase {
             InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString());
             JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
             JSONObject inputJson = new JSONObject(jsonTokener);
-
-            JSONObject scriptParamsJson = inputJson.getJSONObject("general");
+            JSONObject scriptParamsJson = null;
+            if (inputJson.has("general")) {
+                scriptParamsJson = inputJson.getJSONObject("general");
+            }
             JSONObject scriptParamsOnly = new JSONObject(properties);
 
             Iterator it = properties.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
-                scriptParamsJson.put((String) pair.getKey(), pair.getValue());
+                if (scriptParamsJson != null) {
+                    scriptParamsJson.put((String) pair.getKey(), pair.getValue());
+                }
             }
             inputJson.put(scriptName, scriptParamsOnly);
             inputJson.put("currentscript", scriptParamsJson);
@@ -285,7 +291,9 @@ public class InfraPhase extends Phase {
                 while (it.hasNext()) {
                     Map.Entry pair = (Map.Entry) it.next();
                     if (pair.getValue() != null) {
-                        inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                        if (inputJson.has("general")) {
+                            inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                        }
                     }
                 }
 
@@ -380,7 +388,9 @@ public class InfraPhase extends Phase {
         final Properties jobProperties = getTestPlan().getJobProperties();
         final String keyFileLocation = getTestPlan().getKeyFileLocation();
 
-        jobProperties.setProperty(TestGridConstants.KEY_FILE_LOCATION, keyFileLocation);
+        if (keyFileLocation != null) {
+            jobProperties.setProperty(TestGridConstants.KEY_FILE_LOCATION, keyFileLocation);
+        }
         persistInfratoJSON(jobProperties, jsonlocation);
         persistInfratoJSON(infraParameters, jsonlocation);
 
