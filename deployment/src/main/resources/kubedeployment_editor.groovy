@@ -17,12 +17,16 @@
  */
 
 
+import org.json.JSONTokener
 @Grapes(
         @Grab(group='org.yaml', module='snakeyaml', version='1.24')
 )
-
+@Grapes(
+        @Grab(group='org.json', module='json', version='20180813')
+)
 import org.yaml.snakeyaml.Yaml
-
+import org.json.JSONObject;
+import org.json.JSONTokener;
 /*
 Adds a new Item to an Existing Property
  */
@@ -59,7 +63,13 @@ Adds Mount path and Sidecar container to the Deployment
  */
 def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeployment){
 
+    println(pathToOutputs);
     try{
+        InputStream is = new FileInputStream(jsonFilePath.toString());
+        JSONTokener tokener = new JSONTokener(is);
+        JSONObject json = new JSONObject(tokener);
+        println(json.get("deploy-"))
+
         Yaml yaml = new Yaml()
 
         InputStream inputStream = new FileInputStream(pathToDeployment)
