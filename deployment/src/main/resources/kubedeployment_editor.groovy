@@ -17,6 +17,7 @@
  */
 
 
+import org.json.JSONArray
 import org.json.JSONTokener
 @Grapes(
         @Grab(group='org.yaml', module='snakeyaml', version='1.24')
@@ -61,15 +62,17 @@ def readconfigProperties(){
 /*
 Adds Mount path and Sidecar container to the Deployment
  */
-def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeployment){
+def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployment){
 
-    println(pathToOutputs);
+
     try{
+
+        // Read json file
+
         InputStream is = new FileInputStream(jsonFilePath.toString());
         JSONTokener tokener = new JSONTokener(is);
         JSONObject json = new JSONObject(tokener);
-        println(json.get("deploy-"))
-
+        JSONArray loglocations = json.getJSONObject("currentscript").getJSONArray("LogFileLocations");
         Yaml yaml = new Yaml()
 
         InputStream inputStream = new FileInputStream(pathToDeployment)
@@ -77,54 +80,102 @@ def EditDeployments(String outputYaml,String pathToOutputs, String pathToDeploym
         Iterable<Object> KubeGroups = yaml.loadAll(inputStream);
         FileWriter fileWriter = new FileWriter(outputYaml)
 
-        for (Object KubeGroup : KubeGroups ) {
-            Map<String, Object> group = (Map<String, Object>) KubeGroup;
+        if (loglocations.length() != 0){
+            for (Object KubeGroup : KubeGroups ) {
+                Map<String, Object> group = (Map<String, Object>) KubeGroup;
+                int logcontainers = 0;
 
-            if(group.is(null))break;
-            if(group.get("kind").equals("Deployment")){
+                // If group is empty skip
+                if(group.is(null))break;
 
-                new_VolumeMount = ["name":"logfilesmount", "mountPath":pathToOutputs]
+                if(group.get("kind").equals("Deployment")){
 
-                ArrayList newcontainerlist = []
-                for ( Map container in group.get("spec").get("template").get("spec").get("containers")){
-                    newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
+                    // Get Deployment Metadata
+                    Map<String, Object> depmeta = (Map<String, Object>) group.get("metadata")
+
+                    // Volume Mounts for the sidecar container
+                    List volumeMounts = []
+
+                    // List of updated containers with a volume mounted at the log file location
+                    ArrayList newcontainerlist = []
+
+                    for ( Map container in group.get("spec").get("template").get("spec").get("containers")){
+
+                        int i = 0;
+                        boolean matchfound = false;
+                        // For each container check if a log file location has been provided in the json file
+                        for (; i < loglocations.length(); i++) {
+                            JSONObject temp = loglocations.getJSONObject(i);
+                            // When found break the loop
+                            if(temp.getString("deploymentname").equals( depmeta.get("name") ) && temp.getString("containername").equals(container.get("name"))) {
+                                matchfound = true
+                                break;
+                            }
+                        }
+                        // If a match is found enter the updated container into the list
+                        if (matchfound){
+
+                            // New volume mount for the container
+                            new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": loglocations.getJSONObject(i).get("path")]
+                            // new volume mount for the sidecar container
+                            if( loglocations.getJSONObject(i).get("path").toString().startsWith('/') ){
+                                volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
+                                        +loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")])
+                            }else{
+                                volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
+                                        +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")])
+                            }
+                            newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
+                            logcontainers++;
+                        }else{
+                            // If not found add container as it is
+                            newcontainerlist.add(container)
+                        }
+                    }
+
+                    // Add the updated container list as the deployment yamls container list
+                    group.get("spec").get("template").get("spec").put("containers", newcontainerlist)
+
+                    /*
+                    Change to persistent disk claim if using persistent disk
+                     */
+                    Map emptyMap = [:]
+                    for (int j = 0; j<logcontainers;j++){
+                        Map new_Volume = ["name": "logfilesmount"+j , "emptyDir": emptyMap ]
+                        group.get("spec").get("template").put("spec",AddNewItem(group.get("spec").get("template").get("spec"),"volumes",new_Volume))
+                    }
+
+                    /*
+                   Remove entirely if using persistent disk
+                    */
+
+                    Properties configprops = readconfigProperties()
+                    Map new_Container = [ "name": "logfile-sidecar" , "image":"ranikamadurawe/mytag", "volumeMounts":volumeMounts,
+                                          "env": [ ["name": "nodename" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.nodeName"]] ],
+                                                   ["name": "podname" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.name"]] ],
+                                                   ["name": "podnamespace" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.metadata.namespace"]] ],
+                                                   ["name": "podip" , "valueFrom" : ["fieldRef" : ["fieldPath" : "status.podIP"]] ],
+                                                   ["name": "wsEndpoint" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_EP") ],
+                                                   /* --NEED TO CHANGE -- */                ["name": "region" , "value": "US"  ],
+                                                   ["name": "provider" , "value": "K8S" ],
+                                                   ["name": "testPlanId" , "value": configprops.getProperty("TESTPLANID")  ],
+                                                   ["name": "userName" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_USERNAME") ],
+                                                   ["name": "password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
+
+                                          ],
+                                          "command": ["/bin/bash", "-c", "./kubernetes_startup.sh && tail -f /dev/null" ]
+                    ]
+                    group.get("spec").get("template").put("spec",AddNewItem(group.get("spec").get("template").get("spec"),"containers",new_Container))
+
                 }
-                group.get("spec").get("template").get("spec").put("containers", newcontainerlist)
-
-
-                /*
-                Change to persistent disk claim if using persistent disk
-                 */
-                Map emptyMap = [:]
-                Map new_Volume = ["name": "logfilesmount" , "emptyDir": emptyMap ]
-                group.get("spec").get("template").put("spec",AddNewItem(group.get("spec").get("template").get("spec"),"volumes",new_Volume))
-
-                /*
-               Remove entirely if using persistent disk
-                */
-                Properties configprops = readconfigProperties()
-                Map new_Container = [ "name": "logfile-sidecar" , "image":"ranikamadurawe/mytag", "volumeMounts":[ ["name":"logfilesmount", "mountPath":"/testdata"]],
-                                        "env": [ ["name": "nodename" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.nodeName"]] ],
-                                                 ["name": "podname" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.name"]] ],
-                                                 ["name": "podnamespace" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.metadata.namespace"]] ],
-                                                 ["name": "podip" , "valueFrom" : ["fieldRef" : ["fieldPath" : "status.podIP"]] ],
-                                                 ["name": "wsEndpoint" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_EP") ],
-        /* --NEED TO CHANGE -- */                ["name": "region" , "value": "US"  ],
-                                                 ["name": "provider" , "value": "K8S" ],
-                                                 ["name": "testPlanId" , "value": configprops.getProperty("TESTPLANID")  ],
-                                                 ["name": "userName" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_USERNAME") ],
-                                                 ["name": "password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
-
-                                        ],
-                                      "command": ["/bin/bash", "-c", "./kubernetes_startup.sh && tail -f /dev/null" ]
-                                    ]
-                group.get("spec").get("template").put("spec",AddNewItem(group.get("spec").get("template").get("spec"),"containers",new_Container))
+                yaml.dump(group,fileWriter)
+                fileWriter.write("---\n\n")
 
             }
-            yaml.dump(group,fileWriter)
-            fileWriter.write("---\n\n")
-
+        }else{
+            println("no log file paths provided in parameter")
         }
+
         fileWriter.close()
         new File("tpid.properties").delete()
     }catch(RuntimeException e){
