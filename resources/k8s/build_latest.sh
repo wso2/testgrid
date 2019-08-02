@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # This will build Docker images for all the latest WSO2 products to use in testgrid
 set -o xtrace
+alias wget='wget -q'
+alias unzip='unzip -q'
 
 LOG_FILE="$(date +%F).log"
 BUILD_SCRIPT="../resources/k8s/docker_build.sh"

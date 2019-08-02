@@ -43,10 +43,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -91,20 +89,8 @@ public class ShellDeployerFactory  {
         DeploymentCreationResult result = DeploymentUtil.getDeploymentCreationResult(deplInputsLoc);
         result.setName(deploymentPatternConfig.getName());
 
-        List<Host> hosts = new ArrayList<>();
-        Host tomcatHost = new Host();
-        tomcatHost.setLabel("tomcatHost");
-        tomcatHost.setIp("ec2-34-204-80-18.compute-1.amazonaws.com");
-        Host tomcatPort = new Host();
-        tomcatPort.setLabel("tomcatPort");
-        tomcatPort.setIp("8080");
-        hosts.add(tomcatHost);
-        hosts.add(tomcatPort);
-        hosts.addAll(result.getHosts());
-
         DeploymentCreationResult deploymentCreationResult = new DeploymentCreationResult();
         deploymentCreationResult.setName(deploymentPatternConfig.getName());
-        deploymentCreationResult.setHosts(hosts);
         //store bastian ip
         Optional<Host> bastionEIP = infrastructureProvisionResult.getHosts()
                 .stream().filter(host -> host.getLabel().equals(TestGridConstants.OUTPUT_BASTIAN_IP)).findFirst();

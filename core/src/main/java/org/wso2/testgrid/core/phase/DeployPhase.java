@@ -163,6 +163,10 @@ public class DeployPhase extends Phase {
                                 infrastructureProvisionResult, script);
                 addTo(result, aresult);
                 logger.debug("Deployment result: " + result);
+                if (!aresult.isSuccess()) {
+                    logger.warn("Deploy script '" + script.getName() + "' failed. Not running remaining scripts.");
+                    break;
+                }
             }
             return result;
         } catch (TestGridDeployerException e) {

@@ -17,6 +17,8 @@
 #--------------------------------------------------------------------------------
 
 set -o xtrace
+alias wget='wget -q'
+alias unzip='unzip -q'
 
 #
 #This class is used for the deployment of resources into the namespace using helm
@@ -245,8 +247,8 @@ function install_helm(){
   #if helm is not installed in the cluster, helm and tiller will be installed.
   if ! type 'helm'
   then
-    wget https://get.helm.sh/helm-v3.0.0-alpha.1-linux-amd64.tar.gz
-    tar -zxvf helm-v3.0.0-alpha.1-linux-amd64.tar.gz
+    wget https://get.helm.sh/helm-v3.0.0-alpha.2-linux-amd64.tar.gz
+    tar -zxvf helm-v3.0.0-alpha.2-linux-amd64.tar.gz
     mkdir ~/.local/bin/
     PATH=~/.local/bin/:$PATH
     mv linux-amd64/helm ~/.local/bin/helm
@@ -298,6 +300,7 @@ dep=(${infra_props["exposedDeployments"]})
 dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
+deploymentRepositoryLocation=${infra_props["deploymentRepositoryLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
 
 #DEBUG parameters: TODO: remove
