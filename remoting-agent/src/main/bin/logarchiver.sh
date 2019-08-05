@@ -1,7 +1,5 @@
 function executearchive(){
-    cd $1 || exit
-    zip -r $2
-    cp "$2.zip" /opt/testgrid/commonarchives
+    zip -r "$2.zip" $1
 }
 
 function transfer(){
