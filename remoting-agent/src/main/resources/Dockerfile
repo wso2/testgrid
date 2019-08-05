@@ -5,3 +5,4 @@ RUN unzip agent.zip
 WORKDIR /opt/testgrid/agent
 RUN chmod +x kubernetes_startup.sh
 RUN chmod +x testgrid-agent
+RUN chmod +x logarchiver.sh
