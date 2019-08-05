@@ -123,16 +123,14 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                             // new volume mount for the sidecar container
                             if( loglocations.getJSONObject(i).get("path").toString().startsWith('/') ){
                                 new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": loglocations.getJSONObject(i).get("path")]
-                                volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
+                                volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
                                         +loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")])
-                                CommandString = CommandString + "echo executearchive opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"+loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers
-                                                  +" >> logarchiver.sh && "
+                                CommandString = CommandString + "echo executearchive /opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"+loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers+" >> logarchiver.sh && "
                             }else{
                                 new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": "/"+loglocations.getJSONObject(i).get("path")]
-                                volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
+                                volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
                                         +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")])
-                                CommandString = CommandString + "echo executearchive opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/" +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers
-                                +" >> logarchiver.sh && "
+                                CommandString = CommandString + "echo executearchive /opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/" +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers+" >> logarchiver.sh && "
                             }
                             newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
                             logcontainers++
@@ -142,10 +140,9 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                             // New volume mount for the container
                             new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": "/opt/testgrid/logfilepath"]
                             // new volume mount for the sidecar container
-                            volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
+                            volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
                                     +loglocations.getJSONObject(i).get("containername")+"/opt/testgrid/logfilepath"])
-                            CommandString = CommandString + "echo executearchive opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/" +loglocations.getJSONObject(i).get("containername")+"/opt/testgrid/logfilepath logfilesmount"+logcontainers
-                            +" > logarchiver.sh && "
+                            CommandString = CommandString + "echo executearchive /opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/" +loglocations.getJSONObject(i).get("containername")+"/opt/testgrid/logfilepath logfilesmount"+logcontainers+" > logarchiver.sh && "
                             newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
                             logcontainers++
                         }
@@ -172,7 +169,7 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                     Map new_Container = [ "name": "logfile-sidecar" , "image":"ranikamadurawe/mytag", "volumeMounts":volumeMounts,
                                           "env": [ ["name": "nodename" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.nodeName"]] ],
                                                    ["name": "podname" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.name"]] ],
-                                                   ["name": "podnamespace" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.metadata.namespace"]] ],
+                                                   ["name": "podnamespace" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.namespace"]] ],
                                                    ["name": "podip" , "valueFrom" : ["fieldRef" : ["fieldPath" : "status.podIP"]] ],
                                                    ["name": "wsEndpoint" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_EP") ],
                                                    /* --NEED TO CHANGE -- */                ["name": "region" , "value": "US"  ],

@@ -58,5 +58,9 @@
             <source>src/main/bin/kubernetes_startup.sh</source>
             <fileMode>0755</fileMode>
         </file>
+        <file>
+            <source>src/main/bin/logarchiver.sh</source>
+            <fileMode>0755</fileMode>
+        </file>
     </files>
 </assembly>
