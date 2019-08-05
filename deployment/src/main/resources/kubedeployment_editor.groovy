@@ -32,7 +32,7 @@ import org.json.JSONTokener
 
 
 /*
-Adds a new Item to an Existing Property
+Adds a new Items to an Existing Property
  */
 def AddNewItem(Map variable, String propertyName , Object new_Value){
     try{
