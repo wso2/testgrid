@@ -17,8 +17,8 @@
  */
 
 
-import org.json.JSONArray
-import org.json.JSONTokener
+
+
 @Grapes(
         @Grab(group='org.yaml', module='snakeyaml', version='1.24')
 )
@@ -26,8 +26,11 @@ import org.json.JSONTokener
         @Grab(group='org.json', module='json', version='20180813')
 )
 import org.yaml.snakeyaml.Yaml
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import org.json.JSONObject
+import org.json.JSONArray
+import org.json.JSONTokener
+
+
 /*
 Adds a new Item to an Existing Property
  */
@@ -45,12 +48,12 @@ def AddNewItem(Map variable, String propertyName , Object new_Value){
 /*
 This method reads the config.properties file
  */
-def readconfigProperties(){
+def static readconfigProperties(){
 
     InputStream testplanInput = new FileInputStream("tpid.properties")
     InputStream configinput = new FileInputStream("/opt/testgrid/home/config.properties")
-    Properties config = new Properties();
-    Properties tpid = new Properties();
+    Properties config = new Properties()
+    Properties tpid = new Properties()
     config.load(configinput)
     tpid.load(testplanInput)
     config.setProperty("TESTPLANID",tpid.getProperty("tpID"))
@@ -69,24 +72,24 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
 
         // Read json file
 
-        InputStream is = new FileInputStream(jsonFilePath.toString());
-        JSONTokener tokener = new JSONTokener(is);
-        JSONObject json = new JSONObject(tokener);
-        JSONArray loglocations = json.getJSONObject("currentscript").getJSONArray("LogFileLocations");
+        InputStream is = new FileInputStream(jsonFilePath.toString())
+        JSONTokener tokener = new JSONTokener(is)
+        JSONObject json = new JSONObject(tokener)
+        JSONArray loglocations = json.getJSONObject("currentscript").getJSONArray("LogFileLocations")
         Yaml yaml = new Yaml()
 
         InputStream inputStream = new FileInputStream(pathToDeployment)
 
-        Iterable<Object> KubeGroups = yaml.loadAll(inputStream);
+        Iterable<Object> KubeGroups = yaml.loadAll(inputStream)
         FileWriter fileWriter = new FileWriter(outputYaml)
 
         if (loglocations.length() != 0){
             for (Object KubeGroup : KubeGroups ) {
-                Map<String, Object> group = (Map<String, Object>) KubeGroup;
-                int logcontainers = 0;
+                Map<String, Object> group = (Map<String, Object>) KubeGroup
+                int logcontainers = 0
 
                 // If group is empty skip
-                if(group.is(null))break;
+                if(group.is(null))break
 
                 if(group.get("kind").equals("Deployment")){
 
@@ -98,38 +101,53 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
 
                     // List of updated containers with a volume mounted at the log file location
                     ArrayList newcontainerlist = []
+                    String CommandString = ""
 
                     for ( Map container in group.get("spec").get("template").get("spec").get("containers")){
 
-                        int i = 0;
-                        boolean matchfound = false;
+                        int i = 0
+                        boolean matchfound = false
                         // For each container check if a log file location has been provided in the json file
                         for (; i < loglocations.length(); i++) {
-                            JSONObject temp = loglocations.getJSONObject(i);
+                            JSONObject temp = loglocations.getJSONObject(i)
                             // When found break the loop
                             if(temp.getString("deploymentname").equals( depmeta.get("name") ) && temp.getString("containername").equals(container.get("name"))) {
                                 matchfound = true
-                                break;
+                                break
                             }
                         }
                         // If a match is found enter the updated container into the list
                         if (matchfound){
 
                             // New volume mount for the container
-                            new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": loglocations.getJSONObject(i).get("path")]
                             // new volume mount for the sidecar container
                             if( loglocations.getJSONObject(i).get("path").toString().startsWith('/') ){
+                                new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": loglocations.getJSONObject(i).get("path")]
                                 volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
                                         +loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")])
+                                CommandString = CommandString + "echo executearchive opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"+loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers
+                                                  +" >> logarchiver.sh && "
                             }else{
+                                new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": "/"+loglocations.getJSONObject(i).get("path")]
                                 volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
                                         +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")])
+                                CommandString = CommandString + "echo executearchive opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/" +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers
+                                +" >> logarchiver.sh && "
                             }
                             newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
-                            logcontainers++;
+                            logcontainers++
                         }else{
-                            // If not found add container as it is
-                            newcontainerlist.add(container)
+                            // If not found add container with default path
+
+                            // New volume mount for the container
+                            new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": "/opt/testgrid/logfilepath"]
+                            // new volume mount for the sidecar container
+                            volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
+                                    +loglocations.getJSONObject(i).get("containername")+"/opt/testgrid/logfilepath"])
+                            CommandString = CommandString + "echo executearchive opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/" +loglocations.getJSONObject(i).get("containername")+"/opt/testgrid/logfilepath logfilesmount"+logcontainers
+                            +" > logarchiver.sh && "
+                            newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
+                            logcontainers++
                         }
                     }
 
@@ -150,6 +168,7 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                     */
 
                     Properties configprops = readconfigProperties()
+                    CommandString = CommandString + " echo transfer >> logarchiver.sh && "
                     Map new_Container = [ "name": "logfile-sidecar" , "image":"ranikamadurawe/mytag", "volumeMounts":volumeMounts,
                                           "env": [ ["name": "nodename" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.nodeName"]] ],
                                                    ["name": "podname" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.name"]] ],
@@ -163,7 +182,7 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                                                    ["name": "password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
 
                                           ],
-                                          "command": ["/bin/bash", "-c", "./kubernetes_startup.sh && tail -f /dev/null" ]
+                                          "command": ["/bin/bash", "-c", CommandString+"./kubernetes_startup.sh && tail -f /dev/null" ]
                     ]
                     group.get("spec").get("template").put("spec",AddNewItem(group.get("spec").get("template").get("spec"),"containers",new_Container))
 
