@@ -421,18 +421,24 @@ public class DeployPhase extends Phase {
                 InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString());
                 JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
                 JSONObject inputJson = new JSONObject(jsonTokener);
+                JSONObject general = null;
+                JSONObject scriptParamsJson = new JSONObject();
 
-                JSONObject scriptParamsJson = null;
                 if (inputJson.has("general")) {
-                    scriptParamsJson = inputJson.getJSONObject("general");
+                    general = inputJson.getJSONObject("general");
                 }
                 JSONObject scriptParamsOnly = new JSONObject(properties);
 
                 Iterator it = properties.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry pair = (Map.Entry) it.next();
-                    if (scriptParamsJson != null) {
-                        scriptParamsJson.put((String) pair.getKey(), pair.getValue());
+                    scriptParamsJson.put((String) pair.getKey(), pair.getValue());
+                }
+                if (general != null) {
+                    Iterator<String> genit = general.keys();
+                    while (genit.hasNext()) {
+                        String key = genit.next();
+                        scriptParamsJson.put(key, general.get(key));
                     }
                 }
                 String scriptNameString = scriptName.get();
@@ -450,6 +456,7 @@ public class DeployPhase extends Phase {
                 JSONObject inputJson = new JSONObject();
                 String scriptNameString = scriptName.get();
                 inputJson.put(scriptNameString, scriptParamsJson);
+                inputJson.put("currentscript", scriptParamsJson);
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                     inputJson.write(jsonWriter);
                     jsonWriter.write("\n");

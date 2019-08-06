@@ -140,9 +140,9 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                             // New volume mount for the container
                             new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": "/opt/testgrid/logfilepath"]
                             // new volume mount for the sidecar container
-                            volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
-                                    +loglocations.getJSONObject(i).get("containername")+"/opt/testgrid/logfilepath"])
-                            CommandString = CommandString + "echo executearchive /opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/" +loglocations.getJSONObject(i).get("containername")+"/opt/testgrid/logfilepath logfilesmount"+logcontainers+" > logarchiver.sh && "
+                            volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+depmeta.get("name")+"/"
+                                    +container.get("name")+"/opt/testgrid/logfilepath"])
+                            CommandString = CommandString + "echo executearchive /opt/tests/"+depmeta.get("name")+"/" +container.get("name")+"/opt/testgrid/logfilepath logfilesmount"+logcontainers+" > logarchiver.sh && "
                             newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
                             logcontainers++
                         }

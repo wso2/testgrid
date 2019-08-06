@@ -80,7 +80,7 @@ kubectl create secret tls ${tlskeySecret} \
     --key ${INPUT_DIR}/testgrid-certs-v2.key -n ${namespace}
 
 
-echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
+echo "# public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
 
 
     cat > ${ingressName}.yaml << EOF
