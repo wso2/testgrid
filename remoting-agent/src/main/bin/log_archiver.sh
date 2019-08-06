@@ -5,7 +5,7 @@ function executearchive(){
 
 function transfer(){
     zip -r /opt/testgrid/commonarchives/ logfiles.zip
-    # Transport logic here
+    mv logfiles.zip /var/log/product_dumps.zip
 }
 
 function startup(){

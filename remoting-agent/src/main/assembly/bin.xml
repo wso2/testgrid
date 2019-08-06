@@ -59,7 +59,7 @@
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>src/main/bin/logarchiver.sh</source>
+            <source>src/main/bin/log_archiver.sh</source>
             <fileMode>0755</fileMode>
         </file>
     </files>
