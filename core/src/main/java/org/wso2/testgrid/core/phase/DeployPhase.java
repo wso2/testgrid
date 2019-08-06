@@ -112,6 +112,9 @@ public class DeployPhase extends Phase {
                 persistAdditionalInputs(tgProperties, DataBucketsHelper.getOutputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.DEPL_OUT_FILE), DataBucketsHelper.getOutputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE), Optional.empty());
+                refillFromPropFile(DataBucketsHelper.getOutputLocation(getTestPlan())
+                        .resolve(DataBucketsHelper.DEPL_OUT_FILE), DataBucketsHelper.getOutputLocation(getTestPlan())
+                        .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE));
                 // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
                 Map<String, Object> sceProperties = new HashMap<>();
                 for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
@@ -120,6 +123,10 @@ public class DeployPhase extends Phase {
                             .resolve(DataBucketsHelper.DEPL_OUT_FILE),
                             DataBucketsHelper.getOutputLocation(getTestPlan())
                             .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE), Optional.of(scenarioConfig.getName()));
+                    refillFromPropFile(DataBucketsHelper.getOutputLocation(getTestPlan())
+                            .resolve(DataBucketsHelper.DEPL_OUT_FILE),
+                            DataBucketsHelper.getOutputLocation(getTestPlan())
+                            .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE));
                 }
             }
         } catch (TestPlanExecutorException e) {
@@ -163,6 +170,12 @@ public class DeployPhase extends Phase {
                                 infrastructureProvisionResult, script);
                 addTo(result, aresult);
                 logger.debug("Deployment result: " + result);
+                if (!aresult.isSuccess()) {
+                    logger.warn("Deploy script '" + script.getName() + "' failed. Not running remaining scripts.");
+                    break;
+                }
+                removeScriptParams(script, infraOutFilePath);
+                refillFromPropFile(infraOutFilePath, infraOutJSONFilePath);
             }
             return result;
         } catch (TestGridDeployerException e) {
@@ -359,7 +372,7 @@ public class DeployPhase extends Phase {
     private void persistAdditionalInputs(Map properties, Path propFilePath , Path jsonFilePath,
                                          Optional<String> scriptName) throws TestPlanExecutorException {
 
-        refillFromPropFile(propFilePath, jsonFilePath);
+
 
         if (!scriptName.isPresent()) {
             // If value is not specified from a script add the value as a general value to the json file
@@ -455,6 +468,56 @@ public class DeployPhase extends Phase {
             }
         } catch (Throwable e) {
             throw new TestPlanExecutorException("Error occurred while writing deployment outputs.", e);
+        }
+    }
+
+    /**
+     *
+     *  Optional method removes a scripts params from prop file after execution
+     */
+
+    private void removeScriptParams(Script script, Path propFilePath) {
+
+        InputStream propInputStream = null;
+        try {
+            propInputStream = new FileInputStream(propFilePath.toString());
+            Properties existingprops = new Properties();
+            existingprops.load(propInputStream);
+
+            Map<String, Object> inputParams = script.getInputParameters();
+
+            Iterator it = inputParams.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry) it.next();
+                if (existingprops.containsKey(pair.getKey())) {
+                    existingprops.remove(pair.getKey());
+                    logger.info("removing property " + pair.getKey());
+                }
+            }
+
+            try (PrintWriter printWriter = new PrintWriter(
+                    new OutputStreamWriter(Files.newOutputStream(propFilePath), StandardCharsets.UTF_8))) {
+                Iterator itr = existingprops.entrySet().iterator();
+                while (itr.hasNext()) {
+                    Map.Entry pair = (Map.Entry) itr.next();
+                    printWriter.println(pair.getKey() + "=" + pair.getValue());
+                }
+            } catch (IOException e) {
+                logger.error("Error while persisting infra input params to " + propFilePath, e);
+            }
+
+        } catch (FileNotFoundException e) {
+            logger.info(propFilePath + " Not created yet ignoring read property file step");
+        } catch (IOException e) {
+            logger.info(propFilePath + " Failed to read file");
+        } finally {
+            try {
+                if (propInputStream != null) {
+                    propInputStream.close();
+                }
+            } catch (Exception e) {
+                logger.error("Failed to close Stream");
+            }
         }
     }
 }

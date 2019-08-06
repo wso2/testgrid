@@ -123,6 +123,12 @@ public class InfraPhase extends Phase {
                     InfrastructureProvisionResult aProvisionResult =
                             infrastructureProvider.provision(getTestPlan(), script);
                     addTo(provisionResult, aProvisionResult);
+                    if (!aProvisionResult.isSuccess()) {
+                        logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
+                        break;
+                    }
+                    removeScriptParams(script);
+                    refillFromPropFile();
                 }
             }
 
@@ -226,17 +232,23 @@ public class InfraPhase extends Phase {
             InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString());
             JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
             JSONObject inputJson = new JSONObject(jsonTokener);
-            JSONObject scriptParamsJson = null;
+            JSONObject general = null;
+            JSONObject scriptParamsJson = new JSONObject();
             if (inputJson.has("general")) {
-                scriptParamsJson = inputJson.getJSONObject("general");
+                general = inputJson.getJSONObject("general");
             }
             JSONObject scriptParamsOnly = new JSONObject(properties);
 
             Iterator it = properties.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
-                if (scriptParamsJson != null) {
-                    scriptParamsJson.put((String) pair.getKey(), pair.getValue());
+                scriptParamsJson.put((String) pair.getKey(), pair.getValue());
+            }
+            if (general != null) {
+                Iterator<String> genit = general.keys();
+                while (genit.hasNext()) {
+                    String key = genit.next();
+                    scriptParamsJson.put(key, general.get(key));
                 }
             }
             inputJson.put(scriptName, scriptParamsOnly);
@@ -342,6 +354,56 @@ public class InfraPhase extends Phase {
     }
 
     /**
+     *
+     *  Optional method removes a scripts params from prop file after execution
+     */
+
+    private void removeScriptParams(Script script) {
+        final Path propFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
+        InputStream propInputStream = null;
+        try {
+            propInputStream = new FileInputStream(propFilePath.toString());
+            Properties existingprops = new Properties();
+            existingprops.load(propInputStream);
+
+            Map<String, Object> inputParams = script.getInputParameters();
+
+            Iterator it = inputParams.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry) it.next();
+                if (existingprops.containsKey(pair.getKey())) {
+                    existingprops.remove(pair.getKey());
+                    logger.info("removing property " + pair.getKey());
+                }
+            }
+
+            try (PrintWriter printWriter = new PrintWriter(
+                    new OutputStreamWriter(Files.newOutputStream(propFilePath), StandardCharsets.UTF_8))) {
+                Iterator itr = existingprops.entrySet().iterator();
+                while (itr.hasNext()) {
+                    Map.Entry pair = (Map.Entry) itr.next();
+                    printWriter.println(pair.getKey() + "=" + pair.getValue());
+                }
+            } catch (IOException e) {
+                logger.error("Error while persisting infra input params to " + propFilePath, e);
+            }
+
+        } catch (FileNotFoundException e) {
+            logger.info(propFilePath + " Not created yet ignoring read property file step");
+        } catch (IOException e) {
+            logger.info(propFilePath + " Failed to read file");
+        } finally {
+            try {
+                if (propInputStream != null) {
+                    propInputStream.close();
+                }
+            } catch (Exception e) {
+                logger.error("Failed to close Stream");
+            }
+        }
+    }
+    /**
      * The infra-provision.sh / deploy.sh / run-scenario.sh receive the test plan
      * configuration as a properties file aswell as a json file
      *
@@ -350,7 +412,7 @@ public class InfraPhase extends Phase {
      */
     private void persistInfraInputs(Script script) {
 
-        refillFromPropFile();
+
 
         final Path location = DataBucketsHelper.getInputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
@@ -404,7 +466,7 @@ public class InfraPhase extends Phase {
                 String key = (String) en.nextElement();
                 printWriter.println(key + "=" + infraParameters.getProperty(key));
             }
-            printWriter.println((TestGridConstants.KEY_FILE_LOCATION + "=" + keyFileLocation));
+
 
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + location, e);
