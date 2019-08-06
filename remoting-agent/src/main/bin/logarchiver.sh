@@ -1,10 +1,11 @@
 function executearchive(){
     zip -r "$2.zip" $1
+    mv "$2.zip" "/opt/testgrid/commonarchives/$2.zip"
 }
 
 function transfer(){
-    cd /opt/testgrid/commonarchives || exit
-    echo "transferring data"
+    zip -r /opt/testgrid/commonarchives/ logfiles.zip
+    # Transport logic here
 }
 
 function startup(){
