@@ -198,6 +198,9 @@ public class InfraPhase extends Phase {
                 Map.Entry pair = (Map.Entry) it.next();
                 if (inputJson.has("general")) {
                     inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                } else {
+                    JSONObject general = new JSONObject(properties);
+                    inputJson.put("general", general);
                 }
             }
 
@@ -305,6 +308,9 @@ public class InfraPhase extends Phase {
                     if (pair.getValue() != null) {
                         if (inputJson.has("general")) {
                             inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                        } else {
+                            JSONObject general = new JSONObject(existingprops);
+                            inputJson.put("general", general);
                         }
                     }
                 }

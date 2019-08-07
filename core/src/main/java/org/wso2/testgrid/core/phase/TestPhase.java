@@ -383,7 +383,12 @@ public class TestPhase extends Phase {
                                         .ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT) + "&&" +
                                 "export AWS_DEFAULT_REGION=" + ConfigurationContext
                                 .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME) + "&&";
-                String runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
+                String runLogArchiverScript;
+                if (getTestPlan().getDeployerType().toString().equals("KUBERNETES")) {
+                    runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
+                } else {
+                    runLogArchiverScript = "./log_archiver.sh &&";
+                }
                 String s3Location = deriveDeploymentOutputsDirectory();
                 if (s3Location != null) {
                     ExecutorService executorService = Executors.newCachedThreadPool();
@@ -392,9 +397,15 @@ public class TestPhase extends Phase {
                                 s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
                         String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
                                 s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
-                        executorService.execute(new TinkererCommand(agent.getAgentId(), getTestPlan().getId(),
-                                agent.getInstanceName(),
-                                configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3));
+                        if (getTestPlan().getDeployerType().toString().equals("KUBERNETES")) {
+                            executorService.execute(new TinkererCommand(agent.getAgentId(), getTestPlan().getId(),
+                                    agent.getInstanceName(),
+                                    configureAWSCLI + runLogArchiverScript + uploadLogsToS3));
+                        } else {
+                            executorService.execute(new TinkererCommand(agent.getAgentId(), getTestPlan().getId(),
+                                    agent.getInstanceName(),
+                                    configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3));
+                        }
                     });
                     executorService.shutdown();
                     try {

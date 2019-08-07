@@ -308,11 +308,12 @@ public class DeployPhase extends Phase {
                     if (pair.getValue() != null) {
                         if (inputJson.has("general")) {
                             inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                        } else {
+                            JSONObject general = new JSONObject(existingprops);
+                            inputJson.put("general", general);
                         }
                     }
                 }
-
-
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                     inputJson.write(jsonWriter);
                     jsonWriter.write("\n");
@@ -389,6 +390,9 @@ public class DeployPhase extends Phase {
                     Map.Entry pair = (Map.Entry) it.next();
                     if (inputJson.has("general")) {
                         inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                    } else {
+                        JSONObject general = new JSONObject(properties);
+                        inputJson.put("general", general);
                     }
                 }
                 // Append to json file
