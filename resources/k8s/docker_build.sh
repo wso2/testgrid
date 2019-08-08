@@ -29,9 +29,11 @@ if [ -z $(echo $PROJECT_NAME) ]; then PROJECT_NAME="testgrid"; fi
 if [ -z $(echo $REG_LOCATION) ]; then REG_LOCATION="asia.gcr.io"; fi
 if [ -z $(echo $REG_SUB_DIR) ]; then REG_SUB_DIR="wso2-docker"; fi
 
+#TODO: ADD ALL INFRASTUCTURE
+
 INFRA_JDBC="postgres"
 INFRA_OS="ubuntu"
-INFRA_JDK="adopt"
+INFRA_JDK="adopt_open_jdk8"
 
 
 while (( "$#" )); do
@@ -317,7 +319,7 @@ for infos in $INFRA_OS; do
 
       echo "Building docker image for $infos-$infcon-$infjdk combination"
 
-      sh dockerfile-generator.sh \
+      bash dockerfile-generator.sh \
           --product-server-name $PRODUCT_NAME \
           --product-server-version $WSO2_SERVER_VERSION \
           --output-directory $DOCKERFILE_HOME \
