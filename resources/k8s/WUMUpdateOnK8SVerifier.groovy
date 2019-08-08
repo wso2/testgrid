@@ -62,10 +62,10 @@ pipeline
             {
               sh """
                 ls
-                cd ${WORKSPACE}
-                chmod +x ../resources/k8s/build_latest.sh
-                chmod +x ../resources/k8s/docker_build.sh
-                sh ../resources/k8s/build_latest.sh
+                cd ${WORKSPACE}/resources/k8s
+                chmod +x build_latest.sh
+                chmod +x docker_build.sh
+                sh build_latest.sh
               """
             }
           }
