@@ -18,9 +18,6 @@
  */
 
 package org.wso2.testgrid.core.phase;
-;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import org.wso2.testgrid.common.Deployer;
 import org.wso2.testgrid.common.DeploymentCreationResult;
@@ -46,31 +43,20 @@ import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 
 /**
  * This class includes implementation of deployment-creation phase.
  */
 public class DeployPhase extends Phase {
+
     @Override
     boolean verifyPrecondition() {
         if (getTestPlan().getPhase().equals(TestPlanPhase.INFRA_PHASE_SUCCEEDED) &&
@@ -109,21 +95,23 @@ public class DeployPhase extends Phase {
                 tgProperties.put("TEST_PLAN_ID", getTestPlan().getId());
 
                 // TODO insert properties to DEPL_OUT_FILE and JSON file as they are been executed
-                persistAdditionalInputs(tgProperties, DataBucketsHelper.getOutputLocation(getTestPlan())
+                jsonpropFileEditor.persistAdditionalInputs(tgProperties,
+                        DataBucketsHelper.getOutputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.DEPL_OUT_FILE), DataBucketsHelper.getOutputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE), Optional.empty());
-                refillFromPropFile(DataBucketsHelper.getOutputLocation(getTestPlan())
+                jsonpropFileEditor.refillFromPropFile(DataBucketsHelper.getOutputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.DEPL_OUT_FILE), DataBucketsHelper.getOutputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE));
                 // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
                 Map<String, Object> sceProperties = new HashMap<>();
                 for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
                     sceProperties.putAll(scenarioConfig.getInputParameters());
-                    persistAdditionalInputs(sceProperties, DataBucketsHelper.getOutputLocation(getTestPlan())
+                    jsonpropFileEditor.persistAdditionalInputs(sceProperties,
+                            DataBucketsHelper.getOutputLocation(getTestPlan())
                             .resolve(DataBucketsHelper.DEPL_OUT_FILE),
                             DataBucketsHelper.getOutputLocation(getTestPlan())
                             .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE), Optional.of(scenarioConfig.getName()));
-                    refillFromPropFile(DataBucketsHelper.getOutputLocation(getTestPlan())
+                    jsonpropFileEditor.refillFromPropFile(DataBucketsHelper.getOutputLocation(getTestPlan())
                             .resolve(DataBucketsHelper.DEPL_OUT_FILE),
                             DataBucketsHelper.getOutputLocation(getTestPlan())
                             .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE));
@@ -162,7 +150,7 @@ public class DeployPhase extends Phase {
 
                 // Append deploymentConfig inputs in testgrid yaml to infra outputs file
                 Map<String, Object> deplInputs = script.getInputParameters();
-                persistAdditionalInputs(deplInputs, infraOutFilePath, infraOutJSONFilePath,
+                jsonpropFileEditor.persistAdditionalInputs(deplInputs, infraOutFilePath, infraOutJSONFilePath,
                         Optional.of(script.getName()));
                 Deployer deployerService = DeployerFactory.getDeployerService(script);
                 DeploymentCreationResult aresult =
@@ -174,8 +162,8 @@ public class DeployPhase extends Phase {
                     logger.warn("Deploy script '" + script.getName() + "' failed. Not running remaining scripts.");
                     break;
                 }
-                removeScriptParams(script, infraOutFilePath);
-                refillFromPropFile(infraOutFilePath, infraOutJSONFilePath);
+                jsonpropFileEditor.removeScriptParams(script, infraOutFilePath);
+                jsonpropFileEditor.refillFromPropFile(infraOutFilePath, infraOutJSONFilePath);
             }
             return result;
         } catch (TestGridDeployerException e) {
@@ -277,258 +265,6 @@ public class DeployPhase extends Phase {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("No Infrastructure Provider implementation for deployment pattern '",
                             getTestPlan().getDeploymentPattern(), "', in TestPlan"), e);
-        }
-    }
-
-    /**
-     * Observes the properties file and updates any necessary values to the json file as a general input
-     *  NOTE :: OVERRIDES ANY PROPERTY OF THE SAME NAME
-     *
-     * @param propFilePath path to .properties file
-     * @param jsonFilePath path tp .json file
-     */
-    private void refillFromPropFile(Path propFilePath , Path jsonFilePath) {
-        InputStream propInputStream = null;
-        InputStream jsonInputStream = null;
-        try {
-
-            propInputStream = new FileInputStream(propFilePath.toString());
-            Properties existingprops = new Properties();
-            existingprops.load(propInputStream);
-            propInputStream.close();
-            try {
-                jsonInputStream = new FileInputStream(jsonFilePath.toString());
-                JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
-                JSONObject inputJson = new JSONObject(jsonTokener);
-                jsonInputStream.close();
-                Iterator it = existingprops.entrySet().iterator();
-
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry) it.next();
-                    if (pair.getValue() != null) {
-                        if (inputJson.has("general")) {
-                            inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
-                        } else {
-                            JSONObject general = new JSONObject(existingprops);
-                            inputJson.put("general", general);
-                        }
-                    }
-                }
-                try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    inputJson.write(jsonWriter);
-                    jsonWriter.write("\n");
-                } catch (Throwable e) {
-                    logger.error(jsonFilePath + " Error while persisting infra input params to " + jsonFilePath);
-                }
-            } catch (IOException ex) {
-                logger.info("ERROR please view log files to Debug, " + propFilePath + " found but " + jsonFilePath +
-                        " file not found ");
-                HashMap<String, Object> insertvalue = new HashMap<String, Object>();
-                insertvalue.put("general", existingprops);
-                JSONObject inputJson = new JSONObject(insertvalue);
-                try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    inputJson.write(jsonWriter);
-                    jsonWriter.write("\n");
-                } catch (Throwable exc) {
-                    logger.error("Error while persisting infra input params to " + jsonFilePath);
-                }
-            } finally {
-                try {
-                    if (jsonInputStream != null) {
-                        jsonInputStream.close();
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to close Stream");
-                }
-            }
-        } catch (FileNotFoundException e) {
-            logger.info(propFilePath + " Not created yet ignoring read property file step");
-        } catch (IOException e) {
-            logger.error("Error while persisting infra input params to " + propFilePath);
-        } finally {
-            try {
-                if (propInputStream != null) {
-                    propInputStream.close();
-                }
-            } catch (Exception e) {
-                logger.error("Failed to close Stream");
-            }
-        }
-
-    }
-
-    /**
-     * Persist additional inputs required other than the outputs from previous steps (i.e. infra/deployment).
-     * The additional inputs are specified in the testgrid.yaml.
-     *
-     * NOTE :: JSON File structure
-     * { gen_prop1:val1 , gen_prop2:val2, currentscript: {prop4:val4}, script1: {prop3:val3} , script2: {prop4:val4} }
-     *
-     * @param properties properties to be added
-     * @param propFilePath path of the property file
-     * @param jsonFilePath path to the JSON file
-     * @param scriptName Name of script file
-     * @throws TestPlanExecutorException if writing to the property file fails
-     */
-    private void persistAdditionalInputs(Map properties, Path propFilePath , Path jsonFilePath,
-                                         Optional<String> scriptName) throws TestPlanExecutorException {
-
-
-
-        if (!scriptName.isPresent()) {
-            // If value is not specified from a script add the value as a general value to the json file
-            try {
-
-                // If the JSON file exists read existing values and append to the file
-                InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString());
-                JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
-                JSONObject inputJson = new JSONObject(jsonTokener);
-                Iterator it = properties.entrySet().iterator();
-
-                // Add new value to a flatlist level of the script
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry) it.next();
-                    if (inputJson.has("general")) {
-                        inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
-                    } else {
-                        JSONObject general = new JSONObject(properties);
-                        inputJson.put("general", general);
-                    }
-                }
-                // Append to json file
-                try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    inputJson.write(jsonWriter);
-                    jsonWriter.write("\n");
-                } catch (Throwable e) {
-                    logger.error("Error while persisting infra input params to " + jsonFilePath, e);
-                }
-
-            } catch (IOException e) {
-                // If file does not exist create new file and write into it
-                logger.info(jsonFilePath + "created");
-                HashMap<String, Object> insertvalue = new HashMap<String, Object>();
-                insertvalue.put("general", properties);
-                JSONObject inputJson = new JSONObject(insertvalue);
-                try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    inputJson.write(jsonWriter);
-                    jsonWriter.write("\n");
-                } catch (Throwable ex) {
-                    logger.error("Error while persisting infra input params to " + jsonFilePath, ex);
-                }
-            }
-        } else {
-            /*
-             If input params are specified from a script save currently executing script under currentscript
-             and save the same info under script name for later retrival.
-             */
-            try {
-                InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString());
-                JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
-                JSONObject inputJson = new JSONObject(jsonTokener);
-                JSONObject general = null;
-                JSONObject scriptParamsJson = new JSONObject();
-
-                if (inputJson.has("general")) {
-                    general = inputJson.getJSONObject("general");
-                }
-                JSONObject scriptParamsOnly = new JSONObject(properties);
-
-                Iterator it = properties.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry) it.next();
-                    scriptParamsJson.put((String) pair.getKey(), pair.getValue());
-                }
-                if (general != null) {
-                    Iterator<String> genit = general.keys();
-                    while (genit.hasNext()) {
-                        String key = genit.next();
-                        scriptParamsJson.put(key, general.get(key));
-                    }
-                }
-                String scriptNameString = scriptName.get();
-                inputJson.put(scriptNameString, scriptParamsOnly);
-                inputJson.put("currentscript", scriptParamsJson);
-                try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    inputJson.write(jsonWriter);
-                    jsonWriter.write("\n");
-                } catch (Throwable e) {
-                    logger.error("Error while persisting infra input params to " + jsonFilePath, e);
-                }
-            } catch (IOException e) {
-                logger.info(jsonFilePath + "created");
-                JSONObject scriptParamsJson = new JSONObject(properties);
-                JSONObject inputJson = new JSONObject();
-                String scriptNameString = scriptName.get();
-                inputJson.put(scriptNameString, scriptParamsJson);
-                inputJson.put("currentscript", scriptParamsJson);
-                try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    inputJson.write(jsonWriter);
-                    jsonWriter.write("\n");
-                } catch (Throwable ex) {
-                    logger.error("Error while persisting infra input params to " + jsonFilePath, ex);
-                }
-            }
-        }
-        // append new properties to .properties file
-        try (PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(
-                new FileOutputStream(propFilePath.toString(), true), StandardCharsets.UTF_8))) {
-            Iterator it = properties.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                printWriter.println(pair.getKey() + "=" + pair.getValue());
-            }
-        } catch (Throwable e) {
-            throw new TestPlanExecutorException("Error occurred while writing deployment outputs.", e);
-        }
-    }
-
-    /**
-     *
-     *  Optional method removes a scripts params from prop file after execution
-     */
-
-    private void removeScriptParams(Script script, Path propFilePath) {
-
-        InputStream propInputStream = null;
-        try {
-            propInputStream = new FileInputStream(propFilePath.toString());
-            Properties existingprops = new Properties();
-            existingprops.load(propInputStream);
-
-            Map<String, Object> inputParams = script.getInputParameters();
-
-            Iterator it = inputParams.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                if (existingprops.containsKey(pair.getKey())) {
-                    existingprops.remove(pair.getKey());
-                    logger.info("removing property " + pair.getKey());
-                }
-            }
-
-            try (PrintWriter printWriter = new PrintWriter(
-                    new OutputStreamWriter(Files.newOutputStream(propFilePath), StandardCharsets.UTF_8))) {
-                Iterator itr = existingprops.entrySet().iterator();
-                while (itr.hasNext()) {
-                    Map.Entry pair = (Map.Entry) itr.next();
-                    printWriter.println(pair.getKey() + "=" + pair.getValue());
-                }
-            } catch (IOException e) {
-                logger.error("Error while persisting infra input params to " + propFilePath, e);
-            }
-
-        } catch (FileNotFoundException e) {
-            logger.info(propFilePath + " Not created yet ignoring read property file step");
-        } catch (IOException e) {
-            logger.info(propFilePath + " Failed to read file");
-        } finally {
-            try {
-                if (propInputStream != null) {
-                    propInputStream.close();
-                }
-            } catch (Exception e) {
-                logger.error("Failed to close Stream");
-            }
         }
     }
 }
