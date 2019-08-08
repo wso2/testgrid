@@ -62,7 +62,7 @@ pipeline
             {
               sh """
                 ls
-                cd ${WORKSPACE}/resources/k8s
+                cd resources/k8s
                 chmod +x build_latest.sh
                 chmod +x docker_build.sh
                 sh build_latest.sh
