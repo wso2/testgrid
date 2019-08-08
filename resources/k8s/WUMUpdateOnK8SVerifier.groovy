@@ -20,10 +20,6 @@ pipeline
             withCredentials([file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation')])
             {
               sh '''
-              if [ -d $WORKSPACE ]; then
-                rm -r ${WORKSPACE}
-              fi
-              mkdir ${WORKSPACE}
               if [ ! -d ${INSTALLMENT} ]; then
                 mkdir ${INSTALLMENT}
               else
