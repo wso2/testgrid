@@ -270,7 +270,7 @@ function build_push_docker_image() {
     log_info "Docker image building for ${PRODUCT} is successful !."
 
     log_info "Pushing the Docker Image: ${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$os-$infjdk-$infcon to Registry: ${REG_LOCATION}/${REG_SUB_DIR}"
-    if ! docker push "${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$os-$infjdk-$infcon"; then
+    if ! docker push "${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$infos-$infjdk-$infcon"; then
         log_error "${PRODUCT} Docker Image \"${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$os-$infjdk-$infcon\" pushing is failed. Docker file location: ${DOCKERFILE_HOME}"
     fi
 
