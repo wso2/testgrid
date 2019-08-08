@@ -47,8 +47,8 @@ pipeline
           steps
           {
           wrap([$class: 'MaskPasswordsBuildWrapper']) { // to enable mask-password plugin
-            withCredentials([string(credentialsId: 'GCP_GCR_IMGPULL_USERNAME', variable: 'WUM_USERNAME'),
-                             string(credentialsId: 'GCP_GCR_IMGPULL_PASSWORD', variable: 'WUM_PASSWORD'),
+            withCredentials([string(credentialsId: 'WUM_USERNAME', variable: 'WUM_USERNAME'),
+                             string(credentialsId: 'WUM_PASSWORD', variable: 'WUM_PASSWORD'),
                              string(credentialsId: 'ORACLE_ACC_USER', variable: 'ORACLE_USER'),
                              string(credentialsId: 'ORACLE_ACC_PWD', variable: 'ORACLE_PASS'),
                              string(credentialsId: 'GITHUB_ACCESS_TOKEN', variable: 'ACCESS_TOKEN'),
