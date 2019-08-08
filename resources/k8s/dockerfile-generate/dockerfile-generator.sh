@@ -86,7 +86,7 @@ get_jdbc_url(){
 
 jdk_getset(){
   case "${JDK_TYPE}" in
-    adopt)
+    adopt_open_jdk8)
       JDK_URL="https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_x64_linux_hotspot_8u222b10.tar.gz"
       sed -i.bak 's/"^@!other$header@necessary"/\\/g' ${DOCKERFILE}
       ;;
