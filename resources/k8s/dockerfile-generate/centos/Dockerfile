@@ -66,7 +66,7 @@ RUN rm -rf /var/cache/yum/*
 # install AdoptOpenJDK HotSpot
 RUN \
     mkdir -p ${JAVA_HOME} \
-    && wget -O jdk_pkg.tar.gz --no-check-certificate --https-only -c "^@!other$header@necessary"
+    && wget -O jdk_pkg.tar.gz "^@!other$header@necessary"
     "^@!url@jdk$install" \
     && tar -xf jdk_pkg.tar.gz -C ${JAVA_HOME} --strip-components=1 \
     && chown wso2carbon:wso2 -R ${JAVA_HOME} \
