@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------
 #
-# Copyright 2017 WSO2, Inc. (http://wso2.com)
+# Copyright 2018 WSO2, Inc. (http://wso2.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 #
 # ------------------------------------------------------------------------
 
-# set base Docker image to AdoptOpenJDK Ubuntu Docker image
-FROM ubuntu:16.04
+# set base Docker image to latest CentOS Docker image
+FROM centos:7
 LABEL maintainer="WSO2 Docker Maintainers <dev@wso2.org>"
 
 # set Docker image build arguments
@@ -27,6 +27,8 @@ ARG USER_ID=802
 ARG USER_GROUP=wso2
 ARG USER_GROUP_ID=802
 ARG USER_HOME=/home/${USER}
+# set JDK configurations
+ARG JAVA_HOME=${USER_HOME}/java
 # build arguments for WSO2 product installation
 ARG WSO2_SERVER_NAME="^@!product!wso2-001"
 ARG WSO2_SERVER_VERSION="^@!version!wso2-001"
@@ -35,57 +37,43 @@ ARG WSO2_SERVER=${WSO2_SERVER_NAME}-${WSO2_SERVER_VERSION}
 ARG WSO2_SERVER_HOME=${USER_HOME}/${WSO2_SERVER}
 ARG WSO2_SERVER_DIST_URL=https://bintray.com/wso2/binaryGA/download_file?file_path=${WSO2_SERVER}.zip
 # build arguments for external artifacts
-ARG JAVA_HOME=${USER_HOME}/java
-ARG MYSQL_CONNECTOR_VERSION=5.1.47
+"^@!jdbc-con$version"
 # build argument for MOTD
-ARG MOTD="\n\
+ARG MOTD='printf "\n\
 Welcome to WSO2 Docker resources.\n\
 ------------------------------------ \n\
 This Docker container comprises of a WSO2 product, running with its latest GA release \n\
 which is under the Apache License, Version 2.0. \n\
-Read more about Apache License, Version 2.0 here @ http://www.apache.org/licenses/LICENSE-2.0.\n"
+Read more about Apache License, Version 2.0 here @ http://www.apache.org/licenses/LICENSE-2.0.\n\n"'
 
 # create the non-root user and group and set MOTD login message
 RUN \
     groupadd --system -g ${USER_GROUP_ID} ${USER_GROUP} \
     && useradd --system --create-home --home-dir ${USER_HOME} --no-log-init -g ${USER_GROUP_ID} -u ${USER_ID} ${USER} \
-    && echo '[ ! -z "${TERM}" -a -r /etc/motd ] && cat /etc/motd' >> /etc/bash.bashrc; echo "${MOTD}" > /etc/motd
-
-# create Java prefs dir
-# this is to avoid warning logs printed by FileSystemPreferences class
-RUN \
-  #### not sure if we could have it or not
-    mkdir -p ${USER_HOME}/.java/.systemPrefs \
-    && mkdir -p ${USER_HOME}/.java/.userPrefs \
-    && chmod -R 755 ${USER_HOME}/.java \
-    && chown -R ${USER}:${USER_GROUP} ${USER_HOME}/.java
-  ####
+    && echo ${MOTD} > /etc/profile.d/motd.sh
 
 # copy init script to user home
 COPY --chown=wso2carbon:wso2 docker-entrypoint.sh ${USER_HOME}/
 # install required packages
 RUN \
-    apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        netcat \
+    yum -y update \
+    && yum install -y \
+        nc \
         unzip \
         wget "^@!additional!dependants"
 
-RUN rm -rf /var/lib/apt/lists/*
-
-#JDK
+RUN rm -rf /var/cache/yum/*
+# install AdoptOpenJDK HotSpot
 RUN \
     mkdir -p ${JAVA_HOME} \
     && wget -O jdk_pkg.tar.gz --no-check-certificate --https-only -c "^@!other$header@necessary"
     "^@!url@jdk$install" \
     && tar -xf jdk_pkg.tar.gz -C ${JAVA_HOME} --strip-components=1 \
-    && chown -R wso2carbon:wso2 ${JAVA_HOME}
-
-
+    && chown wso2carbon:wso2 -R ${JAVA_HOME} \
+    && rm -f jdk_pkg.tar.gz
 
 # add the WSO2 product distribution to user's home directory
 "^@!get@wso2$basepackage"
-
 # add MySQL JDBC connector to server home as a third party library
 ADD --chown=wso2carbon:wso2 "^@!install+JDBC"
 
@@ -94,13 +82,8 @@ USER ${USER_ID}
 WORKDIR ${USER_HOME}
 
 # set environment variables
-# we may not need JAVA_OPTS
-ENV \
-  #### not sure whether to have this or not
-    JAVA_OPTS="-Djava.util.prefs.systemRoot=${USER_HOME}/.java -Djava.util.prefs.userRoot=${USER_HOME}/.java/.userPrefs" \
-  ####
-    JAVA_HOME=${JAVA_HOME} \
-    PATH=${JAVA_HOME}/bin:$PATH \
+ENV JAVA_HOME=${JAVA_HOME} \
+    PATH=${JAVA_HOME}/bin:${PATH} \
     WORKING_DIRECTORY=${USER_HOME} \
     WSO2_SERVER_HOME=${WSO2_SERVER_HOME}
 

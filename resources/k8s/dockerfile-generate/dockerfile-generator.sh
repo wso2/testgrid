@@ -15,6 +15,7 @@ PRODUCT_SERVER_VERSION=""
 
 JDK_TYPE=""
 JDBC_TYPE=""
+OPERATING_SYSTEM=""
 
 #TODO: LOG_FILE=""
 DOCKERFILE_LOCATION=""
@@ -49,6 +50,10 @@ case "$arg" in
     JDBC_TYPE="$2"
     shift 2
     ;;
+    -os|--operating-system)
+    OPERATING_SYSTEM="$2"
+    shift 2
+    ;;
     --)
     shift
     break
@@ -69,16 +74,20 @@ get_jdbc_url(){
 
   case "${JDBC_TYPE}" in
     mysql)
-      JDBC_URL="http://central.maven.org/maven2/mysql/mysql-connector-java/${MYSQL_JDBC_VERSION}/mysql-connector-java-${MYSQL_JDBC_VERSION}.jar"
+      sed -i.bak 's/"^@!jdbc-con$version"/ARG MYSQL_JDBC_VERSION='${MYSQL_JDBC_VERSION}'/g' ${DOCKERFILE}
+      JDBC_URL='http://central.maven.org/maven2/mysql/mysql-connector-java/${MYSQL_JDBC_VERSION}/mysql-connector-java-${MYSQL_JDBC_VERSION}.jar'
       ;;
     oracle)
-      JDBC_URL="https://maven.xwiki.org/externals/com/oracle/jdbc/ojdbc8/${ORACLE_JDBC_VERSION}/ojdbc8-${ORACLE_JDBC_VERSION}.jar"
+      sed -i.bak 's/"^@!jdbc-con$version"/ARG ORACLE_JDBC_VERSION='${ORACLE_JDBC_VERSION}'/g' ${DOCKERFILE}
+      JDBC_URL='https://maven.xwiki.org/externals/com/oracle/jdbc/ojdbc8/${ORACLE_JDBC_VERSION}/ojdbc8-${ORACLE_JDBC_VERSION}.jar'
       ;;
     mssql)
-      JDBC_URL="http://central.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/${MSSQL_JDBC_VERSION}.jre8/mssql-jdbc-${MSSQL_JDBC_VERSION}.jre8.jar"
+      sed -i.bak 's/"^@!jdbc-con$version"/ARG MSSQL_JDBC_VERSION='${MSSQL_JDBC_VERSION}'/g' ${DOCKERFILE}
+      JDBC_URL='http://central.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/${MSSQL_JDBC_VERSION}.jre8/mssql-jdbc-${MSSQL_JDBC_VERSION}.jre8.jar'
       ;;
-    postgres)
-      JDBC_URL="https://jdbc.postgresql.org/download/postgresql-${POSTGRESQL_JDBC_VERSION}.jar"
+    postgresql)
+      sed -i.bak 's/"^@!jdbc-con$version"/ARG POSTGRESQL_JDBC_VERSION='${POSTGRESQL_JDBC_VERSION}'/g' ${DOCKERFILE}
+      JDBC_URL='https://jdbc.postgresql.org/download/postgresql-${POSTGRESQL_JDBC_VERSION}.jar'
       ;;
   esac
 
@@ -125,7 +134,11 @@ ARG WSO2_SERVER_PROFILE_OPTIMIZER_NUMBER=1/g' "${DOCKERFILE}"
 
 replace_apim(){
   sed -i.bak 's/"^@!additional+server!info"//g' "${DOCKERFILE}"
-  sed -i.bak 's/"^@!additional!dependants"/libxml2-utils/g' "${DOCKERFILE}"
+  if [[ "${OPERATING_SYSTEM}" = "ubuntu" ]]; then
+    sed -i.bak 's/"^@!additional!dependants"/libxml2-utils/g' "${DOCKERFILE}"
+  elif [[ "${OPERATING_SYSTEM}" = "centos" ]]; then
+    sed -i.bak 's/"^@!additional!dependants"//g' "${DOCKERFILE}"
+  fi
   sed -i.bak 's/"^@!list@expose-ports"/9763 9443 9999 11111 8280 8243 5672 9711 9611 7711 7611 10397 9099/g' "${DOCKERFILE}"
 
   if [[ ! "${CONTEXT} = TestGrid" ]]; then
@@ -164,7 +177,7 @@ main(){
 
   DOCKERFILE="${DOCKERFILE_HOME}/Dockerfile"
 
-  yes | cp "ubuntu/Dockerfile" "${DOCKERFILE_HOME}/"
+  yes | cp "${OPERATING_SYSTEM}/Dockerfile" "${DOCKERFILE_HOME}/"
 
   sed -i.bak 's/"^@!product!wso2-001"/'${PRODUCT_SERVER_NAME}'/g' "${DOCKERFILE}"
   sed -i.bak 's/"^@!version!wso2-001"/'${PRODUCT_SERVER_VERSION}'/g' "${DOCKERFILE}"

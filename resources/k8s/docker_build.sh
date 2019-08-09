@@ -32,7 +32,7 @@ if [ -z $(echo $REG_SUB_DIR) ]; then REG_SUB_DIR="wso2-docker"; fi
 #TODO: ADD ALL INFRASTUCTURE
 
 INFRA_JDBC="postgres"
-INFRA_OS="ubuntu"
+INFRA_OS="centos"
 INFRA_JDK="adopt_open_jdk8"
 
 
@@ -324,7 +324,8 @@ for infos in $INFRA_OS; do
           --product-server-version $WSO2_SERVER_VERSION \
           --output-directory $DOCKERFILE_HOME \
           --type-jdk $infjdk \
-          --type-jdbc $infcon
+          --type-jdbc $infcon \
+          --operating-system $infos
       get_wum_pack
       build_push_docker_image
     done
