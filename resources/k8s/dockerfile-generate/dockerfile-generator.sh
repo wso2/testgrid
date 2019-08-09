@@ -85,7 +85,7 @@ get_jdbc_url(){
       sed -i.bak 's/"^@!jdbc-con$version"/ARG MSSQL_JDBC_VERSION='${MSSQL_JDBC_VERSION}'/g' ${DOCKERFILE}
       JDBC_URL='http://central.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/${MSSQL_JDBC_VERSION}.jre8/mssql-jdbc-${MSSQL_JDBC_VERSION}.jre8.jar'
       ;;
-    postgresql)
+    postgres)
       sed -i.bak 's/"^@!jdbc-con$version"/ARG POSTGRESQL_JDBC_VERSION='${POSTGRESQL_JDBC_VERSION}'/g' ${DOCKERFILE}
       JDBC_URL='https://jdbc.postgresql.org/download/postgresql-${POSTGRESQL_JDBC_VERSION}.jar'
       ;;
