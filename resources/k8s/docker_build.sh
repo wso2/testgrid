@@ -31,7 +31,7 @@ if [ -z $(echo $REG_SUB_DIR) ]; then REG_SUB_DIR="wso2-docker"; fi
 
 #TODO: ADD ALL INFRASTUCTURE
 
-INFRA_JDBC="postgres"
+INFRA_JDBC="postgres mysql"
 INFRA_OS="centos"
 INFRA_JDK="adopt_open_jdk8"
 
