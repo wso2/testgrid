@@ -59,6 +59,7 @@ public class DataBucketsHelper {
     public static final String TEST_OUT_JSONFILE = "tests.json";
     public static final String TESTPLAN_PROPERTIES_FILE = "testplan-props.properties";
     public static final String TESTPLAN_PROPERTIES_JSONFILE = "testplan-props.json";
+    public static final String FLATJSON_FILE = "outputs.json";
     private static final Logger logger = LoggerFactory.getLogger(DataBucketsHelper.class);
     private static boolean init = false;
 

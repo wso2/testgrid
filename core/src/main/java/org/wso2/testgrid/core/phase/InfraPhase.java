@@ -80,6 +80,14 @@ public class InfraPhase extends Phase {
     private InfrastructureProvisionResult provisionInfrastructure() {
         InfrastructureConfig infrastructureConfig = getTestPlan().getInfrastructureConfig();
         try {
+
+            Path testPropFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                    .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
+            Path testJsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                    .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE);
+            Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                    .resolve(DataBucketsHelper.FLATJSON_FILE);
+
             if (infrastructureConfig == null) {
                 persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
                 throw new TestPlanExecutorException(StringUtil
@@ -91,17 +99,14 @@ public class InfraPhase extends Phase {
 
             InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
 
-            jsonpropFileEditor.persistInfraInputsGeneral(DataBucketsHelper.getInputLocation(getTestPlan())
-                    .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE),
-                    DataBucketsHelper.getInputLocation(getTestPlan())
-                    .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE), getTestPlan());
+            jsonpropFileEditor.persistInfraInputsGeneral(testPropFilePath, testJsonFilePath, getTestPlan());
+
+            jsonpropFileEditor.updateOutputJson(testJsonFilePath, "infrastructure", outputjsonFilePath);
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!Script.Phase.DESTROY.equals(script.getPhase())) {
-                    jsonpropFileEditor.persistInfraInputs(script, DataBucketsHelper.getInputLocation(getTestPlan())
-                            .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE),
-                            DataBucketsHelper.getInputLocation(getTestPlan())
-                                    .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE));
+                    jsonpropFileEditor.persistInfraInputs(script, testPropFilePath, testJsonFilePath);
+                    jsonpropFileEditor.updateOutputJson(testJsonFilePath, "infrastructure", outputjsonFilePath);
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(getTestPlan());
@@ -113,12 +118,8 @@ public class InfraPhase extends Phase {
                         logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
                         break;
                     }
-                    jsonpropFileEditor.removeScriptParams(script, DataBucketsHelper.getInputLocation(getTestPlan())
-                            .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE));
-                    jsonpropFileEditor.refillFromPropFile(DataBucketsHelper.getInputLocation(getTestPlan())
-                            .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE),
-                            DataBucketsHelper.getInputLocation(getTestPlan())
-                            .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE));
+                    jsonpropFileEditor.removeScriptParams(script, testPropFilePath);
+                    jsonpropFileEditor.refillFromPropFile(testPropFilePath, testJsonFilePath);
                 }
             }
 
