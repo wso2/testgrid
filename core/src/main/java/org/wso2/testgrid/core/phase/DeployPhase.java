@@ -94,27 +94,26 @@ public class DeployPhase extends Phase {
                 Map<String, Object> tgProperties = new HashMap<>();
                 tgProperties.put("TEST_PLAN_ID", getTestPlan().getId());
 
+                Path deplPropPath = DataBucketsHelper.getOutputLocation(getTestPlan())
+                        .resolve(DataBucketsHelper.DEPL_OUT_FILE);
+                Path deplJsonPath = DataBucketsHelper.getOutputLocation(getTestPlan())
+                        .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE);
+                Path outputJsonPath = DataBucketsHelper.getInputLocation(getTestPlan())
+                        .resolve(DataBucketsHelper.FLATJSON_FILE);
+
                 // TODO insert properties to DEPL_OUT_FILE and JSON file as they are been executed
-                jsonpropFileEditor.persistAdditionalInputs(tgProperties,
-                        DataBucketsHelper.getOutputLocation(getTestPlan())
-                        .resolve(DataBucketsHelper.DEPL_OUT_FILE), DataBucketsHelper.getOutputLocation(getTestPlan())
-                        .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE), Optional.empty());
-                jsonpropFileEditor.refillFromPropFile(DataBucketsHelper.getOutputLocation(getTestPlan())
-                        .resolve(DataBucketsHelper.DEPL_OUT_FILE), DataBucketsHelper.getOutputLocation(getTestPlan())
-                        .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE));
+                jsonpropFileEditor.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath, Optional.empty());
+                jsonpropFileEditor.refillFromPropFile(deplPropPath, deplJsonPath);
+
+                jsonpropFileEditor.updateOutputJson(deplJsonPath, "test", outputJsonPath);
                 // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
                 Map<String, Object> sceProperties = new HashMap<>();
                 for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
                     sceProperties.putAll(scenarioConfig.getInputParameters());
-                    jsonpropFileEditor.persistAdditionalInputs(sceProperties,
-                            DataBucketsHelper.getOutputLocation(getTestPlan())
-                            .resolve(DataBucketsHelper.DEPL_OUT_FILE),
-                            DataBucketsHelper.getOutputLocation(getTestPlan())
-                            .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE), Optional.of(scenarioConfig.getName()));
-                    jsonpropFileEditor.refillFromPropFile(DataBucketsHelper.getOutputLocation(getTestPlan())
-                            .resolve(DataBucketsHelper.DEPL_OUT_FILE),
-                            DataBucketsHelper.getOutputLocation(getTestPlan())
-                            .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE));
+                    jsonpropFileEditor.persistAdditionalInputs(sceProperties, deplPropPath, deplJsonPath,
+                            Optional.of(scenarioConfig.getName()));
+                    jsonpropFileEditor.refillFromPropFile(deplPropPath, deplJsonPath);
+                    jsonpropFileEditor.updateOutputJson(deplJsonPath, "test", outputJsonPath);
                 }
             }
         } catch (TestPlanExecutorException e) {
@@ -136,6 +135,9 @@ public class DeployPhase extends Phase {
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
         Path infraOutJSONFilePath = DataBucketsHelper.getOutputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.INFRA_OUT_JSONFILE);
+        Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                .resolve(DataBucketsHelper.FLATJSON_FILE);
+
         try {
             DeploymentCreationResult result = new DeploymentCreationResult();
             for (Script script: getTestPlan().getDeploymentConfig().getFirstDeploymentPattern().getScripts()) {
@@ -152,6 +154,9 @@ public class DeployPhase extends Phase {
                 Map<String, Object> deplInputs = script.getInputParameters();
                 jsonpropFileEditor.persistAdditionalInputs(deplInputs, infraOutFilePath, infraOutJSONFilePath,
                         Optional.of(script.getName()));
+
+                jsonpropFileEditor.updateOutputJson(infraOutJSONFilePath, "deployment", outputjsonFilePath);
+
                 Deployer deployerService = DeployerFactory.getDeployerService(script);
                 DeploymentCreationResult aresult =
                         deployerService.deploy(getTestPlan(),

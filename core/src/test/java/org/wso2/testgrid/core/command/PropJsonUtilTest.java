@@ -19,8 +19,6 @@
 
 package org.wso2.testgrid.core.command;
 
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
-
 import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -33,15 +31,24 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
 import org.wso2.testgrid.automation.TestAutomationException;
 import org.wso2.testgrid.automation.executor.ShellTestExecutor;
 import org.wso2.testgrid.automation.executor.TestExecutorFactory;
-import org.wso2.testgrid.common.*;
+
+import org.wso2.testgrid.common.DeploymentPattern;
+import org.wso2.testgrid.common.InfrastructureProvider;
+import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.Product;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
+import org.wso2.testgrid.common.TestPlanPhase;
+import org.wso2.testgrid.common.TestPlanStatus;
+import org.wso2.testgrid.common.TestScenario;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.config.TestgridYaml;
@@ -52,23 +59,35 @@ import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.FileUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
+
 import org.wso2.testgrid.core.ScenarioExecutor;
 import org.wso2.testgrid.core.TestPlanExecutor;
 import org.wso2.testgrid.core.util.JsonPropFileUtil;
+
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.DeploymentPatternUOW;
 import org.wso2.testgrid.dao.uow.ProductUOW;
 import org.wso2.testgrid.dao.uow.TestCaseUOW;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
+
 import org.wso2.testgrid.infrastructure.InfrastructureCombinationsProvider;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
-import java.io.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Properties;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -203,78 +222,101 @@ public class PropJsonUtilTest extends PowerMockTestCase {
                         .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE));
                 JSONObject propjsonfile = readJsonData(DataBucketsHelper.getInputLocation(testPlan)
                         .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE));
-                boolean assertion_contains_scriptparams = true;
-                for( String key : script.getInputParameters().keySet() ){
-                    if(propertiesfile.containsKey(key))  {
-                        assertion_contains_scriptparams  = assertion_contains_scriptparams  && propertiesfile.containsKey(key) && (propertiesfile.get(key)).equals(script.getInputParameters().get(key).toString()) ;
-                    }else{
-                        assertion_contains_scriptparams  = false;
+                boolean assertionContainsScriptparams = true;
+                for (String key : script.getInputParameters().keySet()) {
+                    if (propertiesfile.containsKey(key))  {
+                        assertionContainsScriptparams = assertionContainsScriptparams &&
+                                propertiesfile.containsKey(key) &&
+                                (propertiesfile.get(key)).equals(script.getInputParameters().get(key).toString());
+                    } else {
+                        assertionContainsScriptparams  = false;
                     }
-                    if(propjsonfile.has("currentscript")){
+                    if (propjsonfile.has("currentscript")) {
                         logger.info("has currentscript");
-                        if (propjsonfile.getJSONObject("currentscript").has(key)){
-                            assertion_contains_scriptparams  = assertion_contains_scriptparams  && propjsonfile.getJSONObject("currentscript").has(key) && (propjsonfile.getJSONObject("currentscript").get(key).toString()).equals(script.getInputParameters().get(key).toString());
-                        }else{
-                            assertion_contains_scriptparams  = false;
+                        if (propjsonfile.getJSONObject("currentscript").has(key)) {
+                            assertionContainsScriptparams = assertionContainsScriptparams &&
+                                    propjsonfile.getJSONObject("currentscript").has(key) &&
+                                    (propjsonfile.getJSONObject("currentscript").get(key).toString())
+                                            .equals(script.getInputParameters().get(key).toString());
+                        } else {
+                            assertionContainsScriptparams  = false;
                         }
-                    }else{
-                        assertion_contains_scriptparams  = false;
+                    } else {
+                        assertionContainsScriptparams  = false;
                     }
-                    if(propjsonfile.has(script.getName())){
-                        if (propjsonfile.getJSONObject(script.getName()).has(key)){
-                            assertion_contains_scriptparams  = assertion_contains_scriptparams  && propjsonfile.getJSONObject(script.getName()).has(key) && (propjsonfile.getJSONObject(script.getName()).get(key).toString()).equals(script.getInputParameters().get(key).toString());
+                    if (propjsonfile.has(script.getName())) {
+                        if (propjsonfile.getJSONObject(script.getName()).has(key)) {
+                            assertionContainsScriptparams = assertionContainsScriptparams &&
+                                    propjsonfile.getJSONObject(script.getName()).has(key) &&
+                                    (propjsonfile.getJSONObject(script.getName()).get(key).toString())
+                                            .equals(script.getInputParameters().get(key).toString());
 
-                        }else{
-                            assertion_contains_scriptparams  = false;
+                        } else {
+                            assertionContainsScriptparams  = false;
                         }
-                    }else{
-                        assertion_contains_scriptparams  = false;
+                    } else {
+                        assertionContainsScriptparams  = false;
                     }
                 }
-                assertTrue(assertion_contains_scriptparams, "Script Params are present" );
+                assertTrue(assertionContainsScriptparams, "Script Params are present");
 
                 final Properties infraParameters = testPlan.getInfrastructureConfig().getParameters();
                 final Properties jobProperties = testPlan.getJobProperties();
-                Boolean assertion_contains_generalInfraParams = true;
+                Boolean assertionContainsGeneralInfraParams = true;
 
-                for( Object key : infraParameters.keySet() ){
-                    if(propertiesfile.containsKey(key))  {
-                        assertion_contains_generalInfraParams = assertion_contains_generalInfraParams && propertiesfile.containsKey(key) && (propertiesfile.get(key)).equals(infraParameters.get(key).toString()) ;
-                    }else{
-                        assertion_contains_generalInfraParams= false;
+                for (Object key : infraParameters.keySet()) {
+                    if (propertiesfile.containsKey(key)) {
+                        assertionContainsGeneralInfraParams = assertionContainsGeneralInfraParams &&
+                                propertiesfile.containsKey(key) &&
+                                (propertiesfile.get(key)).equals(infraParameters.get(key).toString());
+                    } else {
+                        assertionContainsGeneralInfraParams = false;
                     }
-                    if(propjsonfile.has("currentscript")){
-                        if (propjsonfile.getJSONObject("currentscript").has( (String)key)){
-                            assertion_contains_generalInfraParams = assertion_contains_generalInfraParams && propjsonfile.getJSONObject("currentscript").has((String)key) && (propjsonfile.getJSONObject("currentscript").get((String)key)).toString().equals(infraParameters.get(key).toString());
-                        }else{
-                            assertion_contains_generalInfraParams = false;
+                    if (propjsonfile.has("currentscript")) {
+                        if (propjsonfile.getJSONObject("currentscript").has((String) key)) {
+                            assertionContainsGeneralInfraParams = assertionContainsGeneralInfraParams &&
+                                    propjsonfile.getJSONObject("currentscript").has((String) key) &&
+                                    (propjsonfile.getJSONObject("currentscript").get((String) key)).toString()
+                                            .equals(infraParameters.get(key).toString());
+                        } else {
+                            assertionContainsGeneralInfraParams = false;
                         }
-                    }else{
-                        assertion_contains_generalInfraParams = false;
+                    } else {
+                        assertionContainsGeneralInfraParams = false;
                     }
-                    if(propjsonfile.has("general")){
-                        if (propjsonfile.getJSONObject("general").has((String)key)){
-                            assertion_contains_generalInfraParams = assertion_contains_generalInfraParams && propjsonfile.getJSONObject("general").has((String)key) && (propjsonfile.getJSONObject("general").get((String)key)).toString().equals(infraParameters.get(key).toString());
+                    if (propjsonfile.has("general")) {
+                        if (propjsonfile.getJSONObject("general").has((String) key)) {
+                            assertionContainsGeneralInfraParams = assertionContainsGeneralInfraParams &&
+                                    propjsonfile.getJSONObject("general").has((String) key) &&
+                                    (propjsonfile.getJSONObject("general").get((String) key)).toString()
+                                            .equals(infraParameters.get(key).toString());
 
-                        }else{
-                            assertion_contains_generalInfraParams = false;
+                        } else {
+                            assertionContainsGeneralInfraParams = false;
                         }
-                    }else{
-                        assertion_contains_generalInfraParams = false;
+                    } else {
+                        assertionContainsGeneralInfraParams = false;
                     }
                 }
 
-                assertTrue(assertion_contains_generalInfraParams, "General Infra Params are present");
+                assertTrue(assertionContainsGeneralInfraParams, "General Infra Params are present");
 
-                if(propjsonfile.has("general")){
-                    assertEquals(propjsonfile.getJSONObject("general").length(), infraParameters.size() + jobProperties.size(), "general has wrong amount of values");
+                if (propjsonfile.has("general")) {
+                    assertEquals(propjsonfile.getJSONObject("general").length(),
+                            infraParameters.size() + jobProperties.size(),
+                            "general has wrong amount of values");
                 }
-                if(propjsonfile.has("currentscript")){
-                    assertEquals(propjsonfile.getJSONObject("currentscript").length(), infraParameters.size() + jobProperties.size() + script.getInputParameters().size(), "current script has wrong amount of values");
-                    assertEquals(propertiesfile.size(), infraParameters.size() + jobProperties.size() + script.getInputParameters().size(), "prop file has wrong amount of values");
+                if (propjsonfile.has("currentscript")) {
+                    assertEquals(propjsonfile.getJSONObject("currentscript").length(),
+                            infraParameters.size() + jobProperties.size() + script.getInputParameters().size(),
+                            "current script has wrong amount of values");
+                    assertEquals(propertiesfile.size(),
+                            infraParameters.size() + jobProperties.size() + script.getInputParameters().size(),
+                            "prop file has wrong amount of values");
                 }
-                if(propjsonfile.has(script.getName())){
-                    assertEquals(propjsonfile.getJSONObject(script.getName()).length(), script.getInputParameters().size(), "script name has wrong amount of values");
+                if (propjsonfile.has(script.getName())) {
+                    assertEquals(propjsonfile.getJSONObject(script.getName()).length()
+                            , script.getInputParameters().size(),  "script name has wrong amount of values");
                 }
 
 
@@ -329,16 +371,7 @@ public class PropJsonUtilTest extends PowerMockTestCase {
         when(testPlanUOW.getTestPlanById(TESTPLAN_ID)).thenReturn(Optional.of(testPlan));
     }
 
-    @AfterMethod
-    public void tearDown() throws Exception {
-        Path testPlanPath = Paths.get(TESTGRID_HOME, TestGridConstants.TESTGRID_JOB_DIR, product.getName(),
-                TestGridConstants.PRODUCT_TEST_PLANS_DIR, "test-plan-01.yaml");
-        if (Files.exists(testPlanPath)) {
-            FileUtils.forceDelete(testPlanPath.toFile());
-        } else {
-            Assert.fail("Failed to delete test-plan. Test plan does not exist: " + testPlanPath.toString());
-        }
-    }
+
 
     @DataProvider
     public Object[][] getJobConfigData() {
@@ -354,7 +387,7 @@ public class PropJsonUtilTest extends PowerMockTestCase {
         }
     }
 
-    private Properties readData(Path propFilePath){
+    private Properties readData(Path propFilePath) {
         InputStream propInputStream = null;
         Properties existingprops = new Properties();
         try {
@@ -376,7 +409,7 @@ public class PropJsonUtilTest extends PowerMockTestCase {
         return existingprops;
     }
 
-    private JSONObject readJsonData(Path jsonFilePath){
+    private JSONObject readJsonData(Path jsonFilePath) {
         InputStream jsonInputStream = null;
         JSONObject jsondata = null;
         try {
