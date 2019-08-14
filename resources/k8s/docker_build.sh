@@ -4,7 +4,7 @@
 # Pushing it to the Private Docker registry
 
 #set -o xtrace;
-set -e;
+set -e; set -o xtrace;
 alias wget='wget -q'
 alias unzip='unzip -q'
 
@@ -83,7 +83,6 @@ WUM_DIR="${HOME}/.wum3/products/${PRODUCT_NAME}/${WSO2_SERVER_VERSION}"
 WSO2_FULL_CHANNEL_DIR="${WUM_DIR}/full"
 WSO2_PRODUCT_PACK="${WUM_DIR}/${PRODUCT_NAME_ZIP}"
 WSO2_PRODUCT_BASE_ZIP=${WSO2_PRODUCT_PACK}
-DOCKERFILE_HOME="${WORKSPACE_IMG}/${GIT_REPO_NAME}/dockerfiles/${DOCKERFILE_DIR}"
 
 # TODO: CAN BE REMOVED
 ZIP_FILE_NAME="master.zip"
@@ -108,7 +107,7 @@ echo ${time_stamp}
 
 function install_dependencies() {
 
-  cd ../../$INSTALLMENT
+  cd ~/
 
   if [ ! $(which gcloud) ]; then
     log_info "Gcloud is not confiured ! Configuring Gcloud."
@@ -130,12 +129,12 @@ function install_dependencies() {
     source google-cloud-sdk/path.bash.inc
     source google-cloud-sdk/completion.bash.inc
 
-    gcloud auth configure-docker
-
-    gcloud auth activate-service-account --key-file=key.json
-    gcloud config set account $SERVICE_ACCOUNT
-    gcloud container clusters get-credentials $CLUSTER_NAME --zone $ZONE --project $PROJECT_NAME
   fi
+
+  gcloud auth configure-docker
+  gcloud auth activate-service-account --key-file=key.json
+  gcloud config set account $SERVICE_ACCOUNT
+  gcloud container clusters get-credentials $CLUSTER_NAME --zone $ZONE --project $PROJECT_NAME
 
   if [ ! $(which wum) ]; then
     log_info "WUM is not configured! Configuring WUM."
@@ -243,23 +242,67 @@ function get_latest_pack() {
   fi
 }
 
+function add_jdk_info(){
+    case $infjdk  in
+      adopt_open_jdk8)
+          local jdk_url="https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_x64_linux_hotspot_8u222b10.tar.gz"
+
+          sed -i.bak 's#@JAVA_OPTS_DIR#RUN \
+                mkdir -p ${USER_HOME}/.java/.systemPrefs \\ \
+                && mkdir -p ${USER_HOME}/.java/.userPrefs \\ \
+                && chmod -R 755 ${USER_HOME}/.java \\ \
+                && chown -R ${USER}:${USER_GROUP} ${USER_HOME}/.java#g' $dockerfile
+
+          sed -i.bak 's#@JAVA_OPTS_ENV#JAVA_OPTS="-Djava.util.prefs.systemRoot=${USER_HOME}/.java -Djava.util.prefs.userRoot=${USER_HOME}/.java/.userPrefs"#g' $dockerfile
+          ;;
+      corretto)
+        local jdk_url="https://d3pxv6yz143wms.cloudfront.net/8.222.10.1/amazon-corretto-8.222.10.1-linux-x64.tar.gz"
+        ;;
+      oracle)
+        local jdk_url="http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz"
+        local headers=$(cat $dockerfile | grep "wget -O jdk_pkg.tar.gz")
+        sed -i.bak 's#'$headers'#wget -O jdk_pkg.tar.gz --no-check-certificate --https-only -c --header "Cookie: oraclelicense=accept-securebackup-cookie" \#g'
+        ;;
+    esac
+
+    sed -i.bak "s#@JDK_URL#$jdk_url#g" $dockerfile
+}
+
+function add_jdbc_info(){
+  MYSQL_JDBC_VERSION="5.1.47"; ORACLE_JDBC_VERSION="12.2.0.1"; MSSQL_JDBC_VERSION="7.0.0"; POSTGRESQL_JDBC_VERSION="9.4.1212"
+
+  case $infcon in
+        mysql)
+          local jdbc_version="$MYSQL_JDBC_VERSION"
+          local jdbc_url='http://central.maven.org/maven2/mysql/mysql-connector-java/${CONNECTOR_VERSION}/mysql-connector-java-${CONNECTOR_VERSION}.jar'
+          ;;
+        oracle)
+          local jdbc_version="$ORACLE_JDBC_VERSION"
+          local jdbc_url='https://maven.xwiki.org/externals/com/oracle/jdbc/ojdbc8/${CONNECTOR_VERSION}/ojdbc8-${CONNECTOR_VERSION}.jar'
+          ;;
+        mssql)
+          local jdbc_version="$MSSQL_JDBC_VERSION"
+          local jdbc_url='http://central.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/${CONNECTOR_VERSION}.jre8/mssql-jdbc-${CONNECTOR_VERSION}.jre8.jar'
+          ;;
+        postgres)
+          local jdbc_version="$POSTGRESQL_JDBC_VERSION"
+          local jdbc_url='https://jdbc.postgresql.org/download/postgresql-${CONNECTOR_VERSION}.jar'
+          ;;
+  esac
+  sed -i.bak 's#@CON_VERSION_JDBC#'$jdbc_version'#g' $dockerfile
+  sed -i.bak 's#@JDBC_URL_WSO2#'$jdbc_url'#g' $dockerfile
+
+}
+
 function get_wum_pack() {
+
+  DOCKERFILE_HOME="${GIT_REPO_NAME}/dockerfiles/$infos/${DOCKERFILE_DIR}"
 
   mkdir -p "${DOCKERFILE_HOME}/files/"
   if ! unzip -q -n  ${WSO2_PRODUCT_PACK} -d  "${DOCKERFILE_HOME}/files/" ; then
   log_error " cannot unzip  ${WSO2_PRODUCT_PACK}  to ${DOCKERFILE_HOME}/files/"
   fi
   log_info "${WSO2_PRODUCT_PACK} is extracted to ${DOCKERFILE_HOME}/files/"
-
-  if [[ "${PRODUCT_NAME}" = wso2is ]]; then
-    sed -i.bak 's#"^@!get@wso2$basepackage"#COPY --chown=wso2carbon:wso2 files/${WSO2_SERVER}/ ${WSO2_SERVER_HOME}/ \
-COPY --chown=wso2carbon:wso2 files/${WSO2_SERVER}/repository/deployment/ ${USER_HOME}/wso2-tmp/deployment/#g' "${DOCKERFILE_HOME}/Dockerfile"
-  else
-    sed -i.bak 's#"^@!get@wso2$basepackage"#COPY --chown=wso2carbon:wso2 files/${WSO2_SERVER}/ ${WSO2_SERVER_HOME}/\
-COPY --chown=wso2carbon:wso2 files/${WSO2_SERVER}/repository/deployment/server/ ${USER_HOME}/wso2-tmp/server/#g' "${DOCKERFILE_HOME}/Dockerfile"
-  fi
-
-  rm "${DOCKERFILE_HOME}/Dockerfile.bak"
 
 }
 
@@ -271,7 +314,7 @@ function build_push_docker_image() {
     fi
     log_info "Docker image building for ${PRODUCT} is successful !."
 
-    log_info "Pushing the Docker Image: ${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$os-$infjdk-$infcon to Registry: ${REG_LOCATION}/${REG_SUB_DIR}"
+    log_info "Pushing the Docker Image: ${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$infos-$infjdk-$infcon to Registry: ${REG_LOCATION}/${REG_SUB_DIR}"
     if ! docker push "${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$infos-$infjdk-$infcon"; then
         log_error "${PRODUCT} Docker Image \"${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$os-$infjdk-$infcon\" pushing is failed. Docker file location: ${DOCKERFILE_HOME}"
     fi
@@ -299,6 +342,8 @@ function download_docker_repo() {
 
   log_info "\"${ZIP_FILE_NAME}\" is extracted !"
 
+
+
 }
 
 install_dependencies
@@ -309,25 +354,23 @@ download_docker_repo
 get_wum_update
 get_latest_pack
 
-cd dockerfile-generate
-
 #TODO: copying libs
 
 for infos in $INFRA_OS; do
+  #copying dockerfile to current directory
+  cp "${GIT_REPO_NAME}/dockerfiles/${infos}/${DOCKERFILE_DIR}/Dockerfile" ./
   for infcon in $INFRA_JDBC; do
     for infjdk in $INFRA_JDK;do
 
       echo "Building docker image for $infos-$infcon-$infjdk combination"
-
-      bash dockerfile-generator.sh \
-          --product-server-name $PRODUCT_NAME \
-          --product-server-version $WSO2_SERVER_VERSION \
-          --output-directory $DOCKERFILE_HOME \
-          --type-jdk $infjdk \
-          --type-jdbc $infcon \
-          --operating-system $infos
+      dockerfile="${GIT_REPO_NAME}/dockerfiles/${infos}/${DOCKERFILE_DIR}/Dockerfile"
+      add_jdk_info
+      add_jdbc_info
       get_wum_pack
+
+      rm "${GIT_REPO_NAME}/dockerfiles/${infos}/${DOCKERFILE_DIR}/Dockerfile.bak"
       build_push_docker_image
+      cp -f Dockerfile "${GIT_REPO_NAME}/dockerfiles/${infos}/${DOCKERFILE_DIR}/Dockerfile"
     done
   done
 done
