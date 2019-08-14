@@ -107,7 +107,7 @@ echo ${time_stamp}
 
 function install_dependencies() {
 
-  cd ~/
+  cd ../../${INSTALLMENT}
 
   if [ ! $(which gcloud) ]; then
     log_info "Gcloud is not confiured ! Configuring Gcloud."
