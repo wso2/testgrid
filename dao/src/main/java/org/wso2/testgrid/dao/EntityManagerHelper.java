@@ -105,7 +105,7 @@ public class EntityManagerHelper {
             String dbUrl = ConfigurationContext.getProperty(ConfigurationProperties.DB_URL);
             String dbUser = ConfigurationContext.getProperty(ConfigurationProperties.DB_USER);
             String dbUserPass = ConfigurationContext.getProperty(ConfigurationProperties.DB_USER_PASS);
-            String tgEnvironment= ConfigurationContext.getProperty(ConfigurationProperties.TESTGRID_ENVIRONMENT);
+            String tgEnvironment = ConfigurationContext.getProperty(ConfigurationProperties.TESTGRID_ENVIRONMENT);
 
             if (dbUrl != null && dbUser != null && dbUserPass != null) {
                 //Override properties taken from persistence.xml
@@ -113,7 +113,7 @@ public class EntityManagerHelper {
                 persistenceMap.put("javax.persistence.jdbc.user", dbUser);
                 persistenceMap.put("javax.persistence.jdbc.password", dbUserPass);
 
-                if(tgEnvironment.equals("local")){
+                if (tgEnvironment.equals("local")) {
                     persistenceMap.put("javax.persistence.jdbc.driver", "org.h2.Driver");
                 }
 
