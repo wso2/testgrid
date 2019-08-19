@@ -31,8 +31,10 @@ import org.json.JSONArray
 import org.json.JSONTokener
 
 
-/*
-Adds a new Items to an Existing Property
+/**
+ * Adds a new Items to an Existing Property
+ * @param variable - Map in which existing property must be changed
+ *
  */
 def AddNewItem(Map variable, String propertyName , Object new_Value){
     try{
@@ -45,13 +47,19 @@ def AddNewItem(Map variable, String propertyName , Object new_Value){
     }
 }
 
-/*
-This method reads the config.properties file
+/**
+ * This method reads the config.properties file
+ *
  */
-def static readconfigProperties(){
-
+def static readconfigProperties(String testgridhome){
+    String configpath = ""
+    if(testgridhome.endsWith('/')){
+        configpath = testgridhome + "config.properties"
+    }else{
+        configpath = testgridhome + "/config.properties"
+    }
     InputStream testplanInput = new FileInputStream("tpid.properties")
-    InputStream configinput = new FileInputStream("/opt/testgrid/home/config.properties")
+    InputStream configinput = new FileInputStream(configpath)
     Properties config = new Properties()
     Properties tpid = new Properties()
     config.load(configinput)
@@ -62,16 +70,17 @@ def static readconfigProperties(){
     return config
 }
 
-/*
-Adds Mount path and Sidecar container to the Deployment
+/**
+ * Adds Mount path and Sidecar container to the Deployment
+ * @param outputYaml - file name of the edited yaml file
+ * @param jsonFilePath - file path to the json file containing input Parameters
+ * @param pathToDeployment - file path to the input Yaml file
+ *
  */
-def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployment){
-
+def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployment, String testgridhome){
 
     try{
-
         // Read json file
-
         InputStream is = new FileInputStream(jsonFilePath.toString())
         JSONTokener tokener = new JSONTokener(is)
         JSONObject json = new JSONObject(tokener)
@@ -91,16 +100,19 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                 // If group is empty skip
                 if(group.is(null))break
 
+                // Only consider Deployment related yaml files
                 if(group.get("kind").equals("Deployment")){
 
                     // Get Deployment Metadata
                     Map<String, Object> depmeta = (Map<String, Object>) group.get("metadata")
 
                     // Volume Mounts for the sidecar container
-                    List volumeMounts = []
+                    List SidecarVolMounts = []
 
                     // List of updated containers with a volume mounted at the log file location
                     ArrayList newcontainerlist = []
+
+                    // String that must be run while initializing the sidecar container
                     String CommandString = ""
 
                     for ( Map container in group.get("spec").get("template").get("spec").get("containers")){
@@ -121,14 +133,15 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
 
                             // New volume mount for the container
                             // new volume mount for the sidecar container
+                            // Echo the path into a file in the sidecar container so it knows that it is a log path
                             if( loglocations.getJSONObject(i).get("path").toString().startsWith('/') ){
                                 new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": loglocations.getJSONObject(i).get("path")]
-                                volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
+                                SidecarVolMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
                                         +loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")])
                                 CommandString = CommandString + "echo executearchive /opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"+loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers+" >> logarchiver.sh && "
                             }else{
                                 new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": "/"+loglocations.getJSONObject(i).get("path")]
-                                volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
+                                SidecarVolMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
                                         +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")])
                                 CommandString = CommandString + "echo executearchive /opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/" +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers+" >> logarchiver.sh && "
                             }
@@ -140,7 +153,7 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                             // New volume mount for the container
                             new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": "/opt/testgrid/logfilepath"]
                             // new volume mount for the sidecar container
-                            volumeMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+depmeta.get("name")+"/"
+                            SidecarVolMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+depmeta.get("name")+"/"
                                     +container.get("name")+"/opt/testgrid/logfilepath"])
                             CommandString = CommandString + "echo executearchive /opt/tests/"+depmeta.get("name")+"/" +container.get("name")+"/opt/testgrid/logfilepath logfilesmount"+logcontainers+" > logarchiver.sh && "
                             newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
@@ -164,9 +177,9 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                    Remove entirely if using persistent disk
                     */
 
-                    Properties configprops = readconfigProperties()
+                    Properties configprops = readconfigProperties(testgridhome)
                     CommandString = CommandString + " echo transfer >> logarchiver.sh && "
-                    Map new_Container = [ "name": "logfile-sidecar" , "image":"ranikamadurawe/mytag", "volumeMounts":volumeMounts,
+                    Map new_Container = [ "name": "logfile-sidecar" , "image":"ranikamadurawe/mytag", "volumeMounts":SidecarVolMounts,
                                           "env": [ ["name": "nodename" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.nodeName"]] ],
                                                    ["name": "podname" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.name"]] ],
                                                    ["name": "podnamespace" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.namespace"]] ],
@@ -177,7 +190,6 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                                                    ["name": "testPlanId" , "value": configprops.getProperty("TESTPLANID")  ],
                                                    ["name": "userName" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_USERNAME") ],
                                                    ["name": "password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
-
                                           ],
                                           "command": ["/bin/bash", "-c", CommandString+"./kubernetes_startup.sh && tail -f /dev/null" ]
                     ]
@@ -200,6 +212,6 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
 }
 
 /*
-Args must be provided as --outputyaml_name --path_to_testLogs --path_to_Deployment.yaml
+Args must be provided as --outputyaml_name --path_to_testLogs --path_to_Deployment.yaml testgrid_home
  */
-EditDeployments(args[0],args[1],args[2])
+EditDeployments(args[0],args[1],args[2],args[3])

@@ -28,7 +28,7 @@ function edit_deployments(){
         i=0;
         for ((i=0; i<$no_yamls; i++))
         do
-          groovy kubedeployment_editor.groovy deployment${i}_temp.yaml "${OUTPUT_DIR}/infrastructures.json"  $yamlFilesLocation/${deploymentYamlFiles[$i]}
+          groovy kubedeployment_editor.groovy deployment${i}_temp.yaml "${OUTPUT_DIR}/infrastructures.json"  $yamlFilesLocation/${deploymentYamlFiles[$i]} $TESTGRID_HOME
           rm $yamlFilesLocation/${deploymentYamlFiles[$i]}
           mv deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
         done
@@ -190,6 +190,27 @@ function readinesss_services(){
 
 }
 
+#This function is used to add paths to etc/host fils
+function addhost() {
+    IP=$1
+    HOSTNAME=$2
+    HOSTS_LINE="$IP\t$HOSTNAME"
+    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+        then
+            echo "$HOSTNAME already exists : $(grep $HOSTNAME $ETC_HOSTS)"
+        else
+            echo "Adding $HOSTNAME to your $ETC_HOSTS";
+            echo $TESTGRID_PASS | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
+
+            if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+                then
+                    echo "$HOSTNAME was added succesfully \n $(grep $HOSTNAME /etc/hosts)";
+                else
+                    echo "Failed to Add $HOSTNAME, Try again!";
+            fi
+    fi
+}
+
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
@@ -197,6 +218,7 @@ function add_route53_entry() {
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
         echo "Not configuring route53 DNS entries since the environment is not dev/prod. You need to manually add
         '${external_ip} ${loadBalancerHostName}' into your /etc/hosts."
+        addhost "${external_ip}" "${loadBalancerHostName}"
         return;
     fi
 
@@ -279,8 +301,10 @@ OUTPUT_DIR=$4
 INPUT_DIR=$2
 declare -g -A infra_props
 declare -g -A deploy_props
+declare -g -A config_props
 read_property_file "${INPUT_DIR}/infrastructure.properties" infra_props
 read_property_file "${OUTPUT_DIR}/deployment.properties" deploy_props
+read_property_file "{TESTGRID_HOME}/config.properties" config_props
 #source $INPUT_DIR/infrastructure.properties
 #source $OUTPUT_DIR/deployment.properties
 
@@ -294,8 +318,9 @@ yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
 LogFileLocations=${infra_props["LogFileLocations"]}
 
-#DEBUG parameters: TODO: remove
-TESTGRID_ENVIRONMENT=dev
+TESTGRID_ENVIRONMENT=${config_props["TESTGRID_ENVIRONMENT"]}
+TESTGRID_PASS=${config_props["TESTGRID_PASS"]}
+ETC_HOSTS=/etc/hosts
 
 if [ -z "$LogFileLocations" ]; then
     echo "Test Result location not set not changing deployment.yaml"
@@ -303,5 +328,6 @@ else
     echo "Test Result location set editing deployment.yaml"
     edit_deployments
 fi
+
 create_k8s_resources
 add_route53_entry
