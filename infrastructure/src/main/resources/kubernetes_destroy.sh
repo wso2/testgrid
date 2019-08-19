@@ -26,11 +26,43 @@ set -o xtrace
 
 #definitions
 INPUT_DIR=$2
+ETC_HOSTS=/etc/hosts
 source $INPUT_DIR/deployment.properties
+
+read_property_file() {
+    local property_file_path=$1
+    # Read configuration into an associative array
+    # IFS is the 'internal field separator'. In this case, your file uses '='
+    local -n configArray=$2
+    IFS="="
+    while read -r key value
+    do
+      [[ -n ${key} ]] && configArray[$key]=$value
+    done < ${property_file_path}
+    unset IFS
+}
 
 function delete_resources() {
   echo "running destroy.sh"
   kubectl delete namespaces $namespace
 }
 
+function removehost() {
+    $HOSTNAME=$1
+    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+    then
+        echo "$HOSTNAME Found in your $ETC_HOSTS, Removing now...";
+        echo $TESTGRID_PASS | sudo -S sed -i".bak" "/$HOSTNAME/d" $ETC_HOSTS
+    else
+        echo "$HOSTNAME was not found in your $ETC_HOSTS";
+    fi
+}
+
+read_property_file "{TESTGRID_HOME}/config.properties" config_props
+TESTGRID_ENVIRONMENT=${config_props["TESTGRID_ENVIRONMENT"]}
+TESTGRID_PASS=${config_props["TESTGRID_PASS"]}
 delete_resources
+if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
+    removehost $loadBalancerHostName
+    return;
+fi
