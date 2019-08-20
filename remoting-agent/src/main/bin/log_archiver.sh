@@ -4,7 +4,7 @@ function executearchive(){
 }
 
 function transfer(){
-    zip -r /opt/testgrid/commonarchives/ logfiles.zip
+    zip -r logfiles.zip /opt/testgrid/commonarchives/
     mv logfiles.zip /var/log/product_dumps.zip
 }
 
