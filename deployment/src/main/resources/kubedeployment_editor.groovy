@@ -86,7 +86,6 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
         JSONObject json = new JSONObject(tokener)
         JSONArray loglocations = json.getJSONObject("currentscript").getJSONArray("LogFileLocations")
         Yaml yaml = new Yaml()
-
         InputStream inputStream = new FileInputStream(pathToDeployment)
 
         Iterable<Object> KubeGroups = yaml.loadAll(inputStream)
@@ -117,21 +116,7 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                     // String that must be run while initializing the sidecar container
                     String CommandString = ""
 
-                    if(loglocations.equals("DEFAULT")){
-                        hasSidecarbeenAdded = true;
-                        for ( Map container in group.get("spec").get("template").get("spec").get("containers")) {
-                            productname = "wso2am"
-                            version = "2.6.0"
-                            String filepath = "/usr/lib/wso2/"+productname+"-"+version+"/repository/logs"
-                            Map new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": filepath]
-                            // new volume mount for the sidecar container
-                            SidecarVolMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+depmeta.get("name")+"/"
-                                    +container.get("name")+filepath])
-                            CommandString = CommandString + "echo executearchive /opt/tests/"+depmeta.get("name")+"/" +container.get("name")+filepath +" logfilesmount"+logcontainers+" >> log_archiver.sh && "
-                            newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
-                            logcontainers++
-                        }
-                    }else{
+
                         for ( Map container in group.get("spec").get("template").get("spec").get("containers")){
 
                             int i = 0
@@ -170,7 +155,7 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                                 newcontainerlist.add(container)
                             }
                         }
-                    }
+
 
                     group.get("spec").get("template").get("spec").put("containers", newcontainerlist)
 
