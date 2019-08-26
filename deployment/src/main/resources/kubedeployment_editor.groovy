@@ -133,21 +133,29 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                             }
                             // If a match is found enter the updated container into the list
                             if (matchfound){
+                                String containerFilepath
+                                String sidecarFilepath
+                                if( loglocations.getJSONObject(i).get("path").toString().startsWith('/') && loglocations.getJSONObject(i).get("path").toString().endsWith('/') ){
+                                    containerFilepath = loglocations.getJSONObject(i).get("path")
+                                    sidecarFilepath = "/opt/tests"+loglocations.getJSONObject(i).get("deploymentname")+"/"+loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")
+                                }else if( loglocations.getJSONObject(i).get("path").toString().startsWith('/') && !loglocations.getJSONObject(i).get("path").toString().endsWith('/') ){
+                                    containerFilepath = loglocations.getJSONObject(i).get("path")+"/"
+                                    sidecarFilepath = "/opt/tests"+loglocations.getJSONObject(i).get("deploymentname")+"/"+loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")+"/"
+                                }else if( !loglocations.getJSONObject(i).get("path").toString().startsWith('/') && loglocations.getJSONObject(i).get("path").toString().endsWith('/') ){
+                                    containerFilepath = "/"+loglocations.getJSONObject(i).get("path")
+                                    sidecarFilepath = "/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"+loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")
+                                }else{
+                                    containerFilepath = "/"+loglocations.getJSONObject(i).get("path")+"/"
+                                    sidecarFilepath = "/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"+loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")+"/"
+                                }
 
                                 // New volume mount for the container
                                 // new volume mount for the sidecar container
                                 // Echo the path into a file in the sidecar container so it knows that it is a log path
-                                if( loglocations.getJSONObject(i).get("path").toString().startsWith('/') ){
-                                    new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": loglocations.getJSONObject(i).get("path")]
-                                    SidecarVolMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
-                                            +loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")])
-                                    CommandString = CommandString + "echo executearchive /opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"+loglocations.getJSONObject(i).get("containername")+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers+" >> log_archiver.sh && "
-                                }else{
-                                    new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": "/"+loglocations.getJSONObject(i).get("path")]
-                                    SidecarVolMounts.add(["name":"logfilesmount"+logcontainers, "mountPath":"/opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/"
-                                            +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")])
-                                    CommandString = CommandString + "echo executearchive /opt/tests/"+loglocations.getJSONObject(i).get("deploymentname")+"/" +loglocations.getJSONObject(i).get("containername")+"/"+loglocations.getJSONObject(i).get("path")+" logfilesmount"+logcontainers+" >> log_archiver.sh && "
-                                }
+                                Map new_VolumeMount = ["name":"logfilesmount"+logcontainers, "mountPath": containerFilepath ]
+                                SidecarVolMounts.add(["name":"logfilesmount"+logcontainers, "mountPath": sidecarFilepath])
+                                CommandString = CommandString + "echo executearchive "+ sidecarFilepath +" logfilesmount"+logcontainers+ " " + loglocations.getJSONObject(i).get("deploymentname") + " " + loglocations.getJSONObject(i).get("containername")+" >> log_archiver.sh &&"
+
                                 newcontainerlist.add(AddNewItem(container,"volumeMounts",new_VolumeMount))
                                 logcontainers++
                             }else{
