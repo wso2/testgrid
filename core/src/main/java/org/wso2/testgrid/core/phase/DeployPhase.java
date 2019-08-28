@@ -42,8 +42,11 @@ import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
-
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,6 +54,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 /**
  * This class includes implementation of deployment-creation phase.
@@ -137,6 +141,42 @@ public class DeployPhase extends Phase {
                 .resolve(DataBucketsHelper.INFRA_OUT_JSONFILE);
         Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.FLATJSON_FILE);
+
+        Properties additionalDepProps = new Properties();
+        InputStream configinput = null;
+        try {
+            configinput = new FileInputStream(TestGridUtil.getConfigFilePath().toString());
+            Properties config = new Properties();
+            config.load(configinput);
+            if (config.containsKey("TESTGRID_ENVIRONMENT")) {
+                additionalDepProps.setProperty("env", config.getProperty("TESTGRID_ENVIRONMENT"));
+            }
+            if (config.containsKey("TESTGRID_PASSWORD")) {
+                additionalDepProps.setProperty("pass", config.getProperty("TESTGRID_PASSWORD"));
+            }
+            additionalDepProps.setProperty("DEPLOYMENT_TINKERER_EP", config.getProperty("DEPLOYMENT_TINKERER_EP"));
+            additionalDepProps.setProperty("DEPLOYMENT_TINKERER_USERNAME",
+                    config.getProperty("DEPLOYMENT_TINKERER_USERNAME"));
+            additionalDepProps.setProperty("DEPLOYMENT_TINKERER_PASSWORD",
+                    config.getProperty("DEPLOYMENT_TINKERER_PASSWORD"));
+            configinput.close();
+        } catch (FileNotFoundException e) {
+            logger.error("could not find config.properties");
+        } catch (IOException e) {
+            logger.error("could not close the stream");
+        } finally {
+            if (configinput != null) {
+                try {
+                    configinput.close();
+                } catch (IOException e) {
+
+                }
+            }
+        }
+
+        additionalDepProps.setProperty("tpID", getTestPlan().getId());
+        jsonpropFileEditor.persistAdditionalInputs(additionalDepProps, infraOutFilePath, infraOutJSONFilePath,
+                Optional.empty());
 
         try {
             DeploymentCreationResult result = new DeploymentCreationResult();
