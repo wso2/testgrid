@@ -85,11 +85,21 @@ public class HelmProvider implements InfrastructureProvider {
         String infrastructureRepositoryLocation = Paths.get(testPlan.getInfrastructureRepository())
                 .toString();
 
-        InputStream resourceFileStream = getClass().getClassLoader()
-                .getResourceAsStream(TestGridConstants.HELM_INFRA_SCRIPT);
-        try {
-            Files.copy(resourceFileStream, Paths.get(testPlan.getInfrastructureRepository(),
-                    TestGridConstants.HELM_INFRA_SCRIPT));
+        try (InputStream resourceFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.HELM_INFRA_SCRIPT)) {
+            final Path target = Paths.get(testPlan.getInfrastructureRepository(),
+                    TestGridConstants.HELM_INFRA_SCRIPT);
+            if (!Files.exists(target)) {
+                if (resourceFileStream == null) {
+                    throw new TestGridInfrastructureException(TestGridConstants.HELM_INFRA_SCRIPT
+                            + " is not found in the Testgrid classpath. This is an error in Testgrid.");
+                } else {
+                    Files.copy(resourceFileStream, target);
+                }
+            } else {
+                logger.warn(TestGridConstants.HELM_INFRA_SCRIPT + " script already exist at " + target + ". Will use "
+                        + "the existing script.");
+            }
         } catch (IOException e) {
             logger.error("IO error occurred while reading " +
                     TestGridConstants.HELM_INFRA_SCRIPT, e);
