@@ -51,24 +51,7 @@ def AddNewItem(Map variable, String propertyName , Object new_Value){
  * This method reads the config.properties file
  *
  */
-def static readconfigProperties(String testgridhome){
-    String configpath = ""
-    if(testgridhome.endsWith('/')){
-        configpath = testgridhome + "config.properties"
-    }else{
-        configpath = testgridhome + "/config.properties"
-    }
-    InputStream testplanInput = new FileInputStream("tpid.properties")
-    InputStream configinput = new FileInputStream(configpath)
-    Properties config = new Properties()
-    Properties tpid = new Properties()
-    config.load(configinput)
-    tpid.load(testplanInput)
-    config.setProperty("TESTPLANID",tpid.getProperty("tpID"))
 
-    testplanInput.close()
-    return config
-}
 
 /**
  * Adds Mount path and Sidecar container to the Deployment
@@ -77,7 +60,7 @@ def static readconfigProperties(String testgridhome){
  * @param pathToDeployment - file path to the input Yaml file
  *
  */
-def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployment, String testgridhome){
+def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployment){
 
     try{
         // Read json file
@@ -183,20 +166,18 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
                         /*
                        Remove entirely if using persistent disk
                         */
-
-                        Properties configprops = readconfigProperties(testgridhome)
                         CommandString = CommandString + " echo transfer >> log_archiver.sh && "
                         Map new_Container = [ "name": "logfile-sidecar" , "image":"ranikamadurawe/mytag", "volumeMounts":SidecarVolMounts,
                                               "env": [ ["name": "nodename" , "valueFrom" : ["fieldRef" : ["fieldPath" : "spec.nodeName"]] ],
                                                        ["name": "podname" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.name"]] ],
                                                        ["name": "podnamespace" , "valueFrom" : ["fieldRef" : ["fieldPath" : "metadata.namespace"]] ],
                                                        ["name": "podip" , "valueFrom" : ["fieldRef" : ["fieldPath" : "status.podIP"]] ],
-                                                       ["name": "wsEndpoint" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_EP") ],
+                                                       ["name": "wsEndpoint" , "value": json.getJSONObject("currentscript").getString("DEPLOYMENT_TINKERER_EP") ],
                                                        /* --NEED TO CHANGE -- */                ["name": "region" , "value": "US"  ],
                                                        ["name": "provider" , "value": "K8S" ],
-                                                       ["name": "testPlanId" , "value": configprops.getProperty("TESTPLANID")  ],
-                                                       ["name": "userName" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_USERNAME") ],
-                                                       ["name": "password" , "value": configprops.getProperty("DEPLOYMENT_TINKERER_PASSWORD") ],
+                                                       ["name": "testPlanId" , "value": json.getJSONObject("currentscript").getString("tpID")  ],
+                                                       ["name": "userName" , "value": json.getJSONObject("currentscript").getString("DEPLOYMENT_TINKERER_USERNAME") ],
+                                                       ["name": "password" , "value": json.getJSONObject("currentscript").getString("DEPLOYMENT_TINKERER_PASSWORD") ],
                                               ],
                                               "command": ["/bin/bash", "-c", CommandString+"./kubernetes_startup.sh && tail -f /dev/null" ]
                         ]
@@ -222,4 +203,4 @@ def EditDeployments(String outputYaml,String jsonFilePath, String pathToDeployme
 /*
 Args must be provided as --outputyaml_name --path_to_testLogs --path_to_Deployment.yaml testgrid_home
  */
-EditDeployments(args[0],args[1],args[2],args[3])
+EditDeployments(args[0],args[1],args[2])

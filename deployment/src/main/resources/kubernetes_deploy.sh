@@ -28,7 +28,7 @@ function edit_deployments(){
         i=0;
         for ((i=0; i<$no_yamls; i++))
         do
-          groovy kubedeployment_editor.groovy deployment${i}_temp.yaml "${OUTPUT_DIR}/infrastructures.json"  $yamlFilesLocation/${deploymentYamlFiles[$i]} $TESTGRID_HOME
+          groovy kubedeployment_editor.groovy deployment${i}_temp.yaml "${OUTPUT_DIR}/infrastructures.json"  $yamlFilesLocation/${deploymentYamlFiles[$i]}
           rm $yamlFilesLocation/${deploymentYamlFiles[$i]}
           mv deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
         done
@@ -321,8 +321,8 @@ yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
 LogFileLocations=${infra_props["LogFileLocations"]}
 
-TESTGRID_ENVIRONMENT=${infra_props["TESTGRID_ENVIRONMENT"]}
-TESTGRID_PASS=${infra_props["TESTGRID_PASS"]}
+TESTGRID_ENVIRONMENT=${infra_props["env"]}
+TESTGRID_PASS=${infra_props["pass"]}
 ETC_HOSTS=/etc/hosts
 
 if [ -z "$LogFileLocations" ]; then
