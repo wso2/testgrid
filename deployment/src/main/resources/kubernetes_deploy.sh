@@ -214,7 +214,11 @@ function addhost() {
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
-    env=${TESTGRID_ENVIRONMENT} || 'dev'
+    if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+      env='dev'
+    else
+      env=${TESTGRID_ENVIRONMENT}
+    fi
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
         echo "Not configuring route53 DNS entries since the environment is not dev/prod. You need to manually add
         '${external_ip} ${loadBalancerHostName}' into your /etc/hosts."
@@ -304,7 +308,6 @@ declare -g -A deploy_props
 declare -g -A config_props
 read_property_file "${INPUT_DIR}/infrastructure.properties" infra_props
 read_property_file "${OUTPUT_DIR}/deployment.properties" deploy_props
-read_property_file "{TESTGRID_HOME}/config.properties" config_props
 #source $INPUT_DIR/infrastructure.properties
 #source $OUTPUT_DIR/deployment.properties
 
@@ -318,8 +321,8 @@ yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
 LogFileLocations=${infra_props["LogFileLocations"]}
 
-TESTGRID_ENVIRONMENT=${config_props["TESTGRID_ENVIRONMENT"]}
-TESTGRID_PASS=${config_props["TESTGRID_PASS"]}
+TESTGRID_ENVIRONMENT=${infra_props["TESTGRID_ENVIRONMENT"]}
+TESTGRID_PASS=${infra_props["TESTGRID_PASS"]}
 ETC_HOSTS=/etc/hosts
 
 if [ -z "$LogFileLocations" ]; then
