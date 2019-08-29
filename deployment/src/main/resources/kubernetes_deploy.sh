@@ -28,9 +28,9 @@ function edit_deployments(){
         i=0;
         for ((i=0; i<$no_yamls; i++))
         do
-          groovy kubedeployment_editor.groovy deployment${i}_temp.yaml "${OUTPUT_DIR}/infrastructures.json"  $yamlFilesLocation/${deploymentYamlFiles[$i]}
-          rm $yamlFilesLocation/${deploymentYamlFiles[$i]}
-          mv deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
+            groovy kubedeployment_editor.groovy deployment${i}_temp.yaml "${OUTPUT_DIR}/infrastructures.json"  $yamlFilesLocation/${deploymentYamlFiles[$i]}
+            rm $yamlFilesLocation/${deploymentYamlFiles[$i]}
+            mv deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
         done
 
 }

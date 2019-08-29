@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.testgrid.core.util;
 
 import org.json.JSONObject;
@@ -10,6 +28,7 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -50,47 +69,45 @@ public class JsonPropFileUtil {
      */
     public void refillFromPropFile(Path propFilePath , Path jsonFilePath) {
 
-        InputStream propInputStream = null;
-        InputStream jsonInputStream = null;
 
-        try {
 
-            propInputStream = new FileInputStream(propFilePath.toString());
+        try (InputStream propInputStream = new FileInputStream(propFilePath.toString())) {
+
             Properties existingProps = new Properties();
             existingProps.load(propInputStream);
 
-            try {
+            File jsonFile = new File(jsonFilePath.toString());
+            if (jsonFile.exists()) {
+                try (InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString())) {
 
-                jsonInputStream = new FileInputStream(jsonFilePath.toString());
-                JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
-                JSONObject inputJson = new JSONObject(jsonTokener);
+                    JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
+                    JSONObject inputJson = new JSONObject(jsonTokener);
 
-                Iterator it = existingProps.entrySet().iterator();
+                    Iterator it = existingProps.entrySet().iterator();
 
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry) it.next();
-                    if (pair.getValue() != null) {
-                        if (inputJson.has("general")) {
-                            inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
-                        } else {
-                            JSONObject generalProps = new JSONObject(existingProps);
-                            inputJson.put("general", generalProps);
+                    while (it.hasNext()) {
+                        Map.Entry pair = (Map.Entry) it.next();
+                        if (pair.getValue() != null) {
+                            if (inputJson.has("general")) {
+                                inputJson.getJSONObject("general").put((String) pair.getKey(), pair.getValue());
+                            } else {
+                                JSONObject generalProps = new JSONObject(existingProps);
+                                inputJson.put("general", generalProps);
+                            }
                         }
                     }
+                    try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
+                        inputJson.write(jsonWriter);
+                        jsonWriter.write("\n");
+                    } catch (IOException e) {
+                        logger.error(jsonFilePath + " Error while persisting infra input params to " + jsonFilePath);
+                    }
+
+                } catch (IOException ex) {
+                    logger.info("ERROR please view log files to Debug, " + propFilePath + " found but " + jsonFilePath +
+                            " file not found ");
                 }
-
-                try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    inputJson.write(jsonWriter);
-                    jsonWriter.write("\n");
-                } catch (Throwable e) {
-                    logger.error(jsonFilePath + " Error while persisting infra input params to " + jsonFilePath);
-                }
-
-            } catch (IOException ex) {
-
-                logger.info("ERROR please view log files to Debug, " + propFilePath + " found but " + jsonFilePath +
-                        " file not found ");
-
+            } else {
                 HashMap<String, Object> newJsonFileInputs = new HashMap<String, Object>();
                 newJsonFileInputs.put("general", existingProps);
 
@@ -98,17 +115,8 @@ public class JsonPropFileUtil {
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                     newJsonFile.write(jsonWriter);
                     jsonWriter.write("\n");
-                } catch (Throwable exc) {
+                } catch (IOException exc) {
                     logger.error("Error while persisting infra input params to " + jsonFilePath);
-                }
-
-            } finally {
-                try {
-                    if (jsonInputStream != null) {
-                        jsonInputStream.close();
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to close Stream");
                 }
             }
 
@@ -116,14 +124,6 @@ public class JsonPropFileUtil {
             logger.info(propFilePath + " Not created yet ignoring read property file step");
         } catch (IOException e) {
             logger.error("Error while persisting infra input params to " + propFilePath);
-        } finally {
-            try {
-                if (propInputStream != null) {
-                    propInputStream.close();
-                }
-            } catch (Exception e) {
-                logger.error("Failed to close Stream");
-            }
         }
 
     }
@@ -178,7 +178,7 @@ public class JsonPropFileUtil {
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                     inputJson.write(jsonWriter);
                     jsonWriter.write("\n");
-                } catch (Throwable e) {
+                } catch (IOException e) {
                     logger.error("Error while persisting infra input params to " + jsonFilePath, e);
                 }
 
@@ -191,7 +191,7 @@ public class JsonPropFileUtil {
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                     newJsonFile.write(jsonWriter);
                     jsonWriter.write("\n");
-                } catch (Throwable ex) {
+                } catch (IOException ex) {
                     logger.error("Error while persisting infra input params to " + jsonFilePath, ex);
                 }
             }
@@ -234,7 +234,7 @@ public class JsonPropFileUtil {
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                     inputJson.write(jsonWriter);
                     jsonWriter.write("\n");
-                } catch (Throwable e) {
+                } catch (IOException e) {
                     logger.error("Error while persisting infra input params to " + jsonFilePath, e);
                 }
 
@@ -250,7 +250,7 @@ public class JsonPropFileUtil {
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                     inputJson.write(jsonWriter);
                     jsonWriter.write("\n");
-                } catch (Throwable ex) {
+                } catch (IOException ex) {
                     logger.error("Error while persisting infra input params to " + jsonFilePath, ex);
                 }
 
@@ -264,7 +264,7 @@ public class JsonPropFileUtil {
                 Map.Entry pair = (Map.Entry) it.next();
                 printWriter.println(pair.getKey() + "=" + pair.getValue());
             }
-        } catch (Throwable e) {
+        } catch (IOException e) {
             throw new TestPlanExecutorException("Error occurred while writing deployment outputs.", e);
         }
     }
@@ -278,9 +278,8 @@ public class JsonPropFileUtil {
 
     public void removeScriptParams(Script script, Path propFilePath) {
 
-        InputStream propInputStream = null;
-        try {
-            propInputStream = new FileInputStream(propFilePath.toString());
+
+        try (InputStream propInputStream = new FileInputStream(propFilePath.toString());) {
             Properties existingProps = new Properties();
             existingProps.load(propInputStream);
 
@@ -310,14 +309,6 @@ public class JsonPropFileUtil {
             logger.info(propFilePath + " Not created yet ignoring read property file step");
         } catch (IOException e) {
             logger.info(propFilePath + " Failed to read file");
-        } finally {
-            try {
-                if (propInputStream != null) {
-                    propInputStream.close();
-                }
-            } catch (Exception e) {
-                logger.error("Failed to close Stream");
-            }
         }
     }
 
@@ -352,7 +343,7 @@ public class JsonPropFileUtil {
             try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                 inputJson.write(writer);
                 writer.write("\n");
-            } catch (Throwable e) {
+            } catch (IOException e) {
                 logger.error("Error while persisting infra input params to " + jsonFilePath, e);
             }
 
@@ -364,7 +355,7 @@ public class JsonPropFileUtil {
             try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                 inputJson.write(jsonWriter);
                 jsonWriter.write("\n");
-            } catch (Throwable ex) {
+            } catch (IOException ex) {
                 logger.error("Error while persisting infra input params to " + jsonFilePath, ex);
             }
         }
@@ -484,7 +475,7 @@ public class JsonPropFileUtil {
             try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                 inputJson.write(jsonWriter);
                 jsonWriter.write("\n");
-            } catch (Throwable e) {
+            } catch (IOException e) {
                 logger.error("Error while persisting infra input params to " + jsonFilePath, e);
             }
         } catch (IOException e) {
@@ -497,7 +488,7 @@ public class JsonPropFileUtil {
             try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
                 scriptparams.write(writer);
                 writer.write("\n");
-            } catch (Throwable ex) {
+            } catch (IOException ex) {
                 logger.error("Error while persisting infra input params to " + jsonFilePath, ex);
             }
 
@@ -511,38 +502,39 @@ public class JsonPropFileUtil {
      */
     public void updateOutputJson(Path jsonFileLocation, String phase, Path outputJsonPath) {
 
-        InputStream jsonInputStream = null;
-        InputStream outputJsonStream = null;
+        try (InputStream jsonInputStream = new FileInputStream(jsonFileLocation.toString())) {
 
-        try {
-
-            jsonInputStream = new FileInputStream(jsonFileLocation.toString());
             JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
             JSONObject inputJson = new JSONObject(jsonTokener);
 
-            try {
-                outputJsonStream = new FileInputStream(outputJsonPath.toString());
-                JSONTokener outputTokener = new JSONTokener(outputJsonStream);
-                JSONObject insertOutputJsonVal = new JSONObject(outputTokener);
+            File outputjsonFile = new File(outputJsonPath.toString());
 
-                if (inputJson.has("currentscript")) {
-                    insertOutputJsonVal.put(phase, inputJson.get("currentscript"));
-                } else if (inputJson.has("general")) {
-                    insertOutputJsonVal.put(phase, inputJson.get("general"));
-                }
+            if (outputjsonFile.exists()) {
+                try (InputStream outputJsonStream = new FileInputStream(outputJsonPath.toString())) {
 
-                if (insertOutputJsonVal.length() != 0) {
-                    try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(outputJsonPath.toString()))) {
-                        insertOutputJsonVal.write(jsonWriter);
-                        jsonWriter.write("\n");
-                    } catch (Throwable ex) {
-                        logger.error("Error while persisting params to " + outputJsonPath, ex);
+                    JSONTokener outputTokener = new JSONTokener(outputJsonStream);
+                    JSONObject insertOutputJsonVal = new JSONObject(outputTokener);
+
+                    if (inputJson.has("currentscript")) {
+                        insertOutputJsonVal.put(phase, inputJson.get("currentscript"));
+                    } else if (inputJson.has("general")) {
+                        insertOutputJsonVal.put(phase, inputJson.get("general"));
                     }
+
+                    if (insertOutputJsonVal.length() != 0) {
+                        try (BufferedWriter jsonWriter = Files
+                                .newBufferedWriter(Paths.get(outputJsonPath.toString()))) {
+                            insertOutputJsonVal.write(jsonWriter);
+                            jsonWriter.write("\n");
+                        } catch (IOException ex) {
+                            logger.error("Error while persisting params to " + outputJsonPath, ex);
+                        }
+                    }
+
+                } catch (IOException e) {
+                    logger.error(outputJsonPath.toString() + "not found creating");
                 }
-
-            } catch (IOException e) {
-
-                logger.error(outputJsonPath.toString() + "not found creating");
+            } else {
                 JSONObject insertOutputJsonVal = new JSONObject();
 
                 if (inputJson.has("currentscript")) {
@@ -555,29 +547,14 @@ public class JsonPropFileUtil {
                     try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(outputJsonPath.toString()))) {
                         insertOutputJsonVal.write(jsonWriter);
                         jsonWriter.write("\n");
-                    } catch (Throwable ex) {
+                    } catch (IOException ex) {
                         logger.error("Error while persisting params to " + outputJsonPath, ex);
                     }
                 }
-            } finally {
-                try {
-                    if (outputJsonStream != null) {
-                        outputJsonStream.close();
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to close Stream");
-                }
             }
+
         } catch (IOException e) {
             logger.error(jsonFileLocation.toString() + "not found");
-        } finally {
-            try {
-                if (jsonInputStream != null) {
-                    jsonInputStream.close();
-                }
-            } catch (Exception e) {
-                logger.error("Failed to close Stream");
-            }
         }
     }
 
