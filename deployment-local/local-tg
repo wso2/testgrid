@@ -1,0 +1,38 @@
+#!/bin/sh
+
+
+if [ "$1" = "startup-jenkins" ]; then
+    echo "__          _______  ____ ___    _______        _    _____      _     _    _       _____   ______  _   _      "
+    echo "\ \        / / ____|/ __ \__ \  |__   __|      | |  / ____|    (_)   | |  | |     /  _  \/ _____|/   \| |     "
+    echo " \ \  /\  / / (___ | |  | | ) |    | | ___  ___| |_| |  __ _ __ _  __| |  | |     | | | || |    | /_\ | |     "
+    echo "  \ \/  \/ / \___ \| |  | |/ /     | |/ _ \/ __| __| | |_ |  __| |/ _  |  | |     | | | || |    | ___ | |     "
+    echo "   \  /\  /  ____) | |__| / /_     | |  __/\__ \ |_| |__| | |  | | (_| |  | |____ | |_| || |____| | | | |____ "
+    echo "    \/  \/  |_____/ \____/____|    |_|\___||___/\__|\_____|_|  |_|\____|  |______|\_____/\______|_| |_|______|"
+    echo ""
+    #java -jar localTG-1.0-SNAPSHOT.jar startup-jenkins
+
+    chmod +x ./apache-tomcat-8.5.43/bin/*
+    ./apache-tomcat-8.5.43/bin/startup.sh
+    while [ $(curl -s -w "%{http_code}" http://localhost:8080/jenkins -o /dev/null) -eq 000 ]
+    do
+      sleep 1 
+    done
+    echo "installing plugins....."
+    chmod +x ./install_jenkins_plugins.sh
+    ./install_jenkins_plugins.sh
+    echo "adding credentials....."
+    chmod +x ./add_credentials.sh
+    ./add_credentials.sh
+    echo "starting H2 server....."
+    java -jar lib/h2-1.4.199.jar  -baseDir ./h2dbs &> /dev/null &
+    
+elif [ "$1" = "shutdown-jenkins" ]
+then 
+   #java -jar localTG-1.0-SNAPSHOT.jar shutdown-jenkins
+   chmod +x ./apache-tomcat-8.5.43/bin/shutdown.sh
+   ./apache-tomcat-8.5.43/bin/shutdown.sh
+   java -cp lib/h2-1.4.199.jar org.h2.tools.Server -tcpShutdown tcp://localhost:9092
+else
+
+   echo "Invalid command" 
+fi
