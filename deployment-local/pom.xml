@@ -15,6 +15,14 @@
     <url>http://wso2.org</url>
     <packaging>jar</packaging>
 
+    <repositories>
+      <repository>
+        <id>jenkins-repo</id>
+        <name>jenkins-repo</name>
+        <url>https://repo.jenkins-ci.org/releases/</url>
+      </repository>
+   
+    </repositories>
 
     <dependencies>
 
@@ -32,6 +40,42 @@
 
 
         <plugins>
+
+            <plugin>
+  		   <groupId>org.apache.maven.plugins</groupId>
+   	           <artifactId>maven-dependency-plugin</artifactId>
+                   <version>2.4</version>
+                   <executions>
+                     <execution>
+                       <id>unpack-tomcat</id>
+                       <phase>process-sources</phase>
+                       <goals>
+                          <goal>unpack</goal>
+                      </goals>
+                     <configuration>
+                       <artifactItems>
+                         <artifactItem>
+                          <groupId>org.apache.tomcat</groupId>
+                          <artifactId>tomcat</artifactId>
+                          <version>8.5.43</version>
+                          <type>zip</type>
+                          <overWrite>false</overWrite>
+                          <outputDirectory>tomcat</outputDirectory>
+                          <excludes>webapps/**</excludes>
+                         </artifactItem>
+                         <artifactItem>
+                          <groupId>org.jenkins-ci.main</groupId>
+                          <artifactId>jenkins-war</artifactId>
+                          <version>2.176.1</version>
+                          <type>war</type>
+                          <overWrite>false</overWrite>
+                          <outputDirectory>tomcat/apache-tomcat-8.5.43/webapps/jenkins</outputDirectory>         
+                        </artifactItem>
+                      </artifactItems>                            
+                     </configuration>
+                   </execution>
+                  </executions>
+            </plugin> 
 
 
             <plugin>

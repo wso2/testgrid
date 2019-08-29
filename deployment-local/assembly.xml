@@ -15,7 +15,7 @@
             <directory>${project.basedir}/jenkins-home</directory>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/apache-tomcat-8.5.43</directory>
+            <directory>${project.basedir}/tomcat</directory>
         </fileSet>
         <fileSet>
             <directory>${project.basedir}/testgrid</directory>
@@ -46,6 +46,11 @@
             <source>pluginsEnumerator.groovy</source>
             <outputDirectory>/</outputDirectory>
         </file>
+        <file>
+            <source>setenv.sh</source>
+            <outputDirectory>tomcat/apache-tomcat-8.5.43/bin</outputDirectory>
+        </file>
+
     </files>
     <dependencySets>
         <dependencySet>

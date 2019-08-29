@@ -8,7 +8,7 @@ do
  sleep 5 
 done
 
-if [ $(java -jar apache-tomcat-8.5.43/webapps/jenkins/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy) -eq 150 ]
+if [ $(java -jar tomcat/apache-tomcat-8.5.43/webapps/jenkins/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy) -eq 150 ]
 then
   exit 0
 fi
@@ -73,9 +73,9 @@ curl -X POST -d '<jenkins><install plugin="view-job-filters@latest" /></jenkins>
 curl -X POST -d '<jenkins><install plugin="ws-cleanup@latest" /></jenkins>' --header 'Content-Type: text/xml' $host$url
 curl -X POST -d '<jenkins><install plugin="mission-control-view@latest" /></jenkins>' --header 'Content-Type: text/xml' $host$url
 
-while [ $(java -jar apache-tomcat-8.5.43/webapps/jenkins/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy) -lt 150 ]
+while [ $(java -jar tomcat/apache-tomcat-8.5.43/webapps/jenkins/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy) -lt 150 ]
 do
-   echo "plugins still installing.... "$(java -jar apache-tomcat-8.5.43/webapps/jenkins/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy)" installed"
+   echo "plugins still installing.... "$(java -jar tomcat/apache-tomcat-8.5.43/webapps/jenkins/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy)" installed"
    sleep 3
 done
 
