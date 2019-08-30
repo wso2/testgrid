@@ -77,6 +77,25 @@
                   </executions>
             </plugin> 
 
+            <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-antrun-plugin</artifactId>
+               <version>1.6</version>
+               <executions>
+                <execution>
+                  <id>prepare</id>
+                  <phase>process-sources</phase>
+                  <configuration>
+                  <tasks>
+                    <unzip src="../distribution/target/WSO2-TestGrid.zip" dest="testgrid/testgrid-home/testgrid-dist" />
+                 </tasks>
+                 </configuration>
+                 <goals>
+                   <goal>run</goal>
+                 </goals>
+               </execution>
+             </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
