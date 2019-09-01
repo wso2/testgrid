@@ -31,7 +31,7 @@ then
    #java -jar localTG-1.0-SNAPSHOT.jar shutdown-jenkins
    chmod +x ./tomcat/apache-tomcat-8.5.43/bin/shutdown.sh
    ./tomcat/apache-tomcat-8.5.43/bin/shutdown.sh
-   java -cp lib/h2-1.4.199.jar org.h2.tools.Server -tcpShutdown tcp://localhost:9092
+   java -cp lib/h2-*.jar org.h2.tools.Server -tcpShutdown tcp://localhost:9092
 else
 
    echo "Invalid command" 
