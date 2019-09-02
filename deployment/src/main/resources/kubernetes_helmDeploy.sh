@@ -249,15 +249,27 @@ function install_helm(){
   then
     wget https://get.helm.sh/helm-v3.0.0-alpha.2-linux-amd64.tar.gz
     tar -zxvf helm-v3.0.0-alpha.2-linux-amd64.tar.gz
-    mkdir ~/.local/bin/
-    PATH=~/.local/bin/:$PATH
-    mv linux-amd64/helm ~/.local/bin/helm
-    ~/.local/bin/helm init
-    helm version
+    #mkdir ~/.local/bin/
+    #PATH=~/.local/bin/:$PATH
+
+    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/temp
+    PATH=$DIR:$PATH
+
+    #TODO
+    movewrapperhelm $DIR
+    mkdir temp
+    mv linux-amd64/helm ~/temp/helm
+    ~/temp/helm init
+    ~/temp/helm version
 
   fi
 
 
+}
+
+function movewrapperhelm(){
+  # Downloads the helm decorater and adds it to the proper directory $1 ]
+  echo "wrapped helm TODO!!!"
 }
 
 # Read a property file to a given associative array

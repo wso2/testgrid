@@ -1,0 +1,28 @@
+function executeWrappedHelm(){
+  ~/temp/helm template "${@:2}" >> $DIR/deployment_temp.yaml
+  ~/temp/helm create proj_temp
+  mv deployment_temp.yaml proj_temp/templates/deployment.yaml
+}
+
+function executeNormalHelm(){
+  ~/temp/helm "$@"
+}
+
+function saveFlags(){
+  for var in "${@:2}"
+  do
+      if [[ $var == -* ]]; then
+        printf "\n%s " "${var}" >> flagslist.txt
+      else
+        printf "%s " "${var}" >> flagslist.txt
+      fi
+  done
+}
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/temp
+if [ "$1" = "install" ]; then
+  saveFlags "$@"
+  executeWrappedHelm "$@"
+else
+  executeNormalHelm "$@"
+fi
