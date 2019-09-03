@@ -58,9 +58,18 @@ function removehost() {
     fi
 }
 
-read_property_file "{TESTGRID_HOME}/config.properties" config_props
-TESTGRID_ENVIRONMENT=${config_props["TESTGRID_ENVIRONMENT"]}
-TESTGRID_PASS=${config_props["TESTGRID_PASS"]}
+declare -g -A infra_props
+
+read_property_file "${INPUT_DIR}/infrastructure.properties" infra_props
+TESTGRID_ENVIRONMENT=${infra_props["env"]}
+TESTGRID_PASS=${infra_props["pass"]}
+
+if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+  env='dev'
+else
+  env=${TESTGRID_ENVIRONMENT}
+fi
+
 delete_resources
 if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
     removehost $loadBalancerHostName
