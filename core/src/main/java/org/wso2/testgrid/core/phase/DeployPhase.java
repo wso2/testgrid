@@ -141,6 +141,8 @@ public class DeployPhase extends Phase {
                 .resolve(DataBucketsHelper.INFRA_OUT_JSONFILE);
         Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.FLATJSON_FILE);
+        Path depOutFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                .resolve(DataBucketsHelper.DEPL_OUT_FILE);
 
         Properties additionalDepProps = new Properties();
         InputStream configinput = null;
@@ -195,7 +197,7 @@ public class DeployPhase extends Phase {
                 jsonpropFileEditor.persistAdditionalInputs(deplInputs, infraOutFilePath, infraOutJSONFilePath,
                         Optional.of(script.getName()));
 
-                jsonpropFileEditor.updateOutputJson(infraOutJSONFilePath, "deployment", outputjsonFilePath);
+                jsonpropFileEditor.updateOutputJson(infraOutJSONFilePath, "dep", outputjsonFilePath);
 
                 Deployer deployerService = DeployerFactory.getDeployerService(script);
                 DeploymentCreationResult aresult =
@@ -209,6 +211,7 @@ public class DeployPhase extends Phase {
                 }
                 jsonpropFileEditor.removeScriptParams(script, infraOutFilePath);
                 jsonpropFileEditor.refillFromPropFile(infraOutFilePath, infraOutJSONFilePath);
+                jsonpropFileEditor.jsonaddNewParamstoOutputFile(depOutFilePath, "infra", outputjsonFilePath);
             }
             return result;
         } catch (TestGridDeployerException e) {

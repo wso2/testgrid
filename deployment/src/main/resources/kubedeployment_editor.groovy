@@ -95,7 +95,7 @@ def EditK8SDeployments(String outputYaml,String jsonFilePath, String pathToDeplo
         InputStream is = new FileInputStream(jsonFilePath.toString())
         JSONTokener tokener = new JSONTokener(is)
         JSONObject json = new JSONObject(tokener)
-        JSONArray loglocations = json.getJSONObject("currentscript").getJSONArray("LogFileLocations")
+        JSONArray loglocations = json.getJSONObject("dep-in").getJSONArray("LogFileLocations")
         Yaml yaml = new Yaml()
         InputStream inputStream = new FileInputStream(pathToDeployment)
 
@@ -187,7 +187,7 @@ def EditK8SDeployments(String outputYaml,String jsonFilePath, String pathToDeplo
                                     group.get("spec").get("template").get("spec"),"volumes",new_Volume))
                         }
 
-                        JSONObject currentscriptParams = json.getJSONObject("currentscript")
+                        JSONObject currentscriptParams = json.getJSONObject("dep-in")
                         /*
                          Remove entirely if using persistent disk
                         */
