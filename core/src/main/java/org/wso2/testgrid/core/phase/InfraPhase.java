@@ -87,6 +87,8 @@ public class InfraPhase extends Phase {
                     .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE);
             Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                     .resolve(DataBucketsHelper.FLATJSON_FILE);
+            Path infraOutFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                    .resolve(DataBucketsHelper.INFRA_OUT_FILE);
 
             if (infrastructureConfig == null) {
                 persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
@@ -101,12 +103,12 @@ public class InfraPhase extends Phase {
 
             jsonpropFileEditor.persistInfraInputsGeneral(testPropFilePath, testJsonFilePath, getTestPlan());
 
-            jsonpropFileEditor.updateOutputJson(testJsonFilePath, "infrastructure", outputjsonFilePath);
+            jsonpropFileEditor.updateOutputJson(testJsonFilePath, "infra", outputjsonFilePath);
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!Script.Phase.DESTROY.equals(script.getPhase())) {
                     jsonpropFileEditor.persistInfraInputs(script, testPropFilePath, testJsonFilePath);
-                    jsonpropFileEditor.updateOutputJson(testJsonFilePath, "infrastructure", outputjsonFilePath);
+                    jsonpropFileEditor.updateOutputJson(testJsonFilePath, "infra", outputjsonFilePath);
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(getTestPlan());
@@ -118,6 +120,7 @@ public class InfraPhase extends Phase {
                         logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
                         break;
                     }
+                    jsonpropFileEditor.jsonaddNewParamstoOutputFile(infraOutFilePath, "infra", outputjsonFilePath);
                     jsonpropFileEditor.removeScriptParams(script, testPropFilePath);
                     jsonpropFileEditor.refillFromPropFile(testPropFilePath, testJsonFilePath);
                 }
