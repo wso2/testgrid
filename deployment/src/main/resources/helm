@@ -1,7 +1,13 @@
 function executeWrappedHelm(){
-  ~/temp/helm template "${@:2}" >> $DIR/deployment_temp.yaml
+  ~/temp/helm template "${@:2}" >> deployment_temp.yaml
   ~/temp/helm create proj_temp
-  mv deployment_temp.yaml proj_temp/templates/deployment.yaml
+
+  mv proj_temp $DEP_REPO/proj_temp
+  rm $DEP_REPO/proj_temp/values.yaml
+  touch $DEP_REPO/proj_temp/values.yaml
+  rm -r $DEP_REPO/proj_temp/templates
+  mkdir $DEP_REPO/proj_temp/templates
+  mv deployment_temp.yaml $DEP_REPO/proj_temp/templates/deployment.yaml
 }
 
 function executeNormalHelm(){
@@ -16,11 +22,32 @@ function saveFlags(){
       else
         printf "%s " "${var}" >> flagslist.txt
       fi
+  mv flagslist.txt $PARENT/flagslist.txt
   done
 }
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/temp
+function read_property_file() {
+    local property_file_path=$1
+    # Read configuration into an associative array
+    # IFS is the 'internal field separator'. In this case, your file uses '='
+    local -n configArray=$2
+    IFS="="
+    while read -r key value
+    do
+      [[ -n ${key} ]] && configArray[$key]=$value
+    done < ${property_file_path}
+    unset IFS
+}
+
+SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DEP_REPO="$(dirname "$(dirname "$(readlink -fm "$0")")")"
+WORKSPACE="$(dirname "$DEP_REPO")"
+
+declare -g -A infra_props
+read_property_file "${INPUT_DIR}/data-bucket/infrastructure.properties" infra_props
+
 if [ "$1" = "install" ]; then
+  if [ ${infra_props[""]} ]
   saveFlags "$@"
   executeWrappedHelm "$@"
 else
