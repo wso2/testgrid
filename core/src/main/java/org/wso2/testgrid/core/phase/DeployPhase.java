@@ -211,7 +211,7 @@ public class DeployPhase extends Phase {
                 }
                 jsonpropFileEditor.removeScriptParams(script, infraOutFilePath);
                 jsonpropFileEditor.refillFromPropFile(infraOutFilePath, infraOutJSONFilePath);
-                jsonpropFileEditor.jsonaddNewParamstoOutputFile(depOutFilePath, "infra", outputjsonFilePath);
+                jsonpropFileEditor.jsonaddNewParamstoOutputFile(depOutFilePath, "dep", outputjsonFilePath);
             }
             return result;
         } catch (TestGridDeployerException e) {
