@@ -71,6 +71,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -421,6 +422,18 @@ public class TestPhase extends Phase {
                                 + e.getMessage(), e);
                     }
 
+                    // Persist necessary params for Kubernetes Destroy Script
+                    if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
+                        logger.info("running unification step for K8S deployment");
+                        Path infraPropFile = DataBucketsHelper.getOutputLocation(getTestPlan())
+                                .resolve(DataBucketsHelper.DEPL_OUT_FILE);
+                        Path infraJsonFile = DataBucketsHelper.getOutputLocation(getTestPlan())
+                                .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE);
+                        persistK8SDestroyParams(s3Location, infraPropFile, infraJsonFile);
+                    } else {
+                        logger.info(getTestPlan().getInfrastructureConfig().getIacProvider().toString());
+                    }
+
                     logger.info("S3 path is : " + s3Location);
                 } else {
                     logger.error("Can not generate S3 location for deployment-outputs of test-plan: " +
@@ -459,6 +472,42 @@ public class TestPhase extends Phase {
             }
         }
     }
+
+    /**
+     * This method adds all necessary properties for the K8S DESTROY SCRIPT
+     *
+     * @param s3Location Location of the archives in the s3 bucket
+     */
+    private void persistK8SDestroyParams(String s3Location, Path infraOutFilePath, Path infraOutJSONFilePath) {
+
+        Properties uploadProps = new Properties();
+        String temporaryLoc;
+        if (getTestPlan().getWorkspace().endsWith("/")) {
+            temporaryLoc = getTestPlan().getWorkspace() + "temp";
+        } else {
+            temporaryLoc = getTestPlan().getWorkspace() + "/temp";
+        }
+        if (!s3Location.endsWith("/")) {
+            s3Location = s3Location.concat("/");
+        }
+        uploadProps.setProperty("tempLocation", temporaryLoc);
+        uploadProps.setProperty("s3Location", s3Location);
+        uploadProps.setProperty("TG_ACCESS_KEY", ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT));
+        uploadProps.setProperty("TG_SECRET_KEY", ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT));
+        uploadProps.setProperty("REGION", ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME));
+
+        try {
+            jsonpropFileEditor.persistAdditionalInputs(uploadProps, infraOutFilePath, infraOutJSONFilePath,
+                    Optional.empty());
+        } catch (TestPlanExecutorException e) {
+            logger.error("error while persisting destroy script Params");
+        }
+
+    }
+
     /**
      * Derives the deployment outputs directory for a given test-plan
      * @return directory of the
