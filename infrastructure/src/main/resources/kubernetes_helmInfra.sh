@@ -99,8 +99,22 @@ function create_randomName() {
 function create_namespace() {
     echo "generating random namespace for deployment..."
     create_randomName
-    kubectl create namespace $NAME
-    kubectl config set-context $(kubectl config current-context) --namespace=$NAME
+    kubectl create namespace ${NAME}
+    # creating directory for kubeconfig
+    if [[ -d ${HOME}/.kube/configfiles ]]; then
+      mkdir ${HOME}/.kube/configfiles
+    fi
+    mkdir ${HOME}/.kube/configfiles/dir-${NAME}
+
+    # copying the original config (.kube/config)
+    cp ${HOME}/.kube/config ${HOME}/.kube/configfiles/dir-${NAME}/
+
+    # Modifying namespace of new config-file
+    kubectl config set-context $(kubectl config current-context) --kubeconfig ${HOME}/.kube/configfiles/dir-${NAME}/config --namespace ${NAME}
+
+    # Modifying $KUBECONFIG environment variable
+    expose KUBECONFIG=${HOME}/.kube/configfiles/dir-${NAME}/config
+
     kubectl config view | grep namespace:
 }
 
