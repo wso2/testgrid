@@ -23,8 +23,11 @@ if [ "$1" = "startup-jenkins" ]; then
     echo "adding credentials....."
     chmod +x ./add_credentials.sh
     ./add_credentials.sh
+    echo "adding config provider files...."
+    chmod +x ./add_config_provider_files.sh
+    ./add_config_provider_files.sh
     echo "starting H2 server....."
-    java -jar lib/h2-1.4.199.jar  -baseDir ./h2dbs &> /dev/null &
+    java -jar lib/h2-*.jar  -baseDir ./h2dbs &> /dev/null &
     
 elif [ "$1" = "shutdown-jenkins" ]
 then 

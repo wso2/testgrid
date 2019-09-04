@@ -72,6 +72,7 @@ curl -X POST -d '<jenkins><install plugin="timestamper@latest" /></jenkins>' --h
 curl -X POST -d '<jenkins><install plugin="view-job-filters@latest" /></jenkins>' --header 'Content-Type: text/xml' $host$url
 curl -X POST -d '<jenkins><install plugin="ws-cleanup@latest" /></jenkins>' --header 'Content-Type: text/xml' $host$url
 curl -X POST -d '<jenkins><install plugin="mission-control-view@latest" /></jenkins>' --header 'Content-Type: text/xml' $host$url
+curl -X POST -d '<jenkins><install plugin="configuration-as-code@latest" /></jenkins>' --header 'Content-Type: text/xml' $host$url
 
 while [ $(java -jar tomcat/apache-tomcat-8.5.43/webapps/jenkins/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy) -lt 150 ]
 do

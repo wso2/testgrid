@@ -47,6 +47,14 @@
             <outputDirectory>/</outputDirectory>
         </file>
         <file>
+            <source>add_config_provider_files.sh</source>
+            <outputDirectory>/</outputDirectory>
+        </file>
+        <file>
+            <source>CasC.yaml</source>
+            <outputDirectory>/</outputDirectory>
+        </file>
+        <file>
             <source>setenv.sh</source>
             <outputDirectory>tomcat/apache-tomcat-8.5.43/bin</outputDirectory>
         </file>
