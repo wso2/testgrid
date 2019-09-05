@@ -11,45 +11,86 @@ function executeWrappedHelm(){
 }
 
 function executeNormalHelm(){
-  ~/temp/helm "$@"
+  ~/temp/helm $@
 }
 
 function saveFlags(){
-  for var in "${@:2}"
-  do
-      if [[ $var == -* ]]; then
-        printf "\n%s " "${var}" >> flagslist.txt
-      else
-        printf "%s " "${var}" >> flagslist.txt
-      fi
-  mv flagslist.txt $PARENT/flagslist.txt
+  PARAMS=""
+  args=$@
+  while (( "$#" )); do
+    case "$1" in
+      -f|--values)
+        counter=0
+        list=""
+        for var in "${@:2}"
+        do
+            if [[ -f $var ]]; then
+              list="$list $var"
+              ((counter=counter+1))
+              break
+            elif [[ $var = *.yaml ]] || [[ $var = *.yml ]]; then
+              list="$list $var"
+              ((counter=counter+1))
+              break
+            fi
+        done
+        echo -e "$1 $list" >> flaglist.txt
+        ((counter=counter+1))
+        shift $counter
+        ;;
+      --) # end argument parsing
+        shift
+        break
+        ;;
+      -*|--*=|--*)
+        FARG=$2
+        if [[ $2 = -* ]] || [[ $2 = --* ]] || [[ $2 = --* ]] || [[ -z $2 ]];then
+          echo -e "$1 isset" >> flaglist.txt
+          shift 1
+        else
+          echo -e "$1 $FARG" >> flaglist.txt
+          shift 2
+        fi
+        ;;
+      *) # preserve positional arguments
+        PARAMS="$PARAMS $1"
+        shift
+        ;;
+    esac
   done
-}
-
-function read_property_file() {
-    local property_file_path=$1
-    # Read configuration into an associative array
-    # IFS is the 'internal field separator'. In this case, your file uses '='
-    local -n configArray=$2
-    IFS="="
-    while read -r key value
-    do
-      [[ -n ${key} ]] && configArray[$key]=$value
-    done < ${property_file_path}
-    unset IFS
+  # set positional arguments in their proper place
+  eval set -- "$PARAMS"
+  echo -e "$PARAMS" >> flaglist.txt
 }
 
 SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DEP_REPO="$(dirname "$(dirname "$(readlink -fm "$0")")")"
 WORKSPACE="$(dirname "$DEP_REPO")"
 
-declare -g -A infra_props
-read_property_file "${INPUT_DIR}/data-bucket/infrastructure.properties" infra_props
+declare args="$@"
+while (( "$#" )); do
+  case $1 in
+     install)
+        for k in $(jq '.["dep-in"].helmLogProducts | keys | .[]' $WORKSPACE/data-bucket/params.json); do
+          jq '.["dep-in"].helmLogProducts'[$k] $WORKSPACE/data-bucket/params.json
+        done
+        saveFlags $args
+        executeWrappedHelm $args
+        break
+        ;;
+     chart|completion|create|dependency|get|help|history|home|init|lint|list|package|plugin|pull|registry|repo|rollback|search|show|status|template|test|uninstall|upgrade|verify|version)
+        executeNormalHelm $args
+        break
+        ;;
+     *)
+       shift
+       ;;
+     esac
+done
 
-if [ "$1" = "install" ]; then
-  if [ ${infra_props[""]} ]
-  saveFlags "$@"
-  executeWrappedHelm "$@"
-else
-  executeNormalHelm "$@"
-fi
+
+#TODO 1. flags add to file getopts
+#TODO 2. Identify runtime and build time params
+#TODO 3. proper seperartion of params and arguments
+#TODO 4. only apply change to things in helmLogLocations
+#TODO 5. Edit deployment using kubernetes_editory_groovy
