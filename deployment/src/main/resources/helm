@@ -1,7 +1,9 @@
 function executeWrappedHelm(){
+  for k in $(jq '.["dep-in"].helmLogProducts | keys | .[]' $WORKSPACE/data-bucket/params.json); do
+    jq '.["dep-in"].helmLogProducts'[$k] $WORKSPACE/data-bucket/params.json
+  done
   ~/temp/helm template "${@:2}" >> deployment_temp.yaml
   ~/temp/helm create proj_temp
-
   mv proj_temp $DEP_REPO/proj_temp
   rm $DEP_REPO/proj_temp/values.yaml
   touch $DEP_REPO/proj_temp/values.yaml
@@ -71,9 +73,6 @@ declare args="$@"
 while (( "$#" )); do
   case $1 in
      install)
-        for k in $(jq '.["dep-in"].helmLogProducts | keys | .[]' $WORKSPACE/data-bucket/params.json); do
-          jq '.["dep-in"].helmLogProducts'[$k] $WORKSPACE/data-bucket/params.json
-        done
         saveFlags $args
         executeWrappedHelm $args
         break

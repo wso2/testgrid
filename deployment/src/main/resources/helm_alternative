@@ -1,0 +1,226 @@
+function executeWrappedHelm(){
+  for k in $(jq '.["dep-in"].helmLogProducts | keys | .[]' $WORKSPACE/data-bucket/params.json); do
+    jq '.["dep-in"].helmLogProducts'[$k] $WORKSPACE/data-bucket/params.json
+  done
+  ~/temp/helm template "${@:2}" >> deployment_temp.yaml
+  ~/temp/helm create proj_temp
+  mv proj_temp $DEP_REPO/proj_temp
+  rm $DEP_REPO/proj_temp/values.yaml
+  touch $DEP_REPO/proj_temp/values.yaml
+  rm -r $DEP_REPO/proj_temp/templates
+  mkdir $DEP_REPO/proj_temp/templates
+  mv deployment_temp.yaml $DEP_REPO/proj_temp/templates/deployment.yaml
+}
+
+function executeNormalHelm(){
+  ~/temp/helm $@
+}
+
+function saveFlags(){
+  PARAMS=""
+  list=""
+  args=$@
+  while (( "$#" )); do
+    case "$1" in
+      -f|--values)
+        counter=0
+        for var in "${@:2}"
+        do
+            if [[ -f $var ]]; then
+              list="$list $var"
+              ((counter=counter+1))
+              break
+            elif [[ $var = *.yaml ]] || [[ $var = *.yml ]]; then
+              list="$list $var"
+              ((counter=counter+1))
+              break
+            fi
+        done
+        echo -e "$1 $list" >> flaglist.txt
+        ((counter=counter+1))
+        shift $counter
+        ;;
+      --atomic)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --ca-string)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --cert-file)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --dependency-update)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --devel)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --dry-run)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      -g|--generate-name)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      -h|--help)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --key-file)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --keyring)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --name-template)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --no-hooks )
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --password)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --replace)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --repo)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --set)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --set-string)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --timeout)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --username)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --verify)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --version)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --wait)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      alsologtostderr)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --debug)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --home)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --kube-context)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --kubeconfig)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --log-backtrace-at)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --log-dir)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --log-file)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --logtostderr)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --namespace|-n)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --skip-headers)
+        echo -e "$1 isset" >> flaglist.txt
+        shift 1
+        ;;
+      --stderrthreshold)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      -v|--v)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      --vmodule)
+        echo -e "$1 $2" >> flaglist.txt
+        shift 2
+        ;;
+      *) # preserve positional arguments
+        PARAMS="$PARAMS $1"
+        shift
+        ;;
+    esac
+  done
+  # set positional arguments in their proper place
+  eval set -- "$PARAMS"
+  eval set -- "$list"
+  echo -e "$PARAMS" >> flaglist.txt
+}
+
+SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DEP_REPO="$(dirname "$(dirname "$(readlink -fm "$0")")")"
+WORKSPACE="$(dirname "$DEP_REPO")"
+
+declare args="$@"
+while (( "$#" )); do
+  case $1 in
+     install)
+        saveFlags $args
+        executeWrappedHelm $args
+        break
+        ;;
+     chart|completion|create|dependency|get|help|history|home|init|lint|list|package|plugin|pull|registry|repo|rollback|search|show|status|template|test|uninstall|upgrade|verify|version)
+        executeNormalHelm $args
+        break
+        ;;
+     *)
+       shift
+       ;;
+     esac
+done
+
+
+#TODO 1. flags add to file getopts
+#TODO 2. Identify runtime and build time params
+#TODO 3. proper seperartion of params and arguments
+#TODO 4. only apply change to things in helmLogLocations
+#TODO 5. Edit deployment using kubernetes_editory_groovy
