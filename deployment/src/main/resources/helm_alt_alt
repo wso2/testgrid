@@ -1,11 +1,13 @@
+set -o xtrace
+
 function executeWrappedHelm(){
   productNameFound="false"
   subCommand=($PARAMS)
   if [ ${#subCommand[@]} -eq 3 ]; then
-    for k in $(jq '.["dep-in"].helmLogProducts | keys | .[]' $WORKSPACE/data-bucket/params.json); do
-      productNameProps=$(jq '.["dep-in"].helmLogProducts'[$k] $WORKSPACE/data-bucket/params.json)
+    for k in $( jq '.["dep-in"].LogFileLocations | keys | .[]' $WORKSPACE/data-bucket/params.json); do
+      productNameProps=$k
+      echo $productNameProps
       productName="\"$(echo ${subCommand[1]})"\"
-      echo $productName
       if [[ $productNameProps = $productName ]]; then
         productNameFound="true"
       fi
@@ -15,13 +17,13 @@ function executeWrappedHelm(){
   if [[ $productNameFound = "true" ]]; then
     ~/temp/helm template "${@:2}" >> deployment_temp.yaml
     ~/temp/helm create proj_temp
-    mv proj_temp $DEP_REPO/proj_temp
+    mv proj_temp $DEP_REPO
     rm $DEP_REPO/proj_temp/values.yaml
     touch $DEP_REPO/proj_temp/values.yaml
     rm -r $DEP_REPO/proj_temp/templates
     mkdir $DEP_REPO/proj_temp/templates
     mv deployment_temp.yaml $DEP_REPO/proj_temp/templates/deployment.yaml
-    groovy "HELM" $productName $DEP_REPO/kubedeployment_editor.groovy deployment${i}_temp.yaml "${WORKSPACE}/data-bucket/params.json"  $DEP_REPO/proj_temp/templates/deployment.yaml
+    groovy $DEP_REPO/kubedeployment_editor.groovy "HELM" ${subCommand[1]} deployment_temp.yaml "${WORKSPACE}/data-bucket/params.json"  $DEP_REPO/proj_temp/templates/deployment.yaml
   else
     executeNormalHelm $args
   fi

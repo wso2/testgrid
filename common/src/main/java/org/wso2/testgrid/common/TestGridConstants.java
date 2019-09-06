@@ -109,6 +109,7 @@ public class TestGridConstants {
     public static final String HELM_INFRA_SCRIPT = "kubernetes_helmInfra.sh";
     public static final String HELM_DEPLOY_SCRIPT = "kubernetes_helmDeploy.sh";
     public static final String HELM_DESTROY_SCRIPT = "kubernetes_helmDestroy.sh";
+    public static final String HELM_DECORATOR_FILE = "helm_alt_alt";
 
 
     public static final String EXACT_ALGO = "exact";

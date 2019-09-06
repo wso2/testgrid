@@ -254,9 +254,7 @@ function install_helm(){
 
     DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/temp
     PATH=$DIR:$PATH
-
-    #TODO
-    movewrapperhelm $DIR
+    chmod 777 $DIR/helm
     mkdir temp
     mv linux-amd64/helm ~/temp/helm
     ~/temp/helm init
@@ -265,11 +263,6 @@ function install_helm(){
   fi
 
 
-}
-
-function movewrapperhelm(){
-  # Downloads the helm decorater and adds it to the proper directory $1 ]
-  echo "wrapped helm TODO!!!"
 }
 
 # Read a property file to a given associative array

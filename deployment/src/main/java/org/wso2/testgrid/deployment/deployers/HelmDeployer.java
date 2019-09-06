@@ -66,6 +66,11 @@ public class HelmDeployer implements Deployer {
 
         InputStream resourceFileStream = getClass().getClassLoader()
                 .getResourceAsStream(TestGridConstants.HELM_DEPLOY_SCRIPT);
+        InputStream helperFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.KUBERNETES_GROOVY_HELPER);
+        InputStream decoratorFileStream = getClass().getClassLoader()
+                .getResourceAsStream(TestGridConstants.HELM_DECORATOR_FILE);
+
         try {
             Files.copy(resourceFileStream, Paths.get(testPlan.getDeploymentRepository(),
                     TestGridConstants.HELM_DEPLOY_SCRIPT));
@@ -73,6 +78,29 @@ public class HelmDeployer implements Deployer {
             logger.error("IO error occurred while reading " +
                     TestGridConstants.HELM_DEPLOY_SCRIPT, e);
         }
+
+        try {
+
+            Files.copy(helperFileStream , Paths.get(testPlan.getDeploymentRepository(),
+                    TestGridConstants.KUBERNETES_GROOVY_HELPER));
+        } catch (IOException e) {
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.KUBERNETES_GROOVY_HELPER, e);
+        }
+
+        try {
+            if (testPlan.getDeploymentRepository().endsWith("/")) {
+                Files.copy(decoratorFileStream , Paths.get(testPlan.getDeploymentRepository().concat("temp"),
+                        "helm"));
+            } else {
+                //TODO : change to appropriate filename
+                Files.copy(decoratorFileStream , Paths.get(testPlan.getDeploymentRepository().concat("/temp"), "helm"));
+            }
+        } catch (IOException e) {
+            logger.error("IO error occurred while reading " +
+                    TestGridConstants.HELM_DECORATOR_FILE, e);
+        }
+
 
         DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
                 infrastructureProvisionResult,

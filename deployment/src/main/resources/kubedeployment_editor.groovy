@@ -97,7 +97,7 @@ def EditK8SDeployments(String depType, String productName, String outputYaml,Str
         JSONObject json = new JSONObject(tokener)
         JSONArray loglocations;
         if ( depType.equals("HELM") ) {
-            loglocations = json.getJSONObject("dep-in").getJSONObject(productName).getJSONArray("LogFileLocations")
+            loglocations = json.getJSONObject("dep-in").getJSONObject("LogFileLocations").getJSONArray(productName);
         } else if (depType.equals("K8S")) {
             loglocations = json.getJSONObject("dep-in").getJSONArray("LogFileLocations")
         }
