@@ -23,7 +23,7 @@ WUM_CONFIG_FILE=~/.wum3/config.yaml; WUM_TMP="wum_conf.tmp";
 
 # Use default if not stored as environment variables
 if [ -z $(echo $SERVICE_ACCOUNT) ]; then SERVICE_ACCOUNT="gke-bot@testgrid.iam.gserviceaccount.com"; fi
-if [ -z $(echo $CLUSTER_NAME) ]; then CLUSTER_NAME="chathurangi-test-cluster";fi
+if [ -z $(echo $CLUSTER_NAME) ]; then CLUSTER_NAME="dev-test-cluster";fi
 if [ -z $(echo $ZONE) ]; then ZONE="us-central1-a"; fi
 if [ -z $(echo $PROJECT_NAME) ]; then PROJECT_NAME="testgrid"; fi
 if [ -z $(echo $REG_LOCATION) ]; then REG_LOCATION="asia.gcr.io"; fi
