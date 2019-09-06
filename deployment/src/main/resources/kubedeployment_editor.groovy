@@ -89,13 +89,18 @@ def Formattedfilepaths(JSONArray loglocations, Integer i){
  * @param pathToDeployment - file path to the input Yaml file
  *
  */
-def EditK8SDeployments(String outputYaml,String jsonFilePath, String pathToDeployment){
+def EditK8SDeployments(String depType, String productName, String outputYaml,String jsonFilePath, String pathToDeployment){
     try{
         // Read json file
         InputStream is = new FileInputStream(jsonFilePath.toString())
         JSONTokener tokener = new JSONTokener(is)
         JSONObject json = new JSONObject(tokener)
-        JSONArray loglocations = json.getJSONObject("currentscript").getJSONArray("LogFileLocations")
+        JSONArray loglocations;
+        if ( depType.equals("HELM") ) {
+            loglocations = json.getJSONObject("dep-in").getJSONObject(productName).getJSONArray("LogFileLocations")
+        } else if (depType.equals("K8S")) {
+            loglocations = json.getJSONObject("dep-in").getJSONArray("LogFileLocations")
+        }
         Yaml yaml = new Yaml()
         InputStream inputStream = new FileInputStream(pathToDeployment)
 
@@ -243,4 +248,4 @@ def EditK8SDeployments(String outputYaml,String jsonFilePath, String pathToDeplo
  * Args must be provided in following order
  * outputyaml_name   path_to_testLogs   path_to_Deployment.yaml
  */
-EditK8SDeployments(args[0],args[1],args[2])
+EditK8SDeployments(args[0],args[1],args[2],args[3],args[4])

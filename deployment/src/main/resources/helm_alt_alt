@@ -1,15 +1,30 @@
 function executeWrappedHelm(){
-  for k in $(jq '.["dep-in"].helmLogProducts | keys | .[]' $WORKSPACE/data-bucket/params.json); do
-    jq '.["dep-in"].helmLogProducts'[$k] $WORKSPACE/data-bucket/params.json
-  done
-  ~/temp/helm template "${@:2}" >> deployment_temp.yaml
-  ~/temp/helm create proj_temp
-  mv proj_temp $DEP_REPO/proj_temp
-  rm $DEP_REPO/proj_temp/values.yaml
-  touch $DEP_REPO/proj_temp/values.yaml
-  rm -r $DEP_REPO/proj_temp/templates
-  mkdir $DEP_REPO/proj_temp/templates
-  mv deployment_temp.yaml $DEP_REPO/proj_temp/templates/deployment.yaml
+  productNameFound="false"
+  subCommand=($PARAMS)
+  if [ ${#subCommand[@]} -eq 3 ]; then
+    for k in $(jq '.["dep-in"].helmLogProducts | keys | .[]' $WORKSPACE/data-bucket/params.json); do
+      productNameProps=$(jq '.["dep-in"].helmLogProducts'[$k] $WORKSPACE/data-bucket/params.json)
+      productName="\"$(echo ${subCommand[1]})"\"
+      echo $productName
+      if [[ $productNameProps = $productName ]]; then
+        productNameFound="true"
+      fi
+    done
+  fi
+  echo $productNameFound
+  if [[ $productNameFound = "true" ]]; then
+    ~/temp/helm template "${@:2}" >> deployment_temp.yaml
+    ~/temp/helm create proj_temp
+    mv proj_temp $DEP_REPO/proj_temp
+    rm $DEP_REPO/proj_temp/values.yaml
+    touch $DEP_REPO/proj_temp/values.yaml
+    rm -r $DEP_REPO/proj_temp/templates
+    mkdir $DEP_REPO/proj_temp/templates
+    mv deployment_temp.yaml $DEP_REPO/proj_temp/templates/deployment.yaml
+    groovy "HELM" $productName $DEP_REPO/kubedeployment_editor.groovy deployment${i}_temp.yaml "${WORKSPACE}/data-bucket/params.json"  $DEP_REPO/proj_temp/templates/deployment.yaml
+  else
+    executeNormalHelm $args
+  fi
 }
 
 function executeNormalHelm(){
@@ -29,11 +44,9 @@ function saveFlags(){
             if [[ -f $var ]]; then
               list="$list $var"
               ((counter=counter+1))
-              break
             elif [[ $var = *.yaml ]] || [[ $var = *.yml ]]; then
               list="$list $var"
               ((counter=counter+1))
-              break
             fi
         done
         ((counter=counter+1))
@@ -191,7 +204,6 @@ function saveFlags(){
   done
   # set positional arguments in their proper place
   eval set -- "$PARAMS"
-  eval set -- "$list"
   echo -e "$PARAMS" >> flaglist.txt
 }
 
