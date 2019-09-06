@@ -305,7 +305,6 @@ OUTPUT_DIR=$4
 INPUT_DIR=$2
 declare -g -A infra_props
 declare -g -A deploy_props
-declare -g -A config_props
 read_property_file "${INPUT_DIR}/infrastructure.properties" infra_props
 read_property_file "${OUTPUT_DIR}/deployment.properties" deploy_props
 #source $INPUT_DIR/infrastructure.properties

@@ -192,7 +192,7 @@ def EditK8SDeployments(String depType, String productName, String outputYaml,Str
                                     group.get("spec").get("template").get("spec"),"volumes",new_Volume))
                         }
 
-                        JSONObject currentscriptParams = json.getJSONObject("currentscript")
+                        JSONObject currentscriptParams = json.getJSONObject("dep-in")
                         /*
                          Remove entirely if using persistent disk
                         */

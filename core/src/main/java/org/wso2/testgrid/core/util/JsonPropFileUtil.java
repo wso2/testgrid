@@ -69,8 +69,6 @@ public class JsonPropFileUtil {
      */
     public void refillFromPropFile(Path propFilePath , Path jsonFilePath) {
 
-
-
         try (InputStream propInputStream = new FileInputStream(propFilePath.toString())) {
 
             Properties existingProps = new Properties();
@@ -495,8 +493,54 @@ public class JsonPropFileUtil {
         }
     }
 
+    public void jsonaddNewParamstoOutputFile(Path outputPropFile, String phase, Path outputJsonPath) {
+        try (InputStream outputPropStream = new FileInputStream(outputPropFile.toString())) {
+            Properties existingProps = new Properties();
+            existingProps.load(outputPropStream);
+            File outputjsonFile = new File(outputJsonPath.toString());
+
+            if (outputjsonFile.exists()) {
+                try (InputStream outputJsonStream = new FileInputStream(outputJsonPath.toString())) {
+
+                    JSONTokener outputTokener = new JSONTokener(outputJsonStream);
+                    JSONObject insertOutputJsonVal = new JSONObject(outputTokener);
+
+                    insertOutputJsonVal.put(phase + "-out", existingProps);
+
+                    if (insertOutputJsonVal.length() != 0) {
+                        try (BufferedWriter jsonWriter = Files
+                                .newBufferedWriter(Paths.get(outputJsonPath.toString()))) {
+                            insertOutputJsonVal.write(jsonWriter);
+                            jsonWriter.write("\n");
+                        } catch (IOException ex) {
+                            logger.error("Error while persisting params to " + outputJsonPath, ex);
+                        }
+                    }
+
+                } catch (IOException e) {
+                    logger.error(outputJsonPath.toString() + "not found creating");
+                }
+            } else {
+                JSONObject insertOutputJsonVal = new JSONObject();
+
+                insertOutputJsonVal.put(phase + "-out", existingProps);
+
+                if (insertOutputJsonVal.length() != 0) {
+                    try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(outputJsonPath.toString()))) {
+                        insertOutputJsonVal.write(jsonWriter);
+                        jsonWriter.write("\n");
+                    } catch (IOException ex) {
+                        logger.error("Error while persisting params to " + outputJsonPath, ex);
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            logger.error(outputPropFile.toString() + "not found");
+        }
+    }
     /**
-     * Updates the output.json flat data structure
+     * Updates the params.json flat data structure
      *
      * @param jsonFileLocation Current phase of execution
      */
@@ -516,9 +560,9 @@ public class JsonPropFileUtil {
                     JSONObject insertOutputJsonVal = new JSONObject(outputTokener);
 
                     if (inputJson.has("currentscript")) {
-                        insertOutputJsonVal.put(phase, inputJson.get("currentscript"));
+                        insertOutputJsonVal.put(phase + "-in", inputJson.get("currentscript"));
                     } else if (inputJson.has("general")) {
-                        insertOutputJsonVal.put(phase, inputJson.get("general"));
+                        insertOutputJsonVal.put(phase + "-in", inputJson.get("general"));
                     }
 
                     if (insertOutputJsonVal.length() != 0) {
@@ -538,9 +582,9 @@ public class JsonPropFileUtil {
                 JSONObject insertOutputJsonVal = new JSONObject();
 
                 if (inputJson.has("currentscript")) {
-                    insertOutputJsonVal.put(phase, inputJson.get("currentscript"));
+                    insertOutputJsonVal.put(phase + "-in", inputJson.get("currentscript"));
                 } else if (inputJson.has("general")) {
-                    insertOutputJsonVal.put(phase, inputJson.get("general"));
+                    insertOutputJsonVal.put(phase + "-in", inputJson.get("general"));
                 }
 
                 if (insertOutputJsonVal.length() != 0) {
