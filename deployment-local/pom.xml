@@ -61,7 +61,7 @@
                           <type>zip</type>
                           <overWrite>false</overWrite>
                           <outputDirectory>tomcat</outputDirectory>
-                          <excludes>webapps/**</excludes>
+                          <excludes>**/webapps/**</excludes>
                          </artifactItem>
                          <artifactItem>
                           <groupId>org.jenkins-ci.main</groupId>
@@ -69,13 +69,37 @@
                           <version>2.176.1</version>
                           <type>war</type>
                           <overWrite>false</overWrite>
-                          <outputDirectory>tomcat/apache-tomcat-8.5.43/webapps/jenkins</outputDirectory>         
+                          <outputDirectory>tomcat/apache-tomcat-8.5.43/webapps/admin</outputDirectory>
                         </artifactItem>
                       </artifactItems>                            
                      </configuration>
                    </execution>
                   </executions>
-            </plugin> 
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-properties</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>/home/udhan/tg-local-features/testgrid/deployment-local/tomcat/apache-tomcat-8.5.43/conf</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>/home/udhan/tg-local-features/testgrid/deployment-local</directory>
+                                    <includes>
+                                        <include>server.xml</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                            <overwrite>true</overwrite>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                <groupId>org.apache.maven.plugins</groupId>
@@ -88,6 +112,7 @@
                   <configuration>
                   <tasks>
                     <unzip src="../distribution/target/WSO2-TestGrid.zip" dest="testgrid/testgrid-home/testgrid-dist" />
+                    <unzip src="../web/target/testgrid#dashboard##v1.0.8-SNAPSHOT.war" dest="tomcat/apache-tomcat-8.5.43/webapps/ROOT" />
                  </tasks>
                  </configuration>
                  <goals>

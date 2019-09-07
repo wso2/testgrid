@@ -13,7 +13,7 @@ if [ "$1" = "startup-jenkins" ]; then
 
     chmod +x ./tomcat/apache-tomcat-8.5.43/bin/*
     ./tomcat/apache-tomcat-8.5.43/bin/startup.sh
-    while [ $(curl -s -w "%{http_code}" http://localhost:8080/jenkins -o /dev/null) -eq 000 ]
+    while [ $(curl -s -w "%{http_code}" http://localhost:8080/admin -o /dev/null) -eq 000 ]
     do
       sleep 1 
     done
