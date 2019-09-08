@@ -86,10 +86,10 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>/home/udhan/tg-local-features/testgrid/deployment-local/tomcat/apache-tomcat-8.5.43/conf</outputDirectory>
+                            <outputDirectory>tomcat/apache-tomcat-8.5.43/conf</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>/home/udhan/tg-local-features/testgrid/deployment-local</directory>
+                                    <directory>${project.basedir}</directory>
                                     <includes>
                                         <include>server.xml</include>
                                     </includes>
