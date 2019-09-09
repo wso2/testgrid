@@ -24,12 +24,17 @@ function executeWrappedHelm(){
     mkdir $DEP_REPO/proj_temp/templates
     mv deployment_temp.yaml $DEP_REPO/proj_temp/templates/deployment.yaml
     groovy $DEP_REPO/kubedeployment_editor.groovy "HELM" ${subCommand[1]} deployment_temp.yaml "${WORKSPACE}/data-bucket/params.json"  $DEP_REPO/proj_temp/templates/deployment.yaml
+    rm $DEP_REPO/proj_temp/templates/deployment.yaml
+    mv deployment_temp.yaml  $DEP_REPO/proj_temp/templates/deployment.yaml
+    ~/temp/helm helm init
+    ~/temp/helm helm install ${subCommand[1]} $DEP_REPO/proj_temp
   else
     executeNormalHelm $args
   fi
 }
 
 function executeNormalHelm(){
+  ~/temp/helm helm init
   ~/temp/helm $@
 }
 
