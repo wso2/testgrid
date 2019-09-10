@@ -90,22 +90,13 @@ DEP_REPO="$(dirname "$(dirname "$(readlink -fm "$0")")")"
 WORKSPACE="$(dirname "$DEP_REPO")"
 
 declare args="$@"
-while (( "$#" )); do
-  case $1 in
-     install)
-        saveFlags $args
-        executeWrappedHelm $args
-        break
-        ;;
-     chart|completion|create|dependency|get|help|history|home|init|lint|list|package|plugin|pull|registry|repo|rollback|search|show|status|template|test|uninstall|upgrade|verify|version)
-        executeNormalHelm $args
-        break
-        ;;
-     *)
-       shift
-       ;;
-     esac
-done
+saveFlags $args
+subCommand=($PARAMS)
+if [ ${subCommand[1]} = install ]; then
+  executeWrappedHelm $args
+else
+  executeNormalHelm $args
+fi
 
 
 #TODO 1. flags add to file getopts

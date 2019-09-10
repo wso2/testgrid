@@ -177,13 +177,41 @@ function readinesss_services(){
 
 }
 
+
+#This function is used to add paths to etc/host fils
+function addhost() {
+    IP=$1
+    HOSTNAME=$2
+    HOSTS_LINE="$IP\t$HOSTNAME"
+    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+        then
+            echo "$HOSTNAME already exists : $(grep $HOSTNAME $ETC_HOSTS)"
+        else
+            echo "Adding $HOSTNAME to your $ETC_HOSTS";
+            echo $TESTGRID_PASS | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
+
+            if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+                then
+                    echo "$HOSTNAME was added succesfully \n $(grep $HOSTNAME /etc/hosts)";
+                else
+                    echo "Failed to Add $HOSTNAME, Try again!";
+            fi
+    fi
+}
+
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
-    env=${TESTGRID_ENVIRONMENT} || 'dev'
+
+    if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+      env='dev'
+    else
+      env=${TESTGRID_ENVIRONMENT}
+    fi
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
         echo "Not configuring route53 DNS entries since the environment is not dev/prod. You need to manually add
         '${external_ip} ${loadBalancerHostName}' into your /etc/hosts."
+        addhost "${external_ip}" "${loadBalancerHostName}"
         return;
     fi
 
@@ -249,16 +277,24 @@ function install_helm(){
   then
     wget https://get.helm.sh/helm-v3.0.0-alpha.2-linux-amd64.tar.gz
     tar -zxvf helm-v3.0.0-alpha.2-linux-amd64.tar.gz
-    #mkdir ~/.local/bin/
-    #PATH=~/.local/bin/:$PATH
 
-    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/temp
-    PATH=$DIR:$PATH
-    chmod 777 $DIR/helm
-    mkdir temp
-    mv linux-amd64/helm ~/temp/helm
-    ~/temp/helm init
-    ~/temp/helm version
+    if [ -z "$LogFileLocations" ]; then
+        echo "Log File locations not provided not changing helm"
+        mkdir ~/.local/bin/
+        PATH=~/.local/bin/:$PATH
+        mv linux-amd64/helm ~/.local/bin/helm
+        helm init
+        helm version
+    else
+        echo "Test Result location set using decorator helm"
+        DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/temp
+        PATH=$DIR:$PATH
+        chmod 777 $DIR/helm
+        mkdir temp
+        mv linux-amd64/helm ~/temp/helm
+        ~/temp/helm init
+        ~/temp/helm version
+    fi
 
   fi
 
@@ -307,9 +343,11 @@ namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 deploymentRepositoryLocation=${infra_props["deploymentRepositoryLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
+LogFileLocations=${infra_props["LogFileLocations"]}
 
-#DEBUG parameters: TODO: remove
-TESTGRID_ENVIRONMENT=dev
+TESTGRID_ENVIRONMENT=${infra_props["env"]}
+TESTGRID_PASS=${infra_props["pass"]}
+ETC_HOSTS=/etc/hosts
 
 create_k8s_resources
 add_route53_entry

@@ -26,34 +26,57 @@ function executeWrappedHelm(){
     groovy $DEP_REPO/kubedeployment_editor.groovy "HELM" ${subCommand[1]} deployment_temp.yaml "${WORKSPACE}/data-bucket/params.json"  $DEP_REPO/proj_temp/templates/deployment.yaml
     rm $DEP_REPO/proj_temp/templates/deployment.yaml
     mv deployment_temp.yaml  $DEP_REPO/proj_temp/templates/deployment.yaml
-    ~/temp/helm helm init
-    ~/temp/helm helm install ${subCommand[1]} $DEP_REPO/proj_temp
+    ~/temp/helm init
+    ~/temp/helm install ${subCommand[1]} $DEP_REPO/proj_temp
   else
     executeNormalHelm $args
   fi
 }
 
 function executeNormalHelm(){
-  ~/temp/helm helm init
+  ~/temp/helm init
   ~/temp/helm $@
 }
 
 function saveFlags(){
   PARAMS=""
   list=""
-  args=$@
   while (( "$#" )); do
     case "$1" in
       -f|--values)
         counter=0
+        skipped=0
         for var in "${@:2}"
         do
             if [[ -f $var ]]; then
-              list="$list $var"
-              ((counter=counter+1))
-            elif [[ $var = *.yaml ]] || [[ $var = *.yml ]]; then
-              list="$list $var"
-              ((counter=counter+1))
+              case $var in
+                   chart|completion|create|dependency|get|help|history|home|init|lint|list|package|plugin|pull|registry|repo|rollback|search|show|status|template|test|uninstall|upgrade|verify|version)
+                       if [[ $list =~ "$var" ]]; then
+                           echo "already contains skipping"
+                          ((skipped=skipped+1))
+                       else
+                           list="$list $var"
+                           ((counter=counter+1))
+                       fi
+                       ;;
+                   *)
+                       list="$list $var"
+                       ((counter=counter+1+skipped))
+                       skipped=0
+                       ;;
+              esac
+            else
+               case $var in
+                    chart|completion|create|dependency|get|help|history|home|init|lint|list|package|plugin|pull|registry|repo|rollback|search|show|status|template|test|uninstall|upgrade|verify|version)
+                        if [ $counter -eq 0 ]; then
+                            errorincommand=true
+                        fi
+                        ;;
+                    *)
+                        errorincommand=true
+                        ;;
+               esac
+               break
             fi
         done
         ((counter=counter+1))
@@ -219,23 +242,18 @@ DEP_REPO="$(dirname "$(dirname "$(readlink -fm "$0")")")"
 WORKSPACE="$(dirname "$DEP_REPO")"
 
 declare args="$@"
-while (( "$#" )); do
-  case $1 in
-     install)
-        saveFlags $args
-        executeWrappedHelm $args
-        break
-        ;;
-     chart|completion|create|dependency|get|help|history|home|init|lint|list|package|plugin|pull|registry|repo|rollback|search|show|status|template|test|uninstall|upgrade|verify|version)
-        executeNormalHelm $args
-        break
-        ;;
-     *)
-       shift
-       ;;
-     esac
-done
-
+saveFlags $args
+errorincommand=false
+subCommand=($PARAMS)
+if [ $errorincommand = false ]; then
+  if [ ${subCommand[0]} = install ]; then
+    executeWrappedHelm $args
+  else
+    executeNormalHelm $args
+  fi
+else
+    executeNormalHelm $args
+fi
 
 #TODO 1. flags add to file getopts
 #TODO 2. Identify runtime and build time params

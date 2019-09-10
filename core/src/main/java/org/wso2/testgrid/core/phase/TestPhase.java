@@ -385,7 +385,8 @@ public class TestPhase extends Phase {
                                 "export AWS_DEFAULT_REGION=" + ConfigurationContext
                                 .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME) + "&&";
                 String runLogArchiverScript;
-                if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
+                if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES") ||
+                        getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("HELM")) {
                     runLogArchiverScript = "./log_archiver.sh &&";
                 } else {
                     runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
@@ -398,7 +399,8 @@ public class TestPhase extends Phase {
                                 s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
                         String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
                                 s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
-                        if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
+                        if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES") ||
+                                getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("HELM")) {
                             executorService.execute(new TinkererCommand(agent.getAgentId(), getTestPlan().getId(),
                                     agent.getInstanceName(),
                                     configureAWSCLI + runLogArchiverScript + uploadDumpsToS3));
@@ -423,7 +425,8 @@ public class TestPhase extends Phase {
                     }
 
                     // Persist necessary params for Kubernetes Destroy Script
-                    if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
+                    if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES") ||
+                            getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("HELM")) {
                         logger.info("running unification step for K8S deployment");
                         Path infraPropFile = DataBucketsHelper.getOutputLocation(getTestPlan())
                                 .resolve(DataBucketsHelper.DEPL_OUT_FILE);
