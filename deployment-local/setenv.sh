@@ -7,3 +7,4 @@ export CATALINA_OPTS="-Djenkins.install.runSetupWizard=false -DJENKINS_HOME=jenk
 
 export common_configs="$(cat $common_configs_path)"
 export uat_nexus_settings="$(cat $uat_nexus_settings_path)"
+export jenkins_library_path="$jenkins_library_path"

@@ -47,7 +47,7 @@
                    <version>2.4</version>
                    <executions>
                      <execution>
-                       <id>unpack-tomcat</id>
+                       <id>unpack-tomcat-jenkins</id>
                        <phase>process-sources</phase>
                        <goals>
                           <goal>unpack</goal>
@@ -70,8 +70,27 @@
                           <type>war</type>
                           <overWrite>false</overWrite>
                           <outputDirectory>tomcat/apache-tomcat-8.5.43/webapps/admin</outputDirectory>
-                        </artifactItem>
+                        </artifactItem>          
                       </artifactItems>                            
+                     </configuration>
+                   </execution>
+                   <execution>
+                       <id>copy-dependencies</id>
+                       <phase>package</phase>
+                       <goals>
+                         <goal>copy</goal>
+                       </goals>
+                      <configuration>
+                       <artifactItems>
+                        <artifactItem>
+                         <groupId>com.h2database</groupId>
+                         <artifactId>h2</artifactId>
+                         <version>1.4.199</version>
+                         <type>jar</type>
+                         <overWrite>false</overWrite>
+                         <outputDirectory>tomcat/apache-tomcat-8.5.43/webapps/ROOT/WEB-INF/lib</outputDirectory>
+                        </artifactItem>
+                       </artifactItems>                            
                      </configuration>
                    </execution>
                   </executions>
@@ -113,6 +132,7 @@
                   <tasks>
                     <unzip src="../distribution/target/WSO2-TestGrid.zip" dest="testgrid/testgrid-home/testgrid-dist" />
                     <unzip src="../web/target/testgrid#dashboard##v1.0.8-SNAPSHOT.war" dest="tomcat/apache-tomcat-8.5.43/webapps/ROOT" />
+                    <unzip src="../deployment-tinkerer/target/deployment-tinkerer#v0.9.war" dest="tomcat/apache-tomcat-8.5.43/webapps/deployment-tinkerer#v0.9" />
                  </tasks>
                  </configuration>
                  <goals>

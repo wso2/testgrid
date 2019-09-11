@@ -12,19 +12,22 @@ if [ "$1" = "startup-jenkins" ]; then
     #java -jar localTG-1.0-SNAPSHOT.jar startup-jenkins
 
     chmod +x ./tomcat/apache-tomcat-8.5.43/bin/*
+    chmod +x ./install_jenkins_plugins.sh
+    chmod +x ./add_credentials.sh
+    chmod +x ./add_config_provider_files.sh
+    chmod +x ./testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid/*
     ./tomcat/apache-tomcat-8.5.43/bin/startup.sh
     while [ $(curl -s -w "%{http_code}" http://localhost:8080/admin -o /dev/null) -eq 000 ]
     do
       sleep 1 
     done
     echo "installing plugins....."
-    chmod +x ./install_jenkins_plugins.sh
     ./install_jenkins_plugins.sh
     echo "adding credentials....."
-    chmod +x ./add_credentials.sh
+    
     ./add_credentials.sh
     echo "adding config provider files...."
-    chmod +x ./add_config_provider_files.sh
+    
     ./add_config_provider_files.sh
     echo "starting H2 server....."
     java -jar lib/h2-*.jar  -baseDir ./h2dbs &> /dev/null &

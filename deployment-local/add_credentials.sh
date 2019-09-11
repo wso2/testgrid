@@ -176,7 +176,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
   }
 }'
 
-while [ $(java -jar tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < credentialsEnumerator.groovy) -lt 15 ]
+while [ "$(java -jar tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < credentialsEnumerator.groovy)" -lt 15 ]
 do
    sleep 1
 
