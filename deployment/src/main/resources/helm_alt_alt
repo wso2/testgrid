@@ -1,21 +1,22 @@
 set -o xtrace
+set -euxo pipefail
 
-function executeWrappedHelm(){
+function executeWrappedHelm() {
   productNameFound="false"
   subCommand=($PARAMS)
   if [ ${#subCommand[@]} -eq 3 ]; then
-    for k in $( jq '.["dep-in"].LogFileLocations | keys | .[]' $WORKSPACE/data-bucket/params.json); do
+    for k in $(jq '.["dep-in"].LogFileLocations | keys | .[]' $WORKSPACE/data-bucket/params.json); do
       productNameProps=$k
       echo $productNameProps
       productName="\"$(echo ${subCommand[1]})"\"
-      if [[ $productNameProps = $productName ]]; then
+      if [[ $productNameProps == $productName ]]; then
         productNameFound="true"
       fi
     done
   fi
   echo $productNameFound
-  if [[ $productNameFound = "true" ]]; then
-    ~/temp/helm template "${@:2}" >> deployment_temp.yaml
+  if [[ $productNameFound == "true" ]]; then
+    ~/temp/helm template "${@:2}" >>deployment_temp.yaml
     ~/temp/helm create proj_temp
     mv proj_temp $DEP_REPO
     rm $DEP_REPO/proj_temp/values.yaml
@@ -23,9 +24,9 @@ function executeWrappedHelm(){
     rm -r $DEP_REPO/proj_temp/templates
     mkdir $DEP_REPO/proj_temp/templates
     mv deployment_temp.yaml $DEP_REPO/proj_temp/templates/deployment.yaml
-    groovy $DEP_REPO/kubedeployment_editor.groovy "HELM" ${subCommand[1]} deployment_temp.yaml "${WORKSPACE}/data-bucket/params.json"  $DEP_REPO/proj_temp/templates/deployment.yaml
+    groovy $DEP_REPO/kubedeployment_editor.groovy "HELM" ${subCommand[1]} deployment_temp.yaml "${WORKSPACE}/data-bucket/params.json" $DEP_REPO/proj_temp/templates/deployment.yaml
     rm $DEP_REPO/proj_temp/templates/deployment.yaml
-    mv deployment_temp.yaml  $DEP_REPO/proj_temp/templates/deployment.yaml
+    mv deployment_temp.yaml $DEP_REPO/proj_temp/templates/deployment.yaml
     ~/temp/helm init
     ~/temp/helm install ${subCommand[1]} $DEP_REPO/proj_temp
   else
@@ -33,211 +34,203 @@ function executeWrappedHelm(){
   fi
 }
 
-function executeNormalHelm(){
+function executeNormalHelm() {
   ~/temp/helm init
   ~/temp/helm $@
 }
 
-function saveFlags(){
+function saveFlags() {
   PARAMS=""
   list=""
-  while (( "$#" )); do
+  while (("$#")); do
     case "$1" in
-      -f|--values)
-        counter=0
-        skipped=0
-        for var in "${@:2}"
-        do
-            if [[ -f $var ]]; then
-              case $var in
-                   chart|completion|create|dependency|get|help|history|home|init|lint|list|package|plugin|pull|registry|repo|rollback|search|show|status|template|test|uninstall|upgrade|verify|version)
-                       if [[ $list =~ "$var" ]]; then
-                           echo "already contains skipping"
-                          ((skipped=skipped+1))
-                       else
-                           list="$list $var"
-                           ((counter=counter+1))
-                       fi
-                       ;;
-                   *)
-                       list="$list $var"
-                       ((counter=counter+1+skipped))
-                       skipped=0
-                       ;;
-              esac
-            else
-               case $var in
-                    chart|completion|create|dependency|get|help|history|home|init|lint|list|package|plugin|pull|registry|repo|rollback|search|show|status|template|test|uninstall|upgrade|verify|version)
-                        if [ $counter -eq 0 ]; then
-                            errorincommand=true
-                        fi
-                        ;;
-                    *)
-                        errorincommand=true
-                        ;;
-               esac
-               break
-            fi
-        done
-        ((counter=counter+1))
-        shift $counter
-        ;;
-      --atomic)
-        atomic=true
-        shift 1
-        ;;
-      --ca-string)
-        castring=$2
-        shift 2
-        ;;
-      --cert-file)
-        certfile=$2
-        shift 2
-        ;;
-      --dependency-update)
-        dupdate=true
-        shift 1
-        ;;
-      --devel)
-        devel=true
-        shift 1
-        ;;
-      --dry-run)
-        dryrun=true
-        shift 1
-        ;;
-      -g|--generate-name)
-        gname=true
-        shift 1
-        ;;
-      -h|--help)
-        help=true
-        shift 1
-        ;;
-      --key-file)
-        keyfile=$2
-        shift 2
-        ;;
-      --keyring)
-        keyring=$2
-        shift 2
-        ;;
-      --name-template)
-        nametemplate=$2
-        shift 2
-        ;;
-      --no-hooks )
-        nohooks=true
-        shift 1
-        ;;
-      --password)
-        password=$2
-        shift 2
-        ;;
-      --replace)
-        replace=true
-        shift 1
-        ;;
-      --repo)
-        repo=$2
-        shift 2
-        ;;
-      --set)
-        set=$2
-        shift 2
-        ;;
-      --set-string)
-        setstring=$2
-        shift 2
-        ;;
-      --timeout)
-        timeout=$2
-        shift 2
-        ;;
-      --username)
-        username=$2
-        shift 2
-        ;;
-      --verify)
-        verify=true
-        shift 1
-        ;;
-      --version)
-        version=$2
-        shift 2
-        ;;
-      --wait)
-        wait=true
-        shift 1
-        ;;
-      alsologtostderr)
-        alsologtostderr=true
-        shift 1
-        ;;
-      --debug)
-        debug=true
-        shift 1
-        ;;
-      --home)
-        home=$2
-        shift 2
-        ;;
-      --kube-context)
-        kcontext=$2
-        shift 2
-        ;;
-      --kubeconfig)
-        kconfig=$2
-        shift 2
-        ;;
-      --log-backtrace-at)
-        logbat=$2
-        shift 2
-        ;;
-      --log-dir)
-        logdir=$2
-        shift 2
-        ;;
-      --log-file)
-        logfile=$2
-        shift 2
-        ;;
-      --logtostderr)
-        logtostderr=true
-        shift 1
-        ;;
-      --namespace|-n)
-        namespace=$2
-        shift 2
-        ;;
-      --skip-headers)
-        skipheaders=true
-        shift 1
-        ;;
-      --stderrthreshold)
-        stderrthreshold=$2
-        shift 2
-        ;;
-      -v|--v)
-        v=$2
-        shift 2
-        ;;
-      --vmodule)
-        vmodule=$2
-        shift 2
-        ;;
-      *) # preserve positional arguments
-        PARAMS="$PARAMS $1"
-        shift
-        ;;
+    -f | --values)
+      counter=0
+      skipped=0
+      for var in "${@:2}"; do
+        case $var in
+        chart | completion | create | dependency | get | help | history | home | init | lint | list | package | plugin | pull | registry | repo | rollback | search | show | status | template | test | uninstall | upgrade | verify | version)
+          if [ $counter -eq 0 ]; then
+            errorincommand=true
+          fi
+          break
+          ;;
+        --* | -*)
+          if [ $counter -eq 0 ]; then
+            errorincommand=true
+          fi
+          break
+          ;;
+        *)
+          if [[ -f $var ]]; then
+            list="$list $var"
+            ((counter = counter + 1))
+          else
+            errorincommand=true
+            break
+          fi
+          ;;
+        esac
+      done
+      ((counter = counter + 1))
+      shift $counter
+      ;;
+    --atomic)
+      atomic=true
+      shift 1
+      ;;
+    --ca-string)
+      castring=$2
+      shift 2
+      ;;
+    --cert-file)
+      certfile=$2
+      shift 2
+      ;;
+    --dependency-update)
+      dupdate=true
+      shift 1
+      ;;
+    --devel)
+      devel=true
+      shift 1
+      ;;
+    --dry-run)
+      dryrun=true
+      shift 1
+      ;;
+    -g | --generate-name)
+      gname=true
+      shift 1
+      ;;
+    -h | --help)
+      help=true
+      shift 1
+      ;;
+    --key-file)
+      keyfile=$2
+      shift 2
+      ;;
+    --keyring)
+      keyring=$2
+      shift 2
+      ;;
+    --name-template)
+      nametemplate=$2
+      shift 2
+      ;;
+    --no-hooks)
+      nohooks=true
+      shift 1
+      ;;
+    --password)
+      password=$2
+      shift 2
+      ;;
+    --replace)
+      replace=true
+      shift 1
+      ;;
+    --repo)
+      repo=$2
+      shift 2
+      ;;
+    --set)
+      set=$2
+      shift 2
+      ;;
+    --set-string)
+      setstring=$2
+      shift 2
+      ;;
+    --timeout)
+      timeout=$2
+      shift 2
+      ;;
+    --username)
+      username=$2
+      shift 2
+      ;;
+    --verify)
+      verify=true
+      shift 1
+      ;;
+    --version)
+      version=$2
+      shift 2
+      ;;
+    --wait)
+      wait=true
+      shift 1
+      ;;
+    alsologtostderr)
+      alsologtostderr=true
+      shift 1
+      ;;
+    --debug)
+      debug=true
+      shift 1
+      ;;
+    --home)
+      home=$2
+      shift 2
+      ;;
+    --kube-context)
+      kcontext=$2
+      shift 2
+      ;;
+    --kubeconfig)
+      kconfig=$2
+      shift 2
+      ;;
+    --log-backtrace-at)
+      logbat=$2
+      shift 2
+      ;;
+    --log-dir)
+      logdir=$2
+      shift 2
+      ;;
+    --log-file)
+      logfile=$2
+      shift 2
+      ;;
+    --logtostderr)
+      logtostderr=true
+      shift 1
+      ;;
+    --namespace | -n)
+      namespace=$2
+      shift 2
+      ;;
+    --skip-headers)
+      skipheaders=true
+      shift 1
+      ;;
+    --stderrthreshold)
+      stderrthreshold=$2
+      shift 2
+      ;;
+    -v | --v)
+      v=$2
+      shift 2
+      ;;
+    --vmodule)
+      vmodule=$2
+      shift 2
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
     esac
   done
   # set positional arguments in their proper place
   eval set -- "$PARAMS"
-  echo -e "$PARAMS" >> flaglist.txt
+  echo -e "$PARAMS" >>flaglist.txt
 }
 
-SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 DEP_REPO="$(dirname "$(dirname "$(readlink -fm "$0")")")"
 WORKSPACE="$(dirname "$DEP_REPO")"
 
@@ -249,10 +242,11 @@ if [ $errorincommand = false ]; then
   if [ ${subCommand[0]} = install ]; then
     executeWrappedHelm $args
   else
+    errorincommand=true
     executeNormalHelm $args
   fi
 else
-    executeNormalHelm $args
+  executeNormalHelm $args
 fi
 
 #TODO 1. flags add to file getopts
