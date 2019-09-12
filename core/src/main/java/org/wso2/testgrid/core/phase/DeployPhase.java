@@ -103,7 +103,7 @@ public class DeployPhase extends Phase {
                 Path deplJsonPath = DataBucketsHelper.getOutputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE);
                 Path outputJsonPath = DataBucketsHelper.getInputLocation(getTestPlan())
-                        .resolve(DataBucketsHelper.FLATJSON_FILE);
+                        .resolve(DataBucketsHelper.PARAMS_JSONFILE);
 
                 // TODO insert properties to DEPL_OUT_FILE and JSON file as they are been executed
                 jsonpropFileEditor.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath, Optional.empty());
@@ -140,7 +140,7 @@ public class DeployPhase extends Phase {
         Path infraOutJSONFilePath = DataBucketsHelper.getOutputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.INFRA_OUT_JSONFILE);
         Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
-                .resolve(DataBucketsHelper.FLATJSON_FILE);
+                .resolve(DataBucketsHelper.PARAMS_JSONFILE);
         Path depOutFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.DEPL_OUT_FILE);
 
