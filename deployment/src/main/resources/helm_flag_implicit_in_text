@@ -1,5 +1,7 @@
 set -o xtrace
 
+# This Decorator script will keep implicitly discover flags and arguments and save them in a text file
+
 function executeWrappedHelm(){
   productNameFound="false"
   subCommand=($PARAMS)

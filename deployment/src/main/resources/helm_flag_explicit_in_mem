@@ -1,6 +1,8 @@
 set -o xtrace
 set -euxo pipefail
 
+# This Decorator script will keep explicitly discover flags and arguments and save them in memory
+
 function executeWrappedHelm() {
   productNameFound="false"
   subCommand=($PARAMS)
