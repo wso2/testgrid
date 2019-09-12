@@ -86,7 +86,7 @@ public class InfraPhase extends Phase {
             Path testJsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                     .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE);
             Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
-                    .resolve(DataBucketsHelper.FLATJSON_FILE);
+                    .resolve(DataBucketsHelper.PARAMS_JSONFILE);
             Path infraOutFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                     .resolve(DataBucketsHelper.INFRA_OUT_FILE);
 
