@@ -9,36 +9,53 @@ if [ "$1" = "startup-jenkins" ]; then
     echo "   \  /\  /  ____) | |__| / /_     | |  __/\__ \ |_| |__| | |  | | (_| |  | |____ | |_| || |____| | | | |____ "
     echo "    \/  \/  |_____/ \____/____|    |_|\___||___/\__|\_____|_|  |_|\____|  |______|\_____/\______|_| |_|______|"
     echo ""
-    #java -jar localTG-1.0-SNAPSHOT.jar startup-jenkins
-
+ 
     chmod +x ./tomcat/apache-tomcat-8.5.43/bin/*
     chmod +x ./install_jenkins_plugins.sh
     chmod +x ./add_credentials.sh
     chmod +x ./add_config_provider_files.sh
     chmod +x ./testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid/*
-    ./tomcat/apache-tomcat-8.5.43/bin/startup.sh
-    while [ $(curl -s -w "%{http_code}" http://localhost:8080/admin -o /dev/null) -eq 000 ]
-    do
-      sleep 1 
-    done
-    echo "installing plugins....."
-    ./install_jenkins_plugins.sh
-    echo "adding credentials....."
-    
-    ./add_credentials.sh
-    echo "adding config provider files...."
-    
-    ./add_config_provider_files.sh
-    echo "starting H2 server....."
-    java -jar lib/h2-*.jar  -baseDir ./h2dbs &> /dev/null &
-    
+
+    if [ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080) -eq 000 ]
+    then 
+        ./tomcat/apache-tomcat-8.5.43/bin/startup.sh
+
+    	while [ $(curl -s -w "%{http_code}" http://localhost:8080/admin -o /dev/null) -eq 000 ]
+    	do
+      	  sleep 1 
+    	done
+
+    	echo "installing plugins....."
+    	./install_jenkins_plugins.sh
+
+    	echo "adding credentials....."
+    	./add_credentials.sh
+
+    	echo "adding config provider files...."    
+    	./add_config_provider_files.sh
+
+    	echo "starting H2 server....."    
+    	if [ $(curl -s -o /dev/null -w "%{http_code}" http://10.100.4.199:8082) -eq 000 ]
+    	then
+          java -jar lib/h2-*.jar  -baseDir ./h2dbs &> /dev/null &
+    	fi
+    else
+      echo "already running..."
+    fi
+
 elif [ "$1" = "shutdown-jenkins" ]
 then 
-   #java -jar localTG-1.0-SNAPSHOT.jar shutdown-jenkins
-   chmod +x ./tomcat/apache-tomcat-8.5.43/bin/shutdown.sh
-   ./tomcat/apache-tomcat-8.5.43/bin/shutdown.sh
-   java -cp lib/h2-*.jar org.h2.tools.Server -tcpShutdown tcp://localhost:9092
-else
+   
+   if [ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080) -eq 302 ]
+   then
+     ./tomcat/apache-tomcat-8.5.43/bin/shutdown.sh
+   fi
 
+   if [ $(curl -s -o /dev/null -w "%{http_code}" http://10.100.4.199:8082) -eq 200 ]
+   then
+     java -cp lib/h2-*.jar org.h2.tools.Server -tcpShutdown tcp://localhost:9092
+   fi
+
+else
    echo "Invalid command" 
 fi
