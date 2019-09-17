@@ -1,13 +1,12 @@
 #!/bin/bash
 
-
 host=http://localhost:8080/admin
 
-. credentials.config
+. params.properties
 
 while [ $(curl -s -w "%{http_code}" $host/cli -o /dev/null) -eq 503 ]
 do
- sleep 5 
+ sleep 5
 done
 
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
@@ -21,8 +20,6 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
   }
 }'
 
-
-
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 --data-urlencode 'json={
   "": "0",
@@ -33,6 +30,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
     "$class": "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl"
   }
 }'
+
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 --data-urlencode 'json={
   "": "0",
@@ -43,6 +41,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
     "$class": "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl"
   }
 }'
+
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 --data-urlencode 'json={
   "": "0",
@@ -53,6 +52,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
     "$class": "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl"
   }
 }'
+
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 --data-urlencode 'json={
   "": "0",
@@ -63,6 +63,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
     "$class": "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl"
   }
 }'
+
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 --data-urlencode 'json={
   "": "0",
@@ -73,6 +74,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
     "$class": "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl"
   }
 }'
+
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 --data-urlencode 'json={
   "": "0",
@@ -83,6 +85,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
     "$class": "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl"
   }
 }'
+
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 --data-urlencode 'json={
   "": "0",
@@ -93,6 +96,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
     "$class": "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl"
   }
 }'
+
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 --data-urlencode 'json={
   "": "0",
@@ -103,6 +107,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
     "$class": "org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl"
   }
 }'
+
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 --data-urlencode 'json={
   "": "0",
@@ -140,16 +145,14 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
   }
 }'
 
-
-
 curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 -F secret=@/"$DEPLOYMENT_KEY_FILE_LOCATION" \
 -F 'json={
- "": "4", 
+ "": "4",
  "credentials": {
-   "file":"secret", 
-   "id": "DEPLOYMENT_KEY", 
-   "stapler-class": "org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl", 
+   "file":"secret",
+   "id": "DEPLOYMENT_KEY",
+   "stapler-class": "org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl",
    "$class": "org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl"
  }
 }'
@@ -179,5 +182,4 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
 while [ "$(java -jar tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < credentialsEnumerator.groovy)" -lt 15 ]
 do
    sleep 1
-
 done

@@ -27,7 +27,7 @@
             <outputDirectory>/</outputDirectory>
         </file>
         <file>
-            <source>credentials.config</source>
+            <source>params.properties</source>
             <outputDirectory>/</outputDirectory>
         </file>
         <file>
@@ -51,7 +51,7 @@
             <outputDirectory>/</outputDirectory>
         </file>
         <file>
-            <source>CasC.yaml</source>
+            <source>configuration_as_code.yaml</source>
             <outputDirectory>/</outputDirectory>
         </file>
         <file>

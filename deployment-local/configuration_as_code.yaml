@@ -19,5 +19,4 @@ unclassified:
         modernSCM:
           scm:
             git:
-              remote: "https://github.com/udhanMti-dup/testgrid-jenkins-library"
-
+              remote: ${testgrid_jenkins_library_path}
