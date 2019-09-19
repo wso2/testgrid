@@ -111,7 +111,7 @@ def EditK8SDeployments(String outputYaml,String jsonFilePath, String pathToDeplo
                 if(group.is(null))break
 
                 // Only consider Deployment related yaml files
-                if(group.get("kind").equals("Deployment")){
+                if(group.get("kind") == "Deployment"){
 
                     // Get Deployment Metadata
                     Map<String, Object> depmeta = (Map<String, Object>) group.get("metadata")
@@ -136,8 +136,8 @@ def EditK8SDeployments(String outputYaml,String jsonFilePath, String pathToDeplo
                             for (; i < loglocations.length(); i++) {
                                 JSONObject temp = loglocations.getJSONObject(i)
                                 // When found break the loop
-                                if(temp.getString("deploymentname").equals( depmeta.get("name") )
-                                        && temp.getString("containername").equals(container.get("name"))) {
+                                if(temp.getString("deploymentname") == depmeta.get("name")
+                                        && temp.getString("containername") == container.get("name") ) {
                                     hasSidecarbeenAdded = true
                                     matchfound = true
                                     break
@@ -184,7 +184,7 @@ def EditK8SDeployments(String outputYaml,String jsonFilePath, String pathToDeplo
                         for (int j = 0; j<logcontainers;j++){
                             Map new_Volume = ["name": "logfilesmount"+j , "emptyDir": emptyMap ]
                             group.get("spec").get("template").put("spec",AddNewItem(
-                                    group.get("spec").get("template").get("spec"),"volumes",new_Volume))
+                                    (Map)group.get("spec").get("template").get("spec"),"volumes",new_Volume))
                         }
 
                         JSONObject currentscriptParams = json.getJSONObject("dep-in")
@@ -220,7 +220,7 @@ def EditK8SDeployments(String outputYaml,String jsonFilePath, String pathToDeplo
                                               CommandString+"./kubernetes_startup.sh && tail -f /dev/null" ]
                                 ]
                         group.get("spec").get("template").put("spec",AddNewItem(
-                                group.get("spec").get("template").get("spec"),"containers",new_Container))
+                                (Map)group.get("spec").get("template").get("spec"),"containers",new_Container))
                     }
 
                 }
