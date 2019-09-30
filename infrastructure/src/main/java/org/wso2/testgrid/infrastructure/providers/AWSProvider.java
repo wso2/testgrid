@@ -60,6 +60,7 @@ import org.wso2.testgrid.common.config.InfrastructureConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.infrastructure.AWSResourceLimit;
+import org.wso2.testgrid.common.logging.KibanaDashboardBuilder;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.LambdaExceptionUtils;
 import org.wso2.testgrid.common.util.StringUtil;
@@ -69,7 +70,6 @@ import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.CloudFormationScriptPreprocessor;
 import org.wso2.testgrid.infrastructure.providers.aws.AMIMapper;
 import org.wso2.testgrid.infrastructure.providers.aws.AWSResourceManager;
-import org.wso2.testgrid.infrastructure.providers.aws.KibanaDashboardBuilder;
 import org.wso2.testgrid.infrastructure.providers.aws.StackCreationWaiter;
 
 import java.io.FileOutputStream;

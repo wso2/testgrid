@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.testgrid.infrastructure.providers.aws;
+package org.wso2.testgrid.common.logging;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -52,6 +53,7 @@ public class KibanaDashboardBuilder {
     private String allLogsFilterEncodedSection;
     private String allLogsFilterJsonSection;
     private Map<String, Map<String, String>> allInstances;
+    private ArrayList<String> allK8SNameSpaces;
     private static volatile KibanaDashboardBuilder kibanaDashboardBuilder;
     private static final Object lock = new Object();
 
@@ -139,6 +141,61 @@ public class KibanaDashboardBuilder {
         filtersStr.add(allLogsFilter);
         String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
                 .replaceAll("#_STACK_NAME_#", currentStackName);
+
+        if (shortenURL) {
+            return shortenKibanaURL(logDownloadCtx);
+        } else {
+            return Optional.of(kibanaEndpoint + logDownloadCtx);
+        }
+
+    }
+
+    /**
+     * This method is responsible for building the Kibana dashboard for the available stacks.
+     *
+     * @param currentNameSpace Cloudformation stack name
+     * @param shortenURL weather to shorten URL or not, primaryliy used for unit testing purposes
+     * @return Optional of dashboard link shortened to make it compatible with database column
+     * restrictions
+     */
+    public Optional<String> buildDashBoardforK8S(String currentNameSpace, boolean shortenURL) {
+
+        if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
+            logger.warn("Kibana endpoint configuration not found in testgrid config. Server log view may not work!" +
+                    "Kibana Endpoint : " + kibanaEndpoint +
+                    "\nDashbboardCtxFormat : " + dashboardCtxFormat +
+                    "\ninstanceLogFilterFormat : " + instanceLogFilterFormat);
+            return Optional.empty();
+        }
+        //TODO implement filtering unwanted nodes with no log input i.e BastianNode , PuppetMaster
+        allK8SNameSpaces.add(currentNameSpace);
+        String instanceLogFilter;
+        StringJoiner filtersStr = new StringJoiner(",");
+
+        for (Map.Entry<String, Map<String, String>> allInstancesEntry : allInstances.entrySet()) {
+            Map<String, String> instanceMap = allInstancesEntry.getValue();
+            for (Map.Entry<String, String> entry : instanceMap.entrySet()) {
+                instanceLogFilter = instanceLogFilterFormat
+                        .replaceAll("#_INSTANCE_ID_#", entry.getKey())
+                        .replaceAll("#_LABEL_#", entry.getValue())
+                        .replaceAll("#_STACK_NAME_#", allInstancesEntry.getKey());
+                filtersStr.add(instanceLogFilter);
+            }
+        }
+
+        StringJoiner allLogsStr = new StringJoiner(",");
+        StringJoiner allLogsJson = new StringJoiner(",");
+
+        for (String stackName : allInstances.keySet()) {
+            allLogsStr.add(allLogsFilterEncodedSection.replaceAll("#_STACK_NAME_#", stackName));
+            allLogsJson.add(allLogsFilterJsonSection.replaceAll("#_STACK_NAME_#", stackName));
+        }
+        allLogsFilter = allLogsFilter
+                .replaceAll("#_ALL_LOGS_FILTER_SECTION_#", allLogsStr.toString())
+                .replaceAll("#_REPEATABLE_ALL_LOGS_JSON_SECTION_#", allLogsJson.toString());
+        filtersStr.add(allLogsFilter);
+        String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
+                .replaceAll("#_STACK_NAME_#", currentNameSpace);
 
         if (shortenURL) {
             return shortenKibanaURL(logDownloadCtx);

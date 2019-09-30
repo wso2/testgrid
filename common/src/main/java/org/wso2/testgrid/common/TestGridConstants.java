@@ -116,4 +116,6 @@ public class TestGridConstants {
     public static final String ALL_ALGO = "all";
 
     public static final String DEFAULT_SCHEDULE = "manual";
+
+    public static final String HELM_PRODUCT_PROPFILE = "helm_dep.props";
 }
