@@ -247,12 +247,9 @@ function install_helm(){
   #if helm is not installed in the cluster, helm and tiller will be installed.
   if ! type 'helm'
   then
-    wget https://get.helm.sh/helm-v3.0.0-alpha.2-linux-amd64.tar.gz
-    tar -zxvf helm-v3.0.0-alpha.2-linux-amd64.tar.gz
-    mkdir ~/.local/bin/
-    PATH=~/.local/bin/:$PATH
-    mv linux-amd64/helm ~/.local/bin/helm
-    ~/.local/bin/helm init
+    wget https://get.helm.sh/helm-v3.0.0-beta.3-linux-amd64.tar.gz -O helm-installer.tar.gz
+    tar -zxvf helm-installer.tar.gz
+    mv linux-amd64/helm /usr/local/bin/
     helm version
 
   fi
