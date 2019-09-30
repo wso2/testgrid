@@ -36,8 +36,7 @@ function create_k8s_resources() {
       exit 1
     fi
 
-    #install helm
-    install_helm
+
 
     #deploy the helm configurations into the kubernetes cluster
     source $helmDeployScript
@@ -240,23 +239,7 @@ echo
 
 
 
-function install_helm(){
 
-  #if helm is not installed in the cluster, helm and tiller will be installed.
-  if ! type 'helm'
-  then
-    wget https://get.helm.sh/helm-v3.0.0-alpha.1-linux-amd64.tar.gz
-    tar -zxvf helm-v3.0.0-alpha.1-linux-amd64.tar.gz
-    mkdir ~/.local/bin/
-    PATH=~/.local/bin/:$PATH
-    mv linux-amd64/helm ~/.local/bin/helm
-    ~/.local/bin/helm init
-    helm version
-
-  fi
-
-
-}
 
 # Read a property file to a given associative array
 #
