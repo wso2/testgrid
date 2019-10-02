@@ -8,7 +8,7 @@ do
  sleep 5
 done
 
-if [ $(java -jar tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy) -eq 153 ]
+if [ $(java -jar $PWD/tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < $PWD/scripts/pluginsEnumerator.groovy) -eq 153 ]
 then
   exit 0
 fi
@@ -75,9 +75,9 @@ curl -X POST -d '<jenkins><install plugin="mission-control-view@latest" /></jenk
 curl -X POST -d '<jenkins><install plugin="configuration-as-code@latest" /></jenkins>' --header 'Content-Type: text/xml' $host$url
 curl -X POST -d '<jenkins><install plugin="pipeline-stage-view@latest" /></jenkins>' --header 'Content-Type: text/xml' $host$url
 
-while [ $(java -jar tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy) -lt 153 ]
+while [ $(java -jar $PWD/tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < $PWD/scripts/pluginsEnumerator.groovy) -lt 153 ]
 do
-   echo "plugins still installing.... "$(java -jar tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < pluginsEnumerator.groovy)" installed"
+   echo "plugins still installing.... "$(java -jar $PWD/tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < $PWD/scripts/pluginsEnumerator.groovy)" installed"
    sleep 3
 done
 

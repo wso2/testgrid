@@ -2,7 +2,7 @@
 
 host=http://localhost:8080/admin
 
-. params.properties
+. $PWD/params.properties
 
 while [ $(curl -s -w "%{http_code}" $host/cli -o /dev/null) -eq 503 ]
 do
@@ -179,7 +179,7 @@ curl -X POST ''"$host"'/credentials/store/system/domain/_/createCredentials' \
   }
 }'
 
-while [ "$(java -jar tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < credentialsEnumerator.groovy)" -lt 15 ]
+while [ "$(java -jar $PWD/tomcat/apache-tomcat-8.5.43/webapps/admin/WEB-INF/jenkins-cli.jar -s $host groovy = < $PWD/scripts/credentialsEnumerator.groovy)" -lt 15 ]
 do
    sleep 1
 done

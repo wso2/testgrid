@@ -21,7 +21,7 @@
         <name>jenkins-repo</name>
         <url>https://repo.jenkins-ci.org/releases/</url>
       </repository>
-   
+
     </repositories>
 
     <dependencies>
@@ -70,8 +70,8 @@
                           <type>war</type>
                           <overWrite>false</overWrite>
                           <outputDirectory>tomcat/apache-tomcat-8.5.43/webapps/admin</outputDirectory>
-                        </artifactItem>          
-                      </artifactItems>                            
+                        </artifactItem>
+                      </artifactItems>
                      </configuration>
                    </execution>
                    <execution>
@@ -90,7 +90,7 @@
                          <overWrite>false</overWrite>
                          <outputDirectory>tomcat/apache-tomcat-8.5.43/webapps/ROOT/WEB-INF/lib</outputDirectory>
                         </artifactItem>
-                       </artifactItems>                            
+                       </artifactItems>
                      </configuration>
                    </execution>
                   </executions>
@@ -108,7 +108,7 @@
                             <outputDirectory>tomcat/apache-tomcat-8.5.43/conf</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}</directory>
+                                    <directory>${project.basedir}/src/main/resources</directory>
                                     <includes>
                                         <include>server.xml</include>
                                     </includes>
@@ -152,6 +152,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
+                            <finalName>testgrid-local-${version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
                                 <descriptor>assembly.xml</descriptor>

@@ -9,7 +9,7 @@
     </formats>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/h2dbs</directory>
+            <directory>${project.basedir}/h2db</directory>
         </fileSet>
         <fileSet>
             <directory>${project.basedir}/jenkins-home</directory>
@@ -23,39 +23,39 @@
     </fileSets>
     <files>
         <file>
-            <source>add_credentials.sh</source>
-            <outputDirectory>/</outputDirectory>
+            <source>src/main/resources/add_credentials.sh</source>
+            <outputDirectory>scripts</outputDirectory>
         </file>
         <file>
             <source>params.properties</source>
             <outputDirectory>/</outputDirectory>
         </file>
         <file>
-            <source>credentialsEnumerator.groovy</source>
-            <outputDirectory>/</outputDirectory>
+            <source>src/main/resources/credentialsEnumerator.groovy</source>
+            <outputDirectory>scripts</outputDirectory>
         </file>
         <file>
-            <source>install_jenkins_plugins.sh</source>
-            <outputDirectory>/</outputDirectory>
+            <source>src/main/resources/install_jenkins_plugins.sh</source>
+            <outputDirectory>scripts</outputDirectory>
         </file>
         <file>
             <source>local-tg</source>
             <outputDirectory>/</outputDirectory>
         </file>
         <file>
-            <source>pluginsEnumerator.groovy</source>
-            <outputDirectory>/</outputDirectory>
+            <source>src/main/resources/pluginsEnumerator.groovy</source>
+            <outputDirectory>scripts</outputDirectory>
         </file>
         <file>
-            <source>add_config_provider_files.sh</source>
-            <outputDirectory>/</outputDirectory>
+            <source>src/main/resources/add_config_provider_files.sh</source>
+            <outputDirectory>scripts</outputDirectory>
         </file>
         <file>
-            <source>configuration.yaml</source>
-            <outputDirectory>/</outputDirectory>
+            <source>src/main/resources/configuration_as_code.yaml</source>
+            <outputDirectory>scripts</outputDirectory>
         </file>
         <file>
-            <source>setenv.sh</source>
+            <source>src/main/resources/setenv.sh</source>
             <outputDirectory>tomcat/apache-tomcat-8.5.43/bin</outputDirectory>
         </file>
 

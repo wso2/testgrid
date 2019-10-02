@@ -8,11 +8,11 @@ if [ "$1" = "startup-jenkins" ]; then
     echo "   \  /\  /  ____) | |__| / /_     | |  __/\__ \ |_| |__| | |  | | (_| |  | |____| |__| | |____ | |  | | |____ "
     echo "    \/  \/  |_____/ \____/____|    |_|\___||___/\__|\_____|_|  |_|\____|  |______|\ ___ /\______|_|  |_|______|"
     echo ""
-
+    echo "Please make sure that the mandatory parameters in params.properties file are set. Process can be stuck in the middle otherwise"
     chmod +x ./tomcat/apache-tomcat-8.5.43/bin/*
-    chmod +x ./install_jenkins_plugins.sh
-    chmod +x ./add_credentials.sh
-    chmod +x ./add_config_provider_files.sh
+    chmod +x ./scripts/install_jenkins_plugins.sh
+    chmod +x ./scripts/add_credentials.sh
+    chmod +x ./scripts/add_config_provider_files.sh
     chmod +x ./testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid/*
 
     if [ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080) -eq 000 ]
@@ -26,23 +26,23 @@ if [ "$1" = "startup-jenkins" ]; then
     	done
 
     	echo "installing plugins....."
-    	./install_jenkins_plugins.sh
+    	./scripts/install_jenkins_plugins.sh
 
     	echo "adding credentials....."
-    	./add_credentials.sh
+    	./scripts/add_credentials.sh
 
     	echo "adding config provider files...."
-    	./add_config_provider_files.sh
+    	./scripts/add_config_provider_files.sh
 
     else
-      echo "already running..."
+      echo "another application is already running in localhost:8080...shutdown it to proceed ahead.."
     fi
 
 
     if [ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082) -eq 000 ]
     then
         echo "starting H2 server....."
-        java -jar lib/h2-*.jar  -baseDir ./h2dbs &> /dev/null &
+        java -jar lib/h2-*.jar  -baseDir ./h2db &> /dev/null &
     fi
 
 
@@ -60,5 +60,5 @@ then
    fi
 
 else
-   echo "Invalid command"
+   echo "Invalid command \nValid commands are..\n./local-tg startup-jenkins - to startup local-tg\n./local-tg shutdown-jenkins - to shutdown local-tg"
 fi
