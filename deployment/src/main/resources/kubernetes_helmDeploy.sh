@@ -261,6 +261,10 @@ read_property_file() {
     unset IFS
 }
 
+write_to_dep_props() {
+  echo namespace=${namespace} >> "${OUTPUT_DIR}/deployment.properties"
+}
+
 echo "Starting helm kubernetes artifact deployment.."
 dryRun=False
 
@@ -288,3 +292,4 @@ TESTGRID_ENVIRONMENT=dev
 
 create_k8s_resources
 add_route53_entry
+write_to_dep_props

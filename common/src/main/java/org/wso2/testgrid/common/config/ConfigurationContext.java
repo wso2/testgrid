@@ -267,7 +267,22 @@ public class ConfigurationContext {
         /**
          * Repeateble json string section of all logs
          */
-        REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON");
+        REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON"),
+
+        /**
+         * Repeateble json string section of all logs
+         */
+        REPEATABLE_ALL_LOGS_FILTER_STRING_HELM("REPEATABLE_ALL_LOGS_FILTER_STRING_HELM"),
+
+        /**
+         * Repeateble json string section of all logs
+         */
+        REPEATABLE_ALL_LOGS_JSON_HELM("REPEATABLE_ALL_LOGS_JSON_HELM"),
+
+        /**
+         * Repeateble json string section of all logs
+         */
+        KIBANA_FILTER_STR_HELM("KIBANA_FILTER_STR_HELM");
 
         private String propertyName;
 

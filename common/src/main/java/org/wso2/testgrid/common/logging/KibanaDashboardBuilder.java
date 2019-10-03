@@ -53,7 +53,14 @@ public class KibanaDashboardBuilder {
     private String allLogsFilterEncodedSection;
     private String allLogsFilterJsonSection;
     private Map<String, Map<String, String>> allInstances;
+
     private ArrayList<String> allK8SNameSpaces;
+
+    private ArrayList<String> allHelmNameSpaces;
+    private String allLogsFilterEncodedSectionHelm;
+    private String allLogsFilterJsonSectionHelm;
+    private String instanceLogFilterFormatHelm;
+
     private static volatile KibanaDashboardBuilder kibanaDashboardBuilder;
     private static final Object lock = new Object();
 
@@ -76,7 +83,14 @@ public class KibanaDashboardBuilder {
                 .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_FILTER_STRING);
         allLogsFilterJsonSection = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON);
+        allLogsFilterEncodedSectionHelm = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_FILTER_STRING_HELM);
+        allLogsFilterJsonSectionHelm = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON_HELM);
+        instanceLogFilterFormatHelm = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.KIBANA_FILTER_STR_HELM);
         allInstances = new HashMap<>();
+        allHelmNameSpaces = new ArrayList<>();
     }
 
     /**
@@ -158,7 +172,7 @@ public class KibanaDashboardBuilder {
      * @return Optional of dashboard link shortened to make it compatible with database column
      * restrictions
      */
-    public Optional<String> buildDashBoardforK8S(String currentNameSpace, boolean shortenURL) {
+    public Optional<String> buildHelmTempDashBoard(String currentNameSpace, boolean shortenURL) {
 
         if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
             logger.warn("Kibana endpoint configuration not found in testgrid config. Server log view may not work!" +
@@ -168,34 +182,26 @@ public class KibanaDashboardBuilder {
             return Optional.empty();
         }
         //TODO implement filtering unwanted nodes with no log input i.e BastianNode , PuppetMaster
-        allK8SNameSpaces.add(currentNameSpace);
+        allHelmNameSpaces.add(currentNameSpace);
         String instanceLogFilter;
         StringJoiner filtersStr = new StringJoiner(",");
 
-        for (Map.Entry<String, Map<String, String>> allInstancesEntry : allInstances.entrySet()) {
-            Map<String, String> instanceMap = allInstancesEntry.getValue();
-            for (Map.Entry<String, String> entry : instanceMap.entrySet()) {
-                instanceLogFilter = instanceLogFilterFormat
-                        .replaceAll("#_INSTANCE_ID_#", entry.getKey())
-                        .replaceAll("#_LABEL_#", entry.getValue())
-                        .replaceAll("#_STACK_NAME_#", allInstancesEntry.getKey());
-                filtersStr.add(instanceLogFilter);
-            }
-        }
 
         StringJoiner allLogsStr = new StringJoiner(",");
         StringJoiner allLogsJson = new StringJoiner(",");
 
-        for (String stackName : allInstances.keySet()) {
-            allLogsStr.add(allLogsFilterEncodedSection.replaceAll("#_STACK_NAME_#", stackName));
-            allLogsJson.add(allLogsFilterJsonSection.replaceAll("#_STACK_NAME_#", stackName));
+        for (String nameSpace : allHelmNameSpaces) {
+            logger.info(nameSpace);
+            logger.info(allLogsFilterEncodedSectionHelm);
+            allLogsStr.add(allLogsFilterEncodedSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
+            allLogsJson.add(allLogsFilterJsonSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
         }
         allLogsFilter = allLogsFilter
                 .replaceAll("#_ALL_LOGS_FILTER_SECTION_#", allLogsStr.toString())
                 .replaceAll("#_REPEATABLE_ALL_LOGS_JSON_SECTION_#", allLogsJson.toString());
         filtersStr.add(allLogsFilter);
         String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
-                .replaceAll("#_STACK_NAME_#", currentNameSpace);
+                .replaceAll("#_NAMESPACE_#", currentNameSpace);
 
         if (shortenURL) {
             return shortenKibanaURL(logDownloadCtx);
@@ -203,6 +209,55 @@ public class KibanaDashboardBuilder {
             return Optional.of(kibanaEndpoint + logDownloadCtx);
         }
 
+    }
+
+    public Optional<String> buildHelmPermaDashBoard(String currentNameSpace, boolean shortenURL) {
+
+        if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
+            logger.warn("Kibana endpoint configuration not found in testgrid config. Server log view may not work!" +
+                    "Kibana Endpoint : " + kibanaEndpoint +
+                    "\nDashbboardCtxFormat : " + dashboardCtxFormat +
+                    "\ninstanceLogFilterFormat : " + instanceLogFilterFormat);
+            return Optional.empty();
+        }
+        //TODO implement filtering unwanted nodes with no log input i.e BastianNode , PuppetMaster
+
+        String instanceLogFilter;
+        StringJoiner filtersStr = new StringJoiner(",");
+
+        for (String nameSpace : allHelmNameSpaces) {
+            ArrayList<String> instanceMap = getInstances(nameSpace);
+            for (String instances : instanceMap) {
+                instanceLogFilter = instanceLogFilterFormatHelm
+                        .replaceAll("#_INSTANCE_ID_#", instances)
+                        .replaceAll("#_NAMESPACE_#", nameSpace);
+                filtersStr.add(instanceLogFilter);
+            }
+        }
+
+        StringJoiner allLogsStr = new StringJoiner(",");
+        StringJoiner allLogsJson = new StringJoiner(",");
+
+        for (String nameSpace : allHelmNameSpaces) {
+            allLogsStr.add(allLogsFilterEncodedSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
+            allLogsJson.add(allLogsFilterJsonSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
+        }
+        allLogsFilter = allLogsFilter
+                .replaceAll("#_ALL_LOGS_FILTER_SECTION_#", allLogsStr.toString())
+                .replaceAll("#_REPEATABLE_ALL_LOGS_JSON_SECTION_#", allLogsJson.toString());
+        filtersStr.add(allLogsFilter);
+        String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
+                .replaceAll("#_NAMESPACE_#", currentNameSpace);
+
+        if (shortenURL) {
+            return shortenKibanaURL(logDownloadCtx);
+        } else {
+            return Optional.of(kibanaEndpoint + logDownloadCtx);
+        }
+    }
+
+    private ArrayList<String> getInstances(String nameSpace) {
+        return new ArrayList<String>();
     }
 
     /**

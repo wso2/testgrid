@@ -26,11 +26,21 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
+import org.wso2.testgrid.common.logging.KibanaDashboardBuilder;
+import org.wso2.testgrid.common.util.DataBucketsHelper;
+import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * This class performs Kubernetes related deployment tasks using helm. This class is used to deploy
@@ -62,6 +72,8 @@ public class HelmDeployer implements Deployer {
                                            InfrastructureProvisionResult infrastructureProvisionResult,
                                            Script script)
             throws TestGridDeployerException {
+        logger.info("runs this part");
+        createTempDashBoard(testPlan);
         String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
 
         InputStream resourceFileStream = getClass().getClassLoader()
@@ -79,5 +91,35 @@ public class HelmDeployer implements Deployer {
                 Paths.get(deployRepositoryLocation, TestGridConstants.HELM_DEPLOY_SCRIPT));
 
         return deploymentCreationResult;
+    }
+
+    private void createTempDashBoard(TestPlan testPlan) {
+        Properties depProps = new Properties();
+        Path infraOutFilePath = DataBucketsHelper.getOutputLocation(testPlan)
+                .resolve(DataBucketsHelper.INFRA_OUT_FILE);
+        try (FileInputStream propsStream = new FileInputStream(infraOutFilePath.toString())) {
+            depProps.load(propsStream);
+        } catch (FileNotFoundException e) {
+            logger.error("Could not locate file " + DataBucketsHelper.INFRA_OUT_FILE);
+        } catch (IOException e) {
+            logger.error("Could not read file " + DataBucketsHelper.INFRA_OUT_FILE);
+        }
+
+        String namespace = depProps.getProperty("namespace");
+
+        try {
+            KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
+            Optional<String> logUrl = builder.buildHelmTempDashBoard(namespace, true);
+            logger.info("The DashBoard URL");
+            logUrl.ifPresent(logurlval -> logger.info(logurlval));
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            testPlanUOW.persistTestPlan(testPlan);
+        } catch (TestGridDAOException e) {
+            logger.error("Error occurred while persisting log URL to test plan."
+                    + testPlan.toString() + e.getMessage());
+        } catch (Exception e) {
+            logger.warn("Unknown error occurred while deriving the Kibana log dashboard URL. Continuing the "
+                    + "deployment regardless. Test plan ID: " + testPlan, e);
+        }
     }
 }

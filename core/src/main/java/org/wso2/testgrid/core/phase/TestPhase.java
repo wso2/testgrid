@@ -49,6 +49,7 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.InfrastructureProviderInitializationException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.exception.UnsupportedProviderException;
+import org.wso2.testgrid.common.logging.KibanaDashboardBuilder;
 import org.wso2.testgrid.common.plugins.AWSArtifactReader;
 import org.wso2.testgrid.common.plugins.ArtifactReadable;
 import org.wso2.testgrid.common.plugins.ArtifactReaderException;
@@ -61,9 +62,12 @@ import org.wso2.testgrid.common.util.tinkerer.SyncCommandResponse;
 import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.dao.TestGridDAOException;
+import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -122,6 +126,10 @@ public class TestPhase extends Phase {
             logger.error("Unexpected Error occurred while performing post test execution tasks," +
                     "hence skipping the step and continuing the test plan lifecycle. ", e);
         }
+
+        if (!getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("CLOUDFORMATION")) {
+            createPermaDashBoard();
+        }
         uploadDeploymentOutputsToS3();
         // Test plan completed. Update and persist testplan status
         updateTestPlanStatusBasedOnResults();
@@ -131,6 +139,37 @@ public class TestPhase extends Phase {
         } catch (TestPlanExecutorException e) {
             logger.error("Error occurred while executing Test Phase (post actions of scenario-execution) for the " +
                     "test-plan " + getTestPlan().getId());
+        }
+    }
+
+    private void createPermaDashBoard() {
+        Properties depProps = new Properties();
+        TestPlan testPlan = getTestPlan();
+        Path depOutJSONFilePath = DataBucketsHelper.getOutputLocation(testPlan)
+                .resolve(DataBucketsHelper.DEPL_OUT_FILE);
+        try (FileInputStream propsStream = new FileInputStream(depOutJSONFilePath.toString())) {
+            depProps.load(propsStream);
+        } catch (FileNotFoundException e) {
+            logger.error("Could not locate file " + DataBucketsHelper.DEPL_OUT_FILE);
+        } catch (IOException e) {
+            logger.error("Could not read file " + DataBucketsHelper.DEPL_OUT_FILE);
+        }
+
+        String namespace = depProps.getProperty("namespace");
+
+        try {
+            KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
+            Optional<String> logUrl = builder.buildHelmPermaDashBoard(namespace, true);
+            logger.info("The DashBoard URL");
+            logUrl.ifPresent(logurlval -> logger.info(logurlval));
+            TestPlanUOW testPlanUOW = new TestPlanUOW();
+            testPlanUOW.persistTestPlan(testPlan);
+        } catch (TestGridDAOException e) {
+            logger.error("Error occurred while persisting log URL to test plan."
+                    + testPlan.toString() + e.getMessage());
+        } catch (Exception e) {
+            logger.warn("Unknown error occurred while deriving the Kibana log dashboard URL. Continuing the "
+                    + "deployment regardless. Test plan ID: " + testPlan, e);
         }
     }
 
