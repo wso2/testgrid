@@ -184,21 +184,22 @@ public class TestPhase extends Phase {
                 TestExecutor testExecutor = TestExecutorFactory.getTestExecutor(
                         TestEngine.valueOf(scenarioConfig.getTestType()));
 
-                Path scenarioDir = Paths.get(getTestPlan().getScenarioTestsRepository(), scenarioConfig.getName(),
-                        scenarioConfig.getFile());
-                if (scenarioDir !=  null) {
-                    Path parent = scenarioDir.getParent();
-                    Path file = scenarioDir.getFileName();
-                    if (parent == null) {
-                        parent = Paths.get("");
+                if (scenarioConfig.getFile() != null) {
+                    Path scenarioDir = Paths.get(getTestPlan().getScenarioTestsRepository(), scenarioConfig.getName(),
+                            scenarioConfig.getFile());
+                    if (scenarioDir != null) {
+                        Path parent = scenarioDir.getParent();
+                        Path file = scenarioDir.getFileName();
+                        if (parent == null) {
+                            parent = Paths.get("");
+                        }
+                        if (file == null) {
+                            file = Paths.get("test.sh");
+                        }
+                        testExecutor.init(parent.toString(), scenarioConfig.getName(), scenarioConfig);
+                        testExecutor.execute(file.toString(), deploymentCreationResult);
                     }
-                    if (file == null) {
-                        file = Paths.get("test.sh");
-                    }
-                    testExecutor.init(parent.toString(), scenarioConfig.getName(), scenarioConfig);
-                    testExecutor.execute(file.toString(), deploymentCreationResult);
                 }
-
 
             } catch (TestAutomationException e) {
                 //todo: add reason to test-plan db record
