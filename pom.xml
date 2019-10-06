@@ -46,6 +46,7 @@
         <module>distribution</module>
         <module>remoting-agent</module>
         <module>deployment-tinkerer</module>
+        <module>deployment-local</module>
     </modules>
 
     <scm>
@@ -434,7 +435,6 @@
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
                 <version>${com.h2database.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>javax.mail</groupId>
@@ -624,7 +624,7 @@
         <!-- Test dependencies -->
         <mockito.all.version>1.10.19</mockito.all.version>
         <powermock.version>1.7.4</powermock.version>
-        <com.h2database.version>1.4.196</com.h2database.version>
+        <com.h2database.version>1.4.199</com.h2database.version>
         <javax.mail.version>1.5.0-b01</javax.mail.version>
         <!-- DAO dependencies -->
         <javax.persistence.version>2.2.0</javax.persistence.version>

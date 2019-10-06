@@ -1,0 +1,77 @@
+#!/bin/sh
+
+shutdown_localTG()
+{
+  if [ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080) -eq 302 >/dev/null 2>&1 ]
+  then
+    echo "shutting down tomcat....."
+    ./tomcat/apache-tomcat-8.5.43/bin/shutdown.sh >/dev/null
+  fi
+
+  if [ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082) -eq 200 >/dev/null 2>&1 ]
+  then
+    echo "shutting down H2 server....."
+    java -cp lib/h2-*.jar org.h2.tools.Server -tcpShutdown tcp://localhost:9092  >/dev/null 2>&1
+  fi
+
+  exit 1
+}
+
+if [ "$1" = "startup" ]; then
+
+    trap 'shutdown_localTG' 2
+
+    echo "__          _______  ____ ___    _______        _    _____      _     _    _       ____   _____   ___   _      "
+    echo "\ \        / / ____|/ __ \__ \  |__   __|      | |  / ____|    (_)   | |  | |    /  __  \/ _____|/    \| |     "
+    echo " \ \  /\  / / (___ | |  | | ) |    | | ___  ___| |_| |  __ _ __ _  __| |  | |    | |  | | |     | /__\ | |     "
+    echo "  \ \/  \/ / \___ \| |  | |/ /     | |/ _ \/ __| __| | |_ |  __| |/ _  |  | |    | |  | | |     | ____ | |     "
+    echo "   \  /\  /  ____) | |__| / /_     | |  __/\__ \ |_| |__| | |  | | (_| |  | |____| |__| | |____ | |  | | |____ "
+    echo "    \/  \/  |_____/ \____/____|    |_|\___||___/\__|\_____|_|  |_|\____|  |______|\ ___ /\______|_|  |_|______|"
+    echo ""
+    echo "Please make sure that the mandatory parameters in params.properties file are set. Process can be stuck in the middle otherwise"
+    chmod +x ./tomcat/apache-tomcat-8.5.43/bin/*
+    chmod +x ./scripts/install_jenkins_plugins.sh
+    chmod +x ./scripts/add_credentials.sh
+    chmod +x ./scripts/add_config_provider_files.sh
+    chmod +x ./testgrid/testgrid-home/testgrid-dist/WSO2-TestGrid/*
+
+    if [ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080) -eq 000 >/dev/null 2>&1 ]
+    then
+
+      echo "starting tomcat....."
+      ./tomcat/apache-tomcat-8.5.43/bin/startup.sh >/dev/null
+
+    	while [ $(curl -s -w "%{http_code}" http://localhost:8080/admin -o /dev/null) -eq 000 >/dev/null 2>&1 ]
+    	do
+      	  sleep 1
+    	done
+
+    	echo "installing plugins....."
+    	./scripts/install_jenkins_plugins.sh
+
+    	echo "adding credentials....."
+    	./scripts/add_credentials.sh
+
+    	echo "adding config provider files...."
+    	./scripts/add_config_provider_files.sh
+
+    else
+      echo "another application is already running in localhost:8080...shutdown it to proceed ahead.."
+    fi
+
+
+    if [ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082) -eq 000 >/dev/null 2>&1 ]
+    then
+        echo "starting H2 server....."
+        java -jar lib/h2-*.jar -baseDir ./h2db >/dev/null 2>&1 &
+
+    fi
+
+elif [ "$1" = "shutdown" ]
+then
+
+  shutdown_localTG
+
+else
+   echo "Invalid command \nValid commands are..\n./local-tg startup - to startup local-tg\n./local-tg shutdown - to shutdown local-tg"
+fi
