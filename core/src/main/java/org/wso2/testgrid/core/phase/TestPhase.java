@@ -161,6 +161,9 @@ public class TestPhase extends Phase {
                         testExecutor.init(parent.toString(), scenarioConfig.getName(), scenarioConfig);
                         testExecutor.execute(file.toString(), deploymentCreationResult);
                     }
+                } else {
+                    logger.error("Error occurred as test.sh location is not specified");
+                    persistTestPlanProgress(TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
                 }
 
             } catch (TestAutomationException e) {
