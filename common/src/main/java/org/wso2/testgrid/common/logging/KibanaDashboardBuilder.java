@@ -165,8 +165,8 @@ public class KibanaDashboardBuilder {
     }
 
     /**
-     * This method is responsible for building the Kibana dashboard for the available stacks.
-     *
+     * This method is responsible for building the Kibana dashboard for Helm which only includes filters under the
+     * namespace
      * @param currentNameSpace Cloudformation stack name
      * @param shortenURL weather to shorten URL or not, primaryliy used for unit testing purposes
      * @return Optional of dashboard link shortened to make it compatible with database column
@@ -211,6 +211,14 @@ public class KibanaDashboardBuilder {
 
     }
 
+
+    /**
+     * Builds the final dashboard for helm deployments which includes filters for all pods
+     * @param currentNameSpace Cloudformation stack name
+     * @param shortenURL weather to shorten URL or not, primaryliy used for unit testing purposes
+     * @return Optional of dashboard link shortened to make it compatible with database column
+     *      * restrictions
+     */
     public Optional<String> buildHelmPermaDashBoard(String currentNameSpace, boolean shortenURL) {
 
         if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
@@ -226,7 +234,8 @@ public class KibanaDashboardBuilder {
         StringJoiner filtersStr = new StringJoiner(",");
 
         for (String nameSpace : allHelmNameSpaces) {
-            ArrayList<String> instanceMap = getInstances(nameSpace);
+            ElasticSearchHelper esHelper = new ElasticSearchHelper();
+            ArrayList<String> instanceMap = esHelper.getAllIndexes(nameSpace);
             for (String instances : instanceMap) {
                 instanceLogFilter = instanceLogFilterFormatHelm
                         .replaceAll("#_INSTANCE_ID_#", instances)
@@ -254,10 +263,6 @@ public class KibanaDashboardBuilder {
         } else {
             return Optional.of(kibanaEndpoint + logDownloadCtx);
         }
-    }
-
-    private ArrayList<String> getInstances(String nameSpace) {
-        return new ArrayList<String>();
     }
 
     /**

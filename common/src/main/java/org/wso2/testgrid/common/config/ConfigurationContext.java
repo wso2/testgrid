@@ -265,24 +265,29 @@ public class ConfigurationContext {
         REPEATABLE_ALL_LOGS_FILTER_STRING("REPEATABLE_ALL_LOGS_FILTER_STRING"),
 
         /**
-         * Repeateble json string section of all logs
+         * Repeateble json string section of all logs for helm deployments
          */
         REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON"),
 
         /**
-         * Repeateble json string section of all logs
+         * Repeatable string section of all logs for helm deployments
          */
         REPEATABLE_ALL_LOGS_FILTER_STRING_HELM("REPEATABLE_ALL_LOGS_FILTER_STRING_HELM"),
 
         /**
-         * Repeateble json string section of all logs
+         * Repeateble json string section of all logs for helm deployments
          */
         REPEATABLE_ALL_LOGS_JSON_HELM("REPEATABLE_ALL_LOGS_JSON_HELM"),
 
         /**
-         * Repeateble json string section of all logs
+         * Kibana dashboard ctx with placeholders for helm deployments
          */
-        KIBANA_FILTER_STR_HELM("KIBANA_FILTER_STR_HELM");
+        KIBANA_FILTER_STR_HELM("KIBANA_FILTER_STR_HELM"),
+
+        /*
+           Elastic Search Endpoint
+         */
+        ES_ENDPOINT_URL("ES_ENDPOINT_URL");
 
         private String propertyName;
 
