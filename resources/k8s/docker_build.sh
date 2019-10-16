@@ -341,8 +341,20 @@ function download_docker_repo() {
   fi
 
   log_info "\"${ZIP_FILE_NAME}\" is extracted !"
+}
 
+function clean_stack(){
 
+  echo "ramoving non-taged stack"
+  
+  img_name="${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}"
+  img_ls=$(gcloud container images list-tags "${img_name}" --filter='NOT tags:*' --format='get(digest)')
+  for digest in $img_ls
+  do
+    gcloud -q container images delete "${img_name}@${digest}"
+  done
+
+  echo "stack clean successful"
 
 }
 
@@ -374,3 +386,5 @@ for infos in $INFRA_OS; do
     done
   done
 done
+
+clean_stack
