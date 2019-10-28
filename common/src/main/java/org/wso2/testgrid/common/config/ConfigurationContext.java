@@ -270,19 +270,19 @@ public class ConfigurationContext {
         REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON"),
 
         /**
-         * Repeatable string section of all logs for helm deployments
+         * Repeatable string section of all logs for K8S deployments
          */
-        REPEATABLE_ALL_LOGS_FILTER_STRING_HELM("REPEATABLE_ALL_LOGS_FILTER_STRING_HELM"),
+        REPEATABLE_ALL_LOGS_FILTER_STRING_K8S("REPEATABLE_ALL_LOGS_FILTER_STRING_K8S"),
 
         /**
-         * Repeateble json string section of all logs for helm deployments
+         * Repeateble json string section of all logs for K8S deployments
          */
-        REPEATABLE_ALL_LOGS_JSON_HELM("REPEATABLE_ALL_LOGS_JSON_HELM"),
+        REPEATABLE_ALL_LOGS_JSON_K8S("REPEATABLE_ALL_LOGS_JSON_K8S"),
 
         /**
-         * Kibana dashboard ctx with placeholders for helm deployments
+         * Kibana dashboard ctx with placeholders for K8S deployments
          */
-        KIBANA_FILTER_STR_HELM("KIBANA_FILTER_STR_HELM"),
+        KIBANA_FILTER_STR_K8S("KIBANA_FILTER_STR_K8S"),
 
         /*
            Elastic Search Endpoint

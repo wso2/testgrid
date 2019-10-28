@@ -109,7 +109,7 @@ public class HelmDeployer implements Deployer {
 
         try {
             KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
-            Optional<String> logUrl = builder.buildHelmTempDashBoard(namespace, true);
+            Optional<String> logUrl = builder.buildK8STempDashBoard(namespace, true);
             logger.info("The DashBoard URL");
             logUrl.ifPresent(logurlval -> logger.info(logurlval));
             TestPlanUOW testPlanUOW = new TestPlanUOW();

@@ -195,19 +195,33 @@ public class PropJsonUtilTest extends PowerMockTestCase {
 
         JsonPropFileUtil jsonpropFileEditor = new JsonPropFileUtil();
 
-        jsonpropFileEditor.persistInfraInputsGeneral(DataBucketsHelper.getInputLocation(testPlan)
+        final Properties infraConfigParameters = testPlan.getInfrastructureConfig().getParameters();
+        final Properties infraJobProperties = testPlan.getJobProperties();
+        final String keyFileLocation = testPlan.getKeyFileLocation();
+
+        if (keyFileLocation != null) {
+            infraJobProperties.setProperty(TestGridConstants.KEY_FILE_LOCATION, keyFileLocation);
+        }
+
+        jsonpropFileEditor.persistAdditionalInputs(infraConfigParameters, DataBucketsHelper.getInputLocation(testPlan)
                         .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE),
                 DataBucketsHelper.getInputLocation(testPlan)
-                        .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE), testPlan);
+                        .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE), Optional.empty());
+        jsonpropFileEditor.persistAdditionalInputs(infraJobProperties, DataBucketsHelper.getInputLocation(testPlan)
+                        .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE),
+                DataBucketsHelper.getInputLocation(testPlan)
+                        .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE), Optional.empty());
 
         InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
 
         for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
             if (!Script.Phase.DESTROY.equals(script.getPhase())) {
-                jsonpropFileEditor.persistInfraInputs(script, DataBucketsHelper.getInputLocation(testPlan)
+                jsonpropFileEditor.persistAdditionalInputs(script.getInputParameters(),
+                        DataBucketsHelper.getInputLocation(testPlan)
                                 .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE),
                         DataBucketsHelper.getInputLocation(testPlan)
-                                .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE));
+                                .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE),
+                        Optional.of(script.getName()));
                 InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                         .getInfrastructureProvider(script);
                 infrastructureProvider.init(testPlan);
@@ -323,7 +337,7 @@ public class PropJsonUtilTest extends PowerMockTestCase {
 
                 jsonpropFileEditor.removeScriptParams(script, DataBucketsHelper.getInputLocation(testPlan)
                         .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE));
-                jsonpropFileEditor.refillFromPropFile(DataBucketsHelper.getInputLocation(testPlan)
+                jsonpropFileEditor.refillJSONfromPropFile(DataBucketsHelper.getInputLocation(testPlan)
                                 .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE),
                         DataBucketsHelper.getInputLocation(testPlan)
                                 .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE));

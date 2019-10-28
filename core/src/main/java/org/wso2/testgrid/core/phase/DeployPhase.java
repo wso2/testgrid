@@ -107,17 +107,17 @@ public class DeployPhase extends Phase {
 
                 // TODO insert properties to DEPL_OUT_FILE and JSON file as they are been executed
                 jsonpropFileEditor.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath, Optional.empty());
-                jsonpropFileEditor.refillFromPropFile(deplPropPath, deplJsonPath);
+                jsonpropFileEditor.refillJSONfromPropFile(deplPropPath, deplJsonPath);
 
-                jsonpropFileEditor.updateOutputJson(deplJsonPath, "test", outputJsonPath);
+                jsonpropFileEditor.updateParamsJson(deplJsonPath, "test", outputJsonPath);
                 // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
                 Map<String, Object> sceProperties = new HashMap<>();
                 for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
                     sceProperties.putAll(scenarioConfig.getInputParameters());
                     jsonpropFileEditor.persistAdditionalInputs(sceProperties, deplPropPath, deplJsonPath,
                             Optional.of(scenarioConfig.getName()));
-                    jsonpropFileEditor.refillFromPropFile(deplPropPath, deplJsonPath);
-                    jsonpropFileEditor.updateOutputJson(deplJsonPath, "test", outputJsonPath);
+                    jsonpropFileEditor.refillJSONfromPropFile(deplPropPath, deplJsonPath);
+                    jsonpropFileEditor.updateParamsJson(deplJsonPath, "test", outputJsonPath);
                 }
             }
         } catch (TestPlanExecutorException e) {
@@ -197,7 +197,7 @@ public class DeployPhase extends Phase {
                 jsonpropFileEditor.persistAdditionalInputs(deplInputs, infraOutFilePath, infraOutJSONFilePath,
                         Optional.of(script.getName()));
 
-                jsonpropFileEditor.updateOutputJson(infraOutJSONFilePath, "dep", outputjsonFilePath);
+                jsonpropFileEditor.updateParamsJson(infraOutJSONFilePath, "dep", outputjsonFilePath);
 
                 Deployer deployerService = DeployerFactory.getDeployerService(script);
                 DeploymentCreationResult aresult =
@@ -210,8 +210,8 @@ public class DeployPhase extends Phase {
                     break;
                 }
                 jsonpropFileEditor.removeScriptParams(script, infraOutFilePath);
-                jsonpropFileEditor.refillFromPropFile(infraOutFilePath, infraOutJSONFilePath);
-                jsonpropFileEditor.jsonaddNewParamstoOutputFile(depOutFilePath, "dep", outputjsonFilePath);
+                jsonpropFileEditor.refillJSONfromPropFile(infraOutFilePath, infraOutJSONFilePath);
+                jsonpropFileEditor.jsonAddNewPropsToParams(depOutFilePath, "dep", outputjsonFilePath);
             }
             return result;
         } catch (TestGridDeployerException e) {

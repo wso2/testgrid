@@ -47,16 +47,6 @@ function delete_resources() {
   kubectl delete namespaces $namespace
 }
 
-function execute_unificationArchive() {
-  export AWS_ACCESS_KEY_ID="${TG_ACCESS_KEY}"
-  export AWS_SECRET_ACCESS_KEY="${TG_SECRET_KEY}"
-  export AWS_DEFAULT_REGION="${REGION}"
-  mkdir ${tempLocation}
-  aws s3 sync ${s3Location} ${tempLocation}
-  zip -r -j "${tempLocation}/dep-outputs.zip" ${tempLocation}
-  aws s3 rm ${s3Location}
-  aws s3 cp "${tempLocation}/dep-outputs.zip" "${s3Location}dep-outputs.zip";
-}
 
 function removehost() {
     HOSTNAME=$1
@@ -86,5 +76,4 @@ if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
     return;
 fi
 
-execute_unificationArchive
 delete_resources

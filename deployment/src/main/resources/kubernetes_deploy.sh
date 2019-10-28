@@ -23,17 +23,6 @@ set -o xtrace
 #The created resources will be exposed using an Ingress to the external usage
 #
 
-function edit_deployments(){
-
-        i=0;
-        for ((i=0; i<$no_yamls; i++))
-        do
-            groovy kubedeployment_editor.groovy deployment${i}_temp.yaml "${OUTPUT_DIR}/params.json"  $yamlFilesLocation/${deploymentYamlFiles[$i]}
-            rm $yamlFilesLocation/${deploymentYamlFiles[$i]}
-            mv deployment${i}_temp.yaml  $yamlFilesLocation/${deploymentYamlFiles[$i]}
-        done
-
-}
 
 
 function create_k8s_resources() {
@@ -324,12 +313,6 @@ TESTGRID_ENVIRONMENT=${infra_props["env"]}
 TESTGRID_PASS=${infra_props["pass"]}
 ETC_HOSTS=/etc/hosts
 
-if [ -z "$LogFileLocations" ]; then
-    echo "Test Result location not set not changing deployment.yaml"
-else
-    echo "Test Result location set editing deployment.yaml"
-    edit_deployments
-fi
 
 create_k8s_resources
 add_route53_entry

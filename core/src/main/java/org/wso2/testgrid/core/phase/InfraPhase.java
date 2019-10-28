@@ -22,6 +22,8 @@ package org.wso2.testgrid.core.phase;
 import org.wso2.testgrid.common.GrafanaDashboardHandler;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
+import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestPlanPhase;
 import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -38,6 +40,9 @@ import java.io.File;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * This class includes the implementation of the infrastructure-provisioning phase.
@@ -101,14 +106,29 @@ public class InfraPhase extends Phase {
 
             InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
 
-            jsonpropFileEditor.persistInfraInputsGeneral(testPropFilePath, testJsonFilePath, getTestPlan());
+            jsonpropFileEditor.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
 
-            jsonpropFileEditor.updateOutputJson(testJsonFilePath, "infra", outputjsonFilePath);
+            TestPlan testplan = getTestPlan();
+            final Properties infraParameters = testplan.getInfrastructureConfig().getParameters();
+            final Properties jobProperties = testplan.getJobProperties();
+            final String keyFileLocation = testplan.getKeyFileLocation();
+
+            if (keyFileLocation != null) {
+                jobProperties.setProperty(TestGridConstants.KEY_FILE_LOCATION, keyFileLocation);
+            }
+
+            jsonpropFileEditor.persistAdditionalInputs(infraParameters, testPropFilePath, testJsonFilePath,
+                    Optional.empty());
+            jsonpropFileEditor.persistAdditionalInputs(jobProperties, testPropFilePath, testJsonFilePath,
+                    Optional.empty());
+
+            jsonpropFileEditor.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!Script.Phase.DESTROY.equals(script.getPhase())) {
-                    jsonpropFileEditor.persistInfraInputs(script, testPropFilePath, testJsonFilePath);
-                    jsonpropFileEditor.updateOutputJson(testJsonFilePath, "infra", outputjsonFilePath);
+                    jsonpropFileEditor.persistAdditionalInputs(script.getInputParameters(), testPropFilePath,
+                            testJsonFilePath, Optional.of(script.getName()));
+                    jsonpropFileEditor.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(getTestPlan());
@@ -120,9 +140,9 @@ public class InfraPhase extends Phase {
                         logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
                         break;
                     }
-                    jsonpropFileEditor.jsonaddNewParamstoOutputFile(infraOutFilePath, "infra", outputjsonFilePath);
                     jsonpropFileEditor.removeScriptParams(script, testPropFilePath);
-                    jsonpropFileEditor.refillFromPropFile(testPropFilePath, testJsonFilePath);
+                    jsonpropFileEditor.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
+                    jsonpropFileEditor.jsonAddNewPropsToParams(infraOutFilePath, "infra", outputjsonFilePath);
                 }
             }
 

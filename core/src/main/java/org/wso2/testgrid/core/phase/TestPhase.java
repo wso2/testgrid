@@ -127,7 +127,7 @@ public class TestPhase extends Phase {
                     "hence skipping the step and continuing the test plan lifecycle. ", e);
         }
 
-        if (!getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("CLOUDFORMATION")) {
+        if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
             createPermaDashBoard();
         }
         uploadDeploymentOutputsToS3();
@@ -423,12 +423,7 @@ public class TestPhase extends Phase {
                                         .ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT) + "&&" +
                                 "export AWS_DEFAULT_REGION=" + ConfigurationContext
                                 .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME) + "&&";
-                String runLogArchiverScript;
-                if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
-                    runLogArchiverScript = "./log_archiver.sh &&";
-                } else {
-                    runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
-                }
+                String runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
                 String s3Location = deriveDeploymentOutputsDirectory();
                 if (s3Location != null) {
                     ExecutorService executorService = Executors.newCachedThreadPool();
@@ -437,14 +432,12 @@ public class TestPhase extends Phase {
                                 s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
                         String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
                                 s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
-                        if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
+                        if (getTestPlan().getInfrastructureConfig().getIacProvider()
+                                .toString().equals("CLOUDFORMATION")) {
                             executorService.execute(new TinkererCommand(agent.getAgentId(), getTestPlan().getId(),
                                     agent.getInstanceName(),
-                                    configureAWSCLI + runLogArchiverScript + uploadDumpsToS3));
-                        } else {
-                            executorService.execute(new TinkererCommand(agent.getAgentId(), getTestPlan().getId(),
-                                    agent.getInstanceName(),
-                                    configureAWSCLI + runLogArchiverScript + uploadLogsToS3 + uploadDumpsToS3));
+                                    configureAWSCLI + runLogArchiverScript +
+                                            uploadLogsToS3 + uploadDumpsToS3));
                         }
                     });
                     executorService.shutdown();
@@ -459,18 +452,6 @@ public class TestPhase extends Phase {
                         logger.error("Exception occurred while waiting for tinkerer commands to be completed. " +
                                 "Please note the commands may not have completely executed due to this. Exception: "
                                 + e.getMessage(), e);
-                    }
-
-                    // Persist necessary params for Kubernetes Destroy Script
-                    if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
-                        logger.info("running unification step for K8S deployment");
-                        Path infraPropFile = DataBucketsHelper.getOutputLocation(getTestPlan())
-                                .resolve(DataBucketsHelper.DEPL_OUT_FILE);
-                        Path infraJsonFile = DataBucketsHelper.getOutputLocation(getTestPlan())
-                                .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE);
-                        persistK8SDestroyParams(s3Location, infraPropFile, infraJsonFile);
-                    } else {
-                        logger.info(getTestPlan().getInfrastructureConfig().getIacProvider().toString());
                     }
 
                     logger.info("S3 path is : " + s3Location);
@@ -510,41 +491,6 @@ public class TestPhase extends Phase {
                 }
             }
         }
-    }
-
-    /**
-     * This method adds all necessary properties for the K8S DESTROY SCRIPT
-     *
-     * @param s3Location Location of the archives in the s3 bucket
-     */
-    private void persistK8SDestroyParams(String s3Location, Path infraOutFilePath, Path infraOutJSONFilePath) {
-
-        Properties uploadProps = new Properties();
-        String temporaryLoc;
-        if (getTestPlan().getWorkspace().endsWith("/")) {
-            temporaryLoc = getTestPlan().getWorkspace() + "temp";
-        } else {
-            temporaryLoc = getTestPlan().getWorkspace() + "/temp";
-        }
-        if (!s3Location.endsWith("/")) {
-            s3Location = s3Location.concat("/");
-        }
-        uploadProps.setProperty("tempLocation", temporaryLoc);
-        uploadProps.setProperty("s3Location", s3Location);
-        uploadProps.setProperty("TG_ACCESS_KEY", ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT));
-        uploadProps.setProperty("TG_SECRET_KEY", ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT));
-        uploadProps.setProperty("REGION", ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME));
-
-        try {
-            jsonpropFileEditor.persistAdditionalInputs(uploadProps, infraOutFilePath, infraOutJSONFilePath,
-                    Optional.empty());
-        } catch (TestPlanExecutorException e) {
-            logger.error("error while persisting destroy script Params");
-        }
-
     }
 
     /**

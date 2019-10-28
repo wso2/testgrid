@@ -53,10 +53,7 @@ public class KibanaDashboardBuilder {
     private String allLogsFilterEncodedSection;
     private String allLogsFilterJsonSection;
     private Map<String, Map<String, String>> allInstances;
-
     private ArrayList<String> allK8SNameSpaces;
-
-    private ArrayList<String> allHelmNameSpaces;
     private String allLogsFilterEncodedSectionHelm;
     private String allLogsFilterJsonSectionHelm;
     private String instanceLogFilterFormatHelm;
@@ -84,13 +81,13 @@ public class KibanaDashboardBuilder {
         allLogsFilterJsonSection = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON);
         allLogsFilterEncodedSectionHelm = ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_FILTER_STRING_HELM);
+                .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_FILTER_STRING_K8S);
         allLogsFilterJsonSectionHelm = ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON_HELM);
+                .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON_K8S);
         instanceLogFilterFormatHelm = ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.KIBANA_FILTER_STR_HELM);
+                .getProperty(ConfigurationContext.ConfigurationProperties.KIBANA_FILTER_STR_K8S);
         allInstances = new HashMap<>();
-        allHelmNameSpaces = new ArrayList<>();
+        allK8SNameSpaces = new ArrayList<>();
     }
 
     /**
@@ -111,8 +108,8 @@ public class KibanaDashboardBuilder {
      * This method is responsible for building the Kibana dashboard for the available stacks.
      *
      * @param currentInstancesMap Map of instanceName and instance-id
-     * @param currentStackName Cloudformation stack name
-     * @param shortenURL weather to shorten URL or not, primaryliy used for unit testing purposes
+     * @param currentStackName CloudFormation stack name
+     * @param shortenURL weather to shorten URL or not, primarily used for unit testing purposes
      * @return Optional of dashboard link shortened to make it compatible with database column
      * restrictions
      */
@@ -165,14 +162,14 @@ public class KibanaDashboardBuilder {
     }
 
     /**
-     * This method is responsible for building the Kibana dashboard for Helm which only includes filters under the
-     * namespace
-     * @param currentNameSpace Cloudformation stack name
-     * @param shortenURL weather to shorten URL or not, primaryliy used for unit testing purposes
+     * This method is responsible for building a Temporary Kibana dashboard for TestGrid jobs in K8S environments
+     * (including Helm) which only includes filters under the namespace
+     * @param currentNameSpace CloudFormation stack name
+     * @param shortenURL weather to shorten URL or not, primarily used for unit testing purposes
      * @return Optional of dashboard link shortened to make it compatible with database column
      * restrictions
      */
-    public Optional<String> buildHelmTempDashBoard(String currentNameSpace, boolean shortenURL) {
+    public Optional<String> buildK8STempDashBoard(String currentNameSpace, boolean shortenURL) {
 
         if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
             logger.warn("Kibana endpoint configuration not found in testgrid config. Server log view may not work!" +
@@ -181,8 +178,8 @@ public class KibanaDashboardBuilder {
                     "\ninstanceLogFilterFormat : " + instanceLogFilterFormat);
             return Optional.empty();
         }
-        //TODO implement filtering unwanted nodes with no log input i.e BastianNode , PuppetMaster
-        allHelmNameSpaces.add(currentNameSpace);
+
+        allK8SNameSpaces.add(currentNameSpace);
         String instanceLogFilter;
         StringJoiner filtersStr = new StringJoiner(",");
 
@@ -190,7 +187,7 @@ public class KibanaDashboardBuilder {
         StringJoiner allLogsStr = new StringJoiner(",");
         StringJoiner allLogsJson = new StringJoiner(",");
 
-        for (String nameSpace : allHelmNameSpaces) {
+        for (String nameSpace : allK8SNameSpaces) {
             logger.info(nameSpace);
             logger.info(allLogsFilterEncodedSectionHelm);
             allLogsStr.add(allLogsFilterEncodedSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
@@ -213,27 +210,27 @@ public class KibanaDashboardBuilder {
 
 
     /**
-     * Builds the final dashboard for helm deployments which includes filters for all pods
-     * @param currentNameSpace Cloudformation stack name
-     * @param shortenURL weather to shorten URL or not, primaryliy used for unit testing purposes
+     * Builds the final Permanent dashboard for helm deployments which includes filters for all pods
+     * @param currentNameSpace CloudFormation stack name
+     * @param shortenURL weather to shorten URL or not, primarily used for unit testing purposes
      * @return Optional of dashboard link shortened to make it compatible with database column
      *      * restrictions
      */
     public Optional<String> buildHelmPermaDashBoard(String currentNameSpace, boolean shortenURL) {
 
         if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
-            logger.warn("Kibana endpoint configuration not found in testgrid config. Server log view may not work!" +
+            logger.warn("Kibana endpoint configuration not found in TestGrid config. Server log view may not work!" +
                     "Kibana Endpoint : " + kibanaEndpoint +
                     "\nDashbboardCtxFormat : " + dashboardCtxFormat +
                     "\ninstanceLogFilterFormat : " + instanceLogFilterFormat);
             return Optional.empty();
         }
-        //TODO implement filtering unwanted nodes with no log input i.e BastianNode , PuppetMaster
+
 
         String instanceLogFilter;
         StringJoiner filtersStr = new StringJoiner(",");
-
-        for (String nameSpace : allHelmNameSpaces) {
+        allK8SNameSpaces.add(currentNameSpace);
+        for (String nameSpace : allK8SNameSpaces) {
             ElasticSearchHelper esHelper = new ElasticSearchHelper();
             ArrayList<String> instanceMap = esHelper.getAllIndexes(nameSpace);
             for (String instances : instanceMap) {
@@ -247,7 +244,7 @@ public class KibanaDashboardBuilder {
         StringJoiner allLogsStr = new StringJoiner(",");
         StringJoiner allLogsJson = new StringJoiner(",");
 
-        for (String nameSpace : allHelmNameSpaces) {
+        for (String nameSpace : allK8SNameSpaces) {
             allLogsStr.add(allLogsFilterEncodedSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
             allLogsJson.add(allLogsFilterJsonSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
         }
