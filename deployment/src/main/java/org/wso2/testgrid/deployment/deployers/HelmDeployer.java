@@ -72,7 +72,7 @@ public class HelmDeployer implements Deployer {
                                            InfrastructureProvisionResult infrastructureProvisionResult,
                                            Script script)
             throws TestGridDeployerException {
-        logger.info("runs this part");
+
         createTempDashBoard(testPlan);
         String deployRepositoryLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
 

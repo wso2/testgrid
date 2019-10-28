@@ -54,9 +54,9 @@ public class KibanaDashboardBuilder {
     private String allLogsFilterJsonSection;
     private Map<String, Map<String, String>> allInstances;
     private ArrayList<String> allK8SNameSpaces;
-    private String allLogsFilterEncodedSectionHelm;
-    private String allLogsFilterJsonSectionHelm;
-    private String instanceLogFilterFormatHelm;
+    private String allLogsFilterEncodedSectionK8S;
+    private String allLogsFilterJsonSectionK8S;
+    private String instanceLogFilterFormatK8S;
 
     private static volatile KibanaDashboardBuilder kibanaDashboardBuilder;
     private static final Object lock = new Object();
@@ -80,11 +80,11 @@ public class KibanaDashboardBuilder {
                 .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_FILTER_STRING);
         allLogsFilterJsonSection = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON);
-        allLogsFilterEncodedSectionHelm = ConfigurationContext
+        allLogsFilterEncodedSectionK8S = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_FILTER_STRING_K8S);
-        allLogsFilterJsonSectionHelm = ConfigurationContext
+        allLogsFilterJsonSectionK8S = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON_K8S);
-        instanceLogFilterFormatHelm = ConfigurationContext
+        instanceLogFilterFormatK8S = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.KIBANA_FILTER_STR_K8S);
         allInstances = new HashMap<>();
         allK8SNameSpaces = new ArrayList<>();
@@ -189,9 +189,9 @@ public class KibanaDashboardBuilder {
 
         for (String nameSpace : allK8SNameSpaces) {
             logger.info(nameSpace);
-            logger.info(allLogsFilterEncodedSectionHelm);
-            allLogsStr.add(allLogsFilterEncodedSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
-            allLogsJson.add(allLogsFilterJsonSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
+            logger.info(allLogsFilterEncodedSectionK8S);
+            allLogsStr.add(allLogsFilterEncodedSectionK8S.replaceAll("#_NAMESPACE_#", nameSpace));
+            allLogsJson.add(allLogsFilterJsonSectionK8S.replaceAll("#_NAMESPACE_#", nameSpace));
         }
         allLogsFilter = allLogsFilter
                 .replaceAll("#_ALL_LOGS_FILTER_SECTION_#", allLogsStr.toString())
@@ -234,7 +234,7 @@ public class KibanaDashboardBuilder {
             ElasticSearchHelper esHelper = new ElasticSearchHelper();
             ArrayList<String> instanceMap = esHelper.getAllIndexes(nameSpace);
             for (String instances : instanceMap) {
-                instanceLogFilter = instanceLogFilterFormatHelm
+                instanceLogFilter = instanceLogFilterFormatK8S
                         .replaceAll("#_INSTANCE_ID_#", instances)
                         .replaceAll("#_NAMESPACE_#", nameSpace);
                 filtersStr.add(instanceLogFilter);
@@ -245,8 +245,8 @@ public class KibanaDashboardBuilder {
         StringJoiner allLogsJson = new StringJoiner(",");
 
         for (String nameSpace : allK8SNameSpaces) {
-            allLogsStr.add(allLogsFilterEncodedSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
-            allLogsJson.add(allLogsFilterJsonSectionHelm.replaceAll("#_NAMESPACE_#", nameSpace));
+            allLogsStr.add(allLogsFilterEncodedSectionK8S.replaceAll("#_NAMESPACE_#", nameSpace));
+            allLogsJson.add(allLogsFilterJsonSectionK8S.replaceAll("#_NAMESPACE_#", nameSpace));
         }
         allLogsFilter = allLogsFilter
                 .replaceAll("#_ALL_LOGS_FILTER_SECTION_#", allLogsStr.toString())
