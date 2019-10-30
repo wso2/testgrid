@@ -156,6 +156,10 @@ public class DeployPhase extends Phase {
             if (config.containsKey("TESTGRID_PASSWORD")) {
                 additionalDepProps.setProperty("pass", config.getProperty("TESTGRID_PASSWORD"));
             }
+            if (config.containsKey("ES_ENDPOINT")) {
+                additionalDepProps.setProperty("eSEP", config.getProperty("ES_ENDPOINT"));
+            }
+            additionalDepProps.setProperty("depRepoLoc", getTestPlan().getDeploymentRepository());
             additionalDepProps.setProperty("DEPLOYMENT_TINKERER_EP", config.getProperty("DEPLOYMENT_TINKERER_EP"));
             additionalDepProps.setProperty("DEPLOYMENT_TINKERER_USERNAME",
                     config.getProperty("DEPLOYMENT_TINKERER_USERNAME"));

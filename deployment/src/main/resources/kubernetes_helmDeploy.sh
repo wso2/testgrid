@@ -23,6 +23,11 @@ set -o xtrace
 #The created resources will be exposed using an Ingress to the external usage
 #
 
+function edit_deployments() {
+  groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/podpreset_${namespace}.yaml" k8s ${infra_props["esEP"]} ${infra_props["depRepoLoc"]}
+  kubectl create -f "${infra_props["depRepoLoc"]}/podpreset_${namespace}.yaml" --namespace ${namespace}
+}
+
 function create_k8s_resources() {
 
     if [ -z ${exposedDeployments} ]
@@ -286,9 +291,17 @@ dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
+logOptions=${infra_props["log-Options"]}
 
-#DEBUG parameters: TODO: remove
-TESTGRID_ENVIRONMENT=dev
+TESTGRID_ENVIRONMENT=${infra_props["env"]}
+TESTGRID_PASS=${infra_props["pass"]}
+ETC_HOSTS=/etc/hosts
+
+if [ -z "$logOptions" ]; then
+    echo "No Logging capabilities are set"
+else
+    edit_deployments
+fi
 
 create_k8s_resources
 add_route53_entry
