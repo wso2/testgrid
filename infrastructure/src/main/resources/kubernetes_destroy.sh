@@ -45,6 +45,12 @@ read_property_file() {
 function delete_resources() {
   echo "running destroy.sh"
   kubectl delete namespaces $namespace
+  kubectl delete mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}"
+  webhookadded=$(kubectl get mutatingwebhook "sidecar-injector-webhook-cfg-${namespace}" -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
+  if [[ "$webhookadded" == "True" ]]
+  then 
+     kubectl delete mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}"
+  fi
 }
 
 

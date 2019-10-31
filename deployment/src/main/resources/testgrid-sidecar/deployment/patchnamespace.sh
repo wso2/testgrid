@@ -1,0 +1,2 @@
+NAMESPACE=$1
+sed -e "s|\${NAMESPACE}|${NAMESPACE}|g"
