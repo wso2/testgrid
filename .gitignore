@@ -30,6 +30,10 @@ hs_err_pid*
 # target
 *target*
 
+#local-dev-files
+deployment-local/testgrid/testgrid-home/testgrid-dist/
+deployment-local/tomcat/
+
 # webapp dependencies
 node_modules/
 build/
