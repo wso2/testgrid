@@ -27,6 +27,7 @@ import org.wso2.testgrid.common.Status;
 import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlanPhase;
 import org.wso2.testgrid.common.TestPlanStatus;
+import org.wso2.testgrid.common.config.ConfigurationContext;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.DeployerInitializationException;
@@ -43,11 +44,6 @@ import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -145,39 +141,37 @@ public class DeployPhase extends Phase {
                 .resolve(DataBucketsHelper.DEPL_OUT_FILE);
 
         Properties additionalDepProps = new Properties();
-        InputStream configinput = null;
-        try {
-            configinput = new FileInputStream(TestGridUtil.getConfigFilePath().toString());
-            Properties config = new Properties();
-            config.load(configinput);
-            if (config.containsKey("TESTGRID_ENVIRONMENT")) {
-                additionalDepProps.setProperty("env", config.getProperty("TESTGRID_ENVIRONMENT"));
-            }
-            if (config.containsKey("TESTGRID_PASSWORD")) {
-                additionalDepProps.setProperty("pass", config.getProperty("TESTGRID_PASSWORD"));
-            }
-            if (config.containsKey("ES_ENDPOINT")) {
-                additionalDepProps.setProperty("eSEP", config.getProperty("ES_ENDPOINT"));
-            }
-            additionalDepProps.setProperty("depRepoLoc", getTestPlan().getDeploymentRepository());
-            additionalDepProps.setProperty("DEPLOYMENT_TINKERER_EP", config.getProperty("DEPLOYMENT_TINKERER_EP"));
+        additionalDepProps.setProperty("depRepoLoc", getTestPlan().getDeploymentRepository());
+        if (ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.DEPLOYMENT_TINKERER_EP) != null) {
+            additionalDepProps.setProperty("DEPLOYMENT_TINKERER_EP",
+                    ConfigurationContext.getProperty(ConfigurationContext.
+                            ConfigurationProperties.DEPLOYMENT_TINKERER_EP));
+        }
+        if (ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME) != null) {
             additionalDepProps.setProperty("DEPLOYMENT_TINKERER_USERNAME",
-                    config.getProperty("DEPLOYMENT_TINKERER_USERNAME"));
+                    ConfigurationContext.getProperty(ConfigurationContext.
+                            ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME));
+        }
+        if (ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD) != null) {
             additionalDepProps.setProperty("DEPLOYMENT_TINKERER_PASSWORD",
-                    config.getProperty("DEPLOYMENT_TINKERER_PASSWORD"));
-            configinput.close();
-        } catch (FileNotFoundException e) {
-            logger.error("could not find config.properties");
-        } catch (IOException e) {
-            logger.error("could not close the stream");
-        } finally {
-            if (configinput != null) {
-                try {
-                    configinput.close();
-                } catch (IOException e) {
-
-                }
-            }
+                    ConfigurationContext.getProperty(ConfigurationContext.
+                            ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD));
+        }
+        if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL) != null) {
+            additionalDepProps.setProperty("esEP",
+                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL));
+        }
+        if (ConfigurationContext.getProperty(ConfigurationContext.
+                    ConfigurationProperties.TESTGRID_ENVIRONMENT) != null) {
+            additionalDepProps.setProperty("env", ConfigurationContext.getProperty(ConfigurationContext.
+                    ConfigurationProperties.TESTGRID_ENVIRONMENT));
+        }
+        if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS) != null) {
+            additionalDepProps.setProperty("PASS", ConfigurationContext.getProperty(ConfigurationContext.
+                    ConfigurationProperties.TESTGRID_PASS));
         }
 
         additionalDepProps.setProperty("tpID", getTestPlan().getId());

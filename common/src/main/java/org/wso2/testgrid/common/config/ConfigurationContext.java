@@ -159,6 +159,12 @@ public class ConfigurationContext {
          */
         TESTGRID_ENVIRONMENT("TESTGRID_ENVIRONMENT"),
 
+        //TODO: Better implementation for local testgrid's /etc/host support
+        /**
+         * Running environment of the application
+         */
+        TESTGRID_PASS("TESTGRID_PASS"),
+
         /**
          * Host-name of TestGrid deployment.
          */

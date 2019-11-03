@@ -19,6 +19,7 @@ spec:
             - -sidecarCfgFile=/etc/webhook/config/sidecarconfig.yaml
             - -tlsCertFile=/etc/webhook/certs/cert.pem
             - -tlsKeyFile=/etc/webhook/certs/key.pem
+            - -logPathConfigFile=/etc/webhook/details/logstash-details.yaml
             - -alsologtostderr
             - -v=4
             - 2>&1
@@ -28,6 +29,8 @@ spec:
               readOnly: true
             - name: webhook-config
               mountPath: /etc/webhook/config
+            - name: logpath-config
+              mountPath: /etc/webhook/details/
       volumes:
         - name: webhook-certs
           secret:
@@ -35,4 +38,6 @@ spec:
         - name: webhook-config
           configMap:
             name: sidecar-injector-webhook-configmap
-
+        - name: logpath-config
+          configMap:
+            name: logpath-config

@@ -62,7 +62,7 @@ def Formattedfilepaths(String loglocations){
  * @param pathToDeployment - file path to the input Yaml file
  *
  */
-def createPodPreset(String podPresetYamlLoc, String depInJSONFilePath, String depType, String esEndpoint, String depRepo){
+def createPodPreset(String logPathConfYamlLoc, String depInJSONFilePath, String depType, String esEndpoint, String depRepo){
     try{
         // Read json file
         InputStream depInJSONinputStream = new FileInputStream(depInJSONFilePath.toString())
@@ -76,31 +76,26 @@ def createPodPreset(String podPresetYamlLoc, String depInJSONFilePath, String de
             JSONArray loglocations = logOptions.getJSONObject("logFileLocations")
             Yaml yaml = new Yaml()
 
-            FileWriter fileWriter = new FileWriter(podPresetYamlLoc)
+            FileWriter fileWriter = new FileWriter(logPathConfYamlLoc)
 
             if (loglocations.length() != 0){
-                List envVars = []
+                List logpathConf = []
                 for (JSONObject logLocation in loglocations) {
                     String formatFilePath = Formattedfilepaths(logLocation.getString("path"))
-                    envVars.add( [ logLocation.getString("deploymentname") + "-" +
-                                              logLocation.getString("containername") : formatFilePath ])
+                    Map entry = ["name" : logLocation.getString("deploymentname") + "-" +
+                            logLocation.getString("containername") , "path" : formatFilePath]
+                    logpathConf.add( entry )
                 }
-                Map podPreset = [
-                    "apiVersion": "settings.k8s.io/v1alpha1",
-                    "kind": "PodPreset",
-                    "metadata": ["name": "allow-database"],
-                    "spec": [
-                            "env": envVars
-                    ]
-
-                ]
-                Yaml podPresetYaml = new Yaml()
-                podPresetYaml.dump(podPreset)
-                yaml.dump(podPresetYaml,fileWriter)
+                Map logconf = [ "loglocs" : logpathConf]
+                Yaml logpathConfYaml = new Yaml()
+                logpathConfYaml.dump(logconf)
+                yaml.dump(logpathConfYaml,fileWriter)
+                println("True")
             }else{
-                println("no log file paths provided in parameter")
+                println("False")
             }
             fileWriter.close()
+            return
         } else if ( logRequirment.equals("esEndpoint-Required") ) {
             if (depType.equals("helm")) {
                 String valuesYamlLoc = logOptions.getString("valuesYamlLocation");
@@ -116,30 +111,25 @@ def createPodPreset(String podPresetYamlLoc, String depInJSONFilePath, String de
                     esEndPointMap = esEndPointMap[key]
                 }
                 esEndPointMap[pathToesEndPoint[pathToesEndPoint.size()-1]] = esEndpoint
-
+                println("False")
+                return
             } else if ( depType.equals("k8s")) {
-                FileWriter fileWriter = new FileWriter(podPresetYamlLoc)
+                FileWriter fileWriter = new FileWriter(logPathConfYamlLoc)
                 Yaml yaml = new Yaml()
-                String endPointVarName = logOptions.getString("esEndPointVarName")
-                Map envVars = []
-                envVars[endPointVarName] = esEndpoint;
-                Map podPreset = [
-                        "apiVersion": "settings.k8s.io/v1alpha1",
-                        "kind": "PodPreset",
-                        "metadata": ["name": "allow-database"],
-                        "spec": [
-                                "env": envVars
-                        ]
-                ]
-                Yaml podPresetYaml = new Yaml()
-                podPresetYaml.dump(podPreset)
-                yaml.dump(podPresetYaml,fileWriter)
+                Yaml logpathConfYaml = new Yaml()
+                Map logconf = [ "onlyes":true ]
+                logpathConfYaml.dump(logconf)
+                yaml.dump(logpathConfYaml,fileWriter)
+                println("True")
+                fileWriter.close()
+                return
             }
         } else if ( logRequirment.equals("None") ) {
-            println("No logging set")
+            println("False")
+            return
         }
     }catch(RuntimeException e){
-        println(e)
+        println("False")
     }
 }
 
