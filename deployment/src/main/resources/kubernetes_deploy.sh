@@ -25,7 +25,7 @@ set -o xtrace
 
 function edit_deployments() {
   sidecarReq=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logstash-details.yaml" "${OUTPUT_DIR}/params.json" k8s ${infra_props["esEP"]} ${infra_props["depRepoLoc"]})
-  if [[ "$sidecarReq" != "True" ]]
+  if [[ "$sidecarReq" == "True" ]]
   then
     kubectl label namespace ${namespace} namespace=${namespace}
     kubectl label namespace ${namespace} sidecar-injector=enabled
@@ -34,7 +34,8 @@ function edit_deployments() {
     chmod 777 ./testgrid-sidecar/deployment/patchnamespace.sh
     chmod 777 ./testgrid-sidecar/deployment/webhook-create-signed-cert.sh
     chmod 777 ./testgrid-sidecar/deployment/webhook-patch-ca-bundle.sh
-    ./testgrid-sidecar/create.sh ${namespace}
+    chmod 777 ./testgrid-sidecar/deployment/patchesendpoint.sh
+    ./testgrid-sidecar/create.sh ${namespace} ${infra_props["esEP"]}
   fi
 }
 

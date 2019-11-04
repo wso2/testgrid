@@ -24,8 +24,19 @@ set -o xtrace
 #
 
 function edit_deployments() {
-  groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/podpreset_${namespace}.yaml" k8s ${infra_props["esEP"]} ${infra_props["depRepoLoc"]}
-  kubectl create -f "${infra_props["depRepoLoc"]}/podpreset_${namespace}.yaml" --namespace ${namespace}
+  sidecarReq=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logstash-details.yaml" "${OUTPUT_DIR}/params.json" helm ${infra_props["esEP"]} ${infra_props["depRepoLoc"]})
+  if [[ "$sidecarReq" == "True" ]]
+  then
+    kubectl label namespace ${namespace} namespace=${namespace}
+    kubectl label namespace ${namespace} sidecar-injector=enabled
+    kubectl create configmap --dry-run logpath-config --from-file=./testgrid-sidecar/deployment/logstash-details.yaml --output yaml | tee ./testgrid-sidecar/deployment/logpath-configmap.yaml
+    chmod 777 ./testgrid-sidecar/create.sh
+    chmod 777 ./testgrid-sidecar/deployment/patchnamespace.sh
+    chmod 777 ./testgrid-sidecar/deployment/webhook-create-signed-cert.sh
+    chmod 777 ./testgrid-sidecar/deployment/webhook-patch-ca-bundle.sh
+    chmod 777 ./testgrid-sidecar/deployment/patchesendpoint.sh
+    ./testgrid-sidecar/create.sh ${namespace} ${infra_props["esEP"]}
+  fi
 }
 
 function create_k8s_resources() {
@@ -179,13 +190,39 @@ function readinesss_services(){
 
 }
 
+#This function is used to add paths to etc/host fils
+function addhost() {
+    IP=$1
+    HOSTNAME=$2
+    HOSTS_LINE="$IP\t$HOSTNAME"
+    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+        then
+            echo "$HOSTNAME already exists : $(grep $HOSTNAME $ETC_HOSTS)"
+        else
+            echo "Adding $HOSTNAME to your $ETC_HOSTS";
+            echo $TESTGRID_PASS | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
+
+            if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+                then
+                    echo "$HOSTNAME was added succesfully \n $(grep $HOSTNAME /etc/hosts)";
+                else
+                    echo "Failed to Add $HOSTNAME, Try again!";
+            fi
+    fi
+}
+
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
-    env=${TESTGRID_ENVIRONMENT} || 'dev'
+    if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+      env='dev'
+    else
+      env=${TESTGRID_ENVIRONMENT}
+    fi
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
         echo "Not configuring route53 DNS entries since the environment is not dev/prod. You need to manually add
         '${external_ip} ${loadBalancerHostName}' into your /etc/hosts."
+        addhost "${external_ip}" "${loadBalancerHostName}"
         return;
     fi
 

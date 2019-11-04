@@ -176,19 +176,18 @@ public class KubernetesDeployer implements Deployer {
                 dest.write(buffer, 0, count);
             }
             dest.flush();
-            logger.info("");
         } catch (IOException ex) {
-            logger.info("file could not be created " + ex.getMessage());
+            logger.error("file could not be created " + ex.getMessage());
         }
     }
 
     private static void unzipDir(File dir) {
         if (dir.exists()) {
-            logger.info("already exist");
+            logger.info("zip file contents already exist not extracting");
         } else if (dir.mkdirs()) {
-            logger.info("successful");
+            logger.info("extracted sidecar zip file");
         } else {
-            logger.info("failed");
+            logger.error("failed to extract sidecar zip file");
         }
     }
 }

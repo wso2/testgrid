@@ -46,7 +46,7 @@ class ElasticSearchHelper {
 
         logger.info("Initializing Elastic Search Helper ..");
         esEndpoint = ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL);
+                .getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL).concat("/_search");
 
     }
     /**

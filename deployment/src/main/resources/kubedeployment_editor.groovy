@@ -27,8 +27,6 @@ import org.json.JSONObject
 import org.json.JSONArray
 import org.json.JSONTokener
 
-
-
 /**
  * Formats the user provided inputs to a form that can be utilized by the sidecar container and log extraction
  * container
@@ -38,7 +36,7 @@ import org.json.JSONTokener
  * @return
  */
 
-def Formattedfilepaths(String loglocations){
+def formatFilePaths(String loglocations){
 
     String containerFilepath
     if( loglocations.startsWith('/') && loglocations.endsWith('/') ){
@@ -62,7 +60,8 @@ def Formattedfilepaths(String loglocations){
  * @param pathToDeployment - file path to the input Yaml file
  *
  */
-def createPodPreset(String logPathConfYamlLoc, String depInJSONFilePath, String depType, String esEndpoint, String depRepo){
+def confLogCapabilities(String logPathConfYamlLoc, String depInJSONFilePath, String depType, String esEndpoint,
+                        String depRepo){
     try{
         // Read json file
         InputStream depInJSONinputStream = new FileInputStream(depInJSONFilePath.toString())
@@ -73,7 +72,7 @@ def createPodPreset(String logPathConfYamlLoc, String depInJSONFilePath, String 
         String logRequirment = logOptions.getString("logRequirement")
 
         if (logRequirment.equals("Sidecar-Required")) {
-            JSONArray loglocations = logOptions.getJSONObject("logFileLocations")
+            JSONArray loglocations = logOptions.getJSONArray("logFileLocations")
             Yaml yaml = new Yaml()
 
             FileWriter fileWriter = new FileWriter(logPathConfYamlLoc)
@@ -81,15 +80,13 @@ def createPodPreset(String logPathConfYamlLoc, String depInJSONFilePath, String 
             if (loglocations.length() != 0){
                 List logpathConf = []
                 for (JSONObject logLocation in loglocations) {
-                    String formatFilePath = Formattedfilepaths(logLocation.getString("path"))
+                    String formatFilePath = formatFilePaths(logLocation.getString("path"))
                     Map entry = ["name" : logLocation.getString("deploymentname") + "-" +
                             logLocation.getString("containername") , "path" : formatFilePath]
                     logpathConf.add( entry )
                 }
                 Map logconf = [ "loglocs" : logpathConf]
-                Yaml logpathConfYaml = new Yaml()
-                logpathConfYaml.dump(logconf)
-                yaml.dump(logpathConfYaml,fileWriter)
+                yaml.dump(logconf,fileWriter)
                 println("True")
             }else{
                 println("False")
@@ -98,11 +95,13 @@ def createPodPreset(String logPathConfYamlLoc, String depInJSONFilePath, String 
             return
         } else if ( logRequirment.equals("esEndpoint-Required") ) {
             if (depType.equals("helm")) {
-                String valuesYamlLoc = logOptions.getString("valuesYamlLocation");
-                String esEndPointEditLoc = logOptions.getString("esEndpointLoc");
-                InputStreamReader valuesYamlInputStream = new FileInputStream(depRepo + valuesYamlLoc);
+                String valuesYamlLoc = depRepo.concat("/").concat(depInJSON.getString("rootProjLocation"))
+                        .concat("/").concat(logOptions.getString("valuesYamlLocation"));
+                String esEndPointEditLoc = logOptions.getString("esEndpointLoc").split(":")[0]
+                InputStream valuesYamlInputStream = new FileInputStream(valuesYamlLoc);
                 Yaml yaml = new Yaml()
                 Map valuesYaml = yaml.load(valuesYamlInputStream)
+                valuesYamlInputStream.close()
                 List<String> pathToesEndPoint = esEndPointEditLoc.split("/")
                 Map esEndPointMap = valuesYaml
                 String key;
@@ -111,13 +110,16 @@ def createPodPreset(String logPathConfYamlLoc, String depInJSONFilePath, String 
                     esEndPointMap = esEndPointMap[key]
                 }
                 esEndPointMap[pathToesEndPoint[pathToesEndPoint.size()-1]] = esEndpoint
+                FileWriter valuesYamlOutputStream = new FileWriter(valuesYamlLoc)
+                yaml.dump(valuesYaml,valuesYamlOutputStream)
+                valuesYamlOutputStream.close();
                 println("False")
                 return
             } else if ( depType.equals("k8s")) {
                 FileWriter fileWriter = new FileWriter(logPathConfYamlLoc)
                 Yaml yaml = new Yaml()
                 Yaml logpathConfYaml = new Yaml()
-                Map logconf = [ "onlyes":true ]
+                Map logconf = [ "onlyes":true , "esEnvVarName": logOptions.getString("esVarName")]
                 logpathConfYaml.dump(logconf)
                 yaml.dump(logpathConfYaml,fileWriter)
                 println("True")
@@ -137,4 +139,4 @@ def createPodPreset(String logPathConfYamlLoc, String depInJSONFilePath, String 
  * Args must be provided in following order
  * outputyaml_name   path_to_testLogs   path_to_Deployment.yaml
  */
-createPodPreset(args[0],args[1],args[2],args[3],args[4])
+confLogCapabilities(args[0],args[1],args[2],args[3],args[4])

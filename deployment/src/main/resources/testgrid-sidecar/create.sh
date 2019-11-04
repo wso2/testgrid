@@ -1,5 +1,5 @@
 namespace=$1
-
+esEP=$2
 ./testgrid-sidecar/deployment/webhook-create-signed-cert.sh \
     --service sidecar-injector-webhook-svc \
     --secret sidecar-injector-webhook-certs \
@@ -12,6 +12,10 @@ cat ./testgrid-sidecar/deployment/mutatingwebhook.yaml | \
 cat ./testgrid-sidecar/deployment/mutatingwebhook_temp.yaml | \
     ./testgrid-sidecar/deployment/patchnamespace.sh ${namespace} > \
     ./testgrid-sidecar/deployment/mutatingwebhook-ca-bundle.yaml
+
+cat ./testgrid-sidecar/deployment/conf_template.yaml | \
+    ./testgrid-sidecar/deployment/patchesendpoint.sh ${esEP} > \
+    ./testgrid-sidecar/deployment/configmap.yaml
 
 kubectl create -f ./testgrid-sidecar/deployment/logpath-configmap.yaml --namespace ${namespace}
 kubectl create -f ./testgrid-sidecar/deployment/additional-configmaps.yaml --namespace ${namespace}
