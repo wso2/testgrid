@@ -62,7 +62,7 @@ data:
               fieldRef:
                 fieldPath: status.podIP
           - name: ELASTICSEARCH_HOST
-            value: http://${ESEP}
+            value: ${ESEP}
     volumes:
       - name: shared-plugins-logstash
         emptyDir: {}
@@ -94,5 +94,5 @@ data:
           fieldRef:
             fieldPath: status.podIP
       - name: ELASTICSEARCH_HOST
-        value: http://${ESEP}
+        value: ${ESEP}
 

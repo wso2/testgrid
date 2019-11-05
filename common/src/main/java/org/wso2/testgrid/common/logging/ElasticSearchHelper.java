@@ -47,7 +47,7 @@ class ElasticSearchHelper {
         logger.info("Initializing Elastic Search Helper ..");
         esEndpoint = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL).concat("/_search");
-
+        esEndpoint = esEndpoint.replace("https://", "http://");
     }
     /**
      * Will return all indices given under a certain k8s namespace in the elastic search instance
