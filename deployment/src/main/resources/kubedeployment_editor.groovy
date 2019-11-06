@@ -52,6 +52,10 @@ def formatFilePaths(String loglocations){
 
 }
 
+def deriveConfFile(JSONObject logOptions){
+    return "default.conf"
+}
+
 
 /**
  * Adds Mount path and Sidecar container to the Deployment
@@ -85,9 +89,10 @@ def confLogCapabilities(String logPathConfYamlLoc, String depInJSONFilePath, Str
                             logLocation.getString("containername") , "path" : formatFilePath]
                     logpathConf.add( entry )
                 }
+                String logConfFile = deriveConfFile(logOptions)
                 Map logconf = [ "loglocs" : logpathConf]
                 yaml.dump(logconf,fileWriter)
-                println("True")
+                println("SidecarReq ".concat(logConfFile))
             }else{
                 println("False")
             }
@@ -114,21 +119,17 @@ def confLogCapabilities(String logPathConfYamlLoc, String depInJSONFilePath, Str
                 yaml.dump(valuesYaml,valuesYamlOutputStream)
                 valuesYamlOutputStream.close();
                 println("False")
-                return
             } else if ( depType.equals("k8s")) {
                 FileWriter fileWriter = new FileWriter(logPathConfYamlLoc)
                 Yaml yaml = new Yaml()
                 Yaml logpathConfYaml = new Yaml()
                 Map logconf = [ "onlyes":true , "esEnvVarName": logOptions.getString("esVarName")]
-                logpathConfYaml.dump(logconf)
-                yaml.dump(logpathConfYaml,fileWriter)
-                println("True")
+                yaml.dump(logconf,fileWriter)
+                println("onlyES null")
                 fileWriter.close()
-                return
             }
         } else if ( logRequirment.equals("None") ) {
             println("False")
-            return
         }
     }catch(RuntimeException e){
         println("False")

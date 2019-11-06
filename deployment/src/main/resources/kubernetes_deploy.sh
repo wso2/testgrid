@@ -24,18 +24,16 @@ set -o xtrace
 #
 
 function edit_deployments() {
-  sidecarReq=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logstash-details.yaml" "${OUTPUT_DIR}/params.json" k8s ${infra_props["esEP"]} ${infra_props["depRepoLoc"]})
-  if [[ "$sidecarReq" == "True" ]]
+  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logstash-details.yaml" "${OUTPUT_DIR}/params.json" k8s ${infra_props["esEP"]} ${infra_props["depRepoLoc"]})
+  read -ra detailsArr <<< $details
+  sidecarReq=${detailsArr[0]}
+  filename=${detailsArr[1]}
+  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyES" ]]
   then
     kubectl label namespace ${namespace} namespace=${namespace}
     kubectl label namespace ${namespace} sidecar-injector=enabled
-    kubectl create configmap --dry-run logpath-config --from-file=./testgrid-sidecar/deployment/logstash-details.yaml --output yaml | tee ./testgrid-sidecar/deployment/logpath-configmap.yaml
     chmod 777 ./testgrid-sidecar/create.sh
-    chmod 777 ./testgrid-sidecar/deployment/patchnamespace.sh
-    chmod 777 ./testgrid-sidecar/deployment/webhook-create-signed-cert.sh
-    chmod 777 ./testgrid-sidecar/deployment/webhook-patch-ca-bundle.sh
-    chmod 777 ./testgrid-sidecar/deployment/patchesendpoint.sh
-    ./testgrid-sidecar/create.sh ${namespace} ${infra_props["esEP"]}
+    ./testgrid-sidecar/create.sh ${namespace} ${infra_props["esEP"]} ${sidecarReq} ${filename}
   fi
 }
 
