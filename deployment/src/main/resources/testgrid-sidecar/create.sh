@@ -40,10 +40,17 @@ cat ./testgrid-sidecar/deployment/conf_template.yaml | \
     ./testgrid-sidecar/deployment/patchesendpoint.sh ${esEP} > \
     ./testgrid-sidecar/deployment/configmap.yaml
 
+cat ./testgrid-sidecar/deployment/logstash-collector-template.yaml | \
+    ./testgrid-sidecar/deployment/patchesendpoint.sh ${esEP} > \
+    ./testgrid-sidecar/deployment/logstash-collector.yaml
+
 if [[ "$req" == "SidecarReq" ]]
 then
+  kubectl create -f ./testgrid-sidecar/deployment/filebeatyaml.yaml --namespace ${namespace}
   kubectl create -f ./testgrid-sidecar/deployment/logstashyaml.yaml --namespace ${namespace}
   kubectl create -f ./testgrid-sidecar/deployment/logconf.yaml --namespace ${namespace}
+  kubectl create -f ./testgrid-sidecar/deployment/logstash-collector.yaml --namespace ${namespace}
+  kubectl create -f ./testgrid-sidecar/deployment/logstash-service.yaml --namespace ${namespace}
 fi
 
 kubectl create -f ./testgrid-sidecar/deployment/logpath-configmap.yaml --namespace ${namespace}

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstashservice
+spec:
+  selector:
+    app: logstash-collector
+  ports:
+    - protocol: TCP
+      port: 5044
+      targetPort: 5044
