@@ -12,18 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
-# Service to expose the sidecar injector deployment to the mutating webhook configuration
-apiVersion: v1
-kind: Service
+# Mutating Webhook configuration for sidecar injection
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
 metadata:
-  name: sidecar-injector-webhook-svc
+  name: sidecar-injector-webhook-cfg-${NAMESPACE}
   labels:
     app: sidecar-injector
-spec:
-  ports:
-  - port: 443
-    targetPort: 443
-  selector:
-    app: sidecar-injector
+webhooks:
+  - name: sidecar-injector.morven.me
+    clientConfig:
+      service:
+        name: sidecar-injector-webhook-svc
+        namespace: ${NAMESPACE}
+        path: "/mutate"
+      caBundle: ${CA_BUNDLE}
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+    namespaceSelector:
+      matchLabels:
+        namespace: ${NAMESPACE}
+        sidecar-injector: enabled
 

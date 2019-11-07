@@ -24,7 +24,7 @@ set -o xtrace
 #
 
 function edit_deployments() {
-  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logstash-details.yaml" "${OUTPUT_DIR}/params.json" k8s ${infra_props["esEP"]} ${infra_props["depRepoLoc"]})
+  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/params.json" k8s ${infra_props["esEP"]} ${infra_props["depRepoLoc"]})
   read -ra detailsArr <<< $details
   sidecarReq=${detailsArr[0]}
   filename=${detailsArr[1]}

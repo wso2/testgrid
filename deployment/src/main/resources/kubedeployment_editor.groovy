@@ -52,19 +52,29 @@ def formatFilePaths(String loglocations){
 
 }
 
+/**
+ * Returns the appropriate conf file which is to become the logstash.conf of the Logstash-collector-deployment
+ *
+ * @param logOptions - Log Options of the job
+ * @return
+ */
 def deriveConfFile(JSONObject logOptions){
     return "default.conf"
 }
 
 
 /**
- * Adds Mount path and Sidecar container to the Deployment
- * @param outputYaml - file name of the edited yaml file
- * @param depInJSONFilePath - file path to the json file containing input Parameters
- * @param pathToDeployment - file path to the input Yaml file
+ * Creates yaml file which store all details required for sidecar injector to inject appropriate information to
+ * the deployment
+ *
+ * @param logPathDetailsYamlLoc - Path to yaml file which is to store Log Path details
+ * @param depInJSONFilePath - File path to the json file containing input Parameters
+ * @param depType - Type of the deployment ( Helm or K8S )
+ * @param esEndPoint - Elastic Search Endpoint
+ * @param depRepo - Path to the deployment Repository
  *
  */
-def confLogCapabilities(String logPathConfYamlLoc, String depInJSONFilePath, String depType, String esEndpoint,
+def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, String depType, String esEndpoint,
                         String depRepo){
     try{
         // Read json file
@@ -76,10 +86,11 @@ def confLogCapabilities(String logPathConfYamlLoc, String depInJSONFilePath, Str
         String logRequirment = logOptions.getString("logRequirement")
 
         if (logRequirment.equals("Sidecar-Required")) {
+            // If sidecar is required create logpathdetails file with all infomation
             JSONArray loglocations = logOptions.getJSONArray("logFileLocations")
             Yaml yaml = new Yaml()
 
-            FileWriter fileWriter = new FileWriter(logPathConfYamlLoc)
+            FileWriter fileWriter = new FileWriter(logPathDetailsYamlLoc)
 
             if (loglocations.length() != 0){
                 List logpathConf = []
@@ -100,6 +111,7 @@ def confLogCapabilities(String logPathConfYamlLoc, String depInJSONFilePath, Str
             return
         } else if ( logRequirment.equals("esEndpoint-Required") ) {
             if (depType.equals("helm")) {
+                // If only ES endpoint is required access values.yaml file and edit the appropriate value
                 String valuesYamlLoc = depRepo.concat("/").concat(depInJSON.getString("rootProjLocation"))
                         .concat("/").concat(logOptions.getString("valuesYamlLocation"));
                 String esEndPointEditLoc = logOptions.getString("esEndpointLoc").split(":")[0]
@@ -120,7 +132,8 @@ def confLogCapabilities(String logPathConfYamlLoc, String depInJSONFilePath, Str
                 valuesYamlOutputStream.close();
                 println("False")
             } else if ( depType.equals("k8s")) {
-                FileWriter fileWriter = new FileWriter(logPathConfYamlLoc)
+                // If k8s inject a env Var to the deployments which stores the elastic search endpoint
+                FileWriter fileWriter = new FileWriter(logPathDetailsYamlLoc)
                 Yaml yaml = new Yaml()
                 Yaml logpathConfYaml = new Yaml()
                 Map logconf = [ "onlyes":true , "esEnvVarName": logOptions.getString("esVarName")]
