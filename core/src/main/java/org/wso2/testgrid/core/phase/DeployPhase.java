@@ -143,22 +143,28 @@ public class DeployPhase extends Phase {
         Properties additionalDepProps = new Properties();
         additionalDepProps.setProperty("depRepoLoc", getTestPlan().getDeploymentRepository());
         if (ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.DEPLOYMENT_TINKERER_EP) != null) {
-            additionalDepProps.setProperty("DEPLOYMENT_TINKERER_EP",
+                ConfigurationProperties.AWS_REGION_NAME) != null) {
+            additionalDepProps.setProperty("S3_REGION",
                     ConfigurationContext.getProperty(ConfigurationContext.
-                            ConfigurationProperties.DEPLOYMENT_TINKERER_EP));
+                            ConfigurationProperties.AWS_REGION_NAME));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME) != null) {
-            additionalDepProps.setProperty("DEPLOYMENT_TINKERER_USERNAME",
+                ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT) != null) {
+            additionalDepProps.setProperty("S3_SECRET_KEY",
                     ConfigurationContext.getProperty(ConfigurationContext.
-                            ConfigurationProperties.DEPLOYMENT_TINKERER_USERNAME));
+                            ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD) != null) {
-            additionalDepProps.setProperty("DEPLOYMENT_TINKERER_PASSWORD",
+                ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT) != null) {
+            additionalDepProps.setProperty("S3_KEY_ID",
                     ConfigurationContext.getProperty(ConfigurationContext.
-                            ConfigurationProperties.DEPLOYMENT_TINKERER_PASSWORD));
+                            ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT));
+        }
+        if (ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.AWS_S3_BUCKET_NAME) != null) {
+            additionalDepProps.setProperty("S3_BUCKET",
+                    ConfigurationContext.getProperty(ConfigurationContext.
+                            ConfigurationProperties.AWS_S3_BUCKET_NAME));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL) != null) {
             additionalDepProps.setProperty("esEP",

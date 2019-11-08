@@ -27,12 +27,18 @@ req=$3
 #Filename of the file which is to become the logstash.conf file
 filename=$4
 
+S3_REGION=$5
+S3_BUCKET=$6
+S3_SECRET_KEY=$7
+S3_KEY_ID=$8
+
 # provide execution access for scripts needed for creating sidecar
 chmod 777 ./testgrid-sidecar/create.sh
 chmod 777 ./testgrid-sidecar/deployment/patchnamespace.sh
 chmod 777 ./testgrid-sidecar/deployment/webhook-create-signed-cert.sh
 chmod 777 ./testgrid-sidecar/deployment/webhook-patch-ca-bundle.sh
 chmod 777 ./testgrid-sidecar/deployment/patchesendpoint.sh
+chmod 777 ./testgrid-sidecar/deployment/patchs3details.sh
 
 # create config map for sidecar injector deployment to mount which contains details about deployments, containers
 # and location to extact logs from
@@ -65,14 +71,13 @@ cat ./testgrid-sidecar/deployment/mutatingwebhook_temp.yaml | \
     ./testgrid-sidecar/deployment/patchnamespace.sh ${namespace} > \
     ./testgrid-sidecar/deployment/mutatingwebhook-ca-bundle.yaml
 
-# patch elastic search endpoint within the sidecar injection configmap template
-cat ./testgrid-sidecar/deployment/conf_template.yaml | \
-    ./testgrid-sidecar/deployment/patchesendpoint.sh ${esEP} > \
-    ./testgrid-sidecar/deployment/configmap.yaml
-
 # patch elastic search endpoint within the logstash collector deployment template
 cat ./testgrid-sidecar/deployment/logstash-collector-template.yaml | \
     ./testgrid-sidecar/deployment/patchesendpoint.sh ${esEP} > \
+    ./testgrid-sidecar/deployment/logstash-collector_temp.yaml
+
+cat ./testgrid-sidecar/deployment/logstash-collector_temp.yaml | \
+    ./testgrid-sidecar/deployment/patchs3details.sh ${S3_KEY_ID} ${S3_SECRET_KEY} ${S3_REGION} ${S3_BUCKET} > \
     ./testgrid-sidecar/deployment/logstash-collector.yaml
 
 if [[ "$req" == "SidecarReq" ]]

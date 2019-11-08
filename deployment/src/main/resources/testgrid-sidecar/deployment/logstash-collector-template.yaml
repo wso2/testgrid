@@ -88,6 +88,14 @@ spec:
                   fieldPath: status.podIP
             - name: ELASTICSEARCH_HOST
               value: ${ESEP}
+            - name: S3_KEY_ID
+              value: ${S3_KEY_ID}
+            - name: S3_SECRET_KEY
+              value: ${S3_SECRET_KEY}
+            - name: S3_REGION
+              value: ${S3_REGION}
+            - name: S3_BUCKET
+              value: ${S3_BUCKET}
       volumes:
         - name: shared-plugins-logstash
           emptyDir: {}
