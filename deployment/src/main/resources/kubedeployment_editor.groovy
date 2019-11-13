@@ -74,8 +74,7 @@ def deriveConfFile(JSONObject logOptions){
  * @param depRepo - Path to the deployment Repository
  *
  */
-def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, String depType, String esEndpoint,
-                        String depRepo){
+def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, String depType ){
     try{
         // Read json file
         InputStream depInJSONinputStream = new FileInputStream(depInJSONFilePath.toString())
@@ -83,6 +82,9 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
         JSONObject depInJSON = new JSONObject(tokener)
 
         JSONObject logOptions = depInJSON.getJSONObject("dep-in").getJSONObject("log-Options");
+        String esEndpoint = depInJSON.getJSONObject("dep-in").getString("esEP")
+        String depRepo = depInJSON.getJSONObject("dep-in").getString("depRepoLoc")
+
         String logRequirment = logOptions.getString("logRequirement")
 
         if (logRequirment.equals("Sidecar-Required")) {
@@ -101,15 +103,15 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
                     logpathConf.add( entry )
                 }
                 String logConfFile = deriveConfFile(logOptions)
-                Map logconf = [ "loglocs" : logpathConf]
+                Map logconf = [ "onlyvars":false, "loglocs" : logpathConf]
                 yaml.dump(logconf,fileWriter)
                 println("SidecarReq ".concat(logConfFile))
-            }else{
+            } else {
                 println("False")
             }
             fileWriter.close()
             return
-        } else if ( logRequirment.equals("esEndpoint-Required") ) {
+        } else if ( logRequirment.equals("log-endPoints-Required") ) {
             if (depType.equals("helm")) {
                 // If only ES endpoint is required access values.yaml file and edit the appropriate value
                 String valuesYamlLoc = depRepo.concat("/").concat(depInJSON.getString("rootProjLocation"))
@@ -135,17 +137,25 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
                 // If k8s inject a env Var to the deployments which stores the elastic search endpoint
                 FileWriter fileWriter = new FileWriter(logPathDetailsYamlLoc)
                 Yaml yaml = new Yaml()
-                Yaml logpathConfYaml = new Yaml()
-                Map logconf = [ "onlyes":true , "esEnvVarName": logOptions.getString("esVarName")]
-                yaml.dump(logconf,fileWriter)
-                println("onlyES null")
-                fileWriter.close()
+                List envVars = []
+                if(logOptions.has("esVarName")){
+                    envVars.add(["name": logOptions.getString("esVarName"), "value" : esEndpoint])
+                }
+                if(envVars.size() > 0 ){
+                    Map logconf = [ "onlyvars":true , "envvars": envVars ]
+                    yaml.dump(logconf,fileWriter)
+                    fileWriter.close()
+                    println("onlyES null")
+                } else {
+                    fileWriter.close()
+                    println("False")
+                }
             }
         } else if ( logRequirment.equals("None") ) {
             println("False")
         }
     }catch(RuntimeException e){
-        println("False")
+        println(e)
     }
 }
 
@@ -153,4 +163,4 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
  * Args must be provided in following order
  * outputyaml_name   path_to_testLogs   path_to_Deployment.yaml
  */
-confLogCapabilities(args[0],args[1],args[2],args[3],args[4])
+confLogCapabilities(args[0],args[1],args[2])
