@@ -114,21 +114,38 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
         } else if ( logRequirment.equals("log-endPoints-Required") ) {
             if (depType.equals("helm")) {
                 // If only ES endpoint is required access values.yaml file and edit the appropriate value
-                String valuesYamlLoc = depRepo.concat("/").concat(depInJSON.getString("rootProjLocation"))
+                String valuesYamlLoc = depRepo.concat("/").concat(depInJSON.getJSONObject("dep-in").
+                        getString("rootProjLocations"))
                         .concat("/").concat(logOptions.getString("valuesYamlLocation"));
-                String esEndPointEditLoc = logOptions.getString("esEndpointLoc").split(":")[0]
+                JSONArray replacableValues = logOptions.getJSONArray("replaceableVals")
                 InputStream valuesYamlInputStream = new FileInputStream(valuesYamlLoc);
                 Yaml yaml = new Yaml()
                 Map valuesYaml = yaml.load(valuesYamlInputStream)
-                valuesYamlInputStream.close()
-                List<String> pathToesEndPoint = esEndPointEditLoc.split("/")
-                Map esEndPointMap = valuesYaml
-                String key;
-                for ( int i = 0 ; i < pathToesEndPoint.size() -1 ;  i++ ) {
-                    key = pathToesEndPoint[i];
-                    esEndPointMap = esEndPointMap[key]
+                String esURL
+                if(esEndpoint.startsWith("https://")){
+                    esURL = (esEndpoint.split("https://")[1]).split(":")[0]
+                }else if(esEndpoint.startsWith("http://")){
+                    esURL = (esEndpoint.split("http://")[1]).split(":")[0]
                 }
-                esEndPointMap[pathToesEndPoint[pathToesEndPoint.size()-1]] = esEndpoint
+                String esPort = esEndpoint.split(":")[2]
+
+                for ( JSONObject replacableObj in replacableValues ){
+                    Map editedMap = valuesYaml
+                    String replaceableObjLoc = replacableObj.getString("loc").split(":")[0]
+                    List<String> pathToRepObj = replaceableObjLoc.split("/")
+                    String key;
+                    for (int i = 0 ; i < pathToRepObj.size() -1 ; i++ ) {
+                        key = pathToRepObj[i];
+                        editedMap = editedMap[key]
+                    }
+                    // add more ifs for other vars
+                    if (replacableObj.getString("type").equals("esEndPoint")) {
+                        editedMap[pathToRepObj[pathToRepObj.size()-1]] = esURL
+                    } else if (replacableObj.getString("type").equals("esPort")) {
+                        editedMap[pathToRepObj[pathToRepObj.size()-1]] = esPort
+                    }
+                }
+                valuesYamlInputStream.close()
                 FileWriter valuesYamlOutputStream = new FileWriter(valuesYamlLoc)
                 yaml.dump(valuesYaml,valuesYamlOutputStream)
                 valuesYamlOutputStream.close();
@@ -138,6 +155,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
                 FileWriter fileWriter = new FileWriter(logPathDetailsYamlLoc)
                 Yaml yaml = new Yaml()
                 List envVars = []
+                // Add more ifs for other variables
                 if(logOptions.has("esVarName")){
                     envVars.add(["name": logOptions.getString("esVarName"), "value" : esEndpoint])
                 }

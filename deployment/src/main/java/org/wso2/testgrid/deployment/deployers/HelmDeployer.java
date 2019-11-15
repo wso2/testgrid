@@ -119,10 +119,6 @@ public class HelmDeployer implements Deployer {
                     TestGridConstants.HELM_DEPLOY_SCRIPT, e);
         }
 
-        DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
-                infrastructureProvisionResult,
-                Paths.get(deployRepositoryLocation, TestGridConstants.HELM_DEPLOY_SCRIPT));
-
         try {
 
             Files.copy(helperFileStream , Paths.get(testPlan.getDeploymentRepository(),
@@ -131,6 +127,10 @@ public class HelmDeployer implements Deployer {
             logger.error("IO error occurred while reading " +
                     TestGridConstants.K8S_HELM_EDITOR, e);
         }
+
+        DeploymentCreationResult deploymentCreationResult = ShellDeployerFactory.deploy(testPlan,
+                infrastructureProvisionResult,
+                Paths.get(deployRepositoryLocation, TestGridConstants.HELM_DEPLOY_SCRIPT));
 
         return deploymentCreationResult;
     }
