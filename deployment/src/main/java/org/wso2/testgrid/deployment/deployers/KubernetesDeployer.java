@@ -151,8 +151,6 @@ public class KubernetesDeployer implements Deployer {
         try {
             KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
             Optional<String> logUrl = builder.buildK8STempDashBoard(namespace, true);
-            logger.info("The DashBoard URL");
-            logUrl.ifPresent(logurlval -> logger.info(logurlval));
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {

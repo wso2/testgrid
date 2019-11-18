@@ -30,8 +30,10 @@ import org.wso2.testgrid.common.config.ConfigurationContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 
 /**
@@ -53,7 +55,7 @@ public class KibanaDashboardBuilder {
     private String allLogsFilterEncodedSection;
     private String allLogsFilterJsonSection;
     private Map<String, Map<String, String>> allInstances;
-    private ArrayList<String> allK8SNameSpaces;
+    private Set<String> allK8SNameSpaces;
     private String allLogsFilterEncodedSectionK8S;
     private String allLogsFilterJsonSectionK8S;
     private String instanceLogFilterFormatK8S;
@@ -87,7 +89,7 @@ public class KibanaDashboardBuilder {
         instanceLogFilterFormatK8S = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.KIBANA_FILTER_STR_K8S);
         allInstances = new HashMap<>();
-        allK8SNameSpaces = new ArrayList<>();
+        allK8SNameSpaces = new HashSet<>();
     }
 
     /**
@@ -153,6 +155,8 @@ public class KibanaDashboardBuilder {
         String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
                 .replaceAll("#_STACK_NAME_#", currentStackName);
 
+        logger.info("Extended kibana dasbhoard url");
+        logger.info(kibanaEndpoint + logDownloadCtx);
         if (shortenURL) {
             return shortenKibanaURL(logDownloadCtx);
         } else {
@@ -200,6 +204,8 @@ public class KibanaDashboardBuilder {
         String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
                 .replaceAll("#_NAMESPACE_#", currentNameSpace);
 
+        logger.info("Extended kibana dasbhoard url");
+        logger.info(kibanaEndpoint + logDownloadCtx);
         if (shortenURL) {
             return shortenKibanaURL(logDownloadCtx);
         } else {
@@ -216,7 +222,7 @@ public class KibanaDashboardBuilder {
      * @return Optional of dashboard link shortened to make it compatible with database column
      *      * restrictions
      */
-    public Optional<String> buildHelmPermaDashBoard(String currentNameSpace, boolean shortenURL) {
+    public Optional<String> buildK8SPermaDashBoard(String currentNameSpace, boolean shortenURL) {
 
         if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
             logger.warn("Kibana endpoint configuration not found in TestGrid config. Server log view may not work!" +
@@ -255,6 +261,8 @@ public class KibanaDashboardBuilder {
         String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
                 .replaceAll("#_NAMESPACE_#", currentNameSpace);
 
+        logger.info("Extended kibana dasbhoard url");
+        logger.info(kibanaEndpoint + logDownloadCtx);
         if (shortenURL) {
             return shortenKibanaURL(logDownloadCtx);
         } else {
@@ -286,6 +294,8 @@ public class KibanaDashboardBuilder {
             if (httpResponse.getStatusLine().getStatusCode() == 200) {
                 String shortUrlId = EntityUtils.toString(httpResponse.getEntity());
                 shortenUrl =  kibanaEndpoint + "/goto/" + shortUrlId;
+                logger.info("Shortened URL");
+                logger.info(shortenUrl);
                 return Optional.of(shortenUrl);
             } else {
                 logger.warn("Request to Kibana to retrieve shortened URL for dashboard returned status code:" +

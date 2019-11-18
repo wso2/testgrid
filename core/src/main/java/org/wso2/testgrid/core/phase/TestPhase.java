@@ -159,9 +159,7 @@ public class TestPhase extends Phase {
 
         try {
             KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
-            Optional<String> logUrl = builder.buildHelmPermaDashBoard(namespace, true);
-            logger.info("The DashBoard URL");
-            logUrl.ifPresent(logurlval -> logger.info(logurlval));
+            Optional<String> logUrl = builder.buildK8SPermaDashBoard(namespace, true);
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {

@@ -17,18 +17,27 @@
  */
 package org.wso2.testgrid.common.logging;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
-
 /**
  * This class is responsible for handling and communicating with TestGrid Elastic Search Instance provided in the
  * TestGrid configuration files
@@ -41,13 +50,20 @@ class ElasticSearchHelper {
 
     private static Logger logger = LoggerFactory.getLogger(KibanaDashboardBuilder.class);
     private String esEndpoint;
+    private RestHighLevelClient esClient;
 
-    public ElasticSearchHelper() {
 
-        logger.info("Initializing Elastic Search Helper ..");
-        esEndpoint = ConfigurationContext
-                .getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL).concat("/_search");
-        esEndpoint = esEndpoint.replace("https://", "http://");
+    public void open() {
+        esEndpoint = ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL);
+        try {
+            String urlString =
+                    new URL(esEndpoint).getHost();
+            RestClientBuilder builder = RestClient.builder(new HttpHost(urlString, 80, "http"));
+            esClient = new RestHighLevelClient(builder);
+            logger.info("Initialized Elastic Stack Helper");
+        } catch (MalformedURLException e) {
+            logger.error("Could not initialize ElasticSearch Helper cannot talk to Elastic Search");
+        }
     }
     /**
      * Will return all indices given under a certain k8s namespace in the elastic search instance
@@ -55,36 +71,33 @@ class ElasticSearchHelper {
      * @return
      */
     public ArrayList<String> getAllIndexes(String nameSpace) {
-        String queryData = "{ \"query\" : { \"bool\" : { \"should\" : [ { \"term\" : { \"namespace\" : \"" +
-                nameSpace + "\" " + "} } ] } }, \"aggs\":{ \"unique_ids\": { \"terms\": { \"field\": \"_index\"  } }}}";
-        String[] commandTerms = {"curl", "-s", "-XGET", esEndpoint, "-H", "Content-Type: application/json", "-d",
-                queryData};
-        ProcessBuilder curlCommand = new ProcessBuilder(commandTerms);
 
-        StringBuilder curlOutput = new StringBuilder();
-        // Stores unique indices
         ArrayList<String> indexList = new ArrayList<>();
+        open();
+        if (esClient != null) {
+            try {
+                QueryBuilder namespaceMatchQuery = QueryBuilders.boolQuery()
+                        .should(QueryBuilders.termQuery("namespace", nameSpace));
+                AggregationBuilder uniqueIndexAggregator
+                        = AggregationBuilders.terms("unique_ids").field("_index");
 
-        try (BufferedReader curlOutputReader =  new BufferedReader(
-                new InputStreamReader(curlCommand.start().getInputStream(), StandardCharsets.UTF_8))) {
-            while (true) {
-                String outputLine = curlOutputReader.readLine();
-                if (outputLine == null) {
-                    break;
+                SearchSourceBuilder querySourceBuilder = new SearchSourceBuilder();
+                querySourceBuilder.aggregation(uniqueIndexAggregator).query(namespaceMatchQuery);
+
+                SearchRequest searchRequest = new SearchRequest().source(querySourceBuilder);
+                SearchResponse searchResponse = esClient.search(searchRequest);
+                Terms aggregationOutput =  searchResponse.getAggregations().get("unique_ids");
+
+                for (Terms.Bucket indexBucket : aggregationOutput.getBuckets()) {
+                    indexList.add(indexBucket.getKey().toString());
                 }
-                curlOutput.append(outputLine);
+                esClient.close();
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+                logger.error("Could not get index list");
             }
-            JSONObject curlOutputJson = new JSONObject(curlOutput.toString());
-
-            JSONArray indexJSONList = curlOutputJson.getJSONObject("aggregations").getJSONObject("unique_ids").
-                    getJSONArray("buckets");
-
-            for (int i = 0; i < indexJSONList.length(); i++) {
-                JSONObject indexJson = indexJSONList.getJSONObject(i);
-                indexList.add((String) indexJson.get("key"));
-            }
-        } catch (IOException e) {
-            logger.error(e.getMessage());
+        } else {
+            logger.error("Client not initialized Could not get index list");
         }
 
         return indexList;
