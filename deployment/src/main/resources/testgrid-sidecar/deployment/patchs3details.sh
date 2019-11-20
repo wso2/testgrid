@@ -13,10 +13,10 @@
 # limitations under the License.
 #
 
-# Deployment namespace
-S3_KEY_ID=$1
-S3_SECRET_KEY=$2
-S3_REGION=$3
-S3_BUCKET=$4
 
-sed -e "s|\${S3_KEY_ID}|${S3_KEY_ID}|g" | sed -e "s|\${S3_SECRET_KEY}|${S3_SECRET_KEY}|g" | sed -e "s|\${S3_REGION}|${S3_REGION}|g" | sed -e "s|\${S3_BUCKET}|${S3_BUCKET}|g"
+S3_REGION=$1
+S3_BUCKET=$2
+S3_LOG_PATH=$3
+
+sed -e "s|\${S3_REGION}|${S3_REGION}|g" | sed -e "s|\${S3_BUCKET}|${S3_BUCKET}|g" |  sed -e "s|\${S3_LOG_PATH}|${S3_LOG_PATH}|g"
+

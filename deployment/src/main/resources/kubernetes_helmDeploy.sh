@@ -33,7 +33,7 @@ function edit_deployments() {
     kubectl label namespace ${namespace} namespace=${namespace}
     kubectl label namespace ${namespace} sidecar-injector=enabled
     chmod 777 ./testgrid-sidecar/create.sh
-    ./testgrid-sidecar/create.sh ${namespace} ${infra_props["esEP"]} ${sidecarReq} ${filename} ${infra_props["S3_REGION"]} ${infra_props["S3_BUCKET"]} ${infra_props["S3_SECRET_KEY"]} ${infra_props["S3_KEY_ID"]}
+    ./testgrid-sidecar/create.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
   fi
 }
 

@@ -36,7 +36,11 @@ import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.common.exception.TestGridInfrastructureException;
 import org.wso2.testgrid.common.exception.UnsupportedDeployerException;
 import org.wso2.testgrid.common.exception.UnsupportedProviderException;
+import org.wso2.testgrid.common.plugins.AWSArtifactReader;
+import org.wso2.testgrid.common.plugins.ArtifactReadable;
+import org.wso2.testgrid.common.plugins.ArtifactReaderException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
+import org.wso2.testgrid.common.util.S3StorageUtil;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
@@ -44,6 +48,7 @@ import org.wso2.testgrid.deployment.DeployerFactory;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -169,6 +174,19 @@ public class DeployPhase extends Phase {
         if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL) != null) {
             additionalDepProps.setProperty("esEP",
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL));
+        }
+        if (ConfigurationContext.getProperty
+                (ConfigurationContext.ConfigurationProperties.AWS_S3_ARTIFACTS_DIR) != null) {
+            try {
+                ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
+                        getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+                String s3logPath = S3StorageUtil.deriveS3DeploymentOutputsDir(getTestPlan(), artifactReadable);
+                additionalDepProps.setProperty("S3_LOG_PATH", s3logPath);
+            } catch (ArtifactReaderException | IOException e) {
+                logger.error("Error occurred while deriving deployment outputs directory for test-plan " +
+                        getTestPlan(), e);
+            }
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.TESTGRID_ENVIRONMENT) != null) {

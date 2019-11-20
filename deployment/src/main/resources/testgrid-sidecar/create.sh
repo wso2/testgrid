@@ -18,19 +18,44 @@
 
 set -o xtrace
 
+# Read a property file to a given associative array
+#
+# $1 - Property file
+# $2 - associative array
+# How to call
+# declare -A somearray
+# read_property_file testplan-props.properties somearray
+read_property_file() {
+    local property_file_path=$1
+    # Read configuration into an associative array
+    # IFS is the 'internal field separator'. In this case, your file uses '='
+    local -n configArray=$2
+    IFS="="
+    while read -r key value
+    do
+      [[ -n ${key} ]] && configArray[$key]=$value
+    done < ${property_file_path}
+    unset IFS
+}
+
+
 #deployment namespace
 namespace=$1
-#elastic search endpoint
-esEP=$2
 #Sidecar requirement
-req=$3
+req=$2
 #Filename of the file which is to become the logstash.conf file
-filename=$4
+filename=$3
+#location of the infrastructure.properties file
+INPUT_DIR=$4
 
-S3_REGION=$5
-S3_BUCKET=$6
-S3_SECRET_KEY=$7
-S3_KEY_ID=$8
+declare -g -A infra_props
+read_property_file "${INPUT_DIR}/infrastructure.properties" infra_props
+esEP=${infra_props["esEP"]}
+S3_REGION=${infra_props["S3_REGION"]}
+S3_BUCKET=${infra_props["S3_BUCKET"]}
+S3_SECRET_KEY=${infra_props["S3_SECRET_KEY"]}
+S3_KEY_ID=${infra_props["S3_KEY_ID"]}
+S3_LOG_PATH=${infra_props["S3_LOG_PATH"]}
 
 # provide execution access for scripts needed for creating sidecar
 chmod 777 ./testgrid-sidecar/create.sh
@@ -39,6 +64,7 @@ chmod 777 ./testgrid-sidecar/deployment/webhook-create-signed-cert.sh
 chmod 777 ./testgrid-sidecar/deployment/webhook-patch-ca-bundle.sh
 chmod 777 ./testgrid-sidecar/deployment/patchesendpoint.sh
 chmod 777 ./testgrid-sidecar/deployment/patchs3details.sh
+chmod 777 ./testgrid-sidecar/deployment/patchs3secrets.sh
 
 # create config map for sidecar injector deployment to mount which contains details about deployments, containers
 # and location to extact logs from
@@ -77,8 +103,13 @@ cat ./testgrid-sidecar/deployment/logstash-collector-template.yaml | \
     ./testgrid-sidecar/deployment/logstash-collector_temp.yaml
 
 cat ./testgrid-sidecar/deployment/logstash-collector_temp.yaml | \
-    ./testgrid-sidecar/deployment/patchs3details.sh ${S3_KEY_ID} ${S3_SECRET_KEY} ${S3_REGION} ${S3_BUCKET} > \
+    ./testgrid-sidecar/deployment/patchs3details.sh  ${S3_REGION} ${S3_BUCKET} ${S3_LOG_PATH} > \
     ./testgrid-sidecar/deployment/logstash-collector.yaml
+
+cat ./testgrid-sidecar/deployment/logstash_s3_secrets_template.yaml | \
+    ./testgrid-sidecar/deployment/patchs3secrets.sh  ${S3_KEY_ID} ${S3_SECRET_KEY} > \
+    ./testgrid-sidecar/deployment/logstash_s3_secrets.yaml
+
 
 if [[ "$req" == "SidecarReq" ]]
 then
@@ -88,6 +119,7 @@ then
   kubectl create -f ./testgrid-sidecar/deployment/logconf.yaml --namespace ${namespace}
   kubectl create -f ./testgrid-sidecar/deployment/logstash-collector.yaml --namespace ${namespace}
   kubectl create -f ./testgrid-sidecar/deployment/logstash-service.yaml --namespace ${namespace}
+  kubectl create -f ./testgrid-sidecar/deployment/logstash_s3_secrets.yaml --namespace ${namespace}
 fi
 
 # resources required in general regardless of wether it is a sidecar injection or an env var injection
