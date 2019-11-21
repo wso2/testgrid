@@ -38,8 +38,9 @@ data:
         image: docker.elastic.co/beats/filebeat:7.2.0
         volumeMounts:
           - name: filebeat-yaml
-            mountPath: /etc/filebeat.yml
+            mountPath: /usr/share/filebeat/filebeat.yml
             subPath: filebeat.yml
+            readOnly: false
         env:
           - name: NODE_NAME
             valueFrom:
