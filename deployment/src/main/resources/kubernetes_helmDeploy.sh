@@ -17,6 +17,8 @@
 #--------------------------------------------------------------------------------
 
 set -o xtrace
+alias wget='wget -q'
+alias unzip='unzip -q'
 
 #
 #This class is used for the deployment of resources into the namespace using helm
@@ -325,6 +327,7 @@ dep=(${infra_props["exposedDeployments"]})
 dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
+deploymentRepositoryLocation=${infra_props["deploymentRepositoryLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
 logOptions=${infra_props["log-Options"]}
 

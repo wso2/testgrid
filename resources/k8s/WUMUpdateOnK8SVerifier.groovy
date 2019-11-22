@@ -14,14 +14,12 @@ pipeline
         {
           steps
           {
+          wrap([$class: 'MaskPasswordsBuildWrapper']) { // to enable mask-password plugin
+
           echo "Build started."
             withCredentials([file(credentialsId: 'GKE_BOT_GCE_SERVICE_ACC', variable: 'keyLocation')])
             {
               sh '''
-              if [ -d $WORKSPACE ]; then
-                rm -r ${WORKSPACE}
-              fi
-              mkdir ${WORKSPACE}
               if [ ! -d ${INSTALLMENT} ]; then
                 mkdir ${INSTALLMENT}
               else
@@ -32,6 +30,7 @@ pipeline
               cp ${keyLocation} ${INSTALLMENT}/${FILE_SEC}
               chmod 400 ${INSTALLMENT}/${FILE_SEC}
               '''
+            }
             }
           }
         }
@@ -47,8 +46,9 @@ pipeline
         {
           steps
           {
-            withCredentials([string(credentialsId: 'GCP_GCR_IMGPULL_USERNAME', variable: 'WUM_USERNAME'),
-                             string(credentialsId: 'GCP_GCR_IMGPULL_PASSWORD', variable: 'WUM_PASSWORD'),
+          wrap([$class: 'MaskPasswordsBuildWrapper']) { // to enable mask-password plugin
+            withCredentials([string(credentialsId: 'WUM_USERNAME', variable: 'WUM_USERNAME'),
+                             string(credentialsId: 'WUM_PASSWORD', variable: 'WUM_PASSWORD'),
                              string(credentialsId: 'ORACLE_ACC_USER', variable: 'ORACLE_USER'),
                              string(credentialsId: 'ORACLE_ACC_PWD', variable: 'ORACLE_PASS'),
                              string(credentialsId: 'GITHUB_ACCESS_TOKEN', variable: 'ACCESS_TOKEN'),
@@ -58,12 +58,13 @@ pipeline
             {
               sh """
                 ls
-                cd ${WORKSPACE}
-                chmod +x ../resources/k8s/build_latest.sh
-                chmod +x ../resources/k8s/docker_build.sh
-                sh ../resources/k8s/build_latest.sh
+                cd resources/k8s
+                chmod +x build_latest.sh
+                chmod +x docker_build.sh
+                sh build_latest.sh
               """
             }
+          }
           }
         }
     }

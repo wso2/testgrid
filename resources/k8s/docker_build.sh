@@ -3,8 +3,9 @@
 # This script is responsible for creating a Docker Image of the given Product with WUM updates and
 # Pushing it to the Private Docker registry
 
-set -o xtrace
+#set -o xtrace;
 alias wget='wget -q'
+alias unzip='unzip -q'
 
 LOG_FILE="" # log.txt
 GIT_REPO_ZIP_URL=""
@@ -14,23 +15,24 @@ GIT_REPO_NAME="" # docker-is-master
 DOCKERFILE_DIR=""
 TAG=""
 
-MYSQL_CONNECTOR_URL="http://central.maven.org/maven2/mysql/mysql-connector-java/5.1.45/mysql-connector-java-5.1.45.jar"
-ORACLE_JDBC_URL="http://download.oracle.com/otn/utilities_drivers/jdbc/183/ojdbc8.jar"
-MSSQL_JDBC_URL="http://central.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/7.0.0.jre8/mssql-jdbc-7.0.0.jre8.jar"
-POSTGRESQL_URL="https://jdbc.postgresql.org/download/postgresql-42.2.5.jar"
-
-ORACLE_JDK_URL="http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz"
+WORKSPACE_IMG="$(pwd)"
 
 WUM_CONFIG_FILE=~/.wum3/config.yaml; WUM_TMP="wum_conf.tmp";
 
 
 # Use default if not stored as environment variables
 if [ -z $(echo $SERVICE_ACCOUNT) ]; then SERVICE_ACCOUNT="gke-bot@testgrid.iam.gserviceaccount.com"; fi
-if [ -z $(echo $CLUSTER_NAME) ]; then CLUSTER_NAME="chathurangi-test-cluster";fi
+if [ -z $(echo $CLUSTER_NAME) ]; then CLUSTER_NAME="dev-test-cluster";fi
 if [ -z $(echo $ZONE) ]; then ZONE="us-central1-a"; fi
 if [ -z $(echo $PROJECT_NAME) ]; then PROJECT_NAME="testgrid"; fi
 if [ -z $(echo $REG_LOCATION) ]; then REG_LOCATION="asia.gcr.io"; fi
-if [ -z $(echo $PROJECT_ID) ]; then PROJECT_ID="testgrid/wso2-docker"; fi
+if [ -z $(echo $REG_SUB_DIR) ]; then REG_SUB_DIR="wso2-docker"; fi
+
+#TODO: ADD ALL INFRASTUCTURE
+
+INFRA_JDBC="postgres mysql"
+INFRA_OS="centos"
+INFRA_JDK="adopt_open_jdk8"
 
 
 while (( "$#" )); do
@@ -80,11 +82,9 @@ WUM_DIR="${HOME}/.wum3/products/${PRODUCT_NAME}/${WSO2_SERVER_VERSION}"
 WSO2_FULL_CHANNEL_DIR="${WUM_DIR}/full"
 WSO2_PRODUCT_PACK="${WUM_DIR}/${PRODUCT_NAME_ZIP}"
 WSO2_PRODUCT_BASE_ZIP=${WSO2_PRODUCT_PACK}
-DOCKERFILE_HOME="${GIT_REPO_NAME}/dockerfiles/${DOCKERFILE_DIR}"
 
 # TODO: CAN BE REMOVED
 ZIP_FILE_NAME="master.zip"
-JDK_FILE="jdk-8u*-linux-x64.tar.gz"
 
 function log_info() {
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')][INFO]: $@" >&1 | tee -a ${LOG_FILE}
@@ -106,7 +106,7 @@ echo ${time_stamp}
 
 function install_dependencies() {
 
-  cd ../$INSTALLMENT
+  cd ../../${INSTALLMENT}
 
   if [ ! $(which gcloud) ]; then
     log_info "Gcloud is not confiured ! Configuring Gcloud."
@@ -128,12 +128,12 @@ function install_dependencies() {
     source google-cloud-sdk/path.bash.inc
     source google-cloud-sdk/completion.bash.inc
 
-    gcloud auth configure-docker
-
-    gcloud auth activate-service-account --key-file=key.json
-    gcloud config set account $SERVICE_ACCOUNT
-    gcloud container clusters get-credentials $CLUSTER_NAME --zone $ZONE --project $PROJECT_NAME
   fi
+
+  gcloud auth configure-docker
+  gcloud auth activate-service-account --key-file=key.json
+  gcloud config set account $SERVICE_ACCOUNT
+  gcloud container clusters get-credentials $CLUSTER_NAME --zone $ZONE --project $PROJECT_NAME
 
   if [ ! $(which wum) ]; then
     log_info "WUM is not configured! Configuring WUM."
@@ -154,14 +154,14 @@ function install_dependencies() {
 
   fi
 
-  cd ../${WORKSPACE}
+  cd ${WORKSPACE_IMG}
 
 }
 #wum temp ---> new filw
 #output -file/input file === wum config directory
 function config_uat(){
 
-  cat $WUM_CONFIG_FILE
+  #cat $WUM_CONFIG_FILE
 
   if ! cat ${WUM_CONFIG_FILE} | grep -q "uat"; then
     echo "ok"
@@ -241,64 +241,81 @@ function get_latest_pack() {
   fi
 }
 
-function copy_dependencies() {
+function add_jdk_info(){
+    case $infjdk  in
+      adopt_open_jdk8)
+          local jdk_url="https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_x64_linux_hotspot_8u222b10.tar.gz"
 
-if ! unzip -q -n  ${WSO2_PRODUCT_PACK} -d ${DOCKERFILE_HOME}files/; then
-log_error " cannot unzip  ${WSO2_PRODUCT_PACK}  to ${DOCKERFILE_HOME}files/"
-fi
-log_info "${WSO2_PRODUCT_PACK} is extracted to ${DOCKERFILE_HOME}files/"
+          sed -i.bak 's#@JAVA_OPTS_DIR#RUN \
+                mkdir -p ${USER_HOME}/.java/.systemPrefs \\ \
+                && mkdir -p ${USER_HOME}/.java/.userPrefs \\ \
+                && chmod -R 755 ${USER_HOME}/.java \\ \
+                && chown -R ${USER}:${USER_GROUP} ${USER_HOME}/.java#g' $dockerfile
 
-# Download JDK
+          sed -i.bak 's#@JAVA_OPTS_ENV#JAVA_OPTS="-Djava.util.prefs.systemRoot=${USER_HOME}/.java -Djava.util.prefs.userRoot=${USER_HOME}/.java/.userPrefs"#g' $dockerfile
+          ;;
+      corretto)
+        local jdk_url="https://d3pxv6yz143wms.cloudfront.net/8.222.10.1/amazon-corretto-8.222.10.1-linux-x64.tar.gz"
+        ;;
+      oracle)
+        local jdk_url="http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz"
+        local headers=$(cat $dockerfile | grep "wget -O jdk_pkg.tar.gz")
+        sed -i.bak 's#'$headers'#wget -O jdk_pkg.tar.gz --no-check-certificate --https-only -c --header "Cookie: oraclelicense=accept-securebackup-cookie" \#g'
+        ;;
+    esac
 
-if ! wget --https-only -c --header "Cookie: oraclelicense=accept-securebackup-cookie" ${ORACLE_JDK_URL} ; then
-  log_error "Cannot download Oracle JDK"
-fi
+    sed -i.bak "s#@JDK_URL#$jdk_url#g" $dockerfile
+}
 
-if ! tar -xf ${JDK_FILE} -C ${DOCKERFILE_HOME}files/ ; then
-log_error "Cannot extract  ${JDK_FILE} to ${DOCKERFILE_HOME}files/"
-fi
-log_info "${JDK_FILE} is extracted to ${DOCKERFILE_HOME}files/"
+function add_jdbc_info(){
+  MYSQL_JDBC_VERSION="5.1.47"; ORACLE_JDBC_VERSION="12.2.0.1"; MSSQL_JDBC_VERSION="7.0.0"; POSTGRESQL_JDBC_VERSION="9.4.1212"
 
-# Download JDBC drivers
-if ! wget --https-only -P ${DOCKERFILE_HOME}files/ ${MYSQL_CONNECTOR_URL}; then
-    log_error "Cannot download MySQL connector"
-fi
-log_info "MySQL Connector is extracted to ${DOCKERFILE_HOME}files/"
-if ! wget --https-only -P ${DOCKERFILE_HOME}files/ ${MSSQL_JDBC_URL}; then
-    log_error "Cannot download MSSQL JDBC Driver"
-fi
-log_info "MSSQL JDBC Driver is extracted to ${DOCKERFILE_HOME}files/"
-if ! wget --https-only -P ${DOCKERFILE_HOME}files/ ${POSTGRESQL_URL}; then
-    log_error "Cannot download PostgreSQL JDBC Driver"
-fi
-log_info "PostgreSQL JDBC Driver is extracted to ${DOCKERFILE_HOME}files/"
-if ! wget --https-only --user ${ORACLE_USER} --password ${ORACLE_PASS}  -P ${DOCKERFILE_HOME}files/ ${ORACLE_JDBC_URL}; then
-    log_error "Cannot download PostgreSQL JDBC Driver"
-fi
-log_info "Oracle JDBC Driver is extracted to ${DOCKERFILE_HOME}files/"
+  case $infcon in
+        mysql)
+          local jdbc_version="$MYSQL_JDBC_VERSION"
+          local jdbc_url='http://central.maven.org/maven2/mysql/mysql-connector-java/${CONNECTOR_VERSION}/mysql-connector-java-${CONNECTOR_VERSION}.jar'
+          ;;
+        oracle)
+          local jdbc_version="$ORACLE_JDBC_VERSION"
+          local jdbc_url='https://maven.xwiki.org/externals/com/oracle/jdbc/ojdbc8/${CONNECTOR_VERSION}/ojdbc8-${CONNECTOR_VERSION}.jar'
+          ;;
+        mssql)
+          local jdbc_version="$MSSQL_JDBC_VERSION"
+          local jdbc_url='http://central.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/${CONNECTOR_VERSION}.jre8/mssql-jdbc-${CONNECTOR_VERSION}.jre8.jar'
+          ;;
+        postgres)
+          local jdbc_version="$POSTGRESQL_JDBC_VERSION"
+          local jdbc_url='https://jdbc.postgresql.org/download/postgresql-${CONNECTOR_VERSION}.jar'
+          ;;
+  esac
+  sed -i.bak 's#@CON_VERSION_JDBC#'$jdbc_version'#g' $dockerfile
+  sed -i.bak 's#@JDBC_URL_WSO2#'$jdbc_url'#g' $dockerfile
+
+}
+
+function get_wum_pack() {
+
+  DOCKERFILE_HOME="${GIT_REPO_NAME}/dockerfiles/$infos/${DOCKERFILE_DIR}"
+
+  mkdir -p "${DOCKERFILE_HOME}/files/"
+  if ! unzip -q -n  ${WSO2_PRODUCT_PACK} -d  "${DOCKERFILE_HOME}/files/" ; then
+  log_error " cannot unzip  ${WSO2_PRODUCT_PACK}  to ${DOCKERFILE_HOME}/files/"
+  fi
+  log_info "${WSO2_PRODUCT_PACK} is extracted to ${DOCKERFILE_HOME}/files/"
 
 }
 
 function build_push_docker_image() {
 
     log_info "Build the Docker Image. Docker file location: ${DOCKERFILE_HOME}"
-    if ! docker build -t ${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}  ${DOCKERFILE_HOME} ; then
-        log_error "Docker Image \"${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}\" building is failed. Docker file location: ${DOCKERFILE_HOME}"
+    if ! docker build -t "${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$infos-$infjdk-$infcon"  ${DOCKERFILE_HOME} ; then
+        log_error "Docker Image \"${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$os-$infjdk-$infcon\" building is failed. Docker file location: ${DOCKERFILE_HOME}"
     fi
     log_info "Docker image building for ${PRODUCT} is successful !."
 
-    log_info "Pushing the Docker Image: ${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION} to Registry: ${REG_LOCATION}/${PROJECT_ID}"
-    if ! docker push ${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}; then
-        log_error "${PRODUCT} Docker Image \"${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}\" pushing is failed. Docker file location: ${DOCKERFILE_HOME}"
-    fi
-    if ! docker tag ${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}  ${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:latest ; then
-        log_error "Docker Image \"${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:latest\" tagging is failed. Docker file location: ${DOCKERFILE_HOME}"
-    fi
-    log_info "Docker image tagging with \"latest\" for ${PRODUCT} is successful !."
-
-    log_info "Pushing the Docker Image: ${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:latest to Registry: ${REG_LOCATION}/${PROJECT_ID}"
-    if ! docker push ${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:latest; then
-        log_error "${PRODUCT} Docker Image \"${REG_LOCATION}/${PROJECT_ID}/${PRODUCT_NAME}:latest\" pushing is failed. Docker file location: ${DOCKERFILE_HOME}"
+    log_info "Pushing the Docker Image: ${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$infos-$infjdk-$infcon to Registry: ${REG_LOCATION}/${REG_SUB_DIR}"
+    if ! docker push "${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$infos-$infjdk-$infcon"; then
+        log_error "${PRODUCT} Docker Image \"${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}:${WSO2_SERVER_VERSION}-$os-$infjdk-$infcon\" pushing is failed. Docker file location: ${DOCKERFILE_HOME}"
     fi
 
     log_info "${PRODUCT} Docker image is pushed successfully !."
@@ -318,11 +335,25 @@ function download_docker_repo() {
       fi
   fi
 
-  if ! unzip -q ${ZIP_FILE_NAME};then
+  if ! yes | unzip -q ${ZIP_FILE_NAME};then
       log_error "Cannot unzip ${ZIP_FILE_NAME}"
   fi
 
   log_info "\"${ZIP_FILE_NAME}\" is extracted !"
+}
+
+function clean_stack(){
+
+  echo "ramoving non-taged stack"
+
+  img_name="${REG_LOCATION}/${PROJECT_NAME}/${REG_SUB_DIR}/${PRODUCT_NAME}"
+  img_ls=$(gcloud container images list-tags "${img_name}" --filter='NOT tags:*' --format='get(digest)')
+  for digest in $img_ls
+  do
+    gcloud -q container images delete "${img_name}@${digest}"
+  done
+
+  echo "stack clean successful"
 
 }
 
@@ -331,9 +362,28 @@ install_dependencies
 config_uat
 
 download_docker_repo
-
 get_wum_update
 get_latest_pack
-copy_dependencies
 
-build_push_docker_image
+#TODO: copying libs
+
+for infos in $INFRA_OS; do
+  #copying dockerfile to current directory
+  cp "${GIT_REPO_NAME}/dockerfiles/${infos}/${DOCKERFILE_DIR}/Dockerfile" ./
+  for infcon in $INFRA_JDBC; do
+    for infjdk in $INFRA_JDK;do
+
+      echo "Building docker image for $infos-$infcon-$infjdk combination"
+      dockerfile="${GIT_REPO_NAME}/dockerfiles/${infos}/${DOCKERFILE_DIR}/Dockerfile"
+      add_jdk_info
+      add_jdbc_info
+      get_wum_pack
+
+      rm "${GIT_REPO_NAME}/dockerfiles/${infos}/${DOCKERFILE_DIR}/Dockerfile.bak"
+      build_push_docker_image
+      cp -f Dockerfile "${GIT_REPO_NAME}/dockerfiles/${infos}/${DOCKERFILE_DIR}/Dockerfile"
+    done
+  done
+done
+
+clean_stack

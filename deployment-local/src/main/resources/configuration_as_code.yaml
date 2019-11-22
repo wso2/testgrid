@@ -1,0 +1,22 @@
+unclassified:
+  globalConfigFiles:
+    configs:
+    - custom:
+        content: ${common_configs}
+        id: "common-configs"
+        name: "common-configs"
+        providerId: "org.jenkinsci.plugins.configfiles.custom.CustomConfig"
+    - xml:
+        content: ${uat_nexus_settings}
+        id: "uat-nexus-settings"
+        name: "uat-nexus-settings"
+        providerId: "org.jenkinsci.plugins.configfiles.xml.XmlConfig"
+  globalLibraries:
+    libraries:
+    - defaultVersion: "dev"
+      name: "intg_test_template"
+      retriever:
+        modernSCM:
+          scm:
+            git:
+              remote: ${testgrid_jenkins_library_path}

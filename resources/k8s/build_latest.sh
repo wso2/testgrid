@@ -1,31 +1,31 @@
 #!/usr/bin/env bash
 # This will build Docker images for all the latest WSO2 products to use in testgrid
-set -o xtrace
+set -o xtrace; set -e
+alias wget='wget -q'
+alias unzip='unzip -q'
 
 LOG_FILE="$(date +%F).log"
-BUILD_SCRIPT="../resources/k8s/docker_build.sh"
+BUILD_SCRIPT="docker_build.sh"
 
 # Git repo URLs
 
 #TODO: Change URLs when it comes to the production stage.
-APIM_GIT_REPO_URL_260="https://github.com/NishikaDeSilva/docker-apim-support/archive/v2.6.0.1.zip"
-EI_GIT_REPO_URL_640="https://github.com/NishikaDeSilva/docker-ei-support/archive/v6.4.0.zip"
-IS_GIT_REPO_URL_570="https://github.com/NishikaDeSilva/docker-is-support/archive/v5.7.0.zip"
+TG_GIT_REPO_URL="https://github.com/NishikaDeSilva"
 
 # name of the unzipped directory
-APIM_GIT_REPO_NAME_260="docker-apim-support-2.6.0.1"
-EI_GIT_REPO_NAME_640="docker-ei-support-6.4.0"
-IS_GIT_REPO_NAME_570="docker-is-support-5.7.0"
+APIM_GIT_REPO_NAME="docker-apim-tg"
+EI_GIT_REPO_NAME="docker-ei-tg"
+IS_GIT_REPO_NAME="docker-is-tg"
 
-#echo "----------------------------------------Building new images with latest updates--------------------------------------------------"
+echo "----------------------------------------Building new images with latest updates--------------------------------------------------"
 
 echo "----------------------------------------Building wso2am-2.6.0---------------------------------------------------------"
       ./${BUILD_SCRIPT} --log-file ${LOG_FILE} \
-      --git-repo-zip-url ${APIM_GIT_REPO_URL_260} \
-      --product-name "wso2am-analytics" \
+      --git-repo-zip-url "${TG_GIT_REPO_URL}/${APIM_GIT_REPO_NAME}/archive/2.6.x.zip" \
+      --product-name "wso2am" \
       --wso2-server-version "2.6.0" \
-      --git-repo-name ${APIM_GIT_REPO_NAME_260} \
-      --docker-file-dir "ubuntu/apim-analytics/base/" \
+      --git-repo-name "${APIM_GIT_REPO_NAME}-2.6.x" \
+      --docker-file-dir "apim" \
       --tag "2.6.0" \
 
       if [ $? -ne 0 ]; then
@@ -35,36 +35,36 @@ echo "----------------------------------------Building wso2am-2.6.0-------------
 echo "WSO2APIM 2.6.0 Image build is successful !" | tee -a ${LOG_FILE}
 
 
-echo "---------------------------------------------------------Building wso2is-5.7.0---------------------------------------------------------"
+echo "---------------------------------------------------------Building wso2is-5.8.0---------------------------------------------------------"
       ./${BUILD_SCRIPT} --log-file ${LOG_FILE} \
-      --git-repo-zip-url ${IS_GIT_REPO_URL_570} \
+      --git-repo-zip-url "${TG_GIT_REPO_URL}/${IS_GIT_REPO_NAME}/archive/5.8.x.zip" \
       --product-name "wso2is" \
-      --wso2-server-version "5.7.0" \
-      --git-repo-name ${IS_GIT_REPO_NAME_570} \
-      --docker-file-dir "ubuntu/is/"\
-      --tag "5.7.0" \
+      --wso2-server-version "5.8.0" \
+      --git-repo-name "${IS_GIT_REPO_NAME}-5.8.x" \
+      --docker-file-dir "is"\
+      --tag "5.8.0" \
 
       if [ $? -ne 0 ]; then
        exit 1
       fi
 
-echo "WSO2IS 5.7.0 Image build is successful !" | tee -a ${LOG_FILE}
+echo "WSO2IS 5.8.0 Image build is successful !" | tee -a ${LOG_FILE}
 
-echo "---------------------------------------------------------Building wso2ei-base:6.4.0---------------------------------------------------------"
+echo "---------------------------------------------------------Building wso2ei-base:6.5.0---------------------------------------------------------"
     ./${BUILD_SCRIPT} --log-file ${LOG_FILE} \
-      --git-repo-zip-url ${EI_GIT_REPO_URL_640} \
+      --git-repo-zip-url "${TG_GIT_REPO_URL}/${EI_GIT_REPO_NAME}/archive/6.5.x.zip" \
       --product-name "wso2ei" \
-      --wso2-server-version "6.4.0" \
-      --git-repo-name ${EI_GIT_REPO_NAME_640} \
-      --docker-file-dir "ubuntu/analytics/base/" \
-      --tag "6.4.0" \
+      --wso2-server-version "6.5.0" \
+      --git-repo-name "${EI_GIT_REPO_NAME}-6.5.x"\
+      --docker-file-dir "integrator" \
+      --tag "6.5.0" \
 
 
     if [ $? -ne 0 ]; then
       exit 1
     fi
 
-echo "WSO2EI 6.4.0 Image build is successful !" | tee -a ${LOG_FILE}
+echo "WSO2EI 6.5.0 Image build is successful !" | tee -a ${LOG_FILE}
 
 if [ $(docker images | grep "<none>") ]; then
   docker rmi $(docker images | grep "<none>" | awk '{print $3}')

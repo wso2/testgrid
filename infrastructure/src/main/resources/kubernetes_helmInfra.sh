@@ -32,6 +32,8 @@ INPUT_DIR=$2
 OUTPUT_DIR=$4
 source $INPUT_DIR/testplan-props.properties
 
+GCLOUD_SDK_FILE="google-cloud-sdk-247.0.0-linux-x86_64.tar.gz"
+
 #if the cluster name is not specified through input parametes it is assumed that the default
 #testgrid cluster is used for the creation of resources.
 
@@ -40,7 +42,7 @@ then
     SERVICE_ACCOUNT="gke-bot@testgrid.iam.gserviceaccount.com"
     CLUSTER_NAME="dev-test-cluster"
     ZONE="us-central1-a"
-    PROJECT_NAME="testgrid" 
+    PROJECT_NAME="testgrid"
 fi
 
 #functions
@@ -50,8 +52,10 @@ function check_tools() {
     if ! type 'gcloud'
     then
         echo "installing gcloud - google cloud command line tool..."
-        wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
-        tar -xzf google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
+        if [[ ! -f ${GCLOUD_SDK_FILE} ]]; then
+            wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_SDK_FILE}
+            tar -xzf ${GCLOUD_SDK_FILE}
+        fi
         cd google-cloud-sdk
         CLOUDSDK_CORE_DISABLE_PROMPTS=1 ./install.sh
         source path.bash.inc && source completion.bash.inc
@@ -84,7 +88,7 @@ function auth() {
 }
 function create_randomName() {
     if [ -z $name ]
-    then 
+    then
       echo "The namespace prefix is not set"
     fi
     NAME="$name$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 5 | head -n 1)"
@@ -152,4 +156,3 @@ function infra_creation() {
 }
 
 infra_creation
-

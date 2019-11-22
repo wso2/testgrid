@@ -21,8 +21,8 @@ infrastructureConfig:
   iacProvider: None
   infrastructureProvider: SHELL
   containerOrchestrationEngine: None
-  parameters:
-    - JDK : ORACLE_JDK8
+  includes:
+    - OPEN_JDK8
   provisioners:
     - name: 01-two-node-deployment
       description: Provision Infra for a two node IS cluster

@@ -132,6 +132,7 @@ public class InfraPhase extends Phase {
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(getTestPlan());
+                    logger.info("");
                     logger.info("--- executing script: " + script.getName() + ", file: " + script.getFile());
                     InfrastructureProvisionResult aProvisionResult =
                             infrastructureProvider.provision(getTestPlan(), script);

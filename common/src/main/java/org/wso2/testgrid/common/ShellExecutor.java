@@ -114,7 +114,7 @@ public class ShellExecutor {
                 logger.info(msg);
             });
             StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), msg -> {
-                Consumer<String> c = !msg.startsWith("+ ") ? logger::error : logger::info; // handle 'set -o xtrace'
+                Consumer<String> c = !msg.matches("^\\++ .*") ? logger::error : logger::info; // handle 'set -o xtrace'
                 msg = reduceLogVerbosity(msg);
                 c.accept(msg);
             });
