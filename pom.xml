@@ -635,7 +635,7 @@
         <!-- Other dependencies -->
         <awaitility.version>3.0.0</awaitility.version>
         <guava.version>19.0</guava.version>
-        <snakeyaml.version>1.19</snakeyaml.version>
+        <snakeyaml.version>1.24</snakeyaml.version>
         <com.fasterxml.jackson.version>2.8.0</com.fasterxml.jackson.version>
         <apache.httpcomponents.fluent.version>5.0-alpha3</apache.httpcomponents.fluent.version>
         <apache.commons.io.version>2.6</apache.commons.io.version>
@@ -660,5 +660,8 @@
         <json-simple.version>1.1</json-simple.version>
         <json.version>20180130</json.version>
         <dbutils.version>1.6</dbutils.version>
+        <!--Groovy Script Dependencies Optional-->
+        <groovy.version>2.4.3</groovy.version>
+        <apache.ivy.version>2.4.0</apache.ivy.version>
     </properties>
 </project>
