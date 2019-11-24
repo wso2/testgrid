@@ -102,5 +102,25 @@
             <artifactId>org.jacoco.agent</artifactId>
             <classifier>runtime</classifier>
         </dependency>
+
+        <!-- Optional Groovy Script dependencies
+             Enable if IDE debugging is required-->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ivy</groupId>
+            <artifactId>ivy</artifactId>
+            <version>${apache.ivy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+        <!---->
+
     </dependencies>
 </project>

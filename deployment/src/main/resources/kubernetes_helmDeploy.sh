@@ -25,6 +25,20 @@ alias unzip='unzip -q'
 #The created resources will be exposed using an Ingress to the external usage
 #
 
+function edit_deployments() {
+  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/params.json" helm)
+  read -ra detailsArr <<< $details
+  sidecarReq=${detailsArr[0]}
+  filename=${detailsArr[1]}
+  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyES" ]]
+  then
+    kubectl label namespace ${namespace} namespace=${namespace}
+    kubectl label namespace ${namespace} sidecar-injector=enabled
+    chmod 777 ./testgrid-sidecar/create.sh
+    ./testgrid-sidecar/create.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
+  fi
+}
+
 function create_k8s_resources() {
 
     if [ -z ${exposedDeployments} ]
@@ -38,8 +52,7 @@ function create_k8s_resources() {
       exit 1
     fi
 
-    #install helm
-    install_helm
+
 
     #deploy the helm configurations into the kubernetes cluster
     source $helmDeployScript
@@ -177,13 +190,39 @@ function readinesss_services(){
 
 }
 
+#This function is used to add paths to etc/host fils
+function addhost() {
+    IP=$1
+    HOSTNAME=$2
+    HOSTS_LINE="$IP\t$HOSTNAME"
+    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+        then
+            echo "$HOSTNAME already exists : $(grep $HOSTNAME $ETC_HOSTS)"
+        else
+            echo "Adding $HOSTNAME to your $ETC_HOSTS";
+            echo $TESTGRID_PASS | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
+
+            if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+                then
+                    echo "$HOSTNAME was added succesfully \n $(grep $HOSTNAME /etc/hosts)";
+                else
+                    echo "Failed to Add $HOSTNAME, Try again!";
+            fi
+    fi
+}
+
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
-    env=${TESTGRID_ENVIRONMENT} || 'dev'
+    if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+      env='dev'
+    else
+      env=${TESTGRID_ENVIRONMENT}
+    fi
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
         echo "Not configuring route53 DNS entries since the environment is not dev/prod. You need to manually add
         '${external_ip} ${loadBalancerHostName}' into your /etc/hosts."
+        addhost "${external_ip}" "${loadBalancerHostName}"
         return;
     fi
 
@@ -242,21 +281,6 @@ echo
 
 
 
-function install_helm(){
-
-  #if helm is not installed in the cluster, helm and tiller will be installed.
-  if ! type 'helm'
-  then
-    wget https://get.helm.sh/helm-v3.0.0-beta.3-linux-amd64.tar.gz -O helm-installer.tar.gz
-    tar -zxvf helm-installer.tar.gz
-    sudo mv linux-amd64/helm /usr/local/bin/
-    helm version
-
-  fi
-
-
-}
-
 # Read a property file to a given associative array
 #
 # $1 - Property file
@@ -275,6 +299,10 @@ read_property_file() {
       [[ -n ${key} ]] && configArray[$key]=$value
     done < ${property_file_path}
     unset IFS
+}
+
+write_to_dep_props() {
+  echo namespace=${namespace} >> "${OUTPUT_DIR}/deployment.properties"
 }
 
 echo "Starting helm kubernetes artifact deployment.."
@@ -299,9 +327,18 @@ namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 deploymentRepositoryLocation=${infra_props["deploymentRepositoryLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
+logOptions=${infra_props["log-Options"]}
 
-#DEBUG parameters: TODO: remove
-TESTGRID_ENVIRONMENT=dev
+TESTGRID_ENVIRONMENT=${infra_props["env"]}
+TESTGRID_PASS=${infra_props["pass"]}
+ETC_HOSTS=/etc/hosts
+
+if [ -z "$logOptions" ]; then
+    echo "No Logging capabilities are set"
+else
+    edit_deployments
+fi
 
 create_k8s_resources
 add_route53_entry
+write_to_dep_props
