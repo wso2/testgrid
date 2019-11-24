@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.testgrid.infrastructure.providers.aws;
+package org.wso2.testgrid.common.logging;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -28,9 +28,12 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ConfigurationContext;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 
 /**
@@ -52,6 +55,11 @@ public class KibanaDashboardBuilder {
     private String allLogsFilterEncodedSection;
     private String allLogsFilterJsonSection;
     private Map<String, Map<String, String>> allInstances;
+    private Set<String> allK8SNameSpaces;
+    private String allLogsFilterEncodedSectionK8S;
+    private String allLogsFilterJsonSectionK8S;
+    private String instanceLogFilterFormatK8S;
+
     private static volatile KibanaDashboardBuilder kibanaDashboardBuilder;
     private static final Object lock = new Object();
 
@@ -74,7 +82,14 @@ public class KibanaDashboardBuilder {
                 .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_FILTER_STRING);
         allLogsFilterJsonSection = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON);
+        allLogsFilterEncodedSectionK8S = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_FILTER_STRING_K8S);
+        allLogsFilterJsonSectionK8S = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.REPEATABLE_ALL_LOGS_JSON_K8S);
+        instanceLogFilterFormatK8S = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.KIBANA_FILTER_STR_K8S);
         allInstances = new HashMap<>();
+        allK8SNameSpaces = new HashSet<>();
     }
 
     /**
@@ -95,8 +110,8 @@ public class KibanaDashboardBuilder {
      * This method is responsible for building the Kibana dashboard for the available stacks.
      *
      * @param currentInstancesMap Map of instanceName and instance-id
-     * @param currentStackName Cloudformation stack name
-     * @param shortenURL weather to shorten URL or not, primaryliy used for unit testing purposes
+     * @param currentStackName CloudFormation stack name
+     * @param shortenURL weather to shorten URL or not, primarily used for unit testing purposes
      * @return Optional of dashboard link shortened to make it compatible with database column
      * restrictions
      */
@@ -140,12 +155,119 @@ public class KibanaDashboardBuilder {
         String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
                 .replaceAll("#_STACK_NAME_#", currentStackName);
 
+        logger.info("Extended kibana dasbhoard url");
+        logger.info(kibanaEndpoint + logDownloadCtx);
         if (shortenURL) {
             return shortenKibanaURL(logDownloadCtx);
         } else {
             return Optional.of(kibanaEndpoint + logDownloadCtx);
         }
 
+    }
+
+    /**
+     * This method is responsible for building a Temporary Kibana dashboard for TestGrid jobs in K8S environments
+     * (including Helm) which only includes filters under the namespace
+     * @param currentNameSpace CloudFormation stack name
+     * @param shortenURL weather to shorten URL or not, primarily used for unit testing purposes
+     * @return Optional of dashboard link shortened to make it compatible with database column
+     * restrictions
+     */
+    public Optional<String> buildK8STempDashBoard(String currentNameSpace, boolean shortenURL) {
+
+        if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
+            logger.warn("Kibana endpoint configuration not found in testgrid config. Server log view may not work!" +
+                    "Kibana Endpoint : " + kibanaEndpoint +
+                    "\nDashbboardCtxFormat : " + dashboardCtxFormat +
+                    "\ninstanceLogFilterFormat : " + instanceLogFilterFormat);
+            return Optional.empty();
+        }
+
+        allK8SNameSpaces.add(currentNameSpace);
+        String instanceLogFilter;
+        StringJoiner filtersStr = new StringJoiner(",");
+
+
+        StringJoiner allLogsStr = new StringJoiner(",");
+        StringJoiner allLogsJson = new StringJoiner(",");
+
+        for (String nameSpace : allK8SNameSpaces) {
+            logger.info(nameSpace);
+            logger.info(allLogsFilterEncodedSectionK8S);
+            allLogsStr.add(allLogsFilterEncodedSectionK8S.replaceAll("#_NAMESPACE_#", nameSpace));
+            allLogsJson.add(allLogsFilterJsonSectionK8S.replaceAll("#_NAMESPACE_#", nameSpace));
+        }
+        allLogsFilter = allLogsFilter
+                .replaceAll("#_ALL_LOGS_FILTER_SECTION_#", allLogsStr.toString())
+                .replaceAll("#_REPEATABLE_ALL_LOGS_JSON_SECTION_#", allLogsJson.toString());
+        filtersStr.add(allLogsFilter);
+        String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
+                .replaceAll("#_NAMESPACE_#", currentNameSpace);
+
+        logger.info("Extended kibana dasbhoard url");
+        logger.info(kibanaEndpoint + logDownloadCtx);
+        if (shortenURL) {
+            return shortenKibanaURL(logDownloadCtx);
+        } else {
+            return Optional.of(kibanaEndpoint + logDownloadCtx);
+        }
+
+    }
+
+
+    /**
+     * Builds the final Permanent dashboard for helm deployments which includes filters for all pods
+     * @param currentNameSpace CloudFormation stack name
+     * @param shortenURL weather to shorten URL or not, primarily used for unit testing purposes
+     * @return Optional of dashboard link shortened to make it compatible with database column
+     *      * restrictions
+     */
+    public Optional<String> buildK8SPermaDashBoard(String currentNameSpace, boolean shortenURL) {
+
+        if (kibanaEndpoint == null || dashboardCtxFormat == null || instanceLogFilterFormat == null) {
+            logger.warn("Kibana endpoint configuration not found in TestGrid config. Server log view may not work!" +
+                    "Kibana Endpoint : " + kibanaEndpoint +
+                    "\nDashbboardCtxFormat : " + dashboardCtxFormat +
+                    "\ninstanceLogFilterFormat : " + instanceLogFilterFormat);
+            return Optional.empty();
+        }
+
+
+        String instanceLogFilter;
+        StringJoiner filtersStr = new StringJoiner(",");
+        allK8SNameSpaces.add(currentNameSpace);
+        for (String nameSpace : allK8SNameSpaces) {
+            ElasticSearchHelper esHelper = new ElasticSearchHelper();
+            ArrayList<String> instanceMap = esHelper.getAllIndexes(nameSpace);
+            for (String instances : instanceMap) {
+                instanceLogFilter = instanceLogFilterFormatK8S
+                        .replaceAll("#_INSTANCE_ID_#", instances)
+                        .replaceAll("#_NAMESPACE_#", nameSpace);
+                filtersStr.add(instanceLogFilter);
+            }
+        }
+
+        StringJoiner allLogsStr = new StringJoiner(",");
+        StringJoiner allLogsJson = new StringJoiner(",");
+
+        for (String nameSpace : allK8SNameSpaces) {
+            allLogsStr.add(allLogsFilterEncodedSectionK8S.replaceAll("#_NAMESPACE_#", nameSpace));
+            allLogsJson.add(allLogsFilterJsonSectionK8S.replaceAll("#_NAMESPACE_#", nameSpace));
+        }
+        allLogsFilter = allLogsFilter
+                .replaceAll("#_ALL_LOGS_FILTER_SECTION_#", allLogsStr.toString())
+                .replaceAll("#_REPEATABLE_ALL_LOGS_JSON_SECTION_#", allLogsJson.toString());
+        filtersStr.add(allLogsFilter);
+        String logDownloadCtx = dashboardCtxFormat.replace("#_NODE_FILTERS_#", filtersStr.toString())
+                .replaceAll("#_NAMESPACE_#", currentNameSpace);
+
+        logger.info("Extended kibana dasbhoard url");
+        logger.info(kibanaEndpoint + logDownloadCtx);
+        if (shortenURL) {
+            return shortenKibanaURL(logDownloadCtx);
+        } else {
+            return Optional.of(kibanaEndpoint + logDownloadCtx);
+        }
     }
 
     /**
@@ -172,6 +294,8 @@ public class KibanaDashboardBuilder {
             if (httpResponse.getStatusLine().getStatusCode() == 200) {
                 String shortUrlId = EntityUtils.toString(httpResponse.getEntity());
                 shortenUrl =  kibanaEndpoint + "/goto/" + shortUrlId;
+                logger.info("Shortened URL");
+                logger.info(shortenUrl);
                 return Optional.of(shortenUrl);
             } else {
                 logger.warn("Request to Kibana to retrieve shortened URL for dashboard returned status code:" +
