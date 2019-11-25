@@ -58,8 +58,8 @@ public class KubernetesDeployer implements Deployer {
 
     private static final String DEPLOYER_NAME = TestPlan.DeployerType.KUBERNETES.toString();
     private static final Logger logger = LoggerFactory.getLogger(KubernetesDeployer.class);
-    static final int BUFFER_SIZE = 2048;
-    static byte[] buffer = new byte[BUFFER_SIZE];
+    private static final int BUFFER_SIZE = 2048;
+    private static byte[] buffer = new byte[BUFFER_SIZE];
 
     @Override
     public String getDeployerName() {

@@ -108,8 +108,6 @@ public class DeployPhase extends Phase {
 
                 // TODO insert properties to DEPL_OUT_FILE and JSON file as they are been executed
                 jsonpropFileEditor.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath, Optional.empty());
-                jsonpropFileEditor.refillJSONfromPropFile(deplPropPath, deplJsonPath);
-
                 jsonpropFileEditor.updateParamsJson(deplJsonPath, "test", outputJsonPath);
                 // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
                 Map<String, Object> sceProperties = new HashMap<>();
@@ -117,6 +115,7 @@ public class DeployPhase extends Phase {
                     sceProperties.putAll(scenarioConfig.getInputParameters());
                     jsonpropFileEditor.persistAdditionalInputs(sceProperties, deplPropPath, deplJsonPath,
                             Optional.of(scenarioConfig.getName()));
+                    // TODO execution part here
                     jsonpropFileEditor.refillJSONfromPropFile(deplPropPath, deplJsonPath);
                     jsonpropFileEditor.updateParamsJson(deplJsonPath, "test", outputJsonPath);
                 }
@@ -194,7 +193,7 @@ public class DeployPhase extends Phase {
                     ConfigurationProperties.TESTGRID_ENVIRONMENT));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS) != null) {
-            additionalDepProps.setProperty("PASS", ConfigurationContext.getProperty(ConfigurationContext.
+            additionalDepProps.setProperty("pass", ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.TESTGRID_PASS));
         }
 
