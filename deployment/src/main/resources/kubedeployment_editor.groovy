@@ -160,7 +160,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                 for ( JSONObject injectableObj in injectableValues ){
                     // add more ifs for other vars
                     if (injectableObj.getString("type") == "elasticsearchEndPoint") {
-                        envVars.add(["name": injectableObj.getString("esVarName"), "value" : esURL])
+                        envVars.add(["name": injectableObj.getString("name"), "value" : esURL])
                     }
                 }
                 if(envVars.size() > 0 ){
