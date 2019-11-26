@@ -87,7 +87,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
 
         JSONObject depInJSON = paramJSON.getJSONObject("dep-in");
         JSONObject logOptions = depInJSON.getJSONObject("log-Options")
-        String esEndpoint = depInJSON.getString("esEP")
+        String esEndpoint = depInJSON.getString("ES_ENDPOINT")
         String depRepo = depInJSON.getString("depRepoLoc")
 
         String logRequirement = logOptions.getString("logRequirement")

@@ -50,7 +50,7 @@ INPUT_DIR=$4
 
 declare -g -A infra_props
 read_property_file "${INPUT_DIR}/infrastructure.properties" infra_props
-esEP=${infra_props["esEP"]}
+esEP=${infra_props["ES_EP"]}
 S3_REGION=${infra_props["S3_REGION"]}
 S3_BUCKET=${infra_props["S3_BUCKET"]}
 S3_SECRET_KEY=${infra_props["S3_SECRET_KEY"]}

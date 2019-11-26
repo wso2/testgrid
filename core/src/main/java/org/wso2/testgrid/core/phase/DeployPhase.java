@@ -171,7 +171,7 @@ public class DeployPhase extends Phase {
                             ConfigurationProperties.AWS_S3_BUCKET_NAME));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL) != null) {
-            additionalDepProps.setProperty("esEP",
+            additionalDepProps.setProperty("ES_ENDPOINT",
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL));
         }
         if (ConfigurationContext.getProperty
@@ -196,10 +196,6 @@ public class DeployPhase extends Phase {
             additionalDepProps.setProperty("pass", ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.TESTGRID_PASS));
         }
-
-        additionalDepProps.setProperty("tpID", getTestPlan().getId());
-        jsonpropFileEditor.persistAdditionalInputs(additionalDepProps, infraOutFilePath, infraOutJSONFilePath,
-                Optional.empty());
 
         try {
             DeploymentCreationResult result = new DeploymentCreationResult();
