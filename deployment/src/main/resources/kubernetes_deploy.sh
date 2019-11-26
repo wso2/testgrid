@@ -319,7 +319,7 @@ dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
-logOptions=${infra_props["log-Options"]}
+logOptions=${infra_props["logOptions"]}
 
 TESTGRID_ENVIRONMENT=${infra_props["env"]}
 TESTGRID_PASS=${infra_props["pass"]}

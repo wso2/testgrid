@@ -34,6 +34,7 @@ import org.wso2.testgrid.common.exception.UnsupportedProviderException;
 import org.wso2.testgrid.common.util.DataBucketsHelper;
 import org.wso2.testgrid.common.util.StringUtil;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
+import org.wso2.testgrid.core.util.JsonPropFileUtil;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.io.File;
@@ -106,7 +107,7 @@ public class InfraPhase extends Phase {
 
             InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
 
-            jsonpropFileEditor.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
+            JsonPropFileUtil.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
 
             TestPlan testplan = getTestPlan();
             final Properties infraParameters = testplan.getInfrastructureConfig().getParameters();
@@ -117,18 +118,18 @@ public class InfraPhase extends Phase {
                 jobProperties.setProperty(TestGridConstants.KEY_FILE_LOCATION, keyFileLocation);
             }
 
-            jsonpropFileEditor.persistAdditionalInputs(infraParameters, testPropFilePath, testJsonFilePath,
+            JsonPropFileUtil.persistAdditionalInputs(infraParameters, testPropFilePath, testJsonFilePath,
                     Optional.empty());
-            jsonpropFileEditor.persistAdditionalInputs(jobProperties, testPropFilePath, testJsonFilePath,
+            JsonPropFileUtil.persistAdditionalInputs(jobProperties, testPropFilePath, testJsonFilePath,
                     Optional.empty());
 
-            jsonpropFileEditor.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
+            JsonPropFileUtil.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!Script.Phase.DESTROY.equals(script.getPhase())) {
-                    jsonpropFileEditor.persistAdditionalInputs(script.getInputParameters(), testPropFilePath,
+                    JsonPropFileUtil.persistAdditionalInputs(script.getInputParameters(), testPropFilePath,
                             testJsonFilePath, Optional.of(script.getName()));
-                    jsonpropFileEditor.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
+                    JsonPropFileUtil.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(getTestPlan());
@@ -141,9 +142,9 @@ public class InfraPhase extends Phase {
                         logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
                         break;
                     }
-                    jsonpropFileEditor.removeScriptParams(script, testPropFilePath);
-                    jsonpropFileEditor.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
-                    jsonpropFileEditor.jsonAddNewPropsToParams(infraOutFilePath, "infra", outputjsonFilePath);
+                    JsonPropFileUtil.removeScriptParams(script, testPropFilePath);
+                    JsonPropFileUtil.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
+                    JsonPropFileUtil.jsonAddNewPropsToParams(infraOutFilePath, "infra", outputjsonFilePath);
                 }
             }
 

@@ -52,7 +52,7 @@ import java.util.Properties;
  */
 public class JsonPropFileUtil {
 
-    final Logger logger = LoggerFactory.getLogger(getClass());
+    private static Logger logger = LoggerFactory.getLogger(JsonPropFileUtil.class);
 
     /**
      * Observes the properties file and updates any necessary values to the json file as a general input
@@ -61,7 +61,7 @@ public class JsonPropFileUtil {
      * @param propFilePath path to .properties file
      * @param jsonFilePath path tp .json file
      */
-    public void refillJSONfromPropFile(Path propFilePath , Path jsonFilePath) {
+    public static void refillJSONfromPropFile(Path propFilePath , Path jsonFilePath) {
 
         try (InputStream propInputStream = new FileInputStream(propFilePath.toString())) {
 
@@ -75,10 +75,7 @@ public class JsonPropFileUtil {
                     JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
                     JSONObject inputJson = new JSONObject(jsonTokener);
 
-                    Iterator it = existingProps.entrySet().iterator();
-
-                    while (it.hasNext()) {
-                        Map.Entry existingPair = (Map.Entry) it.next();
+                    for (Map.Entry<Object, Object> existingPair : existingProps.entrySet()) {
                         if (existingPair.getValue() != null) {
                             if (inputJson.has("general")) {
                                 inputJson.getJSONObject("general").put((String) existingPair.getKey(),
@@ -99,7 +96,7 @@ public class JsonPropFileUtil {
                     logger.info("ERROR " + ex.getMessage());
                 }
             } else {
-                HashMap<String, Object> newJsonFileInputs = new HashMap<String, Object>();
+                HashMap<String, Object> newJsonFileInputs = new HashMap<>();
                 newJsonFileInputs.put("general", existingProps);
 
                 JSONObject newJsonFile = new JSONObject(newJsonFileInputs);
@@ -123,18 +120,6 @@ public class JsonPropFileUtil {
      * Persist additional inputs required other than the outputs from previous steps (i.e. infra/deployment).
      * The additional inputs are specified in the testgrid.yaml.
      *
-     * NOTE :: Used in DeployPhase
-     *
-     * NOTE :: JSON File structure
-     * { general: {
-     *      gen_prop1:val1 , gen_prop2:val2
-     *   },
-     *   currentscript: {
-     *      prop4:val4
-     *   },
-     *   script1: {prop3:val3},
-     *   script2: {prop4:val4}
-     *  }
      *
      * @param properties properties to be added
      * @param propFilePath path of the property file
@@ -142,7 +127,7 @@ public class JsonPropFileUtil {
      * @param scriptName  OPTIONAL Name of script file if not provided property added as a general variable
      * @throws TestPlanExecutorException if writing to the property file fails
      */
-    public void persistAdditionalInputs(Map properties, Path propFilePath , Path jsonFilePath,
+    public static void persistAdditionalInputs(Map properties, Path propFilePath , Path jsonFilePath,
                                          Optional<String> scriptName) throws TestPlanExecutorException {
 
         if (!scriptName.isPresent()) {
@@ -155,11 +140,10 @@ public class JsonPropFileUtil {
                     InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString());
                     JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
                     JSONObject inputJson = new JSONObject(jsonTokener);
-                    Iterator it = properties.entrySet().iterator();
 
                     // Add new value to a flatlist level of the script
-                    while (it.hasNext()) {
-                        Map.Entry existingPair = (Map.Entry) it.next();
+                    for (Object property : properties.entrySet()) {
+                        Map.Entry existingPair = (Map.Entry) property;
                         if (inputJson.has("general")) {
                             inputJson.getJSONObject("general").put((String) existingPair.getKey(),
                                     existingPair.getValue());
@@ -181,7 +165,7 @@ public class JsonPropFileUtil {
                 }
             } else {
                 logger.info(jsonFilePath + "created");
-                HashMap<String, Object> newJsonFileInputs = new HashMap<String, Object>();
+                HashMap<String, Object> newJsonFileInputs = new HashMap<>();
                 newJsonFileInputs.put("general", properties);
                 JSONObject newJsonFile = new JSONObject(newJsonFileInputs);
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
@@ -212,9 +196,8 @@ public class JsonPropFileUtil {
                         generalProps = inputJson.getJSONObject("general");
                     }
 
-                    Iterator it = properties.entrySet().iterator();
-                    while (it.hasNext()) {
-                        Map.Entry pair = (Map.Entry) it.next();
+                    for (Object property : properties.entrySet()) {
+                        Map.Entry pair = (Map.Entry) property;
                         scriptParamsJson.put((String) pair.getKey(), pair.getValue());
                     }
 
@@ -260,9 +243,8 @@ public class JsonPropFileUtil {
         // append new properties to .properties file
         try (PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(
                 new FileOutputStream(propFilePath.toString(), true), StandardCharsets.UTF_8))) {
-            Iterator it = properties.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
+            for (Object property : properties.entrySet()) {
+                Map.Entry pair = (Map.Entry) property;
                 printWriter.println(pair.getKey() + "=" + pair.getValue());
             }
         } catch (IOException e) {
@@ -273,34 +255,31 @@ public class JsonPropFileUtil {
     /**
      *
      *  Optional method removes a scripts params from prop file after execution
-     *  @Param script - Script File
-     *  @Param propFilePath - Path Variable to properties File
+     *  @param script - Script File
+     *  @param propFilePath - Path Variable to properties File
      */
 
-    public void removeScriptParams(Script script, Path propFilePath) {
+    public static void removeScriptParams(Script script, Path propFilePath) {
 
 
-        try (InputStream propInputStream = new FileInputStream(propFilePath.toString());) {
+        try (InputStream propInputStream = new FileInputStream(propFilePath.toString())) {
             Properties existingProps = new Properties();
             existingProps.load(propInputStream);
 
             Map<String, Object> inputParams = script.getInputParameters();
 
-            Iterator it = inputParams.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                if (existingProps.containsKey(pair.getKey()) && existingProps.get(pair.getKey()) != pair.getValue()) {
-                    existingProps.remove(pair.getKey());
-                    logger.info("removing property " + pair.getKey());
+            for (Map.Entry<String, Object> stringObjectEntry : inputParams.entrySet()) {
+                if (existingProps.containsKey(stringObjectEntry.getKey())
+                        && existingProps.get(stringObjectEntry.getKey()) != stringObjectEntry.getValue()) {
+                    existingProps.remove(stringObjectEntry.getKey());
+                    logger.info("removing property " + stringObjectEntry.getKey());
                 }
             }
 
             try (PrintWriter printWriter = new PrintWriter(
                     new OutputStreamWriter(Files.newOutputStream(propFilePath), StandardCharsets.UTF_8))) {
-                Iterator itr = existingProps.entrySet().iterator();
-                while (itr.hasNext()) {
-                    Map.Entry pair = (Map.Entry) itr.next();
-                    printWriter.println(pair.getKey() + "=" + pair.getValue());
+                for (Map.Entry<Object, Object> objectObjectEntry : existingProps.entrySet()) {
+                    printWriter.println(objectObjectEntry.getKey() + "=" + objectObjectEntry.getValue());
                 }
             } catch (IOException e) {
                 logger.error("Error removing existing Properties from " + propFilePath, e);
@@ -324,7 +303,7 @@ public class JsonPropFileUtil {
      * @param phase          Currently executing phase
      * @param outputJsonPath Location to the user see-able params.json file
      */
-    public void jsonAddNewPropsToParams(Path outputPropFile, String phase, Path outputJsonPath) {
+    public static void jsonAddNewPropsToParams(Path outputPropFile, String phase, Path outputJsonPath) {
         try (InputStream outputPropStream = new FileInputStream(outputPropFile.toString())) {
             Properties existingProps = new Properties();
             existingProps.load(outputPropStream);
@@ -380,7 +359,7 @@ public class JsonPropFileUtil {
      * @param phase          Currently executing phase
      * @param outputJsonPath Location to the user see-able params.json file\
      */
-    public void updateParamsJson(Path jsonFileLocation, String phase, Path outputJsonPath) {
+    public static void updateParamsJson(Path jsonFileLocation, String phase, Path outputJsonPath) {
 
         try (InputStream jsonInputStream = new FileInputStream(jsonFileLocation.toString())) {
 

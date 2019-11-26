@@ -86,13 +86,13 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
         JSONObject paramJSON = new JSONObject(paramsTokener)
 
         JSONObject depInJSON = paramJSON.getJSONObject("dep-in");
-        JSONObject logOptions = depInJSON.getJSONObject("log-Options")
-        String esEndpoint = depInJSON.getString("ES_ENDPOINT")
+        JSONObject logOptions = depInJSON.getJSONObject("logOptions")
+        String esEndpoint = depInJSON.getString("esEndPoint")
         String depRepo = depInJSON.getString("depRepoLoc")
 
         String logRequirement = logOptions.getString("logRequirement")
 
-        if (logRequirement == "Sidecar-Required") {
+        if (logRequirement == "Sidecar_Required") {
             // If sidecar is required create logPathDetails.yaml file with all information
             JSONArray logLocations = logOptions.getJSONArray("logFileLocations")
             Yaml yaml = new Yaml()
@@ -108,7 +108,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                     logPathConf.add( entry )
                 }
                 String logConfFile = deriveConfFile(logOptions)
-                Map logConfiguration = ["onlyvars":false, "loglocs": logPathConf]
+                Map logConfiguration = ["onlyVars":false, "logLocations": logPathConf]
                 yaml.dump(logConfiguration,fileWriter)
                 println("SidecarReq ".concat(logConfFile))
             } else {
@@ -130,7 +130,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
 
                 for ( JSONObject replacableObj in replaceableValues ){
                     Map editedMap = valuesYaml
-                    String replaceableObjLoc = replacableObj.getString("loc").split(":")[0]
+                    String replaceableObjLoc = replacableObj.getString("location").split(":")[0]
                     List<String> pathToRepObj = replaceableObjLoc.split("/")
                     String key
                     for (int i = 0 ; i < pathToRepObj.size() -1 ; i++ ) {
@@ -160,7 +160,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                     envVars.add(["name": logOptions.getString("esVarName"), "value" : esURL])
                 }
                 if(envVars.size() > 0 ){
-                    Map logConf = ["onlyvars":true, "envvars": envVars ]
+                    Map logConf = ["onlyVars":true, "envVars": envVars ]
                     yaml.dump(logConf,fileWriter)
                     fileWriter.close()
                     println("onlyES null")
