@@ -148,7 +148,7 @@ public class DeployPhase extends Phase {
                 .resolve(DataBucketsHelper.DEPL_OUT_FILE);
 
         Properties additionalDepProps = new Properties();
-        additionalDepProps.setProperty("depRepoLoc", getTestPlan().getDeploymentRepository());
+        additionalDepProps.setProperty("depRepoLocation", getTestPlan().getDeploymentRepository());
         if (ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.AWS_REGION_NAME) != null) {
             additionalDepProps.setProperty("s3Region",
@@ -169,12 +169,12 @@ public class DeployPhase extends Phase {
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.AWS_S3_BUCKET_NAME) != null) {
-            additionalDepProps.setProperty("S3bucket",
+            additionalDepProps.setProperty("s3Bucket",
                     ConfigurationContext.getProperty(ConfigurationContext.
                             ConfigurationProperties.AWS_S3_BUCKET_NAME));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL) != null) {
-            additionalDepProps.setProperty("esEndPoint",
+            additionalDepProps.setProperty("elasticsearchEndPoint",
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL));
         }
         if (ConfigurationContext.getProperty
@@ -199,6 +199,11 @@ public class DeployPhase extends Phase {
             additionalDepProps.setProperty("pass", ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.TESTGRID_PASS));
         }
+
+
+        JsonPropFileUtil.persistAdditionalInputs(additionalDepProps, infraOutFilePath, infraOutJSONFilePath,
+                Optional.empty());
+        JsonPropFileUtil.updateParamsJson(infraOutJSONFilePath, "dep", outputjsonFilePath);
 
         try {
             DeploymentCreationResult result = new DeploymentCreationResult();

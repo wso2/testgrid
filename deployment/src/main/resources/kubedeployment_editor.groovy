@@ -87,8 +87,8 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
 
         JSONObject depInJSON = paramJSON.getJSONObject("dep-in");
         JSONObject logOptions = depInJSON.getJSONObject("logOptions")
-        String esEndpoint = depInJSON.getString("esEndPoint")
-        String depRepo = depInJSON.getString("depRepoLoc")
+        String esEndpoint = depInJSON.getString("elasticsearchEndPoint")
+        String depRepo = depInJSON.getString("depRepoLocation")
 
         String logRequirement = logOptions.getString("logRequirement")
 
@@ -115,7 +115,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                 println("False")
             }
             fileWriter.close()
-        } else if ( logRequirement == "log-endPoints-Required" ) {
+        } else if ( logRequirement == "log_endPoints_Required" ) {
             if (depType == "helm" ) {
                 // If only ES endpoint is required access values.yaml file and edit the appropriate value
                 String valuesYamlLoc = depRepo.concat("/").concat(paramJSON.getJSONObject("dep-in").
@@ -138,7 +138,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                         editedMap = (Map) editedMap[key]
                     }
                     // add more ifs for other vars
-                    if (replacableObj.getString("type") == "esEndPoint" && esURL != "error") {
+                    if (replacableObj.getString("type") == "elasticsearchEndPoint" && esURL != "error") {
                         editedMap[pathToRepObj[pathToRepObj.size()-1]] = esURL
                     } else if (replacableObj.getString("type") == "esPort" && esURL != "error") {
                         editedMap[pathToRepObj[pathToRepObj.size()-1]] = esPort
@@ -156,8 +156,12 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                 List envVars = []
                 // Add more ifs for other variables
                 String esURL = esEndpoint.replace("https://","http://")
-                if(logOptions.has("esVarName")){
-                    envVars.add(["name": logOptions.getString("esVarName"), "value" : esURL])
+                JSONArray injectableValues = logOptions.getJSONArray("injectableVals")
+                for ( JSONObject injectableObj in injectableValues ){
+                    // add more ifs for other vars
+                    if (injectableObj.getString("type") == "elasticsearchEndPoint") {
+                        envVars.add(["name": injectableObj.getString("esVarName"), "value" : esURL])
+                    }
                 }
                 if(envVars.size() > 0 ){
                     Map logConf = ["onlyVars":true, "envVars": envVars ]

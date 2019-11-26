@@ -50,11 +50,11 @@ INPUT_DIR=$4
 
 declare -g -A infra_props
 read_property_file "${INPUT_DIR}/infrastructure.properties" infra_props
-esEndPoint=${infra_props["esEndPoint"]}
+elasticsearchEndPoint=${infra_props["elasticsearchEndPoint"]}
 s3Region=${infra_props["s3Region"]}
 s3Bucket=${infra_props["s3Bucket"]}
 s3secretKey=${infra_props["s3secretKey"]}
-s3accessKey=${infra_props["s3accesskey"]}
+s3accessKey=${infra_props["s3accessKey"]}
 s3logPath=${infra_props["s3logPath"]}
 
 # provide execution access for scripts needed for creating sidecar
@@ -99,11 +99,11 @@ cat ./testgrid-sidecar/deployment/mutatingwebhook_temp.yaml | \
 
 # patch elastic search endpoint within the logstash collector deployment template
 cat ./testgrid-sidecar/deployment/logstash-collector-template.yaml | \
-    ./testgrid-sidecar/deployment/patchesendpoint.sh ${esEndPoint} > \
+    ./testgrid-sidecar/deployment/patchesendpoint.sh ${elasticsearchEndPoint} > \
     ./testgrid-sidecar/deployment/logstash-collector_temp.yaml
 
 cat ./testgrid-sidecar/deployment/logstash-collector_temp.yaml | \
-    ./testgrid-sidecar/deployment/patchs3details.sh  ${s3Region} ${s3secretKey} ${s3logPath} > \
+    ./testgrid-sidecar/deployment/patchs3details.sh  ${s3Region} ${s3Bucket} ${s3logPath} > \
     ./testgrid-sidecar/deployment/logstash-collector.yaml
 
 cat ./testgrid-sidecar/deployment/logstash_s3_secrets_template.yaml | \

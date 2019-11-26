@@ -55,25 +55,24 @@ function delete_resources() {
 
 
 function removehost() {
-    HOSTNAME=$1
-    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+    hostname=$1
+    if [ -n "$(grep $hostname /etc/hosts)" ]
     then
-        echo "$HOSTNAME Found in your $ETC_HOSTS, Removing now...";
-        echo $TESTGRID_PASS | sudo -S sed -i".bak" "/$HOSTNAME/d" $ETC_HOSTS
+        echo "[INFO] $hostname Found in your /etc/hosts, Removing now...";
+        echo $testgrid_pass | sudo -S sed -i".bak" "/$hostname/d" /etc/hosts
     else
-        echo "$HOSTNAME was not found in your $ETC_HOSTS";
+        echo "[INFO] $hostname was not found in your $ETC_HOSTS";
     fi
 }
 
-declare -g -A infra_props
 
-TESTGRID_ENVIRONMENT=${ENVIRONMENT}
-TESTGRID_PASS=${PASS}
+testgrid_env=${env}
+testgrid_pass=${pass}
 
-if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+if [ -z "$testgrid_env" ]; then
   env='dev'
 else
-  env=${TESTGRID_ENVIRONMENT}
+  env=${testgrid_env}
 fi
 
 

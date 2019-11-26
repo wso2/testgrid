@@ -24,7 +24,7 @@ set -o xtrace
 #
 
 function edit_deployments() {
-  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/params.json" k8s)
+  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLocation"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/params.json" k8s)
   read -ra detailsArr <<< $details
   sidecarReq=${detailsArr[0]}
   filename=${detailsArr[1]}
@@ -193,32 +193,33 @@ function readinesss_services(){
 
 #This function is used to add paths to etc/host fils
 function addhost() {
-    IP=$1
-    HOSTNAME=$2
-    HOSTS_LINE="$IP\t$HOSTNAME"
-    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+    ip_address=$1
+    hostname=$2
+    host_line="$ip_address\t$hostname"
+    if [ -n "$(grep $hostname /etc/hosts)" ]
         then
-            echo "$HOSTNAME already exists : $(grep $HOSTNAME $ETC_HOSTS)"
+            echo "[INFO] $hostname already exists : $(grep $hostname /etc/hosts)"
         else
-            echo "Adding $HOSTNAME to your $ETC_HOSTS";
-            echo $TESTGRID_PASS | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
+            echo "[INFO] Adding $hostname to your /etc/hosts";
+            echo $testgrid_pass | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
 
-            if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+            if [ -n "$(grep $hostname /etc/hosts)" ]
                 then
-                    echo "$HOSTNAME was added succesfully \n $(grep $HOSTNAME /etc/hosts)";
+                    echo "[INFO] $hostname was added succesfully \n $(grep $hostname /etc/hosts)";
                 else
-                    echo "Failed to Add $HOSTNAME, Try again!";
+                    echo "[ERROR] Failed to Add $hostname, Try again!";
             fi
     fi
 }
 
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
-function add_route53_entry() {
-    if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+#TODO Add a better way of adding to /etc/host file, using TestGrid generated username password when using local testgrid
+function add_host_entry() {
+    if [ -z "$testgrid_env" ]; then
       env='dev'
     else
-      env=${TESTGRID_ENVIRONMENT}
+      env=${testgrid_env}
     fi
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
         echo "Not configuring route53 DNS entries since the environment is not dev/prod. You need to manually add
@@ -321,15 +322,14 @@ yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
 logOptions=${infra_props["logOptions"]}
 
-TESTGRID_ENVIRONMENT=${infra_props["env"]}
-TESTGRID_PASS=${infra_props["pass"]}
-ETC_HOSTS=/etc/hosts
+testgrid_env=${infra_props["env"]}
+testgrid_pass=${infra_props["pass"]}
 
 if [ -z "$logOptions" ]; then
-    echo "No Logging capabilities are set"
+    echo "[INFO] No Logging Options are set"
 else
     edit_deployments
 fi
 
 create_k8s_resources
-add_route53_entry
+add_host_entry
