@@ -27,31 +27,39 @@ import org.json.JSONObject
 import org.json.JSONArray
 import org.json.JSONTokener
 
+def static formatESURL (String esEndpoint) {
+    if(esEndpoint.startsWith("https://")){
+        return (esEndpoint.split("https://")[1]).split(":")[0]
+    }else if(esEndpoint.startsWith("http://")){
+        return (esEndpoint.split("http://")[1]).split(":")[0]
+    }
+    return "error"
+}
 /**
- * Formats the user provided inputs to a form that can be utilized by the sidecar container and log extraction
- * container
+ * Formats the user provided inputs to a an absolute File Path that can be used by the Side car
  *
- * @param logLocations JSONArray containing the log locations
+ * @param logLocation JSONArray containing the log locations
  * @return
  */
 
-def static formatFilePaths(String logLocations){
+def static formatFilePaths(String logLocation){
 
-    String containerFilepath
-    if( logLocations.startsWith('/') && logLocations.endsWith('/') ){
-        containerFilepath = logLocations
-    }else if( logLocations.startsWith('/') && !logLocations.endsWith('/') ){
-        containerFilepath = logLocations+"/"
-    }else if( !logLocations.startsWith('/') && logLocations.endsWith('/') ){
-        containerFilepath = "/"+logLocations
+    String absoluteFilePath
+    if( logLocation.startsWith('/') && logLocation.endsWith('/') ){
+        absoluteFilePath = logLocation
+    }else if( logLocation.startsWith('/') && !logLocation.endsWith('/') ){
+        absoluteFilePath = logLocation+"/"
+    }else if( !logLocation.startsWith('/') && logLocation.endsWith('/') ){
+        absoluteFilePath = "/"+logLocation
     }else{
-        containerFilepath = "/"+logLocations+"/"
+        absoluteFilePath = "/"+logLocation+"/"
     }
-    return containerFilepath
+    return absoluteFilePath
 
 }
 
 /**
+ * TODO : Implement providing of correct logstash.conf based on carbon version , product and pattern
  * Returns the appropriate conf file which is to become the logstash.conf of the Logstash-collector-deployment
  *
  * @param logOptions - Log Options of the job
@@ -61,26 +69,26 @@ def static deriveConfFile(JSONObject logOptions){
     return "default.conf"
 }
 
-
 /**
  * Creates yaml file which store all details required for sidecar injector to inject appropriate information to
  * the deployment
  *
  * @param logPathDetailsYamlLoc - Path to yaml file which is to store Log Path details
- * @param depInJSONFilePath - File path to the json file containing input Parameters
+ * @param paramsJSONFilePath - File path to the json file containing input Parameters
  * @param depType - Type of the deployment ( Helm or K8S )
  *
  */
-def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, String depType ){
+def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath, String depType ){
     try{
         // Read json file
-        InputStream depInJSONinputStream = new FileInputStream(depInJSONFilePath.toString())
-        JSONTokener tokener = new JSONTokener(depInJSONinputStream)
-        JSONObject depInJSON = new JSONObject(tokener)
+        InputStream paramsJSONinputStream = new FileInputStream(paramsJSONFilePath.toString())
+        JSONTokener paramsTokener = new JSONTokener(paramsJSONinputStream)
+        JSONObject paramJSON = new JSONObject(paramsTokener)
 
-        JSONObject logOptions = depInJSON.getJSONObject("dep-in").getJSONObject("log-Options")
-        String esEndpoint = depInJSON.getJSONObject("dep-in").getString("esEP")
-        String depRepo = depInJSON.getJSONObject("dep-in").getString("depRepoLoc")
+        JSONObject depInJSON = paramJSON.getJSONObject("dep-in");
+        JSONObject logOptions = depInJSON.getJSONObject("log-Options")
+        String esEndpoint = depInJSON.getString("esEP")
+        String depRepo = depInJSON.getString("depRepoLoc")
 
         String logRequirement = logOptions.getString("logRequirement")
 
@@ -94,9 +102,9 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
             if (logLocations.length() != 0){
                 List logPathConf = []
                 for (JSONObject logLocation in logLocations) {
-                    String formatFilePath = formatFilePaths(logLocation.getString("path"))
+                    String absoluteFilePath = formatFilePaths(logLocation.getString("path"))
                     Map entry = ["name" : logLocation.getString("deploymentname") + "-" +
-                            logLocation.getString("containername") , "path" : formatFilePath]
+                            logLocation.getString("containername") , "path" : absoluteFilePath]
                     logPathConf.add( entry )
                 }
                 String logConfFile = deriveConfFile(logOptions)
@@ -110,19 +118,14 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
         } else if ( logRequirement == "log-endPoints-Required" ) {
             if (depType == "helm" ) {
                 // If only ES endpoint is required access values.yaml file and edit the appropriate value
-                String valuesYamlLoc = depRepo.concat("/").concat(depInJSON.getJSONObject("dep-in").
+                String valuesYamlLoc = depRepo.concat("/").concat(paramJSON.getJSONObject("dep-in").
                         getString("rootProjLocations"))
                         .concat("/").concat(logOptions.getString("valuesYamlLocation"))
                 JSONArray replaceableValues = logOptions.getJSONArray("replaceableVals")
                 InputStream valuesYamlInputStream = new FileInputStream(valuesYamlLoc)
                 Yaml yaml = new Yaml()
                 Map valuesYaml = yaml.load(valuesYamlInputStream)
-                String esURL
-                if(esEndpoint.startsWith("https://")){
-                    esURL = (esEndpoint.split("https://")[1]).split(":")[0]
-                }else if(esEndpoint.startsWith("http://")){
-                    esURL = (esEndpoint.split("http://")[1]).split(":")[0]
-                }
+                String esURL = formatESURL(esEndpoint);
                 String esPort = esEndpoint.split(":")[2]
 
                 for ( JSONObject replacableObj in replaceableValues ){
@@ -135,9 +138,9 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
                         editedMap = (Map) editedMap[key]
                     }
                     // add more ifs for other vars
-                    if (replacableObj.getString("type") == "esEndPoint") {
+                    if (replacableObj.getString("type") == "esEndPoint" && esURL != "error") {
                         editedMap[pathToRepObj[pathToRepObj.size()-1]] = esURL
-                    } else if (replacableObj.getString("type") == "esPort") {
+                    } else if (replacableObj.getString("type") == "esPort" && esURL != "error") {
                         editedMap[pathToRepObj[pathToRepObj.size()-1]] = esPort
                     }
                 }
@@ -152,8 +155,9 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, 
                 Yaml yaml = new Yaml()
                 List envVars = []
                 // Add more ifs for other variables
+                String esURL = esEndpoint.replace("https://","http://")
                 if(logOptions.has("esVarName")){
-                    envVars.add(["name": logOptions.getString("esVarName"), "value" : esEndpoint])
+                    envVars.add(["name": logOptions.getString("esVarName"), "value" : esURL])
                 }
                 if(envVars.size() > 0 ){
                     Map logConf = ["onlyvars":true, "envvars": envVars ]
