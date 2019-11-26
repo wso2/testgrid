@@ -160,6 +160,7 @@ public class TestPhase extends Phase {
         try {
             KibanaDashboardBuilder builder = KibanaDashboardBuilder.getKibanaDashboardBuilder();
             Optional<String> logUrl = builder.buildK8SPermaDashBoard(namespace, true);
+            logUrl.ifPresent(testPlan::setLogUrl);
             TestPlanUOW testPlanUOW = new TestPlanUOW();
             testPlanUOW.persistTestPlan(testPlan);
         } catch (TestGridDAOException e) {
