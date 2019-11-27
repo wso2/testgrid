@@ -49,12 +49,12 @@ import java.util.ArrayList;
 class ElasticSearchHelper {
 
     private static Logger logger = LoggerFactory.getLogger(KibanaDashboardBuilder.class);
-    private String esEndpoint;
     private RestHighLevelClient esClient;
 
 
     public void open() {
-        esEndpoint = ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL);
+        String esEndpoint =
+                ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL);
         try {
             String urlString =
                     new URL(esEndpoint).getHost();
@@ -67,8 +67,8 @@ class ElasticSearchHelper {
     }
     /**
      * Will return all indices given under a certain k8s namespace in the elastic search instance
-     * @param nameSpace
-     * @return
+     * @param nameSpace Namespace of which all available indices are required
+     * @return ArrayList containing all indices which have the mentioned namespace
      */
     public ArrayList<String> getAllIndexes(String nameSpace) {
 

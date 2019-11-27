@@ -55,8 +55,6 @@ import java.nio.file.Paths;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
 
 /**
  * This class includes implementation of deployment-creation phase.
@@ -110,17 +108,17 @@ public class DeployPhase extends Phase {
                         .resolve(DataBucketsHelper.PARAMS_JSONFILE);
 
 
-                JsonPropFileUtil.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath, Optional.empty());
+                JsonPropFileUtil.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath);
                 JsonPropFileUtil.updateParamsJson(deplJsonPath, "test", outputJsonPath);
                 // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
                 Map<String, Object> sceProperties = new HashMap<>();
                 for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
                     sceProperties.putAll(scenarioConfig.getInputParameters());
                     JsonPropFileUtil.persistAdditionalInputs(sceProperties, deplPropPath, deplJsonPath,
-                            Optional.of(scenarioConfig.getName()));
-                    // TODO execution part of scenarioConfig here or Move section to next Phase Entirely
-                    JsonPropFileUtil.refillJSONfromPropFile(deplPropPath, deplJsonPath);
+                            scenarioConfig.getName());
                     JsonPropFileUtil.updateParamsJson(deplJsonPath, "test", outputJsonPath);
+                    // TODO execution part of scenarioConfig here or Move section to next Phase Entirely
+
                 }
             }
         } catch (TestPlanExecutorException e) {
@@ -133,10 +131,8 @@ public class DeployPhase extends Phase {
      * Creates the deployment in the provisioned infrastructure.
      *
      * @return created {@link DeploymentCreationResult}
-     * @throws TestPlanExecutorException thrown when error on creating deployment
      */
-    private DeploymentCreationResult createDeployment()
-            throws TestPlanExecutorException {
+    private DeploymentCreationResult createDeployment() {
         InfrastructureProvisionResult infrastructureProvisionResult = getTestPlan().getInfrastructureProvisionResult();
         Path infraOutFilePath = DataBucketsHelper.getOutputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
@@ -144,37 +140,35 @@ public class DeployPhase extends Phase {
                 .resolve(DataBucketsHelper.INFRA_OUT_JSONFILE);
         Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.PARAMS_JSONFILE);
-        Path depOutFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
-                .resolve(DataBucketsHelper.DEPL_OUT_FILE);
 
-        Properties additionalDepProps = new Properties();
-        additionalDepProps.setProperty("depRepoLocation", getTestPlan().getDeploymentRepository());
+        Map<String, Object> additionalDepProps = new HashMap<>();
+        additionalDepProps.put("depRepoLocation", getTestPlan().getDeploymentRepository());
         if (ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.AWS_REGION_NAME) != null) {
-            additionalDepProps.setProperty("s3Region",
+            additionalDepProps.put("s3Region",
                     ConfigurationContext.getProperty(ConfigurationContext.
                             ConfigurationProperties.AWS_REGION_NAME));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT) != null) {
-            additionalDepProps.setProperty("s3secretKey",
+            additionalDepProps.put("s3secretKey",
                     ConfigurationContext.getProperty(ConfigurationContext.
                             ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT) != null) {
-            additionalDepProps.setProperty("s3accessKey",
+            additionalDepProps.put("s3accessKey",
                     ConfigurationContext.getProperty(ConfigurationContext.
                             ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.AWS_S3_BUCKET_NAME) != null) {
-            additionalDepProps.setProperty("s3Bucket",
+            additionalDepProps.put("s3Bucket",
                     ConfigurationContext.getProperty(ConfigurationContext.
                             ConfigurationProperties.AWS_S3_BUCKET_NAME));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL) != null) {
-            additionalDepProps.setProperty("elasticsearchEndPoint",
+            additionalDepProps.put("elasticsearchEndPoint",
                     ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL));
         }
         if (ConfigurationContext.getProperty
@@ -184,7 +178,7 @@ public class DeployPhase extends Phase {
                         getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
                         getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
                 String s3logPath = S3StorageUtil.deriveS3DeploymentOutputsDir(getTestPlan(), artifactReadable);
-                additionalDepProps.setProperty("s3logPath", s3logPath);
+                additionalDepProps.put("s3logPath", s3logPath);
             } catch (ArtifactReaderException | IOException e) {
                 logger.error("Error occurred while deriving deployment outputs directory for test-plan " +
                         getTestPlan(), e);
@@ -192,17 +186,16 @@ public class DeployPhase extends Phase {
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.TESTGRID_ENVIRONMENT) != null) {
-            additionalDepProps.setProperty("env", ConfigurationContext.getProperty(ConfigurationContext.
+            additionalDepProps.put("env", ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.TESTGRID_ENVIRONMENT));
         }
         if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS) != null) {
-            additionalDepProps.setProperty("pass", ConfigurationContext.getProperty(ConfigurationContext.
+            additionalDepProps.put("pass", ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.TESTGRID_PASS));
         }
 
 
-        JsonPropFileUtil.persistAdditionalInputs(additionalDepProps, infraOutFilePath, infraOutJSONFilePath,
-                Optional.empty());
+        JsonPropFileUtil.persistAdditionalInputs(additionalDepProps, infraOutFilePath, infraOutJSONFilePath);
         JsonPropFileUtil.updateParamsJson(infraOutJSONFilePath, "dep", outputjsonFilePath);
 
         try {
@@ -220,7 +213,7 @@ public class DeployPhase extends Phase {
                 // Append deploymentConfig inputs in testgrid yaml to infra outputs file
                 Map<String, Object> deplInputs = script.getInputParameters();
                 JsonPropFileUtil.persistAdditionalInputs(deplInputs, infraOutFilePath, infraOutJSONFilePath,
-                        Optional.of(script.getName()));
+                        script.getName());
 
                 JsonPropFileUtil.updateParamsJson(infraOutJSONFilePath, "dep", outputjsonFilePath);
 
@@ -235,8 +228,6 @@ public class DeployPhase extends Phase {
                     break;
                 }
                 JsonPropFileUtil.removeScriptParams(script, infraOutFilePath);
-                JsonPropFileUtil.refillJSONfromPropFile(infraOutFilePath, infraOutJSONFilePath);
-                JsonPropFileUtil.jsonAddNewPropsToParams(depOutFilePath, "dep", outputjsonFilePath);
             }
             return result;
         } catch (TestGridDeployerException e) {

@@ -81,6 +81,7 @@ def static deriveConfFile(JSONObject logOptions){
 def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath, String depType ){
     try{
         // Read json file
+        Properties depProps = new Properties();
         InputStream paramsJSONinputStream = new FileInputStream(paramsJSONFilePath.toString())
         JSONTokener paramsTokener = new JSONTokener(paramsJSONinputStream)
         JSONObject paramJSON = new JSONObject(paramsTokener)
@@ -105,7 +106,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                     JSONObject logLocation = logLocations.getJSONObject(i)
                     String absoluteFilePath = formatFilePaths(logLocation.getString("path"))
                     Map entry = ["name" : logLocation.getString("deploymentName") + "-" +
-                            logLocation.getString("podName") , "path" : absoluteFilePath]
+                            logLocation.getString("containerName") , "path" : absoluteFilePath]
                     logPathConf.add( entry )
                 }
                 String logConfFile = deriveConfFile(logOptions)

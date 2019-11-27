@@ -23,12 +23,10 @@ import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.Script;
-import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +41,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 
@@ -55,65 +53,58 @@ public class JsonPropFileUtil {
     private static Logger logger = LoggerFactory.getLogger(JsonPropFileUtil.class);
 
     /**
-     * Observes the properties file and updates any necessary values to the json file as a general input
-     *  NOTE :: OVERRIDES ANY PROPERTY OF THE SAME NAME
+     * Persist additional inputs required which are not related to a specific script
      *
-     * @param propFilePath path to .properties file
-     * @param jsonFilePath path tp .json file
+     * @param properties properties to be added
+     * @param propFilePath path of the property file
+     * @param jsonFilePath path to the JSON file
      */
-    public static void refillJSONfromPropFile(Path propFilePath , Path jsonFilePath) {
+    public static void persistAdditionalInputs(Map<String, Object> properties, Path propFilePath, Path jsonFilePath) {
 
-        try (InputStream propInputStream = new FileInputStream(propFilePath.toString())) {
+        // If value is not specified from a script add the value as a general value to the json file
+        File phasejsonFile = new File(jsonFilePath.toString());
+        if (phasejsonFile.exists()) {
+            try {
 
-            Properties existingProps = new Properties();
-            existingProps.load(propInputStream);
+                // If the JSON file exists read existing values and append to the file
+                InputStream phasejsonInputStream = new FileInputStream(jsonFilePath.toString());
+                JSONTokener phasejsonTokener = new JSONTokener(phasejsonInputStream);
+                JSONObject phaseinputJson = new JSONObject(phasejsonTokener);
 
-            File jsonFile = new File(jsonFilePath.toString());
-            if (jsonFile.exists()) {
-                try (InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString())) {
-
-                    JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
-                    JSONObject inputJson = new JSONObject(jsonTokener);
-
-                    for (Map.Entry<Object, Object> existingPair : existingProps.entrySet()) {
-                        if (existingPair.getValue() != null) {
-                            if (inputJson.has("general")) {
-                                inputJson.getJSONObject("general").put((String) existingPair.getKey(),
-                                        existingPair.getValue());
-                            } else {
-                                JSONObject generalProps = new JSONObject(existingProps);
-                                inputJson.put("general", generalProps);
-                            }
-                        }
+                // Add new value to a flatlist level of the script
+                for (Entry<String, Object> property : properties.entrySet()) {
+                    if (phaseinputJson.has("general")) {
+                        phaseinputJson.getJSONObject("general").put(property.getKey(),
+                                property.getValue());
+                    } else {
+                        JSONObject generalProps = new JSONObject(properties);
+                        phaseinputJson.put("general", generalProps);
                     }
-                    try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                        inputJson.write(jsonWriter);
-                        jsonWriter.write("\n");
-                    } catch (IOException e) {
-                        logger.error(" Error while persisting input params to " + jsonFilePath);
-                    }
-                } catch (IOException ex) {
-                    logger.info("ERROR " + ex.getMessage());
                 }
-            } else {
-                HashMap<String, Object> newJsonFileInputs = new HashMap<>();
-                newJsonFileInputs.put("general", existingProps);
-
-                JSONObject newJsonFile = new JSONObject(newJsonFileInputs);
+                // Append to json file
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    newJsonFile.write(jsonWriter);
+                    phaseinputJson.write(jsonWriter);
                     jsonWriter.write("\n");
-                } catch (IOException exc) {
-                    logger.error("Error while persisting infra input params to " + jsonFilePath);
+                } catch (IOException e) {
+                    logger.error("Error while persisting Input Parameters", e);
                 }
+
+            } catch (IOException e) {
+                logger.error("Error while persisting Input Parameters", e);
             }
-
-        } catch (FileNotFoundException e) {
-            logger.info(propFilePath + " Not created yet ignoring read property file step");
-        } catch (IOException e) {
-            logger.error("Error while persisting infra input params to " + propFilePath);
+        } else {
+            HashMap<String, Object> phaseParamMap = new HashMap<>();
+            phaseParamMap.put("general", properties);
+            JSONObject phaseJson = new JSONObject(phaseParamMap);
+            try (BufferedWriter phaseJsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
+                phaseJson.write(phaseJsonWriter);
+                phaseJsonWriter.write("\n");
+            } catch (IOException e) {
+                logger.error("Error while persisting Input Parameters", e);
+            }
         }
-
+        // append new properties to .properties file
+        persistToPropFile(properties, propFilePath);
     }
 
     /**
@@ -125,130 +116,81 @@ public class JsonPropFileUtil {
      * @param propFilePath path of the property file
      * @param jsonFilePath path to the JSON file
      * @param scriptName  OPTIONAL Name of script file if not provided property added as a general variable
-     * @throws TestPlanExecutorException if writing to the property file fails
      */
-    public static void persistAdditionalInputs(Map properties, Path propFilePath , Path jsonFilePath,
-                                         Optional<String> scriptName) throws TestPlanExecutorException {
+    public static void persistAdditionalInputs(Map<String, Object> properties, Path propFilePath, Path jsonFilePath,
+                                               String scriptName) {
 
-        if (!scriptName.isPresent()) {
-            // If value is not specified from a script add the value as a general value to the json file
-            File jsonFile = new File(jsonFilePath.toString());
-            if (jsonFile.exists()) {
-                try {
+        File phasejsonFile = new File(jsonFilePath.toString());
+        if (phasejsonFile.exists()) {
+            try {
+                InputStream phasejsonInputStream = new FileInputStream(jsonFilePath.toString());
+                JSONTokener phasejsonTokener = new JSONTokener(phasejsonInputStream);
+                JSONObject phaseJSON = new JSONObject(phasejsonTokener);
+                JSONObject generalProps = null;
+                // Contains both general and script params
+                JSONObject currentscriptJSON = new JSONObject();
+                JSONObject scriptParamsOnlyJSON = new JSONObject(properties);
 
-                    // If the JSON file exists read existing values and append to the file
-                    InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString());
-                    JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
-                    JSONObject inputJson = new JSONObject(jsonTokener);
-
-                    // Add new value to a flatlist level of the script
-                    for (Object property : properties.entrySet()) {
-                        Map.Entry existingPair = (Map.Entry) property;
-                        if (inputJson.has("general")) {
-                            inputJson.getJSONObject("general").put((String) existingPair.getKey(),
-                                    existingPair.getValue());
-                        } else {
-                            JSONObject generalProps = new JSONObject(properties);
-                            inputJson.put("general", generalProps);
-                        }
-                    }
-                    // Append to json file
-                    try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                        inputJson.write(jsonWriter);
-                        jsonWriter.write("\n");
-                    } catch (IOException e) {
-                        logger.error("Error while persisting Additional input params to " + jsonFilePath, e);
-                    }
-
-                } catch (IOException e) {
-                    logger.error("ERROR :" + e.getMessage());
+                if (phaseJSON.has("general")) {
+                    generalProps = phaseJSON.getJSONObject("general");
                 }
-            } else {
-                logger.info(jsonFilePath + "created");
-                HashMap<String, Object> newJsonFileInputs = new HashMap<>();
-                newJsonFileInputs.put("general", properties);
-                JSONObject newJsonFile = new JSONObject(newJsonFileInputs);
+
+                for (Entry<String, Object> property : properties.entrySet()) {
+                    currentscriptJSON.put(property.getKey(), property.getValue());
+                }
+
+                if (generalProps != null) {
+                    Iterator<String> genit = generalProps.keys();
+                    while (genit.hasNext()) {
+                        String key = genit.next();
+                        currentscriptJSON.put(key, generalProps.get(key));
+                    }
+                }
+
+                phaseJSON.put(scriptName, scriptParamsOnlyJSON);
+                phaseJSON.put("currentscript", currentscriptJSON);
+
                 try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    newJsonFile.write(jsonWriter);
+                    phaseJSON.write(jsonWriter);
                     jsonWriter.write("\n");
-                } catch (IOException ex) {
-                    logger.error("Error while persisting Additional input params to " + jsonFilePath, ex);
+                } catch (IOException e) {
+                    logger.error("Error while persisting Input Parameters", e);
                 }
+
+            } catch (IOException e) {
+                logger.error("Error while persisting Input Parameters", e);
             }
-
         } else {
-            /*
-             If input params are specified from a script save currently executing script under currentscript
-             and save the same info under script name for future use.
-             */
-            File jsonFile = new File(jsonFilePath.toString());
-            if (jsonFile.exists()) {
-                try {
-                    InputStream jsonInputStream = new FileInputStream(jsonFilePath.toString());
-                    JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
-                    JSONObject inputJson = new JSONObject(jsonTokener);
-                    JSONObject generalProps = null;
-                    // Contains both general and script params
-                    JSONObject scriptParamsJson = new JSONObject();
-                    JSONObject scriptParamsOnly = new JSONObject(properties);
 
-                    if (inputJson.has("general")) {
-                        generalProps = inputJson.getJSONObject("general");
-                    }
+            JSONObject scriptParamsJson = new JSONObject(properties);
+            JSONObject phaseJson = new JSONObject();
+            phaseJson.put(scriptName, scriptParamsJson);
+            phaseJson.put("currentscript", scriptParamsJson);
 
-                    for (Object property : properties.entrySet()) {
-                        Map.Entry pair = (Map.Entry) property;
-                        scriptParamsJson.put((String) pair.getKey(), pair.getValue());
-                    }
-
-                    if (generalProps != null) {
-                        Iterator<String> genit = generalProps.keys();
-                        while (genit.hasNext()) {
-                            String key = genit.next();
-                            scriptParamsJson.put(key, generalProps.get(key));
-                        }
-                    }
-
-                    String scriptNameString = scriptName.get();
-                    inputJson.put(scriptNameString, scriptParamsOnly);
-                    inputJson.put("currentscript", scriptParamsJson);
-
-                    try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                        inputJson.write(jsonWriter);
-                        jsonWriter.write("\n");
-                    } catch (IOException e) {
-                        logger.error("Error while persisting Additional input params to " + jsonFilePath, e);
-                    }
-
-                } catch (IOException e) {
-                    logger.error("ERROR :" + e.getMessage());
-                }
-            } else {
-
-                logger.info(jsonFilePath + "created");
-                JSONObject scriptParamsJson = new JSONObject(properties);
-                JSONObject inputJson = new JSONObject();
-                String scriptNameString = scriptName.get();
-                inputJson.put(scriptNameString, scriptParamsJson);
-                inputJson.put("currentscript", scriptParamsJson);
-
-                try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
-                    inputJson.write(jsonWriter);
-                    jsonWriter.write("\n");
-                } catch (IOException ex) {
-                    logger.error("Error while persisting Additional input params to " + jsonFilePath, ex);
-                }
+            try (BufferedWriter phasejsonWriter = Files.newBufferedWriter(Paths.get(jsonFilePath.toString()))) {
+                phaseJson.write(phasejsonWriter);
+                phasejsonWriter.write("\n");
+            } catch (IOException e) {
+                logger.error("Error while persisting Input Parameters", e);
             }
         }
         // append new properties to .properties file
-        try (PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(
+        persistToPropFile(properties, propFilePath);
+    }
+
+    /**
+     * Persist parameters to the properties file
+     * @param properties
+     * @param propFilePath
+     */
+    private static void persistToPropFile(Map<String, Object> properties, Path propFilePath) {
+        try (PrintWriter propPrinterWriter = new PrintWriter(new OutputStreamWriter(
                 new FileOutputStream(propFilePath.toString(), true), StandardCharsets.UTF_8))) {
-            for (Object property : properties.entrySet()) {
-                Map.Entry pair = (Map.Entry) property;
-                printWriter.println(pair.getKey() + "=" + pair.getValue());
+            for (Entry<String, Object> property : properties.entrySet()) {
+                propPrinterWriter.println(property.getKey() + "=" + property.getValue());
             }
         } catch (IOException e) {
-            throw new TestPlanExecutorException("Error occurred while writing deployment outputs.", e);
+            logger.error("Error while persisting Input Parameters", e);
         }
     }
 
@@ -258,7 +200,6 @@ public class JsonPropFileUtil {
      *  @param script - Script File
      *  @param propFilePath - Path Variable to properties File
      */
-
     public static void removeScriptParams(Script script, Path propFilePath) {
 
 
@@ -272,148 +213,89 @@ public class JsonPropFileUtil {
                 if (existingProps.containsKey(stringObjectEntry.getKey())
                         && existingProps.get(stringObjectEntry.getKey()) != stringObjectEntry.getValue()) {
                     existingProps.remove(stringObjectEntry.getKey());
-                    logger.info("removing property " + stringObjectEntry.getKey());
                 }
             }
 
-            try (PrintWriter printWriter = new PrintWriter(
+            try (PrintWriter propPrinterWriter = new PrintWriter(
                     new OutputStreamWriter(Files.newOutputStream(propFilePath), StandardCharsets.UTF_8))) {
                 for (Map.Entry<Object, Object> objectObjectEntry : existingProps.entrySet()) {
-                    printWriter.println(objectObjectEntry.getKey() + "=" + objectObjectEntry.getValue());
+                    propPrinterWriter.println(objectObjectEntry.getKey() + "=" + objectObjectEntry.getValue());
                 }
             } catch (IOException e) {
-                logger.error("Error removing existing Properties from " + propFilePath, e);
-            }
-
-        } catch (FileNotFoundException e) {
-            logger.info(propFilePath + " Not created yet ignoring read property file step");
-        } catch (IOException e) {
-            logger.info(propFilePath + " Failed to read file");
-        }
-    }
-
-
-
-    /**
-     * This method adds any newly created variables by a certain phase into its output section of the params.json file
-     *
-     * Stores this information under <phase_name>-out
-     *
-     * @param outputPropFile location of the properties file relevant to the current phase
-     * @param phase          Currently executing phase
-     * @param outputJsonPath Location to the user see-able params.json file
-     */
-    public static void jsonAddNewPropsToParams(Path outputPropFile, String phase, Path outputJsonPath) {
-        try (InputStream outputPropStream = new FileInputStream(outputPropFile.toString())) {
-            Properties existingProps = new Properties();
-            existingProps.load(outputPropStream);
-            File outputjsonFile = new File(outputJsonPath.toString());
-
-            if (outputjsonFile.exists()) {
-                try (InputStream outputJsonStream = new FileInputStream(outputJsonPath.toString())) {
-
-                    JSONTokener outputTokener = new JSONTokener(outputJsonStream);
-                    JSONObject insertOutputJsonVal = new JSONObject(outputTokener);
-
-                    insertOutputJsonVal.put(phase + "-out", existingProps);
-
-                    if (insertOutputJsonVal.length() != 0) {
-                        try (BufferedWriter jsonWriter = Files
-                                .newBufferedWriter(Paths.get(outputJsonPath.toString()))) {
-                            insertOutputJsonVal.write(jsonWriter);
-                            jsonWriter.write("\n");
-                        } catch (IOException ex) {
-                            logger.error("Error while persisting params to " + outputJsonPath, ex);
-                        }
-                    }
-
-                } catch (IOException e) {
-                    logger.error(outputJsonPath.toString() + "not found creating");
-                }
-            } else {
-                JSONObject insertOutputJsonVal = new JSONObject();
-
-                insertOutputJsonVal.put(phase + "-out", existingProps);
-
-                if (insertOutputJsonVal.length() != 0) {
-                    try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(outputJsonPath.toString()))) {
-                        insertOutputJsonVal.write(jsonWriter);
-                        jsonWriter.write("\n");
-                    } catch (IOException ex) {
-                        logger.error("Error while persisting params to " + outputJsonPath, ex);
-                    }
-                }
+                logger.error("Error while persisting Input Parameters", e);
             }
 
         } catch (IOException e) {
-            logger.error(outputPropFile.toString() + "not found");
+            logger.error("Error while persisting Input Parameters", e);
         }
     }
+
     /**
      * This method reads the appropriate intermediate json file of a phase and updates the final user see-able
      * params.json file to show all input params required by the currently executing script of that phase
      *
      * It stores this data under <phase_name>-in json parameter
      *
-     * @param jsonFileLocation location of the intermediate json staging file relevant to the current phase
+     * @param phaseJsonPath location of the intermediate json staging file relevant to the current phase
      * @param phase          Currently executing phase
-     * @param outputJsonPath Location to the user see-able params.json file\
+     * @param paramsJsonPath Location to the user see-able params.json file\
      */
-    public static void updateParamsJson(Path jsonFileLocation, String phase, Path outputJsonPath) {
+    public static void updateParamsJson(Path phaseJsonPath, String phase, Path paramsJsonPath) {
 
-        try (InputStream jsonInputStream = new FileInputStream(jsonFileLocation.toString())) {
+        try (InputStream phaseJsonInputStream = new FileInputStream(phaseJsonPath.toString())) {
 
-            JSONTokener jsonTokener = new JSONTokener(jsonInputStream);
-            JSONObject inputJson = new JSONObject(jsonTokener);
+            JSONTokener phaseJsonTokener = new JSONTokener(phaseJsonInputStream);
+            JSONObject phaseJson = new JSONObject(phaseJsonTokener);
 
-            File outputjsonFile = new File(outputJsonPath.toString());
+            File paramsJsonFile = new File(paramsJsonPath.toString());
 
-            if (outputjsonFile.exists()) {
-                try (InputStream outputJsonStream = new FileInputStream(outputJsonPath.toString())) {
+            if (paramsJsonFile.exists()) {
+                try (InputStream paramsJsonStream = new FileInputStream(paramsJsonPath.toString())) {
 
-                    JSONTokener outputTokener = new JSONTokener(outputJsonStream);
-                    JSONObject insertOutputJsonVal = new JSONObject(outputTokener);
+                    JSONTokener paramsTokener = new JSONTokener(paramsJsonStream);
+                    JSONObject paramsJson = new JSONObject(paramsTokener);
 
-                    if (inputJson.has("currentscript")) {
-                        insertOutputJsonVal.put(phase + "-in", inputJson.get("currentscript"));
-                    } else if (inputJson.has("general")) {
-                        insertOutputJsonVal.put(phase + "-in", inputJson.get("general"));
+                    if (phaseJson.has("currentscript")) {
+                        paramsJson.put(phase + "-in", phaseJson.get("currentscript"));
+                    } else if (phaseJson.has("general")) {
+                        paramsJson.put(phase + "-in", phaseJson.get("general"));
                     }
 
-                    if (insertOutputJsonVal.length() != 0) {
-                        try (BufferedWriter jsonWriter = Files
-                                .newBufferedWriter(Paths.get(outputJsonPath.toString()))) {
-                            insertOutputJsonVal.write(jsonWriter);
-                            jsonWriter.write("\n");
-                        } catch (IOException ex) {
-                            logger.error("Error while persisting params to " + outputJsonPath, ex);
+                    if (paramsJson.length() != 0) {
+                        try (BufferedWriter paramsJsonWriter = Files
+                                .newBufferedWriter(Paths.get(paramsJsonPath.toString()))) {
+                            paramsJson.write(paramsJsonWriter);
+                            paramsJsonWriter.write("\n");
+                        } catch (IOException e) {
+                            logger.error("Error while persisting Input Parameters", e);
                         }
                     }
 
                 } catch (IOException e) {
-                    logger.error(outputJsonPath.toString() + "not found creating");
+                    logger.error("Error while persisting Input Parameters", e);
                 }
             } else {
-                JSONObject insertOutputJsonVal = new JSONObject();
+                JSONObject paramsJson = new JSONObject();
 
-                if (inputJson.has("currentscript")) {
-                    insertOutputJsonVal.put(phase + "-in", inputJson.get("currentscript"));
-                } else if (inputJson.has("general")) {
-                    insertOutputJsonVal.put(phase + "-in", inputJson.get("general"));
+                if (phaseJson.has("currentscript")) {
+                    paramsJson.put(phase + "-in", phaseJson.get("currentscript"));
+                } else if (phaseJson.has("general")) {
+                    paramsJson.put(phase + "-in", phaseJson.get("general"));
                 }
 
-                if (insertOutputJsonVal.length() != 0) {
-                    try (BufferedWriter jsonWriter = Files.newBufferedWriter(Paths.get(outputJsonPath.toString()))) {
-                        insertOutputJsonVal.write(jsonWriter);
-                        jsonWriter.write("\n");
-                    } catch (IOException ex) {
-                        logger.error("Error while persisting params to " + outputJsonPath, ex);
+                if (paramsJson.length() != 0) {
+                    try (BufferedWriter paramsJsonWriter =
+                                 Files.newBufferedWriter(Paths.get(paramsJsonPath.toString()))) {
+                        paramsJson.write(paramsJsonWriter);
+                        paramsJsonWriter.write("\n");
+                    } catch (IOException e) {
+                        logger.error("Error while persisting Input Parameters", e);
                     }
                 }
             }
 
         } catch (IOException e) {
-            logger.error(jsonFileLocation.toString() + "not found");
+            logger.error("Error while persisting Input Parameters", e);
         }
     }
 

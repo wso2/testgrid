@@ -42,8 +42,10 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+
 
 /**
  * This class includes the implementation of the infrastructure-provisioning phase.
@@ -93,8 +95,6 @@ public class InfraPhase extends Phase {
                     .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE);
             Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                     .resolve(DataBucketsHelper.PARAMS_JSONFILE);
-            Path infraOutFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
-                    .resolve(DataBucketsHelper.INFRA_OUT_FILE);
 
             if (infrastructureConfig == null) {
                 persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
@@ -107,28 +107,34 @@ public class InfraPhase extends Phase {
 
             InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
 
-            JsonPropFileUtil.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
+
 
             TestPlan testplan = getTestPlan();
             final Properties infraParameters = testplan.getInfrastructureConfig().getParameters();
             final Properties jobProperties = testplan.getJobProperties();
             final String keyFileLocation = testplan.getKeyFileLocation();
 
-            if (keyFileLocation != null) {
-                jobProperties.setProperty(TestGridConstants.KEY_FILE_LOCATION, keyFileLocation);
+            Map<String, Object> infraParams = new HashMap<>();
+
+            for (String key : infraParameters.stringPropertyNames()) {
+                infraParams.put(key, infraParameters.getProperty(key));
+            }
+            for (String key : jobProperties.stringPropertyNames()) {
+                infraParams.put(key, jobProperties.getProperty(key));
             }
 
-            JsonPropFileUtil.persistAdditionalInputs(infraParameters, testPropFilePath, testJsonFilePath,
-                    Optional.empty());
-            JsonPropFileUtil.persistAdditionalInputs(jobProperties, testPropFilePath, testJsonFilePath,
-                    Optional.empty());
+            if (keyFileLocation != null) {
+                infraParams.put(TestGridConstants.KEY_FILE_LOCATION, keyFileLocation);
+            }
+
+            JsonPropFileUtil.persistAdditionalInputs(infraParams, testPropFilePath, testJsonFilePath);
 
             JsonPropFileUtil.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!Script.Phase.DESTROY.equals(script.getPhase())) {
                     JsonPropFileUtil.persistAdditionalInputs(script.getInputParameters(), testPropFilePath,
-                            testJsonFilePath, Optional.of(script.getName()));
+                            testJsonFilePath, script.getName());
                     JsonPropFileUtil.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
@@ -143,8 +149,6 @@ public class InfraPhase extends Phase {
                         break;
                     }
                     JsonPropFileUtil.removeScriptParams(script, testPropFilePath);
-                    JsonPropFileUtil.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
-                    JsonPropFileUtil.jsonAddNewPropsToParams(infraOutFilePath, "infra", outputjsonFilePath);
                 }
             }
 
