@@ -78,18 +78,20 @@ def static deriveConfFile(JSONObject logOptions){
  * @param depType - Type of the deployment ( Helm or K8S )
  *
  */
-def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath, String depType ){
+def confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String depType ){
     try{
         // Read json file
-        Properties depProps = new Properties();
-        InputStream paramsJSONinputStream = new FileInputStream(paramsJSONFilePath.toString())
-        JSONTokener paramsTokener = new JSONTokener(paramsJSONinputStream)
-        JSONObject paramJSON = new JSONObject(paramsTokener)
 
-        JSONObject depInJSON = paramJSON.getJSONObject("dep-in")
-        JSONObject logOptions = depInJSON.getJSONObject("logOptions")
-        String elasticsearchEndPoint = depInJSON.getString("elasticsearchEndPoint")
-        String depRepo = depInJSON.getString("depRepoLocation")
+        InputStream depPropsFileReader = new FileInputStream(depPropPath)
+        Properties depProps = new Properties()
+        depProps.load(depPropsFileReader)
+
+        String logOptionsString = depProps.getProperty("logOptions")
+        logOptionsString = logOptionsString.replaceAll("=",":")
+        logOptionsString = logOptionsString.replaceAll("/","&")
+        JSONObject logOptions = new JSONObject(logOptionsString)
+        String elasticsearchEndPoint = depProps.getProperty("elasticsearchEndPoint")
+        String depRepo = depProps.getProperty("depRepoLocation")
 
         String logRequirement = logOptions.getString("logRequirement")
 
@@ -104,7 +106,8 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                 List logPathConf = []
                 for ( int i=0 ; i<logLocations.length(); i++ ) {
                     JSONObject logLocation = logLocations.getJSONObject(i)
-                    String absoluteFilePath = formatFilePaths(logLocation.getString("path"))
+                    String absoluteFilePath = formatFilePaths(logLocation.getString("path")
+                            .replaceAll("&","/"))
                     Map entry = ["name" : logLocation.getString("deploymentName") + "-" +
                             logLocation.getString("containerName") , "path" : absoluteFilePath]
                     logPathConf.add( entry )
@@ -120,7 +123,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
         } else if ( logRequirement == "log_endPoints_Required" ) {
             if (depType == "helm" ) {
                 // If only ES endpoint is required access values.yaml file and edit the appropriate value
-                String rootProjLocation = paramJSON.getJSONObject("dep-in").getString("rootProjLocation")
+                String rootProjLocation = depProps.getString("rootProjLocation")
                 String valuesYamlLoc = depRepo.concat("/").concat(rootProjLocation)
                         .concat("/").concat(logOptions.getString("valuesYamlLocation"))
 
@@ -137,7 +140,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                     JSONObject replaceableObj = replaceableValues.getJSONObject(j)
                     Map editedValuesMap = valuesYaml
                     String replaceableObjLoc = replaceableObj.getString("location").split(":")[0]
-                    List<String> pathToRepObj = replaceableObjLoc.split("/")
+                    List<String> pathToRepObj = replaceableObjLoc.split("&")
                     String key
                     for (int i = 0 ; i < pathToRepObj.size() -1 ; i++ ) {
                         key = pathToRepObj[i]
