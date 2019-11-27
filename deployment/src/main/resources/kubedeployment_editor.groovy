@@ -85,9 +85,9 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
         JSONTokener paramsTokener = new JSONTokener(paramsJSONinputStream)
         JSONObject paramJSON = new JSONObject(paramsTokener)
 
-        JSONObject depInJSON = paramJSON.getJSONObject("dep-in");
+        JSONObject depInJSON = paramJSON.getJSONObject("dep-in")
         JSONObject logOptions = depInJSON.getJSONObject("logOptions")
-        String esEndpoint = depInJSON.getString("elasticsearchEndPoint")
+        String elasticsearchEndPoint = depInJSON.getString("elasticsearchEndPoint")
         String depRepo = depInJSON.getString("depRepoLocation")
 
         String logRequirement = logOptions.getString("logRequirement")
@@ -97,51 +97,56 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
             JSONArray logLocations = logOptions.getJSONArray("logFileLocations")
             Yaml yaml = new Yaml()
 
-            FileWriter fileWriter = new FileWriter(logPathDetailsYamlLoc)
+            FileWriter logPathFileWriter = new FileWriter(logPathDetailsYamlLoc)
 
             if (logLocations.length() != 0){
                 List logPathConf = []
-                for (JSONObject logLocation in logLocations) {
+                for ( int i=0 ; i<logLocations.length(); i++ ) {
+                    JSONObject logLocation = logLocations.getJSONObject(i)
                     String absoluteFilePath = formatFilePaths(logLocation.getString("path"))
-                    Map entry = ["name" : logLocation.getString("deploymentname") + "-" +
-                            logLocation.getString("containername") , "path" : absoluteFilePath]
+                    Map entry = ["name" : logLocation.getString("deploymentName") + "-" +
+                            logLocation.getString("podName") , "path" : absoluteFilePath]
                     logPathConf.add( entry )
                 }
                 String logConfFile = deriveConfFile(logOptions)
-                Map logConfiguration = ["onlyVars":false, "logLocations": logPathConf]
-                yaml.dump(logConfiguration,fileWriter)
+                Map logConfiguration = ["onlyVars":false, "logPaths": logPathConf]
+                yaml.dump(logConfiguration,logPathFileWriter)
                 println("SidecarReq ".concat(logConfFile))
             } else {
                 println("False")
             }
-            fileWriter.close()
+            logPathFileWriter.close()
         } else if ( logRequirement == "log_endPoints_Required" ) {
             if (depType == "helm" ) {
                 // If only ES endpoint is required access values.yaml file and edit the appropriate value
-                String valuesYamlLoc = depRepo.concat("/").concat(paramJSON.getJSONObject("dep-in").
-                        getString("rootProjLocations"))
+                String rootProjLocation = paramJSON.getJSONObject("dep-in").getString("rootProjLocation")
+                String valuesYamlLoc = depRepo.concat("/").concat(rootProjLocation)
                         .concat("/").concat(logOptions.getString("valuesYamlLocation"))
+
                 JSONArray replaceableValues = logOptions.getJSONArray("replaceableVals")
                 InputStream valuesYamlInputStream = new FileInputStream(valuesYamlLoc)
+
                 Yaml yaml = new Yaml()
                 Map valuesYaml = yaml.load(valuesYamlInputStream)
-                String esURL = formatESURL(esEndpoint);
-                String esPort = esEndpoint.split(":")[2]
 
-                for ( JSONObject replacableObj in replaceableValues ){
-                    Map editedMap = valuesYaml
-                    String replaceableObjLoc = replacableObj.getString("location").split(":")[0]
+                String elasticsearchURL = formatESURL(elasticsearchEndPoint)
+                String elasticsearchPort = elasticsearchEndPoint.split(":")[2]
+
+                for ( int j=0 ; j<replaceableValues.length() ; j++  ){
+                    JSONObject replaceableObj = replaceableValues.getJSONObject(j)
+                    Map editedValuesMap = valuesYaml
+                    String replaceableObjLoc = replaceableObj.getString("location").split(":")[0]
                     List<String> pathToRepObj = replaceableObjLoc.split("/")
                     String key
                     for (int i = 0 ; i < pathToRepObj.size() -1 ; i++ ) {
                         key = pathToRepObj[i]
-                        editedMap = (Map) editedMap[key]
+                        editedValuesMap = (Map) editedValuesMap[key]
                     }
                     // add more ifs for other vars
-                    if (replacableObj.getString("type") == "elasticsearchEndPoint" && esURL != "error") {
-                        editedMap[pathToRepObj[pathToRepObj.size()-1]] = esURL
-                    } else if (replacableObj.getString("type") == "esPort" && esURL != "error") {
-                        editedMap[pathToRepObj[pathToRepObj.size()-1]] = esPort
+                    if (replaceableObj.getString("type") == "elasticsearchEndpoint" && elasticsearchURL != "error") {
+                        editedValuesMap[pathToRepObj[pathToRepObj.size()-1]] = elasticsearchURL
+                    } else if (replaceableObj.getString("type") == "elasticsearchPort" && elasticsearchURL != "error") {
+                        editedValuesMap[pathToRepObj[pathToRepObj.size()-1]] = elasticsearchPort
                     }
                 }
                 valuesYamlInputStream.close()
@@ -151,25 +156,25 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String paramsJSONFilePath,
                 println("False")
             } else if ( depType == "k8s" ) {
                 // If k8s inject a env Var to the deployments which stores the elastic search endpoint
-                FileWriter fileWriter = new FileWriter(logPathDetailsYamlLoc)
+                FileWriter logPathFileWriter = new FileWriter(logPathDetailsYamlLoc)
                 Yaml yaml = new Yaml()
                 List envVars = []
-                // Add more ifs for other variables
-                String esURL = esEndpoint.replace("https://","http://")
+                String formattedElasticsearchURL = elasticsearchEndPoint.replace("https://","http://")
                 JSONArray injectableValues = logOptions.getJSONArray("injectableVals")
-                for ( JSONObject injectableObj in injectableValues ){
+                for ( int i=0 ; i<injectableValues.length() ; i++ ){
                     // add more ifs for other vars
-                    if (injectableObj.getString("type") == "elasticsearchEndPoint") {
-                        envVars.add(["name": injectableObj.getString("name"), "value" : esURL])
+                    JSONObject injectableObj = injectableValues.getJSONObject(i)
+                    if (injectableObj.getString("type") == "elasticsearchEndpoint") {
+                        envVars.add(["name": injectableObj.getString("name"), "value" : formattedElasticsearchURL])
                     }
                 }
                 if(envVars.size() > 0 ){
                     Map logConf = ["onlyVars":true, "envVars": envVars ]
-                    yaml.dump(logConf,fileWriter)
-                    fileWriter.close()
+                    yaml.dump(logConf,logPathFileWriter)
+                    logPathFileWriter.close()
                     println("onlyES null")
                 } else {
-                    fileWriter.close()
+                    logPathFileWriter.close()
                     println("False")
                 }
             }
