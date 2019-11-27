@@ -26,7 +26,7 @@ alias unzip='unzip -q'
 #
 
 function edit_deployments() {
-  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLocation"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/params.json" helm)
+  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLocation"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/infrastructure.properties" helm)
   read -ra detailsArr <<< $details
   sidecarReq=${detailsArr[0]}
   filename=${detailsArr[1]}

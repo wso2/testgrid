@@ -57,28 +57,36 @@ s3secretKey=${infra_props["s3secretKey"]}
 s3accessKey=${infra_props["s3accessKey"]}
 s3logPath=${infra_props["s3logPath"]}
 
+if  [[ $elasticsearchEndPoint == https://* ]]  ;
+then :
+  oldString=https://
+  repString=http://
+  elasticsearchEndPoint=$(echo ${elasticsearchEndPoint/$oldString/$repString})
+elif [[ $elasticsearchEndPoint == http:// ]] ;
+then  :
+else
+   elasticsearchEndPoint=http://$1
+fi
+
 # provide execution access for scripts needed for creating sidecar
-chmod 777 ./testgrid-sidecar/create.sh
-chmod 777 ./testgrid-sidecar/deployment/patchnamespace.sh
 chmod 777 ./testgrid-sidecar/deployment/webhook-create-signed-cert.sh
-chmod 777 ./testgrid-sidecar/deployment/webhook-patch-ca-bundle.sh
-chmod 777 ./testgrid-sidecar/deployment/patchesendpoint.sh
-chmod 777 ./testgrid-sidecar/deployment/patchs3details.sh
-chmod 777 ./testgrid-sidecar/deployment/patchs3secrets.sh
 
 # create config map for sidecar injector deployment to mount which contains details about deployments, containers
 # and location to extact logs from
-kubectl create configmap --dry-run logpath-config --from-file=./testgrid-sidecar/deployment/logpath-details.yaml --output yaml | tee ./testgrid-sidecar/deployment/logpath-configmap.yaml
+kubectl create configmap --dry-run logpath-config --from-file=./testgrid-sidecar/deployment/logpath-details.yaml --output yaml | tee ./testgrid-sidecar/deployment/helmchart/templates/logpath-configmap.yaml
 
 if [[ "$req" == "SidecarReq" ]]
 then
+  sidecar_Req="true"
   # take the file chosen as the logstash.conf file and create it
   logstashconffile="./testgrid-sidecar/deployment/confs/logstash.conf"
   if [ -f $logstashconffile ] ; then
       rm $logstashconffile
   fi
   cp ./testgrid-sidecar/deployment/confs/${filename} ${logstashconffile}
-  kubectl create configmap --dry-run logstash-conf --from-file=./testgrid-sidecar/deployment/confs/logstash.conf --output yaml | tee ./testgrid-sidecar/deployment/logconf.yaml
+  kubectl create configmap --dry-run logstash-conf --from-file=./testgrid-sidecar/deployment/confs/logstash.conf --output yaml | tee ./testgrid-sidecar/deployment/helmchart/templates/logconf.yaml
+else
+  sidecar_Req="false"
 fi
 
 # create signed keys for mutating webhook
@@ -87,46 +95,21 @@ fi
     --secret sidecar-injector-webhook-certs \
     --namespace ${namespace}
 
-# patch CA_BUNDLE field within mutatingwebhook.yaml
-cat ./testgrid-sidecar/deployment/mutatingwebhook_template.yaml | \
-    ./testgrid-sidecar/deployment/webhook-patch-ca-bundle.sh ${namespace}> \
-    ./testgrid-sidecar/deployment/mutatingwebhook_temp.yaml
+ca_bundle=$(kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}')
 
-# patch NAMESPACE field within mutatingwebhook.yaml
-cat ./testgrid-sidecar/deployment/mutatingwebhook_temp.yaml | \
-    ./testgrid-sidecar/deployment/patchnamespace.sh ${namespace} > \
-    ./testgrid-sidecar/deployment/mutatingwebhook-ca-bundle.yaml
+cat > ./testgrid-sidecar/deployment/helmchart/values.yaml << EOF
+wso2:
+   sidecarReq: ${sidecar_Req}
+   namespace: ${namespace}
+   cabundle: ${ca_bundle}
+   elasticSearch:
+      esEndpoint: ${elasticsearchEndPoint}
+   s3Vars:
+      s3secretkey: ${s3secretKey}
+      s3accesskey: ${s3accessKey}
+      s3RegionName: ${s3Region}
+      s3Bucket: ${s3Bucket}
+      s3BucketPath: ${s3logPath}
+EOF
 
-# patch elastic search endpoint within the logstash collector deployment template
-cat ./testgrid-sidecar/deployment/logstash-collector-template.yaml | \
-    ./testgrid-sidecar/deployment/patchesendpoint.sh ${elasticsearchEndPoint} > \
-    ./testgrid-sidecar/deployment/logstash-collector_temp.yaml
-
-cat ./testgrid-sidecar/deployment/logstash-collector_temp.yaml | \
-    ./testgrid-sidecar/deployment/patchs3details.sh  ${s3Region} ${s3Bucket} ${s3logPath} > \
-    ./testgrid-sidecar/deployment/logstash-collector.yaml
-
-cat ./testgrid-sidecar/deployment/logstash_s3_secrets_template.yaml | \
-    ./testgrid-sidecar/deployment/patchs3secrets.sh  ${s3accessKey} ${s3secretKey} > \
-    ./testgrid-sidecar/deployment/logstash_s3_secrets.yaml
-
-
-if [[ "$req" == "SidecarReq" ]]
-then
-  # resources required only if Sidecar Injection is required
-  kubectl create -f ./testgrid-sidecar/deployment/filebeatyaml.yaml --namespace ${namespace}
-  kubectl create -f ./testgrid-sidecar/deployment/logstashyaml.yaml --namespace ${namespace}
-  kubectl create -f ./testgrid-sidecar/deployment/logconf.yaml --namespace ${namespace}
-  kubectl create -f ./testgrid-sidecar/deployment/logstash-collector.yaml --namespace ${namespace}
-  kubectl create -f ./testgrid-sidecar/deployment/logstash-service.yaml --namespace ${namespace}
-  kubectl create -f ./testgrid-sidecar/deployment/logstash_s3_secrets.yaml --namespace ${namespace}
-fi
-
-# resources required in general regardless of wether it is a sidecar injection or an env var injection
-kubectl create -f ./testgrid-sidecar/deployment/logpath-configmap.yaml --namespace ${namespace}
-kubectl create -f ./testgrid-sidecar/deployment/configmap.yaml --namespace ${namespace}
-kubectl create -f ./testgrid-sidecar/deployment/deployment.yaml --namespace ${namespace}
-kubectl create -f ./testgrid-sidecar/deployment/service.yaml --namespace ${namespace}
-kubectl create -f ./testgrid-sidecar/deployment/mutatingwebhook-ca-bundle.yaml --namespace ${namespace}
-
-
+helm install mwh-${namespace} ./testgrid-sidecar/deployment/helmchart -n ${namespace}

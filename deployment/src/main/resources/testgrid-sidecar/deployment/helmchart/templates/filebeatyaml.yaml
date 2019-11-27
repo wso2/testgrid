@@ -12,7 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# ConfigMap of the filebeat.yml file within the Filebeat sidecar
+{{- if .Values.wso2.sidecarReq }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-yaml
+data:
+  filebeat.yml: |-
+    filebeat.inputs:
+    - type: log
+      enabled: true
+      paths:
+      - /opt/testgrid/**/*.log
+      tags: ["logfiles"]
+      fields:
+          podip: ${POD_IP}
+          podname: ${POD_NAME}
 
-# Deployment namespace
-NAMESPACE=$1
-sed -e "s|\${NAMESPACE}|${NAMESPACE}|g"
+    output.logstash:
+      hosts: "logstashservice"
+{{ end }}
