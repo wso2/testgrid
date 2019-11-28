@@ -38,6 +38,23 @@ read_property_file() {
     unset IFS
 }
 
+function install_helm(){
+
+  #if helm is not installed in the cluster, helm and tiller will be installed.
+  if ! type 'helm'
+  then
+    wget https://get.helm.sh/helm-v3.0.0-alpha.2-linux-amd64.tar.gz
+    tar -zxvf helm-v3.0.0-alpha.2-linux-amd64.tar.gz
+    mkdir ~/.local/bin/
+    PATH=~/.local/bin/:$PATH
+    mv linux-amd64/helm ~/.local/bin/helm
+    ~/.local/bin/helm init
+    helm version
+
+  fi
+}
+
+
 
 #deployment namespace
 namespace=$1
@@ -45,7 +62,7 @@ namespace=$1
 req=$2
 #Filename of the file which is to become the logstash.conf file
 filename=$3
-#location of the infrastructure.properties file
+#Location of the infrastructure.properties file
 INPUT_DIR=$4
 
 declare -g -A infra_props
@@ -57,6 +74,9 @@ s3secretKey=${infra_props["s3secretKey"]}
 s3accessKey=${infra_props["s3accessKey"]}
 s3logPath=${infra_props["s3logPath"]}
 
+install_helm
+
+# Format elastic search Endpoint and to support logstash pipeline
 if  [[ $elasticsearchEndPoint == https://* ]]  ;
 then :
   oldString=https://
@@ -97,6 +117,7 @@ fi
 
 ca_bundle=$(kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}')
 
+# create value.yaml for helm chart
 cat > ./testgrid-sidecar/deployment/helmchart/values.yaml << EOF
 wso2:
    sidecarReq: ${sidecar_Req}
@@ -113,3 +134,20 @@ wso2:
 EOF
 
 helm install mwh-${namespace} ./testgrid-sidecar/deployment/helmchart -n ${namespace}
+
+TIMEOUT=600 # 10mins
+total_count=$((TIMEOUT/5))
+echo $total_count
+count=0
+echo Running kubectl get deployments -n ${namespace} sidecar-injector-webhook-deployment -o jsonpath='{.status.conditions[?(@.type=="Available")].status}'
+until [[ $count -ge $total_count ]]
+do
+    deployment_status=$(kubectl get deployments -n $namespace sidecar-injector-webhook-deployment -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
+    [[ "$deployment_status" == "True" ]] && break
+    count=$(($count+1))
+    sleep 5;
+done
+[[ "$deployment_status" != "True" ]] && echo "[ERROR] timeout while waiting for deployment, '${dep[$i]}', in \
+namespace, '$namespace', to succeed." && exit 78
+
+sleep 30;

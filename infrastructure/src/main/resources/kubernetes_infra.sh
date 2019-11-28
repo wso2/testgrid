@@ -46,24 +46,11 @@ fi
 
 function check_tools() {
     echo "Please enable google cluster API, if not enabled."
-    if ! type 'gcloud'
-    then
-        echo "installing gcloud - google cloud command line tool..."
-        set -x
-        wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
-        tar -xzf google-cloud-sdk-247.0.0-linux-x86_64.tar.gz
-        cd google-cloud-sdk
-        CLOUDSDK_CORE_DISABLE_PROMPTS=1 ./install.sh
-        source path.bash.inc && source completion.bash.inc
-        cd ..
-        set +x
-    fi
-
-    if ! type 'kubectl'
-    then
-        echo "installing kubectl - Kubernetes command-line tool..."
-        gcloud components install kubectl
-    fi
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl
+    chmod +x ./kubectl
+    sudo mv ./kubectl /usr/bin/kubectl
+    which kubectl
+    kubectl version
 }
 
 

@@ -42,7 +42,7 @@ import java.util.ArrayList;
  * This class is responsible for handling and communicating with TestGrid Elastic Search Instance provided in the
  * TestGrid configuration files
  *
- * @since 1.0.0
+ * @since 1.0.8
  *
  */
 

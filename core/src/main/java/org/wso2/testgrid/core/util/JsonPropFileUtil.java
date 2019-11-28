@@ -46,7 +46,10 @@ import java.util.Properties;
 
 
 /**
- * This class is used for managing the .properties file and .json files used by TestGrid
+ * This class is used for managing the properties files and json files used by TestGrid to store
+ * script parameters
+ *
+ * @since 1.0.8
  */
 public class JsonPropFileUtil {
 

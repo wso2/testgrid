@@ -107,6 +107,16 @@ public class DeployPhase extends Phase {
                 Path outputJsonPath = DataBucketsHelper.getInputLocation(getTestPlan())
                         .resolve(DataBucketsHelper.PARAMS_JSONFILE);
 
+                if (ConfigurationContext.getProperty(ConfigurationContext.
+                        ConfigurationProperties.TESTGRID_ENVIRONMENT) != null) {
+                    tgProperties.put("env", ConfigurationContext.getProperty(ConfigurationContext.
+                            ConfigurationProperties.TESTGRID_ENVIRONMENT));
+                }
+                if (ConfigurationContext
+                        .getProperty(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS) != null) {
+                    tgProperties.put("pass", ConfigurationContext.getProperty(ConfigurationContext.
+                            ConfigurationProperties.TESTGRID_PASS));
+                }
 
                 JsonPropFileUtil.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath);
                 JsonPropFileUtil.updateParamsJson(deplJsonPath, "test", outputJsonPath);
@@ -142,6 +152,8 @@ public class DeployPhase extends Phase {
                 .resolve(DataBucketsHelper.PARAMS_JSONFILE);
 
         Map<String, Object> additionalDepProps = new HashMap<>();
+
+        // Params to for Log File extraction through Mutating WebHook
         additionalDepProps.put("depRepoLocation", getTestPlan().getDeploymentRepository());
         if (ConfigurationContext.getProperty(ConfigurationContext.
                 ConfigurationProperties.AWS_REGION_NAME) != null) {
@@ -184,6 +196,7 @@ public class DeployPhase extends Phase {
                         getTestPlan(), e);
             }
         }
+        // Params to edit /etc/hosts file in local TestGrid
         if (ConfigurationContext.getProperty(ConfigurationContext.
                     ConfigurationProperties.TESTGRID_ENVIRONMENT) != null) {
             additionalDepProps.put("env", ConfigurationContext.getProperty(ConfigurationContext.
