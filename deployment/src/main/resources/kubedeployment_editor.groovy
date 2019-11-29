@@ -25,7 +25,6 @@
 import org.yaml.snakeyaml.Yaml
 import org.json.JSONObject
 import org.json.JSONArray
-import org.json.JSONTokener
 
 def static formatESURL (String esEndpoint) {
     if(esEndpoint.startsWith("https://")){
