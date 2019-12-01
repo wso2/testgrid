@@ -61,6 +61,7 @@ import org.wso2.testgrid.common.util.TestGridUtil;
 import org.wso2.testgrid.common.util.tinkerer.SyncCommandResponse;
 import org.wso2.testgrid.common.util.tinkerer.TinkererSDK;
 import org.wso2.testgrid.core.exception.TestPlanExecutorException;
+import org.wso2.testgrid.core.util.JsonPropFileUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
@@ -73,7 +74,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -178,9 +181,41 @@ public class TestPhase extends Phase {
      */
     private void runScenarioTests()
             throws TestPlanExecutorException {
+
         DeploymentCreationResult deploymentCreationResult = getTestPlan().getDeploymentCreationResult();
+
+        //Append TestPlan id to deployment.properties file
+        Map<String, Object> tgProperties = new HashMap<>();
+        tgProperties.put("TEST_PLAN_ID", getTestPlan().getId());
+
+        Path dataBucketInputLocation = DataBucketsHelper.getInputLocation(getTestPlan());
+
+        Path deplPropPath = dataBucketInputLocation.resolve(DataBucketsHelper.DEPL_OUT_FILE);
+        Path deplJsonPath = dataBucketInputLocation.resolve(DataBucketsHelper.DEPL_OUT_JSONFILE);
+        Path outputJsonPath = dataBucketInputLocation.resolve(DataBucketsHelper.PARAMS_JSONFILE);
+
+        String testgridEnvironment = ConfigurationContext.getProperty(ConfigurationContext.
+                ConfigurationProperties.TESTGRID_ENVIRONMENT);
+        String testgridPassword = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS);
+        if (testgridEnvironment != null) {
+            tgProperties.put("environment", testgridEnvironment);
+        }
+        if (testgridPassword != null) {
+            tgProperties.put("password", testgridPassword);
+        }
+
+        JsonPropFileUtil.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath);
+        JsonPropFileUtil.updateParamsJson(deplJsonPath, "test", outputJsonPath);
+
         for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
+
             try {
+
+                JsonPropFileUtil.persistAdditionalInputs(scenarioConfig.getInputParameters(), deplPropPath,
+                        deplJsonPath, scenarioConfig.getName());
+                JsonPropFileUtil.updateParamsJson(deplJsonPath, "test", outputJsonPath);
+
                 scenarioConfig.setTestPlan(getTestPlan());
                 TestExecutor testExecutor = TestExecutorFactory.getTestExecutor(
                         TestEngine.valueOf(scenarioConfig.getTestType()));
@@ -200,6 +235,7 @@ public class TestPhase extends Phase {
                     testExecutor.execute(file.toString(), deploymentCreationResult);
                 }
 
+                JsonPropFileUtil.removeScriptConfigParams(scenarioConfig, deplPropPath);
 
             } catch (TestAutomationException e) {
                 //todo: add reason to test-plan db record

@@ -55,6 +55,7 @@ import java.nio.file.Paths;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * This class includes implementation of deployment-creation phase.
@@ -63,7 +64,7 @@ import java.util.Map;
 public class DeployPhase extends Phase {
 
     @Override
-    //TODO only
+    // TODO : Only return wether previous stage is completed. DO NOT set the new stage
     boolean verifyPrecondition() {
         if (getTestPlan().getPhase().equals(TestPlanPhase.INFRA_PHASE_SUCCEEDED) &&
                 getTestPlan().getStatus().equals(TestPlanStatus.RUNNING)) {
@@ -95,45 +96,10 @@ public class DeployPhase extends Phase {
                 releaseInfrastructure();
             } else {
                 persistTestPlanPhase(TestPlanPhase.DEPLOY_PHASE_SUCCEEDED);
-
-                //Append TestPlan id to deployment.properties file
-                Map<String, Object> tgProperties = new HashMap<>();
-                tgProperties.put("TEST_PLAN_ID", getTestPlan().getId());
-
-                Path deplPropPath = DataBucketsHelper.getOutputLocation(getTestPlan())
-                        .resolve(DataBucketsHelper.DEPL_OUT_FILE);
-                Path deplJsonPath = DataBucketsHelper.getOutputLocation(getTestPlan())
-                        .resolve(DataBucketsHelper.DEPL_OUT_JSONFILE);
-                Path outputJsonPath = DataBucketsHelper.getInputLocation(getTestPlan())
-                        .resolve(DataBucketsHelper.PARAMS_JSONFILE);
-
-                if (ConfigurationContext.getProperty(ConfigurationContext.
-                        ConfigurationProperties.TESTGRID_ENVIRONMENT) != null) {
-                    tgProperties.put("env", ConfigurationContext.getProperty(ConfigurationContext.
-                            ConfigurationProperties.TESTGRID_ENVIRONMENT));
-                }
-                if (ConfigurationContext
-                        .getProperty(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS) != null) {
-                    tgProperties.put("pass", ConfigurationContext.getProperty(ConfigurationContext.
-                            ConfigurationProperties.TESTGRID_PASS));
-                }
-
-                JsonPropFileUtil.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath);
-                JsonPropFileUtil.updateParamsJson(deplJsonPath, "test", outputJsonPath);
-                // Append inputs from scenarioConfig in testgrid yaml to deployment outputs file
-                Map<String, Object> sceProperties = new HashMap<>();
-                for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
-                    sceProperties.putAll(scenarioConfig.getInputParameters());
-                    JsonPropFileUtil.persistAdditionalInputs(sceProperties, deplPropPath, deplJsonPath,
-                            scenarioConfig.getName());
-                    JsonPropFileUtil.updateParamsJson(deplJsonPath, "test", outputJsonPath);
-                    // TODO execution part of scenarioConfig here or Move section to next Phase Entirely
-
-                }
             }
         } catch (TestPlanExecutorException e) {
             logger.error("Error occurred while executing Deploy Phase for the dep.pattern " +
-                    getTestPlan().getDeploymentPattern());
+                    getTestPlan().getDeploymentPattern(), e);
         }
     }
 
@@ -143,7 +109,18 @@ public class DeployPhase extends Phase {
      * @return created {@link DeploymentCreationResult}
      */
     private DeploymentCreationResult createDeployment() {
+
         InfrastructureProvisionResult infrastructureProvisionResult = getTestPlan().getInfrastructureProvisionResult();
+
+        DeploymentCreationResult result = new DeploymentCreationResult();
+
+        if (!infrastructureProvisionResult.isSuccess()) {
+            DeploymentCreationResult nresult = new DeploymentCreationResult();
+            result.setSuccess(false);
+            logger.debug("Deployment result: " + nresult);
+            return result;
+        }
+
         Path infraOutFilePath = DataBucketsHelper.getOutputLocation(getTestPlan())
                 .resolve(DataBucketsHelper.INFRA_OUT_FILE);
         Path infraOutJSONFilePath = DataBucketsHelper.getOutputLocation(getTestPlan())
@@ -153,36 +130,28 @@ public class DeployPhase extends Phase {
 
         Map<String, Object> additionalDepProps = new HashMap<>();
 
+        HashMap<ConfigurationContext.ConfigurationProperties, String> generalPropertyList = new HashMap<>();
+
+        generalPropertyList.put(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME, "s3Region");
+        generalPropertyList.put(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT,
+                "s3secretKey");
+        generalPropertyList.put(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT, "s3accessKey");
+        generalPropertyList.put(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME, "s3Bucket");
+        generalPropertyList.put(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL, "elasticsearchEndPoint");
+        generalPropertyList.put(ConfigurationContext.ConfigurationProperties.TESTGRID_ENVIRONMENT, "environment");
+        generalPropertyList.put(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS, "password");
         // Params to for Log File extraction through Mutating WebHook
         additionalDepProps.put("depRepoLocation", getTestPlan().getDeploymentRepository());
-        if (ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.AWS_REGION_NAME) != null) {
-            additionalDepProps.put("s3Region",
-                    ConfigurationContext.getProperty(ConfigurationContext.
-                            ConfigurationProperties.AWS_REGION_NAME));
+
+
+        for (Entry<ConfigurationContext.ConfigurationProperties,
+                String> configPropStringpair : generalPropertyList.entrySet()) {
+            String propertyValue = ConfigurationContext.getProperty(configPropStringpair.getKey());
+            if (propertyValue != null) {
+                additionalDepProps.put(configPropStringpair.getValue(), propertyValue);
+            }
         }
-        if (ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT) != null) {
-            additionalDepProps.put("s3secretKey",
-                    ConfigurationContext.getProperty(ConfigurationContext.
-                            ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT));
-        }
-        if (ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT) != null) {
-            additionalDepProps.put("s3accessKey",
-                    ConfigurationContext.getProperty(ConfigurationContext.
-                            ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT));
-        }
-        if (ConfigurationContext.getProperty(ConfigurationContext.
-                ConfigurationProperties.AWS_S3_BUCKET_NAME) != null) {
-            additionalDepProps.put("s3Bucket",
-                    ConfigurationContext.getProperty(ConfigurationContext.
-                            ConfigurationProperties.AWS_S3_BUCKET_NAME));
-        }
-        if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL) != null) {
-            additionalDepProps.put("elasticsearchEndPoint",
-                    ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL));
-        }
+
         if (ConfigurationContext.getProperty
                 (ConfigurationContext.ConfigurationProperties.AWS_S3_ARTIFACTS_DIR) != null) {
             try {
@@ -197,31 +166,15 @@ public class DeployPhase extends Phase {
             }
         }
         // Params to edit /etc/hosts file in local TestGrid
-        if (ConfigurationContext.getProperty(ConfigurationContext.
-                    ConfigurationProperties.TESTGRID_ENVIRONMENT) != null) {
-            additionalDepProps.put("env", ConfigurationContext.getProperty(ConfigurationContext.
-                    ConfigurationProperties.TESTGRID_ENVIRONMENT));
-        }
-        if (ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS) != null) {
-            additionalDepProps.put("pass", ConfigurationContext.getProperty(ConfigurationContext.
-                    ConfigurationProperties.TESTGRID_PASS));
-        }
-
-
+        
         JsonPropFileUtil.persistAdditionalInputs(additionalDepProps, infraOutFilePath, infraOutJSONFilePath);
         JsonPropFileUtil.updateParamsJson(infraOutJSONFilePath, "dep", outputjsonFilePath);
 
         try {
-            DeploymentCreationResult result = new DeploymentCreationResult();
+
+
             for (Script script: getTestPlan().getDeploymentConfig().getFirstDeploymentPattern().getScripts()) {
                 printMessage("\t\t Creating deployment: " + script.getName());
-
-                if (!infrastructureProvisionResult.isSuccess()) {
-                    DeploymentCreationResult nresult = new DeploymentCreationResult();
-                    result.setSuccess(false);
-                    logger.debug("Deployment result: " + nresult);
-                    return result;
-                }
 
                 // Append deploymentConfig inputs in testgrid yaml to infra outputs file
                 Map<String, Object> deplInputs = script.getInputParameters();
@@ -234,13 +187,14 @@ public class DeployPhase extends Phase {
                 DeploymentCreationResult aresult =
                         deployerService.deploy(getTestPlan(),
                                 infrastructureProvisionResult, script);
+                //TODO mark issue better renaming
                 addTo(result, aresult);
                 logger.debug("Deployment result: " + result);
                 if (!aresult.isSuccess()) {
                     logger.warn("Deploy script '" + script.getName() + "' failed. Not running remaining scripts.");
                     break;
                 }
-                JsonPropFileUtil.removeScriptParams(script, infraOutFilePath);
+                JsonPropFileUtil.removeScriptConfigParams(script, infraOutFilePath);
             }
             return result;
         } catch (TestGridDeployerException e) {
@@ -278,7 +232,7 @@ public class DeployPhase extends Phase {
             }
         }
 
-        DeploymentCreationResult result = new DeploymentCreationResult();
+        result = new DeploymentCreationResult();
         result.setSuccess(false);
         logger.debug("Deployment result: " + result);
         return result;

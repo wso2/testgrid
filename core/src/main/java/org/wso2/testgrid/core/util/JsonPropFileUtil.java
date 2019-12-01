@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 
 import java.io.BufferedWriter;
@@ -203,7 +204,7 @@ public class JsonPropFileUtil {
      *  @param script - Script File
      *  @param propFilePath - Path Variable to properties File
      */
-    public static void removeScriptParams(Script script, Path propFilePath) {
+    public static void removeScriptConfigParams(Script script, Path propFilePath) {
 
 
         try (InputStream propInputStream = new FileInputStream(propFilePath.toString())) {
@@ -211,6 +212,42 @@ public class JsonPropFileUtil {
             existingProps.load(propInputStream);
 
             Map<String, Object> inputParams = script.getInputParameters();
+
+            for (Map.Entry<String, Object> stringObjectEntry : inputParams.entrySet()) {
+                if (existingProps.containsKey(stringObjectEntry.getKey())
+                        && existingProps.get(stringObjectEntry.getKey()) != stringObjectEntry.getValue()) {
+                    existingProps.remove(stringObjectEntry.getKey());
+                }
+            }
+
+            try (PrintWriter propPrinterWriter = new PrintWriter(
+                    new OutputStreamWriter(Files.newOutputStream(propFilePath), StandardCharsets.UTF_8))) {
+                for (Map.Entry<Object, Object> objectObjectEntry : existingProps.entrySet()) {
+                    propPrinterWriter.println(objectObjectEntry.getKey() + "=" + objectObjectEntry.getValue());
+                }
+            } catch (IOException e) {
+                logger.error("Error while persisting Input Parameters", e);
+            }
+
+        } catch (IOException e) {
+            logger.error("Error while persisting Input Parameters", e);
+        }
+    }
+
+    /**
+     *
+     *  Optional method removes a scripts params from prop file after execution
+     *  @param sceConfig - Script File
+     *  @param propFilePath - Path Variable to properties File
+     */
+    public static void removeScriptConfigParams(ScenarioConfig sceConfig, Path propFilePath) {
+
+
+        try (InputStream propInputStream = new FileInputStream(propFilePath.toString())) {
+            Properties existingProps = new Properties();
+            existingProps.load(propInputStream);
+
+            Map<String, Object> inputParams = sceConfig.getInputParameters();
 
             for (Map.Entry<String, Object> stringObjectEntry : inputParams.entrySet()) {
                 if (existingProps.containsKey(stringObjectEntry.getKey())

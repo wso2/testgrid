@@ -322,8 +322,8 @@ yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
 logOptions=${infra_props["logOptions"]}
 
-testgrid_env=${infra_props["env"]}
-testgrid_pass=${infra_props["pass"]}
+testgrid_env=${infra_props["environment"]}
+testgrid_pass=${infra_props["password"]}
 
 if [ -z "$logOptions" ]; then
     echo "[INFO] No Logging Options are set"
