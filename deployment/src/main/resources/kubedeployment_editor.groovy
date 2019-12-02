@@ -107,7 +107,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String
                     JSONObject logLocation = logLocations.getJSONObject(i)
                     String absoluteFilePath = formatFilePaths(logLocation.getString("path")
                             .replaceAll("&","/"))
-                    Map entry = ["name" : logLocation.getString("deploymentName") + "-" +
+                    Map entry = ["deploymentname" : logLocation.getString("deploymentName") , "containername" :
                             logLocation.getString("containerName") , "path" : absoluteFilePath]
                     logPathConf.add( entry )
                 }
