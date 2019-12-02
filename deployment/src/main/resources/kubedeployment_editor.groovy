@@ -107,7 +107,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String
                     JSONObject logLocation = logLocations.getJSONObject(i)
                     String absoluteFilePath = formatFilePaths(logLocation.getString("path")
                             .replaceAll("&","/"))
-                    Map entry = ["deploymentname" : logLocation.getString("deploymentName") , "containername" :
+                    Map entry = ["deploymentName" : logLocation.getString("deploymentName") , "containerName" :
                             logLocation.getString("containerName") , "path" : absoluteFilePath]
                     logPathConf.add( entry )
                 }
@@ -122,7 +122,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String
         } else if ( logRequirement == "log_endPoints_Required" ) {
             if (depType == "helm" ) {
                 // If only ES endpoint is required access values.yaml file and edit the appropriate value
-                String rootProjLocation = depProps.getString("rootProjLocation")
+                String rootProjLocation = depProps.getProperty("rootProjLocation")
                 String valuesYamlLoc = depRepo.concat("/").concat(rootProjLocation)
                         .concat("/").concat(logOptions.getString("valuesYamlLocation"))
 
@@ -175,7 +175,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String
                     Map logConf = ["onlyVars":true, "envVars": envVars ]
                     yaml.dump(logConf,logPathFileWriter)
                     logPathFileWriter.close()
-                    println("onlyES null")
+                    println("onlyEnvVars null")
                 } else {
                     logPathFileWriter.close()
                     println("False")

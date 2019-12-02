@@ -28,12 +28,12 @@ function edit_deployments() {
   read -ra detailsArr <<< $details
   sidecarReq=${detailsArr[0]}
   filename=${detailsArr[1]}
-  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyES" ]]
+  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyEnvVars" ]]
   then
     kubectl label namespace ${namespace} namespace=${namespace}
     kubectl label namespace ${namespace} sidecar-injector=enabled
-    chmod 777 ./testgrid-sidecar/create.sh
-    ./testgrid-sidecar/create.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
+    chmod 777 ./testgrid-sidecar/createSidecar.sh
+    ./testgrid-sidecar/createSidecar.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
   fi
 }
 

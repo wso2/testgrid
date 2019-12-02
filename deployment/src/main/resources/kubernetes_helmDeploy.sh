@@ -30,7 +30,7 @@ function edit_deployments() {
   read -ra detailsArr <<< $details
   sidecarReq=${detailsArr[0]}
   filename=${detailsArr[1]}
-  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyES" ]]
+  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyEnvVars" ]]
   then
     kubectl label namespace ${namespace} namespace=${namespace}
     kubectl label namespace ${namespace} sidecar-injector=enabled

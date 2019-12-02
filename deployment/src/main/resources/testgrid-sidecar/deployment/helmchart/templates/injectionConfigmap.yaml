@@ -20,7 +20,7 @@ metadata:
   name: sidecar-injector-webhook-configmap
 data:
   sidecarconfig.yaml: |
-    initcontainers:
+    initContainers:
       - name: copy-scripts
         image: busybox
         command: ['sh', '-c']
