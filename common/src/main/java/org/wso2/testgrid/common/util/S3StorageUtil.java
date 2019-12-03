@@ -2,12 +2,18 @@ package org.wso2.testgrid.common.util;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.transfer.MultipleFileDownload;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import com.amazonaws.services.s3.transfer.Upload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestGridConstants;
@@ -21,10 +27,14 @@ import static org.wso2.testgrid.common.TestGridConstants.TESTGRID_COMPRESSED_FIL
 import static org.wso2.testgrid.common.TestGridConstants.TEST_RESULTS_DIR;
 import static org.wso2.testgrid.common.TestGridConstants.TEST_RESULTS_DIR_OLD;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * This Util class holds the utility methods used to manage TestGrid S3 storage.
@@ -217,5 +227,84 @@ public final class S3StorageUtil {
         } else {
             return path;
         }
+    }
+
+    public static void downloadArchiveandReupload(String s3artifactDir, Path dataBucketLocation) {
+
+        String s3region = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME);
+        String s3accessKey = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_ID_TG_BOT);
+        String s3secretKey = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_ACCESS_KEY_SECRET_TG_BOT);
+        String s3bucket = ConfigurationContext
+                .getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME);
+
+        BasicAWSCredentials awsCreds = new BasicAWSCredentials(s3accessKey, s3secretKey);
+
+        AmazonS3 s3client = AmazonS3ClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+                .withRegion(s3region).build();
+        logger.info(s3bucket + " " + s3artifactDir);
+        /*if (!s3client.doesObjectExist(s3bucket, s3artifactDir)) {
+            logger.error("Could not find logs", s3artifactDir + " " + s3bucket);
+            return;
+        }
+        logger.info("Found logs");*/
+        TransferManager transferManager = TransferManagerBuilder.standard()
+                .withS3Client(s3client).build();
+
+        Path clientLogsPath = dataBucketLocation.resolve("clientLogs");
+
+        File clientLogsFolder = new File(clientLogsPath.toString());
+        if (!clientLogsFolder.exists()) {
+            if (!clientLogsFolder.mkdir()) {
+                logger.error("Could not create Directory for getting client Logs");
+            }
+        }
+
+        File downloadDir = new File(clientLogsPath.toString());
+
+        MultipleFileDownload clientLogsDownload =  transferManager.downloadDirectory(s3bucket, s3artifactDir,
+                downloadDir);
+
+        try {
+            clientLogsDownload.waitForCompletion();
+        } catch (InterruptedException e) {
+            logger.error("Could not Download client logs", e);
+        }
+        logger.info("Downloaded logs");
+
+        Path clientLogszipPath = dataBucketLocation.resolve("clientLogs.zip");
+        try (ZipOutputStream clientLogszipOutputstream =
+                     new ZipOutputStream(Files.newOutputStream(clientLogszipPath))) {
+            Files.walk(clientLogsPath)
+                    .filter(path -> !Files.isDirectory(path))
+                    .forEach(path -> {
+                        ZipEntry zipEntry = new ZipEntry(clientLogszipPath.relativize(path).toString());
+                        try {
+                            clientLogszipOutputstream.putNextEntry(zipEntry);
+                            Files.copy(path, clientLogszipOutputstream);
+                            clientLogszipOutputstream.closeEntry();
+                        } catch (IOException e) {
+                            logger.error("Could not Zip client logs", e);
+                        }
+                    });
+        } catch (IOException e) {
+            logger.error("Could not Zip client logs", e);
+        }
+        logger.info("Zipped logs");
+        File clientLogszipFile = new File(clientLogszipPath.toString());
+
+        Upload clientLogsZipupload = transferManager.upload(s3bucket,
+                s3artifactDir.concat("/clientLogs.zip"), clientLogszipFile);
+
+        try {
+            clientLogsZipupload.waitForUploadResult();
+        } catch (InterruptedException e) {
+            logger.error("Could not Upload client logs", e);
+        }
+        logger.info("Uploaded logs");
+
     }
 }

@@ -132,6 +132,7 @@ public class TestPhase extends Phase {
 
         if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
             createPermaDashBoard();
+            uploads3ClientLogs();
         }
         uploadDeploymentOutputsToS3();
         // Test plan completed. Update and persist testplan status
@@ -263,6 +264,20 @@ public class TestPhase extends Phase {
                 }
             }
             persistScenarioConfig(scenarioConfig);
+        }
+
+    }
+
+    public void uploads3ClientLogs() {
+        try {
+            ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
+                    getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
+                    getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
+            String s3logPath = S3StorageUtil.deriveS3DeploymentOutputsDir(getTestPlan(), artifactReadable);
+            Path dataBucketPath = DataBucketsHelper.getOutputLocation(getTestPlan());
+            S3StorageUtil.downloadArchiveandReupload(s3logPath, dataBucketPath);
+        } catch (ArtifactReaderException | IOException e) {
+            logger.error("Could not upload Client Logs", e);
         }
 
     }

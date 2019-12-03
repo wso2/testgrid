@@ -122,9 +122,11 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String
         } else if ( logRequirement == "log_endPoints_Required" ) {
             if (depType == "helm" ) {
                 // If only ES endpoint is required access values.yaml file and edit the appropriate value
-                String rootProjLocation = depProps.getProperty("rootProjLocation")
+                String valYamlFormat = logOptions.getString("valuesYamlLocation")
+                        .replaceAll("&","/")
+                String rootProjLocation = depProps.getProperty("rootProjLocations")
                 String valuesYamlLoc = depRepo.concat("/").concat(rootProjLocation)
-                        .concat("/").concat(logOptions.getString("valuesYamlLocation"))
+                        .concat("/").concat(valYamlFormat)
 
                 JSONArray replaceableValues = logOptions.getJSONArray("replaceableVals")
                 InputStream valuesYamlInputStream = new FileInputStream(valuesYamlLoc)
@@ -138,7 +140,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String
                 for ( int j=0 ; j<replaceableValues.length() ; j++  ){
                     JSONObject replaceableObj = replaceableValues.getJSONObject(j)
                     Map editedValuesMap = valuesYaml
-                    String replaceableObjLoc = replaceableObj.getString("location").split(":")[0]
+                    String replaceableObjLoc = replaceableObj.getString("location")
                     List<String> pathToRepObj = replaceableObjLoc.split("&")
                     String key
                     for (int i = 0 ; i < pathToRepObj.size() -1 ; i++ ) {
@@ -146,7 +148,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String
                         editedValuesMap = (Map) editedValuesMap[key]
                     }
                     // add more ifs for other vars
-                    if (replaceableObj.getString("type") == "elasticsearchEndpoint" && elasticsearchURL != "error") {
+                    if (replaceableObj.getString("type") == "elasticsearchEndPoint" && elasticsearchURL != "error") {
                         editedValuesMap[pathToRepObj[pathToRepObj.size()-1]] = elasticsearchURL
                     } else if (replaceableObj.getString("type") == "elasticsearchPort" && elasticsearchURL != "error") {
                         editedValuesMap[pathToRepObj[pathToRepObj.size()-1]] = elasticsearchPort
@@ -185,7 +187,7 @@ def confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String
             println("False")
         }
     }catch(RuntimeException e){
-        println(e)
+        println(e.printStackTrace())
     }
 }
 
