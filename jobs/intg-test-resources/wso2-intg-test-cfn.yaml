@@ -293,6 +293,9 @@ Resources:
           chmod 777 -R /opt/testgrid
           cd /opt/testgrid/workspace
 
+          # Set file limits
+          ulimit -n 65535
+
           setup_java_env
           echo "Installing Apache Maven"
           wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
