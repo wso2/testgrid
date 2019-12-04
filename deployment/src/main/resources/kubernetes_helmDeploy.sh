@@ -26,7 +26,9 @@ alias unzip='unzip -q'
 #
 
 function edit_deployments() {
-  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLocation"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/infrastructure.properties" helm)
+  details=$(groovy kubedeployment_editor.groovy \
+  "${infra_props["depRepoLocation"]}/testgrid-sidecar/deployment/logpath-details.yaml" \
+  "${OUTPUT_DIR}/infrastructure.properties" helm)
   read -ra detailsArr <<< $details
   sidecarReq=${detailsArr[0]}
   filename=${detailsArr[1]}
@@ -52,11 +54,8 @@ function create_k8s_resources() {
       exit 1
     fi
 
-
-
     #deploy the helm configurations into the kubernetes cluster
     source $helmDeployScript
-
     readiness_deployments
 
     if [[ -z ${loadBalancerHostName} ]]; then
@@ -190,8 +189,7 @@ function readinesss_services(){
 
 }
 
-#This function is used to add paths to etc/host fils
-#This function is used to add paths to etc/host fils
+#This function is used to add paths to etc/host files
 function addhost() {
     ip_address=$1
     hostname=$2

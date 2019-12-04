@@ -19,12 +19,13 @@
 set -o xtrace
 
 #
-#This class is used for the deployment of resources into the namespace using kubectl commands
-#The created resources will be exposed using an Ingress to the external usage
-#
+# This script is used for the deployment of resources into the namespace using kubectl commands.
+# The created resources will be exposed using an Ingress to the external usage.
+function edit_deployment() {
+  details=$(groovy kubedeployment_editor.groovy \
+  "${infra_props["depRepoLocation"]}/testgrid-sidecar/deployment/logpath-details.yaml" \
+  "${INPUT_DIR}/infrastructure.properties" k8s)
 
-function edit_deployments() {
-  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLocation"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/infrastructure.properties" k8s)
   read -ra detailsArr <<< $details
   sidecarReq=${detailsArr[0]}
   filename=${detailsArr[1]}
@@ -50,7 +51,6 @@ function create_k8s_resources() {
       echo "[WARN] Could not find inputParameter 'exposedDeployments' in deploymentConfig. No deployments will be
       exposed."
     fi
-
 
     if [[ -z ${loadBalancerHostName} ]]; then
         echo WARN: loadBalancerHostName not found in deployment.properties. Generating a random name under \
@@ -80,9 +80,7 @@ kubectl create secret tls ${tlskeySecret} \
     --cert ${INPUT_DIR}/testgrid-certs-v2.crt  \
     --key ${INPUT_DIR}/testgrid-certs-v2.key -n ${namespace}
 
-
 echo "# public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
-
 
     cat > ${ingressName}.yaml << EOF
 apiVersion: extensions/v1beta1
@@ -191,7 +189,7 @@ function readinesss_services(){
 
 }
 
-#This function is used to add paths to etc/host fils
+# This function is used to add paths to etc/host files
 function addhost() {
     ip_address=$1
     hostname=$2
@@ -321,14 +319,13 @@ namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
 logOptions=${infra_props["logOptions"]}
-
 testgrid_env=${infra_props["environment"]}
 testgrid_pass=${infra_props["password"]}
 
 if [ -z "$logOptions" ]; then
     echo "[INFO] No Logging Options are set"
 else
-    edit_deployments
+    edit_deployment
 fi
 
 create_k8s_resources
