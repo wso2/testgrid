@@ -263,6 +263,8 @@ Resources:
 
           # Set file limits
           sysctl -w fs.file-max=1000000
+          sysctl fs.file-nr
+          ulimit -n 65535
           ulimit -Hn
           ulimit -Sn
 
