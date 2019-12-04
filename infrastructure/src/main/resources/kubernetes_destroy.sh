@@ -46,8 +46,8 @@ function delete_resources() {
   echo "running destroy.sh"
   kubectl delete namespaces $namespace
   kubectl delete mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}"
-  webhookadded=$(kubectl get mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}" -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
-  if [[ "$webhookadded" == "True" ]]
+  webhookadded=$(kubectl get mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}" -o json)
+  if [[ ! -z "$webhookadded" ]]
   then 
      kubectl delete mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}"
   fi
