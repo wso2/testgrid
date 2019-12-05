@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: sidecar-injector
-          image: ranikamadurawe/sidecar-injector:v1
+          image: asia.gcr.io/testgrid/testgrid-helpers/k8s-logfile-aggregator:v1
           imagePullPolicy: Always
           args:
             - -sidecarConfigFile=/etc/webhook/config/sidecar-config.yaml
