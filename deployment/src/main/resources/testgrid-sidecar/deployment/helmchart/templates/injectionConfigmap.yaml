@@ -19,7 +19,7 @@ kind: ConfigMap
 metadata:
   name: sidecar-injector-webhook-configmap
 data:
-  sidecarconfig.yaml: |
+  sidecar-config.yaml: |
     initContainers:
       - name: copy-scripts
         image: busybox

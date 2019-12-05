@@ -32,7 +32,7 @@ spec:
           image: ranikamadurawe/sidecar-injector:v1
           imagePullPolicy: Always
           args:
-            - -sidecarCfgFile=/etc/webhook/config/sidecarconfig.yaml
+            - -sidecarConfigFile=/etc/webhook/config/sidecar-config.yaml
             - -tlsCertFile=/etc/webhook/certs/cert.pem
             - -tlsKeyFile=/etc/webhook/certs/key.pem
             - -logPathConfigFile=/etc/webhook/details/logpath-details.yaml
