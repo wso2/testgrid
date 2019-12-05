@@ -100,7 +100,7 @@ def static confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath,
 
         String logRequirement = logOptions.getString("logRequirement")
 
-        if (logRequirement.equalsIgnoreCase("Sidecar_Required") ) {
+        if (logRequirement.equalsIgnoreCase("sidecar_required") ) {
             // If sidecar is required create logPathDetails.yaml file with all information
             JSONArray logLocations = logOptions.getJSONArray("logFileLocations")
             Yaml logpathDetailsYaml = new Yaml()
@@ -151,9 +151,11 @@ def static confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath,
                         editedValuesMap = (Map) editedValuesMap[key]
                     }
                     // add more if blocks for other variables
-                    if (replaceableObj.getString("type") == "elasticsearchEndPoint" && elasticsearchURL != "error") {
+                    if (replaceableObj.getString("type").equalsIgnoreCase("elasticsearchEndPoint")
+                            && elasticsearchURL != "error") {
                         editedValuesMap[pathToRepObj.get(pathToRepObj.size()-1)] = elasticsearchURL
-                    } else if (replaceableObj.getString("type") == "elasticsearchPort" && elasticsearchURL != "error") {
+                    } else if (replaceableObj.getString("type").equalsIgnoreCase("elasticsearchPort")
+                            && elasticsearchURL != "error") {
                         editedValuesMap[pathToRepObj.get(pathToRepObj.size()-1)] = elasticsearchPort
                     }
                 }
@@ -172,7 +174,7 @@ def static confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath,
                 for (int i=0 ; i<injectableValues.length() ; i++){
                     // add more ifs for other vars
                     JSONObject injectableObj = injectableValues.getJSONObject(i)
-                    if (injectableObj.getString("type") == "elasticsearchEndpoint") {
+                    if (injectableObj.getString("type").equalsIgnoreCase("elasticsearchEndpoint")) {
                         envVars.add(["name": injectableObj.getString("name"), "value" : formattedElasticsearchURL])
                     }
                 }
