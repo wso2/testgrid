@@ -148,6 +148,6 @@ do
     sleep 5;
 done
 [[ "$deployment_status" != "True" ]] && echo "[ERROR] timeout while waiting for deployment, '${dep[$i]}', in \
-namespace, '$namespace', to succeed." && exit 78
+namespace, '$namespace', to succeed." && sleep 10 && exit 0
 
-sleep 30;
+

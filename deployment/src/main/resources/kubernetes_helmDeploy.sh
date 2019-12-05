@@ -38,6 +38,14 @@ function edit_deployments() {
     kubectl label namespace ${namespace} sidecar-injector=enabled
     chmod 777 ./testgrid-sidecar/createSidecar.sh
     ./testgrid-sidecar/createSidecar.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
+    if [ $? -eq 0 ]
+    then
+      echo "[ERROR] Could not create the Sidecar Deployment"
+      exit 0
+    else
+      echo "[INFO] Created Mutating Webhook Deployment"
+      exit 1
+    fi
   fi
 }
 
@@ -335,6 +343,7 @@ if [ -z "$logOptions" ]; then
     echo "No Logging capabilities are set"
 else
     edit_deployments
+    echo
 fi
 
 create_k8s_resources

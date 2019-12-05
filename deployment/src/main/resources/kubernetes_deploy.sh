@@ -35,6 +35,12 @@ function edit_deployment() {
     kubectl label namespace ${namespace} sidecar-injector=enabled
     chmod 777 ./testgrid-sidecar/createSidecar.sh
     ./testgrid-sidecar/createSidecar.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
+    if [ $? -eq 0 ]
+    then
+      echo "[ERROR] Could not create the Sidecar Deployment"
+    else
+      echo "[INFO] Created Mutating Webhook Deployment"
+    fi
   fi
 }
 
