@@ -132,7 +132,7 @@ Parameters:
     Description: Enter target OS version.
   JDK:
     Type: String
-    Default: ORACLE_JDK8
+    Default: OPEN_JDK11
     Description: Enter target JDK version.
     AllowedValues:
       - OPEN_JDK8
