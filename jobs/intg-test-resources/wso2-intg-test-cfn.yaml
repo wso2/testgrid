@@ -132,7 +132,7 @@ Parameters:
     Description: Enter target OS version.
   JDK:
     Type: String
-    Default: OPEN_JDK11
+    Default: ORACLE_JDK8
     Description: Enter target JDK version.
     AllowedValues:
       - OPEN_JDK8
@@ -270,7 +270,6 @@ Resources:
           ulimit -Sn
 
           setup_java_env() {
-            JDK=ORACLE_JDK8
             source /etc/environment
 
             echo JDK_PARAM=${JDK} >> /opt/testgrid/java.txt
