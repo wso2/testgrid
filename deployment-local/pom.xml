@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>org.wso2.testgrid</groupId>
+        <artifactId>testgrid-parent</artifactId>
+        <version>1.0.8-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>org.wso2.testgrid.deployment.local</artifactId>
+    <name>WSO2 TestGrid Project - Deployment Local POM</name>
+    <url>http://wso2.org</url>
+    <packaging>jar</packaging>
+
+    <repositories>
+      <repository>
+        <id>jenkins-repo</id>
+        <name>jenkins-repo</name>
+        <url>https://repo.jenkins-ci.org/releases/</url>
+      </repository>
+
+    </repositories>
+
+    <dependencies>
+
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.199</version>
+            <scope>runtime</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+
+
+        <plugins>
+
+            <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+   	           <artifactId>maven-dependency-plugin</artifactId>
+                   <version>2.4</version>
+                   <executions>
+                     <execution>
+                       <id>unpack-tomcat-jenkins</id>
+                       <phase>process-sources</phase>
+                       <goals>
+                          <goal>unpack</goal>
+                      </goals>
+                     <configuration>
+                       <artifactItems>
+                         <artifactItem>
+                          <groupId>org.apache.tomcat</groupId>
+                          <artifactId>tomcat</artifactId>
+                          <version>8.5.43</version>
+                          <type>zip</type>
+                          <overWrite>false</overWrite>
+                          <outputDirectory>tomcat</outputDirectory>
+                          <excludes>**/webapps/**</excludes>
+                         </artifactItem>
+                         <artifactItem>
+                          <groupId>org.jenkins-ci.main</groupId>
+                          <artifactId>jenkins-war</artifactId>
+                          <version>2.176.1</version>
+                          <type>war</type>
+                          <overWrite>false</overWrite>
+                          <outputDirectory>tomcat/apache-tomcat-8.5.43/webapps/admin</outputDirectory>
+                        </artifactItem>
+                      </artifactItems>
+                     </configuration>
+                   </execution>
+                   <execution>
+                       <id>copy-dependencies</id>
+                       <phase>package</phase>
+                       <goals>
+                         <goal>copy</goal>
+                       </goals>
+                      <configuration>
+                       <artifactItems>
+                        <artifactItem>
+                         <groupId>com.h2database</groupId>
+                         <artifactId>h2</artifactId>
+                         <version>1.4.199</version>
+                         <type>jar</type>
+                         <overWrite>false</overWrite>
+                         <outputDirectory>tomcat/apache-tomcat-8.5.43/webapps/ROOT/WEB-INF/lib</outputDirectory>
+                        </artifactItem>
+                       </artifactItems>
+                     </configuration>
+                   </execution>
+                  </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-properties</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>tomcat/apache-tomcat-8.5.43/conf</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/resources</directory>
+                                    <includes>
+                                        <include>server.xml</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                            <overwrite>true</overwrite>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-antrun-plugin</artifactId>
+               <version>1.6</version>
+               <executions>
+                <execution>
+                  <id>prepare</id>
+                  <phase>process-sources</phase>
+                  <configuration>
+                  <tasks>
+                    <unzip src="../distribution/target/WSO2-TestGrid.zip" dest="testgrid/testgrid-home/testgrid-dist" />
+                    <unzip src="../web/target/testgrid#dashboard##v1.0.8-SNAPSHOT.war" dest="tomcat/apache-tomcat-8.5.43/webapps/ROOT" />
+                    <unzip src="../deployment-tinkerer/target/deployment-tinkerer#v0.9.war" dest="tomcat/apache-tomcat-8.5.43/webapps/deployment-tinkerer#v0.9" />
+                 </tasks>
+                 </configuration>
+                 <goals>
+                   <goal>run</goal>
+                 </goals>
+               </execution>
+             </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>testgrid-local-${version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+
+        </plugins>
+
+
+
+    </build>
+
+
+</project>

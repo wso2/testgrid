@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.testgrid.infrastructure.providers.aws;
+package org.wso2.testgrid.common.logging;
 
 import com.google.gson.Gson;
 import org.json.JSONObject;

@@ -42,6 +42,7 @@
                       value="org.wso2.testgrid.logging.Slf4jSessionLogger"/>
             <property name="eclipselink.logging.level" value="CONFIG"/>
             <property name="eclipselink.ddl-generation" value="create-tables"/>
+            <property name="eclipselink.jpa.uppercase-column-names" value="true"/>
         </properties>
     </persistence-unit>
 </persistence>

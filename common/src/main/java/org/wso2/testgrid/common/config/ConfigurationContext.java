@@ -159,6 +159,12 @@ public class ConfigurationContext {
          */
         TESTGRID_ENVIRONMENT("TESTGRID_ENVIRONMENT"),
 
+        //TODO: Better implementation for local testgrid's /etc/host support
+        /**
+         * Running environment of the application
+         */
+        TESTGRID_PASS("TESTGRID_PASS"),
+
         /**
          * Host-name of TestGrid deployment.
          */
@@ -265,9 +271,29 @@ public class ConfigurationContext {
         REPEATABLE_ALL_LOGS_FILTER_STRING("REPEATABLE_ALL_LOGS_FILTER_STRING"),
 
         /**
-         * Repeateble json string section of all logs
+         * Repeateble json string section of all logs for helm deployments
          */
-        REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON");
+        REPEATABLE_ALL_LOGS_JSON("REPEATABLE_ALL_LOGS_JSON"),
+
+        /**
+         * Repeatable string section of all logs for K8S deployments
+         */
+        REPEATABLE_ALL_LOGS_FILTER_STRING_K8S("REPEATABLE_ALL_LOGS_FILTER_STRING_K8S"),
+
+        /**
+         * Repeateble json string section of all logs for K8S deployments
+         */
+        REPEATABLE_ALL_LOGS_JSON_K8S("REPEATABLE_ALL_LOGS_JSON_K8S"),
+
+        /**
+         * Kibana dashboard ctx with placeholders for K8S deployments
+         */
+        KIBANA_FILTER_STR_K8S("KIBANA_FILTER_STR_K8S"),
+
+        /*
+           Elastic Search Endpoint
+         */
+        ES_ENDPOINT_URL("ES_ENDPOINT_URL");
 
         private String propertyName;
 

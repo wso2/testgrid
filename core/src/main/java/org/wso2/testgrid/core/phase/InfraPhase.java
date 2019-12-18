@@ -23,6 +23,7 @@ import org.wso2.testgrid.common.GrafanaDashboardHandler;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestGridConstants;
+import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestPlanPhase;
 import org.wso2.testgrid.common.TestPlanStatus;
 import org.wso2.testgrid.common.config.InfrastructureConfig;
@@ -36,27 +37,19 @@ import org.wso2.testgrid.core.exception.TestPlanExecutorException;
 import org.wso2.testgrid.infrastructure.InfrastructureProviderFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
-
-
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
 
 /**
  * This class includes the implementation of the infrastructure-provisioning phase.
  */
 public class InfraPhase extends Phase {
+
+
 
     @Override
     boolean verifyPrecondition() {
@@ -92,6 +85,16 @@ public class InfraPhase extends Phase {
     private InfrastructureProvisionResult provisionInfrastructure() {
         InfrastructureConfig infrastructureConfig = getTestPlan().getInfrastructureConfig();
         try {
+
+            Path testPropFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                    .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
+            Path testJsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                    .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_JSONFILE);
+            Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                    .resolve(DataBucketsHelper.PARAMS_JSONFILE);
+            Path infraOutFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
+                    .resolve(DataBucketsHelper.INFRA_OUT_FILE);
+
             if (infrastructureConfig == null) {
                 persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
                 throw new TestPlanExecutorException(StringUtil
@@ -101,11 +104,31 @@ public class InfraPhase extends Phase {
 
             printMessage("\t\t Provisioning infrastructure: " + infrastructureConfig.getFirstProvisioner().getName());
 
-            persistInfraInputs();
             InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
+
+            jsonpropFileEditor.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
+
+            TestPlan testplan = getTestPlan();
+            final Properties infraParameters = testplan.getInfrastructureConfig().getParameters();
+            final Properties jobProperties = testplan.getJobProperties();
+            final String keyFileLocation = testplan.getKeyFileLocation();
+
+            if (keyFileLocation != null) {
+                jobProperties.setProperty(TestGridConstants.KEY_FILE_LOCATION, keyFileLocation);
+            }
+
+            jsonpropFileEditor.persistAdditionalInputs(infraParameters, testPropFilePath, testJsonFilePath,
+                    Optional.empty());
+            jsonpropFileEditor.persistAdditionalInputs(jobProperties, testPropFilePath, testJsonFilePath,
+                    Optional.empty());
+
+            jsonpropFileEditor.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
                 if (!Script.Phase.DESTROY.equals(script.getPhase())) {
+                    jsonpropFileEditor.persistAdditionalInputs(script.getInputParameters(), testPropFilePath,
+                            testJsonFilePath, Optional.of(script.getName()));
+                    jsonpropFileEditor.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
                     InfrastructureProvider infrastructureProvider = InfrastructureProviderFactory
                             .getInfrastructureProvider(script);
                     infrastructureProvider.init(getTestPlan());
@@ -118,6 +141,9 @@ public class InfraPhase extends Phase {
                         logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
                         break;
                     }
+                    jsonpropFileEditor.removeScriptParams(script, testPropFilePath);
+                    jsonpropFileEditor.refillJSONfromPropFile(testPropFilePath, testJsonFilePath);
+                    jsonpropFileEditor.jsonAddNewPropsToParams(infraOutFilePath, "infra", outputjsonFilePath);
                 }
             }
 
@@ -168,41 +194,6 @@ public class InfraPhase extends Phase {
         provisionResult.getProperties().putAll(aProvisionResult.getProperties());
         if (!aProvisionResult.isSuccess()) {
             provisionResult.setSuccess(false);
-        }
-    }
-
-    /**
-     * The infra-provision.sh / deploy.sh / run-scenario.sh receive the test plan
-     * configuration as a properties file.
-     *
-     */
-    private void persistInfraInputs() {
-        final Path location = DataBucketsHelper.getInputLocation(getTestPlan())
-                .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
-        final Properties jobProperties = getTestPlan().getJobProperties();
-        final String keyFileLocation = getTestPlan().getKeyFileLocation();
-        final Properties infraParameters = getTestPlan().getInfrastructureConfig().getParameters();
-        try (PrintWriter printWriter = new PrintWriter(
-                new OutputStreamWriter(Files.newOutputStream(location, CREATE, APPEND), StandardCharsets.UTF_8))) {
-            for (Enumeration en = jobProperties.propertyNames(); en.hasMoreElements();) {
-                String key = (String) en.nextElement();
-                printWriter.println(key + "=" + jobProperties.getProperty(key));
-            }
-            for (Enumeration en = infraParameters.propertyNames(); en.hasMoreElements();) {
-                String key = (String) en.nextElement();
-                printWriter.println(key + "=" + infraParameters.getProperty(key));
-            }
-            printWriter.println((TestGridConstants.KEY_FILE_LOCATION + "=" + keyFileLocation));
-            for (Script script : getTestPlan().getInfrastructureConfig().getFirstProvisioner().getScripts()) {
-                Map<String, Object> inputParams = script.getInputParameters();
-                Iterator it = inputParams.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry) it.next();
-                    printWriter.println(pair.getKey() + "=" + pair.getValue());
-                }
-            }
-        } catch (IOException e) {
-            logger.error("Error while persisting infra input params to " + location, e);
         }
     }
 }

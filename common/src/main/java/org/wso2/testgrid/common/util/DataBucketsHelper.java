@@ -54,7 +54,12 @@ public class DataBucketsHelper {
     public static final String INFRA_OUT_FILE = "infrastructure.properties";
     public static final String DEPL_OUT_FILE = "deployment.properties";
     public static final String TEST_OUT_FILE = "tests.properties";
+    public static final String INFRA_OUT_JSONFILE = "infrastructures.json";
+    public static final String DEPL_OUT_JSONFILE = "deployments.json";
+    public static final String TEST_OUT_JSONFILE = "tests.json";
     public static final String TESTPLAN_PROPERTIES_FILE = "testplan-props.properties";
+    public static final String TESTPLAN_PROPERTIES_JSONFILE = "testplan-props.json";
+    public static final String PARAMS_JSONFILE = "params.json";
     private static final Logger logger = LoggerFactory.getLogger(DataBucketsHelper.class);
     private static boolean init = false;
 
