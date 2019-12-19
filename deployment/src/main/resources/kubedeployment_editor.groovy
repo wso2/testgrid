@@ -17,6 +17,7 @@
  */
 
 @Grapes(
+
         @Grab(group = 'org.yaml', module = 'snakeyaml', version = '1.24')
 )
 @Grapes(
@@ -61,7 +62,6 @@ def static formatFilePaths(String logLocation) {
         absoluteFilePath = "/" + logLocation + "/"
     }
     return absoluteFilePath
-
 }
 
 /**
@@ -71,15 +71,18 @@ def static formatFilePaths(String logLocation) {
  * @param logOptions - Log Options of the job
  * @return
  */
+
 def static deriveConfFile(JSONObject logOptions) {
     return "default.conf"
 }
+
 
 /**
  * Creates yaml file which store all details required for sidecar injector to inject appropriate information to
  * the deployment
  *
  * @param logPathDetailsYamlLoc - Path to yaml file which is to store Log Path details
+
  * @param depPropPath- File path to the .properties file containing input Parameters
  * @param depType - Type of the deployment (Helm or K8S)
  *
@@ -201,4 +204,6 @@ def static confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath,
  * Args must be provided in following order
  * outputyaml_name   path_to_testLogs   path_to_Deployment.yaml
  */
+
 confLogCapabilities(args[0], args[1], args[2])
+

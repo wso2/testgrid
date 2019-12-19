@@ -46,7 +46,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-
 /**
  * This class includes the implementation of the infrastructure-provisioning phase.
  */
@@ -96,6 +95,8 @@ public class InfraPhase extends Phase {
             Path outputjsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                     .resolve(DataBucketsHelper.PARAMS_JSONFILE);
 
+
+
             if (infrastructureConfig == null) {
                 persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
                 throw new TestPlanExecutorException(StringUtil
@@ -108,11 +109,11 @@ public class InfraPhase extends Phase {
             InfrastructureProvisionResult provisionResult = new InfrastructureProvisionResult();
 
 
-
             TestPlan testplan = getTestPlan();
             final Properties infraParameters = testplan.getInfrastructureConfig().getParameters();
             final Properties jobProperties = testplan.getJobProperties();
             final String keyFileLocation = testplan.getKeyFileLocation();
+
 
             Map<String, Object> infraParams = new HashMap<>();
 
@@ -148,7 +149,9 @@ public class InfraPhase extends Phase {
                         logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
                         break;
                     }
+
                     JsonPropFileUtil.removeScriptConfigParams(script, testPropFilePath);
+
                 }
             }
 

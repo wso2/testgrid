@@ -69,6 +69,7 @@ tmpdir=$(mktemp -d)
 echo "creating certs in tmpdir ${tmpdir} "
 
 cat <<EOF >>${tmpdir}/csr.conf
+
 [req]
 req_extensions = v3_req
 distinguished_name = req_distinguished_name
@@ -108,6 +109,7 @@ EOF
 
 # verify CSR has been created
 while true; do
+
   kubectl get csr ${csrName}
   if [ "$?" -eq 0 ]; then
     break
@@ -118,6 +120,7 @@ done
 kubectl certificate approve ${csrName}
 # verify certificate has been signed
 for x in $(seq 10); do
+
   serverCert=$(kubectl get csr ${csrName} -o jsonpath='{.status.certificate}')
   if [[ ${serverCert} != '' ]]; then
     break
@@ -136,3 +139,4 @@ kubectl create secret generic ${secret} \
   --from-file=cert.pem=${tmpdir}/server-cert.pem \
   --dry-run -o yaml |
   kubectl -n ${namespace} apply -f -
+

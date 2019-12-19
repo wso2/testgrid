@@ -42,6 +42,7 @@ import java.util.ArrayList;
  * This class is responsible for handling and communicating with TestGrid Elastic Search Instance provided in the
  * TestGrid configuration files
  *
+
  * @since 1.0.8
  *
  */
@@ -55,6 +56,7 @@ class ElasticSearchHelper {
     public void open() {
         String esEndpoint =
                 ConfigurationContext.getProperty(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL);
+
         try {
             String urlString =
                     new URL(esEndpoint).getHost();
@@ -67,8 +69,10 @@ class ElasticSearchHelper {
     }
     /**
      * Will return all indices given under a certain k8s namespace in the elastic search instance
+
      * @param nameSpace Namespace of which all available indices are required
      * @return ArrayList containing all indices which have the mentioned namespace
+
      */
     public ArrayList<String> getAllIndexes(String nameSpace) {
 
