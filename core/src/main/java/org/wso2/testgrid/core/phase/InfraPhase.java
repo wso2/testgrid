@@ -148,7 +148,7 @@ public class InfraPhase extends Phase {
                         logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
                         break;
                     }
-                    JsonPropFileUtil.removeScriptConfigParams(script, testPropFilePath);
+                    
                 }
             }
 

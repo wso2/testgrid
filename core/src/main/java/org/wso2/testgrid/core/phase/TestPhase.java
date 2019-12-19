@@ -243,9 +243,6 @@ public class TestPhase extends Phase {
                     persistTestPlanProgress(TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);
                 }
 
-                JsonPropFileUtil.removeScriptConfigParams(scenarioConfig, deplPropPath);
-
-
             } catch (TestAutomationException e) {
                 //todo: add reason to test-plan db record
                 persistTestPlanProgress(TestPlanPhase.TEST_PHASE_INCOMPLETE, TestPlanStatus.ERROR);

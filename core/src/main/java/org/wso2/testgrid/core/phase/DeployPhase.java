@@ -194,7 +194,7 @@ public class DeployPhase extends Phase {
                     logger.warn("Deploy script '" + script.getName() + "' failed. Not running remaining scripts.");
                     break;
                 }
-                JsonPropFileUtil.removeScriptConfigParams(script, infraOutFilePath);
+                
             }
             return result;
         } catch (TestGridDeployerException e) {
