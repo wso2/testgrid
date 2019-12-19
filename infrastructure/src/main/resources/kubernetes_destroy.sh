@@ -48,7 +48,6 @@ function delete_resources() {
   kubectl delete mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}"
   webhookadded=$(kubectl get mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}" -o json)
   if [[ ! -z "$webhookadded" ]]
-
   then 
      kubectl delete mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}"
   fi

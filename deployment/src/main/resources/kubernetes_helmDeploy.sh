@@ -221,7 +221,6 @@ function addhost() {
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
-
     if [ -z "$testgrid_env" ]; then
       env='dev'
     else
@@ -335,16 +334,16 @@ namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 deploymentRepositoryLocation=${infra_props["deploymentRepositoryLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
-
 logOptions=${infra_props["logOptions"]}
+
 testgrid_env=${infra_props["environment"]}
 testgrid_pass=${infra_props["password"]}
-
 
 if [ -z "$logOptions" ]; then
     echo "No Logging capabilities are set"
 else
     edit_deployments
+    echo
 fi
 
 create_k8s_resources

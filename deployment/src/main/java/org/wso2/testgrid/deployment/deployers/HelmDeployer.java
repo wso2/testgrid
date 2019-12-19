@@ -26,8 +26,6 @@ import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
 import org.wso2.testgrid.deployment.util.ResourceFileUtil;
 import java.nio.file.Paths;
-import java.util.Optional;
-import java.util.Properties;
 
 /**
  * This class performs Kubernetes related deployment tasks using Helm. This class is used to deploy
@@ -58,6 +56,7 @@ public class HelmDeployer implements Deployer {
                                            InfrastructureProvisionResult infrastructureProvisionResult,
                                            Script script)
             throws TestGridDeployerException {
+
         ResourceFileUtil.createTempDashBoard(testPlan);
         ResourceFileUtil.createResources(testPlan, "HELM");
 

@@ -24,12 +24,9 @@ import org.wso2.testgrid.common.TestGridConstants;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.config.Script;
 import org.wso2.testgrid.common.exception.TestGridDeployerException;
-
 import org.wso2.testgrid.deployment.util.ResourceFileUtil;
-import java.nio.file.Paths;
-import java.util.Optional;
-import java.util.Properties;
 
+import java.nio.file.Paths;
 
 /**
  * This class performs Kubernetes related deployment tasks. This class is used to deploy
@@ -41,7 +38,6 @@ import java.util.Properties;
 public class KubernetesDeployer implements Deployer {
 
     private static final String DEPLOYER_NAME = TestPlan.DeployerType.KUBERNETES.toString();
-
 
     @Override
     public String getDeployerName() {
@@ -61,6 +57,7 @@ public class KubernetesDeployer implements Deployer {
                                            InfrastructureProvisionResult infrastructureProvisionResult,
                                            Script script)
             throws TestGridDeployerException {
+
         ResourceFileUtil.createTempDashBoard(testPlan);
         ResourceFileUtil.createResources(testPlan, "KUBERNETES");
 
@@ -70,5 +67,4 @@ public class KubernetesDeployer implements Deployer {
                 infrastructureProvisionResult,
                 Paths.get(deployRepositoryLocation, TestGridConstants.KUBERNETES_DEPLOY_SCRIPT));
     }
-
 }

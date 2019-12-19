@@ -57,7 +57,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
 /**
  * This class includes implementation of deployment-creation phase.
  * TODO : @since 1.0.8
@@ -153,7 +152,6 @@ public class DeployPhase extends Phase {
             }
         }
 
-
         if (ConfigurationContext.getProperty
                 (ConfigurationContext.ConfigurationProperties.AWS_S3_ARTIFACTS_DIR) != null) {
             try {
@@ -162,18 +160,15 @@ public class DeployPhase extends Phase {
                         getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME));
                 String s3logPath = S3StorageUtil.deriveS3DeploymentOutputsDir(getTestPlan(), artifactReadable);
                 additionalDepProps.put("s3logPath", s3logPath);
-
             } catch (ArtifactReaderException | IOException e) {
                 logger.error("Error occurred while deriving deployment outputs directory for test-plan " +
                         getTestPlan(), e);
             }
         }
-
         // Params to edit /etc/hosts file in local TestGrid
         
         JsonPropFileUtil.persistAdditionalInputs(additionalDepProps, infraOutFilePath, infraOutJSONFilePath);
         JsonPropFileUtil.updateParamsJson(infraOutJSONFilePath, "dep", outputjsonFilePath);
-
 
         try {
 
@@ -183,7 +178,6 @@ public class DeployPhase extends Phase {
 
                 // Append deploymentConfig inputs in testgrid yaml to infra outputs file
                 Map<String, Object> deplInputs = script.getInputParameters();
-
                 JsonPropFileUtil.persistAdditionalInputs(deplInputs, infraOutFilePath, infraOutJSONFilePath,
                         script.getName());
 
@@ -201,7 +195,6 @@ public class DeployPhase extends Phase {
                     break;
                 }
                 JsonPropFileUtil.removeScriptConfigParams(script, infraOutFilePath);
-
             }
             return result;
         } catch (TestGridDeployerException e) {

@@ -26,7 +26,6 @@ set -o xtrace
 
 #definitions
 INPUT_DIR=$2
-ETC_HOSTS=/etc/hosts
 source $INPUT_DIR/deployment.properties
 
 read_property_file() {

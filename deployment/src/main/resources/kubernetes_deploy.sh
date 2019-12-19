@@ -44,20 +44,6 @@ function edit_deployment() {
   fi
 }
 
-function edit_deployments() {
-  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/params.json" k8s)
-  read -ra detailsArr <<< $details
-  sidecarReq=${detailsArr[0]}
-  filename=${detailsArr[1]}
-  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyES" ]]
-  then
-    kubectl label namespace ${namespace} namespace=${namespace}
-    kubectl label namespace ${namespace} sidecar-injector=enabled
-    chmod 777 ./testgrid-sidecar/create.sh
-    ./testgrid-sidecar/create.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
-  fi
-}
-
 function create_k8s_resources() {
 
     if [[ -z ${deploymentYamlFiles} ]]
@@ -100,8 +86,8 @@ kubectl create secret tls ${tlskeySecret} \
     --cert ${INPUT_DIR}/testgrid-certs-v2.crt  \
     --key ${INPUT_DIR}/testgrid-certs-v2.key -n ${namespace}
 
-
 echo "# public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
+
     cat > ${ingressName}.yaml << EOF
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -209,7 +195,6 @@ function readinesss_services(){
 
 }
 
-
 # This function is used to add paths to etc/host files
 function addhost() {
     ip_address=$1
@@ -233,14 +218,12 @@ function addhost() {
 
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
-
 #TODO Add a better way of adding to /etc/host file, using TestGrid generated username password when using local testgrid
 function add_host_entry() {
     if [ -z "$testgrid_env" ]; then
       env='dev'
     else
       env=${testgrid_env}
-
     fi
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
         echo "Not configuring route53 DNS entries since the environment is not dev/prod. You need to manually add
@@ -341,7 +324,6 @@ dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
-
 logOptions=${infra_props["logOptions"]}
 testgrid_env=${infra_props["environment"]}
 testgrid_pass=${infra_props["password"]}
@@ -350,7 +332,6 @@ if [ -z "$logOptions" ]; then
     echo "[INFO] No Logging Options are set"
 else
     edit_deployment
-
 fi
 
 create_k8s_resources

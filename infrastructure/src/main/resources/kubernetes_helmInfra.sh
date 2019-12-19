@@ -147,7 +147,6 @@ function install_helm(){
     sudo mv linux-amd64/helm /usr/bin
     ~/usr/bin/helm init
     helm version
-
   fi
 }
 

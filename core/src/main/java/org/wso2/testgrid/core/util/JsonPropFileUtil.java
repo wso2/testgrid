@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.config.ScenarioConfig;
 import org.wso2.testgrid.common.config.Script;
 
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,12 +43,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import java.util.Properties;
 
 
 /**
-
  * This class is used for managing the properties files and json files used by TestGrid to store
  * script parameters
  *
@@ -118,7 +115,6 @@ public class JsonPropFileUtil {
      * Persist additional inputs required other than the outputs from previous steps (i.e. infra/deployment).
      * The additional inputs are specified in the testgrid.yaml.
      *
-
      *
      * @param properties properties to be added
      * @param propFilePath path of the property file
@@ -205,11 +201,13 @@ public class JsonPropFileUtil {
     /**
      *
      *  Optional method removes a scripts params from prop file after execution
+     *  @param script - Script File
+     *  @param propFilePath - Path Variable to properties File
+     */
     public static void removeScriptConfigParams(Script script, Path propFilePath) {
 
 
         try (InputStream propInputStream = new FileInputStream(propFilePath.toString())) {
-
             Properties existingProps = new Properties();
             existingProps.load(propInputStream);
 
@@ -278,7 +276,6 @@ public class JsonPropFileUtil {
      *
      * It stores this data under <phase_name>-in json parameter
      *
-
      * @param phaseJsonPath location of the intermediate json staging file relevant to the current phase
      * @param phase          Currently executing phase
      * @param paramsJsonPath Location to the user see-able params.json file\
@@ -311,12 +308,10 @@ public class JsonPropFileUtil {
                             paramsJsonWriter.write("\n");
                         } catch (IOException e) {
                             logger.error("Error while persisting Input Parameters", e);
-
                         }
                     }
 
                 } catch (IOException e) {
-
                     logger.error("Error while persisting Input Parameters", e);
                 }
             } else {
@@ -335,7 +330,6 @@ public class JsonPropFileUtil {
                         paramsJsonWriter.write("\n");
                     } catch (IOException e) {
                         logger.error("Error while persisting Input Parameters", e);
-
                     }
                 }
             }
