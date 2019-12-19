@@ -18,6 +18,9 @@
 *.tar.gz
 *.rar
 
+#TODO create the zip file when building the TestGrid distribution
+!deployment/src/main/resources/testgrid-sidecar.zip
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
