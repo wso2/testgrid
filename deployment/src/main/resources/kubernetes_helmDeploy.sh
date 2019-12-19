@@ -26,16 +26,26 @@ alias unzip='unzip -q'
 #
 
 function edit_deployments() {
-  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/params.json" helm)
+  details=$(groovy kubedeployment_editor.groovy \
+  "${infra_props["depRepoLocation"]}/testgrid-sidecar/deployment/logpath-details.yaml" \
+  "${OUTPUT_DIR}/infrastructure.properties" helm)
   read -ra detailsArr <<< $details
   sidecarReq=${detailsArr[0]}
   filename=${detailsArr[1]}
-  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyES" ]]
+  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyEnvVars" ]]
   then
     kubectl label namespace ${namespace} namespace=${namespace}
     kubectl label namespace ${namespace} sidecar-injector=enabled
-    chmod 777 ./testgrid-sidecar/create.sh
-    ./testgrid-sidecar/create.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
+    chmod 777 ./testgrid-sidecar/createSidecar.sh
+    ./testgrid-sidecar/createSidecar.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
+    if [ $? -eq 0 ]
+    then
+      echo "[ERROR] Could not create the Sidecar Deployment"
+      exit 0
+    else
+      echo "[INFO] Created Mutating Webhook Deployment"
+      exit 1
+    fi
   fi
 }
 
@@ -52,11 +62,8 @@ function create_k8s_resources() {
       exit 1
     fi
 
-
-
     #deploy the helm configurations into the kubernetes cluster
     source $helmDeployScript
-
     readiness_deployments
 
     if [[ -z ${loadBalancerHostName} ]]; then
@@ -190,23 +197,23 @@ function readinesss_services(){
 
 }
 
-#This function is used to add paths to etc/host fils
+#This function is used to add paths to etc/host files
 function addhost() {
-    IP=$1
-    HOSTNAME=$2
-    HOSTS_LINE="$IP\t$HOSTNAME"
-    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+    ip_address=$1
+    hostname=$2
+    host_line="$ip_address\t$hostname"
+    if [ -n "$(grep $hostname /etc/hosts)" ]
         then
-            echo "$HOSTNAME already exists : $(grep $HOSTNAME $ETC_HOSTS)"
+            echo "[INFO] $hostname already exists : $(grep $hostname /etc/hosts)"
         else
-            echo "Adding $HOSTNAME to your $ETC_HOSTS";
-            echo $TESTGRID_PASS | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
+            echo "[INFO] Adding $hostname to your /etc/hosts";
+            echo $testgrid_pass | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
 
-            if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+            if [ -n "$(grep $hostname /etc/hosts)" ]
                 then
-                    echo "$HOSTNAME was added succesfully \n $(grep $HOSTNAME /etc/hosts)";
+                    echo "[INFO] $hostname was added succesfully \n $(grep $hostname /etc/hosts)";
                 else
-                    echo "Failed to Add $HOSTNAME, Try again!";
+                    echo "[ERROR] Failed to Add $hostname, Try again!";
             fi
     fi
 }
@@ -214,10 +221,10 @@ function addhost() {
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
 function add_route53_entry() {
-    if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+    if [ -z "$testgrid_env" ]; then
       env='dev'
     else
-      env=${TESTGRID_ENVIRONMENT}
+      env=${testgrid_env}
     fi
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
         echo "Not configuring route53 DNS entries since the environment is not dev/prod. You need to manually add
@@ -327,16 +334,16 @@ namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 deploymentRepositoryLocation=${infra_props["deploymentRepositoryLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
-logOptions=${infra_props["log-Options"]}
+logOptions=${infra_props["logOptions"]}
 
-TESTGRID_ENVIRONMENT=${infra_props["env"]}
-TESTGRID_PASS=${infra_props["pass"]}
-ETC_HOSTS=/etc/hosts
+testgrid_env=${infra_props["environment"]}
+testgrid_pass=${infra_props["password"]}
 
 if [ -z "$logOptions" ]; then
     echo "No Logging capabilities are set"
 else
     edit_deployments
+    echo
 fi
 
 create_k8s_resources

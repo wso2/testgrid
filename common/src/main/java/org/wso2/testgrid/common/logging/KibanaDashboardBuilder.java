@@ -184,7 +184,6 @@ public class KibanaDashboardBuilder {
         }
 
         allK8SNameSpaces.add(currentNameSpace);
-        String instanceLogFilter;
         StringJoiner filtersStr = new StringJoiner(",");
 
 

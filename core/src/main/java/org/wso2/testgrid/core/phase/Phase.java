@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.testgrid.common.TestPlan;
 import org.wso2.testgrid.common.TestPlanPhase;
 import org.wso2.testgrid.common.TestPlanStatus;
-import org.wso2.testgrid.core.util.JsonPropFileUtil;
 import org.wso2.testgrid.dao.TestGridDAOException;
 import org.wso2.testgrid.dao.uow.TestPlanUOW;
 import org.wso2.testgrid.dao.uow.TestScenarioUOW;
@@ -36,7 +35,6 @@ import org.wso2.testgrid.dao.uow.TestScenarioUOW;
  */
 public abstract class Phase {
     final Logger logger = LoggerFactory.getLogger(getClass());
-    final JsonPropFileUtil jsonpropFileEditor = new JsonPropFileUtil();
     private static final int LINE_LENGTH = 72;
 
     private TestPlanUOW testPlanUOW;

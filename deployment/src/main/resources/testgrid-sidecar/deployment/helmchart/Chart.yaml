@@ -1,3 +1,4 @@
+#-------------------------------------------------------------------------------
 # Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,24 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# ConfigMap of the filebeat.yml file within the Filebeat sidecar
+#--------------------------------------------------------------------------------
 
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: filebeat-yaml
-data:
-  filebeat.yml: |-
-    filebeat.inputs:
-    - type: log
-      enabled: true
-      paths:
-      - /opt/testgrid/**/*.log
-      tags: ["logfiles"]
-      fields:
-          podip: ${POD_IP}
-          podname: ${POD_NAME}
-
-    output.logstash:
-      hosts: "logstashservice"
+name: mwh
+description: Mutatingwebhook for adding sidecars
+type: application
+version: 0.1.0
+appVersion: 1.16.0

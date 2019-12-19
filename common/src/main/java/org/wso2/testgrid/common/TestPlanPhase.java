@@ -21,6 +21,7 @@ package org.wso2.testgrid.common;
  * This defines the possible phases of a Test-Plan.
  *
  */
+// TODO : Mark Issue Rename phases as states
 public enum TestPlanPhase {
     PREPARATION_STARTED("PREPARATION_STARTED", 0),
     PREPARATION_ERROR("PREPARATION_ERROR", 5),

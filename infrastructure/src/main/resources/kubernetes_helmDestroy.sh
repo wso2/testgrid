@@ -26,7 +26,6 @@ set -o xtrace
 
 #definitions
 INPUT_DIR=$2
-ETC_HOSTS=/etc/hosts
 source $INPUT_DIR/deployment.properties
 
 read_property_file() {
@@ -45,8 +44,8 @@ read_property_file() {
 function delete_resources() {
   echo "running destroy.sh"
   kubectl delete namespaces $namespace
-  webhookadded=$(kubectl get mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}" -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
-  if [[ "$webhookadded" == "True" ]]
+  webhookadded=$(kubectl get mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}" -o json)
+  if [[ ! -z "$webhookadded" ]]
   then 
      kubectl delete mutatingwebhookconfiguration "sidecar-injector-webhook-cfg-${namespace}"
   fi
@@ -54,25 +53,25 @@ function delete_resources() {
 
 
 function removehost() {
-    HOSTNAME=$1
-    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+    hostname=$1
+    if [ -n "$(grep $hostname /etc/hosts)" ]
     then
-        echo "$HOSTNAME Found in your $ETC_HOSTS, Removing now...";
-        echo $TESTGRID_PASS | sudo -S sed -i".bak" "/$HOSTNAME/d" $ETC_HOSTS
+        echo "[INFO] $hostname Found in your /etc/hosts, Removing now...";
+        echo $testgrid_pass | sudo -S sed -i".bak" "/$hostname/d" /etc/hosts
     else
-        echo "$HOSTNAME was not found in your $ETC_HOSTS";
+        echo "[INFO] $hostname was not found in your $ETC_HOSTS";
     fi
 }
 
-declare -g -A infra_props
 
-TESTGRID_ENVIRONMENT=${ENVIRONMENT}
-TESTGRID_PASS=${PASS}
 
-if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+testgrid_env=${env}
+testgrid_pass=${pass}
+
+if [ -z "$testgrid_env" ]; then
   env='dev'
 else
-  env=${TESTGRID_ENVIRONMENT}
+  env=${testgrid_env}
 fi
 
 

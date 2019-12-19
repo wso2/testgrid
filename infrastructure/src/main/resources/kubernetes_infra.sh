@@ -45,6 +45,7 @@ fi
 #functions
 
 function check_tools() {
+
     echo "Please enable google cluster API, if not enabled."
     if ! type 'gcloud'
     then
@@ -61,8 +62,18 @@ function check_tools() {
 
     if ! type 'kubectl'
     then
-        echo "installing kubectl - Kubernetes command-line tool..."
-        gcloud components install kubectl
+        curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/bin/kubectl
+        which kubectl
+        kubectl version
+    else
+        curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl
+        chmod +x ./kubectl
+        dir=$(which kubectl)
+        sudo mv ./kubectl $dir
+        which kubectl
+        kubectl version
     fi
 }
 

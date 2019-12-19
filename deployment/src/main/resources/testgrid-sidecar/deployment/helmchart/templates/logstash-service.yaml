@@ -12,11 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# Service to export Logstash Deployment to filebeat sidecars
 
+{{- if .Values.wso2.sidecarReq }}
 
-S3_REGION=$1
-S3_BUCKET=$2
-S3_LOG_PATH=$3
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstashservice
+spec:
+  selector:
+    app: logstash-collector
+  ports:
+    - protocol: TCP
+      port: 5044
+      targetPort: 5044
 
-sed -e "s|\${S3_REGION}|${S3_REGION}|g" | sed -e "s|\${S3_BUCKET}|${S3_BUCKET}|g" |  sed -e "s|\${S3_LOG_PATH}|${S3_LOG_PATH}|g"
-
+{{ end }}

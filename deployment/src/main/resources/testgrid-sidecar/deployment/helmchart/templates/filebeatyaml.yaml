@@ -12,14 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Configmap for logstash yaml file
+# ConfigMap of the filebeat.yml file within the Filebeat sidecar
+{{- if .Values.wso2.sidecarReq }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: logstash-yaml
+  name: filebeat-yaml
 data:
-  logstash.yml: |
-    http.host: "0.0.0.0"
-    path.config: /usr/share/logstash/pipeline
-    log.level: debug
-    path.logs: /opt/testgrid
+  filebeat.yml: |-
+    filebeat.inputs:
+    - type: log
+      enabled: true
+      paths:
+      - /opt/testgrid/**/*.log
+      tags: ["logfiles"]
+      fields:
+          podip: ${POD_IP}
+          podname: ${POD_NAME}
+
+    output.logstash:
+      hosts: "logstashservice"
+{{ end }}

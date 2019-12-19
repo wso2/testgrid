@@ -19,21 +19,28 @@
 set -o xtrace
 
 #
-#This class is used for the deployment of resources into the namespace using kubectl commands
-#The created resources will be exposed using an Ingress to the external usage
-#
+# This script is used for the deployment of resources into the namespace using kubectl commands.
+# The created resources will be exposed using an Ingress to the external usage.
+function edit_deployment() {
+  details=$(groovy kubedeployment_editor.groovy \
+  "${infra_props["depRepoLocation"]}/testgrid-sidecar/deployment/logpath-details.yaml" \
+  "${INPUT_DIR}/infrastructure.properties" k8s)
 
-function edit_deployments() {
-  details=$(groovy kubedeployment_editor.groovy "${infra_props["depRepoLoc"]}/testgrid-sidecar/deployment/logpath-details.yaml" "${OUTPUT_DIR}/params.json" k8s)
   read -ra detailsArr <<< $details
   sidecarReq=${detailsArr[0]}
   filename=${detailsArr[1]}
-  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyES" ]]
+  if [[ "$sidecarReq" == "SidecarReq" ]] || [[ "$sidecarReq" == "onlyEnvVars" ]]
   then
     kubectl label namespace ${namespace} namespace=${namespace}
     kubectl label namespace ${namespace} sidecar-injector=enabled
-    chmod 777 ./testgrid-sidecar/create.sh
-    ./testgrid-sidecar/create.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
+    chmod 777 ./testgrid-sidecar/createSidecar.sh
+    ./testgrid-sidecar/createSidecar.sh ${namespace} ${sidecarReq} ${filename} ${INPUT_DIR}
+    if [ $? -eq 0 ]
+    then
+      echo "[ERROR] Could not create the Sidecar Deployment"
+    else
+      echo "[INFO] Created Mutating Webhook Deployment"
+    fi
   fi
 }
 
@@ -50,7 +57,6 @@ function create_k8s_resources() {
       echo "[WARN] Could not find inputParameter 'exposedDeployments' in deploymentConfig. No deployments will be
       exposed."
     fi
-
 
     if [[ -z ${loadBalancerHostName} ]]; then
         echo WARN: loadBalancerHostName not found in deployment.properties. Generating a random name under \
@@ -80,9 +86,7 @@ kubectl create secret tls ${tlskeySecret} \
     --cert ${INPUT_DIR}/testgrid-certs-v2.crt  \
     --key ${INPUT_DIR}/testgrid-certs-v2.key -n ${namespace}
 
-
 echo "# public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> $OUTPUT_DIR/deployment.properties
-
 
     cat > ${ingressName}.yaml << EOF
 apiVersion: extensions/v1beta1
@@ -191,34 +195,35 @@ function readinesss_services(){
 
 }
 
-#This function is used to add paths to etc/host fils
+# This function is used to add paths to etc/host files
 function addhost() {
-    IP=$1
-    HOSTNAME=$2
-    HOSTS_LINE="$IP\t$HOSTNAME"
-    if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+    ip_address=$1
+    hostname=$2
+    host_line="$ip_address\t$hostname"
+    if [ -n "$(grep $hostname /etc/hosts)" ]
         then
-            echo "$HOSTNAME already exists : $(grep $HOSTNAME $ETC_HOSTS)"
+            echo "[INFO] $hostname already exists : $(grep $hostname /etc/hosts)"
         else
-            echo "Adding $HOSTNAME to your $ETC_HOSTS";
-            echo $TESTGRID_PASS | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
+            echo "[INFO] Adding $hostname to your /etc/hosts";
+            echo $testgrid_pass | sudo -S -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
 
-            if [ -n "$(grep $HOSTNAME /etc/hosts)" ]
+            if [ -n "$(grep $hostname /etc/hosts)" ]
                 then
-                    echo "$HOSTNAME was added succesfully \n $(grep $HOSTNAME /etc/hosts)";
+                    echo "[INFO] $hostname was added succesfully \n $(grep $hostname /etc/hosts)";
                 else
-                    echo "Failed to Add $HOSTNAME, Try again!";
+                    echo "[ERROR] Failed to Add $hostname, Try again!";
             fi
     fi
 }
 
 #This function is used to direct accesss to the Ingress created from the AWS ec2 instances.
 #Host mapping service provided by AWS, route53 is used for this purpose.
-function add_route53_entry() {
-    if [ -z "$TESTGRID_ENVIRONMENT" ]; then
+#TODO Add a better way of adding to /etc/host file, using TestGrid generated username password when using local testgrid
+function add_host_entry() {
+    if [ -z "$testgrid_env" ]; then
       env='dev'
     else
-      env=${TESTGRID_ENVIRONMENT}
+      env=${testgrid_env}
     fi
     if [[ "${env}" != "dev" ]] && [[ "${env}" != 'prod' ]]; then
         echo "Not configuring route53 DNS entries since the environment is not dev/prod. You need to manually add
@@ -319,17 +324,15 @@ dep_num=${#dep[@]}
 namespace=${infra_props["namespace"]}
 yamlFilesLocation=${infra_props["yamlFilesLocation"]}
 loadBalancerHostName=${deploy_props["loadBalancerHostName"]}
-logOptions=${infra_props["log-Options"]}
-
-TESTGRID_ENVIRONMENT=${infra_props["env"]}
-TESTGRID_PASS=${infra_props["pass"]}
-ETC_HOSTS=/etc/hosts
+logOptions=${infra_props["logOptions"]}
+testgrid_env=${infra_props["environment"]}
+testgrid_pass=${infra_props["password"]}
 
 if [ -z "$logOptions" ]; then
-    echo "No Logging capabilities are set"
+    echo "[INFO] No Logging Options are set"
 else
-    edit_deployments
+    edit_deployment
 fi
 
 create_k8s_resources
-add_route53_entry
+add_host_entry

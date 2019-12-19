@@ -12,21 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# Configmap for logstash yaml file
+{{- if .Values.wso2.sidecarReq }}
 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-yaml
+data:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    path.config: /usr/share/logstash/pipeline
+    log.level: debug
+    path.logs: /opt/testgrid
 
-# elastic search endpoint
-ESEP=$1
-
-# if elastic search endpoint is in https format remove and replace with http to support logstash
-if  [[ $ESEP == https://* ]]  ;
-then :
-  oldString=https://
-  repString=http://
-  ESEP=$(echo ${ESEP/$oldString/$repString})
-elif [[ $ESEP == http:// ]] ;
-then  :
-else
-   ESEP=http://$1
-fi
-
-sed -e "s|\${ESEP}|${ESEP}|g"
+{{ end }}

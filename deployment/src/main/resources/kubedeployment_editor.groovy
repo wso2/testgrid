@@ -17,168 +17,188 @@
  */
 
 @Grapes(
-        @Grab(group='org.yaml', module='snakeyaml', version='1.24')
+        @Grab(group = 'org.yaml', module = 'snakeyaml', version = '1.24')
 )
 @Grapes(
-        @Grab(group='org.json', module='json', version='20180813')
+        @Grab(group = 'org.json', module = 'json', version = '20180813')
 )
+
 import org.yaml.snakeyaml.Yaml
 import org.json.JSONObject
 import org.json.JSONArray
-import org.json.JSONTokener
 
 /**
- * Formats the user provided inputs to a form that can be utilized by the sidecar container and log extraction
- * container
+ * This function formats the Elastic Search Endpoint to support logstash by filtering out any https endpoints
  *
- * @param loglocations JSONArray containing the log locations
- * @param i index of the required JSONobject in the array
+ * @param esEndpoint
  * @return
  */
-
-def formatFilePaths(String loglocations){
-
-    String containerFilepath
-    if( loglocations.startsWith('/') && loglocations.endsWith('/') ){
-        containerFilepath = loglocations
-    }else if( loglocations.startsWith('/') && !loglocations.endsWith('/') ){
-        containerFilepath = loglocations+"/"
-    }else if( !loglocations.startsWith('/') && loglocations.endsWith('/') ){
-        containerFilepath = "/"+loglocations
-    }else{
-        containerFilepath = "/"+loglocations+"/"
+def static formatESURL(String esEndpoint) {
+    if (esEndpoint.startsWith("https://")) {
+        return (esEndpoint.split("https://")[1]).split(":")[0]
+    } else if (esEndpoint.startsWith("http://")) {
+        return (esEndpoint.split("http://")[1]).split(":")[0]
     }
-    return containerFilepath
+    return "error"
+}
+
+/**
+ * Formats the user provided inputs to a an absolute File Path that can be used by the sidecar
+ *
+ * @param logLocation String containing the log locations
+ * @return
+ */
+def static formatFilePaths(String logLocation) {
+
+    String absoluteFilePath
+    if (logLocation.startsWith('/') && logLocation.endsWith('/')) {
+        absoluteFilePath = logLocation
+    } else if (logLocation.startsWith('/') && !logLocation.endsWith('/')) {
+        absoluteFilePath = logLocation + "/"
+    } else if (!logLocation.startsWith('/') && logLocation.endsWith('/')) {
+        absoluteFilePath = "/" + logLocation
+    } else {
+        absoluteFilePath = "/" + logLocation + "/"
+    }
+    return absoluteFilePath
 
 }
 
 /**
+ * TODO : Implement providing of correct logstash.conf based on carbon version , product and pattern
  * Returns the appropriate conf file which is to become the logstash.conf of the Logstash-collector-deployment
  *
  * @param logOptions - Log Options of the job
  * @return
  */
-def deriveConfFile(JSONObject logOptions){
+def static deriveConfFile(JSONObject logOptions) {
     return "default.conf"
 }
-
 
 /**
  * Creates yaml file which store all details required for sidecar injector to inject appropriate information to
  * the deployment
  *
  * @param logPathDetailsYamlLoc - Path to yaml file which is to store Log Path details
- * @param depInJSONFilePath - File path to the json file containing input Parameters
- * @param depType - Type of the deployment ( Helm or K8S )
- * @param esEndPoint - Elastic Search Endpoint
- * @param depRepo - Path to the deployment Repository
+ * @param depPropPath- File path to the .properties file containing input Parameters
+ * @param depType - Type of the deployment (Helm or K8S)
  *
  */
-def confLogCapabilities(String logPathDetailsYamlLoc, String depInJSONFilePath, String depType ){
-    try{
-        // Read json file
-        InputStream depInJSONinputStream = new FileInputStream(depInJSONFilePath.toString())
-        JSONTokener tokener = new JSONTokener(depInJSONinputStream)
-        JSONObject depInJSON = new JSONObject(tokener)
+def static confLogCapabilities(String logPathDetailsYamlLoc, String depPropPath, String depType) {
+    String logRequirementDetails = "false"
+    try {
+        InputStream depPropsFileReader = new FileInputStream(depPropPath)
+        Properties depProps = new Properties()
+        depProps.load(depPropsFileReader)
 
-        JSONObject logOptions = depInJSON.getJSONObject("dep-in").getJSONObject("log-Options");
-        String esEndpoint = depInJSON.getJSONObject("dep-in").getString("esEP")
-        String depRepo = depInJSON.getJSONObject("dep-in").getString("depRepoLoc")
+        String logOptionsString = depProps.getProperty("logOptions")
+        logOptionsString = logOptionsString.replaceAll("=", ":")
+        logOptionsString = logOptionsString.replaceAll("/", "&")
+        JSONObject logOptions = new JSONObject(logOptionsString)
+        String elasticsearchEndPoint = depProps.getProperty("elasticsearchEndPoint")
+        String depRepo = depProps.getProperty("depRepoLocation")
 
-        String logRequirment = logOptions.getString("logRequirement")
+        String logRequirement = logOptions.getString("logRequirement")
 
-        if (logRequirment.equals("Sidecar-Required")) {
-            // If sidecar is required create logpathdetails file with all infomation
-            JSONArray loglocations = logOptions.getJSONArray("logFileLocations")
-            Yaml yaml = new Yaml()
+        if (logRequirement.equalsIgnoreCase("sidecar_required")) {
+            // If sidecar is required create logPathDetails.yaml file with all information
+            JSONArray logLocations = logOptions.getJSONArray("logFileLocations")
+            Yaml logpathDetailsYaml = new Yaml()
 
-            FileWriter fileWriter = new FileWriter(logPathDetailsYamlLoc)
+            FileWriter logPathFileWriter = new FileWriter(logPathDetailsYamlLoc)
 
-            if (loglocations.length() != 0){
-                List logpathConf = []
-                for (JSONObject logLocation in loglocations) {
-                    String formatFilePath = formatFilePaths(logLocation.getString("path"))
-                    Map entry = ["name" : logLocation.getString("deploymentname") + "-" +
-                            logLocation.getString("containername") , "path" : formatFilePath]
-                    logpathConf.add( entry )
+            if (logLocations.length() != 0) {
+                List logPathConf = []
+                for (int i = 0; i < logLocations.length(); i++) {
+                    JSONObject logLocation = logLocations.getJSONObject(i)
+                    String absoluteFilePath = formatFilePaths(logLocation.getString("path")
+                            .replaceAll("&", "/"))
+                    Map entry = ["deploymentName": logLocation.getString("deploymentName"), "containerName":
+                            logLocation.getString("containerName"), "path": absoluteFilePath
+                    ]
+                    logPathConf.add(entry)
                 }
-                String logConfFile = deriveConfFile(logOptions)
-                Map logconf = [ "onlyvars":false, "loglocs" : logpathConf]
-                yaml.dump(logconf,fileWriter)
-                println("SidecarReq ".concat(logConfFile))
+                Map logConfiguration = ["onlyVars": false, "logPaths": logPathConf]
+                logpathDetailsYaml.dump(logConfiguration, logPathFileWriter)
+                logRequirementDetails = "SidecarReq default.conf"
             } else {
-                println("False")
+                logRequirementDetails = "False"
             }
-            fileWriter.close()
-            return
-        } else if ( logRequirment.equals("log-endPoints-Required") ) {
-            if (depType.equals("helm")) {
+            logPathFileWriter.close()
+        } else if (logRequirement.equalsIgnoreCase("log_endpoints_required")) {
+            if (depType == "helm") {
                 // If only ES endpoint is required access values.yaml file and edit the appropriate value
-                String valuesYamlLoc = depRepo.concat("/").concat(depInJSON.getJSONObject("dep-in").
-                        getString("rootProjLocations"))
-                        .concat("/").concat(logOptions.getString("valuesYamlLocation"));
-                JSONArray replacableValues = logOptions.getJSONArray("replaceableVals")
-                InputStream valuesYamlInputStream = new FileInputStream(valuesYamlLoc);
-                Yaml yaml = new Yaml()
-                Map valuesYaml = yaml.load(valuesYamlInputStream)
-                String esURL
-                if(esEndpoint.startsWith("https://")){
-                    esURL = (esEndpoint.split("https://")[1]).split(":")[0]
-                }else if(esEndpoint.startsWith("http://")){
-                    esURL = (esEndpoint.split("http://")[1]).split(":")[0]
-                }
-                String esPort = esEndpoint.split(":")[2]
+                String valYamlFormat = logOptions.getString("valuesYamlLocation")
+                        .replaceAll("&", "/")
+                String rootProjLocation = depProps.getProperty("rootProjLocations")
+                String valuesYamlLoc = depRepo.concat("/").concat(rootProjLocation)
+                        .concat("/").concat(valYamlFormat)
 
-                for ( JSONObject replacableObj in replacableValues ){
-                    Map editedMap = valuesYaml
-                    String replaceableObjLoc = replacableObj.getString("loc").split(":")[0]
-                    List<String> pathToRepObj = replaceableObjLoc.split("/")
-                    String key;
-                    for (int i = 0 ; i < pathToRepObj.size() -1 ; i++ ) {
-                        key = pathToRepObj[i];
-                        editedMap = editedMap[key]
+                JSONArray replaceableValues = logOptions.getJSONArray("replaceableVals")
+                InputStream valuesYamlInputStream = new FileInputStream(valuesYamlLoc)
+                Yaml logpathDetailsYaml = new Yaml()
+                Map valuesYaml = logpathDetailsYaml.load(valuesYamlInputStream)
+
+                String elasticsearchURL = formatESURL(elasticsearchEndPoint)
+                String elasticsearchPort = elasticsearchEndPoint.split(":")[2]
+                for (int j = 0; j < replaceableValues.length(); j++) {
+                    JSONObject replaceableObj = replaceableValues.getJSONObject(j)
+                    Map editedValuesMap = valuesYaml
+                    String replaceableObjLoc = replaceableObj.getString("location")
+                    List < String > pathToRepObj = replaceableObjLoc.split("&")
+                    String key
+                    for (int i = 0; i < pathToRepObj.size() - 1; i++) {
+                        key = pathToRepObj.get(i)
+                        editedValuesMap = (Map) editedValuesMap[key]
                     }
-                    // add more ifs for other vars
-                    if (replacableObj.getString("type").equals("esEndPoint")) {
-                        editedMap[pathToRepObj[pathToRepObj.size()-1]] = esURL
-                    } else if (replacableObj.getString("type").equals("esPort")) {
-                        editedMap[pathToRepObj[pathToRepObj.size()-1]] = esPort
+                    // add more if blocks for other variables
+                    if (replaceableObj.getString("type").equalsIgnoreCase("elasticsearchEndPoint") &&
+                            elasticsearchURL != "error") {
+                        editedValuesMap[pathToRepObj.get(pathToRepObj.size() - 1)] = elasticsearchURL
+                    } else if (replaceableObj.getString("type").equalsIgnoreCase("elasticsearchPort") &&
+                            elasticsearchURL != "error") {
+                        editedValuesMap[pathToRepObj.get(pathToRepObj.size() - 1)] = elasticsearchPort
                     }
                 }
                 valuesYamlInputStream.close()
                 FileWriter valuesYamlOutputStream = new FileWriter(valuesYamlLoc)
-                yaml.dump(valuesYaml,valuesYamlOutputStream)
-                valuesYamlOutputStream.close();
-                println("False")
-            } else if ( depType.equals("k8s")) {
+                logpathDetailsYaml.dump(valuesYaml, valuesYamlOutputStream)
+                valuesYamlOutputStream.close()
+                logRequirementDetails = "False"
+            } else if (depType == "k8s") {
                 // If k8s inject a env Var to the deployments which stores the elastic search endpoint
-                FileWriter fileWriter = new FileWriter(logPathDetailsYamlLoc)
+                FileWriter logPathFileWriter = new FileWriter(logPathDetailsYamlLoc)
                 Yaml yaml = new Yaml()
                 List envVars = []
-                // Add more ifs for other variables
-                if(logOptions.has("esVarName")){
-                    envVars.add(["name": logOptions.getString("esVarName"), "value" : esEndpoint])
+                String formattedElasticsearchURL = elasticsearchEndPoint.replace("https://", "http://")
+                JSONArray injectableValues = logOptions.getJSONArray("injectableVals")
+                for (int i = 0; i < injectableValues.length(); i++) {
+                    // add more ifs for other vars
+                    JSONObject injectableObj = injectableValues.getJSONObject(i)
+                    if (injectableObj.getString("type").equalsIgnoreCase("elasticsearchEndpoint")) {
+                        envVars.add(["name": injectableObj.getString("name"), "value": formattedElasticsearchURL])
+                    }
                 }
-                if(envVars.size() > 0 ){
-                    Map logconf = [ "onlyvars":true , "envvars": envVars ]
-                    yaml.dump(logconf,fileWriter)
-                    fileWriter.close()
-                    println("onlyES null")
+                if (envVars.size() > 0) {
+                    Map logConf = ["onlyVars": true, "envVars": envVars]
+                    yaml.dump(logConf, logPathFileWriter)
+                    logRequirementDetails = "onlyEnvVars null"
                 } else {
-                    fileWriter.close()
-                    println("False")
+                    logRequirementDetails = "False"
                 }
+                logPathFileWriter.close()
             }
-        } else if ( logRequirment.equals("None") ) {
-            println("False")
+        } else if (logRequirement == "None") {
+            logRequirementDetails = "False"
         }
-    }catch(RuntimeException e){
-        println(e)
+    } catch (RuntimeException e) {
+        logRequirementDetails = "False"
     }
+    println(logRequirementDetails)
 }
 
 /**
  * Args must be provided in following order
  * outputyaml_name   path_to_testLogs   path_to_Deployment.yaml
  */
-confLogCapabilities(args[0],args[1],args[2])
+confLogCapabilities(args[0], args[1], args[2])
