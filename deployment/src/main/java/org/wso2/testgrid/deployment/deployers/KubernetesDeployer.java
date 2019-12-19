@@ -29,8 +29,6 @@ import org.wso2.testgrid.deployment.util.ResourceFileUtil;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 
 /**
