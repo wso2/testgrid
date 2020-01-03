@@ -279,6 +279,8 @@ function updatePathVariable() {
 # DESCRIPTION: Adding environmental variables to JDKS
 #===============================================================================
 function addEnvVariables() {
+    sudo su -c "echo 'OPEN_JDK11=/usr/lib/jvm/open-jdk-11' > /etc/environment"
+    sudo su -c "echo 'OPEN_JDK11=/usr/lib/jvm/java-11-openjdk-amd64' > /etc/environment"
     sudo su -c "echo 'ORACLE_JDK8=/usr/java/jdk1.8.0_181-amd64' > /etc/environment"
     sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-1.8.0-openjdk' >> /etc/environment"
     sudo su -c "echo 'ADOPT_OPEN_JDK8=/opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre' >> /etc/environment"
@@ -462,6 +464,7 @@ function showInstallations() {
 	ls /opt/testgrid/sql-drivers
 	echo
 	echo "----Environment Variables----"
+	echo OPEN_JDK11 env= $OPEN_JDK11
 	echo OracleJDK8 env= $ORACLE_JDK8
 	echo OpenJDK8 env=$OPEN_JDK8
 	echo AdoptOpenJDK8 env=$ADOPT_OPEN_JDK8
