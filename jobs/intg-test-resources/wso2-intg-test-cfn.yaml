@@ -140,6 +140,9 @@ Parameters:
       - ADOPT_OPEN_JDK8
       - CORRETTO_JDK8
       - OPEN_JDK11
+      - CORRETTO_JDK11
+      - ADOPT_OPEN_JDK11
+      - OPEN_JDK11
   MavenVersion:
     Type: String
     Default: '3.3.9'
