@@ -90,6 +90,7 @@ public class TestPhase extends Phase {
 
     @Override
     boolean verifyPrecondition() {
+
         if (getTestPlan().getPhase().equals(TestPlanPhase.DEPLOY_PHASE_SUCCEEDED) &&
                 getTestPlan().getStatus().equals(TestPlanStatus.RUNNING)) {
             persistTestPlanPhase(TestPlanPhase.TEST_PHASE_STARTED);
@@ -105,15 +106,16 @@ public class TestPhase extends Phase {
 
     @Override
     void executePhase() {
+
         try {
             runScenarioTests();
             if (!getTestPlan().getStatus().equals(TestPlanStatus.RUNNING) ||
                     !getTestPlan().getPhase().equals(TestPlanPhase.TEST_PHASE_STARTED)) {
-                        logger.error("Continuing to PostTestPlanActions bearing erroneous "
-                                + "observations for the test-plan "
-                                + getTestPlan() + ". TestPlan Status: " + getTestPlan().getStatus()
-                                + ", TestPlan Phase: " + getTestPlan().getPhase());
-                    }
+                logger.error("Continuing to PostTestPlanActions bearing erroneous "
+                        + "observations for the test-plan "
+                        + getTestPlan() + ". TestPlan Status: " + getTestPlan().getStatus()
+                        + ", TestPlan Phase: " + getTestPlan().getPhase());
+            }
         } catch (TestPlanExecutorException e) {
             logger.error("Error occurred while executing Test Phase (running scenario tests) for the test-plan " +
                     getTestPlan().getId());
@@ -130,11 +132,18 @@ public class TestPhase extends Phase {
                     "hence skipping the step and continuing the test plan lifecycle. ", e);
         }
 
-        if (getTestPlan().getInfrastructureConfig().getIacProvider().toString().equals("KUBERNETES")) {
-            createPermaDashBoard();
-            uploads3ClientLogs();
+        switch (getTestPlan().getInfrastructureConfig().getIacProvider()) {
+            case CLOUDFORMATION:
+                uploadDeploymentOutputsToS3();
+                break;
+            case KUBERNETES:
+                createPermaDashBoard();
+                uploads3ClientLogs();
+                break;
+            default:
+                logger.info("IAC provider is not Cloud formation or Kubernetes. Not uploading product logs & dumps.");
         }
-        uploadDeploymentOutputsToS3();
+
         // Test plan completed. Update and persist testplan status
         updateTestPlanStatusBasedOnResults();
         // Cleanup
@@ -147,6 +156,7 @@ public class TestPhase extends Phase {
     }
 
     private void createPermaDashBoard() {
+
         Properties depProps = new Properties();
         TestPlan testPlan = getTestPlan();
         Path depOutJSONFilePath = DataBucketsHelper.getOutputLocation(testPlan)
@@ -180,7 +190,6 @@ public class TestPhase extends Phase {
 
     /**
      * Run all the scenarios mentioned in the testgrid.yaml.
-     *
      */
     private void runScenarioTests()
             throws TestPlanExecutorException {
@@ -274,6 +283,7 @@ public class TestPhase extends Phase {
     }
 
     public void uploads3ClientLogs() {
+
         try {
             ArtifactReadable artifactReadable = new AWSArtifactReader(ConfigurationContext.
                     getProperty(ConfigurationContext.ConfigurationProperties.AWS_REGION_NAME), ConfigurationContext.
@@ -289,8 +299,9 @@ public class TestPhase extends Phase {
 
     /**
      * This method will find the test scenarios fir a given scenario config
-     * @param testPlan          testplan
-     * @param scenarioConfig    scenarioConfig for which tests need to be identified
+     *
+     * @param testPlan       testplan
+     * @param scenarioConfig scenarioConfig for which tests need to be identified
      * @throws TestPlanExecutorException
      */
     private void populateScenariosList(TestPlan testPlan, ScenarioConfig scenarioConfig) throws
@@ -325,11 +336,13 @@ public class TestPhase extends Phase {
 
     /**
      * Append a test scenario to the testplan
-     * @param testPlan          testplan
-     * @param scenarioName      name of the new scenario
-     * @param scenarioConfig    scenario config which is associated with scenario
+     *
+     * @param testPlan       testplan
+     * @param scenarioName   name of the new scenario
+     * @param scenarioConfig scenario config which is associated with scenario
      */
     private void appendScenario(TestPlan testPlan, String scenarioName, ScenarioConfig scenarioConfig) {
+
         List<TestScenario> testScenarios = testPlan.getTestScenarios();
         List<TestScenario> testScenariosOfConfig = scenarioConfig.getScenarios();
         TestScenario newScenario = new TestScenario();
@@ -351,11 +364,13 @@ public class TestPhase extends Phase {
 
     /**
      * This method will populate test cases of a give test scenario
-     * @param testPlan          testplan
-     * @param testScenario      scenario of which tests needs to be identified
-     * @param scenarioConfig    scenario config of the test scenario
+     *
+     * @param testPlan       testplan
+     * @param testScenario   scenario of which tests needs to be identified
+     * @param scenarioConfig scenario config of the test scenario
      */
     private void populateTestCases(TestPlan testPlan, TestScenario testScenario, ScenarioConfig scenarioConfig) {
+
         Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
         if (parser.isPresent()) {
             try {
@@ -413,9 +428,9 @@ public class TestPhase extends Phase {
 
     /**
      * Performs the post test plan tasks using the existing deployment and the results.
-     *
      */
     private void performPostTestPlanActions() {
+
         printMessage("\t\t Performing Post Run Actions");
         // Compress test outputs to be uploaded to S3
         final Path outputLocation = DataBucketsHelper.getTestOutputsLocation(getTestPlan());
@@ -455,6 +470,7 @@ public class TestPhase extends Phase {
      * Upload deployment outputs (thread-dumps, logs, etc.) from the instances to TestGrid S3 storage.
      */
     private void uploadDeploymentOutputsToS3() {
+
         String tinkererHost = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH);
         if (tinkererHost != null && !tinkererHost.isEmpty()) {
@@ -487,13 +503,11 @@ public class TestPhase extends Phase {
                                 s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
                         String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
                                 s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
-                        if (getTestPlan().getInfrastructureConfig().getIacProvider()
-                                .toString().equals("CLOUDFORMATION")) {
-                            executorService.execute(new TinkererCommand(agent.getAgentId(), getTestPlan().getId(),
-                                    agent.getInstanceName(),
-                                    configureAWSCLI + runLogArchiverScript +
-                                            uploadLogsToS3 + uploadDumpsToS3));
-                        }
+                        executorService.execute(new TinkererCommand(agent.getAgentId(), getTestPlan().getId(),
+                                agent.getInstanceName(),
+                                configureAWSCLI + runLogArchiverScript +
+                                        uploadLogsToS3 + uploadDumpsToS3));
+
                     });
                     executorService.shutdown();
                     try {
@@ -550,9 +564,11 @@ public class TestPhase extends Phase {
 
     /**
      * Derives the deployment outputs directory for a given test-plan
+     *
      * @return directory of the
      */
     private String deriveDeploymentOutputsDirectory() {
+
         String s3BucketName = ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.AWS_S3_BUCKET_NAME);
         if (s3BucketName != null && !s3BucketName.isEmpty()) {
@@ -582,6 +598,7 @@ public class TestPhase extends Phase {
      */
     private void releaseInfrastructure()
             throws TestPlanExecutorException {
+
         try {
             InfrastructureConfig infrastructureConfig = getTestPlan().getInfrastructureConfig();
             printMessage("\t\t Releasing infrastructure: " + infrastructureConfig.getFirstProvisioner().getName());
@@ -608,7 +625,6 @@ public class TestPhase extends Phase {
                 }
             }
 
-
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",
@@ -626,6 +642,7 @@ public class TestPhase extends Phase {
      * then the testplan's phase will be TEST_PHASE_ERROR and the status will be ERROR.
      */
     private void updateTestPlanStatusBasedOnResults() {
+
         TestPlan testPlan = getTestPlan();
         if (testPlan.getStatus().equals(TestPlanStatus.ERROR)) {
             TestGridUtil.updateFinalTestPlanPhase(testPlan);
@@ -647,7 +664,7 @@ public class TestPhase extends Phase {
         for (TestScenario testScenario : testPlan.getTestScenarios()) {
             if (testScenario.getStatus() != Status.SUCCESS) {
                 isSuccess = false;
-               if (testScenario.getStatus() == Status.ERROR) {
+                if (testScenario.getStatus() == Status.ERROR) {
                     //An error in a test-scenario/test-case does not mean the TestGrid's test-phase is ERROR.
                     //Only the Test-Plan's status will be changed to ERROR.
                     logger.error("Found erroneous scenario " + testScenario.getName());
@@ -660,7 +677,7 @@ public class TestPhase extends Phase {
         for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
             if (scenarioConfig.getStatus() != Status.SUCCESS) {
                 isSuccess = false;
-               if (scenarioConfig.getStatus() == Status.ERROR) {
+                if (scenarioConfig.getStatus() == Status.ERROR) {
                     logger.error("Found erroneous scenario config: " + scenarioConfig.getName());
                     persistTestPlanStatus(TestPlanStatus.ERROR);
                     return;
@@ -690,11 +707,13 @@ public class TestPhase extends Phase {
     }
 
 }
+
 /**
  * Represents an impl of Runnable which will handle tinkerer command to preprare and upload
  * deployment outputs from single tinkerer-agent.
  */
-class TinkererCommand implements  Runnable {
+class TinkererCommand implements Runnable {
+
     private String agentId;
     private String testPlanId;
     private String instanceName;
@@ -702,7 +721,8 @@ class TinkererCommand implements  Runnable {
     private TinkererSDK tinkererSDK;
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    TinkererCommand (String agentId, String testplanId, String instanceName, String command) {
+    TinkererCommand(String agentId, String testplanId, String instanceName, String command) {
+
         this.agentId = agentId;
         this.testPlanId = testplanId;
         this.instanceName = instanceName;
@@ -711,8 +731,10 @@ class TinkererCommand implements  Runnable {
         tinkererSDK.setTinkererHost(ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH));
     }
+
     @Override
     public void run() {
+
         SyncCommandResponse syncResponse = tinkererSDK.executeCommandSync(agentId, testPlanId, instanceName, command);
         if (syncResponse.getExitValue() == 0) {
             logger.info("Successfully executed tinkerer command for instance: " + instanceName);
