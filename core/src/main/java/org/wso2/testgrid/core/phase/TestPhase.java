@@ -109,11 +109,11 @@ public class TestPhase extends Phase {
             runScenarioTests();
             if (!getTestPlan().getStatus().equals(TestPlanStatus.RUNNING) ||
                     !getTestPlan().getPhase().equals(TestPlanPhase.TEST_PHASE_STARTED)) {
-                        logger.error("Continuing to PostTestPlanActions bearing erroneous "
-                                + "observations for the test-plan "
-                                + getTestPlan() + ". TestPlan Status: " + getTestPlan().getStatus()
-                                + ", TestPlan Phase: " + getTestPlan().getPhase());
-                    }
+                logger.error("Continuing to PostTestPlanActions bearing erroneous "
+                        + "observations for the test-plan "
+                        + getTestPlan() + ". TestPlan Status: " + getTestPlan().getStatus()
+                        + ", TestPlan Phase: " + getTestPlan().getPhase());
+            }
         } catch (TestPlanExecutorException e) {
             logger.error("Error occurred while executing Test Phase (running scenario tests) for the test-plan " +
                     getTestPlan().getId());
@@ -180,7 +180,6 @@ public class TestPhase extends Phase {
 
     /**
      * Run all the scenarios mentioned in the testgrid.yaml.
-     *
      */
     private void runScenarioTests()
             throws TestPlanExecutorException {
@@ -289,8 +288,9 @@ public class TestPhase extends Phase {
 
     /**
      * This method will find the test scenarios fir a given scenario config
-     * @param testPlan          testplan
-     * @param scenarioConfig    scenarioConfig for which tests need to be identified
+     *
+     * @param testPlan       testplan
+     * @param scenarioConfig scenarioConfig for which tests need to be identified
      * @throws TestPlanExecutorException
      */
     private void populateScenariosList(TestPlan testPlan, ScenarioConfig scenarioConfig) throws
@@ -325,9 +325,10 @@ public class TestPhase extends Phase {
 
     /**
      * Append a test scenario to the testplan
-     * @param testPlan          testplan
-     * @param scenarioName      name of the new scenario
-     * @param scenarioConfig    scenario config which is associated with scenario
+     *
+     * @param testPlan       testplan
+     * @param scenarioName   name of the new scenario
+     * @param scenarioConfig scenario config which is associated with scenario
      */
     private void appendScenario(TestPlan testPlan, String scenarioName, ScenarioConfig scenarioConfig) {
         List<TestScenario> testScenarios = testPlan.getTestScenarios();
@@ -351,9 +352,10 @@ public class TestPhase extends Phase {
 
     /**
      * This method will populate test cases of a give test scenario
-     * @param testPlan          testplan
-     * @param testScenario      scenario of which tests needs to be identified
-     * @param scenarioConfig    scenario config of the test scenario
+     *
+     * @param testPlan       testplan
+     * @param testScenario   scenario of which tests needs to be identified
+     * @param scenarioConfig scenario config of the test scenario
      */
     private void populateTestCases(TestPlan testPlan, TestScenario testScenario, ScenarioConfig scenarioConfig) {
         Optional<ResultParser> parser = ResultParserFactory.getParser(testPlan, testScenario, scenarioConfig);
@@ -413,7 +415,6 @@ public class TestPhase extends Phase {
 
     /**
      * Performs the post test plan tasks using the existing deployment and the results.
-     *
      */
     private void performPostTestPlanActions() {
         printMessage("\t\t Performing Post Run Actions");
@@ -481,35 +482,36 @@ public class TestPhase extends Phase {
                 String runLogArchiverScript = "sudo sh /usr/lib/log_archiver.sh &&";
                 String s3Location = deriveDeploymentOutputsDirectory();
                 if (s3Location != null) {
-                    ExecutorService executorService = Executors.newCachedThreadPool();
-                    agentList.forEach(agent -> {
-                        String uploadLogsToS3 = "aws s3 cp /var/log/product_logs.zip " +
-                                s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
-                        String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
-                                s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
-                        if (getTestPlan().getInfrastructureConfig().getIacProvider()
-                                .toString().equals("CLOUDFORMATION")) {
+                    if (isIACProviderCloudFormation()) {
+                        ExecutorService executorService = Executors.newCachedThreadPool();
+                        agentList.forEach(agent -> {
+                            String uploadLogsToS3 = "aws s3 cp /var/log/product_logs.zip " +
+                                    s3Location + "/product_logs_" + agent.getInstanceName() + ".zip &&";
+                            String uploadDumpsToS3 = "aws s3 cp /var/log/product_dumps.zip " +
+                                    s3Location + "/product_dumps_" + agent.getInstanceName() + ".zip";
                             executorService.execute(new TinkererCommand(agent.getAgentId(), getTestPlan().getId(),
                                     agent.getInstanceName(),
                                     configureAWSCLI + runLogArchiverScript +
                                             uploadLogsToS3 + uploadDumpsToS3));
+                        });
+                        executorService.shutdown();
+                        try {
+                            logger.info("Tinkerer commands are sending out to nodes, Wait till the execution is complete." +
+                                    " (TIME-OUT: 10 Minutes)");
+                            if (!executorService.awaitTermination(10, TimeUnit.MINUTES)) {
+                                logger.error("Tinkerer commands execution time-out. Gracefully moving to next steps..");
+                                executorService.shutdownNow();
+                            }
+                        } catch (InterruptedException e) {
+                            logger.error("Exception occurred while waiting for tinkerer commands to be completed. " +
+                                    "Please note the commands may not have completely executed due to this. Exception: "
+                                    + e.getMessage(), e);
                         }
-                    });
-                    executorService.shutdown();
-                    try {
-                        logger.info("Tinkerer commands are sending out to nodes, Wait till the execution is complete." +
-                                " (TIME-OUT: 10 Minutes)");
-                        if (!executorService.awaitTermination(10, TimeUnit.MINUTES)) {
-                            logger.error("Tinkerer commands execution time-out. Gracefully moving to next steps..");
-                            executorService.shutdownNow();
-                        }
-                    } catch (InterruptedException e) {
-                        logger.error("Exception occurred while waiting for tinkerer commands to be completed. " +
-                                "Please note the commands may not have completely executed due to this. Exception: "
-                                + e.getMessage(), e);
-                    }
 
-                    logger.info("S3 path is : " + s3Location);
+                        logger.info("S3 path is : " + s3Location);
+                    } else {
+                        logger.info("IACProvider is not Cloud Formation. Not archiving logs & dumps.");
+                    }
                 } else {
                     logger.error("Can not generate S3 location for deployment-outputs of test-plan: " +
                             getTestPlan().getId());
@@ -522,6 +524,10 @@ public class TestPhase extends Phase {
         } else {
             logger.warn("Tinkerer-host is not configured. Hence uploading deployment-outputs to S3 is skipped.");
         }
+    }
+
+    private boolean isIACProviderCloudFormation() {
+        return getTestPlan().getInfrastructureConfig().getIacProvider() == InfrastructureConfig.IACProvider.CLOUDFORMATION;
     }
 
     /**
@@ -550,6 +556,7 @@ public class TestPhase extends Phase {
 
     /**
      * Derives the deployment outputs directory for a given test-plan
+     *
      * @return directory of the
      */
     private String deriveDeploymentOutputsDirectory() {
@@ -647,7 +654,7 @@ public class TestPhase extends Phase {
         for (TestScenario testScenario : testPlan.getTestScenarios()) {
             if (testScenario.getStatus() != Status.SUCCESS) {
                 isSuccess = false;
-               if (testScenario.getStatus() == Status.ERROR) {
+                if (testScenario.getStatus() == Status.ERROR) {
                     //An error in a test-scenario/test-case does not mean the TestGrid's test-phase is ERROR.
                     //Only the Test-Plan's status will be changed to ERROR.
                     logger.error("Found erroneous scenario " + testScenario.getName());
@@ -660,7 +667,7 @@ public class TestPhase extends Phase {
         for (ScenarioConfig scenarioConfig : testPlan.getScenarioConfigs()) {
             if (scenarioConfig.getStatus() != Status.SUCCESS) {
                 isSuccess = false;
-               if (scenarioConfig.getStatus() == Status.ERROR) {
+                if (scenarioConfig.getStatus() == Status.ERROR) {
                     logger.error("Found erroneous scenario config: " + scenarioConfig.getName());
                     persistTestPlanStatus(TestPlanStatus.ERROR);
                     return;
@@ -690,11 +697,12 @@ public class TestPhase extends Phase {
     }
 
 }
+
 /**
  * Represents an impl of Runnable which will handle tinkerer command to preprare and upload
  * deployment outputs from single tinkerer-agent.
  */
-class TinkererCommand implements  Runnable {
+class TinkererCommand implements Runnable {
     private String agentId;
     private String testPlanId;
     private String instanceName;
@@ -702,7 +710,7 @@ class TinkererCommand implements  Runnable {
     private TinkererSDK tinkererSDK;
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    TinkererCommand (String agentId, String testplanId, String instanceName, String command) {
+    TinkererCommand(String agentId, String testplanId, String instanceName, String command) {
         this.agentId = agentId;
         this.testPlanId = testplanId;
         this.instanceName = instanceName;
@@ -711,6 +719,7 @@ class TinkererCommand implements  Runnable {
         tinkererSDK.setTinkererHost(ConfigurationContext
                 .getProperty(ConfigurationContext.ConfigurationProperties.DEPLOYMENT_TINKERER_REST_BASE_PATH));
     }
+
     @Override
     public void run() {
         SyncCommandResponse syncResponse = tinkererSDK.executeCommandSync(agentId, testPlanId, instanceName, command);
