@@ -74,35 +74,51 @@ function showMessage() {
 function installJDKs() {
 	case "$AMI_OS" in
     Ubuntu)
-	#Installing ORACLE_JAVA8
-	echo "Installing ORACLE_JAVA8"
-	sudo apt -y install oracle-java8-installer
+
 #Command line script to easily add new java directories to
 #'alternatives'. This sets the java as default, and you can switch your
 #default java with update-java-alternatives
 	sudo rm /var/lib/dpkg/info/oracle-java8-installer.postinst -f
 	sudo apt-get update -y
-	sudo apt -y install oracle-java8-installer
-#	sudo apt-get update -y
-#	echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
-#	echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
-#	sudo apt-get -y install oracle-java8-installer
+
 	#Installing OpenJDK8
 	echo "Installing OPENJDK 8"
 	sudo add-apt-repository -y ppa:openjdk-r/ppa
 	sudo apt-get update -y
 	sudo apt-get -y install openjdk-8-jdk
+
+	echo "Installing OPENJDK 11"
+	sudo apt-get -y install openjdk-11-jdk
+
 	#Installing AdoptOpenJDK 8
 	echo "Installing AdoptOpenJDK 8"
-	wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u202-b08/OpenJDK8U-jdk_x64_linux_hotspot_8u202b08.tar.gz
-	sudo mkdir -p /opt/jdk/java-8-adoptOpenJdk
-	sudo tar -xf OpenJDK8U-jdk_x64_linux_hotspot_8u202b08.tar.gz -C /opt/jdk/java-8-adoptOpenJdk/
+	wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_x64_linux_hotspot_8u232b09.tar.gz
+	mkdir /usr/lib/jvm/java-8-adoptopenjdk-amd64/
+	sudo tar -xf OpenJDK8U-jdk_x64_linux_hotspot_8u232b09.tar.gz -C /usr/lib/jvm/java-8-adoptopenjdk-amd64/ --strip-components=1
+
+	#Installing AdoptOpenJDK 11
+	echo "Installing AdoptOpenJDK 11"
+	wget https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.6%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.6_10.tar.gz
+	mkdir /usr/lib/jvm/java-11-adoptopenjdk-amd64/
+	sudo tar -xf OpenJDK11U-jdk_x64_linux_hotspot_11.0.6_10.tar.gz -C /usr/lib/jvm/java-11-adoptopenjdk-amd64/ --strip-components=1
+
 	#Installing Amazon CorrettoJDK 8
-	echo "Installing CorrettoJDK-8"
-	wget https://d2znqt9b1bc64u.cloudfront.net/java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
-	sudo apt-get -y update && sudo apt-get -y install java-common
-	sudo dpkg --install java-1.8.0-amazon-corretto-jdk_8.202.08-2_amd64.deb
-	sudo cp /opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre/lib/security/cacerts /opt/jdk/java-8-correttoJdk/amazon-corretto-8.202.08.2-linux-x64/jre/lib/security/
+	echo "Installing Amazon CorrettoJDK 8"
+	wget https://corretto.aws/downloads/latest/amazon-corretto-8-x64-linux-jdk.tar.gz
+	mkdir /usr/lib/jvm/java-8-amazoncorrettojdk-amd64/
+	sudo tar -xf amazon-corretto-8-x64-linux-jdk.tar.gz -C /usr/lib/jvm/java-8-amazoncorrettojdk-amd64/ --strip-components=1
+	
+	#Installing Amazon CorrettoJDK 11
+	echo "Installing Amazon CorrettoJDK 11"
+	wget https://corretto.aws/downloads/latest/amazon-corretto-11-x64-linux-jdk.tar.gz
+	mkdir /usr/lib/jvm/java-11-amazoncorrettojdk-amd64/
+	sudo tar -xf amazon-corretto-11-x64-linux-jdk.tar.gz -C /usr/lib/jvm/java-11-amazoncorrettojdk-amd64/ --strip-components=1
+	
+	#Installing OracleJDK 11
+	sudo tar -xf resources/jdk-11.0.6_linux-x64_bin.tar.gz -C /usr/lib/jvm/
+	
+	#Installing OracleJDK 8
+	sudo tar -xf resources/jdk-8u144-linux-x64.tar.gz -C /usr/lib/jvm/
 	;;
 
     CentOS)
@@ -141,13 +157,6 @@ function installJDKs() {
 	;;
 
     esac
-    	#Download JCE policies
-	echo "Installing JCE policies (Presumed agreement on Oracle license at https://www.oracle.com/technetwork/java/javase/terms/license/index.html)"
-	installPackage wget
-	wget -v --header "Cookie: oraclelicense=oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip
-	unzip jce_policy-8.zip -d .
-	sudo mv UnlimitedJCEPolicyJDK8/local_policy.jar /usr/java/jdk1.8.0_181-amd64/jre/lib/security/
-	sudo mv UnlimitedJCEPolicyJDK8/US_export_policy.jar /usr/java/jdk1.8.0_181-amd64/jre/lib/security/
 }
 
 #=== FUNCTION ==================================================================
@@ -259,6 +268,7 @@ function updatePathVariable() {
     Ubuntu)
 	#Todo: verify the path update for Ubuntu.
 	echo "WARN: Path variable is not properly updating for Ubuntu."
+	echo 'PATH=/usr/lib/oracle/19.5/client64/bin:$PATH'
 	#echo 'PATH=/opt/mssql-tools/bin:/usr/lib/oracle/12.2/client64/bin:$PATH' | sudo tee --append /etc/environment
 	;;
     CentOS)
@@ -279,11 +289,14 @@ function updatePathVariable() {
 # DESCRIPTION: Adding environmental variables to JDKS
 #===============================================================================
 function addEnvVariables() {
-    sudo su -c "echo 'OPEN_JDK11=/usr/lib/jvm/open-jdk-11' > /etc/environment"    
-    sudo su -c "echo 'ORACLE_JDK8=/usr/java/jdk1.8.0_181-amd64' > /etc/environment"
-    sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-1.8.0-openjdk' >> /etc/environment"
-    sudo su -c "echo 'ADOPT_OPEN_JDK8=/opt/jdk/java-8-adoptOpenJdk/jdk8u192-b12/jre' >> /etc/environment"
-    sudo su -c "echo 'CORRETTO_JDK8=/opt/jdk/java-8-correttoJdk/amazon-corretto-8.202.08.2-linux-x64/jre' >> /etc/environment"
+    sudo su -c "echo 'ORACLE_JDK8=/usr/lib/jvm/jdk1.8.0_144' > /etc/environment"
+    sudo su -c "echo 'ORACLE_JDK11=/usr/lib/jvm/jdk-11.0.6' > /etc/environment"
+    sudo su -c "echo 'OPEN_JDK8=/usr/lib/jvm/java-8-openjdk-amd64' >> /etc/environment"
+    sudo su -c "echo 'OPEN_JDK11=/usr/lib/jvm/java-11-openjdk-amd64' > /etc/environment"
+    sudo su -c "echo 'ADOPT_OPEN_JDK8=/opt/jdk/java-8-adoptOpenJdk' >> /etc/environment"
+    sudo su -c "echo 'ADOPT_OPEN_JDK11=/opt/jdk/java-11-adoptOpenJdk' >> /etc/environment"
+    sudo su -c "echo 'CORRETTO_JDK8=/usr/lib/jvm/java-8-amazoncorrettojdk-amd64/' >> /etc/environment"
+    sudo su -c "echo 'CORRETTO_JDK11=/usr/lib/jvm/java-11-amazoncorrettojdk-amd64/' >> /etc/environment"
     source /etc/environment
 }
 
