@@ -206,6 +206,10 @@ Resources:
           FromPort: 8086
           ToPort: 8086
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 10173
+          ToPort: 10173
+          CidrIp: 0.0.0.0/0
     Metadata:
       'AWS::CloudFormation::Designer':
         id: abbdb5e8-f28b-4bc6-8b63-da9595b59c4a
@@ -357,7 +361,6 @@ Resources:
         DisableApiTermination: 'false'
         InstanceInitiatedShutdownBehavior: stop
         ImageId: !Ref AMI
-        
         InstanceType: !Ref WSO2InstanceType
         KeyName: !Ref EC2KeyPair
         Monitoring: 'false'
@@ -461,7 +464,7 @@ Outputs:
   DBUsername:
     Value: !Ref DBUsername
   DBPassword:
-    Value: !Ref DBPassword    
+    Value: !Ref DBPassword
 Metadata:
   'AWS::CloudFormation::Designer':
     abbdb5e8-f28b-4bc6-8b63-da9595b59c4a:
