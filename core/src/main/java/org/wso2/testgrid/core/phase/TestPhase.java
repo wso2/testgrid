@@ -132,16 +132,22 @@ public class TestPhase extends Phase {
                     "hence skipping the step and continuing the test plan lifecycle. ", e);
         }
 
-        switch (getTestPlan().getInfrastructureConfig().getIacProvider()) {
-            case CLOUDFORMATION:
-                uploadDeploymentOutputsToS3();
-                break;
-            case KUBERNETES:
-                createPermaDashBoard();
-                uploads3ClientLogs();
-                break;
-            default:
-                logger.info("IAC provider is not Cloud formation or Kubernetes. Not uploading product logs & dumps.");
+        InfrastructureConfig.IACProvider iacProvider = getTestPlan().getInfrastructureConfig().getIacProvider();
+        if (iacProvider != null) {
+            switch (getTestPlan().getInfrastructureConfig().getIacProvider()) {
+                case CLOUDFORMATION:
+                    uploadDeploymentOutputsToS3();
+                    break;
+                case KUBERNETES:
+                    createPermaDashBoard();
+                    uploads3ClientLogs();
+                    break;
+                default:
+                    logger.info(
+                            "IAC provider is not Cloud formation or Kubernetes. Not uploading product logs & dumps.");
+            }
+        } else {
+            logger.info("No IACProvider has been provided. Not uploading product logs & dumps.");
         }
 
         // Test plan completed. Update and persist testplan status
