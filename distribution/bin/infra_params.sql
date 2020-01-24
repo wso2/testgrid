@@ -44,7 +44,7 @@ INSERT INTO `infrastructure_parameter` VALUES
 ('1bd03ead-84ff-4bfc-b896-8026d8849c3','2018-02-13 01:46:49','2018-12-07 12:35:51','Postgres-10.3','DBEngineVersion=10.3\nDB=postgres-10.3\nDBEngine=postgres',1,'DBEngine'),
 ('1bd03ead-84ff-4cfc-b796-8025d8849c8','2018-03-23 05:23:01','2018-12-12 11:43:22','Postgres-10.5','DBEngineVersion=10.5\nDB=Postgres-10.5\nDBEngine=postgres',1,'DBEngine'),
 ('1bd03ead-84ff-4dfc-b796-8025d8849d9','2018-03-23 05:23:31','2018-12-17 07:25:13','Postgres-9.6','DBEngineVersion=9.6\nDB=Postgres-9.6\nDBEngine=postgres',1,'DBEngine'),
-('1be03ead-84ff-4bfc-b696-8026d8849e0','2018-12-12 11:55:09','2019-04-09 12:54:26','Oracle-SE2-11.1','DBEngineVersion=11.2\nDBEngine=oracle-se1\nDB=Oracle-SE1-11.2',1,'DBEngine'),
+('1be03ead-84ff-4bfc-b696-8026d8849e0','2018-12-12 11:55:09','2019-04-09 12:54:26','Oracle-SE2-11.1','DBEngineVersion=11.1\nDBEngine=oracle-se2\nDB=Oracle-SE2-11.1',1,'DBEngine'),
 ('1be03ead-84ff-4bfc-b696-8026d8850c8','2019-04-08 13:12:03','2019-04-09 12:54:26','Oracle-SE1-11.2','DBEngineVersion=11.2\nDBEngine=oracle-se1\nDB=Oracle-SE1-11.2',1,'DBEngine');
 
 UNLOCK TABLES;
