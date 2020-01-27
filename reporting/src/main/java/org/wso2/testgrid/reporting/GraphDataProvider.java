@@ -53,6 +53,7 @@ import java.util.TreeMap;
  * @since 1.0.0
  */
 public class GraphDataProvider {
+
     private TestPlanUOW testPlanUOW;
     private static final int MAXIMUM_TIME_RANGE = 30;
     private static final int TEST_EXECUTION_HISTORY_RANGE = 7;
@@ -62,10 +63,12 @@ public class GraphDataProvider {
     private static final String DATABASE_ENGINE_VERSION = "DBEngineVersion";
 
     public GraphDataProvider() {
+
         this.testPlanUOW = new TestPlanUOW();
     }
 
     public GraphDataProvider(TestPlanUOW testPlanUOW) {
+
         this.testPlanUOW = testPlanUOW;
     }
 
@@ -73,10 +76,11 @@ public class GraphDataProvider {
      * Provides the test failure summary for a given build job. Test Plan ids of the build job is retrieved by reading
      * testgrid yaml files which contains in the current workspace.
      *
-     * @param workspace   current workspace
+     * @param workspace current workspace
      * @throws ReportingException thrown when getting test plan ids by reading test plan yaml files
      */
     public List<BuildFailureSummary> getTestFailureSummary(String workspace) throws ReportingException {
+
         List<TestCaseFailureResultDTO> testFailureSummary;
         try {
             testFailureSummary = testPlanUOW
@@ -96,9 +100,10 @@ public class GraphDataProvider {
      * Process the test failure summary which is retrieved by reading database and construct the list of
      * {@link BuildFailureSummary} to draw test failure summary chart.
      *
-     * @param testFailureSummary   list of {@link TestCaseFailureResultDTO} which are retrieved by quering the databse.
+     * @param testFailureSummary list of {@link TestCaseFailureResultDTO} which are retrieved by quering the databse.
      */
     private List<BuildFailureSummary> processTestFailureSummary(List<TestCaseFailureResultDTO> testFailureSummary) {
+
         TreeMap<String, BuildFailureSummary> testFailureSummaryMap = new TreeMap<>();
         for (TestCaseFailureResultDTO testFailure : testFailureSummary) {
             BuildFailureSummary buildFailureSummaryData = new BuildFailureSummary();
@@ -107,9 +112,9 @@ public class GraphDataProvider {
             String testName = testFailure.getName();
             JsonElement jelem = gson.fromJson(testFailure.getInfraParameters(), JsonElement.class);
             JsonObject jobj = jelem.getAsJsonObject();
-            infraCombination.setOs(StringUtil.concatStrings(jobj.get(OPERATING_SYSTEM).getAsString()));
-            infraCombination.setJdk(jobj.get(JDK).getAsString());
-            infraCombination.setDbEngine(StringUtil.concatStrings(jobj.get(DATABASE_ENGINE).getAsString()));
+            setDefaultOSForInfraCombinationIfOSEmpty(infraCombination, jobj);
+            setDefaultJDKForInfraCombinationIfJDKEmpty(infraCombination, jobj);
+            setDefaultDBEngineForInfraCombinationIfDBEngineEmpty(infraCombination, jobj);
             if (testFailureSummaryMap.containsKey(testName)) {
                 testFailureSummaryMap.get(testName).getInfraCombinations().add(infraCombination);
             } else {
@@ -124,14 +129,43 @@ public class GraphDataProvider {
         return new ArrayList<>(testFailureSummaryMap.values());
     }
 
+    private void setDefaultDBEngineForInfraCombinationIfDBEngineEmpty(InfraCombination infraCombination,
+                                                                      JsonObject jobj) {
+
+        if (jobj.get(DATABASE_ENGINE) != null) {
+            infraCombination.setDbEngine(StringUtil.concatStrings(jobj.get(DATABASE_ENGINE).getAsString()));
+        } else {
+            infraCombination.setDbEngine("None");
+        }
+    }
+
+    private void setDefaultJDKForInfraCombinationIfJDKEmpty(InfraCombination infraCombination, JsonObject jobj) {
+
+        if (jobj.get(JDK) != null) {
+            infraCombination.setJdk(jobj.get(JDK).getAsString());
+        } else {
+            infraCombination.setJdk("None");
+        }
+    }
+
+    private void setDefaultOSForInfraCombinationIfOSEmpty(InfraCombination infraCombination, JsonObject jobj) {
+
+        if (jobj.get(OPERATING_SYSTEM) != null) {
+            infraCombination.setOs(StringUtil.concatStrings(jobj.get(OPERATING_SYSTEM).getAsString()));
+        } else {
+            infraCombination.setOs("None");
+        }
+    }
+
     /**
      * Provide test execution summary for a given build job.
      *
-     * @param workspace   current workspace
+     * @param workspace current workspace
      * @throws ReportingException thrown when error on getting test plan ids by reading testgrid yaml files located
-     * in the current workspace.
+     *                            in the current workspace.
      */
     public BuildExecutionSummary getTestExecutionSummary(String workspace) throws ReportingException {
+
         int passedTestPlans = 0;
         int failedTestPlans = 0;
         int skippedTestPlans = 0;
@@ -224,6 +258,7 @@ public class GraphDataProvider {
      * @param testPlanHistory history of the test plans for given product id and time range
      */
     private List<TestPlan> filterTestPlanHistory(List<TestPlan> testPlanHistory) {
+
         TreeMap<String, TestPlan> testExecutionHistory = new TreeMap<>();
         for (TestPlan testplan : testPlanHistory) {
             String key = testplan.getInfraParameters();
