@@ -40,17 +40,18 @@ public class ShellScriptProviderFactory {
 
     public static InfrastructureProvisionResult provision(TestPlan testPlan, Path path)
             throws TestGridInfrastructureException {
+
         InfrastructureConfig infrastructureConfig = testPlan.getInfrastructureConfig();
         logger.info("Executing provisioning scripts...");
         try {
-            ShellExecutor executor = new ShellExecutor(null);
+            ShellExecutor executor = ShellExecutor.newShellExecutorWithLogPrefix(path);
             InfrastructureProvisionResult result = new InfrastructureProvisionResult();
             String infraInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                     .toAbsolutePath().toString();
             String infraOutputsLoc = DataBucketsHelper.getInputLocation(testPlan)
                     .toAbsolutePath().toString();
             final String command = "bash " + path
-                    + " --input-dir " + infraInputsLoc +  " --output-dir " + infraOutputsLoc;
+                    + " --input-dir " + infraInputsLoc + " --output-dir " + infraOutputsLoc;
             int exitCode = executor.executeCommand(command);
             if (exitCode > 0) {
                 logger.error(StringUtil.concatStrings("Error occurred while executing the infra-provision script. ",
@@ -67,11 +68,11 @@ public class ShellScriptProviderFactory {
 
     }
 
-
     public static boolean release(InfrastructureConfig infrastructureConfig, TestPlan testPlan,
                                   Path path) throws TestGridInfrastructureException {
+
         logger.info("Destroying test environment...");
-        ShellExecutor executor = new ShellExecutor(null); //todo
+        ShellExecutor executor = ShellExecutor.newShellExecutorWithLogPrefix(path);
         try {
 
             String testInputsLoc = DataBucketsHelper.getInputLocation(testPlan)
@@ -87,5 +88,4 @@ public class ShellScriptProviderFactory {
                             .getName() + "'", e);
         }
     }
-
 }

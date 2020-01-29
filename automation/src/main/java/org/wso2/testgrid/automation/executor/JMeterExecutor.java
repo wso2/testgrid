@@ -69,7 +69,7 @@ public class JMeterExecutor extends TestExecutor {
             } else {
                 logger.info(JMETER_HOME + ": " + jmeterHome);
             }
-            ShellExecutor shellExecutor = new ShellExecutor(Paths.get(testLocation));
+            ShellExecutor shellExecutor = new ShellExecutor(Paths.get(testLocation), script);
             Map<String, String> environment = new HashMap<>();
 
             for (Host host : deploymentCreationResult.getHosts()) {

@@ -52,12 +52,13 @@ import java.util.Optional;
  *
  * @since 1.0.0
  */
-public class ShellDeployerFactory  {
+public class ShellDeployerFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(ShellDeployer.class);
 
     public static DeploymentCreationResult deploy(TestPlan testPlan,
-                                           InfrastructureProvisionResult infrastructureProvisionResult, Path path)
+                                                  InfrastructureProvisionResult infrastructureProvisionResult,
+                                                  Path path)
             throws TestGridDeployerException {
 
         DeploymentConfig.DeploymentPattern deploymentPatternConfig = testPlan.getDeploymentConfig()
@@ -71,7 +72,7 @@ public class ShellDeployerFactory  {
             String deployScriptLocation = Paths.get(testPlan.getDeploymentRepository()).toString();
             logger.info("Performing the Deployment " + deployment.getName());
 
-            ShellExecutor executor = new ShellExecutor(Paths.get(deployScriptLocation));
+            ShellExecutor executor = ShellExecutor.newShellExecutorWithLogPrefix(Paths.get(deployScriptLocation), path);
             final String command = "bash " + path
                     + " --input-dir " + deplInputsLoc + " --output-dir " + deplOutputsLoc;
             int exitCode = executor.executeCommand(command);
