@@ -44,8 +44,8 @@ import java.util.function.Consumer;
 public class ShellExecutor {
 
     private static Logger logger = LoggerFactory.getLogger("Shell");
-
     private Path workingDirectory;
+    private String logPrefix;
 
     public ShellExecutor() {
         //todo: Set this to the test-run workspace
@@ -53,7 +53,15 @@ public class ShellExecutor {
     }
 
     public ShellExecutor(Path workingDirectory) {
+
         this.workingDirectory = workingDirectory;
+    }
+
+    // This constructor is used to add a prefix to shell script output.
+    public ShellExecutor(Path workingDirectory, String logPrefix) {
+
+        this.workingDirectory = workingDirectory;
+        this.logPrefix = logPrefix;
     }
 
     /**
@@ -62,16 +70,19 @@ public class ShellExecutor {
      * @since 1.0
      */
     private static class StreamGobbler implements Runnable {
+
         private InputStream inputStream;
         private Consumer<String> consumer;
 
         public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
+
             this.inputStream = inputStream;
             this.consumer = consumer;
         }
 
         @Override
         public void run() {
+
             new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines()
                     .forEach(consumer);
         }
@@ -83,6 +94,7 @@ public class ShellExecutor {
      * @return relative path of the working directory
      */
     public String getWorkingDirectory() {
+
         return workingDirectory.toString();
     }
 
@@ -111,12 +123,21 @@ public class ShellExecutor {
 
             StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), msg -> {
                 msg = reduceLogVerbosity(msg);
-                logger.info(msg);
+                if (hasLogPrefix()) {
+                    logger.info(logPrefix + ": " + msg);
+                } else {
+                    logger.info(msg);
+                }
             });
             StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), msg -> {
                 Consumer<String> c = !msg.matches("^\\++ .*") ? logger::error : logger::info; // handle 'set -o xtrace'
                 msg = reduceLogVerbosity(msg);
                 c.accept(msg);
+                if (hasLogPrefix()) {
+                    c.accept(logPrefix + ": " + msg);
+                } else {
+                    c.accept(msg);
+                }
             });
 
             executor.execute(outputStreamGobbler);
@@ -138,6 +159,7 @@ public class ShellExecutor {
     }
 
     private String reduceLogVerbosity(String msg) {
+
         return msg.replaceAll("INFO\\s*.org.wso2.carbon.automation.extensions.servers.utils.ServerLogReader. - ",
                 "[Server] - ");
     }
@@ -145,10 +167,9 @@ public class ShellExecutor {
     /**
      * Executes a shell command.
      *
-     * @param command Command to execute
+     * @param command     Command to execute
      * @param environment environment variables to be set before execution of the script
      * @return boolean for successful/unsuccessful command execution (success == true)
-     *
      * @throws CommandExecutionException if an {@link IOException} occurs while executing the command
      */
     public int executeCommand(String command, Map<String, String> environment) throws CommandExecutionException {
@@ -171,8 +192,20 @@ public class ShellExecutor {
             }
             Process process = processBuilder.start();
 
-            StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), logger::info);
-            StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), logger::error);
+            Consumer<String> infoLogConsumer = null, errorLogConsumer = null;
+            if (!hasLogPrefix()) {
+                infoLogConsumer = logger::info;
+                errorLogConsumer = logger::error;
+            } else {
+                infoLogConsumer = msg -> {
+                    logger.info(logPrefix + ": " + msg);
+                };
+                errorLogConsumer = msg -> {
+                    logger.error(logPrefix + ": " + msg);
+                };
+            }
+            StreamGobbler outputStreamGobbler = new StreamGobbler(process.getInputStream(), infoLogConsumer);
+            StreamGobbler errorStreamGobbler = new StreamGobbler(process.getErrorStream(), errorLogConsumer);
 
             executor.execute(outputStreamGobbler);
             executor.execute(errorStreamGobbler);
@@ -190,5 +223,47 @@ public class ShellExecutor {
         } finally {
             executor.shutdownNow();
         }
+    }
+
+    /**
+     * Create a {@link ShellExecutor} instance with log prefix.
+     *
+     * @param path Path of the script
+     * @return {@link ShellExecutor} with log prefix if the path os not null
+     */
+    public static ShellExecutor newShellExecutorWithLogPrefix(Path path) {
+
+        ShellExecutor executor;
+        Path scriptName = path.getFileName();
+        if (scriptName != null) {
+            executor = new ShellExecutor(null, scriptName.toString());
+        } else {
+            executor = new ShellExecutor(null);
+        }
+        return executor;
+    }
+
+    /**
+     * Create a {@link ShellExecutor} instance with log prefix.
+     *
+     * @param path             Path of the script
+     * @param workingDirectory working directory
+     * @return {@link ShellExecutor} with log prefix if the path os not null
+     */
+    public static ShellExecutor newShellExecutorWithLogPrefix(Path workingDirectory, Path path) {
+
+        ShellExecutor executor;
+        Path scriptName = path.getFileName();
+        if (scriptName != null) {
+            executor = new ShellExecutor(workingDirectory, scriptName.toString());
+        } else {
+            executor = new ShellExecutor(workingDirectory);
+        }
+        return executor;
+    }
+
+    private boolean hasLogPrefix() {
+
+        return logPrefix != null;
     }
 }
