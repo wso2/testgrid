@@ -144,9 +144,14 @@ function install_helm(){
   then
     wget https://get.helm.sh/helm-v3.0.0-alpha.2-linux-amd64.tar.gz
     tar -zxvf helm-v3.0.0-alpha.2-linux-amd64.tar.gz
+    sudo chmod + linux-amd64/helm
     sudo mv linux-amd64/helm /usr/bin
-    ~/usr/bin/helm init
+    helm init
     helm version
+  fi
+  if [[ ! -d /home/ubuntu/.helm ]]; then
+       echo "Helm is already installed. But not initialized. Init before using"
+    helm init
   fi
 }
 
