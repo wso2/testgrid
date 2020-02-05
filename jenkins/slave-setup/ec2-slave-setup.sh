@@ -26,7 +26,7 @@ set -e
 set -o xtrace
 
 TG_MASTER_IP="$1"
-MYSQL_DRIVER_LOCATION='http://central.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
+MYSQL_DRIVER_LOCATION='https://repo1.maven.org/maven2/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar'
 
 MASTER_KEY_LOCATION='/testgrid/testgrid-prod-key.pem'
 TESTGRID_HOME='/testgrid/testgrid-home'
