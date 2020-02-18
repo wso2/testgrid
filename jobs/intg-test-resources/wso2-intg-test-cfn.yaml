@@ -270,9 +270,8 @@ Resources:
           set -o xtrace
 
           # Set file limits
-          sysctl -w fs.file-max=1529796
+          sysctl -w fs.file-max=2097152
           sysctl fs.file-nr
-          ulimit -n 65535
           ulimit -Hn
           ulimit -Sn
 
