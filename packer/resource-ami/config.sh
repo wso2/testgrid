@@ -487,6 +487,18 @@ function showInstallations() {
     echo
 }
 
+#=== FUNCTION ==================================================================
+# NAME: setUserLimits
+# DESCRIPTION: Set hard and soft limits for all users.
+#===============================================================================
+function setUserLimits() {
+	echo "Set hardlimit for all users"
+	echo "*		hard	nofile		65535" >> /etc/security/limits.conf
+	echo "Set softlimit for all users"
+	echo "*		soft	nofile		65535" >> /etc/security/limits.conf
+	echo "session		required		pam_limits.so" >> /etc/pam.d/su
+}
+
 case "$AMI_OS" in
     Ubuntu)
 	showMessage "Starting Ubuntu configuration steps.."
@@ -538,4 +550,6 @@ showMessage "10. Adding environment variables"
 addEnvVariables
 showMessage "11.Showing installations"
 showInstallations
+showMessage "12. Set user limits"
+setUserLimits
 sudo rm -f -r *
