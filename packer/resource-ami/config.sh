@@ -494,9 +494,28 @@ function showInstallations() {
 function setUserLimits() {
 	echo "Set hardlimit for all users"
 	echo "*		hard	nofile		65535" >> /etc/security/limits.conf
+	echo "*		hard	nproc		20000" >> /etc/security/limits.conf
 	echo "Set softlimit for all users"
 	echo "*		soft	nofile		65535" >> /etc/security/limits.conf
+	echo "*		soft	nproc		20000" >> /etc/security/limits.conf
 	echo "session		required		pam_limits.so" >> /etc/pam.d/su
+}
+#=== FUNCTION ==================================================================
+# NAME: tunePerformance
+# DESCRIPTION: Apply Performance tuning values recommended by WSO2.
+#===============================================================================
+function tunePerformance() {
+	echo "Set performance tuning values"
+	echo "net.ipv4.tcp_fin_timeout = 30" >> /etc/sysctl.conf
+	echo "fs.file-max = 2097152" >> /etc/sysctl.conf
+	echo "net.ipv4.tcp_tw_reuse = 1" >> /etc/sysctl.conf
+	echo "net.core.rmem_default = 524288" >> /etc/sysctl.conf
+	echo "net.core.wmem_default = 524288" >> /etc/sysctl.conf
+	echo "net.core.rmem_max = 67108864" >> /etc/sysctl.conf
+	echo "net.core.wmem_max = 67108864" >> /etc/sysctl.conf
+	echo "net.ipv4.tcp_rmem = 4096 87380 16777216" >> /etc/sysctl.conf
+	echo "net.ipv4.tcp_wmem = 4096 65536 16777216" >> /etc/sysctl.conf
+	echo "net.ipv4.ip_local_port_range = 1024 65535" >> /etc/sysctl.conf
 }
 
 case "$AMI_OS" in
@@ -552,4 +571,6 @@ showMessage "11.Showing installations"
 showInstallations
 showMessage "12. Set user limits"
 setUserLimits
+showMessage "13. Tune performance"
+tunePerformance
 sudo rm -f -r *
