@@ -326,6 +326,9 @@ Resources:
           if [[ ${OS} == "CentOS" ]]; then
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
+          if [[ ${OS} == "RHEL" ]]; then
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+          fi
       Tags:
         - Key: Name
           Value: !Join
