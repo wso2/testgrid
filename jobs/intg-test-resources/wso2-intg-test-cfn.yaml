@@ -76,30 +76,15 @@ Parameters:
   WSO2InstanceType:
     Description: 'EC2 instance type of the WSO2 EI Node [t2.micro is the free tier]'
     Type: String
-    Default: c3.4xlarge
+    Default: t3.large
     AllowedValues:
       - t2.micro
       - t2.small
       - t2.medium
       - t2.large
-      - t2.xlarge
-      - t2.2xlarge
       - t3.micro
       - t3.medium
       - t3.large
-      - t3.xlarge
-      - t3.2xlarge
-      - m3.medium
-      - m3.large
-      - m3.xlarge
-      - m3.2xlarge
-      - m4.large
-      - m5.large
-      - m5.xlarge
-      - m5.2xlarge
-      - c3.4xlarge
-      - c5.2xlarge
-      - c5.4xlarge
     ConstraintDescription: must be a valid EC2 instance type
   WUMUsername:
     Type: String
