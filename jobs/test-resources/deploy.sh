@@ -23,41 +23,4 @@ pwd
 INPUT_FILE=$2/infrastructure.properties
 OUTPUT_FILE=$4/deployment.properties
 
-MGT_CONSOLE_PROP_VALUE=`grep -w "MgtConsoleUrl" ${INPUT_FILE} | tr -d '\' | cut -d'=' -f2`
-host="$MGT_CONSOLE_PROP_VALUE/admin/login.jsp"
-
-
-########################################
-# Function to wait for server startup  #
-########################################
-
-echo "waiting for product in $host"
-wait_for_server_startup() {
-    max_attempts=100
-    attempt_counter=0
-
-    MGT_CONSOLE_URL=$host
-    until $(curl -k --output /dev/null --silent --fail $MGT_CONSOLE_URL); do
-       if [ ${attempt_counter} -eq ${max_attempts} ];then
-        echo "Max attempts reached"
-        exit 1
-       fi
-        printf '.'
-        attempt_counter=$(($attempt_counter+1))
-        sleep 10
-    done
-}
-
-if [ ! -z "$MGT_CONSOLE_PROP_VALUE" ]
-then
-    CONNECT_RETRY_COUNT=20
-    wait_for_server_startup
-fi
-
 cp $INPUT_FILE $OUTPUT_FILE
-
-# TODO: REMOVE this once we have the cfn-signal based solution ready. 
-# We have to do this because we are still working on marking a cfn stack as completed at the correct point.
-
-echo "Sleeping for an arbitrary time of 120 seconds. Remove this once cfn-signal based deployment completion marker is implemented.."
-sleep 120
