@@ -1,10 +1,15 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: AWS CloudFormation Template with an EC2 instance and a RDS
 Parameters:
+  AWSAccessKeyId:
+    Type: String
+  AWSAccessKeySecret:
+    Type: String
   AMI:
     Type: String
+    Default: ami-018e0be30de8fcbf8
     Description: AMI of the region.
-  DBEngine:
+  DBEngine: 
     Type: String
     Default: mysql
     Description: Database Engine
@@ -22,6 +27,7 @@ Parameters:
       - oracle-se1
   DBEngineVersion:
     Type: String
+    Default: 5.7
     Description: Database Engine version
     MinLength: 1
   DBUsername:
@@ -99,11 +105,11 @@ Parameters:
       provided standard released pack will be deployed
   ProductName:
     Type: String
-    Default: wso2apim
+    Default: wso2am
     Description: Enter product name
   ProductVersion:
     Type: String
-    Default: 2.2.0
+    Default: 2.1.0
     Description: Enter product version
   OS:
     Type: String
@@ -117,7 +123,7 @@ Parameters:
     Description: Enter target OS version.
   JDK:
     Type: String
-    Default: ORACLE_JDK8
+    Default: ADOPT_OPEN_JDK8
     Description: Enter target JDK version.
     AllowedValues:
       - OPEN_JDK8
@@ -236,12 +242,12 @@ Resources:
       InstanceType: !Ref WSO2InstanceType
       KeyName: !Ref EC2KeyPair
       Monitoring: 'false'
-      "BlockDeviceMappings" : [
-         {
-            "DeviceName" : "/dev/sda1",
-            "Ebs" : { "VolumeSize" : "50" }
-         },
-      ]
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: '150'
+            VolumeType: gp2
+            DeleteOnTermination: 'true'
       UserData: !Base64
         'Fn::Sub': |
           #cloud-boothook
@@ -304,8 +310,56 @@ Resources:
 
           cat /dev/null > ~/.bash_history && history -c
           ${CustomUserData}
+
+          #install aws
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+
+          aws --version
+
+          aws configure set aws_access_key_id ${AWSAccessKeyId}
+          aws configure set aws_secret_access_key ${AWSAccessKeySecret}
+
+          aws configure list
+
+          git clone https://github.com/wso2-enterprise/ansible-apim -b 2.1.0
+
+          sed -i 's/AM_DB_TYPE/${DBEngine}/g' ansible-apim/roles/common/tasks/main.yml
+          sed -i 's/AM_JDK_TYPE/${JDK}/g' ansible-apim/roles/common/tasks/main.yml
+          sed -i 's/WSO2_JDK_FILE_NAME/OpenJDK8U-jdk_x64_linux_hotspot_8u252b09/g' ansible-apim/dev/group_vars/apim.yml
+          sed -i 's/RDS_PWD/${DBPassword}/g' ansible-apim/dev/group_vars/apim.yml
+          sed -i 's/RDS_USERNAME/${DBUsername}/g' ansible-apim/dev/group_vars/apim.yml
+          sed -i 's/WSO2AM_DB_ADDRESS/${WSO2DBInstance.Endpoint.Address}/g' ansible-apim/dev/group_vars/apim.yml
+
+          aws s3 cp s3://testgrid-resources/wum-update-script/init.sh . && chmod +x init.sh
+          wget https://testgrid-resources.s3.amazonaws.com/wum-update-script/init.sh && chmod +x init.sh
+
+          mkdir database-init && cd database-init
+          # aws s3 cp s3://testgrid-resources/db-scripts/apim210.zip . &&  unzip -q apim210.zip
+          # aws s3 cp s3://testgrid-resources/db-scripts/provision_db_apim.sh . && chmod +x provision_db_apim.sh 
+
+          wget https://testgrid-resources.s3.amazonaws.com/db-scripts/provision_db_apim.sh && chmod +x provision_db_apim.sh 
+          wget https://testgrid-resources.s3.amazonaws.com/db-scripts/apim210.zip &&  unzip -q apim210.zip
+
+          sed -i 's/CF_DB_USERNAME/${DBUsername}/g' provision_db_apim.sh
+          sed -i 's/CF_DB_PASSWORD/${DBPassword}/g' provision_db_apim.sh
+          sed -i 's/CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g' provision_db_apim.sh
+          sed -i 's/CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g' provision_db_apim.sh
+          sed -i 's/CF_DBMS_NAME/${DBEngine}/g' provision_db_apim.sh
+          sed -i 's/CF_DBMS_VERSION/${DBEngineVersion}/g' provision_db_apim.sh
+          sed -i 's/CF_PRODUCT_VERSION/${ProductVersion}/g' provision_db_apim.sh
+
+          sudo bash provision_db_apim.sh
+
+          cd ../
+
+
           echo ${OS}
           if [[ ${OS} == "Ubuntu" ]]; then
+            sudo bash init.sh ${WUMUsername} ${WUMPassword} ${ProductName} ${ProductVersion}
+            # sudo bash ansible-apim/scripts/init.sh ${WUMUsername} ${WUMPassword}
+
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
           if [[ ${OS} == "CentOS" ]]; then
@@ -326,6 +380,8 @@ Resources:
               - !Ref JDK
       SecurityGroups:
         - !Ref WSO2InstanceSecurityGroup
+    DependsOn:
+      - WSO2DBInstance
     Metadata:
       'AWS::CloudFormation::Designer':
         id: 8f512cce-69ee-45de-87ab-5aedd2a93d50
@@ -432,6 +488,9 @@ Outputs:
   WSO2PublicIP:
     Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref 'AWS::NoValue']]
     Description: Private IP of the WSO2 Product Instance
+  WSO2InstanceName: 
+    Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}', !Ref 'AWS::NoValue']]
+    Description: Instance DNS Name
   DatabaseHost:
     Value: !Sub '${WSO2DBInstance.Endpoint.Address}'
     Condition: 'IsDBEnabled'
