@@ -323,7 +323,7 @@ Resources:
 
           aws configure list
 
-          git clone https://github.com/wso2-enterprise/ansible-apim -b 2.1.0
+          git clone https://github.com/NishikaDeSilva/ansible-apim -b 2.1.x-nishika-tg-int-test
 
           sed -i 's/AM_DB_TYPE/${DBEngine}/g' ansible-apim/roles/common/tasks/main.yml
           sed -i 's/AM_JDK_TYPE/${JDK}/g' ansible-apim/roles/common/tasks/main.yml
