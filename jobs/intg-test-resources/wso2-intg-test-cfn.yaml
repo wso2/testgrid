@@ -357,7 +357,7 @@ Resources:
 
           echo ${OS}
           if [[ ${OS} == "Ubuntu" ]]; then
-            sudo bash init.sh ${WUMUsername} ${WUMPassword} ${ProductName} ${ProductVersion}
+            sudo bash init.sh '${WUMUsername}' '${WUMPassword}' ${ProductName} ${ProductVersion}
             # sudo bash ansible-apim/scripts/init.sh ${WUMUsername} ${WUMPassword}
 
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
