@@ -350,6 +350,8 @@ Resources:
           sed -i 's/CF_DBMS_VERSION/${DBEngineVersion}/g' provision_db_apim.sh
           sed -i 's/CF_PRODUCT_VERSION/${ProductVersion}/g' provision_db_apim.sh
 
+          sleep 60s
+
           sudo bash provision_db_apim.sh
 
           cd ../
