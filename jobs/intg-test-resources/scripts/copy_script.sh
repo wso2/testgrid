@@ -26,15 +26,7 @@ function log_info(){
 
 log_info "Copying ${SCRIPT_NAME} to remote ec2 instance"
 
-ls -la ${keyFileLocation}
-chmod 400 ${keyFileLocation}
-ls -la ${keyFileLocation}
-
 scp -o StrictHostKeyChecking=no -i ${keyFileLocation} ${SCRIPT_NAME} ubuntu@${WSO2InstanceName}:/opt/testgrid/workspace/${SCRIPT_NAME}
 scp -o StrictHostKeyChecking=no -i ${keyFileLocation} ${NEXUS_SCRIPT_PATH}/${NEXUS_SCRIPT_NAME} ubuntu@${WSO2InstanceName}:/opt/testgrid/workspace/${NEXUS_SCRIPT_NAME}
 ssh -o StrictHostKeyChecking=no -i ${keyFileLocation} ubuntu@${WSO2InstanceName} "cd /opt/testgrid/workspace && bash ${SCRIPT_NAME} ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCRT_VERSION} ${GIT_USER} ${GIT_PASS}"
 ssh -o StrictHostKeyChecking=no -i ${keyFileLocation} ubuntu@${WSO2InstanceName} "ls /opt/testgrid/workspace"
-# ssh -i ${keyFileLocation} ubuntu@${WSO2InstanceName} "cd /opt/testgrid/workspace/product-apim && git branch"
-
-sleep 3600
-
