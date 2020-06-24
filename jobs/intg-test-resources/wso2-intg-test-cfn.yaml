@@ -7,7 +7,7 @@ Parameters:
     Type: String
   AMI:
     Type: String
-    Default: ami-018e0be30de8fcbf8
+    Default: ami-05688df035c7691e1
     Description: AMI of the region.
   DBEngine: 
     Type: String
@@ -228,6 +228,11 @@ Resources:
     Metadata:
       'AWS::CloudFormation::Designer':
         id: d0dcc88f-97f7-4d80-901a-f746d372a295
+  WSO2UnixInstanceEIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: eipalloc-0e63f1906029057fc
+      InstanceId: !Ref WSO2UnixInstance
   WSO2UnixInstance:
     Type: 'AWS::EC2::Instance'
     Condition: 'IsUnix'
@@ -241,11 +246,14 @@ Resources:
       ImageId: !Ref AMI
       InstanceType: !Ref WSO2InstanceType
       KeyName: !Ref EC2KeyPair
+      AvailabilityZone: !Select
+        - '0'
+        - !GetAZs ''
       Monitoring: 'false'
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
-            VolumeSize: '150'
+            VolumeSize: '50'
             VolumeType: gp2
             DeleteOnTermination: 'true'
       UserData: !Base64
@@ -311,55 +319,36 @@ Resources:
           cat /dev/null > ~/.bash_history && history -c
           ${CustomUserData}
 
-          #install aws
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
-
-          aws --version
-
-          aws configure set aws_access_key_id ${AWSAccessKeyId}
-          aws configure set aws_secret_access_key ${AWSAccessKeySecret}
-
-          aws configure list
+          WORKING_DIR=$(pwd)
 
           git clone https://github.com/NishikaDeSilva/ansible-apim -b 2.1.x-nishika-tg-int-test
 
-          sed -i 's/AM_DB_TYPE/${DBEngine}/g' ansible-apim/roles/common/tasks/main.yml
-          sed -i 's/AM_JDK_TYPE/${JDK}/g' ansible-apim/roles/common/tasks/main.yml
-          sed -i 's/WSO2_JDK_FILE_NAME/OpenJDK8U-jdk_x64_linux_hotspot_8u252b09/g' ansible-apim/dev/group_vars/apim.yml
-          sed -i 's/RDS_PWD/${DBPassword}/g' ansible-apim/dev/group_vars/apim.yml
-          sed -i 's/RDS_USERNAME/${DBUsername}/g' ansible-apim/dev/group_vars/apim.yml
-          sed -i 's/WSO2AM_DB_ADDRESS/${WSO2DBInstance.Endpoint.Address}/g' ansible-apim/dev/group_vars/apim.yml
+          sed -i 's/AM_DB_TYPE/${DBEngine}/g' $WORKING_DIR/ansible-apim/roles/common/tasks/main.yml
+          sed -i 's/AM_JDK_TYPE/${JDK}/g' $WORKING_DIR/ansible-apim/roles/common/tasks/main.yml
+          sed -i 's/WSO2_JDK_FILE_NAME/OpenJDK8U-jdk_x64_linux_hotspot_8u252b09/g' $WORKING_DIR/ansible-apim/dev/group_vars/apim.yml
+          sed -i 's/RDS_PWD/${DBPassword}/g' $WORKING_DIR/ansible-apim/dev/group_vars/apim.yml
+          sed -i 's/RDS_USERNAME/${DBUsername}/g' $WORKING_DIR/ansible-apim/dev/group_vars/apim.yml
+          sed -i 's/WSO2AM_DB_ADDRESS/${WSO2DBInstance.Endpoint.Address}/g' $WORKING_DIR/ansible-apim/dev/group_vars/apim.yml
 
-          aws s3 cp s3://testgrid-resources/wum-update-script/init.sh . && chmod +x init.sh
           wget https://testgrid-resources.s3.amazonaws.com/wum-update-script/init.sh && chmod +x init.sh
-
-          mkdir database-init && cd database-init
-          # aws s3 cp s3://testgrid-resources/db-scripts/apim210.zip . &&  unzip -q apim210.zip
-          # aws s3 cp s3://testgrid-resources/db-scripts/provision_db_apim.sh . && chmod +x provision_db_apim.sh 
-
           wget https://testgrid-resources.s3.amazonaws.com/db-scripts/provision_db_apim.sh && chmod +x provision_db_apim.sh 
           wget https://testgrid-resources.s3.amazonaws.com/db-scripts/apim210.zip &&  unzip -q apim210.zip
 
-          sed -i 's/CF_DB_USERNAME/${DBUsername}/g' provision_db_apim.sh
-          sed -i 's/CF_DB_PASSWORD/${DBPassword}/g' provision_db_apim.sh
-          sed -i 's/CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g' provision_db_apim.sh
-          sed -i 's/CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g' provision_db_apim.sh
-          sed -i 's/CF_DBMS_NAME/${DBEngine}/g' provision_db_apim.sh
-          sed -i 's/CF_DBMS_VERSION/${DBEngineVersion}/g' provision_db_apim.sh
-          sed -i 's/CF_PRODUCT_VERSION/${ProductVersion}/g' provision_db_apim.sh
+          sed -i 's/CF_DB_USERNAME/${DBUsername}/g' $WORKING_DIR/provision_db_apim.sh
+          sed -i 's/CF_DB_PASSWORD/${DBPassword}/g' $WORKING_DIR/provision_db_apim.sh
+          sed -i 's/CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g' $WORKING_DIR/provision_db_apim.sh
+          sed -i 's/CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g' $WORKING_DIR/provision_db_apim.sh
+          sed -i 's/CF_DBMS_NAME/${DBEngine}/g' $WORKING_DIR/provision_db_apim.sh
+          sed -i 's/CF_DBMS_VERSION/${DBEngineVersion}/g' $WORKING_DIR/provision_db_apim.sh
+          sed -i 's/CF_PRODUCT_VERSION/${ProductVersion}/g' $WORKING_DIR/provision_db_apim.sh
+
+          sudo bash $WORKING_DIR/provision_db_apim.sh
 
           sleep 60s
 
-          sudo bash provision_db_apim.sh
-
-          cd ../
-
-
           echo ${OS}
           if [[ ${OS} == "Ubuntu" ]]; then
-            sudo bash init.sh '${WUMUsername}' '${WUMPassword}' ${ProductName} ${ProductVersion}
+            sudo bash $WORKING_DIR/init.sh '${WUMUsername}' '${WUMPassword}' ${ProductName} ${ProductVersion}
             # sudo bash ansible-apim/scripts/init.sh ${WUMUsername} ${WUMPassword}
 
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
