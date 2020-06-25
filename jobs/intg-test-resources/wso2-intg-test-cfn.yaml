@@ -310,7 +310,7 @@ Resources:
           wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
           tar -xvzf apache-maven-${MavenVersion}-bin.tar.gz
           ln -fs apache-maven-${MavenVersion} maven
-          echo 'export MAVEN_OPTS="-Xmx3072m -Xms1024m"' >> /etc/environment
+          echo 'export MAVEN_OPTS="-Xmx4096m -Xms2048m"' >> /etc/environment
           echo 'export M3_HOME=/opt/testgrid/workspace/maven' >> /etc/environment
           echo PATH=$JAVA_HOME/bin:/opt/testgrid/workspace/maven/bin/:$PATH >> /etc/environment
 
