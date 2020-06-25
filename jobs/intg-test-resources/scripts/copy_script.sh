@@ -17,8 +17,8 @@ PRODUCRT_VERSION=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-
 NEXUS_SCRIPT_NAME="uat-nexus-settings.xml"
 NEXUS_SCRIPT_PATH='/testgrid/testgrid-home/jobs/wso2am-2.1.0-int-test'
 
-GIT_USER=$(grep -w "VIM_GIT_USERNAME" ${PROP_FILE} | cut -d'=' -f2)
-GIT_PASS=$(grep -w "VIM_GIT_TOKEN" ${PROP_FILE} | cut -d'=' -f2)
+GIT_USER=$(grep -w "GIT_WUM_USERNAME" ${PROP_FILE} | cut -d'=' -f2)
+GIT_PASS=$(grep -w "GIT_WUM_PASSWORD" ${PROP_FILE} | cut -d'=' -f2)
 
 function log_info(){
     echo "[INFO][$(date '+%Y-%m-%d %H:%M:%S')]: $1"
