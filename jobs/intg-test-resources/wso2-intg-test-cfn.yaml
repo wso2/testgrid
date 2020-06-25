@@ -332,7 +332,7 @@ Resources:
 
           wget https://testgrid-resources.s3.amazonaws.com/wum-update-script/init.sh && chmod +x init.sh
           wget https://testgrid-resources.s3.amazonaws.com/db-scripts/provision_db_apim.sh && chmod +x provision_db_apim.sh 
-          wget https://testgrid-resources.s3.amazonaws.com/db-scripts/apim210.zip &&  unzip -q apim210.zip
+          wget https://testgrid-resources.s3.amazonaws.com/db-scripts/apim210-new.zip &&  unzip -q apim210-new.zip
 
           sed -i 's/CF_DB_USERNAME/${DBUsername}/g' $WORKING_DIR/provision_db_apim.sh
           sed -i 's/CF_DB_PASSWORD/${DBPassword}/g' $WORKING_DIR/provision_db_apim.sh
