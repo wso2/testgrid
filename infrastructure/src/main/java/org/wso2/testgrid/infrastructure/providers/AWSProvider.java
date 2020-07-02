@@ -737,7 +737,7 @@ public class AWSProvider implements InfrastructureProvider {
                             "unzip -qo /opt/testgrid/agent.zip -d \"/opt/testgrid\"\n" +
                             "cp /opt/testgrid/agent/testgrid-agent /etc/init.d\n" +
                             "SERVER=$(awk -F= '/^NAME/{print $2}' /etc/os-release)\n" +
-                            "if [[ $SERVER = 'Ubuntu' ]]; then\n" +
+                            "if [[ $SERVER == '\"Ubuntu\"' ]]; then\n" +
                             "update-rc.d testgrid-agent defaults\n" +
                             "elif [[ $SERVER = 'CentOS Linux' ]]; then\n" +
                             "chkconfig testgrid-agent on\n" +
