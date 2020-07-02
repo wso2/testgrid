@@ -1,13 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: AWS CloudFormation Template with an EC2 instance and a RDS
 Parameters:
-  AWSAccessKeyId:
-    Type: String
-  AWSAccessKeySecret:
-    Type: String
   AMI:
     Type: String
-    Default: ami-05688df035c7691e1
+    Default: ami-04c21ca1facb0d911
     Description: AMI of the region.
   DBEngine: 
     Type: String
@@ -44,7 +40,7 @@ Parameters:
     MinLength: 6
     ConstraintDescription: minimum - 6 characters
   DBClass:
-    Default: db.t2.micro
+    Default: db.m4.large
     Description: Database instance class
     Type: String
     AllowedValues:
@@ -171,6 +167,7 @@ Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
  IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "Ubuntu" ], !Equals [ !Ref OS, "RHEL" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
+ UseSQLServerDB: !Equals [sqlserver-se, !Ref DBEngine ]
 Resources:
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -321,36 +318,18 @@ Resources:
 
           WORKING_DIR=$(pwd)
 
-          git clone https://github.com/NishikaDeSilva/ansible-apim -b 2.1.x-nishika-tg-int-test
-
-          sed -i 's/AM_DB_TYPE/${DBEngine}/g' $WORKING_DIR/ansible-apim/roles/common/tasks/main.yml
-          sed -i 's/AM_JDK_TYPE/${JDK}/g' $WORKING_DIR/ansible-apim/roles/common/tasks/main.yml
-          sed -i 's/WSO2_JDK_FILE_NAME/OpenJDK8U-jdk_x64_linux_hotspot_8u252b09/g' $WORKING_DIR/ansible-apim/dev/group_vars/apim.yml
-          sed -i 's/RDS_PWD/${DBPassword}/g' $WORKING_DIR/ansible-apim/dev/group_vars/apim.yml
-          sed -i 's/RDS_USERNAME/${DBUsername}/g' $WORKING_DIR/ansible-apim/dev/group_vars/apim.yml
-          sed -i 's/WSO2AM_DB_ADDRESS/${WSO2DBInstance.Endpoint.Address}/g' $WORKING_DIR/ansible-apim/dev/group_vars/apim.yml
-
-          wget https://testgrid-resources.s3.amazonaws.com/wum-update-script/init.sh && chmod +x init.sh
-          wget https://testgrid-resources.s3.amazonaws.com/db-scripts/provision_db_apim.sh && chmod +x provision_db_apim.sh 
-          wget https://testgrid-resources.s3.amazonaws.com/db-scripts/apim210-new.zip &&  unzip -q apim210-new.zip
-
-          sed -i 's/CF_DB_USERNAME/${DBUsername}/g' $WORKING_DIR/provision_db_apim.sh
-          sed -i 's/CF_DB_PASSWORD/${DBPassword}/g' $WORKING_DIR/provision_db_apim.sh
-          sed -i 's/CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g' $WORKING_DIR/provision_db_apim.sh
-          sed -i 's/CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g' $WORKING_DIR/provision_db_apim.sh
-          sed -i 's/CF_DBMS_NAME/${DBEngine}/g' $WORKING_DIR/provision_db_apim.sh
-          sed -i 's/CF_DBMS_VERSION/${DBEngineVersion}/g' $WORKING_DIR/provision_db_apim.sh
-          sed -i 's/CF_PRODUCT_VERSION/${ProductVersion}/g' $WORKING_DIR/provision_db_apim.sh
-
-          sudo bash $WORKING_DIR/provision_db_apim.sh
-
-          sleep 60s
+          # write property file
+          echo "DB_TYPE=${DBEngine}" > cfn-props.properties
+          echo "CF_DB_VERSION=${DBEngineVersion}" >> cfn-props.properties
+          echo "JDK_TYPE=${JDK}" >> cfn-props.properties
+          echo "CF_DB_PASSWORD=${DBPassword}" >> cfn-props.properties
+          echo "CF_DB_USERNAME=${DBUsername}" >> cfn-props.properties
+          echo "CF_DB_HOST=${WSO2DBInstance.Endpoint.Address}" >> cfn-props.properties
+          echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
+          echo "SID=${WSO2DBInstance.DBName}" >> cfn-props.properties
 
           echo ${OS}
           if [[ ${OS} == "Ubuntu" ]]; then
-            sudo bash $WORKING_DIR/init.sh '${WUMUsername}' '${WUMPassword}' ${ProductName} ${ProductVersion}
-            # sudo bash ansible-apim/scripts/init.sh ${WUMUsername} ${WUMPassword}
-
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
           if [[ ${OS} == "CentOS" ]]; then
@@ -457,6 +436,7 @@ Resources:
       DBInstanceClass: !Ref DBClass
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
+      DBName: !If [UseSQLServerDB, "", WSO2AMDB]
       DBInstanceIdentifier: wso2-dbinstance
       LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
       MasterUsername: !Ref DBUsername
