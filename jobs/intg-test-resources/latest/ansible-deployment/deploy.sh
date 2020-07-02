@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o xtrace
+
 WSO2_PRODUCT_NAME=$1
 WSO2_PRODUCT_VERSION=$2
 GITUSER=$3
@@ -53,6 +55,15 @@ if ! git clone https://${GITUSER}:${GITPASS}@'&ANSIBLE_REPO_URL' -b '&ANSIBLE_RE
     log_error "Failed to clone ${ANSIBLE_REPO_NAME}"
 fi
 log_info "Successfully cloned ${ANSIBLE_REPO_NAME}"
+
+# copy product pack to ansible
+if [ -f $HOME/.wum3/products/$WSO2_PRODUCT_NAME/$WSO2_PRODUCT_VERSION/full/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION*.zip ]; then
+    echo "Updated pack available"
+    cp $HOME/.wum3/products/$WSO2_PRODUCT_NAME/$WSO2_PRODUCT_VERSION/full/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION*.zip $WORKSPACE/${ANSIBLE_REPO_NAME}/files/packs/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION.zip
+else
+    echo "Updated pack not available. proceeding with vanilla pack"
+    cp $HOME/.wum3/products/$WSO2_PRODUCT_NAME/$WSO2_PRODUCT_VERSION/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION.zip $WORKSPACE/${ANSIBLE_REPO_NAME}/files/packs/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION.zip
+fi
 
 log_info "Updating ansible resources"
 sed -i 's/DB_TYPE/${DBEngine}/g' ${WORKING_DIR}/${ANSIBLE_REPO_NAME}/roles/common/tasks/main.yml
