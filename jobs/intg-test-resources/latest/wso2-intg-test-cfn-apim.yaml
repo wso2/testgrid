@@ -26,6 +26,9 @@ Parameters:
     Default: 5.7
     Description: Database Engine version
     MinLength: 1
+  DBName:
+    Type: String
+    Description: Database Name
   DBUsername:
     Type: String
     Default: wso2carbon
@@ -326,7 +329,7 @@ Resources:
           echo "CF_DB_USERNAME=${DBUsername}" >> cfn-props.properties
           echo "CF_DB_HOST=${WSO2DBInstance.Endpoint.Address}" >> cfn-props.properties
           echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
-          echo "SID=${WSO2DBInstance.DBName}" >> cfn-props.properties
+          echo "SID=${DBName}" >> cfn-props.properties
 
           wget -q https://integration-testgrid-resources.s3.amazonaws.com/update_script/wum-update.sh && chmod +x wum-update.sh
           sudo bash $WORKING_DIR/wum-update.sh '${WUMUsername}' '${WUMPassword}' ${ProductName} ${ProductVersion}
@@ -439,7 +442,7 @@ Resources:
       DBInstanceClass: !Ref DBClass
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
-      DBName: !If [UseSQLServerDB, "", WSO2AMDB]
+      DBName: !If [UseSQLServerDB, "", !Ref DBName]
       DBInstanceIdentifier: wso2-dbinstance
       LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
       MasterUsername: !Ref DBUsername
