@@ -328,6 +328,9 @@ Resources:
           echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
           echo "SID=${WSO2DBInstance.DBName}" >> cfn-props.properties
 
+          wget -q https://integration-testgrid-resources.s3.amazonaws.com/update_script/wum-update.sh && chmod +x wum-update.sh
+          sudo bash $WORKING_DIR/wum-update.sh '${WUMUsername}' '${WUMPassword}' ${ProductName} ${ProductVersion}
+
           echo ${OS}
           if [[ ${OS} == "Ubuntu" ]]; then
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
