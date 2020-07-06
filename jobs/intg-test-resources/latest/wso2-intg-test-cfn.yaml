@@ -5,7 +5,7 @@ Parameters:
     Type: String
     Default: ami-04c21ca1facb0d911
     Description: AMI of the region.
-  DBEngine: 
+  DBEngine:
     Type: String
     Default: mysql
     Description: Database Engine
