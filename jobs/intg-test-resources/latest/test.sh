@@ -24,8 +24,8 @@ LOCAL_PRODUCT_PACK_LOCATION="/mnt/$(echo $PRODUCT_REPOSITORY_NAME | cut -d'-' -f
 
 PRODUCT_REPOSITORY_PACK_DIR="$WORKING_DIR/$PRODUCT_REPOSITORY_NAME/modules/distribution/product/target"
 INT_TEST_MODULE_DIR="$WORKING_DIR/$PRODUCT_REPOSITORY_NAME/modules/integration"
-API_IMPORT_EXPORT_MODULE_DIR="$WORKING_DIR/$PRODUCT_REPOSITORY_NAME/modules/api-import-export"
 NEXUS_SCRIPT_NAME="uat-nexus-settings.xml"
+INT_TEST_SCRIPT=$(echo %INT_TEST_SCRIPT_URL% | rev | cut -d"/" -f1 | rev)
 
 PRODUCT_NAME=$3
 PRODUCT_VERSION=$4
@@ -51,7 +51,11 @@ cd $LOCAL_PRODUCT_PACK_LOCATION && zip -qr $PRODUCT_NAME-$PRODUCT_VERSION.zip $P
 mv $PRODUCT_NAME-$PRODUCT_VERSION.zip $PRODUCT_REPOSITORY_PACK_DIR/.
 mv $WORKING_DIR/$NEXUS_SCRIPT_NAME $INT_TEST_MODULE_DIR/.
 
-source /etc/environment
+wget -q %INT_TEST_SCRIPT_URL% -P ${WORKING_DIR} &&  chmod +x ${WORKING_DIR}/${INT_TEST_SCRIPT}
 
-cd $API_IMPORT_EXPORT_MODULE_DIR && mvn clean install -fae -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-cd $INT_TEST_MODULE_DIR  && mvn clean install -s $NEXUS_SCRIPT_NAME -fae -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+bash ${WORKING_DIR}/${INT_TEST_SCRIPT} --product-repo-name ${PRODUCT_REPOSITORY_NAME}
+
+# source /etc/environment
+
+# cd $API_IMPORT_EXPORT_MODULE_DIR && mvn clean install -fae -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+# cd $INT_TEST_MODULE_DIR  && mvn clean install -s $NEXUS_SCRIPT_NAME -fae -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
