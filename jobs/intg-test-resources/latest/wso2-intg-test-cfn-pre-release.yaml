@@ -1,0 +1,549 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS CloudFormation Template with an EC2 instance and a RDS
+Parameters:
+  AMI:
+    Type: String
+    Default: ami-0a242909f837c2156
+    Description: AMI of the region.
+  DBEngine:
+    Type: String
+    Default: mysql
+    Description: Database Engine
+    AllowedValues:
+      - mysql
+      - postgres
+      - mariadb
+      - sqlserver-ex
+      - sqlserver-ee
+      - sqlserver-se
+      - sqlserver-web
+      - oracle-se
+      - oracle-se2
+      - oracle-ee
+      - oracle-se1
+  DBEngineVersion:
+    Type: String
+    Default: 5.7
+    Description: Database Engine version
+    MinLength: 1
+  DBName:
+    Type: String
+    Description: Database Name
+  DBUsername:
+    Type: String
+    Default: wso2carbon
+    Description: Database master account username
+    MinLength: 1
+    MaxLength: 20
+    ConstraintDescription: 'minimum - 1, maximum - 20 characters'
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: Database master account password
+    MinLength: 6
+    ConstraintDescription: minimum - 6 characters
+  DBClass:
+    Default: db.m4.large
+    Description: Database instance class
+    Type: String
+    AllowedValues:
+      - db.t2.micro
+      - db.t2.small
+      - db.t2.medium
+      - db.t2.large
+      - db.t2.xlarge
+      - db.t2.2xlarge
+      - db.m4.large
+      - db.m4.xlarge
+      - db.m4.2xlarge
+    ConstraintDescription: must be a valid database instance type
+  DBAllocatedStorage:
+    Default: 20
+    Description: Size of the database (GB)
+    Type: Number
+    MinValue: 20
+    MaxValue: 6144
+    ConstraintDescription: 'minimum - 20 GB, maximum - 6144 GB'
+  DBEnabled:
+      Type: String
+      Default: 'true'
+      Description: Specify whether DB should be created.
+  ProductPackLocation:
+    Type: String
+    Description: URL for the remote product pack
+  EC2KeyPair:
+    Description: >-
+      This is used to ssh to the node. If you don't have a key, please create
+      one from AWS console and rerun the script
+    Type: 'AWS::EC2::KeyPair::KeyName'
+  ALBCertificateARN:
+    Type: String
+    Description: >-
+      Enter the ARN value of the certificate uploaded to ACM for Application
+      Load Balancers
+  WSO2InstanceType:
+    Description: 'EC2 instance type of the WSO2 EI Node [t2.micro is the free tier]'
+    Type: String
+    Default: t3.large
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t3.micro
+      - t3.medium
+      - t3.large
+    ConstraintDescription: must be a valid EC2 instance type
+  WUMUsername:
+    Type: String
+    Default: ''
+    Description: Enter WUM user name
+  WUMPassword:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: >-
+      Enter WUM user password to get the updated WSO2 products deployed. If not
+      provided standard released pack will be deployed
+  ProductName:
+    Type: String
+    Default: wso2am
+    Description: Enter product name
+  ProductVersion:
+    Type: String
+    Default: 3.2.0
+    Description: Enter product version
+  OS:
+    Type: String
+    Default: Ubuntu
+    Description: >-
+      Enter target OS. This will be the username of the created EC2 instances as
+      well.
+  OSVersion:
+    Type: String
+    Default: '16.04'
+    Description: Enter target OS version.
+  JDK:
+    Type: String
+    Default: ADOPT_OPEN_JDK8
+    Description: Enter target JDK version.
+    AllowedValues:
+      - OPEN_JDK8
+      - ORACLE_JDK8
+      - ADOPT_OPEN_JDK8
+      - CORRETTO_JDK8
+      - OPEN_JDK11
+      - CORRETTO_JDK11
+      - ADOPT_OPEN_JDK11
+      - OPEN_JDK11
+  MavenVersion:
+    Type: String
+    Default: '3.3.9'
+    Description: Enter required Maven version.
+  CustomUserData:
+   Type: String
+   Default: "echo"
+   Description: Enter custome user data scripts here.
+Mappings:
+  DB2Licence:
+    mysql:
+      license: general-public-license
+    postgres:
+      license: postgresql-license
+    mariadb:
+      license: general-public-license
+    sqlserver-ex:
+      license: license-included
+    sqlserver-ee:
+      license: license-included
+    sqlserver-se:
+      license: license-included
+    sqlserver-web:
+      license: license-included
+    oracle-se:
+      license: license-included
+    oracle-se2:
+      license: license-included
+    oracle-ee:
+      license: license-included
+    oracle-se1:
+      license: license-included
+#Conditions
+Conditions:
+ IsWindows: !Equals [ !Ref OS, "Windows" ]
+ IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "Ubuntu" ], !Equals [ !Ref OS, "RHEL" ]]
+ IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
+ UseSQLServerDB: !Equals [sqlserver-se, !Ref DBEngine ]
+Resources:
+  WSO2InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security group for IS EC2 compute instances
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8140
+          ToPort: 8140
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9763
+          ToPort: 9763
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9443
+          ToPort: 9443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8086
+          ToPort: 8086
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 10173
+          ToPort: 10173
+          CidrIp: 0.0.0.0/0
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: abbdb5e8-f28b-4bc6-8b63-da9595b59c4a
+  WSO2EnvDBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security group for RDS
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 1433
+          ToPort: 1433
+          SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 1521
+          ToPort: 1521
+          SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: d0dcc88f-97f7-4d80-901a-f746d372a295
+  WSO2UnixInstance:
+    Type: 'AWS::EC2::Instance'
+    Condition: 'IsUnix'
+    CreationPolicy:
+      ResourceSignal:
+        Count: '1'
+        Timeout: PT60M
+    Properties:
+      DisableApiTermination: 'false'
+      InstanceInitiatedShutdownBehavior: stop
+      ImageId: !Ref AMI
+      InstanceType: !Ref WSO2InstanceType
+      KeyName: !Ref EC2KeyPair
+      AvailabilityZone: !Select
+        - '0'
+        - !GetAZs ''
+      Monitoring: 'false'
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: '50'
+            VolumeType: gp2
+            DeleteOnTermination: 'true'
+      UserData: !Base64
+        'Fn::Sub': |
+          #cloud-boothook
+          #!/bin/bash
+
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          # Echoes all commands before executing.
+          set -o verbose
+
+          set -e
+          set -o xtrace
+
+          # Set file limits
+          sysctl -w fs.file-max=2097152
+          sysctl fs.file-nr
+          ulimit -Hn
+          ulimit -Sn
+
+          setup_java_env() {
+            source /etc/environment
+
+            echo JDK_PARAM=${JDK} >> /opt/testgrid/java.txt
+            REQUESTED_JDK_PRESENT=$(grep "^${JDK}=" /etc/environment | wc -l)
+            if [ $REQUESTED_JDK_PRESENT = 0 ]; then
+              printf "The requested JDK, ${JDK}, not found in /etc/environment: \n $(cat /etc/environment)."
+              exit 1; // todo: inform via cfn-signal
+            fi
+            JAVA_HOME=$(grep "^${JDK}=" /etc/environment | head -1 | sed "s:${JDK}=\(.*\):\1:g" | sed 's:"::g')
+
+            echo ">> Setting up JAVA_HOME ..."
+            JAVA_HOME_EXISTS=$(grep -r "JAVA_HOME=" /etc/environment | wc -l  )
+            if [ $JAVA_HOME_EXISTS = 0 ]; then
+              echo ">> Adding JAVA_HOME entry."
+              echo JAVA_HOME=$JAVA_HOME >> /etc/environment
+            else
+              echo ">> Updating JAVA_HOME entry."
+              sed -i "/JAVA_HOME=/c\JAVA_HOME=$JAVA_HOME" /etc/environment
+            fi
+            source /etc/environment
+            echo "export JAVA_HOME=$JAVA_HOME" >> /etc/profile
+            source /etc/profile
+          }
+
+          mkdir -p /opt/testgrid/workspace
+          #TODO: We need to figure out the default user in the system.
+          #So, provided permissions to all the users. Need to fix!
+          chmod 777 -R /opt/testgrid
+          cd /opt/testgrid/workspace
+
+          setup_java_env
+          echo "Installing Apache Maven"
+          wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
+          tar -xvzf apache-maven-${MavenVersion}-bin.tar.gz
+          ln -fs apache-maven-${MavenVersion} maven
+          echo 'export MAVEN_OPTS="-Xmx4096m -Xms2048m"' >> /etc/environment
+          echo 'export M3_HOME=/opt/testgrid/workspace/maven' >> /etc/environment
+          echo PATH=$JAVA_HOME/bin:/opt/testgrid/workspace/maven/bin/:$PATH >> /etc/environment
+
+          source /etc/environment
+
+          cat /dev/null > ~/.bash_history && history -c
+          ${CustomUserData}
+
+          WORKING_DIR=$(pwd)
+
+          # write property file
+          echo "DB_TYPE=${DBEngine}" > cfn-props.properties
+          echo "CF_DB_VERSION=${DBEngineVersion}" >> cfn-props.properties
+          echo "JDK_TYPE=${JDK}" >> cfn-props.properties
+          echo "CF_DB_PASSWORD=${DBPassword}" >> cfn-props.properties
+          echo "CF_DB_USERNAME=${DBUsername}" >> cfn-props.properties
+          echo "CF_DB_HOST=${WSO2DBInstance.Endpoint.Address}" >> cfn-props.properties
+          echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
+          echo "SID=${DBName}" >> cfn-props.properties
+
+          wget -q '${ProductPackLocation}'
+          unzip -q ${ProductName}-${ProductVersion}*.zip -d $WORKING_DIR
+
+          DB_PROV_SCRIPT_NAME=provision_db_${ProductName}_${ProductVersion}.sh
+
+          pwd
+
+          wget https://integration-testgrid-resources.s3.amazonaws.com/db_scripts/$DB_PROV_SCRIPT_NAME
+          chmod +x $DB_PROV_SCRIPT_NAME
+
+          sed -i "s/&CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
+
+          bash $DB_PROV_SCRIPT_NAME
+
+          echo ${OS}
+          if [[ ${OS} == "Ubuntu" ]]; then
+            /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+          fi
+          if [[ ${OS} == "CentOS" ]]; then
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+          fi
+          if [[ ${OS} == "RHEL" ]]; then
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+          fi
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - 'intg-test__'
+              - !Ref OS
+              - '__'
+              - !Ref DBEngine
+              - '__'
+              - !Ref JDK
+      SecurityGroups:
+        - !Ref WSO2InstanceSecurityGroup
+    DependsOn:
+      - WSO2DBInstance
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 8f512cce-69ee-45de-87ab-5aedd2a93d50
+      "AWS::CloudFormation::Init" : {
+          "config" : {
+              "packages" : {
+                  "apt" : {
+                    }
+                },
+               "sources" : {
+                },
+               "files" : {
+               }
+          }
+       }
+  WSO2WindowsInstance:
+      Type: 'AWS::EC2::Instance'
+      Condition: 'IsWindows'
+      Properties:
+        DisableApiTermination: 'false'
+        InstanceInitiatedShutdownBehavior: stop
+        ImageId: !Ref AMI
+        InstanceType: !Ref WSO2InstanceType
+        KeyName: !Ref EC2KeyPair
+        Monitoring: 'false'
+        "BlockDeviceMappings" : [
+           {
+              "DeviceName" : "/dev/sda1",
+              "Ebs" : { "VolumeSize" : "100" }
+           },
+        ]
+        UserData:
+          !Base64
+          'Fn::Sub': |
+            <powershell>
+            [Environment]::SetEnvironmentVariable("JAVA_HOME", "$Env:${JDK}", "Machine")
+
+            wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.zip -OutFile "maven.zip"
+            Expand-Archive maven.zip -DestinationPath c:\\testgrid\\workspace
+
+            [Environment]::SetEnvironmentVariable("M2_HOME", "c:\\testgrid\\workspace\\apache-maven-${MavenVersion}", "Machine")
+            [Environment]::SetEnvironmentVariable("MAVEN_HOME", "c:\\testgrid\\workspace\\apache-maven-${MavenVersion}", "Machine")
+
+            $Old_Path=(Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name Path).Path
+            Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH -Value ($Old_Path += ';c:\\testgrid\\workspace\\apache-maven-${MavenVersion}\\bin') -Verbose -PassThru|fl
+
+            ${CustomUserData}
+            </powershell>
+            <persist>true</persist>
+        Tags:
+          - Key: Name
+            Value: !Join
+              - ''
+              - - 'intg-test__'
+                - !Ref OS
+                - '__'
+                - !Ref DBEngine
+                - '__'
+                - !Ref JDK
+        SecurityGroups:
+          - !Ref WSO2InstanceSecurityGroup
+      Metadata:
+        'AWS::CloudFormation::Designer':
+          id: 8f512cce-69ee-45de-87ab-5aedd2a93d50
+        "AWS::CloudFormation::Init" : {
+            "config" : {
+                "packages" : {
+                    "apt" : {
+                      }
+                  },
+                 "sources" : {
+                  },
+                 "files" : {
+                 }
+            }
+         }
+  WSO2DBInstance:
+    Type: 'AWS::RDS::DBInstance'
+    Condition: 'IsDBEnabled'
+    Properties:
+      AllocatedStorage: !Ref DBAllocatedStorage
+      DBInstanceClass: !Ref DBClass
+      Engine: !Ref DBEngine
+      EngineVersion: !Ref DBEngineVersion
+      DBName: !If [UseSQLServerDB, "", !Ref DBName]
+      DBInstanceIdentifier: wso2-dbinstance
+      LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      AutoMinorVersionUpgrade: false
+      BackupRetentionPeriod: 0
+      VPCSecurityGroups:
+        - !GetAtt WSO2EnvDBSecurityGroup.GroupId
+      AvailabilityZone: !Select
+        - '0'
+        - !GetAZs ''
+    DeletionPolicy: Delete
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 5352b4e9-46ed-4a23-8bdc-bafc3666cbbd
+Outputs:
+  WSO2MgtConsoleURL:
+    Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}:9443/carbon', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}:9443/carbon', !Ref 'AWS::NoValue']]
+    Description: Access URL of the Management Console
+  WSO2PublicIP:
+    Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref 'AWS::NoValue']]
+    Description: Private IP of the WSO2 Product Instance
+  WSO2InstanceName: 
+    Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}', !Ref 'AWS::NoValue']]
+    Description: Instance DNS Name
+  DatabaseHost:
+    Value: !Sub '${WSO2DBInstance.Endpoint.Address}'
+    Condition: 'IsDBEnabled'
+    Description: Database Host
+  DatabasePort:
+    Value: !Sub '${WSO2DBInstance.Endpoint.Port}'
+    Condition: 'IsDBEnabled'
+    Description: Database Port
+  OS:
+    Value: !Ref OS
+  WSO2InstanceId:
+    Value: !If [IsUnix, !Ref WSO2UnixInstance, !If [IsWindows, !Ref WSO2WindowsInstance, !Ref 'AWS::NoValue']]
+  DBEngine:
+    Value: !Ref DBEngine
+  DBEngineVersion:
+    Value: !Ref DBEngineVersion
+  DBUsername:
+    Value: !Ref DBUsername
+  DBPassword:
+    Value: !Ref DBPassword
+Metadata:
+  'AWS::CloudFormation::Designer':
+    abbdb5e8-f28b-4bc6-8b63-da9595b59c4a:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 60
+        'y': 90
+      z: 1
+      embeds: []
+    d0dcc88f-97f7-4d80-901a-f746d372a295:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -80
+        'y': 210
+      z: 1
+      embeds: []
+    5352b4e9-46ed-4a23-8bdc-bafc3666cbbd:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 60
+        'y': 210
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - d0dcc88f-97f7-4d80-901a-f746d372a295
+    8f512cce-69ee-45de-87ab-5aedd2a93d50:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 180
+        'y': 210
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - abbdb5e8-f28b-4bc6-8b63-da9595b59c4a
+      dependson:
+        - 5352b4e9-46ed-4a23-8bdc-bafc3666cbbd
