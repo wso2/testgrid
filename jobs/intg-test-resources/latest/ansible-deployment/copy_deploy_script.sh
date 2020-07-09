@@ -43,5 +43,5 @@ if [ $OS = "Ubuntu" ]; then
     instanceUser="ubuntu"
 fi
 
-scp -o StrictHostKeyChecking=no -i ${keyFileLocation} ${LOCAL_DEPLOYMENT_SCRIPT} ${instanceUser}@${WSO2InstanceName}:${REMOTE_DEPLOYMENT_SCRIPT}
-ssh -o StrictHostKeyChecking=no -i ${keyFileLocation} ${instanceUser}@${WSO2InstanceName} "cd /opt/testgrid/workspace && sudo bash ${REMOTE_DEPLOYMENT_SCRIPT} ${PRODUCT_NAME} ${PRODUCT_VERSION} ${GIT_USER} ${GIT_PASS}"
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${LOCAL_DEPLOYMENT_SCRIPT} ${instanceUser}@${WSO2InstanceName}:${REMOTE_DEPLOYMENT_SCRIPT}
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${instanceUser}@${WSO2InstanceName} "cd /opt/testgrid/workspace && sudo bash ${REMOTE_DEPLOYMENT_SCRIPT} ${PRODUCT_NAME} ${PRODUCT_VERSION} ${GIT_USER} ${GIT_PASS}"
