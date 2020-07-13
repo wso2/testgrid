@@ -171,6 +171,8 @@ Mappings:
   OperatingSystemAMI:
     Ubuntu: 
       img: ami-0a24d27589ade3603
+    CentOS: 
+      img: ami-01ad4ff4d5b37a948
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
@@ -286,6 +288,11 @@ Resources:
               apt install -y zip
               apt install -y python-pip
               apt install -y jq
+          fi
+          if [[ ${OS} == "CentOS" ]]; then
+            yum install -y epel-release zip unzip
+            yum install -y python-pip
+            yum install -y jq
           fi
 
           pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
