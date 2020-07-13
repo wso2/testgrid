@@ -168,6 +168,9 @@ Mappings:
       license: license-included
     oracle-se1:
       license: license-included
+  OperatingSystemAMI:
+    Ubuntu: 
+      img: ami-0a24d27589ade3603
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
@@ -241,7 +244,10 @@ Resources:
     Properties:
       DisableApiTermination: 'false'
       InstanceInitiatedShutdownBehavior: stop
-      ImageId: !Ref AMI
+      ImageId: !FindInMap
+        - OperatingSystemAMI
+        - !Ref OS
+        - img
       InstanceType: !Ref WSO2InstanceType
       KeyName: !Ref EC2KeyPair
       AvailabilityZone: !Select
@@ -390,7 +396,10 @@ Resources:
       Properties:
         DisableApiTermination: 'false'
         InstanceInitiatedShutdownBehavior: stop
-        ImageId: !Ref AMI
+        ImageId: FindInMap
+          - OperatingSystemAMI
+          - !Ref OS
+          - img
         InstanceType: !Ref WSO2InstanceType
         KeyName: !Ref EC2KeyPair
         Monitoring: 'false'
