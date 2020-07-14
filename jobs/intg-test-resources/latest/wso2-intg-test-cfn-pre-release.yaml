@@ -170,7 +170,7 @@ Mappings:
       license: license-included
   OperatingSystemAMI:
     Ubuntu: 
-      img: ami-0a24d27589ade3603
+      img: ami-025def472c84238d3
     CentOS: 
       img: ami-01ad4ff4d5b37a948
 #Conditions
