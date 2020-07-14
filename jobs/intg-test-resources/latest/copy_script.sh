@@ -49,6 +49,6 @@ elif [ ${OperatingSystem} = "CentOS" ]; then
     instanceUser="centos"
 fi
 
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} -r ${SCRIPT_REPOSITORY_NAME} ubuntu@${WSO2InstanceName}:/opt/testgrid/workspace/${SCRIPT_REPOSITORY_NAME}
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ubuntu@${WSO2InstanceName} "cd /opt/testgrid/workspace/${SCRIPT_REPOSITORY_NAME} && sudo bash run-int-test.sh ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCRT_VERSION}"
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ubuntu@${WSO2InstanceName} "ls /opt/testgrid/workspace"
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} -r ${SCRIPT_REPOSITORY_NAME} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/${SCRIPT_REPOSITORY_NAME}
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} $instanceUser@${WSO2InstanceName} "cd /opt/testgrid/workspace/${SCRIPT_REPOSITORY_NAME} && sudo bash run-int-test.sh ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCRT_VERSION}"
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} $instanceUser@${WSO2InstanceName} "ls /opt/testgrid/workspace"
