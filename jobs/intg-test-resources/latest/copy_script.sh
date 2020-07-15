@@ -47,6 +47,8 @@ if [ ${OperatingSystem} = "Ubuntu" ]; then
     instanceUser="ubuntu"
 elif [ ${OperatingSystem} = "CentOS" ]; then
     instanceUser="centos"
+else
+    instanceUser="ec2-user"
 fi
 
 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} -r ${SCRIPT_REPOSITORY_NAME} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/${SCRIPT_REPOSITORY_NAME}
