@@ -84,7 +84,7 @@ Parameters:
   WSO2InstanceType:
     Description: 'EC2 instance type of the WSO2 EI Node [t2.micro is the free tier]'
     Type: String
-    Default: t3.large
+    Default: t2.large
     AllowedValues:
       - t2.micro
       - t2.small
@@ -169,10 +169,12 @@ Mappings:
     oracle-se1:
       license: license-included
   OperatingSystemAMI:
-    Ubuntu: 
+    Ubuntu:
       img: ami-025def472c84238d3
-    CentOS: 
+    CentOS:
       img: ami-01ad4ff4d5b37a948
+    RHEL:
+      img: ami-05b6fba4481489641
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
@@ -289,7 +291,7 @@ Resources:
               apt install -y python-pip
               apt install -y jq
           fi
-          if [[ ${OS} == "CentOS" ]]; then
+          if [[ ${OS} == "CentOS" ]] || [[ ${OS} == "RHEL" ]]; then
             yum install -y epel-release zip unzip
             yum install -y python-pip
             yum install -y jq
