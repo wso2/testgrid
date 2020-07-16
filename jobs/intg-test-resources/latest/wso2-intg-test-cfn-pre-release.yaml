@@ -175,10 +175,12 @@ Mappings:
       img: ami-01ad4ff4d5b37a948
     RHEL:
       img: ami-05b6fba4481489641
+    SUSE:
+      img: ami-0a38f98bdcb04e817
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "Ubuntu" ], !Equals [ !Ref OS, "RHEL" ]]
+ IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "Ubuntu" ], !Equals [ !Ref OS, "RHEL" ], !Equals [ !Ref OS, "SUSE" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
  UseSQLServerDB: !Equals [sqlserver-se, !Ref DBEngine ]
 Resources:
@@ -296,6 +298,10 @@ Resources:
             yum install -y python-pip
             yum install -y jq
           fi
+          if [[ ${OS} == "SUSE" ]]; then
+            zypper install -y zip unzip
+            zypper install -y python-pip
+          fi 
 
           pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
 
@@ -369,6 +375,9 @@ Resources:
           fi
           if [[ ${OS} == "RHEL" ]]; then
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+          fi
+          if [[ ${OS} == "SUSE" ]]; then
+            /usr/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
       Tags:
         - Key: Name
