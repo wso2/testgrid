@@ -739,9 +739,10 @@ public class AWSProvider implements InfrastructureProvider {
                             "SERVER=$(awk -F= '/^NAME/{print $2}' /etc/os-release)\n" +
                             "if [[ $SERVER == '\"Ubuntu\"' ]]; then\n" +
                             "update-rc.d testgrid-agent defaults\n" +
-                            "elif [[ $SERVER = 'CentOS Linux' ]]; then\n" +
+                            "elif [[ $SERVER = 'CentOS Linux' ]] || [[ $SERVER = \"SLES\" ]]; then\n" +
                             "chkconfig testgrid-agent on\n" +
                             "fi\n" +
+                            "systemctl daemon-reload\n" +
                             "service testgrid-agent start\n";
                     //Note: Following command addresses both APT and YUM installers.
                     String awsCLISetup = "YUM_CMD=$(which yum) || echo 'yum is not available'\n" +
