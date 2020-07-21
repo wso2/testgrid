@@ -311,7 +311,7 @@ Resources:
             mkdir -p /opt/jdk-8u251-linux && tar -xzf "jdk-8u251-linux-x64.tar.gz" -C /opt/jdk-8u251-linux --strip-component=1
 
             export JAVA_HOME=/opt/jdk-8u251-linux
-            echo $JAVA_HOME
+            ln -s /opt/jdk-8u251-linux/bin/java /usr/bin/java
           }
 
           mkdir -p /opt/testgrid/workspace
@@ -481,7 +481,7 @@ Resources:
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
       DBName: !If [UseSQLServerDB, "", !Ref DBName]
-      DBInstanceIdentifier: wso2-dbinstance
+      DBInstanceIdentifier: wso2-dbinstance-1
       LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
