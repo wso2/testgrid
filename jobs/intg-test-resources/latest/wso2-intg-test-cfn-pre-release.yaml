@@ -176,7 +176,7 @@ Mappings:
     RHEL:
       img: ami-05b6fba4481489641
     SUSE:
-      img: ami-0a38f98bdcb04e817
+      img: ami-009fab158dcff70e0
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
