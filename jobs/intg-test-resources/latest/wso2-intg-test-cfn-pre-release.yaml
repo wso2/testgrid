@@ -347,6 +347,9 @@ Resources:
           wget -q '${ProductPackLocation}'
           unzip -q ${ProductName}-${ProductVersion}*.zip -d $WORKING_DIR
 
+          #add product pack name to cfn properties 
+          echo "REMOTE_PACK_NAME=$(echo ${ProductPackLocation} | rev | cut -d/ -f1 | cut -d. -f2- | rev)" >> cfn-props.properties
+
           DB_PROV_SCRIPT_NAME=provision_db_${ProductName}_${ProductVersion}.sh
 
           pwd
