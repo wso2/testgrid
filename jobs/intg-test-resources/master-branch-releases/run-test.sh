@@ -29,8 +29,9 @@ OperatingSystem=$(grep -w "OS" ${PROP_FILE} | cut -d'=' -f2)
 PRODUCT_NAME=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f1)
 PRODUCRT_VERSION=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f2)
 
-SCRIPT_LOCATION=$(grep -w "test_script_url" ${PROP_FILE} | cut -d'=' -f2)
-TEST_SCRIPT_NAME=$(echo $SCRIPT_LOCATION | rev | cut -d'/' -f1 | rev)
+SCRIPT_REPOSITORY=$(grep -w "TEST_SCRIPT_URL" ${PROP_FILE} | cut -d'=' -f2)
+SCRIPT_BRANCH=$(grep -w "TEST_SCRIPT_BRANCH" ${PROP_FILE} | cut -d'=' -f2)
+SCRIPT_REPOSITORY_NAME=$(echo ${SCRIPT_REPOSITORY} | rev | cut -d'/' -f1 | rev)
 
 GIT_USER=$(grep -w "GIT_WUM_USERNAME" ${PROP_FILE} | cut -d'=' -f2)
 GIT_PASS=$(grep -w "GIT_WUM_PASSWORD" ${PROP_FILE} | cut -d'=' -f2)
@@ -39,7 +40,7 @@ function log_info(){
     echo "[INFO][$(date '+%Y-%m-%d %H:%M:%S')]: $1"
 }
 
-wget -q ${SCRIPT_LOCATION}
+git clone ${SCRIPT_REPOSITORY} -b ${SCRIPT_BRANCH}
 
 log_info "Copying ${TEST_SCRIPT_NAME} to remote ec2 instance"
 
