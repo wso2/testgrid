@@ -1,10 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: AWS CloudFormation Template with an EC2 instance and a RDS
 Parameters:
-  AMI:
-    Type: String
-    Default: ami-0a24d27589ade3603
-    Description: AMI of the region.
   DBEngine:
     Type: String
     Default: mysql
@@ -303,7 +299,6 @@ Resources:
 
           pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
 
-          # TODO install JDK 8 for mvn
           setup_java_env() {
             wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/jdk-8u251-linux-x64.tar.gz
             mkdir -p /opt/jdk-8u251-linux && tar -xzf "jdk-8u251-linux-x64.tar.gz" -C /opt/jdk-8u251-linux --strip-component=1
@@ -313,7 +308,6 @@ Resources:
           }
 
           mkdir -p /opt/testgrid/workspace
-          #TODO: We need to figure out the default user in the system.
           #So, provided permissions to all the users. Need to fix!
           chmod 777 -R /opt/testgrid
           cd /opt/testgrid/workspace
