@@ -41,6 +41,10 @@ sed -i "s|ANSIBLE_REPO_BRANCH|${ANSIBLE_BRANCH}|g" ${LOCAL_DEPLOYMENT_SCRIPT}
 
 if [ $OS = "Ubuntu" ]; then
     instanceUser="ubuntu"
+elif [ ${OperatingSystem} = "CentOS" ]; then
+    instanceUser="centos"
+else
+    instanceUser="ec2-user"
 fi
 
 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${LOCAL_DEPLOYMENT_SCRIPT} ${instanceUser}@${WSO2InstanceName}:${REMOTE_DEPLOYMENT_SCRIPT}
