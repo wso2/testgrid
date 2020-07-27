@@ -63,7 +63,7 @@ install_ansible
 
 # Clone ansible resource repository
 log_info "Cloning ${ANSIBLE_REPO_NAME} into ${WORKING_DIR}"
-if ! git clone https://${GITUSER}:${GITPASS}@ANSIBLE_REPO_URL -b ANSIBLE_REPO_BRANCH; then
+if ! git clone --single-branch https://${GITUSER}:${GITPASS}@ANSIBLE_REPO_URL -b ANSIBLE_REPO_BRANCH; then
     log_error "Failed to clone ${ANSIBLE_REPO_NAME}"
 fi
 log_info "Successfully cloned ${ANSIBLE_REPO_NAME}"
