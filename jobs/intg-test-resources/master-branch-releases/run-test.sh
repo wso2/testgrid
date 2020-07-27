@@ -29,9 +29,8 @@ OperatingSystem=$(grep -w "OS" ${PROP_FILE} | cut -d'=' -f2)
 PRODUCT_NAME=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f1)
 PRODUCRT_VERSION=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f2)
 
-SCRIPT_REPOSITORY=$(grep -w "TEST_SCRIPT_URL" ${PROP_FILE} | cut -d'=' -f2)
-SCRIPT_BRANCH=$(grep -w "TEST_SCRIPT_BRANCH" ${PROP_FILE} | cut -d'=' -f2)
-SCRIPT_REPOSITORY_NAME=$(echo ${SCRIPT_REPOSITORY} | rev | cut -d'/' -f1 | rev)
+TEST_SCRIPT_URL=$(grep -w "TEST_SCRIPT_URL" ${PROP_FILE} | cut -d'=' -f2)
+TEST_SCRIPT_NAME=$(echo $TEST_SCRIPT_URL | rev | cut -d'/' -f1 | rev)
 
 GIT_USER=$(grep -w "GIT_WUM_USERNAME" ${PROP_FILE} | cut -d'=' -f2)
 GIT_PASS=$(grep -w "GIT_WUM_PASSWORD" ${PROP_FILE} | cut -d'=' -f2)
@@ -40,7 +39,8 @@ function log_info(){
     echo "[INFO][$(date '+%Y-%m-%d %H:%M:%S')]: $1"
 }
 
-git clone -b ${SCRIPT_BRANCH} --single-branch ${SCRIPT_REPOSITORY}
+wget -q $TEST_SCRIPT_URL
+INFRA_JSON=$INPUTS_DIR/../workspace/InfraRepository/jobs/intg-test-resources/infra.json
 
 log_info "Copying ${TEST_SCRIPT_NAME} to remote ec2 instance"
 
@@ -52,6 +52,6 @@ else
     instanceUser="ec2-user"
 fi
 
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} -r ${SCRIPT_REPOSITORY_NAME} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/${SCRIPT_REPOSITORY_NAME}
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} $instanceUser@${WSO2InstanceName} "cd /opt/testgrid/workspace/${SCRIPT_REPOSITORY_NAME} && sudo bash run-int-test.sh ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCRT_VERSION}"
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} $instanceUser@${WSO2InstanceName} "ls /opt/testgrid/workspace"
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${TEST_SCRIPT_NAME} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/${TEST_SCRIPT_NAME}
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${INFRA_JSON} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/infra.json
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} $instanceUser@${WSO2InstanceName} "cd /opt/testgrid/workspace && sudo bash ${TEST_SCRIPT_NAME} ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCRT_VERSION}"
