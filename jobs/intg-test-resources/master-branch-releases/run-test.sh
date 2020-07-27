@@ -1,3 +1,4 @@
+#!/bin/bash
 #----------------------------------------------------------------------------
 #  Copyright (c) 2020 WSO2, Inc. http://www.wso2.org
 #
@@ -13,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #----------------------------------------------------------------------------
-#!/bin/bash
 
 set -o xtrace
 
@@ -40,7 +40,7 @@ function log_info(){
     echo "[INFO][$(date '+%Y-%m-%d %H:%M:%S')]: $1"
 }
 
-git clone ${SCRIPT_REPOSITORY} -b ${SCRIPT_BRANCH}
+git clone -b ${SCRIPT_BRANCH} --single-branch ${SCRIPT_REPOSITORY}
 
 log_info "Copying ${TEST_SCRIPT_NAME} to remote ec2 instance"
 
