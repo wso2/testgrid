@@ -90,17 +90,6 @@ Parameters:
       - t3.medium
       - t3.large
     ConstraintDescription: must be a valid EC2 instance type
-  WUMUsername:
-    Type: String
-    Default: ''
-    Description: Enter WUM user name
-  WUMPassword:
-    Type: String
-    Default: ''
-    NoEcho: true
-    Description: >-
-      Enter WUM user password to get the updated WSO2 products deployed. If not
-      provided standard released pack will be deployed
   ProductName:
     Type: String
     Default: wso2am
