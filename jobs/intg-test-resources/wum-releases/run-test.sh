@@ -28,11 +28,9 @@ OperatingSystem=$(grep -w "OS" ${PROP_FILE} | cut -d'=' -f2)
 PRODUCT_NAME=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f1)
 PRODUCRT_VERSION=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f2)
 
-SCRIPT_REPOSITORY=$(grep -w "TEST_SCRIPT_URL" ${PROP_FILE} | cut -d'=' -f2)
-SCRIPT_BRANCH=$(grep -w "TEST_SCRIPT_BRANCH" ${PROP_FILE} | cut -d'=' -f2)
-SCRIPT_REPOSITORY_NAME=$(echo ${SCRIPT_REPOSITORY} | rev | cut -d'/' -f1 | rev)
-
-NEXUS_SCRIPT_NAME="uat-nexus-settings.xml"
+SCRIPT_LOCATION=$(grep -w "test_script_url" ${PROP_FILE} | cut -d'=' -f2)
+TEST_SCRIPT_NAME=$(echo $SCRIPT_LOCATION | rev | cut -d'/' -f1 | rev)
+NEXUS_TEST_SCRIPT_NAME="uat-nexus-settings.xml"
 NEXUS_SCRIPT_PATH='/testgrid/testgrid-home/jobs/wso2am-2.1.0-int-test'
 
 GIT_USER=$(grep -w "GIT_WUM_USERNAME" ${PROP_FILE} | cut -d'=' -f2)
@@ -42,7 +40,9 @@ function log_info(){
     echo "[INFO][$(date '+%Y-%m-%d %H:%M:%S')]: $1"
 }
 
-git clone --single-branch ${SCRIPT_REPOSITORY} -b ${SCRIPT_BRANCH}
+wget -q ${SCRIPT_LOCATION}
+
+log_info "Copying ${TEST_SCRIPT_NAME} to remote ec2 instance"
 
 if [ ${OperatingSystem} = "Ubuntu" ]; then
     instanceUser="ubuntu"
@@ -52,7 +52,7 @@ else
     instanceUser="ec2-user"
 fi
 
-scp -o StrictHostKeyChecking=no -i ${keyFileLocation} ${NEXUS_SCRIPT_PATH}/${NEXUS_SCRIPT_NAME} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/${NEXUS_SCRIPT_NAME}
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} -r ${SCRIPT_REPOSITORY_NAME} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/${SCRIPT_REPOSITORY_NAME}
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} $instanceUser@${WSO2InstanceName} "cd /opt/testgrid/workspace/${SCRIPT_REPOSITORY_NAME} && sudo bash run-int-test.sh ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCRT_VERSION}"
-ssh -o StrictHostKeyChecking=no -i ${keyFileLocation} $instanceUser@${WSO2InstanceName} "ls /opt/testgrid/workspace"
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${SCRIPT_NAME} ${instanceUser}@${WSO2InstanceName}:/opt/testgrid/workspace/${SCRIPT_NAME}
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${NEXUS_SCRIPT_PATH}/${NEXUS_SCRIPT_NAME} ${instanceUser}@${WSO2InstanceName}:/opt/testgrid/workspace/${NEXUS_SCRIPT_NAME}
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${instanceUser}@${WSO2InstanceName} "cd /opt/testgrid/workspace && sudo bash ${SCRIPT_NAME} ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCRT_VERSION} ${GIT_USER} ${GIT_PASS}"
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${instanceUser}@${WSO2InstanceName} "ls /opt/testgrid/workspace"
