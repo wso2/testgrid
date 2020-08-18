@@ -223,6 +223,7 @@ Resources:
           if [[ ${OperatingSystem} == "CentOS7" ]]; then
               yum install -y epel-release zip unzip nfs-utils
               yum install -y python-pip
+              pip install boto3
               rpm -Uvh https://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm
               yum install -y puppet-agent
               echo $'[main]\nserver = puppet\ncertname = agent1\nenvironment = production\n\runinterval = 1h' > /etc/puppetlabs/puppet/puppet.conf
@@ -308,7 +309,7 @@ Resources:
           echo "${WSO2ISEFSFileSystem}:/ /mnt/efs efs defaults,_netdev 0 0" >> /etc/fstab
           /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/bin/wso2server.sh start
           ${CustomUserData}
-          /usr/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource WSO2ISNode1AutoScalingGroup --region ${AWS::Region}
+          /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2ISNode1AutoScalingGroup --region ${AWS::Region}
           sleep 30
           if [[ ${OperatingSystem} == "Ubuntu1804" ]]; then
               end=$((SECONDS+1200))
@@ -496,7 +497,7 @@ Resources:
           /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/bin/wso2server.sh start
           ${CustomUserData}
           sleep 30
-          /usr/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource WSO2ISNode2AutoScalingGroup --region ${AWS::Region}
+          /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2ISNode2AutoScalingGroup --region ${AWS::Region}
           if [[ ${OperatingSystem} == "Ubuntu1804" ]]; then
               end=$((SECONDS+1200))
               while [ $SECONDS -lt $end ] ; do
@@ -719,7 +720,7 @@ Parameters:
       The private key used to log in to instances through SSH
     Type: 'AWS::EC2::KeyPair::KeyName'
   CertificateName:
-    Description: A valid SSL certificate used for HTTPS
+    Description: A valid SSL certificate used for HTTPS wso2cert_us_east_2
     Type: String
     MinLength: 1
   WSO2InstanceType:
