@@ -1,0 +1,834 @@
+# Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  WSO2 Identity Server deployment with Clustering
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: Basic Configuration
+        Parameters:
+          - AWSAccessKeyId
+          - AWSAccessKeySecret
+          - KeyPairName
+          - WSO2InstanceType
+          - CertificateName
+          - DB
+          - DBUsername
+          - DBPassword
+      - Label:
+          default: Advanced Configuration
+        Parameters:
+          - OperatingSystem
+          - CustomUserData
+          - JDK
+          - ElasticSearchEndpoint
+          - ElasticSearchRegion
+          - EnvironmentName
+          - WSO2ISVPC
+          - WSO2ISPrivateSubnet1
+          - WSO2ISPrivateSubnet2
+          - WSO2ISPublicSubnet1
+          - WSO2ISPublicSubnet2
+    ParameterLabels:
+      AWSAccessKeyId:
+        default: AWS Access Key ID
+      AWSAccessKeySecret:
+        default: AWS Access Secret Key
+      OperatingSystem:
+        default: Operating System
+      CertificateName:
+        default: SSL Certificate Name
+      KeyPairName:
+        default: Key Pair Name
+      DBUsername:
+        default: DB Username
+      DBPassword:
+        default: DB Password
+      EnvironmentName:
+        default: Environment Name
+      JDK:
+        default: JDK
+      CustomUserData:
+        default: Customer User Data
+      WSO2InstanceType:
+        default: Instance Type
+      DB:
+        default: Database
+      ElasticSearchEndpoint:
+        default: ElasticSearch Endpoint
+      ElasticSearchRegion:
+        default: ElasticSearch Region
+      WSO2ISVPC:
+        default: VPC ID
+      WSO2ISPrivateSubnet1:
+        default: WSO2 Private Subnet 1 - ID
+      WSO2ISPrivateSubnet2:
+        default: WSO2 Private Subnet 2 - ID
+      WSO2ISPublicSubnet1:
+        default: WSO2 Public Subnet 1 - ID
+      WSO2ISPublicSubnet2:
+        default: WSO2 Public Subnet 2 - ID
+Resources:
+  # File system configurations
+  WSO2ISEFSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref WSO2ISVPC
+      GroupDescription: EFS Security Group
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '2049'
+        ToPort: '2049'
+        CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2ISEFSSecurityGroup
+  WSO2ISEFSFileSystem:
+    Type: 'AWS::EFS::FileSystem'
+    Properties:
+      PerformanceMode: generalPurpose
+      FileSystemTags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2ISEFSSecurityGroup
+  WSO2ISPrivateSubnet1EFSMountTarget:
+    Type: 'AWS::EFS::MountTarget'
+    Properties:
+      SubnetId: !Ref WSO2ISPrivateSubnet1
+      FileSystemId: !Ref WSO2ISEFSFileSystem
+      SecurityGroups:
+        - !Ref WSO2ISEFSSecurityGroup
+  WSO2ISPrivateSubnet2EFSMountTarget:
+    Type: 'AWS::EFS::MountTarget'
+    Properties:
+      SubnetId: !Ref WSO2ISPrivateSubnet2
+      FileSystemId: !Ref WSO2ISEFSFileSystem
+      SecurityGroups:
+        - !Ref WSO2ISEFSSecurityGroup
+  # Product configurations
+  WSO2ISSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref WSO2ISVPC
+      GroupDescription: WSO2 Identity Manager Security Group
+      GroupName: WSO2SecurityGroup
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9200
+          ToPort: 9200
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8280'
+          ToPort: '8280'
+          SourceSecurityGroupId: !Ref WSO2ISLoadBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: '9763'
+          ToPort: '9763'
+          SourceSecurityGroupId: !Ref WSO2ISLoadBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: '9443'
+          ToPort: '9443'
+          SourceSecurityGroupId: !Ref WSO2ISLoadBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: '8243'
+          ToPort: '8243'
+          SourceSecurityGroupId: !Ref WSO2ISLoadBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: '5672'
+          ToPort: '5672'
+          SourceSecurityGroupId: !Ref WSO2ISLoadBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: '4100'
+          ToPort: '4100'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '5701'
+          ToPort: '5701'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8140'
+          ToPort: '8140'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2ISSecurityGroup
+  WSO2ISNode1LaunchConfiguration:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    Properties:
+      ImageId: !FindInMap
+        - WSO2ISAMIRegionMap
+        - !Ref 'AWS::Region'
+        - !Ref OperatingSystem
+      InstanceType: !Ref WSO2InstanceType
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: '20'
+            VolumeType: gp2
+            DeleteOnTermination: 'true'
+      KeyName: !Ref KeyPairName
+      SecurityGroups:
+        - !Ref WSO2ISSecurityGroup
+      UserData: !Base64
+        'Fn::Sub': |
+          Content-Type: multipart/mixed; boundary="//"
+          MIME-Version: 1.0
+
+          --//
+          Content-Type: text/cloud-config; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="cloud-config.txt"
+
+          #cloud-config
+          cloud_final_modules:
+          - [scripts-user, always]
+
+          --//
+          Content-Type: text/x-shellscript; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="userdata.txt"
+          #!/bin/bash
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          export PATH=~/.local/bin:$PATH
+          if [[ ${OperatingSystem} == "Ubuntu1804" ]]; then
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update
+              apt install -y puppet nfs-common
+              apt install -y python-pip
+              sed -i '/\[main\]/a server=puppet' /etc/puppet/puppet.conf
+          fi
+          if [[ ${OperatingSystem} == "CentOS7" ]]; then
+              yum install -y epel-release zip unzip nfs-utils
+              yum install -y python-pip
+              rpm -Uvh https://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm
+              yum install -y puppet-agent
+              echo $'[main]\nserver = puppet\ncertname = agent1\nenvironment = production\n\runinterval = 1h' > /etc/puppetlabs/puppet/puppet.conf
+          fi
+          pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+          wget https://s3.amazonaws.com/wso2logarchiever/log_archiver/log_archiver.sh
+          mv log_archiver.sh /usr/lib/
+          export ProductVersion=5.10.0
+          sed -i "s/Product_Version/5.10.0/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s^secret-key^${AWSAccessKeySecret}^g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s/access-key/${AWSAccessKeyId}/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s^ELASTICSEARCH_ENDPOINT^${ElasticSearchEndpoint}^g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          export INSTANCEID=$(wget -q -O - http://169.254.169.254/latest/meta-data/instance-id)
+          sed -i "s/INSTANCE_ID/$INSTANCEID/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s/STACK_NAME/${AWS::StackName}/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s/REGION_NAME/${ElasticSearchRegion}/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          nohup /usr/lib/logstash-6.5.1/bin/logstash -f /usr/lib/logstash-6.5.1/logstash-IS.conf &
+          export PuppetmasterIP=110.0.1.161
+          echo "$PuppetmasterIP puppet puppetmaster" >> /etc/hosts
+          wget https://aws-configs-testgrid.s3.amazonaws.com/python_db_port_extractor.py
+          wget https://aws-configs-testgrid.s3.amazonaws.com/python_db_extractor.py
+          wget https://aws-configs-testgrid.s3.amazonaws.com/provision_db_is.sh
+          if [[ ${DB} == "MySQL-5.7" ]]; then
+            export DBENDPOINT=$(python python_db_extractor.py ${AWS::Region} ${AWSAccessKeyId} ${AWSAccessKeySecret} 'MySQLWSO2DBInstance')
+            export DBPORT=$(python python_db_port_extractor.py ${AWS::Region} ${AWSAccessKeyId} ${AWSAccessKeySecret} 'MySQLWSO2DBInstance')
+            export DB_ENGINE_VERSION=5.7
+            export DB_DRIVER_CLASS_NAME=com.mysql.jdbc.Driver
+            export DB_VALIDATION_QUERY=SELECT 1
+            export WSO2_SHARED_DB_URL='jdbc:mysql://$DBENDPOINT:3306/WSO2IS_SHARED_DB?autoReconnect=true&amp;useSSL=fals'
+            export WSO2_BPS_DB_URL='jdbc:mysql://$DBENDPOINT:3306/WSO2IS_BPS_DB?autoReconnect=true&amp;useSSL=false'
+            export WSO2_IDENTITY_DB_URL='jdbc:mysql://$DBENDPOINT:3306/WSO2IS_IDENTITY_DB?autoReconnect=true&amp;useSSL=false'
+            export WSO2_CONSENT_DB_URL='jdbc:mysql://$DBENDPOINT:3306/WSO2IS_CONSENT_DB?autoReconnect=true&amp;useSSL=false'
+          fi
+          if [[ ${DB} == "Postgres-10.5" ]]; then
+            export DBENDPOINT=$(python python_db_extractor.py ${AWS::Region} ${AWSAccessKeyId} ${AWSAccessKeySecret} 'PostgresWSO2DBInstance')
+            export DBPORT=$(python python_db_port_extractor.py ${AWS::Region} ${AWSAccessKeyId} ${AWSAccessKeySecret} 'PostgresWSO2DBInstance')
+            export DB_DRIVER_CLASS_NAME=org.postgresql.Driver
+            export DB_VALIDATION_QUERY="SELECT 1; COMMIT"
+            export WSO2_SHARED_DB_URL='jdbc:postgresql://$DBENDPOINT:5432/WSO2IS_SHARED_DB'
+            export WSO2_BPS_DB_URL='jdbc:postgresql://$DBENDPOINT:5432/WSO2IS_BPS_DB
+            export WSO2_IDENTITY_DB_URL='jdbc:postgresql://$DBENDPOINT:5432/WSO2IS_IDENTITY_DB'
+            export WSO2_CONSENT_DB_URL='jdbc:postgresql://$DBENDPOINT:5432/WSO2IS_CONSENT_DB'
+          fi
+          sed -i "s/DB_ENGINE_VERSION/$DB_ENGINE_VERSION/g" provision_db_is.sh
+          sed -i "s/CF_DB_HOST/$DBENDPOINT/g" provision_db_is.sh
+          sed -i "s/CF_DB_PORT/$DBPORT/g" provision_db_is.sh
+          sed -i "s/CF_DB_USERNAME/${DBUsername}/g" provision_db_is.sh
+          sed -i "s/CF_DB_PASSWORD/${DBPassword}/g" provision_db_is.sh
+          chmod +x provision_db_is.sh
+          bash provision_db_is.sh
+          sleep 100
+          service puppet restart
+          mkdir -p /mnt/efs
+          mount -t nfs4 -o nfsvers=4.1 ${WSO2ISEFSFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt/efs
+          sleep 100
+          export FACTER_profile=is5100
+          if [[ ${OperatingSystem} == "Ubuntu1804" ]]; then
+              puppet agent -vt >> /var/log/puppetlog.log
+          fi
+          if [[ ${OperatingSystem} == "CentOS7" ]]; then
+              /opt/puppetlabs/bin/puppet agent -vt >> /var/log/puppetlog.log
+          fi
+          sleep 10
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/CF_DB_USERNAME/${DBUsername}/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/WSO2_SHARED_DB_URL/$WSO2_SHARED_DB_URL/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/WSO2_BPS_DB_URL/$WSO2_BPS_DB_URL/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/WSO2_IDENTITY_DB_URL/$WSO2_IDENTITY_DB_URL/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/WSO2_CONSENT_DB_URL/$WSO2_CONSENT_DB_URL/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/DB_DRIVER_CLASS_NAME/$DB_DRIVER_CLASS_NAME/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/DB_VALIDATION_QUERY/$DB_VALIDATION_QUERY/g' {} \;
+          if [ ! -d "/mnt/efs/server/userstores" ]; then
+              mkdir -p /mnt/efs/server/userstores
+              cp -r /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/deployment/server/userstores /mnt/efs/userstores
+          fi
+          rm -rf  /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/deployment/server/userstores
+          ln -s /mnt/efs/server/userstores /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/deployment/server/userstores
+          if [ ! -d "/mnt/efs/tenants" ]; then
+              mkdir -p /mnt/efs/tenants
+              cp -r /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/tenants /mnt/efs
+          fi
+          rm -rf /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/tenants
+          ln -s /mnt/efs/tenants /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/tenants
+          echo "${WSO2ISEFSFileSystem}:/ /mnt/efs efs defaults,_netdev 0 0" >> /etc/fstab
+          /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/bin/wso2server.sh start
+          ${CustomUserData}
+          /usr/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource WSO2ISNode1AutoScalingGroup --region ${AWS::Region}
+          sleep 30
+          if [[ ${OperatingSystem} == "Ubuntu1804" ]]; then
+              end=$((SECONDS+1200))
+              while [ $SECONDS -lt $end ] ; do
+                  sleep 10
+                  wget --delete-after --server-response --no-check-certificate "https://localhost:9443/carbon/admin/login.jsp"
+                  if [ $? -eq "0" ] ; then
+                      /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2ISNode1AutoScalingGroup --region ${AWS::Region}
+                      break
+                  fi
+              done
+          fi
+          if [[ ${OperatingSystem} == "CentOS7" ]]; then
+              end=$((SECONDS+1200))
+              while [ $SECONDS -lt $end ] ; do
+                  sleep 10
+                  wget --delete-after --server-response --no-check-certificate "https://localhost:9443/carbon/admin/login.jsp"
+                  if [ $? -eq "0" ] ; then
+                      /usr/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2ISNode1AutoScalingGroup --region ${AWS::Region}
+                      break
+                  fi
+              done
+          fi
+          echo 'export HISTTIMEFORMAT="%F %T "' >> /etc/profile.d/history.sh
+          cat /dev/null > ~/.bash_history && history -c
+    DependsOn:
+      - WSO2ISSecurityGroup
+      - WSO2ISLoadBalancer
+  WSO2ISNode1AutoScalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      LaunchConfigurationName: !Ref WSO2ISNode1LaunchConfiguration
+      DesiredCapacity: 1
+      MinSize: 1
+      MaxSize: 2
+      TargetGroupARNs:
+        - !Ref WSO2ISALBTargetGroup
+      VPCZoneIdentifier:
+        - !Ref WSO2ISPrivateSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2ISInstance1
+          PropagateAtLaunch: 'true'
+        - Key: cluster
+          Value: is
+          PropagateAtLaunch: 'true'
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT20M
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: '2'
+        MinInstancesInService: '1'
+        PauseTime: PT10M
+        SuspendProcesses:
+          - AlarmNotification
+        WaitOnResourceSignals: true
+    DependsOn:
+      - WSO2ISLoadBalancer
+  WSO2ISNode2LaunchConfiguration:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    Properties:
+      ImageId: !FindInMap
+        - WSO2ISAMIRegionMap
+        - !Ref 'AWS::Region'
+        - !Ref OperatingSystem
+      InstanceType: !Ref WSO2InstanceType
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: '20'
+            VolumeType: gp2
+            DeleteOnTermination: 'true'
+      KeyName: !Ref KeyPairName
+      SecurityGroups:
+        - !Ref WSO2ISSecurityGroup
+      UserData: !Base64
+        'Fn::Sub': |
+          Content-Type: multipart/mixed; boundary="//"
+          MIME-Version: 1.0
+
+          --//
+          Content-Type: text/cloud-config; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="cloud-config.txt"
+
+          #cloud-config
+          cloud_final_modules:
+          - [scripts-user, always]
+
+          --//
+          Content-Type: text/x-shellscript; charset="us-ascii"
+          MIME-Version: 1.0
+          Content-Transfer-Encoding: 7bit
+          Content-Disposition: attachment; filename="userdata.txt"
+          #!/bin/bash
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+          export PATH=~/.local/bin:$PATH
+          if [[ ${OperatingSystem} == "Ubuntu1804" ]]; then
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update
+              apt install -y puppet nfs-common
+              apt install -y python-pip
+              sed -i '/\[main\]/a server=puppet' /etc/puppet/puppet.conf
+          fi
+          if [[ ${OperatingSystem} == "CentOS7" ]]; then
+              yum install -y epel-release zip unzip nfs-utils
+              yum install -y python-pip
+              pip install boto3
+              rpm -Uvh https://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm
+              yum install -y puppet-agent
+              echo $'[main]\nserver = puppet\ncertname = agent2\nenvironment = production\n\runinterval = 1h' > /etc/puppetlabs/puppet/puppet.conf
+          fi
+          pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+          wget https://s3.amazonaws.com/wso2logarchiever/log_archiver/log_archiver.sh
+          mv log_archiver.sh /usr/lib/
+          export ProductVersion=5.10.0
+          sed -i "s/Product_Version/5.10.0/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s^secret-key^${AWSAccessKeySecret}^g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s/access-key/${AWSAccessKeyId}/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s^ELASTICSEARCH_ENDPOINT^${ElasticSearchEndpoint}^g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          export INSTANCEID=$(wget -q -O - http://169.254.169.254/latest/meta-data/instance-id)
+          sed -i "s/INSTANCE_ID/$INSTANCEID/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s/STACK_NAME/${AWS::StackName}/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          sed -i "s/REGION_NAME/${ElasticSearchRegion}/g" /usr/lib/logstash-6.5.1/logstash-IS.conf
+          nohup /usr/lib/logstash-6.5.1/bin/logstash -f /usr/lib/logstash-6.5.1/logstash-IS.conf &
+          export PuppetmasterIP=10.0.1.161
+          echo "$PuppetmasterIP puppet puppetmaster" >> /etc/hosts
+          wget https://aws-configs-testgrid.s3.amazonaws.com/python_db_port_extractor.py
+          wget https://aws-configs-testgrid.s3.amazonaws.com/python_db_extractor.py
+          if [[ ${DB} == "MySQL-5.7" ]]; then
+            export DBENDPOINT=$(python python_db_extractor.py ${AWS::Region} ${AWSAccessKeyId} ${AWSAccessKeySecret} 'MySQLWSO2DBInstance')
+            export DBPORT=$(python python_db_port_extractor.py ${AWS::Region} ${AWSAccessKeyId} ${AWSAccessKeySecret} 'MySQLWSO2DBInstance')
+            export DB_ENGINE_VERSION=5.7
+            export DB_DRIVER_CLASS_NAME=com.mysql.jdbc.Driver
+            export DB_VALIDATION_QUERY=SELECT 1
+            export WSO2_SHARED_DB_URL='jdbc:mysql://$DBENDPOINT:3306/WSO2IS_SHARED_DB?autoReconnect=true&amp;useSSL=fals'
+            export WSO2_BPS_DB_URL='jdbc:mysql://$DBENDPOINT:3306/WSO2IS_BPS_DB?autoReconnect=true&amp;useSSL=false'
+            export WSO2_IDENTITY_DB_URL='jdbc:mysql://$DBENDPOINT:3306/WSO2IS_IDENTITY_DB?autoReconnect=true&amp;useSSL=false'
+            export WSO2_CONSENT_DB_URL='jdbc:mysql://$DBENDPOINT:3306/WSO2IS_CONSENT_DB?autoReconnect=true&amp;useSSL=false'
+          fi
+          if [[ ${DB} == "Postgres-10.5" ]]; then
+            export DBENDPOINT=$(python python_db_extractor.py ${AWS::Region} ${AWSAccessKeyId} ${AWSAccessKeySecret} 'PostgresWSO2DBInstance')
+            export DBPORT=$(python python_db_port_extractor.py ${AWS::Region} ${AWSAccessKeyId} ${AWSAccessKeySecret} 'PostgresWSO2DBInstance')
+            export DB_DRIVER_CLASS_NAME=org.postgresql.Driver
+            export DB_VALIDATION_QUERY="SELECT 1; COMMIT"
+            export WSO2_SHARED_DB_URL='jdbc:postgresql://$DBENDPOINT:5432/WSO2IS_SHARED_DB'
+            export WSO2_BPS_DB_URL='jdbc:postgresql://$DBENDPOINT:5432/WSO2IS_BPS_DB
+            export WSO2_IDENTITY_DB_URL='jdbc:postgresql://$DBENDPOINT:5432/WSO2IS_IDENTITY_DB'
+            export WSO2_CONSENT_DB_URL='jdbc:postgresql://$DBENDPOINT:5432/WSO2IS_CONSENT_DB'
+          fi
+          service puppet restart
+          mkdir -p /mnt/efs
+          mount -t nfs4 -o nfsvers=4.1 ${WSO2ISEFSFileSystem}.efs.${AWS::Region}.amazonaws.com:/ /mnt/efs
+          sleep 300
+          export FACTER_profile=is5100
+          if [[ ${OperatingSystem} == "Ubuntu1804" ]]; then
+              puppet agent -vt >> /var/log/puppetlog.log
+          fi
+          if [[ ${OperatingSystem} == "CentOS7" ]]; then
+              /opt/puppetlabs/bin/puppet agent -vt >> /var/log/puppetlog.log
+          fi
+          sleep 10
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/CF_DB_USERNAME/${DBUsername}/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/WSO2_SHARED_DB_URL/$WSO2_SHARED_DB_URL/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/WSO2_IDENTITY_DB_URL/$WSO2_IDENTITY_DB_URL/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/WSO2_CONSENT_DB_URL/$WSO2_CONSENT_DB_URL/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/DB_DRIVER_CLASS_NAME/$DB_DRIVER_CLASS_NAME/g' {} \;
+          find /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/conf/ -type f -exec sed -i -e 's/DB_VALIDATION_QUERY/$DB_VALIDATION_QUERY/g' {} \;
+          if [ ! -d "/mnt/efs/server/userstores" ]; then
+              mkdir -p /mnt/efs/server/userstores
+              cp -r /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/deployment/server/userstores /mnt/efs/userstores
+          fi
+          rm -rf  /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/deployment/server/userstores
+          ln -s /mnt/efs/server/userstores /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/deployment/server/userstores
+          if [ ! -d "/mnt/efs/tenants" ]; then
+              mkdir -p /mnt/efs/tenants
+              cp -r /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/tenants /mnt/efs
+          fi
+          rm -rf /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/tenants
+          ln -s /mnt/efs/tenants /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/repository/tenants
+          echo "${WSO2ISEFSFileSystem}:/ /mnt/efs efs defaults,_netdev 0 0" >> /etc/fstab
+          /usr/lib/wso2/wso2is/5.10.0/wso2is-5.10.0/bin/wso2server.sh start
+          ${CustomUserData}
+          sleep 30
+          /usr/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource WSO2ISNode2AutoScalingGroup --region ${AWS::Region}
+          if [[ ${OperatingSystem} == "Ubuntu1804" ]]; then
+              end=$((SECONDS+1200))
+              while [ $SECONDS -lt $end ] ; do
+                  sleep 10
+                  wget --delete-after --server-response --no-check-certificate "https://localhost:9443/carbon/admin/login.jsp"
+                  if [ $? -eq "0" ] ; then
+                      /usr/local/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource WSO2ISNode2AutoScalingGroup --region ${AWS::Region}
+                      break
+                  fi
+              done
+          fi
+          if [[ ${OperatingSystem} == "CentOS7" ]]; then
+              end=$((SECONDS+1200))
+              while [ $SECONDS -lt $end ] ; do
+                  sleep 10
+                  wget --delete-after --server-response --no-check-certificate "https://localhost:9443/carbon/admin/login.jsp"
+                  if [ $? -eq "0" ] ; then
+                      /usr/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource WSO2ISNode2AutoScalingGroup --region ${AWS::Region}
+                      break
+                  fi
+              done
+          fi
+          echo 'export HISTTIMEFORMAT="%F %T "' >> /etc/profile.d/history.sh
+          cat /dev/null > ~/.bash_history && history -c
+    DependsOn:
+      - WSO2ISSecurityGroup
+      - WSO2ISLoadBalancer
+  WSO2ISNode2AutoScalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      LaunchConfigurationName: !Ref WSO2ISNode2LaunchConfiguration
+      DesiredCapacity: 1
+      MinSize: 1
+      MaxSize: 2
+      TargetGroupARNs:
+        - !Ref WSO2ISALBTargetGroup
+      VPCZoneIdentifier:
+        - !Ref WSO2ISPrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2ISInstance2
+          PropagateAtLaunch: 'true'
+        - Key: cluster
+          Value: is
+          PropagateAtLaunch: 'true'
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT20M
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: '2'
+        MinInstancesInService: '1'
+        PauseTime: PT10M
+        SuspendProcesses:
+          - AlarmNotification
+        WaitOnResourceSignals: true
+    DependsOn:
+      - WSO2ISLoadBalancer
+  WSO2ISLoadBalancerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref WSO2ISVPC
+      GroupDescription: WSO2 IS ELB Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '9763'
+          ToPort: '9763'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '9443'
+          ToPort: '9443'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8243'
+          ToPort: '8243'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8280'
+          ToPort: '8280'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '5701'
+          ToPort: '5701'
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: '9763'
+          ToPort: '9763'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '9443'
+          ToPort: '9443'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8243'
+          ToPort: '8243'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8280'
+          ToPort: '8280'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '5701'
+          ToPort: '5701'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2ISLoadBalancerSecurityGroup
+  WSO2ISLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: IS
+      Scheme: internet-facing
+      Subnets:
+        - !Ref WSO2ISPublicSubnet1
+        - !Ref WSO2ISPublicSubnet2
+      SecurityGroups:
+        - !Ref WSO2ISLoadBalancerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2ISLoadBalancer
+  WSO2ISALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckProtocol: HTTPS
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 4
+      HealthCheckPath: /carbon/admin/login.jsp
+      HealthCheckPort: 9443
+      Matcher:
+        HttpCode: 200
+      Name: is-carbon-9443
+      Port: 9443
+      Protocol: HTTPS
+      TargetGroupAttributes:
+      - Key: deregistration_delay.timeout_seconds
+        Value: '20'
+      - Key: stickiness.enabled
+        Value: 'true'
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Ref: WSO2ISVPC
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} WSO2ISALBTargetGroup
+  WSO2ISALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WSO2ISALBTargetGroup
+      Certificates:
+        - CertificateArn: !Join
+          - ''
+          - - 'arn:aws:iam::'
+            - !Ref 'AWS::AccountId'
+            - ':server-certificate'
+            - /
+            - !Ref CertificateName
+      LoadBalancerArn: !Ref WSO2ISLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS-1-1-2017-01
+    DependsOn:
+      - WSO2ISLoadBalancerSecurityGroup
+Outputs:
+  MgtConsoleUrl:
+    Value: !Join
+      - ''
+      - - 'https://'
+        - !GetAtt
+          - WSO2ISLoadBalancer
+          - DNSName
+        - '/carbon'
+    Description: Identity Server Management Console URL
+  CarbonServerUrl:
+    Value: !Join
+      - ''
+      - - 'https://'
+        - !GetAtt
+          - WSO2ISLoadBalancer
+          - DNSName
+        - '/services'
+    Description: Carbon Server URL
+  ISHttpUrl:
+    Value: !Join
+      - ''
+      - - 'http://'
+        - !GetAtt
+          - WSO2ISLoadBalancer
+          - DNSName
+        - ':80'
+    Description: IS HTTP Gateway endpoint
+  ISHttpsUrl:
+    Value: !Join
+      - ''
+      - - 'https://'
+        - !GetAtt
+          - WSO2ISLoadBalancer
+          - DNSName
+        - ':443'
+    Description: IS HTTPS Gateway endpoint
+Parameters:
+  AWSAccessKeyId:
+    Type: String
+  AWSAccessKeySecret:
+    Type: String
+  KeyPairName:
+    Description: >-
+      The private key used to log in to instances through SSH
+    Type: 'AWS::EC2::KeyPair::KeyName'
+  CertificateName:
+    Description: A valid SSL certificate used for HTTPS
+    Type: String
+    MinLength: 1
+  WSO2InstanceType:
+    Type: String
+    Default: t2.medium
+    AllowedValues:
+      - t2.medium
+      - t2.large
+      - t2.xlarge
+      - t2.2xlarge
+      - m3.medium
+      - m3.large
+      - m3.xlarge
+      - m3.2xlarge
+      - m4.large
+    ConstraintDescription: Must be a valid EC2 instance type
+  CustomUserData:
+    Type: String
+    Default: "echo"
+  JDK:
+    Description: Choose preferred JDK from the list
+    Type: String
+    Default: "OPEN_JDK8"
+    AllowedValues:
+      - "OPEN_JDK8"
+      - "ORACLE_JDK8"
+      - "CORRETTO_JDK8"
+      - "ADOPT_OPEN_JDK11"
+  ElasticSearchEndpoint:
+    Description: If you have ElasticSearch endpoint to publish logs, else keep this empty
+    Type: String
+    Default: ""
+  EnvironmentName:
+    Description: An environment name that is prefixed to resource names
+    Type: String
+    Default: TestGrid
+  DBUsername:
+    Type: String
+    MinLength: 4
+    AllowedPattern: '[A-Za-z0-9\-]+'
+  DBPassword:
+    Type: String
+    MinLength: 8
+    NoEcho: true
+  DB:
+    Description: Choose preferred Database from the list
+    Type: String
+    Default: MySQL-5.7
+    AllowedValues:
+      - MySQL-5.7
+      - Postgres-9.6
+      - Postgres-10.5
+      - Oracle-SE1-11.2
+      - Oracle-SE2-12.1
+      - SQLServer-SE-13.00
+      - SQLServer-SE-14.00
+  OperatingSystem:
+    Type: String
+    Default: Ubuntu1804
+    AllowedValues:
+      - Ubuntu1804
+      - CentOS7
+  ElasticSearchRegion:
+    Type: String
+    Default: "us-east-1"
+    AllowedValues:
+      - "us-east-1"
+      - "us-east-2"
+      - "us-west-1"
+      - "us-west-2"
+      - "ap-southeast-2"
+      - "eu-west-1"
+  WSO2ISVPC:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-0ddc53131f9e1de2e
+    Description: VPC ID of your existing Virtual Private Cloud (VPC)
+  WSO2ISPrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-062be78ae383cefaa
+    Description: Private Subnet for Prodcut Instance and the DB
+  WSO2ISPrivateSubnet2:
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-0b012a38c4034079a
+    Description: Private Subnet for Prodcut Instance and the DB
+  WSO2ISPublicSubnet1:
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-0f7448f9abf98a63f
+    Description: Public Subnet for NAT Gateway, Bastion Instance and Load Balancer
+  WSO2ISPublicSubnet2:
+    Type: AWS::EC2::Subnet::Id
+    Default: subnet-0c206f1baf632ec71
+    Description: Public Subnet for Load Balancer
+Mappings:
+  WSO2ISAMIRegionMap:
+    ap-southeast-2:
+      CentOS7: ami-0211f0ecd0e693937
+      Ubuntu1804: ami-0fc37bfc486b80d6d
+    eu-west-1:
+      CentOS7: ami-08137d567f9e9413e
+      Ubuntu1804: ami-005de30fe41bbe8f3
+    us-east-1:
+      CentOS7: ami-09d4e63ccc46083c7
+      Ubuntu1804: ami-02a2048d0e4afcd10
+    us-east-2:
+      CentOS7: ami-009ac95229cc07041
+      Ubuntu1804: ami-0a1af21a7b34de8f7
+    us-west-1:
+      CentOS7: ami-0062ecf9cd0c8417d
+      Ubuntu1804: ami-02cfec9ab1330bcbb
+    us-west-2:
+      CentOS7: ami-0cbe0a37066de0538
+      Ubuntu1804: ami-0cc3da810abe655e0
