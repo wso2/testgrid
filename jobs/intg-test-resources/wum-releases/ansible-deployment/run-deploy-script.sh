@@ -33,7 +33,7 @@ ANSIBLE_BRANCH=$(grep -w "ANSIBLE_GIT_BRANCH" $TEST_PROP_FILE | cut -d'=' -f2)
 PRODUCT_NAME=$(grep -w "ProductName" ${TEST_PROP_FILE}| cut -d'=' -f2)
 PRODUCT_VERSION=$(grep -w "ProductVersion" ${TEST_PROP_FILE}| cut -d'=' -f2)
 
-LOCAL_DEPLOYMENT_SCRIPT=${INPUT_DIR}/../workspace/InfraRepository/jobs/intg-test-resources/latest/ansible-deployment/deploy.sh
+LOCAL_DEPLOYMENT_SCRIPT=${INPUT_DIR}/../workspace/InfraRepository/jobs/intg-test-resources/wum-releases/ansible-deployment/deploy.sh
 REMOTE_DEPLOYMENT_SCRIPT=/opt/testgrid/workspace/deploy.sh
 
 sed -i "s|ANSIBLE_REPO_URL|${ANSIBLE_REPO}|g" ${LOCAL_DEPLOYMENT_SCRIPT}

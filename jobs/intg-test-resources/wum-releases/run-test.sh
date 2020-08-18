@@ -1,4 +1,3 @@
-#!/bin/bash
 #----------------------------------------------------------------------------
 #  Copyright (c) 2020 WSO2, Inc. http://www.wso2.org
 #
@@ -14,11 +13,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #----------------------------------------------------------------------------
+#!/bin/bash
 
 set -o xtrace
 
 INPUTS_DIR=$2
 
+# SCRIPT_LOCATION=""
 PROP_FILE="${INPUTS_DIR}/deployment.properties"
 PRODUCT_GIT_URL=$(grep -w "PRODUCT_GIT_URL" ${PROP_FILE} | cut -d'=' -f2 | cut -d'/' -f3-)
 PRODUCT_GIT_BRANCH=$(grep -w "PRODUCT_GIT_BRANCH" ${PROP_FILE} | cut -d'=' -f2)
@@ -26,14 +27,13 @@ keyFileLocation=$(grep -w "keyFileLocation" ${PROP_FILE} | cut -d'=' -f2)
 WSO2InstanceName=$(grep -w "WSO2InstanceName" ${PROP_FILE} | cut -d'=' -f2 | cut -d"/" -f3)
 OperatingSystem=$(grep -w "OS" ${PROP_FILE} | cut -d'=' -f2)
 PRODUCT_NAME=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f1)
-PRODUCRT_VERSION=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f2)
+PRODUCT_VERSION=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f2)
 
-SCRIPT_LOCATION=$(grep -w "test_script_url" ${PROP_FILE} | cut -d'=' -f2)
+SCRIPT_LOCATION=$(grep -w "TEST_SCRIPT_URL" ${PROP_FILE} | cut -d'=' -f2)
 TEST_SCRIPT_NAME=$(echo $SCRIPT_LOCATION | rev | cut -d'/' -f1 | rev)
-NEXUS_TEST_SCRIPT_NAME="uat-nexus-settings.xml"
-NEXUS_SCRIPT_PATH='/testgrid/testgrid-home/jobs/wso2am-2.1.0-int-test'
+NEXUS_SCRIPT_NAME="uat-nexus-settings.xml"
+NEXUS_SCRIPT_PATH="/testgrid/testgrid-home/jobs/wum-intg-test-${PRODUCT_NAME}-${PRODUCT_VERSION}"
 INFRA_JSON=$INPUTS_DIR/../workspace/InfraRepository/jobs/intg-test-resources/infra.json
-
 GIT_USER=$(grep -w "GIT_WUM_USERNAME" ${PROP_FILE} | cut -d'=' -f2)
 GIT_PASS=$(grep -w "GIT_WUM_PASSWORD" ${PROP_FILE} | cut -d'=' -f2)
 
@@ -53,8 +53,7 @@ else
     instanceUser="ec2-user"
 fi
 
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${SCRIPT_NAME} ${instanceUser}@${WSO2InstanceName}:/opt/testgrid/workspace/${SCRIPT_NAME}
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${NEXUS_SCRIPT_PATH}/${NEXUS_SCRIPT_NAME} ${instanceUser}@${WSO2InstanceName}:/opt/testgrid/workspace/${NEXUS_SCRIPT_NAME}
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${TEST_SCRIPT_NAME} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/${TEST_SCRIPT_NAME}
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${NEXUS_SCRIPT_PATH}/${NEXUS_SCRIPT_NAME} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/${NEXUS_SCRIPT_NAME}
 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${INFRA_JSON} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/infra.json
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${instanceUser}@${WSO2InstanceName} "cd /opt/testgrid/workspace && sudo bash ${SCRIPT_NAME} ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCRT_VERSION} ${GIT_USER} ${GIT_PASS}"
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${instanceUser}@${WSO2InstanceName} "ls /opt/testgrid/workspace"
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} $instanceUser@${WSO2InstanceName} "cd /opt/testgrid/workspace && sudo bash ${TEST_SCRIPT_NAME} ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCT_VERSION} ${GIT_USER} ${GIT_PASS}"
