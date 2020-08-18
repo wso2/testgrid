@@ -218,6 +218,9 @@ Resources:
               apt-get update
               apt install -y puppet nfs-common
               apt install -y python-pip
+              apt install -y python3-pip
+              pip3 install boto3
+              pip install boto3
               sed -i '/\[main\]/a server=puppet' /etc/puppet/puppet.conf
           fi
           if [[ ${OperatingSystem} == "CentOS7" ]]; then
@@ -415,6 +418,9 @@ Resources:
               apt-get update
               apt install -y puppet nfs-common
               apt install -y python-pip
+              apt install -y python3-pip
+              pip3 install boto3
+              pip install boto3
               sed -i '/\[main\]/a server=puppet' /etc/puppet/puppet.conf
           fi
           if [[ ${OperatingSystem} == "CentOS7" ]]; then
