@@ -1,0 +1,207 @@
+# Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: WSO2 - Database
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: Basic Configuration
+        Parameters:
+          - DBUsername
+          - DBPassword
+      - Label:
+          default: Advanced Configuration
+        Parameters:
+          - DB
+          - DBAllocationStorage
+          - DBInstanceType
+          - DBInstanceIdentifier
+          - EnvironmentName
+          - WSO2VPC
+          - WSO2PrivateSubnet1
+          - WSO2PrivateSubnet2
+    ParameterLabels:
+      DB:
+        default: Database
+      DBUsername:
+        default: DB Username
+      DBPassword:
+        default: DB Password
+      DBAllocationStorage:
+        default: Allocation Storage
+      DBInstanceType:
+        default: DB Instance Type
+      DBInstanceIdentifier:
+        default: Unique DB Name
+      EnvironmentName:
+        default: Environment Name
+      WSO2VPC:
+        default: VPC ID
+      WSO2PrivateSubnet1:
+        default: WSO2 Private Subnet 1 - ID
+      WSO2PrivateSubnet2:
+        default: WSO2 Private Subnet 2 - ID
+Resources:
+  WSO2DBInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      VPCSecurityGroups:
+        - !Ref WSO2DBInstanceSecurityGroup
+      DBInstanceClass: !Ref DBInstanceType
+      AllocatedStorage: !Ref DBAllocationStorage
+      BackupRetentionPeriod: '0'
+      DBInstanceIdentifier: !Ref DBInstanceIdentifier
+      DBName: !If [UseSQLServerDB, "", WSO2DB]
+      LicenseModel: !If [UseLicensedVersion, license-included, !Ref 'AWS::NoValue']
+      EngineVersion: !Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
+      Engine: !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      MultiAZ: 'false'
+      StorageType: gp2
+      DBSubnetGroupName: !Ref WSO2DBSubnetGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} ${DB} WSO2DBInstance
+  WSO2DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: DB Subnet Group
+      SubnetIds:
+        - !Ref WSO2PrivateSubnet1
+        - !Ref WSO2PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2DBSubnetGroup
+  WSO2DBInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref WSO2VPC
+      GroupDescription: DB Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '5432'
+          ToPort: '5432'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '1521'
+          ToPort: '1521'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '1433'
+          ToPort: '1433'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2DBInstanceSecurityGroup
+Outputs:
+  WSO2DBInstanceSecurityGroup:
+    Value: !Ref WSO2DBInstanceSecurityGroup
+    Description: WSO2 DB Security Group
+  WSO2DBSubnetGroup:
+    Value: !Ref WSO2DBSubnetGroup
+    Description: WSO2 DB Subnet Group
+  WSO2DBInstance:
+    Value: !Ref WSO2DBInstance
+    Description: WSO2 DB Instance
+  WSO2DBInstanceEndpointAddress:
+    Value: !GetAtt WSO2DBInstance.Endpoint.Address
+    Description: WSO2 DB Instance Endpoint Address
+  WSO2DBInstanceEndpointPort:
+    Value: !GetAtt WSO2DBInstance.Endpoint.Port
+    Description: WSO2 DB Instance Endpoint Port
+Parameters:
+  DBUsername:
+    Type: String
+    MinLength: 4
+    AllowedPattern: '[A-Za-z0-9\-]+'
+  DBPassword:
+    Type: String
+    MinLength: 8
+    NoEcho: true
+  DBAllocationStorage:
+    Description: Provide storage size in Gigabytes
+    Type: Number
+    Default: 200
+  DBInstanceType:
+    Type: String
+    Default: db.t2.medium
+    AllowedValues:
+      - db.t2.medium
+      - db.t2.large
+      - db.t2.xlarge
+      - db.t2.2xlarge
+      - db.m3.medium
+      - db.m3.large
+      - db.m3.xlarge
+      - db.m3.2xlarge
+      - db.m4.large
+      - db.m4.xlarge
+  DBInstanceIdentifier:
+    Type: String
+    Description: Unique DB Instance Name
+    Default: WSO2DBInstance
+  DB:
+    Type: String
+    Default: MySQL-5.7
+    AllowedValues:
+      - MySQL-5.7
+      - MySQL-8.0
+      - Postgres-9.6
+      - Postgres-10.5
+      - Oracle-SE1-11.2
+      - Oracle-SE2-12.1
+      - SQLServer-SE-13.00
+      - SQLServer-SE-14.00
+  EnvironmentName:
+    Type: String
+    Description: An environment name that is prefixed to resource names
+    Default: TestGrid
+  WSO2VPC:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID of your existing Virtual Private Cloud (VPC)
+  WSO2PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Private Subnet for PuppetMaster, Prodcut Instance, EFS and the DB
+  WSO2PrivateSubnet2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Private Subnet for Prodcut Instance and the DB
+Mappings:
+  DBEngineMap:
+    MySQL-8.0:
+      DBEngine: "mysql_8.0.17"
+    MySQL-5.7:
+      DBEngine: "mysql_5.7"
+    Postgres-9.6:
+      DBEngine: "postgres_9.6"
+    Postgres-10.5:
+      DBEngine: "postgres_10.5"
+    SQLServer-SE-13.00:
+      DBEngine: "sqlserver-se_13.00"
+    SQLServer-SE-14.00:
+      DBEngine: "sqlserver-se_14.00"
+    Oracle-SE1-11.2:
+      DBEngine: "oracle-se1_11.2"
+    Oracle-SE2-12.1:
+      DBEngine: "oracle-se2_12.1"
+Conditions:
+  UseSQLServerDB: !Equals [sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+  UseLicensedVersion: !Or [ !Equals [sqlserver, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]], !Equals [oracle, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]] ]
