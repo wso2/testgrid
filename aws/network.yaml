@@ -1,0 +1,323 @@
+# Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: WSO2 - Network
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: Basic Configuration
+        Parameters:
+          - KeyPairName
+          - BastionInstanceType
+          - OperatingSystem
+      - Label:
+          default: Advanced Configuration
+        Parameters:
+          - EnvironmentName
+          - PrivateSubnet1CIDR
+          - PrivateSubnet2CIDR
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+          - VpcCIDR
+    ParameterLabels:
+      OperatingSystem:
+        default: Operating System
+      KeyPairName:
+        default: Key Pair Name
+      BastionInstanceType:
+        default: Bastion Instance Type
+      EnvironmentName:
+        default: Environment Name
+      PrivateSubnet1CIDR:
+        default: Private Subnet 1 CIDR
+      PrivateSubnet2CIDR:
+        default: Private Subnet 2 CIDR
+      PublicSubnet1CIDR:
+        default: Public Subnet 1 CIDR
+      PublicSubnet2CIDR:
+        default: Public Subnet 2 CIDR
+      VpcCIDR:
+        default: VPC CIDR
+
+Resources:
+  WSO2VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2VPC
+
+  WSO2PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WSO2VPC
+      CidrBlock: !Ref PublicSubnet1CIDR
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
+
+  WSO2PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WSO2VPC
+      CidrBlock: !Ref PublicSubnet2CIDR
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Subnet (AZ2)
+
+  WSO2InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} WSO2 Internet Gateway
+
+  WSO2PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref WSO2VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Routes
+
+  WSO2PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref WSO2PublicRouteTable
+      SubnetId: !Ref WSO2PublicSubnet1
+
+  WSO2PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref WSO2PublicRouteTable
+      SubnetId: !Ref WSO2PublicSubnet2
+
+  WSO2PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref WSO2PublicRouteTable
+      GatewayId: !Ref WSO2InternetGateway
+      DestinationCidrBlock: 0.0.0.0/0
+    DependsOn: WSO2InternetGatewayAttachment
+
+  WSO2InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref WSO2InternetGateway
+      VpcId: !Ref WSO2VPC
+
+  WSO2PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WSO2VPC
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Subnet (AZ1)
+
+  WSO2PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WSO2VPC
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+
+  WSO2PrivateSubnetRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref WSO2VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Routes
+
+  WSO2PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref WSO2NATGateway
+      RouteTableId: !Ref WSO2PrivateSubnetRouteTable
+
+  WSO2PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref WSO2PrivateSubnetRouteTable
+      SubnetId: !Ref WSO2PrivateSubnet1
+
+  WSO2PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref WSO2PrivateSubnetRouteTable
+      SubnetId: !Ref WSO2PrivateSubnet2
+
+  WSO2NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt WSO2EIP.AllocationId
+      SubnetId: !Ref WSO2PublicSubnet1
+
+  WSO2BastionEIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !GetAtt WSO2BastionEIP.AllocationId
+      InstanceId: !Ref WSO2BastionInstance
+
+  WSO2EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  WSO2BastionEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref WSO2VPC
+      GroupDescription: Bastion Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+  WSO2BastionInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: stop
+      ImageId: !FindInMap
+        - WSO2AMIRegionMap
+        - !Ref AWS::Region
+        - !Ref OperatingSystem
+      InstanceType: !Ref BastionInstanceType
+      KeyName: !Ref KeyPairName
+      Monitoring: false
+      Tags:
+        - Key: Name
+          Value: WSO2BastionInstance
+      NetworkInterfaces:
+        - DeleteOnTermination: true
+          Description: Primary network interface
+          DeviceIndex: 0
+          SubnetId: !Ref WSO2PublicSubnet1
+          GroupSet:
+            - !Ref BastionSecurityGroup
+
+Outputs:
+  PrivateSubnet1:
+    Value: !Ref WSO2PrivateSubnet1
+    Description: Private Subnet for PuppetMaster, Prodcut Instance, EFS and the DB
+
+  PrivateSubnet2:
+    Value: !Ref WSO2PrivateSubnet2
+    Description: Private Subnet for Prodcut Instance and the DB
+
+  PublicSubnet1:
+    Value: !Ref WSO2PublicSubnet1
+    Description: Public Subnet for NAT Gateway, Bastion Instance and Load Balancer
+
+  PublicSubnet2:
+    Value: !Ref WSO2PublicSubnet2
+    Description: Public Subnet for Load Balancer
+
+  VPC:
+    Value: !Ref WSO2VPC
+    Description: VPC
+
+Parameters:
+  EnvironmentName:
+    Description: An environment name that is prefixed to resource names
+    Type: String
+    Default: TestGrid
+
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.0.0.0/16
+
+  PublicSubnet1CIDR:
+    Description: IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Type: String
+    Default: 10.0.254.0/24
+
+  PublicSubnet2CIDR:
+    Description: IP range (CIDR notation) for the public subnet in the second Availability Zone
+    Type: String
+    Default: 10.0.252.0/24
+
+  PrivateSubnet1CIDR:
+    Description: IP range (CIDR notation) for the private subnet in the first Availability Zone
+    Type: String
+    Default: 10.0.1.0/24
+
+  PrivateSubnet2CIDR:
+    Description: IP range (CIDR notation) for the private subnet in the second Availability Zone
+    Type: String
+    Default: 10.0.2.0/24
+
+  KeyPairName:
+    Description: The private key used to log in to instances through SSH
+    Type: AWS::EC2::KeyPair::KeyName
+
+  BastionInstanceType:
+    Description: Instance Type for the Bastion Instance
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.medium
+      - t2.large
+    ConstraintDescription: Must be a valid EC2 instance type
+
+  OperatingSystem:
+    Description: Operating System for Bastion Instance
+    Type: String
+    Default: Ubuntu1804
+    AllowedValues:
+      - Ubuntu1804
+      - CentOS7
+
+Mappings:
+  WSO2AMIRegionMap:
+    ap-southeast-2:
+      CentOS7: ami-0211f0ecd0e693937
+      Ubuntu1804: ami-0fc37bfc486b80d6d
+    eu-west-1:
+      CentOS7: ami-08137d567f9e9413e
+      Ubuntu1804: ami-005de30fe41bbe8f3
+    us-east-1:
+      CentOS7: ami-09d4e63ccc46083c7
+      Ubuntu1804: ami-02a2048d0e4afcd10
+    us-east-2:
+      CentOS7: ami-009ac95229cc07041
+      Ubuntu1804: ami-0a1af21a7b34de8f7
+    us-west-1:
+      CentOS7: ami-0062ecf9cd0c8417d
+      Ubuntu1804: ami-02cfec9ab1330bcbb
+    us-west-2:
+      CentOS7: ami-0cbe0a37066de0538
+      Ubuntu1804: ami-0cc3da810abe655e0
