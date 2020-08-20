@@ -20,7 +20,6 @@ set -o xtrace
 INPUTS_DIR=$2
 OUTPUTS_DIR=$4
 
-# SCRIPT_LOCATION=""
 PROP_FILE="${INPUTS_DIR}/deployment.properties"
 PRODUCT_GIT_URL=$(grep -w "PRODUCT_GIT_URL" ${PROP_FILE} | cut -d'=' -f2 | cut -d'/' -f3-)
 PRODUCT_GIT_BRANCH=$(grep -w "PRODUCT_GIT_BRANCH" ${PROP_FILE} | cut -d'=' -f2)
