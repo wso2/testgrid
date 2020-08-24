@@ -15,7 +15,7 @@
 #----------------------------------------------------------------------------
 #!/bin/bash
 
-set -o xtrace
+set -o xtrace; set -e
 
 WORKING_DIR=$(pwd)
 WSO2_PRODUCT_NAME=$1

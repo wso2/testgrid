@@ -15,19 +15,21 @@
 #----------------------------------------------------------------------------
 #!/bin/bash
 
-set -o xtrace
+set -o xtrace; set -e
 
 INPUTS_DIR=$2
+OUTPUTS_DIR=$4
 
-# SCRIPT_LOCATION=""
 PROP_FILE="${INPUTS_DIR}/deployment.properties"
 PRODUCT_GIT_URL=$(grep -w "PRODUCT_GIT_URL" ${PROP_FILE} | cut -d'=' -f2 | cut -d'/' -f3-)
 PRODUCT_GIT_BRANCH=$(grep -w "PRODUCT_GIT_BRANCH" ${PROP_FILE} | cut -d'=' -f2)
+PRODUCT_GIT_REPO_NAME=$(grep -w "PRODUCT_GIT_URL" ${PROP_FILE} | rev | cut -d'/' -f1 | rev | cut -d'.' -f1)
 keyFileLocation=$(grep -w "keyFileLocation" ${PROP_FILE} | cut -d'=' -f2)
 WSO2InstanceName=$(grep -w "WSO2InstanceName" ${PROP_FILE} | cut -d'=' -f2 | cut -d"/" -f3)
 OperatingSystem=$(grep -w "OS" ${PROP_FILE} | cut -d'=' -f2)
 PRODUCT_NAME=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f1)
 PRODUCT_VERSION=$(grep -w "WSO2_PRODUCT" ${PROP_FILE}| cut -d'=' -f2 | cut -d'-' -f2)
+TEST_REPORTS_DIR="$(grep -w "surefire_report_dir" ${PROP_FILE} | cut -d'=' -f2 )"
 
 SCRIPT_LOCATION=$(grep -w "TEST_SCRIPT_URL" ${PROP_FILE} | cut -d'=' -f2)
 TEST_SCRIPT_NAME=$(echo $SCRIPT_LOCATION | rev | cut -d'/' -f1 | rev)
@@ -57,3 +59,5 @@ scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLoca
 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${NEXUS_SCRIPT_PATH}/${NEXUS_SCRIPT_NAME} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/${NEXUS_SCRIPT_NAME}
 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} ${INFRA_JSON} $instanceUser@${WSO2InstanceName}:/opt/testgrid/workspace/infra.json
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation} $instanceUser@${WSO2InstanceName} "cd /opt/testgrid/workspace && sudo bash ${TEST_SCRIPT_NAME} ${PRODUCT_GIT_URL} ${PRODUCT_GIT_BRANCH} ${PRODUCT_NAME} ${PRODUCT_VERSION} ${GIT_USER} ${GIT_PASS}"
+mkdir -p ${OUTPUTS_DIR}/scenarios/integration-tests
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${keyFileLocation}  -r ${instanceUser}@${WSO2InstanceName}:/opt/testgrid/workspace/${PRODUCT_GIT_REPO_NAME}/${TEST_REPORTS_DIR}/surefire-reports ${OUTPUTS_DIR}/scenarios/integration-tests/.

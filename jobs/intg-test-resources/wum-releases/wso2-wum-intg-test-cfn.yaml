@@ -1,17 +1,3 @@
-# Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 AWSTemplateFormatVersion: 2010-09-09
 Description: AWS CloudFormation Template with an EC2 instance and a RDS
 Parameters:
@@ -177,15 +163,12 @@ Mappings:
     oracle-se1:
       license: license-included
   OperatingSystemAMI:
-    Ubuntu:
-      img: ami-025def472c84238d3
-    CentOS:
-      img: ami-01ad4ff4d5b37a948
-    RHEL:
-      img: ami-05b6fba4481489641
-    SUSE:
-      '12': ami-009fab158dcff70e0
-      '15': ami-084ec50fdb5ed5900
+    ami:
+      Ubuntu: ami-025def472c84238d3
+      CentOS: ami-01ad4ff4d5b37a948
+      RHEL: ami-05b6fba4481489641
+      SUSE: ami-009fab158dcff70e0
+
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
@@ -266,8 +249,8 @@ Resources:
       InstanceInitiatedShutdownBehavior: stop
       ImageId: !FindInMap
       - OperatingSystemAMI
+      - ami
       - !Ref OS
-      - !Ref OSVersion
       InstanceType: !Ref WSO2InstanceType
       KeyName: !Ref EC2KeyPair
       AvailabilityZone: !Select
@@ -409,8 +392,8 @@ Resources:
         InstanceInitiatedShutdownBehavior: stop
         ImageId: !FindInMap
         - OperatingSystemAMI
+        - ami
         - !Ref OS
-        - !Ref OSVersion
         InstanceType: !Ref WSO2InstanceType
         KeyName: !Ref EC2KeyPair
         Monitoring: 'false'
