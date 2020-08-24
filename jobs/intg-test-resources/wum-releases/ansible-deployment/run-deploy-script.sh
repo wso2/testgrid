@@ -15,7 +15,7 @@
 #----------------------------------------------------------------------------
 #!/bin/bash
 
-set -o xtrace;
+set -o xtrace; set -e
 
 INPUT_DIR=$2
 
@@ -41,7 +41,7 @@ sed -i "s|ANSIBLE_REPO_BRANCH|${ANSIBLE_BRANCH}|g" ${LOCAL_DEPLOYMENT_SCRIPT}
 
 if [ $OS = "Ubuntu" ]; then
     instanceUser="ubuntu"
-elif [ ${OperatingSystem} = "CentOS" ]; then
+elif [ $OS = "CentOS" ]; then
     instanceUser="centos"
 else
     instanceUser="ec2-user"
