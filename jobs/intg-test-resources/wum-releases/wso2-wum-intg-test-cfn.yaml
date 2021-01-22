@@ -125,6 +125,7 @@ Parameters:
     AllowedValues:
       - OPEN_JDK8
       - ORACLE_JDK8
+      - ORACLE_JDK11
       - ADOPT_OPEN_JDK8
       - CORRETTO_JDK8
       - OPEN_JDK11
