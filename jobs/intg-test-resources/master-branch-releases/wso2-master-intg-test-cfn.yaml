@@ -89,6 +89,7 @@ Parameters:
       - t3.micro
       - t3.medium
       - t3.large
+      - c3.xlarge
     ConstraintDescription: must be a valid EC2 instance type
   ProductName:
     Type: String
