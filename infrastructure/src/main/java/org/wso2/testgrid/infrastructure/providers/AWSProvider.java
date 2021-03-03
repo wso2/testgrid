@@ -803,6 +803,19 @@ public class AWSProvider implements InfrastructureProvider {
                                 ConfigurationProperties.AWS_ACCESS_KEY_SECRET_CLUSTERING));
                 cfCompatibleParameters.add(awsParameter);
             }
+            //Set Jenkins credentials
+            if (TestGridConstants.JENKINS_USERNAME_PROPERTY.equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(getProperty(
+                                ConfigurationProperties.JENKINS_USERNAME));
+                cfCompatibleParameters.add(awsParameter);
+            }
+            if (TestGridConstants.JENKINS_API_TOKEN_PROPERTY.equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(getProperty(
+                                ConfigurationProperties.JENKINS_API_TOKEN));
+                cfCompatibleParameters.add(awsParameter);
+            }
         }));
 
         return cfCompatibleParameters;
