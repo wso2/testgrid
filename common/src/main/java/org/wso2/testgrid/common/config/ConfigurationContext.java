@@ -135,6 +135,16 @@ public class ConfigurationContext {
         WUM_PASSWORD("WUM_PASSWORD"),
 
         /**
+         * Jenkins Username of TestGrid deployment
+         */
+        JENKINS_USERNAME("JENKINS_USERNAME"),
+
+        /**
+         * Jenkins user API token of TestGrid deployment
+         */
+        JENKINS_API_TOKEN("JENKINS_API_TOKEN"),
+
+        /**
          * Deployment Tinkerer endpoint of TestGrid deployment.
          */
         DEPLOYMENT_TINKERER_EP("DEPLOYMENT_TINKERER_EP"),

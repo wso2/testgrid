@@ -65,6 +65,9 @@ public class TestGridConstants {
     public static final String WUM_USERNAME_PROPERTY = "WUMUsername";
     public static final String WUM_PASSWORD_PROPERTY = "WUMPassword";
 
+    public static final String JENKINS_USERNAME_PROPERTY = "JenkinsUsername";
+    public static final String JENKINS_API_TOKEN_PROPERTY = "JenkinsAPIToken";
+
     /**
      * @deprecated Use test types from TestEngine instead.
      */
