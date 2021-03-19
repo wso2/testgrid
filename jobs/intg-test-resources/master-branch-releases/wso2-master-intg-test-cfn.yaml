@@ -334,7 +334,7 @@ Resources:
           #add product pack name to cfn properties 
           echo "REMOTE_PACK_NAME=$(echo ${ProductPackLocation} | rev | cut -d/ -f1 | cut -d. -f2- | rev)" >> cfn-props.properties
 
-          DB_PROV_SCRIPT_NAME=provision_db_${ProductName}_${ProductVersion}.sh
+          DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
 
           pwd
 
