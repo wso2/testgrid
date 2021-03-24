@@ -114,7 +114,7 @@
 					"password": "DB_PASSWORD"
 				}
 			],
-			"validation_query": "SELECT 1; COMMIT"
+			"validation_query": "SELECT 1 FROM DUAL"
 		}
 	]
 }
