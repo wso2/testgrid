@@ -103,13 +103,13 @@
             [
                 {
 					"name": "WSO2AM_COMMON_DB",
-					"url": "jdbc:oracle:thin:@DB_HOST:1521/DB_NAME",
+					"url": "jdbc:oracle:thin:@DB_HOST:1521/WSO2AMDB",
 					"username": "WSO2AM_COMMON_DB",
 					"password": "DB_PASSWORD"
 				},
 				{
 					"name": "WSO2AM_APIMGT_DB",
-					"url": "jdbc:oracle:thin:@DB_HOST:1521/DB_NAME",
+					"url": "jdbc:oracle:thin:@DB_HOST:1521/WSO2AMDB",
 					"username": "WSO2AM_APIMGT_DB",
 					"password": "DB_PASSWORD"
 				}
