@@ -52,6 +52,7 @@ Parameters:
       - db.m4.large
       - db.m4.xlarge
       - db.m4.2xlarge
+      - db.m5.large
     ConstraintDescription: must be a valid database instance type
   DBAllocatedStorage:
     Default: 20
