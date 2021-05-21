@@ -636,7 +636,7 @@
         <awaitility.version>3.0.0</awaitility.version>
         <guava.version>19.0</guava.version>
         <snakeyaml.version>1.24</snakeyaml.version>
-        <com.fasterxml.jackson.version>2.8.0</com.fasterxml.jackson.version>
+        <com.fasterxml.jackson.version>2.9.10.7</com.fasterxml.jackson.version>
         <apache.httpcomponents.fluent.version>5.0-alpha3</apache.httpcomponents.fluent.version>
         <apache.commons.io.version>2.6</apache.commons.io.version>
         <apache.commons.collections4.version>4.1</apache.commons.collections4.version>
