@@ -68,6 +68,8 @@ public class TestGridConstants {
     public static final String JENKINS_USERNAME_PROPERTY = "JenkinsUsername";
     public static final String JENKINS_API_TOKEN_PROPERTY = "JenkinsAPIToken";
 
+    public static final String U2_ENVIRONMENT = "U2Environment";
+
     /**
      * @deprecated Use test types from TestEngine instead.
      */

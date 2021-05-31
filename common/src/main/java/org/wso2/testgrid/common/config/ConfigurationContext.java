@@ -303,7 +303,12 @@ public class ConfigurationContext {
         /*
            Elastic Search Endpoint
          */
-        ES_ENDPOINT_URL("ES_ENDPOINT_URL");
+        ES_ENDPOINT_URL("ES_ENDPOINT_URL"),
+
+        /**
+         * U2 Environment
+         */
+        U2_ENVIRONMENT("U2Environment");
 
         private String propertyName;
 

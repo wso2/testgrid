@@ -816,6 +816,13 @@ public class AWSProvider implements InfrastructureProvider {
                                 ConfigurationProperties.JENKINS_API_TOKEN));
                 cfCompatibleParameters.add(awsParameter);
             }
+            // Set U2 environment
+            if (TestGridConstants.U2_ENVIRONMENT.equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(getProperty(
+                                ConfigurationProperties.U2_ENVIRONMENT));
+                cfCompatibleParameters.add(awsParameter);
+            }
         }));
 
         return cfCompatibleParameters;
