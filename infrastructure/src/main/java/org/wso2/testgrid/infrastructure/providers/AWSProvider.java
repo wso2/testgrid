@@ -816,6 +816,19 @@ public class AWSProvider implements InfrastructureProvider {
                                 ConfigurationProperties.JENKINS_API_TOKEN));
                 cfCompatibleParameters.add(awsParameter);
             }
+            //Set Github credentials
+            if (TestGridConstants.GITHUB_USERNAME_PROPERTY.equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(getProperty(
+                                ConfigurationProperties.GITHUB_USERNAME));
+                cfCompatibleParameters.add(awsParameter);
+            }
+            if (TestGridConstants.GITHUB_ACCESS_TOKEN_PROPERTY.equals(expected.getParameterKey())) {
+                Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
+                        withParameterValue(getProperty(
+                                ConfigurationProperties.GITHUB_ACCESS_TOKEN));
+                cfCompatibleParameters.add(awsParameter);
+            }
         }));
 
         return cfCompatibleParameters;
