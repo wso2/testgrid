@@ -68,6 +68,9 @@ public class TestGridConstants {
     public static final String JENKINS_USERNAME_PROPERTY = "JenkinsUsername";
     public static final String JENKINS_API_TOKEN_PROPERTY = "JenkinsAPIToken";
 
+    public static final String GITHUB_USERNAME_PROPERTY = "GithubUsername";
+    public static final String GITHUB_ACCESS_TOKEN_PROPERTY = "GithubAccessToken";
+
     /**
      * @deprecated Use test types from TestEngine instead.
      */

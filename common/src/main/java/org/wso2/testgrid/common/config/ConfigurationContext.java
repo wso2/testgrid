@@ -145,6 +145,16 @@ public class ConfigurationContext {
         JENKINS_API_TOKEN("JENKINS_API_TOKEN"),
 
         /**
+         * Github Username of TestGrid deployment
+         */
+        GITHUB_USERNAME("GITHUB_USERNAME"),
+
+        /**
+         * Github user access token of TestGrid deployment
+         */
+        GITHUB_ACCESS_TOKEN("GITHUB_ACCESS_TOKEN"),
+
+        /**
          * Deployment Tinkerer endpoint of TestGrid deployment.
          */
         DEPLOYMENT_TINKERER_EP("DEPLOYMENT_TINKERER_EP"),
