@@ -315,6 +315,11 @@ public class ConfigurationContext {
          */
         ES_ENDPOINT_URL("ES_ENDPOINT_URL");
 
+        /*
+           Testgird email password
+         */
+        TESTGRID_EMAIL_PASSWORD("TESTGRID_EMAIL_PASSWORD");
+
         private String propertyName;
 
         /**
