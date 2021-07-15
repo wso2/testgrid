@@ -827,6 +827,8 @@ public class AWSProvider implements InfrastructureProvider {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(getProperty(
                                 ConfigurationProperties.GITHUB_ACCESS_TOKEN));
+                cfCompatibleParameters.add(awsParameter);
+            }                
             if (TestGridConstants.TESTGRID_EMAIL_PASSWORD.equals(expected.getParameterKey())) {
                 Parameter awsParameter = new Parameter().withParameterKey(expected.getParameterKey()).
                         withParameterValue(getProperty(
