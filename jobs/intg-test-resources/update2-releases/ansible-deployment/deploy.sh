@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------
-#  Copyright (c) 2020 WSO2, Inc. http://www.wso2.org
+#  Copyright (c) 2021 WSO2, Inc. http://www.wso2.org
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -69,12 +69,11 @@ fi
 log_info "Successfully cloned ${ANSIBLE_REPO_NAME}"
 
 # copy product pack to ansible
-if [ -f /root/.wum3/products/$WSO2_PRODUCT_NAME/$WSO2_PRODUCT_VERSION/full/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION*.zip ]; then
+if [ -f /opt/testgrid/workspace/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION.zip ]; then
     echo "Updated pack available"
-    cp /root/.wum3/products/$WSO2_PRODUCT_NAME/$WSO2_PRODUCT_VERSION/full/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION*.zip ${ANSIBLE_REPO_NAME}/files/packs/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION.zip
+    cp /opt/testgrid/workspace/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION.zip ${ANSIBLE_REPO_NAME}/files/packs/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION.zip
 else
-    echo "Updated pack not available. proceeding with vanilla pack"
-    cp /root/.wum3/products/$WSO2_PRODUCT_NAME/$WSO2_PRODUCT_VERSION/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION.zip ${ANSIBLE_REPO_NAME}/files/packs/$WSO2_PRODUCT_NAME-$WSO2_PRODUCT_VERSION.zip
+    echo "Updated pack not available."
 fi
 
 log_info "Updating ansible resources"

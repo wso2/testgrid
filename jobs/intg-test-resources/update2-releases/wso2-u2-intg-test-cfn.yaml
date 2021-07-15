@@ -350,10 +350,11 @@ Resources:
           aws configure set aws_access_key_id '${AWSAccessKeyId}'
           aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
           aws configure set default.region us-east-1
-          aws s3 cp s3://wum-for-testgrid/uat-config.json /home/ubuntu/uat-config.json
-          aws s3 cp s3://wum-for-testgrid/wso2-update.sh /home/ubuntu/wso2-update.sh
-          chmod +x /home/ubuntu/wso2-update.sh
-          sudo bash /home/ubuntu/wso2-update.sh '${WUMUsername}' '${WUMPassword}' ${ProductName} ${ProductVersion}
+          aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
+          wget "https://wso2-installers-resources.s3.amazonaws.com/updates2.0/${ProductName}/${ProductVersion}/${ProductName}-${ProductVersion}.zip"          
+          wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
+          chmod +x /opt/testgrid/workspace/wso2-update.sh
+          sudo bash /opt/testgrid/workspace/wso2-update.sh '${WUMUsername}' '${WUMPassword}' '${ProductName}-${ProductVersion}'
 
           echo ${OS}
           if [[ ${OS} == "Ubuntu" ]]; then
