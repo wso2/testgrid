@@ -140,6 +140,7 @@ public class DeployPhase extends Phase {
         generalPropertyList.put(ConfigurationContext.ConfigurationProperties.ES_ENDPOINT_URL, "elasticsearchEndPoint");
         generalPropertyList.put(ConfigurationContext.ConfigurationProperties.TESTGRID_ENVIRONMENT, "environment");
         generalPropertyList.put(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS, "password");
+        generalPropertyList.put(ConfigurationContext.ConfigurationProperties.TESTGRID_EMAIL_PASSWORD, "TESTGRID_EMAIL_PASSWORD");
         // Params to for Log File extraction through Mutating WebHook
         additionalDepProps.put("depRepoLocation", getTestPlan().getDeploymentRepository());
 
