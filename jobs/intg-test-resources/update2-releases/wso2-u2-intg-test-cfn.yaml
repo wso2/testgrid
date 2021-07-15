@@ -88,6 +88,7 @@ Parameters:
       - t3.micro
       - t3.medium
       - t3.large
+      - c3.xlarge
     ConstraintDescription: must be a valid EC2 instance type
   WUMUsername:
     Type: String
@@ -143,7 +144,7 @@ Parameters:
   AWSAccessKeyId:
     Type: String
   AWSAccessKeySecret:
-    Type: String   
+    Type: String
 Mappings:
   DB2Licence:
     mysql:
@@ -301,7 +302,7 @@ Resources:
           if [[ ${OS} == "SUSE" ]]; then
             zypper install -y zip unzip
             zypper install -y python-pip
-          fi 
+          fi
 
           pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
 
@@ -351,7 +352,7 @@ Resources:
           aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
           aws configure set default.region us-east-1
           aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
-          wget "https://wso2-installers-resources.s3.amazonaws.com/updates2.0/${ProductName}/${ProductVersion}/${ProductName}-${ProductVersion}.zip"          
+          wget "https://wso2-installers-resources.s3.amazonaws.com/updates2.0/${ProductName}/${ProductVersion}/${ProductName}-${ProductVersion}.zip"
           wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
           chmod +x /opt/testgrid/workspace/wso2-update.sh
           sudo bash /opt/testgrid/workspace/wso2-update.sh '${WUMUsername}' '${WUMPassword}' '${ProductName}-${ProductVersion}'
@@ -493,7 +494,7 @@ Outputs:
   WSO2PublicIP:
     Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref 'AWS::NoValue']]
     Description: Private IP of the WSO2 Product Instance
-  WSO2InstanceName: 
+  WSO2InstanceName:
     Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}', !Ref 'AWS::NoValue']]
     Description: Instance DNS Name
   DatabaseHost:
