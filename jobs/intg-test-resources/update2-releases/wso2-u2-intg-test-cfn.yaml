@@ -467,7 +467,7 @@ Resources:
     Condition: 'IsDBEnabled'
     Properties:
       AllocatedStorage: !Ref DBAllocatedStorage
-      DBInstanceClass: !Ref DBClass
+      DBInstanceClass: 'm5.xlarge'
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
       DBName: !If [UseSQLServerDB, "", !Ref DBName]
