@@ -313,7 +313,7 @@ public class ConfigurationContext {
         /*
            Elastic Search Endpoint
          */
-        ES_ENDPOINT_URL("ES_ENDPOINT_URL");
+        ES_ENDPOINT_URL("ES_ENDPOINT_URL"),
 
         /*
            Testgird email password
