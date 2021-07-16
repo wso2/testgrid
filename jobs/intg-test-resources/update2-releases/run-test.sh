@@ -34,7 +34,7 @@ TEST_REPORTS_DIR="$(grep -w "surefire_report_dir" ${PROP_FILE} | cut -d'=' -f2 )
 SCRIPT_LOCATION=$(grep -w "TEST_SCRIPT_URL" ${PROP_FILE} | cut -d'=' -f2)
 TEST_SCRIPT_NAME=$(echo $SCRIPT_LOCATION | rev | cut -d'/' -f1 | rev)
 NEXUS_SCRIPT_NAME="uat-nexus-settings.xml"
-NEXUS_SCRIPT_PATH="/testgrid/testgrid-home/jobs/wum-intg-test-${PRODUCT_NAME}-${PRODUCT_VERSION}"
+NEXUS_SCRIPT_PATH="/testgrid/testgrid-home/jobs/u2-intg-test-${PRODUCT_NAME}-${PRODUCT_VERSION}-full"
 INFRA_JSON=$INPUTS_DIR/../workspace/InfraRepository/jobs/intg-test-resources/infra.json
 GIT_USER=$(grep -w "GIT_WUM_USERNAME" ${PROP_FILE} | cut -d'=' -f2)
 GIT_PASS=$(grep -w "GIT_WUM_PASSWORD" ${PROP_FILE} | cut -d'=' -f2)
