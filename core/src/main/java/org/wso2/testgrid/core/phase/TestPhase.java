@@ -223,6 +223,9 @@ public class TestPhase extends Phase {
             tgProperties.put("password", testgridPassword);
         }
 
+        tgProperties
+                .put(TestGridConstants.TESTGRID_EMAIL_PASSWORD, ConfigurationContext
+                        .ConfigurationProperties.TESTGRID_EMAIL_PASSWORD);
         JsonPropFileUtil.persistAdditionalInputs(tgProperties, deplPropPath, deplJsonPath);
         JsonPropFileUtil.updateParamsJson(deplJsonPath, "test", outputJsonPath);
 
