@@ -40,7 +40,7 @@ Parameters:
     MinLength: 6
     ConstraintDescription: minimum - 6 characters
   DBClass:
-    Default: db.t2.micro
+    Default: db.m4.large
     Description: Database instance class
     Type: String
     AllowedValues:
@@ -53,6 +53,7 @@ Parameters:
       - db.m4.large
       - db.m4.xlarge
       - db.m4.2xlarge
+      - db.m5.large
     ConstraintDescription: must be a valid database instance type
   DBAllocatedStorage:
     Default: 20
@@ -78,13 +79,12 @@ Parameters:
   WSO2InstanceType:
     Description: 'EC2 instance type of the WSO2 EI Node [t2.micro is the free tier]'
     Type: String
-    Default: t3.large
+    Default: t2.large
     AllowedValues:
       - t2.micro
       - t2.small
       - t2.medium
       - t2.large
-      - t2.xlarge
       - t3.micro
       - t3.medium
       - t3.large
@@ -107,7 +107,7 @@ Parameters:
     Description: Enter product name
   ProductVersion:
     Type: String
-    Default: 2.1.0
+    Default: 3.2.0
     Description: Enter product version
   OS:
     Type: String
@@ -126,7 +126,6 @@ Parameters:
     AllowedValues:
       - OPEN_JDK8
       - ORACLE_JDK8
-      - ORACLE_JDK11
       - ADOPT_OPEN_JDK8
       - CORRETTO_JDK8
       - OPEN_JDK11
@@ -170,11 +169,14 @@ Mappings:
     oracle-se1:
       license: license-included
   OperatingSystemAMI:
-    ami:
-      Ubuntu: ami-025def472c84238d3
-      CentOS: ami-01ad4ff4d5b37a948
-      RHEL: ami-05b6fba4481489641
-      SUSE: ami-009fab158dcff70e0
+    Ubuntu:
+      img: ami-025def472c84238d3
+    CentOS:
+      img: ami-01ad4ff4d5b37a948
+    RHEL:
+      img: ami-05b6fba4481489641
+    SUSE:
+      img: ami-009fab158dcff70e0
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OS, "Windows" ]
@@ -238,25 +240,20 @@ Resources:
     Metadata:
       'AWS::CloudFormation::Designer':
         id: d0dcc88f-97f7-4d80-901a-f746d372a295
-  WSO2UnixInstanceEIPAssociation:
-    Type: AWS::EC2::EIPAssociation
-    Properties:
-      AllocationId: eipalloc-0e63f1906029057fc
-      InstanceId: !Ref WSO2UnixInstance
   WSO2UnixInstance:
     Type: 'AWS::EC2::Instance'
     Condition: 'IsUnix'
     CreationPolicy:
       ResourceSignal:
         Count: '1'
-        Timeout: PT20M
+        Timeout: PT60M
     Properties:
       DisableApiTermination: 'false'
       InstanceInitiatedShutdownBehavior: stop
       ImageId: !FindInMap
-      - OperatingSystemAMI
-      - ami
-      - !Ref OS
+        - OperatingSystemAMI
+        - !Ref OS
+        - img
       InstanceType: !Ref WSO2InstanceType
       KeyName: !Ref EC2KeyPair
       AvailabilityZone: !Select
@@ -298,6 +295,16 @@ Resources:
             yum install -y epel-release zip unzip
             yum install -y python-pip
             yum install -y jq
+            dnf update -y
+            dnf install python3 -y
+            pip install --upgrade pip
+            yum -y install wget
+            wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
+            wget https://packages.microsoft.com/config/rhel/7/prod.repo -O /etc/yum.repos.d/msprod.repo
+            yum install -y mssql-tools unixODBC-devel
+            echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
+            echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+            source ~/.bashrc
           fi
           if [[ ${OS} == "SUSE" ]]; then
             zypper install -y zip unzip
@@ -344,9 +351,11 @@ Resources:
           echo "CF_DB_HOST=${WSO2DBInstance.Endpoint.Address}" >> cfn-props.properties
           echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
           echo "SID=${DBName}" >> cfn-props.properties
+          #add product pack name to cfn properties
+          echo "REMOTE_PACK_NAME=${ProductName}-${ProductVersion}" >> cfn-props.properties
           curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
           unzip awscli-bundle.zip
-          ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+          python3 ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
           aws --version
           aws configure set aws_access_key_id '${AWSAccessKeyId}'
           aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
@@ -355,8 +364,20 @@ Resources:
           wget "https://wso2-installers-resources.s3.amazonaws.com/updates2.0/${ProductName}/${ProductVersion}/${ProductName}-${ProductVersion}.zip"
           wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
           chmod +x /opt/testgrid/workspace/wso2-update.sh
-          sudo bash /opt/testgrid/workspace/wso2-update.sh '${WUMUsername}' '${WUMPassword}' '${ProductName}-${ProductVersion}'
+          DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
 
+          pwd
+
+          wget https://integration-testgrid-resources.s3.amazonaws.com/db_scripts/$DB_PROV_SCRIPT_NAME
+          chmod +x $DB_PROV_SCRIPT_NAME
+
+          sed -i "s/&CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
+          sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
           echo ${OS}
           if [[ ${OS} == "Ubuntu" ]]; then
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
@@ -405,10 +426,10 @@ Resources:
       Properties:
         DisableApiTermination: 'false'
         InstanceInitiatedShutdownBehavior: stop
-        ImageId: !FindInMap
-        - OperatingSystemAMI
-        - ami
-        - !Ref OS
+        ImageId: FindInMap
+          - OperatingSystemAMI
+          - !Ref OS
+          - img
         InstanceType: !Ref WSO2InstanceType
         KeyName: !Ref EC2KeyPair
         Monitoring: 'false'
@@ -468,11 +489,11 @@ Resources:
     Condition: 'IsDBEnabled'
     Properties:
       AllocatedStorage: !Ref DBAllocatedStorage
-      DBInstanceClass: db.m5.xlarge
+      DBInstanceClass: db.m5.large
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
       DBName: !If [UseSQLServerDB, "", !Ref DBName]
-      DBInstanceIdentifier: wso2-dbinstance
+      DBInstanceIdentifier: wso2-dbinstance-1
       LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
