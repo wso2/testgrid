@@ -361,6 +361,7 @@ Resources:
           aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
           aws configure set default.region us-east-1
           aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
+          aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
           wget "https://wso2-installers-resources.s3.amazonaws.com/updates2.0/${ProductName}/${ProductVersion}/${ProductName}-${ProductVersion}.zip"
           wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
           chmod +x /opt/testgrid/workspace/wso2-update.sh
