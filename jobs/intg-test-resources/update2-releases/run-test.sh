@@ -15,7 +15,7 @@
 #----------------------------------------------------------------------------
 #!/bin/bash
 
-set -o xtrace; set -e
+set -o xtrace
 
 INPUTS_DIR=$2
 OUTPUTS_DIR=$4
