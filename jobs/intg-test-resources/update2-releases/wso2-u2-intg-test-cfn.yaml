@@ -172,7 +172,7 @@ Mappings:
     Ubuntu:
       img: ami-025def472c84238d3
     CentOS:
-      img: ami-01ad4ff4d5b37a948
+      img: ami-0c6e499577dc522ef
     RHEL:
       img: ami-05b6fba4481489641
     SUSE:
@@ -326,7 +326,7 @@ Resources:
           chmod 777 -R /opt/testgrid
           cd /opt/testgrid/workspace
 
-          setup_java_env
+          //setup_java_env
           echo "Installing Apache Maven"
           wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
           tar -xzf apache-maven-${MavenVersion}-bin.tar.gz
@@ -362,7 +362,7 @@ Resources:
           /usr/local/bin/aws configure set default.region us-east-1
           /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
           /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
-          wget "https://wso2-installers-resources.s3.amazonaws.com/updates2.0/${ProductName}/${ProductVersion}/${ProductName}-${ProductVersion}.zip"
+          cp /home/centos/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
           wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
           chmod +x /opt/testgrid/workspace/wso2-update.sh
           DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
