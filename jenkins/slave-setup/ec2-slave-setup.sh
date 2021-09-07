@@ -64,6 +64,9 @@ chown -R ubuntu:ubuntu ${TESTGRID_HOME}
 
 rm ${MASTER_KEY_LOCATION}
 
+# Add EI backends
+echo "172.31.86.212      ei-backend.scenarios.wso2.org" >> /etc/hosts
+
 # Install GCloud
 #export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
 #echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" \
