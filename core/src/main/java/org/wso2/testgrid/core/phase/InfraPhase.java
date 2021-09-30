@@ -19,7 +19,6 @@
 
 package org.wso2.testgrid.core.phase;
 
-import org.wso2.testgrid.common.GrafanaDashboardHandler;
 import org.wso2.testgrid.common.InfrastructureProvider;
 import org.wso2.testgrid.common.InfrastructureProvisionResult;
 import org.wso2.testgrid.common.TestGridConstants;
