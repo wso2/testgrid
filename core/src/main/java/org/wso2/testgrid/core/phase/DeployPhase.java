@@ -69,9 +69,10 @@ public class DeployPhase extends Phase {
         if (getTestPlan().getPhase().equals(TestPlanPhase.INFRA_PHASE_SUCCEEDED) &&
                 getTestPlan().getStatus().equals(TestPlanStatus.RUNNING)) {
             persistTestPlanPhase(TestPlanPhase.DEPLOY_PHASE_STARTED);
+            logger.info("Deploy Phase: verify pre condition...");
             return true;
         } else {
-            logger.error("INFRA phase was not succeeded for test-plan: " + getTestPlan().getId() + "Hence" +
+            logger.info("INFRA phase was not succeeded for test-plan: " + getTestPlan().getId() + "Hence" +
                     "not starting other phases.");
             persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
             return false;
@@ -81,6 +82,7 @@ public class DeployPhase extends Phase {
     @Override
     void executePhase() {
         try {
+            logger.info("Deploy Phase: Create deployment...");
             DeploymentCreationResult deploymentCreationResult = createDeployment();
             getTestPlan().setDeploymentCreationResult(deploymentCreationResult);
             if (!deploymentCreationResult.isSuccess()) {
@@ -88,6 +90,7 @@ public class DeployPhase extends Phase {
                 for (ScenarioConfig scenarioConfig : getTestPlan().getScenarioConfigs()) {
                     scenarioConfig.setStatus(Status.DID_NOT_RUN);
                 }
+                logger.info("Deploy Phase: persist test plan...");
                 persistTestPlan();
 
                 logger.error(StringUtil.concatStrings(
@@ -114,10 +117,11 @@ public class DeployPhase extends Phase {
 
         DeploymentCreationResult result = new DeploymentCreationResult();
 
+        logger.info("Deploy Phase: Check Infrastructure Provision Result...");
         if (!infrastructureProvisionResult.isSuccess()) {
             DeploymentCreationResult nresult = new DeploymentCreationResult();
             result.setSuccess(false);
-            logger.debug("Deployment result: " + nresult);
+            logger.info("Deployment result: " + nresult);
             return result;
         }
 
@@ -142,7 +146,7 @@ public class DeployPhase extends Phase {
         generalPropertyList.put(ConfigurationContext.ConfigurationProperties.TESTGRID_PASS, "password");
         // Params to for Log File extraction through Mutating WebHook
         additionalDepProps.put("depRepoLocation", getTestPlan().getDeploymentRepository());
-
+        logger.info("Deploy Phase: Property list generation completed...");
 
         for (Entry<ConfigurationContext.ConfigurationProperties,
                 String> configPropStringpair : generalPropertyList.entrySet()) {
@@ -166,13 +170,13 @@ public class DeployPhase extends Phase {
             }
         }
         // Params to edit /etc/hosts file in local TestGrid
-        
+        logger.info("Deploy Phase: Persist Additional Inputs...");
         JsonPropFileUtil.persistAdditionalInputs(additionalDepProps, infraOutFilePath, infraOutJSONFilePath);
         JsonPropFileUtil.updateParamsJson(infraOutJSONFilePath, "dep", outputjsonFilePath);
 
         try {
 
-
+            logger.info("Deploy Phase: Creation deployments...");
             for (Script script: getTestPlan().getDeploymentConfig().getFirstDeploymentPattern().getScripts()) {
                 printMessage("\t\t Creating deployment: " + script.getName());
 
@@ -196,6 +200,7 @@ public class DeployPhase extends Phase {
                 }
                 
             }
+            logger.info("Deploy Phase: Creation deployments completed...");
             return result;
         } catch (TestGridDeployerException e) {
             persistTestPlanProgress(TestPlanPhase.DEPLOY_PHASE_ERROR, TestPlanStatus.ERROR);
@@ -262,7 +267,7 @@ public class DeployPhase extends Phase {
             throws TestPlanExecutorException {
         InfrastructureProvisionResult infrastructureProvisionResult = getTestPlan().getInfrastructureProvisionResult();
         DeploymentCreationResult deploymentCreationResult = getTestPlan().getDeploymentCreationResult();
-
+        logger.info("Deployment Phase: Release Infrastructure...");
         try {
             printMessage("\t\t Releasing infrastructure: " + getTestPlan()
                     .getInfrastructureConfig().getFirstProvisioner().getName());
@@ -288,6 +293,7 @@ public class DeployPhase extends Phase {
                     infrastructureProvider.cleanup(getTestPlan());
                 }
             }
+            logger.info("Deployment Phase: Release Infrastructure completed...");
         } catch (TestGridInfrastructureException e) {
             throw new TestPlanExecutorException(StringUtil
                     .concatStrings("Error on infrastructure removal for deployment pattern '",

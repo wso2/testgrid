@@ -94,6 +94,7 @@ public class TestPhase extends Phase {
         if (getTestPlan().getPhase().equals(TestPlanPhase.DEPLOY_PHASE_SUCCEEDED) &&
                 getTestPlan().getStatus().equals(TestPlanStatus.RUNNING)) {
             persistTestPlanPhase(TestPlanPhase.TEST_PHASE_STARTED);
+            logger.info("DEPLOY phase was succeeded for test-plan:" + getTestPlan().getId());
             return true;
         } else {
             logger.error("DEPLOY phase was not succeeded for test-plan: " + getTestPlan().getId() + "Hence" +
@@ -108,6 +109,7 @@ public class TestPhase extends Phase {
     void executePhase() {
 
         try {
+            logger.info("Test Phase: Running scenario tests...");
             runScenarioTests();
             if (!getTestPlan().getStatus().equals(TestPlanStatus.RUNNING) ||
                     !getTestPlan().getPhase().equals(TestPlanPhase.TEST_PHASE_STARTED)) {
@@ -122,6 +124,7 @@ public class TestPhase extends Phase {
         }
 
         try {
+            logger.info("Test Phase: Perform post test plan actions...");
             //post test plan actions also belongs to the TEST-Phase
             performPostTestPlanActions();
 
@@ -136,9 +139,11 @@ public class TestPhase extends Phase {
         if (iacProvider != null) {
             switch (getTestPlan().getInfrastructureConfig().getIacProvider()) {
                 case CLOUDFORMATION:
+                    logger.info("Test Phase: IaC provider - CloudFormation");
                     uploadDeploymentOutputsToS3();
                     break;
                 case KUBERNETES:
+                    logger.info("Test Phase: IaC provider - Kubernetes");
                     createPermaDashBoard();
                     uploads3ClientLogs();
                     break;
@@ -151,7 +156,9 @@ public class TestPhase extends Phase {
         }
 
         // Test plan completed. Update and persist testplan status
+        logger.info("Test Phase: Update test plan status based on results...");
         updateTestPlanStatusBasedOnResults();
+        logger.info("Test Phase: Update test plan status based on results completed...");
         // Cleanup
         try {
             releaseInfrastructure();

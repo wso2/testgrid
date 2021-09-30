@@ -58,6 +58,7 @@ public class InfraPhase extends Phase {
     boolean verifyPrecondition() {
         if (getTestPlan().getPhase().equals(TestPlanPhase.PREPARATION_SUCCEEDED) &&
                 getTestPlan().getStatus().equals(TestPlanStatus.RUNNING)) {
+            logger.info("Infra Phase: verify pre condition...");
             return true;
         } else {
             logger.error("PREPARATION phase was not succeeded for test-plan: " + getTestPlan().getId() + ". Hence" +
@@ -70,15 +71,18 @@ public class InfraPhase extends Phase {
     @Override
     void executePhase() {
         // Provision infrastructure
+        logger.info("Infra Phase: Persist Test Plan Phase started...");
         persistTestPlanPhase(TestPlanPhase.INFRA_PHASE_STARTED);
         InfrastructureProvisionResult infrastructureProvisionResult =
                 provisionInfrastructure();
         //setup product performance dashboard
         if (infrastructureProvisionResult.isSuccess()) {
+            logger.info("Infra Phase: Set Infrastructure Provision Result Success status is true...");
             GrafanaDashboardHandler dashboardSetup = new GrafanaDashboardHandler(getTestPlan().getId());
             dashboardSetup.initDashboard();
             persistTestPlanPhase(TestPlanPhase.INFRA_PHASE_SUCCEEDED);
         }
+        logger.info("Infra Phase: Set Infrastructure Provision Result");
         getTestPlan().setInfrastructureProvisionResult(infrastructureProvisionResult);
     }
 
@@ -88,7 +92,7 @@ public class InfraPhase extends Phase {
     private InfrastructureProvisionResult provisionInfrastructure() {
         InfrastructureConfig infrastructureConfig = getTestPlan().getInfrastructureConfig();
         try {
-
+            logger.info("Infra Phase: Provision Infrastructure...");
             Path testPropFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
                     .resolve(DataBucketsHelper.TESTPLAN_PROPERTIES_FILE);
             Path testJsonFilePath = DataBucketsHelper.getInputLocation(getTestPlan())
@@ -127,8 +131,10 @@ public class InfraPhase extends Phase {
                 infraParams.put(TestGridConstants.KEY_FILE_LOCATION, keyFileLocation);
             }
 
+            logger.info("Infra Phase: Persist Additional inputs...");
             JsonPropFileUtil.persistAdditionalInputs(infraParams, testPropFilePath, testJsonFilePath);
 
+            logger.info("Infra Phase: Update Params Json...");
             JsonPropFileUtil.updateParamsJson(testJsonFilePath, "infra", outputjsonFilePath);
 
             for (Script script : infrastructureConfig.getFirstProvisioner().getScripts()) {
@@ -143,6 +149,7 @@ public class InfraPhase extends Phase {
                     logger.info("--- executing script: " + script.getName() + ", file: " + script.getFile());
                     InfrastructureProvisionResult aProvisionResult =
                             infrastructureProvider.provision(getTestPlan(), script);
+                    logger.info("Infra Phase: Add provision results to list...");
                     addTo(provisionResult, aProvisionResult);
                     if (!aProvisionResult.isSuccess()) {
                         logger.warn("Infra script '" + script.getName() + "' failed. Not running remaining scripts.");
@@ -155,7 +162,7 @@ public class InfraPhase extends Phase {
             provisionResult.setName(infrastructureConfig.getFirstProvisioner().getName());
             //TODO: remove. deploymentScriptsDir is deprecated now in favor of DeploymentConfig.
             provisionResult.setDeploymentScriptsDir(Paths.get(getTestPlan().getDeploymentRepository()).toString());
-            logger.debug("Infrastructure provision result: " + provisionResult);
+            logger.info("Infrastructure provision result: " + provisionResult);
             return provisionResult;
         } catch (TestGridInfrastructureException e) {
             persistTestPlanProgress(TestPlanPhase.INFRA_PHASE_ERROR, TestPlanStatus.ERROR);
@@ -188,10 +195,10 @@ public class InfraPhase extends Phase {
                 logger.error("Error while moving " + testPlanPropsFile);
             }
         }
-
+        logger.info("Infra Phase: Set Infrastructure Provision Result Success status to false...");
         InfrastructureProvisionResult infrastructureProvisionResult = new InfrastructureProvisionResult();
         infrastructureProvisionResult.setSuccess(false);
-        logger.debug("Infrastructure provision result: " + infrastructureProvisionResult);
+        logger.info("Infrastructure provision result: " + infrastructureProvisionResult);
         return infrastructureProvisionResult;
     }
 

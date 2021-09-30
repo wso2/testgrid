@@ -43,7 +43,6 @@ public class Main {
             parser.parseArgument(args);
             String testGridHome = TestGridUtil.getTestGridHomePath();
             logger.info("TestGrid Home\t: " + testGridHome);
-
             commandHandler.execute();
             logger.info("Command execution has completed.");
             System.exit(0);
