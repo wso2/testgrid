@@ -86,9 +86,7 @@ kubectl create secret tls ${tlskeySecret} \
     --cert ${INPUT_DIR}/testgrid-certs-v2.crt  \
     --key ${INPUT_DIR}/testgrid-certs-v2.key -n ${namespace}
 
-
-echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR" >> ${OUTPUT_DIR}/deployment.properties
-
+echo "public key to access the endpoints using the Ingress is available in $OUTPUT_DIR/deployment.properties"
 
     cat > ${ingressName}.yaml << EOF
 apiVersion: extensions/v1beta1
@@ -288,6 +286,22 @@ echo
 
 
 
+function install_helm(){
+    #if helm is not installed in the cluster, helm will be installed.
+    if command -v helm && helm version --template "{{.Client.SemVer}}" | grep "v3\.[0-9]*\.[0-9]*"; then
+        helm version
+        return;
+    fi
+    wget -q https://get.helm.sh/helm-v3.0.0-alpha.1-linux-amd64.tar.gz
+    tar -zxvf helm-v3.0.0-alpha.1-linux-amd64.tar.gz
+    [[ -f ~/.local/bin/ ]] && mkdir ~/.local/bin/mkdir ~/.local/bin/
+    PATH=~/.local/bin/:$PATH
+    mv linux-amd64/helm ~/.local/bin/helm
+    ~/.local/bin/helm init
+
+    echo "Helm version:" `helm version --short`
+}
+
 # Read a property file to a given associative array
 #
 # $1 - Property file
@@ -297,6 +311,10 @@ echo
 # read_property_file testplan-props.properties somearray
 read_property_file() {
     local property_file_path=$1
+    if [[ ! -f $1 ]]; then
+        echo "[WARN] property file not found: $property_file_path"
+        return;
+    fi
     # Read configuration into an associative array
     # IFS is the 'internal field separator'. In this case, your file uses '='
     local -n configArray=$2

@@ -81,10 +81,16 @@ function check_tools() {
 
 }
 
-
+## exit code 78 == gcloud authentication key missing
 function auth() {
-    echo 'setting up authentication...'
-    #authentication access to the google cloud
+    echo 'authenticating to gcloud...'
+    if [[ ! -f $INPUT_DIR/key.json ]]; then
+        >&2 echo "[ERROR] Cannot authenticate to gcloud. Expected the private key of GKE service account, " \
+        "$SERVICE_ACCOUNT(key.json).
+    If you are running TG locally, then request a key from TG team, and place it at $INPUT_DIR/key.json. " \
+    "After that, re-run the command."
+    sleep .1 && exit 140
+    fi
     gcloud auth activate-service-account --key-file=$INPUT_DIR/key.json
 
     #service account setup
