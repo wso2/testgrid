@@ -72,17 +72,21 @@ public class GrafanaDashboardHandler {
             logger.info("Grafana dashboard is not configured for this testgrid deployment");
             return;
         }
+        logger.info("Grafana dashboard is configured for this testgrid deployment");
         // create influxDB database according to tp_id
         InfluxDB influxDB = null;
         try {
+            logger.info("Connecting to InfluxDB");
             influxDB = InfluxDBFactory.connect(TestGridConstants.HTTP + restUrl, username, password);
             String dbName = testplanID;
+            logger.info("Creating InfluxDB database");
             influxDB.createDatabase(dbName);
 
             logger.info(StringUtil.concatStrings("database created for testplan: ", testplanID,
                     "and DB name: ", dbName));
 
             // add a new data source to grafana
+            logger.info("Add a new data source to grafana");
             addGrafanaDataSource();
             //TODO: Fixing immediate build hanging issue.
             //configureTelegrafHost();
@@ -96,6 +100,7 @@ public class GrafanaDashboardHandler {
         } finally {
             if (influxDB != null) {
                 try {
+                    logger.info("Closing the influxDB connection");
                     influxDB.close();
                 } catch (Exception e) {
                     logger.error("Couldn't close the influxDB connection");
