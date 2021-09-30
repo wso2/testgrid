@@ -104,7 +104,7 @@ public class CommandHandler extends HelpCommand {
 
     @Override
     public void execute() throws CommandExecutionException {
-        log.debug("In Command Handler");
+        log.info("In Command Handler");
         if (help) {
             super.execute();
             return;

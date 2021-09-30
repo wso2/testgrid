@@ -60,6 +60,7 @@ public abstract class Phase {
         if (verifyPrecondition()) {
              executePhase();
         }
+        printMessageWithTestPlanProgress("End of " + getClass().getSimpleName());
         return testPlan;
     }
 
