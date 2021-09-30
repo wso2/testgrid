@@ -72,7 +72,6 @@ public class GrafanaDashboardHandler {
             logger.info("Grafana dashboard is not configured for this testgrid deployment");
             return;
         }
-        logger.info("Grafana dashboard is configured for this testgrid deployment ...");
         // create influxDB database according to tp_id
         InfluxDB influxDB = null;
         try {
