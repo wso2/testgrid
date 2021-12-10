@@ -643,7 +643,7 @@
         <apache.velocity.version>1.7</apache.velocity.version>
         <!-- Logging dependencies -->
         <slf4j.version>1.7.25</slf4j.version>
-        <log4j.version>2.11.0</log4j.version>
+        <log4j.version>2.15.0</log4j.version>
         <!--Dashboard dependencies-->
         <org.codehaus.mojo.version>1.3.2</org.codehaus.mojo.version>
         <!--Findbugs dependencies-->
