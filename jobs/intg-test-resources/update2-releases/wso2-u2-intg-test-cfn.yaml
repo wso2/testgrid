@@ -173,7 +173,7 @@ Mappings:
     Ubuntu:
       img: ami-025def472c84238d3
     CentOS:
-      img: ami-0c6e499577dc522ef
+      img: ami-044935fa8f784339d
     RHEL:
       img: ami-05b6fba4481489641
     SUSE:
@@ -322,6 +322,9 @@ Resources:
 
             export JAVA_HOME=/opt/$1
             ln -sf /opt/$1/bin/java /usr/bin/java
+            
+            java -version
+            javac -version
           }
 
           mkdir -p /opt/testgrid/workspace
