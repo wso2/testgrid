@@ -321,7 +321,7 @@ Resources:
             mkdir -p /opt/$1 && tar -xzf $2 -C /opt/$1 --strip-component=1
 
             export JAVA_HOME=/opt/$1
-            ln -s /opt/$1/bin/java /usr/bin/java
+            ln -sf /opt/$1/bin/java /usr/bin/java
           }
 
           mkdir -p /opt/testgrid/workspace
@@ -341,8 +341,7 @@ Resources:
             else
               setup_java_env $JDK8 $JDK8_BIN
           fi
-          
-          setup_java_env
+         
           echo "Installing Apache Maven"
           wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
           tar -xzf apache-maven-${MavenVersion}-bin.tar.gz
