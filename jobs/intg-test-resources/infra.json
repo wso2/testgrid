@@ -82,7 +82,7 @@
             [
                 {
 					"name": "WSO2AM_COMMON_DB",
-					"url": "jdbc:sqlserver://DB_HOST:1433;databaseName=WSO2AM_COMMON_DB;SendStringParametersAsUnicode=false",
+					"url": "jdbc:sqlserver://DB_HOST:1433;databaseName=WSO2AM_COMMON_DB;SendStringParametersAsUnicode=false;encrypt=false",
 					"username": "DB_USERNAME",
 					"password": "DB_PASSWORD"
 				},
