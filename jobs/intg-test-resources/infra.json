@@ -34,7 +34,7 @@
     [
         {
 			"name": "mysql",
-			"file_name": "mysql-connector-java-5.1.49",
+			"file_name": "mysql-connector-java-8.0.28",
 			"driver": "com.mysql.jdbc.Driver",
             "database": 
             [
@@ -76,7 +76,7 @@
 		},
 		{
 			"name": "sqlserver-se",
-			"file_name": "mssql-jdbc-8.2.2",
+			"file_name": "mssql-jdbc-10.2.0.jre8",
 			"driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
             "database": 
             [
