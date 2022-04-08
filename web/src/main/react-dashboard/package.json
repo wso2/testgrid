@@ -11,7 +11,7 @@
     "font-awesome": "^4.7.0",
     "material-ui": "^0.20.2",
     "materialize-css": "^0.100.2",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "react": "^16.8.4",
     "react-ace": "^5.10.0",
     "react-collapsible": "^2.6.0",
