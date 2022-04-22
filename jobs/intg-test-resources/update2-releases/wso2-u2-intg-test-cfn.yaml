@@ -89,6 +89,7 @@ Parameters:
       - t3.medium
       - t3.large
       - c3.xlarge
+      - c4.2xlarge
     ConstraintDescription: must be a valid EC2 instance type
   WUMUsername:
     Type: String
