@@ -306,9 +306,9 @@ Resources:
             echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
             sudo yum groupinstall "Development Tools" -y
             sudo yum install gcc open-ssl-devel bzip2-devel libffi-devel -y
-            wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
-            sudo tar xzf Python-3.9.6.tgz
-            cd Python 3.9.6
+            wget https://www.python.org/ftp/python/3.10.5/Python-3.10.5.tgz
+            sudo tar xzf Python-3.10.5.tgz
+            cd Python 3.10.5
             ./configure --enable-optimizations
             make altinstall
             source ~/.bashrc
