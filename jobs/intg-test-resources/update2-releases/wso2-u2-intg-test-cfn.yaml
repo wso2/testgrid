@@ -174,7 +174,7 @@ Mappings:
     Ubuntu:
       img: ami-025def472c84238d3
     CentOS:
-      img: ami-0487db43bff239327
+      img: ami-02c38e9b87ff6bf3e
     RHEL:
       img: ami-05b6fba4481489641
     SUSE:
@@ -303,16 +303,6 @@ Resources:
             yum install -y mssql-tools unixODBC-devel
             echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
             echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
-            yum groupinstall "Development Tools" -y
-            yum install gcc open-ssl-devel bzip2-devel libffi-devel -y
-            wget https://www.python.org/ftp/python/3.10.5/Python-3.10.5.tgz
-            tar xzf Python-3.10.5.tgz
-            cd Python 3.10.5
-            ./configure --enable-optimizations
-            make altinstall
-            alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10 1 && alternatives --set python3 /usr/local/bin/python3.10 && echo "2" | alternatives --config python
-            /usr/local/bin/python3.10 -m pip install --upgrade pip
-            alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.10 1 && alternatives --set pip /usr/local/bin/pip3.10
             source ~/.bashrc
           fi
           if [[ ${OS} == "SUSE" ]]; then
