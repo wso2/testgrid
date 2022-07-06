@@ -298,14 +298,19 @@ Resources:
             yum install -y python-pip
             yum install -y jq
             dnf update -y
-            dnf install python3 -y
-            pip install --upgrade pip
             yum -y install wget
             wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
             wget https://packages.microsoft.com/config/rhel/7/prod.repo -O /etc/yum.repos.d/msprod.repo
             yum install -y mssql-tools unixODBC-devel
             echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
             echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+            sudo yum groupinstall "Development Tools" -y
+            sudo yum install gcc open-ssl-devel bzip2-devel libffi-devel -y
+            wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
+            sudo tar xzf Python-3.9.6.tgz
+            cd Python 3.9.6
+            ./configure --enable-optimizations
+            make altinstall
             source ~/.bashrc
           fi
           if [[ ${OS} == "SUSE" ]]; then
