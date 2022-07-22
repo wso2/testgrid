@@ -39,7 +39,7 @@ Parameters:
     Description: Database master account password
     MinLength: 6
     ConstraintDescription: minimum - 6 characters
-  DBClass:
+  DBInstanceType:
     Default: db.m4.large
     Description: Database instance class
     Type: String
@@ -66,7 +66,7 @@ Parameters:
       Type: String
       Default: 'true'
       Description: Specify whether DB should be created.
-  EC2KeyPair:
+  KeyPairName:
     Description: >-
       This is used to ssh to the node. If you don't have a key, please create
       one from AWS console and rerun the script
@@ -110,7 +110,7 @@ Parameters:
     Type: String
     Default: 3.2.0
     Description: Enter product version
-  OS:
+  OperatingSystem:
     Type: String
     Default: Ubuntu
     Description: >-
@@ -181,8 +181,8 @@ Mappings:
       img: ami-009fab158dcff70e0
 #Conditions
 Conditions:
- IsWindows: !Equals [ !Ref OS, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "Ubuntu" ], !Equals [ !Ref OS, "RHEL" ], !Equals [ !Ref OS, "SUSE" ]]
+ IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
+ IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL" ], !Equals [ !Ref OperatingSystem, "SUSE" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
  UseSQLServerDB: !Equals [sqlserver-se, !Ref DBEngine ]
 Resources:
@@ -254,10 +254,10 @@ Resources:
       InstanceInitiatedShutdownBehavior: stop
       ImageId: !FindInMap
         - OperatingSystemAMI
-        - !Ref OS
+        - !Ref OperatingSystem
         - img
       InstanceType: !Ref WSO2InstanceType
-      KeyName: !Ref EC2KeyPair
+      KeyName: !Ref KeyPairName
       AvailabilityZone: !Select
         - '0'
         - !GetAZs ''
@@ -284,7 +284,7 @@ Resources:
           ulimit -Hn
           ulimit -Sn
 
-          if [[ ${OS} == "Ubuntu" ]]; then
+          if [[ ${OperatingSystem} == "Ubuntu" ]]; then
               export DEBIAN_FRONTEND=noninteractive
               apt-get update
               sleep 120
@@ -293,7 +293,7 @@ Resources:
               apt install -y python-pip
               apt install -y jq
           fi
-          if [[ ${OS} == "CentOS" ]] || [[ ${OS} == "RHEL" ]]; then
+          if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL" ]]; then
             yum install -y epel-release zip unzip
             yum install -y jq
             dnf update -y
@@ -305,7 +305,7 @@ Resources:
             echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
             source ~/.bashrc
           fi
-          if [[ ${OS} == "SUSE" ]]; then
+          if [[ ${OperatingSystem} == "SUSE" ]]; then
             zypper install -y zip unzip
             zypper install -y python-pip
           fi
@@ -393,17 +393,17 @@ Resources:
           sed -i "s/&CF_DB_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
           sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
           sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
-          echo ${OS}
-          if [[ ${OS} == "Ubuntu" ]]; then
+          echo ${OperatingSystem}
+          if [[ ${OperatingSystem} == "Ubuntu" ]]; then
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
-          if [[ ${OS} == "CentOS" ]]; then
+          if [[ ${OperatingSystem} == "CentOS" ]]; then
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
-          if [[ ${OS} == "RHEL" ]]; then
+          if [[ ${OperatingSystem} == "RHEL" ]]; then
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
-          if [[ ${OS} == "SUSE" ]]; then
+          if [[ ${OperatingSystem} == "SUSE" ]]; then
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
       Tags:
@@ -411,7 +411,7 @@ Resources:
           Value: !Join
             - ''
             - - 'intg-test__'
-              - !Ref OS
+              - !Ref OperatingSystem
               - '__'
               - !Ref DBEngine
               - '__'
@@ -443,10 +443,10 @@ Resources:
         InstanceInitiatedShutdownBehavior: stop
         ImageId: FindInMap
           - OperatingSystemAMI
-          - !Ref OS
+          - !Ref OperatingSystem
           - img
         InstanceType: !Ref WSO2InstanceType
-        KeyName: !Ref EC2KeyPair
+        KeyName: !Ref KeyPairName
         Monitoring: 'false'
         "BlockDeviceMappings" : [
            {
@@ -477,7 +477,7 @@ Resources:
             Value: !Join
               - ''
               - - 'intg-test__'
-                - !Ref OS
+                - !Ref OperatingSystem
                 - '__'
                 - !Ref DBEngine
                 - '__'
@@ -541,8 +541,8 @@ Outputs:
     Value: !Sub '${WSO2DBInstance.Endpoint.Port}'
     Condition: 'IsDBEnabled'
     Description: Database Port
-  OS:
-    Value: !Ref OS
+  OperatingSystem:
+    Value: !Ref OperatingSystem
   WSO2InstanceId:
     Value: !If [IsUnix, !Ref WSO2UnixInstance, !If [IsWindows, !Ref WSO2WindowsInstance, !Ref 'AWS::NoValue']]
   DBEngine:
