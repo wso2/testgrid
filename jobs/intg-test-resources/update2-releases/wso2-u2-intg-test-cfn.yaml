@@ -146,6 +146,9 @@ Parameters:
     Type: String
   AWSAccessKeySecret:
     Type: String
+  UniqueIdentifier:
+    Type: String
+    Default: ""
 Mappings:
   DB2Licence:
     mysql:
