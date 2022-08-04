@@ -508,7 +508,7 @@ Resources:
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
       DBName: !If [UseSQLServerDB, "", !Ref DBName]
-      DBInstanceIdentifier: wso2-dbinstance-1
+      DBInstanceIdentifier: !Join [ '-', [ 'APIM', !Ref 'UniqueIdentifier' ] ]
       LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
