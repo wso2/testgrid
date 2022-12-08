@@ -23,12 +23,43 @@ CFN_PROP_FILE=/opt/testgrid/workspace/cfn-props.properties
 WSO2_USERNAME=$1
 WSO2_PASSWORD=$2
 WSO2_PRODUCT=$(grep -w "REMOTE_PACK_NAME" ${CFN_PROP_FILE} | cut -d'=' -f2)
-
+echo "Unzipping $WSO2_PRODUCT Pack."
+unzip -o -q $WSO2_PRODUCT.zip && cd $WSO2_PRODUCT/bin
 PRODUCT_NAME=$(echo $WSO2_PRODUCT | rev | cut -d"-" -f2-  | rev)
 PRODUCT_VERSION=$(echo $WSO2_PRODUCT | rev | cut -d"-" -f1  | rev)
 
-rm $WSO2_PRODUCT.zip
-wget -q https://github.com/wso2/product-apim/releases/download/v$PRODUCT_VERSION/$WSO2_PRODUCT.zip
+if [ -z "${WSO2_USERNAME}" ] && [ -z "${WSO2_PASSWORD}" ]; then
+  echo "WSO2 Credentials are empty. Proceeding with ${WSO2_PRODUCT} vanilla pack."
+  exit 0
+else
+  # Note: config.json will be replaced with UAT information through cloudformation.
+  sudo chmod 755 wso2update_linux
+  sudo ./wso2update_linux check --username "'$WSO2_USERNAME'" --password "$WSO2_PASSWORD" -v
+  sed "s/PATTERN/$WSO2_PRODUCT/" /opt/testgrid/workspace/uat-config.json  | sed "s/PRODUCT_NAME/$PRODUCT_NAME/" | sed "s/PRODUCT_VERSION/$PRODUCT_VERSION/" > ../updates/config.json
+  sudo ./wso2update_linux --username "$WSO2_USERNAME" --password "$WSO2_PASSWORD" --backup /opt/testgrid/workspace/backup -v
+  update_exit_code=$(echo $?)
 
-echo "Unzipping $WSO2_PRODUCT Pack."
-unzip -o -q $WSO2_PRODUCT.zip
+  if [ $update_exit_code -eq 2 ]; then
+    echo "Self Update."
+    sudo ./wso2update_linux --username "$WSO2_USERNAME" --password "$WSO2_PASSWORD" --backup /opt/testgrid/workspace/backup -v
+    update_exit_code=$(echo $?)
+  fi
+
+  if [ $update_exit_code -eq 0 ]; then
+    echo "Successfully updated."
+    echo `pwd`
+    cd ../
+    rm -rf $WSO2_PRODUCT.zip
+    zip -r -q $WSO2_PRODUCT.zip $WSO2_PRODUCT
+    exit 0
+  elif [ $update_exit_code -eq 1 ]; then
+    echo "Default error."
+  elif [ $update_exit_code -eq 3 ]; then
+    echo "Conflict(s) encountered."
+  elif [ $update_exit_code -eq 4 ]; then
+    echo "Reverted."
+  else
+    echo "Unkown exit code from update tool."
+  fi
+  exit 1
+fi
