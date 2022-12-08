@@ -19,16 +19,24 @@
 # under the License.
 #
 # ----
-CFN_PROP_FILE=/opt/testgrid/workspace/cfn-props.properties
-WSO2_USERNAME=$1
-WSO2_PASSWORD=$2
-WSO2_PRODUCT=$(grep -w "REMOTE_PACK_NAME" ${CFN_PROP_FILE} | cut -d'=' -f2)
 
-PRODUCT_NAME=$(echo $WSO2_PRODUCT | rev | cut -d"-" -f2-  | rev)
-PRODUCT_VERSION=$(echo $WSO2_PRODUCT | rev | cut -d"-" -f1  | rev)
+TESTGRID_DIR=/opt/testgrid/workspace
 
-rm $WSO2_PRODUCT.zip
-wget -q https://github.com/wso2/product-apim/releases/download/v$PRODUCT_VERSION/$WSO2_PRODUCT.zip
+PRODUCT_REPOSITORY=$1
+PRODUCT_REPOSITORY_BRANCH=$2
+PRODUCT_NAME=$3
+PRODUCT_VERSION=$4
+GIT_USER=$5
+GIT_PASS=$6
+PRODUCT_REPOSITORY_NAME=$(echo $PRODUCT_REPOSITORY | rev | cut -d'/' -f1 | rev | cut -d'.' -f1)
+PRODUCT_REPOSITORY_PACK_DIR="$TESTGRID_DIR/$PRODUCT_REPOSITORY_NAME/modules/distribution/product/target"
+PRODUCT_PACK_NAME="$PRODUCT_NAME-$PRODUCT_VERSION"
 
-echo "Unzipping $WSO2_PRODUCT Pack."
-unzip -o -q $WSO2_PRODUCT.zip
+rm $PRODUCT_PACK_NAME.zip
+
+git clone https://${GIT_USER}:${GIT_PASS}@$PRODUCT_REPOSITORY --branch $PRODUCT_REPOSITORY_BRANCH --single-branch
+
+cd $PRODUCT_REPOSITORY_NAME
+mvn clean install -Dmaven.test.skip=true
+mv -f $PRODUCT_REPOSITORY_PACK_DIR/$PRODUCT_PACK_NAME.zip $TESTGRID_DIR/
+unzip -q $TESTGRID_DIR/$PRODUCT_PACK_NAME.zip -d $TESTGRID_DIR/
