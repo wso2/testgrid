@@ -22,11 +22,17 @@
 
 CFN_PROP_FILE=/opt/testgrid/workspace/cfn-props.properties
 WSO2_PRODUCT=$(grep -w "REMOTE_PACK_NAME" ${CFN_PROP_FILE} | cut -d'=' -f2)
+PRODUCT_NAME=$(echo $WSO2_PRODUCT | rev | cut -d"-" -f2-  | rev)
+PRODUCT_VERSION=$(echo $WSO2_PRODUCT | rev | cut -d"-" -f1  | rev)
 
 rm $WSO2_PRODUCT.zip
 
+echo "Getting last successful build ID for APIM"
+BUILD_ID=$(wget -qO- https://wso2.org/jenkins/view/products/job/products/job/product-apim/lastSuccessfulBuild/buildNumber)
+echo "Last successful build ID is $BUILD_ID"
+
 echo "Downloading APIM pack $WSO2_PRODUCT"
-wget -q "https://wso2.org/jenkins/view/products/job/products/job/product-apim/2985/org.wso2.am%24wso2am/artifact/org.wso2.am/wso2am/${WSO2_PRODUCT}/${WSO2_PRODUCT}.zip"
+wget -q "https://wso2.org/jenkins/view/products/job/products/job/product-apim/${BUILD_ID}/org.wso2.am%24wso2am/artifact/org.wso2.am/wso2am/${PRODUCT_VERSION}/${WSO2_PRODUCT}.zip"
 
 echo "Unzipping $WSO2_PRODUCT Pack."
 unzip -o -q $WSO2_PRODUCT.zip
