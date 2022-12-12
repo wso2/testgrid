@@ -380,7 +380,7 @@ Resources:
           /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
           /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
           cp /home/centos/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
-          wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
+          wget "https://raw.githubusercontent.com/wso2/testgrid/apim-pre-release/jobs/intg-test-resources/update2-releases/wso2-update.sh"
           chmod +x /opt/testgrid/workspace/wso2-update.sh
           DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
 
