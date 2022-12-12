@@ -20,23 +20,13 @@
 #
 # ----
 
-TESTGRID_DIR=/opt/testgrid/workspace
+CFN_PROP_FILE=/opt/testgrid/workspace/cfn-props.properties
+WSO2_PRODUCT=$(grep -w "REMOTE_PACK_NAME" ${CFN_PROP_FILE} | cut -d'=' -f2)
 
-PRODUCT_REPOSITORY=$1
-PRODUCT_REPOSITORY_BRANCH=$2
-PRODUCT_NAME=$3
-PRODUCT_VERSION=$4
-GIT_USER=$5
-GIT_PASS=$6
-PRODUCT_REPOSITORY_NAME=$(echo $PRODUCT_REPOSITORY | rev | cut -d'/' -f1 | rev | cut -d'.' -f1)
-PRODUCT_REPOSITORY_PACK_DIR="$TESTGRID_DIR/$PRODUCT_REPOSITORY_NAME/modules/distribution/product/target"
-PRODUCT_PACK_NAME="$PRODUCT_NAME-$PRODUCT_VERSION"
+rm $WSO2_PRODUCT.zip
 
-rm $PRODUCT_PACK_NAME.zip
+echo "Downloading APIM pack $WSO2_PRODUCT"
+wget -q "https://wso2.org/jenkins/view/products/job/products/job/product-apim/2985/org.wso2.am%24wso2am/artifact/org.wso2.am/wso2am/${WSO2_PRODUCT}/${WSO2_PRODUCT}.zip"
 
-git clone https://${GIT_USER}:${GIT_PASS}@$PRODUCT_REPOSITORY --branch $PRODUCT_REPOSITORY_BRANCH --single-branch
-
-cd $PRODUCT_REPOSITORY_NAME
-mvn clean install -Dmaven.test.skip=true
-mv -f $PRODUCT_REPOSITORY_PACK_DIR/$PRODUCT_PACK_NAME.zip $TESTGRID_DIR/
-unzip -q $TESTGRID_DIR/$PRODUCT_PACK_NAME.zip -d $TESTGRID_DIR/
+echo "Unzipping $WSO2_PRODUCT Pack."
+unzip -o -q $WSO2_PRODUCT.zip
