@@ -22,8 +22,7 @@
 
 CFN_PROP_FILE=/opt/testgrid/workspace/cfn-props.properties
 WSO2_PRODUCT=$(grep -w "REMOTE_PACK_NAME" ${CFN_PROP_FILE} | cut -d'=' -f2)
-PRODUCT_NAME=$(echo $WSO2_PRODUCT | rev | cut -d"-" -f2-  | rev)
-PRODUCT_VERSION=$(echo $WSO2_PRODUCT | rev | cut -d"-" -f1  | rev)
+PRODUCT_VERSION=$(echo $WSO2_PRODUCT | cut -d"-" -f2-)
 
 rm $WSO2_PRODUCT.zip
 
