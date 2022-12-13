@@ -31,8 +31,10 @@ echo "Getting last successful build ID for APIM"
 BUILD_ID=$(wget -qO- https://wso2.org/jenkins/view/products/job/products/job/product-apim/lastSuccessfulBuild/buildNumber)
 echo "Last successful build ID is $BUILD_ID"
 
-echo "Downloading APIM pack $WSO2_PRODUCT"
-wget -q "https://wso2.org/jenkins/view/products/job/products/job/product-apim/${BUILD_ID}/org.wso2.am%24wso2am/artifact/org.wso2.am/wso2am/${PRODUCT_VERSION}/${WSO2_PRODUCT}.zip"
+PRODUCT_DOWNLOAD_URL="https://wso2.org/jenkins/view/products/job/products/job/product-apim/${BUILD_ID}/org.wso2.am%24wso2am/artifact/org.wso2.am/wso2am/${PRODUCT_VERSION}/${WSO2_PRODUCT}.zip"
+
+echo "Downloading APIM pack $WSO2_PRODUCT from $PRODUCT_DOWNLOAD_URL"
+wget $PRODUCT_DOWNLOAD_URL
 
 echo "Unzipping $WSO2_PRODUCT Pack."
 unzip -o -q $WSO2_PRODUCT.zip
