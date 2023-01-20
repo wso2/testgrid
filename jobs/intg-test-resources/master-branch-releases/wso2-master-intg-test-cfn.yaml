@@ -39,7 +39,7 @@ Parameters:
     Description: Database master account password
     MinLength: 6
     ConstraintDescription: minimum - 6 characters
-  DBClass:
+  DBInstanceType:
     Default: db.m4.large
     Description: Database instance class
     Type: String
@@ -243,7 +243,7 @@ Resources:
         - !Ref OS
         - img
       InstanceType: !Ref WSO2InstanceType
-      KeyName: !Ref EC2KeyPair
+      KeyName: !Ref KeyPairName
       AvailabilityZone: !Select
         - '0'
         - !GetAZs ''
@@ -413,7 +413,7 @@ Resources:
           - !Ref OS
           - img
         InstanceType: !Ref WSO2InstanceType
-        KeyName: !Ref EC2KeyPair
+        KeyName: !Ref KeyPairName
         Monitoring: 'false'
         "BlockDeviceMappings" : [
            {
