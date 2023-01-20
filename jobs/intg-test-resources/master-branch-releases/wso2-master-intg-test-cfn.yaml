@@ -24,6 +24,7 @@ Parameters:
     MinLength: 1
   DBName:
     Type: String
+    Default: WSO2DB
     Description: Database Name
   DBUsername:
     Type: String
@@ -68,7 +69,7 @@ Parameters:
   ProductPackLocation:
     Type: String
     Description: URL for the remote product pack
-  EC2KeyPair:
+  KeyPairName:
     Description: >-
       This is used to ssh to the node. If you don't have a key, please create
       one from AWS console and rerun the script
