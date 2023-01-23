@@ -133,6 +133,13 @@ Parameters:
    Type: String
    Default: "echo"
    Description: Enter custome user data scripts here.
+  AWSAccessKeyId:
+    Type: String
+  AWSAccessKeySecret:
+    Type: String
+  UniqueIdentifier:
+    Type: String
+    Default: ""
 Mappings:
   DB2Licence:
     mysql:
@@ -161,9 +168,9 @@ Mappings:
     Ubuntu:
       img: ami-025def472c84238d3
     CentOS:
-      img: ami-01ad4ff4d5b37a948
+      img: ami-00fd5f05ab29a62bc
     RHEL:
-      img: ami-023a74a201c4c35cb
+      img: ami-05b6fba4481489641
     SUSE:
       img: ami-009fab158dcff70e0
 #Conditions
