@@ -102,7 +102,7 @@ Parameters:
     Type: String
     Default: 3.2.0
     Description: Enter product version
-  OS:
+  OperatingSystem:
     Type: String
     Default: Ubuntu
     Description: >-
@@ -125,6 +125,7 @@ Parameters:
       - CORRETTO_JDK11
       - ADOPT_OPEN_JDK11
       - OPEN_JDK11
+      - TEMURIN_OPEN_JDK8
   MavenVersion:
     Type: String
     Default: '3.3.9'
@@ -175,8 +176,8 @@ Mappings:
       img: ami-009fab158dcff70e0
 #Conditions
 Conditions:
- IsWindows: !Equals [ !Ref OS, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OS, "CentOS"], !Equals [ !Ref OS, "Ubuntu" ], !Equals [ !Ref OS, "RHEL" ], !Equals [ !Ref OS, "SUSE" ]]
+ IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
+ IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL" ], !Equals [ !Ref OperatingSystem, "SUSE" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
  UseSQLServerDB: !Equals [sqlserver-se, !Ref DBEngine ]
 Resources:
@@ -248,7 +249,7 @@ Resources:
       InstanceInitiatedShutdownBehavior: stop
       ImageId: !FindInMap
         - OperatingSystemAMI
-        - !Ref OS
+        - !Ref OperatingSystem
         - img
       InstanceType: !Ref WSO2InstanceType
       KeyName: !Ref KeyPairName
@@ -278,7 +279,7 @@ Resources:
           ulimit -Hn
           ulimit -Sn
 
-          if [[ ${OS} == "Ubuntu" ]]; then
+          if [[ ${OperatingSystem} == "Ubuntu" ]]; then
               export DEBIAN_FRONTEND=noninteractive
               apt-get update
               sleep 120
@@ -287,10 +288,10 @@ Resources:
               apt install -y python-pip
               apt install -y jq
           fi
-          if [[ ${OS} == "CentOS" ]] || [[ ${OS} == "RHEL" ]]; then
+          if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL" ]]; then
             yum install -y epel-release zip unzip
-            yum install -y python-pip
             yum install -y jq
+            dnf update -y
             yum -y install wget
             wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
             wget https://packages.microsoft.com/config/rhel/7/prod.repo -O /etc/yum.repos.d/msprod.repo
@@ -299,27 +300,45 @@ Resources:
             echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
             source ~/.bashrc
           fi
-          if [[ ${OS} == "SUSE" ]]; then
+          if [[ ${OperatingSystem} == "SUSE" ]]; then
             zypper install -y zip unzip
             zypper install -y python-pip
-          fi 
+          fi
 
           pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
 
           setup_java_env() {
-            wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/jdk-8u251-linux-x64.tar.gz
-            mkdir -p /opt/jdk-8u251-linux && tar -xzf "jdk-8u251-linux-x64.tar.gz" -C /opt/jdk-8u251-linux --strip-component=1
+          
+            Using $2...
+            wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/$2
+            mkdir -p /opt/$1 && tar -xzf $2 -C /opt/$1 --strip-component=1
 
-            export JAVA_HOME=/opt/jdk-8u251-linux
-            ln -s /opt/jdk-8u251-linux/bin/java /usr/bin/java
+            export JAVA_HOME=/opt/$1
+            export PATH=$JAVA_HOME/bin:$PATH
+            ln -sf /opt/$1/bin/java /usr/bin/java
+            
+            java -version
+            javac -version
           }
 
           mkdir -p /opt/testgrid/workspace
           #So, provided permissions to all the users. Need to fix!
           chmod 777 -R /opt/testgrid
           cd /opt/testgrid/workspace
-
-          setup_java_env
+          
+          TEMURIN_JDK8="jdk-8u322b06"
+          TEMURIN_JDK8_BIN="OpenJDK8U-jdk_x64_linux_hotspot_8u322b06.tar.gz"
+          
+          JDK8="jdk-8u251-linux"
+          JDK8_BIN="jdk-8u251-linux-x64.tar.gz"
+          
+          if [[ ${JDK} == "TEMURIN_OPEN_JDK8" ]]
+            then
+              setup_java_env $TEMURIN_JDK8 $TEMURIN_JDK8_BIN
+            else
+              setup_java_env $JDK8 $JDK8_BIN
+          fi
+         
           echo "Installing Apache Maven"
           wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
           tar -xzf apache-maven-${MavenVersion}-bin.tar.gz
@@ -345,12 +364,14 @@ Resources:
           echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
           echo "SID=${DBName}" >> cfn-props.properties
 
-          wget -q '${ProductPackLocation}'
-          unzip -q ${ProductName}-${ProductVersion}*.zip -d $WORKING_DIR
-
-          #add product pack name to cfn properties 
-          echo "REMOTE_PACK_NAME=$(echo ${ProductPackLocation} | rev | cut -d/ -f1 | cut -d. -f2- | rev)" >> cfn-props.properties
-
+          wget -q '${ProductPackLocation}'	
+          unzip -q ${ProductName}-${ProductVersion}*.zip -d $WORKING_DIR	
+          #add product pack name to cfn properties
+          echo "REMOTE_PACK_NAME=${ProductName}-${ProductVersion}" >> cfn-props.properties
+          /usr/local/bin/aws --version
+          /usr/local/bin/aws configure set aws_access_key_id '${AWSAccessKeyId}'
+          /usr/local/bin/aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
+          /usr/local/bin/aws configure set default.region us-east-1
           DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
 
           pwd
@@ -365,20 +386,17 @@ Resources:
           sed -i "s/&CF_DB_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
           sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
           sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
-
-          bash $DB_PROV_SCRIPT_NAME
-
-          echo ${OS}
-          if [[ ${OS} == "Ubuntu" ]]; then
+          echo ${OperatingSystem}
+          if [[ ${OperatingSystem} == "Ubuntu" ]]; then
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
-          if [[ ${OS} == "CentOS" ]]; then
+          if [[ ${OperatingSystem} == "CentOS" ]]; then
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
-          if [[ ${OS} == "RHEL" ]]; then
+          if [[ ${OperatingSystem} == "RHEL" ]]; then
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
-          if [[ ${OS} == "SUSE" ]]; then
+          if [[ ${OperatingSystem} == "SUSE" ]]; then
             /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
           fi
       Tags:
@@ -386,7 +404,7 @@ Resources:
           Value: !Join
             - ''
             - - 'intg-test__'
-              - !Ref OS
+              - !Ref OperatingSystem
               - '__'
               - !Ref DBEngine
               - '__'
@@ -418,7 +436,7 @@ Resources:
         InstanceInitiatedShutdownBehavior: stop
         ImageId: FindInMap
           - OperatingSystemAMI
-          - !Ref OS
+          - !Ref OperatingSystem
           - img
         InstanceType: !Ref WSO2InstanceType
         KeyName: !Ref KeyPairName
@@ -452,7 +470,7 @@ Resources:
             Value: !Join
               - ''
               - - 'intg-test__'
-                - !Ref OS
+                - !Ref OperatingSystem
                 - '__'
                 - !Ref DBEngine
                 - '__'
@@ -483,7 +501,7 @@ Resources:
       Engine: !Ref DBEngine
       EngineVersion: !Ref DBEngineVersion
       DBName: !If [UseSQLServerDB, "", !Ref DBName]
-      DBInstanceIdentifier: wso2-dbinstance-1
+      DBInstanceIdentifier: !Join [ '-', [ 'APIM', !Ref 'UniqueIdentifier' ] ]
       LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
@@ -505,7 +523,7 @@ Outputs:
   WSO2PublicIP:
     Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref 'AWS::NoValue']]
     Description: Private IP of the WSO2 Product Instance
-  WSO2InstanceName: 
+  WSO2InstanceName:
     Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}', !Ref 'AWS::NoValue']]
     Description: Instance DNS Name
   DatabaseHost:
@@ -516,8 +534,8 @@ Outputs:
     Value: !Sub '${WSO2DBInstance.Endpoint.Port}'
     Condition: 'IsDBEnabled'
     Description: Database Port
-  OS:
-    Value: !Ref OS
+  OperatingSystem:
+    Value: !Ref OperatingSystem
   WSO2InstanceId:
     Value: !If [IsUnix, !Ref WSO2UnixInstance, !If [IsWindows, !Ref WSO2WindowsInstance, !Ref 'AWS::NoValue']]
   DBEngine:
