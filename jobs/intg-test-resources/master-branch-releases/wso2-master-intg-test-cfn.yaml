@@ -100,7 +100,7 @@ Parameters:
     Description: Enter product name
   ProductVersion:
     Type: String
-    Default: 3.2.0
+    Default: 4.2.0-SNAPSHOT
     Description: Enter product version
   OperatingSystem:
     Type: String
@@ -126,6 +126,7 @@ Parameters:
       - ADOPT_OPEN_JDK11
       - OPEN_JDK11
       - TEMURIN_OPEN_JDK8
+      - ADOPT_OPEN_JDK17
   MavenVersion:
     Type: String
     Default: '3.3.9'
