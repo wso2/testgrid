@@ -125,14 +125,10 @@ Parameters:
     Default: ADOPT_OPEN_JDK8
     Description: Enter target JDK version.
     AllowedValues:
-      - OPEN_JDK8
-      - ORACLE_JDK8
       - ADOPT_OPEN_JDK8
       - CORRETTO_JDK8
-      - OPEN_JDK11
       - CORRETTO_JDK11
       - ADOPT_OPEN_JDK11
-      - OPEN_JDK11
       - TEMURIN_OPEN_JDK8
   MavenVersion:
     Type: String
@@ -315,37 +311,10 @@ Resources:
 
           pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
 
-          setup_java_env() {
-          
-            Using $2...
-            wget -q https://integration-testgrid-resources.s3.amazonaws.com/lib/jdk/$2
-            mkdir -p /opt/$1 && tar -xzf $2 -C /opt/$1 --strip-component=1
-
-            export JAVA_HOME=/opt/$1
-            export PATH=$JAVA_HOME/bin:$PATH
-            ln -sf /opt/$1/bin/java /usr/bin/java
-            
-            java -version
-            javac -version
-          }
-
           mkdir -p /opt/testgrid/workspace
           #So, provided permissions to all the users. Need to fix!
           chmod 777 -R /opt/testgrid
           cd /opt/testgrid/workspace
-          
-          TEMURIN_JDK8="jdk-8u322b06"
-          TEMURIN_JDK8_BIN="OpenJDK8U-jdk_x64_linux_hotspot_8u322b06.tar.gz"
-          
-          JDK8="jdk-8u251-linux"
-          JDK8_BIN="jdk-8u251-linux-x64.tar.gz"
-          
-          if [[ ${JDK} == "TEMURIN_OPEN_JDK8" ]]
-            then
-              setup_java_env $TEMURIN_JDK8 $TEMURIN_JDK8_BIN
-            else
-              setup_java_env $JDK8 $JDK8_BIN
-          fi
          
           echo "Installing Apache Maven"
           wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
@@ -353,7 +322,7 @@ Resources:
           ln -fs apache-maven-${MavenVersion} maven
           echo 'export MAVEN_OPTS="-Xmx4096m -Xms2048m"' >> /etc/environment
           echo 'export M3_HOME=/opt/testgrid/workspace/maven' >> /etc/environment
-          echo PATH=$JAVA_HOME/bin:/opt/testgrid/workspace/maven/bin/:$PATH >> /etc/environment
+          echo PATH=/opt/testgrid/workspace/maven/bin/:$PATH >> /etc/environment
 
           source /etc/environment
 
