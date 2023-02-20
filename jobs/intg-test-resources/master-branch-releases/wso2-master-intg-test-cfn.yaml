@@ -6,13 +6,9 @@ Parameters:
     Default: MySQL-5.7
     AllowedValues:
       - MySQL-5.7
-      - Postgres-9.4.12
-      - Postgres-9.6
-      - Postgres-10.5
-      - Postgres-12.3
-      - Postgres-13.2
-      - Oracle-SE1-11.2
-      - Oracle-SE2-12.1
+      - Postgres-10.19
+      - Postgres-12.9
+      - Oracle-SE2-19.0
       - SQLServer-SE-13.00
       - SQLServer-SE-14.00
       - SQLServer-SE-15.00
@@ -214,7 +210,7 @@ Conditions:
  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
  IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL" ], !Equals [ !Ref OperatingSystem, "SUSE" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
- UseSQLServerDB: !Contains [[SQLServer-SE], !Ref DB ]
+ UseSQLServerDB: !Equals [sqlserver-se, !Ref DBEngine ]
 Resources:
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
