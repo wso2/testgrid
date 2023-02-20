@@ -50,6 +50,10 @@ Parameters:
     Description: Database master account password
     MinLength: 6
     ConstraintDescription: minimum - 6 characters
+  DBAllocationStorage:
+    Description: Provide storage size in Gigabytes
+    Type: Number
+    Default: 20
   DBInstanceType:
     Default: db.m4.large
     Description: Database instance class
@@ -167,29 +171,6 @@ Mappings:
       DBEngine: "oracle-se2_19.0.0.0.ru-2019-10.rur-2019-10.r1"
     Oracle-SE2-12.1:
       DBEngine: "oracle-se2_12.1"
-  DB2Licence:
-    mysql:
-      license: general-public-license
-    postgres:
-      license: postgresql-license
-    mariadb:
-      license: general-public-license
-    sqlserver-ex:
-      license: license-included
-    sqlserver-ee:
-      license: license-included
-    sqlserver-se:
-      license: license-included
-    sqlserver-web:
-      license: license-included
-    oracle-se:
-      license: license-included
-    oracle-se2:
-      license: license-included
-    oracle-ee:
-      license: license-included
-    oracle-se1:
-      license: license-included
   OperatingSystemAMI:
     Ubuntu:
       img: ami-025def472c84238d3
@@ -204,8 +185,31 @@ Conditions:
  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
  IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL" ], !Equals [ !Ref OperatingSystem, "SUSE" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
- UseSQLServerDB: !Equals [sqlserver-se, !Ref DBEngine ]
+ UseSQLServerDB: !Equals [sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+ UseLicensedVersion: !Or [ !Equals [sqlserver, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]], !Equals [oracle, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]] ]
 Resources:
+  WSO2APIMVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+  WSO2APIMPrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref WSO2APIMVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select
+        - '0'
+        - !GetAZs ''
+  WSO2APIMPrivateSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref WSO2APIMVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select
+        - '1'
+        - !GetAZs ''
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -496,28 +500,30 @@ Resources:
          }
   WSO2DBInstance:
     Type: 'AWS::RDS::DBInstance'
-    Condition: 'IsDBEnabled'
+    DeletionPolicy: Delete
     Properties:
-      AllocatedStorage: !Ref DBAllocatedStorage
-      DBInstanceClass: db.m5.large
-      Engine: !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
-      EngineVersion: !Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
-      DBName: !If [UseSQLServerDB, "", !Ref DBName]
-      DBInstanceIdentifier: !Join [ '-', [ 'APIM', !Ref 'UniqueIdentifier' ] ]
-      LicenseModel: !FindInMap [DB2Licence, !Ref "DBEngine", license]
-      MasterUsername: !Ref DBUsername
-      MasterUserPassword: !Ref DBPassword
-      AutoMinorVersionUpgrade: false
-      BackupRetentionPeriod: 0
       VPCSecurityGroups:
         - !GetAtt WSO2EnvDBSecurityGroup.GroupId
-      AvailabilityZone: !Select
-        - '0'
-        - !GetAZs ''
-    DeletionPolicy: Delete
-    Metadata:
-      'AWS::CloudFormation::Designer':
-        id: 5352b4e9-46ed-4a23-8bdc-bafc3666cbbd
+      DBInstanceClass: db.m5.large
+      AllocatedStorage: !Ref DBAllocationStorage
+      BackupRetentionPeriod: '0'
+      DBInstanceIdentifier: !Join [ '-', [ 'APIM', !Ref 'UniqueIdentifier' ] ]
+      DBName: !If [UseSQLServerDB, "", WSO2AMDB]
+      LicenseModel: !If [UseLicensedVersion, license-included, !Ref 'AWS::NoValue']
+      EngineVersion: !Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
+      Engine: !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      MultiAZ: 'false'
+      StorageType: gp2
+      DBSubnetGroupName: !Ref WSO2APIMDBSubnetGroup
+  WSO2APIMDBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: DB Subnet Group
+      SubnetIds:
+        - !Ref WSO2APIMPrivateSubnet1
+        - !Ref WSO2APIMPrivateSubnet2
 Outputs:
   WSO2MgtConsoleURL:
     Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}:9443/carbon', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}:9443/carbon', !Ref 'AWS::NoValue']]
