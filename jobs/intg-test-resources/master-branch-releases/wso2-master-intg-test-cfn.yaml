@@ -153,24 +153,18 @@ Mappings:
   DBEngineMap:
     MySQL-5.7:
       DBEngine: "mysql_5.7"
-    Postgres-9.4.12:
-      DBEngine: "postgres_9.4.12"
-    Postgres-9.6:
-      DBEngine: "postgres_9.6"
-    Postgres-10.5:
-      DBEngine: "postgres_10.5"
-    Postgres-12.3:
-      DBEngine: "postgres_12.3"
-    Postgres-13.2:
-      DBEngine: "postgres_13.2"
+    Postgres-10.19:
+      DBEngine: "postgres_10.19"
+    Postgres-12.9:
+      DBEngine: "postgres_12.9"
     SQLServer-SE-13.00:
       DBEngine: "sqlserver-se_13.00"
     SQLServer-SE-14.00:
       DBEngine: "sqlserver-se_14.00"
     SQLServer-SE-15.00:
       DBEngine: "sqlserver-se_15.00"
-    Oracle-SE1-11.2:
-      DBEngine: "oracle-se1_11.2"
+    Oracle-SE2-19.0:
+      DBEngine: "oracle-se2_19.0.0.0.ru-2019-10.rur-2019-10.r1"
     Oracle-SE2-12.1:
       DBEngine: "oracle-se2_12.1"
   DB2Licence:
