@@ -516,7 +516,6 @@ Resources:
       MasterUserPassword: !Ref DBPassword
       MultiAZ: 'false'
       StorageType: gp2
-      DBSubnetGroupName: !Ref WSO2APIMDBSubnetGroup
   WSO2APIMDBSubnetGroup:
     Type: 'AWS::RDS::DBSubnetGroup'
     Properties:
