@@ -356,9 +356,16 @@ Resources:
 
           WORKING_DIR=$(pwd)
 
+          DBEngine = ${!Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]}
+          DBEngineVersion = ${!Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]}
+
+          echo "Database configs"
+          echo $DBEngine
+          echo $DBEngineVersion
+
           # write property file
-          echo "DB_TYPE=${DBEngine}" > cfn-props.properties
-          echo "CF_DB_VERSION=${DBEngineVersion}" >> cfn-props.properties
+          echo "DB_TYPE=$DBEngine" > cfn-props.properties
+          echo "CF_DB_VERSION=$DBEngineVersion" >> cfn-props.properties
           echo "JDK_TYPE=${JDK}" >> cfn-props.properties
           echo "CF_DB_PASSWORD=${DBPassword}" >> cfn-props.properties
           echo "CF_DB_USERNAME=${DBUsername}" >> cfn-props.properties
@@ -381,9 +388,6 @@ Resources:
 
           wget https://integration-testgrid-resources.s3.amazonaws.com/db_scripts/$DB_PROV_SCRIPT_NAME
           chmod +x $DB_PROV_SCRIPT_NAME
-
-          DBEngine = ${!Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]}
-          DBEngineVersion = ${!Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]}
 
           sed -i "s/&CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
           sed -i "s/&CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
