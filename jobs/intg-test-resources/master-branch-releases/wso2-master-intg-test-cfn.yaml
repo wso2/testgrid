@@ -370,9 +370,9 @@ Resources:
 
               echo "Downloading the product pack from jenkins"
               wget -q '${ProductPackLocation}'	
-              unzip -q ${ProductName}-${ProductVersion}*.zip -d $WORKING_DIR	
+              unzip -q ${ProductVersion}*.zip -d $WORKING_DIR	
               #add product pack name to cfn properties
-              echo "REMOTE_PACK_NAME=${ProductName}-${ProductVersion}" >> cfn-props.properties
+              echo "REMOTE_PACK_NAME=${ProductVersion}" >> cfn-props.properties
               /usr/local/bin/aws --version
               /usr/local/bin/aws configure set aws_access_key_id '${AWSAccessKeyId}'
               /usr/local/bin/aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
