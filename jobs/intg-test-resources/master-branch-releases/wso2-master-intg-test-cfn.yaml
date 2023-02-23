@@ -392,8 +392,8 @@ Resources:
               sed -i "s/&CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/&CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/&CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g" $DB_PROV_SCRIPT_NAME
-              sed -i "s/&CF_DB_NAME/$DBEngine/g" $DB_PROV_SCRIPT_NAME
-              sed -i "s/&CF_DB_VERSION/$DBEngineVersion/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/&CF_DB_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
               echo ${OperatingSystem}
               if [[ ${OperatingSystem} == "Ubuntu" ]]; then
