@@ -272,125 +272,126 @@ Resources:
             VolumeSize: '50'
             VolumeType: gp2
             DeleteOnTermination: 'true'
-      UserData: !Base64
-        'Fn::Sub': |
-          #cloud-boothook
-          #!/bin/bash
+      UserData:
+        Fn::Base64:
+          !Sub
+            - |-
+              #cloud-boothook
+              #!/bin/bash
 
-          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-          # Echoes all commands before executing.
-          set -o verbose
-          set -o xtrace
+              exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+              # Echoes all commands before executing.
+              set -o verbose
+              set -o xtrace
 
-          # Set file limits
-          sysctl -w fs.file-max=2097152
-          sysctl fs.file-nr
-          ulimit -Hn
-          ulimit -Sn
+              # Set file limits
+              sysctl -w fs.file-max=2097152
+              sysctl fs.file-nr
+              ulimit -Hn
+              ulimit -Sn
 
-          if [[ ${OperatingSystem} == "Ubuntu" ]]; then
-              export DEBIAN_FRONTEND=noninteractive
-              apt-get update
-              sleep 120
-              dpkg --configure -a
-              apt install -y zip
-              apt install -y python-pip
-              apt install -y jq
-          fi
-          if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL" ]]; then
-            yum install -y epel-release zip unzip
-            yum install -y jq
-            dnf update -y
-            yum -y install wget
-            wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
-            wget https://packages.microsoft.com/config/rhel/7/prod.repo -O /etc/yum.repos.d/msprod.repo
-            yum install -y mssql-tools unixODBC-devel
-            echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
-            echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
-            source ~/.bashrc
-          fi
-          if [[ ${OperatingSystem} == "SUSE" ]]; then
-            zypper install -y zip unzip
-            zypper install -y python-pip
-          fi
+              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
+                  export DEBIAN_FRONTEND=noninteractive
+                  apt-get update
+                  sleep 120
+                  dpkg --configure -a
+                  apt install -y zip
+                  apt install -y python-pip
+                  apt install -y jq
+              fi
+              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL" ]]; then
+                yum install -y epel-release zip unzip
+                yum install -y jq
+                dnf update -y
+                yum -y install wget
+                wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
+                wget https://packages.microsoft.com/config/rhel/7/prod.repo -O /etc/yum.repos.d/msprod.repo
+                yum install -y mssql-tools unixODBC-devel
+                echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
+                echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+                source ~/.bashrc
+              fi
+              if [[ ${OperatingSystem} == "SUSE" ]]; then
+                zypper install -y zip unzip
+                zypper install -y python-pip
+              fi
 
-          pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+              pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
 
-          mkdir -p /opt/testgrid/workspace
-          #So, provided permissions to all the users. Need to fix!
-          chmod 777 -R /opt/testgrid
-          cd /opt/testgrid/workspace
-         
-          echo "Installing Apache Maven"
-          wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
-          tar -xzf apache-maven-${MavenVersion}-bin.tar.gz
-          ln -fs apache-maven-${MavenVersion} maven
-          echo 'export MAVEN_OPTS="-Xmx4096m -Xms2048m"' >> /etc/environment
-          echo 'export M3_HOME=/opt/testgrid/workspace/maven' >> /etc/environment
-          echo PATH=/opt/testgrid/workspace/maven/bin/:$PATH >> /etc/environment
+              mkdir -p /opt/testgrid/workspace
+              #So, provided permissions to all the users. Need to fix!
+              chmod 777 -R /opt/testgrid
+              cd /opt/testgrid/workspace
+            
+              echo "Installing Apache Maven"
+              wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
+              tar -xzf apache-maven-${MavenVersion}-bin.tar.gz
+              ln -fs apache-maven-${MavenVersion} maven
+              echo 'export MAVEN_OPTS="-Xmx4096m -Xms2048m"' >> /etc/environment
+              echo 'export M3_HOME=/opt/testgrid/workspace/maven' >> /etc/environment
+              echo PATH=/opt/testgrid/workspace/maven/bin/:$PATH >> /etc/environment
 
-          source /etc/environment
+              source /etc/environment
 
-          cat /dev/null > ~/.bash_history && history -c
-          ${CustomUserData}
+              cat /dev/null > ~/.bash_history && history -c
+              ${CustomUserData}
 
-          WORKING_DIR=$(pwd)
+              WORKING_DIR=$(pwd)
 
-          # write property file
-          echo "DB_TYPE=${DBEngine}" > cfn-props.properties
-          echo "CF_DB_VERSION=${DBEngineVersion}" >> cfn-props.properties
-          echo "JDK_TYPE=${JDK}" >> cfn-props.properties
-          echo "CF_DB_PASSWORD=${DBPassword}" >> cfn-props.properties
-          echo "CF_DB_USERNAME=${DBUsername}" >> cfn-props.properties
-          echo "CF_DB_HOST=${WSO2DBInstance.Endpoint.Address}" >> cfn-props.properties
-          echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
-          echo "SID=${DBName}" >> cfn-props.properties
-          #add product pack name to cfn properties
-          echo "REMOTE_PACK_NAME=${ProductName}-${ProductVersion}" >> cfn-props.properties
-          /usr/local/bin/aws --version
-          /usr/local/bin/aws configure set aws_access_key_id '${AWSAccessKeyId}'
-          /usr/local/bin/aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
-          /usr/local/bin/aws configure set default.region us-east-1
-          /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
-          /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
-          cp /home/centos/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
-          wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
-          chmod +x /opt/testgrid/workspace/wso2-update.sh
-          DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
+              # write property file
+              echo "DB_TYPE=${DBEngine}" > cfn-props.properties
+              echo "CF_DB_VERSION=${DBEngineVersion}" >> cfn-props.properties
+              echo "JDK_TYPE=${JDK}" >> cfn-props.properties
+              echo "CF_DB_PASSWORD=${DBPassword}" >> cfn-props.properties
+              echo "CF_DB_USERNAME=${DBUsername}" >> cfn-props.properties
+              echo "CF_DB_HOST=${WSO2DBInstance.Endpoint.Address}" >> cfn-props.properties
+              echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
+              echo "SID=${DBName}" >> cfn-props.properties
+              #add product pack name to cfn properties
+              echo "REMOTE_PACK_NAME=${ProductName}-${ProductVersion}" >> cfn-props.properties
+              /usr/local/bin/aws --version
+              /usr/local/bin/aws configure set aws_access_key_id '${AWSAccessKeyId}'
+              /usr/local/bin/aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
+              /usr/local/bin/aws configure set default.region us-east-1
+              /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
+              /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
+              cp /home/centos/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
+              wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
+              chmod +x /opt/testgrid/workspace/wso2-update.sh
+              DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
 
-          pwd
+              pwd
 
-          wget https://integration-testgrid-resources.s3.amazonaws.com/db_scripts/$DB_PROV_SCRIPT_NAME
-          chmod +x $DB_PROV_SCRIPT_NAME
+              wget https://integration-testgrid-resources.s3.amazonaws.com/db_scripts/$DB_PROV_SCRIPT_NAME
+              chmod +x $DB_PROV_SCRIPT_NAME
 
-          echo "Database configs"
+              echo "Database configs"
 
-          echo $DBEngine
-          echo $DBEngineVersion
+              echo $DBEngine
+              echo $DBEngineVersion
 
-          sed -i "s/&CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
-          sed -i "s/&CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
-          sed -i "s/&CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g" $DB_PROV_SCRIPT_NAME
-          sed -i "s/&CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g" $DB_PROV_SCRIPT_NAME
-          sed -i "s/&CF_DB_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
-          sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
-          sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
-          echo ${OperatingSystem}
-          if [[ ${OperatingSystem} == "Ubuntu" ]]; then
-            /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
-          fi
-          if [[ ${OperatingSystem} == "CentOS" ]]; then
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
-          fi
-          if [[ ${OperatingSystem} == "RHEL" ]]; then
-            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
-          fi
-          if [[ ${OperatingSystem} == "SUSE" ]]; then
-            /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
-          fi
-
-        - DBEngine: !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
-          DBEngineVersion: !Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
+              sed -i "s/&CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/&CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/&CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/&CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/&CF_DB_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
+              echo ${OperatingSystem}
+              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
+                /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+              fi
+              if [[ ${OperatingSystem} == "CentOS" ]]; then
+                /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+              fi
+              if [[ ${OperatingSystem} == "RHEL" ]]; then
+                /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+              fi
+              if [[ ${OperatingSystem} == "SUSE" ]]; then
+                /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+              fi
+            - DBEngine: !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
+              DBEngineVersion: !Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
       Tags:
         - Key: Name
           Value: !Join
