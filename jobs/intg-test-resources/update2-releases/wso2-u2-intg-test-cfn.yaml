@@ -7,6 +7,7 @@ Parameters:
     AllowedValues:
       - MySQL-5.7
       - Postgres-12.15
+      - Postgres-15.3
       - Oracle-SE2-19.0
       - SQLServer-SE-13.00
       - SQLServer-SE-14.00
@@ -163,6 +164,8 @@ Mappings:
       DBEngine: "mysql_5.7"
     Postgres-12.15:
       DBEngine: "postgres_12.15"
+    Postgres-15.3:
+      DBEngine: "postgres_15.3"
     SQLServer-SE-13.00:
       DBEngine: "sqlserver-se_13.00"
     SQLServer-SE-14.00:
