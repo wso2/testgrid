@@ -35,7 +35,7 @@ else
   # Note: config.json will be replaced with UAT information through cloudformation.
   sudo chmod 755 wso2update_linux
   sudo ./wso2update_linux check --username "'$WSO2_USERNAME'" --password "$WSO2_PASSWORD" -v
-  sed "s/PATTERN/$WSO2_PRODUCT/" /opt/testgrid/workspace/uat-config.json  | sed "s/PRODUCT_NAME/$PRODUCT_NAME/" | sed "s/PRODUCT_VERSION/$PRODUCT_VERSION/" > ../updates/config.json
+  export WSO2_UPDATES_UPDATE_LEVEL_STATE=VERIFYING
   sudo ./wso2update_linux --username "$WSO2_USERNAME" --password "$WSO2_PASSWORD" --backup /opt/testgrid/workspace/backup -v
   update_exit_code=$(echo $?)
 
