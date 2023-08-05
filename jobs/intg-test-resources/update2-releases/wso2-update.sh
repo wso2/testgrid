@@ -36,7 +36,7 @@ else
   sudo chmod 755 wso2update_linux
   sudo ./wso2update_linux check --username "'$WSO2_USERNAME'" --password "$WSO2_PASSWORD" -v
   export WSO2_UPDATES_UPDATE_LEVEL_STATE=VERIFYING
-  sudo ./wso2update_linux --username "$WSO2_USERNAME" --password "$WSO2_PASSWORD" --backup /opt/testgrid/workspace/backup -v
+  sudo -E ./wso2update_linux --username "$WSO2_USERNAME" --password "$WSO2_PASSWORD" --backup /opt/testgrid/workspace/backup -v
   update_exit_code=$(echo $?)
 
   if [ $update_exit_code -eq 2 ]; then
