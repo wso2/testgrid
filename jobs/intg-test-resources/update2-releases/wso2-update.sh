@@ -41,7 +41,7 @@ else
 
   if [ $update_exit_code -eq 2 ]; then
     echo "Self Update."
-    sudo ./wso2update_linux --username "$WSO2_USERNAME" --password "$WSO2_PASSWORD" --backup /opt/testgrid/workspace/backup -v
+    sudo -E ./wso2update_linux --username "$WSO2_USERNAME" --password "$WSO2_PASSWORD" --backup /opt/testgrid/workspace/backup -v
     update_exit_code=$(echo $?)
   fi
 
