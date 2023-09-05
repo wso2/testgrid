@@ -178,7 +178,7 @@ Mappings:
     Ubuntu:
       img: ami-025def472c84238d3
     CentOS:
-      img: ami-0b3041ea1584670e4
+      img: ami-0199fa59b56678149
     RHEL:
       img: ami-05b6fba4481489641
     SUSE:
