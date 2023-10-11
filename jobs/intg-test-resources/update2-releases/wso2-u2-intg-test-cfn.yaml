@@ -180,7 +180,7 @@ Mappings:
     CentOS:
       img: ami-0199fa59b56678149
     RHEL:
-      img: ami-0b5997b67bf9ca462
+      img: ami-024c6cc961bf29b11
     SUSE:
       img: ami-009fab158dcff70e0
 #Conditions
