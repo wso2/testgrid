@@ -180,7 +180,7 @@ Mappings:
     CentOS:
       img: ami-0199fa59b56678149
     RHEL:
-      img: ami-0dd9988d50f6df3bf
+      img: ami-0b5997b67bf9ca462
     SUSE:
       img: ami-009fab158dcff70e0
 #Conditions
@@ -360,7 +360,16 @@ Resources:
               /usr/local/bin/aws configure set default.region us-east-1
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
-              cp /home/centos/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
+              if [[ ${OperatingSystem} == "RHEL" ]] || [[ ${OperatingSystem} == "SUSE" ]]; then
+                echo "Copy product from default location to $$WORKING_DIR in RHEL/SUSE instance"
+                cp /home/ec2-user/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
+              fi
+              if [[ ${OperatingSystem} == "CentOS" ]]; then
+                cp /home/centos/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
+              fi
+              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
+                cp /home/ubuntu/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
+              fi
               wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
               chmod +x /opt/testgrid/workspace/wso2-update.sh
               DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
