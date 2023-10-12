@@ -168,7 +168,7 @@ Mappings:
     ami:
       Ubuntu: ami-025def472c84238d3
       CentOS: ami-01ad4ff4d5b37a948
-      RHEL: ami-0dd9988d50f6df3bf
+      RHEL: ami-002cbf8e84a505c07
       SUSE: ami-009fab158dcff70e0
 
 #Conditions
