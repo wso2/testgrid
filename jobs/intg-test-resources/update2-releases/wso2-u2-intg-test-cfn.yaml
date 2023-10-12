@@ -180,7 +180,7 @@ Mappings:
     CentOS:
       img: ami-0199fa59b56678149
     RHEL:
-      img: ami-002cbf8e84a505c07
+      img: ami-02fcb8caac4630d02
     SUSE:
       img: ami-009fab158dcff70e0
 #Conditions
@@ -304,17 +304,19 @@ Resources:
                 yum install -y epel-release zip unzip
                 yum install -y jq
                 dnf update -y
+                dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
                 yum -y install wget
                 wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
                 wget https://packages.microsoft.com/config/rhel/7/prod.repo -O /etc/yum.repos.d/msprod.repo
                 yum install -y mssql-tools unixODBC-devel
+                yum -y install mysql
                 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
                 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
                 source ~/.bashrc
                 yum -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
                 yum -y update
                 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-                yum -y install postgresql15
+                yum -y install postgresql
                 yum -y install git
               fi
               if [[ ${OperatingSystem} == "SUSE" ]]; then
