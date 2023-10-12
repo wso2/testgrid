@@ -363,6 +363,7 @@ Resources:
               if [[ ${OperatingSystem} == "RHEL" ]] || [[ ${OperatingSystem} == "SUSE" ]]; then
                 echo "Copy product from default location to $$WORKING_DIR in RHEL/SUSE instance"
                 cp /home/ec2-user/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
+                alternatives --set python /usr/bin/python3
               fi
               if [[ ${OperatingSystem} == "CentOS" ]]; then
                 cp /home/centos/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
