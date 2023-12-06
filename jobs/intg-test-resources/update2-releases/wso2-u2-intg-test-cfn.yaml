@@ -191,7 +191,7 @@ Mappings:
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ] !Equals [ !Ref OperatingSystem, "SUSE" ]]
+ IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ], !Equals [ !Ref OperatingSystem, "SUSE" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
  UseSQLServerDB: !Equals [sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
  UseLicensedVersion: !Or [ !Equals [sqlserver, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]], !Equals [oracle, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]] ]
