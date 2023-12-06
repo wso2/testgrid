@@ -333,7 +333,7 @@ Resources:
                 zypper install -y zip unzip
                 zypper install -y python-pip
               fi
-              if [[ ${OperatingSystem} == "RHEL8" ]]; then
+              if [[ ${OperatingSystem} == "RHEL9" ]]; then
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
               else
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
