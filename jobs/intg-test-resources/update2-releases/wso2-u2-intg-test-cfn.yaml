@@ -12,6 +12,7 @@ Parameters:
       - SQLServer-SE-13.00
       - SQLServer-SE-14.00
       - SQLServer-SE-15.00
+      - SQLServer-SE-16.00
   DBEngine:
     Type: String
     Default: mysql
@@ -172,6 +173,8 @@ Mappings:
       DBEngine: "sqlserver-se_14.00"
     SQLServer-SE-15.00:
       DBEngine: "sqlserver-se_15.00"
+    SQLServer-SE-16.00:
+      DBEngine: "sqlserver-se_16.00"
     Oracle-SE2-19.0:
       DBEngine: "oracle-se2_19.0.0.0.ru-2019-10.rur-2019-10.r1"
   OperatingSystemAMI:
