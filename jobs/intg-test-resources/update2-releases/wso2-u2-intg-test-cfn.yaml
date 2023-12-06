@@ -179,14 +179,16 @@ Mappings:
       img: ami-025def472c84238d3
     CentOS:
       img: ami-0199fa59b56678149
-    RHEL:
+    RHEL8:
       img: ami-02fcb8caac4630d02
+    RHEL9:
+      img: ami-02e6fdd2ef5ed9679
     SUSE:
       img: ami-009fab158dcff70e0
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL" ], !Equals [ !Ref OperatingSystem, "SUSE" ]]
+ IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ] !Equals [ !Ref OperatingSystem, "SUSE" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
  UseSQLServerDB: !Equals [sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
  UseLicensedVersion: !Or [ !Equals [sqlserver, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]], !Equals [oracle, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]] ]
@@ -300,7 +302,7 @@ Resources:
                   apt install -y python-pip
                   apt install -y jq
               fi
-              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL" ]]; then
+              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]]; then
                 yum install -y epel-release zip unzip
                 yum install -y jq
                 dnf update -y
@@ -308,7 +310,7 @@ Resources:
                 yum -y install wget
                 wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
                 wget https://packages.microsoft.com/config/rhel/7/prod.repo -O /etc/yum.repos.d/msprod.repo
-                yum install -y mssql-tools unixODBC-devel
+                ACCEPT_EULA=Y yum install -y mssql-tools unixODBC-devel
                 yum -y install mysql
                 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
                 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
@@ -319,7 +321,7 @@ Resources:
                 if [[ ${OperatingSystem} == "CentOS" ]] ; then
                   yum -y install postgresql15
                 fi
-                if [[ ${OperatingSystem} == "RHEL" ]]; then
+                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]]; then
                   yum -y install postgresql
                 fi
                 yum -y install git
@@ -328,9 +330,11 @@ Resources:
                 zypper install -y zip unzip
                 zypper install -y python-pip
               fi
-
-              pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-
+              if [[ ${OperatingSystem} == "RHEL8" ]]; then
+                pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+              else
+                pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+              fi
               mkdir -p /opt/testgrid/workspace
               #So, provided permissions to all the users. Need to fix!
               chmod 777 -R /opt/testgrid
@@ -368,7 +372,7 @@ Resources:
               /usr/local/bin/aws configure set default.region us-east-1
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
-              if [[ ${OperatingSystem} == "RHEL" ]] || [[ ${OperatingSystem} == "SUSE" ]]; then
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]]; then
                 echo "Copy product from default location to $$WORKING_DIR in RHEL/SUSE instance"
                 cp /home/ec2-user/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
                 alternatives --set python /usr/bin/python2
@@ -407,7 +411,7 @@ Resources:
               if [[ ${OperatingSystem} == "CentOS" ]]; then
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
-              if [[ ${OperatingSystem} == "RHEL" ]]; then
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]]; then
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
               if [[ ${OperatingSystem} == "SUSE" ]]; then
