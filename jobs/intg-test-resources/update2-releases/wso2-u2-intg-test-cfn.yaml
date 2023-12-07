@@ -185,7 +185,7 @@ Mappings:
     RHEL8:
       img: ami-02fcb8caac4630d02
     RHEL9:
-      img: ami-098b9165a218e4c03
+      img: ami-03bc8b1ac8264bf3f
     SUSE:
       img: ami-009fab158dcff70e0
 #Conditions
