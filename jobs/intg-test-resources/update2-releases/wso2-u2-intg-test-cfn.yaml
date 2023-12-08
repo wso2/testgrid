@@ -183,9 +183,9 @@ Mappings:
     CentOS:
       img: ami-0199fa59b56678149
     RHEL8:
-      img: ami-093d696434b343846
+      img: ami-077a8c9eeb949d9d6
     RHEL9:
-      img: ami-043148b94de345b1e
+      img: ami-0a82122aa7eac8136
     SUSE:
       img: ami-009fab158dcff70e0
 #Conditions
