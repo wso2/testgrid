@@ -188,10 +188,12 @@ Mappings:
       img: ami-0a82122aa7eac8136
     SUSE:
       img: ami-009fab158dcff70e0
+    Rocky:
+      img: ami-0a62d6872304ca652
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ], !Equals [ !Ref OperatingSystem, "SUSE" ]]
+ IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ], !Equals [ !Ref OperatingSystem, "SUSE" ], !Equals [ !Ref OperatingSystem, "Rocky" ]]
  IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
  UseSQLServerDB: !Equals [sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
  UseLicensedVersion: !Or [ !Equals [sqlserver, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]], !Equals [oracle, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]] ]
@@ -305,7 +307,7 @@ Resources:
                   apt install -y python-pip
                   apt install -y jq
               fi
-              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]]; then
+              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 yum install -y epel-release zip unzip
                 yum install -y jq
                 dnf update -y
@@ -324,7 +326,7 @@ Resources:
                 if [[ ${OperatingSystem} == "CentOS" ]] ; then
                   yum -y install postgresql15
                 fi
-                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]]; then
+                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                   yum -y install postgresql
                 fi
                 yum -y install git
@@ -333,7 +335,7 @@ Resources:
                 zypper install -y zip unzip
                 zypper install -y python-pip
               fi
-              if [[ ${OperatingSystem} == "RHEL9" ]]; then
+              if [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
               else
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
@@ -375,7 +377,7 @@ Resources:
               /usr/local/bin/aws configure set default.region us-east-1
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
-              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]]; then
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 echo "Copy product from default location to $$WORKING_DIR in RHEL/SUSE instance"
                 cp /home/ec2-user/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
                 alternatives --set python /usr/bin/python2
@@ -414,7 +416,7 @@ Resources:
               if [[ ${OperatingSystem} == "CentOS" ]]; then
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
-              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]]; then
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
               if [[ ${OperatingSystem} == "SUSE" ]]; then
