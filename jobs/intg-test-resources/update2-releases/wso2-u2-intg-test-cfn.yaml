@@ -6,9 +6,12 @@ Parameters:
     Default: MySQL-5.7
     AllowedValues:
       - MySQL-5.7
+      - MySQL-8.0
       - Postgres-12.15
       - Postgres-15.3
+      - Postgres-16.2
       - Oracle-SE2-19.0
+      - Oracle-SE2-21.0
       - SQLServer-SE-13.00
       - SQLServer-SE-14.00
       - SQLServer-SE-15.00
@@ -163,10 +166,14 @@ Mappings:
   DBEngineMap:
     MySQL-5.7:
       DBEngine: "mysql_5.7"
+    MySQL-8.0:
+      DBEngine: "mysql_8.0"
     Postgres-12.15:
       DBEngine: "postgres_12.15"
     Postgres-15.3:
       DBEngine: "postgres_15.3"
+    Postgres-16.2:
+      DBEngine: "postgres_16.2"
     SQLServer-SE-13.00:
       DBEngine: "sqlserver-se_13.00"
     SQLServer-SE-14.00:
@@ -177,6 +184,8 @@ Mappings:
       DBEngine: "sqlserver-se_16.00"
     Oracle-SE2-19.0:
       DBEngine: "oracle-se2_19.0.0.0.ru-2019-10.rur-2019-10.r1"
+    Oracle-SE2-21.0:
+      DBEngine: "oracle-se2_21.0.0.0.ru-2024-01.rur-2024-01.r1"
   OperatingSystemAMI:
     Ubuntu:
       img: ami-025def472c84238d3
