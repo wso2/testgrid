@@ -386,16 +386,10 @@ Resources:
               /usr/local/bin/aws configure set default.region us-east-1
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
+              echo "Downloading vanilla product ${ProductName}-${ProductVersion} from AWS S3 completed successfully"
+              /usr/local/bin/aws s3 cp s3://wum-for-testgrid/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
               if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
-                echo "Copy product from default location to $$WORKING_DIR in RHEL/SUSE instance"
-                cp /home/ec2-user/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
                 alternatives --set python /usr/bin/python2
-              fi
-              if [[ ${OperatingSystem} == "CentOS" ]]; then
-                cp /home/centos/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
-              fi
-              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
-                cp /home/ubuntu/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
               fi
               wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
               chmod +x /opt/testgrid/workspace/wso2-update.sh
