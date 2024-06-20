@@ -336,8 +336,12 @@ Resources:
                 if [[ ${OperatingSystem} == "CentOS" ]] ; then
                   yum -y install postgresql15
                 fi
-                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
+                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] ; then
                   yum -y install postgresql
+                fi
+                if [[ ${OperatingSystem} == "Rocky" ]]; then
+                  dnf -y module enable postgresql:15
+                  dnf -y install postgresql-server
                 fi
                 yum -y install git
               fi
