@@ -122,6 +122,10 @@ Parameters:
     Type: String
     Default: wso2am
     Description: Enter product name
+  Product:
+    Type: String
+    Default: wso2am
+    Description: Enter product name
   ProductVersion:
     Type: String
     Default: 3.2.0
