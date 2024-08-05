@@ -388,21 +388,21 @@ Resources:
               echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
               echo "SID=${DBName}" >> cfn-props.properties
               #add product pack name to cfn properties
-              echo "REMOTE_PACK_NAME=${ProductName}-${ProductVersion}" >> cfn-props.properties
+              echo "REMOTE_PACK_NAME=${Product}-${ProductVersion}" >> cfn-props.properties
               /usr/local/bin/aws --version
               /usr/local/bin/aws configure set aws_access_key_id '${AWSAccessKeyId}'
               /usr/local/bin/aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
               /usr/local/bin/aws configure set default.region us-east-1
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
-              echo "Downloading vanilla product ${ProductName}-${ProductVersion} from AWS S3 completed successfully"
-              /usr/local/bin/aws s3 cp s3://wum-for-testgrid/packs/${ProductName}-${ProductVersion}.zip $WORKING_DIR
+              echo "Downloading vanilla product ${Product}-${ProductVersion} from AWS S3 completed successfully"
+              /usr/local/bin/aws s3 cp s3://wum-for-testgrid/packs/${Product}-${ProductVersion}.zip $WORKING_DIR
               if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 alternatives --set python /usr/bin/python2
               fi
               wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
               chmod +x /opt/testgrid/workspace/wso2-update.sh
-              DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
+              DB_PROV_SCRIPT_NAME=provision_db_${Product}.sh
 
               pwd
 
