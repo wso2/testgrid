@@ -118,10 +118,6 @@ Parameters:
     Description: >-
       Enter WUM user password to get the updated WSO2 products deployed. If not
       provided standard released pack will be deployed
-  ProductName:
-    Type: String
-    Default: wso2am
-    Description: Enter product name
   Product:
     Type: String
     Default: wso2am
