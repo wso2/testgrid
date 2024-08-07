@@ -106,6 +106,8 @@ Parameters:
       - c3.xlarge
       - c4.2xlarge
       - c5.2xlarge
+      - c7g.xlarge
+      - c7g.2xlarge
     ConstraintDescription: must be a valid EC2 instance type
   WUMUsername:
     Type: String
