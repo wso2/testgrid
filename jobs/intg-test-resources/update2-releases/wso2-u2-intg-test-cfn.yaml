@@ -193,8 +193,10 @@ Mappings:
     Oracle-SE2-21.0:
       DBEngine: "oracle-se2-cdb_21.0.0.0.ru-2024-01.rur-2024-01.r1"
   OperatingSystemAMI:
+    # Ubuntu:
+    #   img: ami-025def472c84238d3
     Ubuntu:
-      img: ami-025def472c84238d3
+      img: ami-0b7111b9d78d96a3d
     CentOS:
       img: ami-0199fa59b56678149
     RHEL8:
@@ -205,8 +207,6 @@ Mappings:
       img: ami-009fab158dcff70e0
     Rocky:
       img: ami-0bdb0ee5983bfb6aa
-    Ubuntu2404:
-      img: ami-0b7111b9d78d96a3d
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
