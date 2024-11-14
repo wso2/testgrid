@@ -151,6 +151,7 @@ Parameters:
       - CORRETTO_JDK17
       - ADOPT_OPEN_JDK11
       - ADOPT_OPEN_JDK17
+      - ADOPT_OPEN_JDK21
       - TEMURIN_OPEN_JDK8
   MavenVersion:
     Type: String
