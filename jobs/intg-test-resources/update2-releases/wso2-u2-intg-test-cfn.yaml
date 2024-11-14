@@ -204,6 +204,8 @@ Mappings:
       img: ami-009fab158dcff70e0
     Rocky:
       img: ami-0bdb0ee5983bfb6aa
+    Ubuntu2404:
+      img: ami-0b7111b9d78d96a3d
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
