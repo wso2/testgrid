@@ -151,6 +151,7 @@ Parameters:
       - CORRETTO_JDK17
       - ADOPT_OPEN_JDK11
       - ADOPT_OPEN_JDK17
+      - ADOPT_OPEN_JDK21
       - TEMURIN_OPEN_JDK8
   MavenVersion:
     Type: String
@@ -204,6 +205,8 @@ Mappings:
       img: ami-009fab158dcff70e0
     Rocky:
       img: ami-0bdb0ee5983bfb6aa
+    Ubuntu2404:
+      img: ami-0b7111b9d78d96a3d
 #Conditions
 Conditions:
  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
