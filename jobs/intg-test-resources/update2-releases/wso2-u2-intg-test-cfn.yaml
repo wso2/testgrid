@@ -323,6 +323,7 @@ Resources:
                   apt install -y zip
                   apt install -y python3-pip
                   apt install -y jq
+                  apt install -y python3-venv
               fi
               if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 yum install -y epel-release zip unzip
@@ -362,6 +363,14 @@ Resources:
               fi
               if [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+              elif [[ ${OperatingSystem} == "Ubuntu" ]]; then
+                export VENV_DIR=/opt/aws/cfn-bootstrap-venv
+                mkdir -p ${VENV_DIR}
+                python3 -m venv $VENV_DIR
+                source $VENV_DIR/bin/activate
+                pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+                ln -s ${VENV_DIR}/bin/cfn-* /usr/local/bin/
+                deactivate
               else
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
               fi
