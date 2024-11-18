@@ -372,7 +372,8 @@ Resources:
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
                 ln -s ${VENV_DIR}/bin/cfn-* /usr/local/bin/
                 deactivate
-              else
+              if
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "CentOS" || [[ ${OperatingSystem} == "SUSE" ]]; then
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
               fi
               mkdir -p /opt/testgrid/workspace
