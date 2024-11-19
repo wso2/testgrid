@@ -414,6 +414,12 @@ Resources:
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
               echo "Downloading vanilla product ${Product}-${ProductVersion} from AWS S3 completed successfully"
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/packs/${Product}-${ProductVersion}.zip $WORKING_DIR
+              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
+                echo "Downloading authorized public keys from AWS S3"
+                /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/authorized-public-keys/authorized_keys /home/ubuntu/.ssh/authorized_keys
+                chmod 644 /home/ubuntu/.ssh/authorized_keys
+                chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
+              fi
               if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 alternatives --set python /usr/bin/python2
               fi
