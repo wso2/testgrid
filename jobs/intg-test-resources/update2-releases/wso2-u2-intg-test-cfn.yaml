@@ -406,6 +406,12 @@ Resources:
               echo "SID=${DBName}" >> cfn-props.properties
               #add product pack name to cfn properties
               echo "REMOTE_PACK_NAME=${Product}-${ProductVersion}" >> cfn-props.properties
+              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
+                echo "Installing AWS CLI"
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                unzip awscliv2.zip
+                ./aws/install
+              fi
               /usr/local/bin/aws --version
               /usr/local/bin/aws configure set aws_access_key_id '${AWSAccessKeyId}'
               /usr/local/bin/aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
