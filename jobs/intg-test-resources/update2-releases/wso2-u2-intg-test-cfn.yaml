@@ -334,7 +334,7 @@ Resources:
                   curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
                   curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
                   apt update
-                  apt install -y mssql-tools18 unixodbc-dev
+                  ACCEPT_EULA=Y apt install -y mssql-tools18 unixodbc-dev
                   echo 'export PATH="/opt/mssql-tools18/bin:$PATH"' >> /etc/environment
                   source /etc/environment
               fi
