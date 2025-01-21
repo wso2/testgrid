@@ -9,7 +9,7 @@ Parameters:
       - MySQL-8.0
       - Postgres-12.15
       - Postgres-15.3
-      - Postgres-16.2
+      - Postgres-16.5
       - Oracle-SE2-19.0
       - Oracle-SE2-21.0
       - SQLServer-SE-13.00
