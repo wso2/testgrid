@@ -178,8 +178,8 @@ Mappings:
       DBEngine: "postgres_12.15"
     Postgres-15.3:
       DBEngine: "postgres_15.3"
-    Postgres-16.2:
-      DBEngine: "postgres_16.2"
+    Postgres-16.5:
+      DBEngine: "postgres_16.5"
     SQLServer-SE-13.00:
       DBEngine: "sqlserver-se_13.00"
     SQLServer-SE-14.00:
