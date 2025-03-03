@@ -5,12 +5,16 @@ Parameters:
     Type: String
     Default: MySQL-5.7
     AllowedValues:
+      - Db2-11.5
       - MySQL-5.7
       - MySQL-8.0
-      - Postgres-12.15
-      - Postgres-15.3
-      - Postgres-16.2
-      - Postgres-17.1
+      - MariaDB-11.4.3
+      - Postgres-12.18
+      - Postgres-13.17
+      - Postgres-14.14
+      - Postgres-15.10
+      - Postgres-16.6
+      - Postgres-17.2
       - Oracle-SE2-19.0
       - Oracle-SE2-21.0
       - SQLServer-SE-13.00
@@ -22,6 +26,7 @@ Parameters:
     Default: mysql
     Description: Database Engine
     AllowedValues:
+      - db2-se
       - mysql
       - postgres
       - mariadb
@@ -55,8 +60,12 @@ Parameters:
     Description: Database master account password
     MinLength: 6
     ConstraintDescription: minimum - 6 characters
+  DBAllocationStorage:
+    Description: Provide storage size in Gigabytes
+    Type: Number
+    Default: 20
   DBInstanceType:
-    Default: db.m4.large
+    Default: db.m5.xlarge
     Description: Database instance class
     Type: String
     AllowedValues:
@@ -70,6 +79,13 @@ Parameters:
       - db.m4.xlarge
       - db.m4.2xlarge
       - db.m5.large
+      - db.m5.xlarge
+      - db.m5.2xlarge
+      - db.m5.4xlarge
+      - db.r6i.large
+      - db.r6i.xlarge
+      - db.r6i.2xlarge
+      - db.r6i.4xlarge
     ConstraintDescription: must be a valid database instance type
   DBAllocatedStorage:
     Default: 20
@@ -82,6 +98,9 @@ Parameters:
       Type: String
       Default: 'true'
       Description: Specify whether DB should be created.
+  ProductPackLocation:
+    Type: String
+    Description: URL for the remote product pack
   KeyPairName:
     Description: >-
       This is used to ssh to the node. If you don't have a key, please create
@@ -95,41 +114,56 @@ Parameters:
   WSO2InstanceType:
     Description: 'EC2 instance type of the WSO2 EI Node [t2.micro is the free tier]'
     Type: String
-    Default: t2.large
+    Default: c6a.2xlarge
     AllowedValues:
       - t2.micro
-      - t2.small
-      - t2.medium
-      - t2.large
       - t3.micro
+      - t3.small
       - t3.medium
       - t3.large
-      - c3.xlarge
-      - c4.2xlarge
-      - c5.2xlarge
-      - c7g.xlarge
-      - c7g.2xlarge
+      - t3.xlarge
+      - t3.2xlarge
+      - t4g.micro
+      - t4g.small
+      - t4g.medium
+      - t4g.large
+      - t4g.xlarge
+      - t4g.2xlarge
+      - c6a.large
       - c6a.xlarge
       - c6a.2xlarge
+      - c6a.4xlarge
+      - c6i.large
+      - c6i.xlarge
+      - c6i.2xlarge
+      - c6i.4xlarge
+      - c7g.large
+      - c7g.xlarge
+      - c7g.2xlarge
+      - c7g.4xlarge
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5a.large
+      - m5a.xlarge
+      - m5a.2xlarge
+      - m5a.4xlarge
+      - m6g.large
+      - m6g.xlarge
+      - m6g.2xlarge
+      - m6g.4xlarge
     ConstraintDescription: must be a valid EC2 instance type
-  WUMUsername:
+  ProductName:
     Type: String
-    Default: ''
-    Description: Enter WUM user name
-  WUMPassword:
-    Type: String
-    Default: ''
-    NoEcho: true
-    Description: >-
-      Enter WUM user password to get the updated WSO2 products deployed. If not
-      provided standard released pack will be deployed
-  Product:
-    Type: String
-    Default: wso2am
+    Default: wso2is
     Description: Enter product name
   ProductVersion:
     Type: String
-    Default: 3.2.0
+    Default: 7.1.0-rc2
     Description: Enter product version
   OperatingSystem:
     Type: String
@@ -139,11 +173,11 @@ Parameters:
       well.
   OSVersion:
     Type: String
-    Default: '16.04'
+    Default: '9.3'
     Description: Enter target OS version.
   JDK:
     Type: String
-    Default: ADOPT_OPEN_JDK8
+    Default: ADOPT_OPEN_JDK11
     Description: Enter target JDK version.
     AllowedValues:
       - ADOPT_OPEN_JDK8
@@ -153,10 +187,13 @@ Parameters:
       - ADOPT_OPEN_JDK11
       - ADOPT_OPEN_JDK17
       - ADOPT_OPEN_JDK21
+      - ADOPT_OPEN_JDK11_ARM
+      - ADOPT_OPEN_JDK17_ARM
+      - ADOPT_OPEN_JDK21_ARM
       - TEMURIN_OPEN_JDK8
   MavenVersion:
     Type: String
-    Default: '3.3.9'
+    Default: '3.6.3'
     Description: Enter required Maven version.
   CustomUserData:
    Type: String
@@ -169,18 +206,31 @@ Parameters:
   UniqueIdentifier:
     Type: String
     Default: ""
+  S3OutputBucketLocation:
+    Type: String
+    Default: ""
 Mappings:
   DBEngineMap:
+    Db2-11.5:
+      DBEngine: "db2-se_11.5.9.0.sb00046591.r1"
     MySQL-5.7:
       DBEngine: "mysql_5.7"
     MySQL-8.0:
       DBEngine: "mysql_8.0"
-    Postgres-12.15:
-      DBEngine: "postgres_12.15"
-    Postgres-15.3:
-      DBEngine: "postgres_15.3"
-    Postgres-16.2:
-      DBEngine: "postgres_16.2"
+    MariaDB-11.4.3:
+      DBEngine: "mariadb_11.4.3"
+    Postgres-12.18:
+      DBEngine: "postgres_12.18"
+    Postgres-13.17:
+      DBEngine: "postgres_13.17"
+    Postgres-14.14:
+      DBEngine: "postgres_14.14"
+    Postgres-15.10:
+      DBEngine: "postgres_15.10"
+    Postgres-16.6:
+      DBEngine: "postgres_16.6"
+    Postgres-17.2:
+      DBEngine: "postgres_17.2"
     SQLServer-SE-13.00:
       DBEngine: "sqlserver-se_13.00"
     SQLServer-SE-14.00:
@@ -190,31 +240,59 @@ Mappings:
     SQLServer-SE-16.00:
       DBEngine: "sqlserver-se_16.00"
     Oracle-SE2-19.0:
-      DBEngine: "oracle-se2_19.0.0.0.ru-2019-10.rur-2019-10.r1"
+      DBEngine: "oracle-se2_19.0.0.0.ru-2024-01.rur-2024-01.r1"
     Oracle-SE2-21.0:
       DBEngine: "oracle-se2-cdb_21.0.0.0.ru-2024-01.rur-2024-01.r1"
+  
   OperatingSystemAMI:
     # Ubuntu:
     #   img: ami-025def472c84238d3
     Ubuntu:
       img: ami-0b7111b9d78d96a3d
+    Ubuntu-ARM:
+      img: ami-0cfd5e80e9f7bef10
     CentOS:
       img: ami-0199fa59b56678149
     RHEL8:
-      img: ami-077a8c9eeb949d9d6
+      img: ami-0e01f0edd6f6ad4d5
     RHEL9:
-      img: ami-0a82122aa7eac8136
+      img: ami-096bfd34ed91b0a1f
+    RHEL9.5:
+      img: ami-08845287db70c6c75
     SUSE:
       img: ami-009fab158dcff70e0
     Rocky:
       img: ami-0bdb0ee5983bfb6aa
-#Conditions
+
 Conditions:
- IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ], !Equals [ !Ref OperatingSystem, "SUSE" ], !Equals [ !Ref OperatingSystem, "Rocky" ]]
- IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
- UseSQLServerDB: !Equals [sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
- UseLicensedVersion: !Or [ !Equals [sqlserver, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]], !Equals [oracle, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]] ]
+  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
+  IsUnix: !Or 
+    - !Equals [ !Ref OperatingSystem, "CentOS"]
+    - !Equals [ !Ref OperatingSystem, "Ubuntu" ]
+    - !Equals [ !Ref OperatingSystem, "Ubuntu-ARM" ]
+    - !Equals [ !Ref OperatingSystem, "RHEL8" ]
+    - !Equals [ !Ref OperatingSystem, "RHEL9" ]
+    - !Equals [ !Ref OperatingSystem, "RHEL9.5" ]
+    - !Equals [ !Ref OperatingSystem, "SUSE" ]
+    - !Equals [ !Ref OperatingSystem, "Rocky" ]
+  IsDBEnabled: !Not [ !Equals [ !Ref DBEnabled, "false" ] ]
+  UseSQLServerDB: !Equals [ sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+  UseLicensedVersion: !Or
+    - !Equals [ sqlserver, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+    - !Equals [ oracle, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+    - !Equals [ db2, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+  IsSQLServerOrOracle:
+    Fn::Or:
+      - Fn::Equals:
+        - !Select [0, !Split ["-", !FindInMap [DBEngineMap, !Ref DB, DBEngine]]]
+        - sqlserver
+      - Fn::Equals:
+        - !Select [0, !Split ["-", !FindInMap [DBEngineMap, !Ref DB, DBEngine]]]
+        - oracle
+  IsDB2:
+    Fn::Equals:
+      - !Select [0, !Split ["-", !FindInMap [DBEngineMap, !Ref DB, DBEngine]]]
+      - db2
 Resources:
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -313,10 +391,10 @@ Resources:
               # Set file limits
               sysctl -w fs.file-max=2097152
               sysctl fs.file-nr
-              ulimit -Hn
+              ulimit -Hn 2097152
               ulimit -Sn
 
-              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
+              if [[ ${OperatingSystem} == "Ubuntu" ]] || [[ ${OperatingSystem} == "Ubuntu-ARM" ]]; then
                   export DEBIAN_FRONTEND=noninteractive
                   apt update
                   sleep 120
@@ -340,14 +418,14 @@ Resources:
                   source /etc/environment
                   echo 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/mssql-tools18/bin"' | sudo EDITOR='tee -a' visudo
               fi
-              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
+              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 yum install -y epel-release zip unzip
                 yum install -y jq
                 dnf update -y
-                dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+                dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
                 yum -y install wget
-                wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
-                wget https://packages.microsoft.com/config/rhel/7/prod.repo -O /etc/yum.repos.d/msprod.repo
+                wget https://packages.microsoft.com/config/rhel/9/mssql-server-2022.repo -O /etc/yum.repos.d/mssql-server-2022.repo
+                wget https://packages.microsoft.com/config/rhel/9/prod.repo -O /etc/yum.repos.d/msprod.repo
                 ACCEPT_EULA=Y yum install -y mssql-tools unixODBC-devel
                 yum -y install mysql
                 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
@@ -363,23 +441,57 @@ Resources:
                 if [[ ${OperatingSystem} == "CentOS" ]] ; then
                   yum -y install postgresql15
                 fi
-                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] ; then
-                  yum -y install postgresql
-                fi
-                if [[ ${OperatingSystem} == "Rocky" ]]; then
+                if [[ ${OperatingSystem} == "Rocky" ]] ; then
                   dnf -y module enable postgresql:15
                   dnf -y install postgresql-server
                 fi
                 yum -y install git
               fi
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL9.5" ]]; then
+                yum install -y zip unzip
+                yum install -y jq
+                dnf update -y
+                if [[ ${OperatingSystem} == "RHEL8" ]]; then
+                  dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+                fi
+                if [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL9.5" ]]; then
+                  dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+                fi
+                yum -y install wget
+                if [[ ${OperatingSystem} == "RHEL8" ]]; then
+                  wget https://packages.microsoft.com/config/rhel/8/mssql-server-2019.repo -O /etc/yum.repos.d/mssql-server-2019.repo
+                  wget https://packages.microsoft.com/config/rhel/8/prod.repo -O /etc/yum.repos.d/msprod.repo
+                fi
+                if [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL9.5" ]]; then
+                  wget https://packages.microsoft.com/config/rhel/9/mssql-server-2022.repo -O /etc/yum.repos.d/mssql-server-2022.repo
+                  wget https://packages.microsoft.com/config/rhel/9/prod.repo -O /etc/yum.repos.d/msprod.repo
+                fi
+                ACCEPT_EULA=Y yum install -y mssql-tools unixODBC-devel
+                yum -y install mysql
+                echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
+                echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+                source ~/.bashrc
+                if [[ ${OperatingSystem} == "RHEL8" ]]; then
+                  yum -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+                fi
+                if [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL9.5" ]]; then
+                  yum -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+                fi
+                yum -y update
+                dnf -y module enable postgresql:15
+                dnf -y install postgresql-server
+                dnf -y install git
+                dnf -y install python3
+                dnf -y install python3-pip
+              fi
               if [[ ${OperatingSystem} == "SUSE" ]]; then
                 zypper install -y zip unzip
                 zypper install -y python-pip
               fi
-              if [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
+              if [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]] || [[ ${OperatingSystem} == "RHEL9.5" ]]; then
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
               fi
-              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
+              if [[ ${OperatingSystem} == "Ubuntu" ]] || [[ ${OperatingSystem} == "Ubuntu-ARM" ]]; then
                 mkdir -p /opt/aws/cfn-bootstrap-venv
                 python3 -m venv /opt/aws/cfn-bootstrap-venv
                 source /opt/aws/cfn-bootstrap-venv/bin/activate
@@ -394,12 +506,13 @@ Resources:
               #So, provided permissions to all the users. Need to fix!
               chmod 777 -R /opt/testgrid
               cd /opt/testgrid/workspace
-            
+
               echo "Installing Apache Maven"
               wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
               tar -xzf apache-maven-${MavenVersion}-bin.tar.gz
               ln -fs apache-maven-${MavenVersion} maven
               echo 'export MAVEN_OPTS="-Xmx4096m -Xms2048m"' >> /etc/environment
+              echo 'export MAVEN_OPTS="--add-opens java.base/java.net=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED"' >> /etc/environment
               echo 'export M3_HOME=/opt/testgrid/workspace/maven' >> /etc/environment
               echo PATH=/opt/testgrid/workspace/maven/bin/:$PATH >> /etc/environment
 
@@ -411,22 +524,27 @@ Resources:
               WORKING_DIR=$(pwd)
 
               # write property file
-              echo "DB_TYPE=${DBEngine}" > cfn-props.properties
-              echo "CF_DB_VERSION=${DBEngineVersion}" >> cfn-props.properties
+              echo "CF_DBMS_NAME=${DBEngine}" > cfn-props.properties
+              echo "CF_DBMS_VERSION=${DBEngineVersion}" >> cfn-props.properties
               echo "JDK_TYPE=${JDK}" >> cfn-props.properties
               echo "CF_DB_PASSWORD=${DBPassword}" >> cfn-props.properties
               echo "CF_DB_USERNAME=${DBUsername}" >> cfn-props.properties
               echo "CF_DB_HOST=${WSO2DBInstance.Endpoint.Address}" >> cfn-props.properties
               echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
+              echo "PRODUCT_PACK_LOCATION=${ProductPackLocation}" >> cfn-props.properties
               echo "SID=${DBName}" >> cfn-props.properties
-              echo "Downloading the product pack from jenkins"
-              wget -q '${ProductPackLocation}'	
-              unzip -q ${ProductName}-${ProductVersion}*.zip -d $WORKING_DIR	
+
               #add product pack name to cfn properties
               echo "REMOTE_PACK_NAME=${ProductName}-${ProductVersion}" >> cfn-props.properties
-              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
+              if [[ ${OperatingSystem} == "Ubuntu" ]] || [[ ${OperatingSystem} == "Rocky" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL8" ]] ; then
                 echo "Installing AWS CLI"
                 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                unzip awscliv2.zip
+                ./aws/install
+              fi
+              if [[ ${OperatingSystem} == "Ubuntu-ARM" ]]; then
+                echo "Installing AWS CLI"
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
                 unzip awscliv2.zip
                 ./aws/install
               fi
@@ -434,44 +552,82 @@ Resources:
               /usr/local/bin/aws configure set aws_access_key_id '${AWSAccessKeyId}'
               /usr/local/bin/aws configure set aws_secret_access_key '${AWSAccessKeySecret}'
               /usr/local/bin/aws configure set default.region us-east-1
+
+              aws s3 cp s3://testgrid-pipeline-logs/shutdownvm/instance-shutdown /etc/init.d/instance-shutdown
+              sed -i "s~replace_by_product~wso2is~g" /etc/init.d/instance-shutdown
+              sed -i "s~replace_by_version~${ProductVersion}~g" /etc/init.d/instance-shutdown
+              sed -i "s~replace_by_s3_bucket_location~${S3OutputBucketLocation}/wso2-product-instance~g" /etc/init.d/instance-shutdown
+              if [[ ${ProductName} == "is" ]]; then
+                ProductName="wso2is"
+              else
+                ProductName="wso2is"
+              fi
+              echo "Downloading the product pack"
+              wget -q '${ProductPackLocation}' -O $WORKING_DIR/${ProductName}-${ProductVersion}.zip
+              unzip ${ProductName}-${ProductVersion}.zip -d $WORKING_DIR
+              PRODUCT_VERSION="7.1.0-SNAPSHOT"
+              mkdir -p $WORKING_DIR/${ProductName}-$PRODUCT_VERSION
+              cp -r $WORKING_DIR/${ProductName}-${ProductVersion}/* $WORKING_DIR/${ProductName}-$PRODUCT_VERSION/
+
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
+             
               if [[ ${OperatingSystem} == "Ubuntu" ]]; then
                 echo "Downloading authorized public keys from AWS S3"
                 /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/authorized-public-keys/authorized_keys /home/ubuntu/.ssh/authorized_keys
                 chmod 644 /home/ubuntu/.ssh/authorized_keys
                 chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
+                cat /home/ubuntu/.ssh/authorized_keys
               fi
-              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
+              if [[ ${OperatingSystem} == "Ubuntu-ARM" ]]; then
+                echo "Downloading authorized public keys from AWS S3"
+                /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/authorized-public-keys/authorized_keys /home/ubuntu/.ssh/authorized_keys
+                ls -l /home/ubuntu/.ssh
+                chmod 644 /home/ubuntu/.ssh/authorized_keys
+                chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
+                cat /home/ubuntu/.ssh/authorized_keys
+              fi
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]] || [[ ${OperatingSystem} == "RHEL9.5" ]]; then
                 alternatives --set python /usr/bin/python2
               fi
-              DB_PROV_SCRIPT_NAME=provision_db_${Product}.sh
-
+              DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
+              DB_CONSOLIDATE_SCRIPT_NAME=consolidate_db_is.sh
+              SCRIPTS_LOCATION=$WORKING_DIR/${ProductName}-$PRODUCT_VERSION/dbscripts
               pwd
 
-              wget https://integration-testgrid-resources.s3.amazonaws.com/db_scripts/$DB_PROV_SCRIPT_NAME
+              /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/$DB_PROV_SCRIPT_NAME $WORKING_DIR
+              /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/$DB_CONSOLIDATE_SCRIPT_NAME $WORKING_DIR
+              mkdir -p $WORKING_DIR/is710
+              /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/is710 $WORKING_DIR/is710/ --recursive
+              chmod +x $DB_CONSOLIDATE_SCRIPT_NAME
+
+              sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_CONSOLIDATE_SCRIPT_NAME
+              sed -i "s|CF_SCRIPT_LOCATION|$SCRIPTS_LOCATION|g" $DB_CONSOLIDATE_SCRIPT_NAME
+
               chmod +x $DB_PROV_SCRIPT_NAME
 
               echo "Database configs"
+              $WORKING_DIR/$DB_CONSOLIDATE_SCRIPT_NAME
 
               echo $DBEngine
               echo $DBEngineVersion
 
-              sed -i "s/&CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
-              sed -i "s/&CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
-              sed -i "s/&CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g" $DB_PROV_SCRIPT_NAME
-              sed -i "s/&CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g" $DB_PROV_SCRIPT_NAME
-              sed -i "s/&CF_DB_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
-              sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
-              sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/CF_DB_HOST/${WSO2DBInstance.Endpoint.Address}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/CF_DBMS_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/PRODUCT_VERSION/$PRODUCT_VERSION/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
               echo ${OperatingSystem}
-              if [[ ${OperatingSystem} == "Ubuntu" ]]; then
+              if [[ ${OperatingSystem} == "Ubuntu" ]] || [[ ${OperatingSystem} == "Ubuntu-ARM" ]]; then
                 /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
               if [[ ${OperatingSystem} == "CentOS" ]]; then
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
-              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]] || [[ ${OperatingSystem} == "RHEL9.5" ]]; then
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
               if [[ ${OperatingSystem} == "SUSE" ]]; then
@@ -483,7 +639,7 @@ Resources:
         - Key: Name
           Value: !Join
             - ''
-            - - 'intg-test__'
+            - - 'IAM__intg-test__'
               - !Ref OperatingSystem
               - '__'
               - !Ref DBEngine
@@ -577,10 +733,17 @@ Resources:
     Condition: 'IsDBEnabled'
     Properties:
       AllocatedStorage: !Ref DBAllocatedStorage
-      DBInstanceClass: db.m5.large
-      DBInstanceIdentifier: !Join [ '-', [ 'APIM', !Ref 'UniqueIdentifier' ] ]
+      DBInstanceClass: !If [IsDB2, db.r6i.xlarge, db.m5.xlarge]
+      DBInstanceIdentifier: !Join [ '-', [ 'IS', !Ref 'UniqueIdentifier' ] ]
       DBName: !If [UseSQLServerDB, "", WSO2AMDB]
-      LicenseModel: !If [UseLicensedVersion, license-included, !Ref 'AWS::NoValue']
+      LicenseModel:
+        Fn::If:
+          - IsSQLServerOrOracle
+          - license-included
+          - Fn::If:
+              - IsDB2
+              - marketplace-license
+              - !Ref 'AWS::NoValue'
       EngineVersion: !Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
       Engine: !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
       MasterUsername: !Ref DBUsername
@@ -598,7 +761,7 @@ Resources:
         id: 5352b4e9-46ed-4a23-8bdc-bafc3666cbbd
 Outputs:
   WSO2MgtConsoleURL:
-    Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}:9443/carbon', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}:9443/carbon', !Ref 'AWS::NoValue']]
+    Value: !If [IsUnix, !Sub 'https://${WSO2UnixInstance.PublicDnsName}:9443/carbon/admin/login.jsp', !If [IsWindows, !Sub 'https://${WSO2WindowsInstance.PublicDnsName}:9443/carbon/admin/login.jsp', !Ref 'AWS::NoValue']]
     Description: Access URL of the Management Console
   WSO2PublicIP:
     Value: !If [IsUnix, !Sub '${WSO2UnixInstance.PublicIp}', !If [IsWindows, !Sub '${WSO2WindowsInstance.PublicIp}', !Ref 'AWS::NoValue']]
@@ -670,3 +833,4 @@ Metadata:
         - abbdb5e8-f28b-4bc6-8b63-da9595b59c4a
       dependson:
         - 5352b4e9-46ed-4a23-8bdc-bafc3666cbbd
+        
