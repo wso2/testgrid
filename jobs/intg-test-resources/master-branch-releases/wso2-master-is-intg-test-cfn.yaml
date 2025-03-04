@@ -60,10 +60,6 @@ Parameters:
     Description: Database master account password
     MinLength: 6
     ConstraintDescription: minimum - 6 characters
-  DBAllocationStorage:
-    Description: Provide storage size in Gigabytes
-    Type: Number
-    Default: 20
   DBInstanceType:
     Default: db.m5.xlarge
     Description: Database instance class
