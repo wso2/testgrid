@@ -109,8 +109,12 @@ Parameters:
     Type: String
     Default: c6a.2xlarge
     AllowedValues:
-      - t4g.xlarge
-      - t4g.2xlarge
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
       - c6a.large
       - c6a.xlarge
       - c6a.2xlarge
