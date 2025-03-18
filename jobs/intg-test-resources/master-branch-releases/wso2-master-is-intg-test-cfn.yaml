@@ -492,6 +492,9 @@ Resources:
               echo "PRODUCT_PACK_LOCATION=${ProductPackLocation}" >> cfn-props.properties
               echo "SID=${DBName}" >> cfn-props.properties
 
+              wget https://s3.amazonaws.com/wso2logarchiever/log_archiver/log_archiver.sh
+              mv log_archiver.sh /usr/lib/
+              
               #add product pack name to cfn properties
               echo "REMOTE_PACK_NAME=${ProductName}-${ProductVersion}" >> cfn-props.properties
               if [[ ${OperatingSystem} == "Ubuntu" ]] || [[ ${OperatingSystem} == "Rocky" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL8" ]] ; then
@@ -515,6 +518,9 @@ Resources:
               sed -i "s~replace_by_product~wso2is~g" /etc/init.d/instance-shutdown
               sed -i "s~replace_by_version~${ProductVersion}~g" /etc/init.d/instance-shutdown
               sed -i "s~replace_by_s3_bucket_location~${S3OutputBucketLocation}/wso2-product-instance~g" /etc/init.d/instance-shutdown
+              chmod +x /etc/init.d/instance-shutdown
+              /lib/systemd/systemd-sysv-install enable instance-shutdown
+              systemctl restart instance-shutdown
               if [[ ${ProductName} == "is" ]]; then
                 ProductName="wso2is"
               else
@@ -548,12 +554,12 @@ Resources:
 
               WSO2_PRODUCT_VERSION=${ProductVersion}
               
-              if [ $WSO2_PRODUCT_VERSION == *"7.2.0"* ]; then
+              if [[ $WSO2_PRODUCT_VERSION == *"7.2.0"* ]]; then
                   WSO2_PRODUCT_VERSION_SHORT=is720
-              elif [ $WSO2_PRODUCT_VERSION == *"7.1.0"* ]; then
+              elif [[ $WSO2_PRODUCT_VERSION == *"7.1.0"* ]]; then
                   WSO2_PRODUCT_VERSION_SHORT=is710
               fi
-              mkdir -p $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT
+              mkdir $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/template_db_engine_scripts/ $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT/ --recursive
               chmod +x $DB_CONSOLIDATE_SCRIPT_NAME
 
