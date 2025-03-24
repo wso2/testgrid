@@ -520,7 +520,6 @@ Resources:
               sed -i "s~replace_by_s3_bucket_location~${S3OutputBucketLocation}/wso2-product-instance~g" /etc/init.d/instance-shutdown
               chmod +x /etc/init.d/instance-shutdown
               /lib/systemd/systemd-sysv-install enable instance-shutdown
-              systemctl restart instance-shutdown
               if [[ ${ProductName} == "is" ]]; then
                 ProductName="wso2is"
               else
