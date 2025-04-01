@@ -464,7 +464,7 @@ Resources:
               #So, provided permissions to all the users. Need to fix!
               chmod 777 -R /opt/testgrid
               cd /opt/testgrid/workspace
-
+            
               echo "Installing Apache Maven"
               wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
               tar -xzf apache-maven-${MavenVersion}-bin.tar.gz
