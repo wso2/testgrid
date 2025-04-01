@@ -228,7 +228,7 @@ Mappings:
       img: ami-009fab158dcff70e0
     Rocky:
       img: ami-0bdb0ee5983bfb6aa
-#Conditions
+
 Conditions:
   IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
   IsUnix: !Or 
@@ -464,7 +464,7 @@ Resources:
               #So, provided permissions to all the users. Need to fix!
               chmod 777 -R /opt/testgrid
               cd /opt/testgrid/workspace
-            
+
               echo "Installing Apache Maven"
               wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
               tar -xzf apache-maven-${MavenVersion}-bin.tar.gz
@@ -541,7 +541,7 @@ Resources:
               if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]] || [[ ${OperatingSystem} == "RHEL9.5" ]]; then
                 alternatives --set python /usr/bin/python2
               fi
-              wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
+              wget "https://integration-testgrid-resources.s3.us-east-1.amazonaws.com/iam-support-scripts/wso2-update.sh"
               chmod +x /opt/testgrid/workspace/wso2-update.sh
               /opt/testgrid/workspace/wso2-update.sh ${WUMUsername} ${WUMPassword} wso2is-${ProductVersion}
               DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
@@ -580,7 +580,7 @@ Resources:
 
               sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_CONSOLIDATE_SCRIPT_NAME
               sed -i "s|CF_SCRIPT_LOCATION|$SCRIPTS_LOCATION|g" $DB_CONSOLIDATE_SCRIPT_NAME
-              sed -i "s|CF_PRODUCT_VERSION_SHORT|$WSO2_PRODUCT_VERSION_SHORT|g" $WSO2_PRODUCT_VERSION_SHORT
+              sed -i "s|CF_PRODUCT_VERSION_SHORT|$WSO2_PRODUCT_VERSION_SHORT|g" $DB_CONSOLIDATE_SCRIPT_NAME
 
               chmod +x $DB_PROV_SCRIPT_NAME
 
@@ -588,6 +588,7 @@ Resources:
 
               echo $DBEngine
               echo $DBEngineVersion
+              bash /opt/testgrid/workspace/$DB_CONSOLIDATE_SCRIPT_NAME
 
               sed -i "s/CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
@@ -681,7 +682,7 @@ Resources:
           - Key: Name
             Value: !Join
               - ''
-              - - 'IAM_intg-test__'
+              - - 'intg-test__'
                 - !Ref OperatingSystem
                 - '__'
                 - !Ref DBEngine
