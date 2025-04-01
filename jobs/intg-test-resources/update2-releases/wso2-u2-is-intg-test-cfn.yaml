@@ -541,7 +541,7 @@ Resources:
               if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]] || [[ ${OperatingSystem} == "RHEL9.5" ]]; then
                 alternatives --set python /usr/bin/python2
               fi
-              wget "https://integration-testgrid-resources.s3.us-east-1.amazonaws.com/iam-support-scripts/wso2-update.sh"
+              wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/is/wso2-update.sh"
               chmod +x /opt/testgrid/workspace/wso2-update.sh
               /opt/testgrid/workspace/wso2-update.sh ${WUMUsername} ${WUMPassword} wso2is-${ProductVersion}
               DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
