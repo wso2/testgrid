@@ -5,6 +5,7 @@ Parameters:
     Type: String
     Default: MySQL-5.7
     AllowedValues:
+      - Db2-11.5
       - MySQL-5.7
       - MySQL-8.0
       - Postgres-12.15
@@ -22,6 +23,7 @@ Parameters:
     Default: mysql
     Description: Database Engine
     AllowedValues:
+      - db2-se
       - mysql
       - postgres
       - mariadb
@@ -56,13 +58,10 @@ Parameters:
     MinLength: 6
     ConstraintDescription: minimum - 6 characters
   DBInstanceType:
-    Default: db.m4.large
+    Default: db.m5.xlarge
     Description: Database instance class
     Type: String
     AllowedValues:
-      - db.t2.micro
-      - db.t2.small
-      - db.t2.medium
       - db.t2.large
       - db.t2.xlarge
       - db.t2.2xlarge
@@ -70,6 +69,11 @@ Parameters:
       - db.m4.xlarge
       - db.m4.2xlarge
       - db.m5.large
+      - db.m5.xlarge
+      - db.m5.2xlarge
+      - db.r6i.large
+      - db.r6i.xlarge
+      - db.r6i.2xlarge
     ConstraintDescription: must be a valid database instance type
   DBAllocatedStorage:
     Default: 20
@@ -171,6 +175,8 @@ Parameters:
     Default: ""
 Mappings:
   DBEngineMap:
+    Db2-11.5:
+      DBEngine: "db2-se_11.5.9.0.sb00046591.r1"
     MySQL-5.7:
       DBEngine: "mysql_5.7"
     MySQL-8.0:
@@ -212,11 +218,26 @@ Mappings:
       img: ami-0bdb0ee5983bfb6aa
 #Conditions
 Conditions:
- IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
- IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ], !Equals [ !Ref OperatingSystem, "SUSE" ], !Equals [ !Ref OperatingSystem, "Rocky" ]]
- IsDBEnabled : !Not  [ !Equals [ !Ref DBEnabled, "false" ]]
- UseSQLServerDB: !Equals [sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
- UseLicensedVersion: !Or [ !Equals [sqlserver, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]], !Equals [oracle, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]] ]
+  IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
+  IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ], !Equals [ !Ref OperatingSystem, "SUSE" ], !Equals [ !Ref OperatingSystem, "Rocky" ]]
+  IsDBEnabled: !Not [ !Equals [ !Ref DBEnabled, "false" ] ]
+  UseSQLServerDB: !Equals [ sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+  UseLicensedVersion: !Or
+    - !Equals [ sqlserver, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+    - !Equals [ oracle, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+    - !Equals [ db2, !Select [0, !Split ["-", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
+  IsSQLServerOrOracle:
+    Fn::Or:
+      - Fn::Equals:
+        - !Select [0, !Split ["-", !FindInMap [DBEngineMap, !Ref DB, DBEngine]]]
+        - sqlserver
+      - Fn::Equals:
+        - !Select [0, !Split ["-", !FindInMap [DBEngineMap, !Ref DB, DBEngine]]]
+        - oracle
+  IsDB2:
+    Fn::Equals:
+      - !Select [0, !Split ["-", !FindInMap [DBEngineMap, !Ref DB, DBEngine]]]
+      - db2
 Resources:
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -580,10 +601,17 @@ Resources:
     Condition: 'IsDBEnabled'
     Properties:
       AllocatedStorage: !Ref DBAllocatedStorage
-      DBInstanceClass: db.m5.large
+      DBInstanceClass: !If [IsDB2, db.r6i.xlarge, db.m5.xlarge]
       DBInstanceIdentifier: !Join [ '-', [ 'APIM', !Ref 'UniqueIdentifier' ] ]
       DBName: !If [UseSQLServerDB, "", WSO2AMDB]
-      LicenseModel: !If [UseLicensedVersion, license-included, !Ref 'AWS::NoValue']
+      LicenseModel:
+        Fn::If:
+          - IsSQLServerOrOracle
+          - license-included
+          - Fn::If:
+              - IsDB2
+              - marketplace-license
+              - !Ref 'AWS::NoValue'
       EngineVersion: !Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
       Engine: !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
       MasterUsername: !Ref DBUsername
