@@ -9,7 +9,7 @@ Parameters:
       - MySQL-8.0
       - Postgres-12.15
       - Postgres-15.3
-      - Postgres-16.5
+      - Postgres-16.6
       - Postgres-17.4
       - Oracle-SE2-19.0
       - Oracle-SE2-21.0
@@ -179,8 +179,8 @@ Mappings:
       DBEngine: "postgres_12.15"
     Postgres-15.3:
       DBEngine: "postgres_15.3"
-    Postgres-16.5:
-      DBEngine: "postgres_16.5"
+    Postgres-16.6:
+      DBEngine: "postgres_16.6"
     Postgres-17.4:
       DBEngine: "postgres_17.4"
     SQLServer-SE-13.00:
