@@ -9,12 +9,10 @@ Parameters:
       - MySQL-5.7
       - MySQL-8.0
       - MariaDB-11.4.3
-      - Postgres-12.18
-      - Postgres-13.17
-      - Postgres-14.14
-      - Postgres-15.10
-      - Postgres-16.6
-      - Postgres-17.2
+      - Postgres-14.17
+      - Postgres-15.12
+      - Postgres-16.8
+      - Postgres-17.4
       - Oracle-SE2-19.0
       - Oracle-SE2-21.0
       - SQLServer-SE-13.00
@@ -190,18 +188,14 @@ Mappings:
       DBEngine: "mysql_8.0"
     MariaDB-11.4.3:
       DBEngine: "mariadb_11.4.3"
-    Postgres-12.18:
-      DBEngine: "postgres_12.18"
-    Postgres-13.17:
-      DBEngine: "postgres_13.17"
-    Postgres-14.14:
-      DBEngine: "postgres_14.14"
-    Postgres-15.10:
-      DBEngine: "postgres_15.10"
-    Postgres-16.6:
-      DBEngine: "postgres_16.6"
-    Postgres-17.2:
-      DBEngine: "postgres_17.2"
+    Postgres-14.17:
+      DBEngine: "postgres_14.17"
+    Postgres-15.12:
+      DBEngine: "postgres_15.12"
+    Postgres-16.8:
+      DBEngine: "postgres_16.8"
+    Postgres-17.4:
+      DBEngine: "postgres_17.4"
     SQLServer-SE-13.00:
       DBEngine: "sqlserver-se_13.00"
     SQLServer-SE-14.00:
@@ -564,7 +558,7 @@ Resources:
 
               sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_CONSOLIDATE_SCRIPT_NAME
               sed -i "s|CF_SCRIPT_LOCATION|$SCRIPTS_LOCATION|g" $DB_CONSOLIDATE_SCRIPT_NAME
-              sed -i "s|CF_PRODUCT_VERSION_SHORT|$WSO2_PRODUCT_VERSION_SHORT|g" $WSO2_PRODUCT_VERSION_SHORT
+              sed -i "s|CF_PRODUCT_VERSION_SHORT|$WSO2_PRODUCT_VERSION_SHORT|g" $DB_CONSOLIDATE_SCRIPT_NAME
 
               chmod +x $DB_PROV_SCRIPT_NAME
 
@@ -573,6 +567,7 @@ Resources:
 
               echo $DBEngine
               echo $DBEngineVersion
+              bash /opt/testgrid/workspace/$DB_CONSOLIDATE_SCRIPT_NAME
 
               sed -i "s/CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
