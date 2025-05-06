@@ -7,7 +7,7 @@ Parameters:
     AllowedValues:
       - MySQL-5.7
       - MySQL-8.0
-      - Postgres-12.15
+      - Postgres-12.22
       - Postgres-15.3
       - Postgres-16.6
       - Postgres-17.4
@@ -175,8 +175,8 @@ Mappings:
       DBEngine: "mysql_5.7"
     MySQL-8.0:
       DBEngine: "mysql_8.0"
-    Postgres-12.15:
-      DBEngine: "postgres_12.15"
+    Postgres-12.22:
+      DBEngine: "postgres_12.22"
     Postgres-15.3:
       DBEngine: "postgres_15.3"
     Postgres-16.6:
