@@ -22,6 +22,7 @@
 CFN_PROP_FILE=/opt/testgrid/workspace/cfn-props.properties
 WSO2_USERNAME=$1
 WSO2_PASSWORD=$2
+TEST_MODE=$3
 WSO2_PRODUCT=$(grep -w "REMOTE_PACK_NAME" ${CFN_PROP_FILE} | cut -d'=' -f2)
 echo "Unzipping $WSO2_PRODUCT Pack."
 unzip -o -q $WSO2_PRODUCT.zip && cd $WSO2_PRODUCT/bin
@@ -35,7 +36,11 @@ else
   # Note: config.json will be replaced with UAT information through cloudformation.
   sudo chmod 755 wso2update_linux
   sudo ./wso2update_linux check --username "'$WSO2_USERNAME'" --password "$WSO2_PASSWORD" -v
-  export WSO2_UPDATES_UPDATE_LEVEL_STATE=VERIFYING
+  if [ "$TEST_MODE" == "staging" ]; then
+    export WSO2_UPDATES_UPDATE_LEVEL_STATE=TESTING
+  else
+    export WSO2_UPDATES_UPDATE_LEVEL_STATE=VERIFYING
+  fi
   sudo -E ./wso2update_linux --username "$WSO2_USERNAME" --password "$WSO2_PASSWORD" --backup /opt/testgrid/workspace/backup -v
   update_exit_code=$(echo $?)
 
