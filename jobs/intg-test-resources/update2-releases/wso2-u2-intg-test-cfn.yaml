@@ -292,6 +292,10 @@ Resources:
           FromPort: 1521
           ToPort: 1521
           SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 50000
+          ToPort: 50000
+          SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
     Metadata:
       'AWS::CloudFormation::Designer':
         id: d0dcc88f-97f7-4d80-901a-f746d372a295
