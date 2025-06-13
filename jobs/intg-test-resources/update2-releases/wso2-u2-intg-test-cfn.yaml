@@ -596,6 +596,15 @@ Resources:
                  }
             }
          }
+  DB2ParameterGroup:
+    Type: 'AWS::RDS::DBParameterGroup'
+    Condition: 'IsDB2'
+    Properties:
+      Description: Parameter group for DB2 with db2auth set to CLEAR_TEXT
+      Family: db2-se-11.5
+      Parameters:
+        db2auth: CLEAR_TEXT
+  
   WSO2DBInstance:
     Type: 'AWS::RDS::DBInstance'
     Condition: 'IsDBEnabled'
@@ -604,6 +613,7 @@ Resources:
       DBInstanceClass: !If [IsDB2, db.r6i.xlarge, db.m5.xlarge]
       DBInstanceIdentifier: !Join [ '-', [ 'APIM', !Ref 'UniqueIdentifier' ] ]
       DBName: !If [UseSQLServerDB, "", WSO2AMDB]
+      DBParameterGroupName: !If [IsDB2, !Ref DB2ParameterGroup, !Ref "AWS::NoValue"]
       LicenseModel:
         Fn::If:
           - IsSQLServerOrOracle
