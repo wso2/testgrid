@@ -215,7 +215,7 @@ Mappings:
     SUSE:
       img: ami-009fab158dcff70e0
     Rocky:
-      img: ami-0252bb755ffc8d535
+      img: ami-09e28ed69e9ba13a2
 #Conditions
 Conditions:
   IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
