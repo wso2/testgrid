@@ -380,22 +380,11 @@ Resources:
                 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
                 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
                 source ~/.bashrc
-                if [[ ${OperatingSystem} == "Rocky" ]]; then
-                  dnf --disablerepo=* -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-                else
-                  yum -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-                fi
                 yum -y update
                 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-                if [[ ${OperatingSystem} == "CentOS" ]] ; then
-                  yum -y install postgresql15
-                fi
-                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] ; then
-                  yum -y install postgresql
-                fi
-                if [[ ${OperatingSystem} == "Rocky" ]]; then
-                  dnf -y module enable postgresql:15
-                  dnf -y install postgresql-server
+
+                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" || [[ ${OperatingSystem} == "Rocky" ]] ; then
+                  dnf -y install postgresql
                 fi
                 yum -y install git
               fi
