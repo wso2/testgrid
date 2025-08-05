@@ -383,7 +383,7 @@ Resources:
                 yum -y update
                 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
-                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" || [[ ${OperatingSystem} == "Rocky" ]] ; then
+                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]] ; then
                   dnf -y install postgresql
                 fi
                 yum -y install git
