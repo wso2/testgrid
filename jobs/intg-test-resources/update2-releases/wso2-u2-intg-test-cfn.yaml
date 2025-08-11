@@ -86,6 +86,12 @@ Parameters:
       Type: String
       Default: 'true'
       Description: Specify whether DB should be created.
+  MigratedDB:
+    Type: String
+    Default: 'false'
+    Description: >-
+      Specify whether the database is already created and you want to use it.
+      If set to true, the script will not create new tables. Instead apply a dump.
   KeyPairName:
     Description: >-
       This is used to ssh to the node. If you don't have a key, please create
@@ -215,7 +221,7 @@ Mappings:
     SUSE:
       img: ami-009fab158dcff70e0
     Rocky:
-      img: ami-00f8640e522fb2841
+      img: ami-03cdaf68a77f144df
 #Conditions
 Conditions:
   IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
@@ -435,6 +441,7 @@ Resources:
               echo "CF_DB_HOST=${WSO2DBInstance.Endpoint.Address}" >> cfn-props.properties
               echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
               echo "SID=${DBName}" >> cfn-props.properties
+              echo "MIGRATED_DB=${MigratedDB}" >> cfn-props.properties
               #add product pack name to cfn properties
               echo "REMOTE_PACK_NAME=${Product}-${ProductVersion}" >> cfn-props.properties
               if [[ ${OperatingSystem} == "Ubuntu" ]]; then
@@ -462,8 +469,13 @@ Resources:
               fi
               wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
               chmod +x /opt/testgrid/workspace/wso2-update.sh
-              DB_PROV_SCRIPT_NAME=provision_db_${Product}.sh
-
+              if [[ ${MigratedDB} == "true" ]]; then
+                echo "Migrated DB is selected. Skipping DB table creation"
+                DB_PROV_SCRIPT_NAME=provision_db_migrated_${Product}.sh
+              else
+                echo "Creating DB tables"
+                DB_PROV_SCRIPT_NAME=provision_db_${Product}.sh
+              fi
               pwd
 
               wget https://integration-testgrid-resources.s3.amazonaws.com/db_scripts/$DB_PROV_SCRIPT_NAME
