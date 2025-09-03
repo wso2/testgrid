@@ -48,7 +48,7 @@ Parameters:
     MinLength: 1
   DBName:
     Type: String
-    Default: WSO2DB
+    Default: IAMDB
     Description: Database Name
   DBUsername:
     Type: String
