@@ -48,7 +48,7 @@ Parameters:
     MinLength: 1
   DBName:
     Type: String
-    Default: WSO2DB
+    Default: IAMDB
     Description: Database Name
   DBUsername:
     Type: String
@@ -137,7 +137,7 @@ Parameters:
     Description: Enter product name
   ProductVersion:
     Type: String
-    Default: 7.1.0-rc2
+    Default: 7.2.0-alpha
     Description: Enter product version
   OperatingSystem:
     Type: String
@@ -147,7 +147,7 @@ Parameters:
       well.
   OSVersion:
     Type: String
-    Default: '9.3'
+    Default: '24.04'
     Description: Enter target OS version.
   JDK:
     Type: String
@@ -318,6 +318,10 @@ Resources:
         - IpProtocol: tcp
           FromPort: 1521
           ToPort: 1521
+          SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 50000
+          ToPort: 50000
           SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
     Metadata:
       'AWS::CloudFormation::Designer':
@@ -536,7 +540,7 @@ Resources:
               fi
               echo "Downloading the product pack"
               wget -q '${ProductPackLocation}' -O $WORKING_DIR/${ProductName}-${ProductVersion}.zip
-              unzip ${ProductName}-${ProductVersion}.zip -d $WORKING_DIR
+              unzip -q ${ProductName}-${ProductVersion}.zip -d $WORKING_DIR
 
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-config.json $WORKING_DIR/uat-config.json
               /usr/local/bin/aws s3 cp s3://wum-for-testgrid/uat-nexus-settings.xml $WORKING_DIR/uat-nexus-settings.xml
@@ -552,16 +556,13 @@ Resources:
               if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 alternatives --set python /usr/bin/python2
               fi
-              DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
+              DB_PROV_SCRIPT_NAME=provision_db_is.sh
               DB_CONSOLIDATE_SCRIPT_NAME=consolidate_db_is.sh
-              SCRIPTS_LOCATION=$WORKING_DIR/${ProductName}-$PRODUCT_VERSION/dbscripts
+              SCRIPTS_LOCATION=$WORKING_DIR/${ProductName}-${ProductVersion}/dbscripts
               pwd
-
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/$DB_PROV_SCRIPT_NAME $WORKING_DIR
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/$DB_CONSOLIDATE_SCRIPT_NAME $WORKING_DIR
-
               WSO2_PRODUCT_VERSION=${ProductVersion}
-              
               if [[ $WSO2_PRODUCT_VERSION == *"7.2.0"* ]]; then
                   WSO2_PRODUCT_VERSION_SHORT=is720
               elif [[ $WSO2_PRODUCT_VERSION == *"7.1.0"* ]]; then
@@ -570,18 +571,15 @@ Resources:
               mkdir $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/template_db_engine_scripts/ $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT/ --recursive
               chmod +x $DB_CONSOLIDATE_SCRIPT_NAME
-
               sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_CONSOLIDATE_SCRIPT_NAME
               sed -i "s|CF_SCRIPT_LOCATION|$SCRIPTS_LOCATION|g" $DB_CONSOLIDATE_SCRIPT_NAME
-              sed -i "s|CF_PRODUCT_VERSION_SHORT|$WSO2_PRODUCT_VERSION_SHORT|g" $WSO2_PRODUCT_VERSION_SHORT
-
+              sed -i "s|CF_PRODUCT_VERSION_SHORT|$WSO2_PRODUCT_VERSION_SHORT|g" $DB_CONSOLIDATE_SCRIPT_NAME
               chmod +x $DB_PROV_SCRIPT_NAME
-
               echo "Database configs"
               $WORKING_DIR/$DB_CONSOLIDATE_SCRIPT_NAME
-
               echo $DBEngine
               echo $DBEngineVersion
+              bash /opt/testgrid/workspace/$DB_CONSOLIDATE_SCRIPT_NAME
 
               sed -i "s/CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
@@ -591,6 +589,7 @@ Resources:
               sed -i "s/CF_DBMS_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/CF_DB_NAME/${DBName}/g" $DB_PROV_SCRIPT_NAME
               echo ${OperatingSystem}
               if [[ ${OperatingSystem} == "Ubuntu" ]] || [[ ${OperatingSystem} == "Ubuntu-ARM" ]]; then
                 /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
@@ -706,7 +705,7 @@ Resources:
       AllocatedStorage: !Ref DBAllocatedStorage
       DBInstanceClass: !If [IsDB2, db.r6i.xlarge, db.m5.xlarge]
       DBInstanceIdentifier: !Join [ '-', [ 'IS', !Ref 'UniqueIdentifier' ] ]
-      DBName: !If [UseSQLServerDB, "", WSO2AMDB]
+      DBName: !If [UseSQLServerDB, "", IAMDB]
       LicenseModel:
         Fn::If:
           - IsSQLServerOrOracle
