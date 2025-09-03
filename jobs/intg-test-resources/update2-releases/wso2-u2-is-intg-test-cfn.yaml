@@ -8,13 +8,16 @@ Parameters:
       - Db2-11.5
       - MySQL-5.7
       - MySQL-8.0
+      - MySQL-8.4.6
       - MariaDB-11.4.3
+      - MariaDB-11.4.8
       - Postgres-12.18
       - Postgres-13.17
       - Postgres-14.14
       - Postgres-15.10
       - Postgres-16.6
       - Postgres-17.2
+      - Postgres-17.5
       - Oracle-SE2-19.0
       - Oracle-SE2-21.0
       - SQLServer-SE-13.00
@@ -45,7 +48,7 @@ Parameters:
     MinLength: 1
   DBName:
     Type: String
-    Default: WSO2DB
+    Default: IAMDB
     Description: Database Name
   DBUsername:
     Type: String
@@ -135,7 +138,7 @@ Parameters:
     Description: Enter product name
   ProductVersion:
     Type: String
-    Default: '7.1.0'
+    Default: 7.1.0-rc2
     Description: Enter product version
   OperatingSystem:
     Type: String
@@ -189,8 +192,12 @@ Mappings:
       DBEngine: "mysql_5.7"
     MySQL-8.0:
       DBEngine: "mysql_8.0"
+    MySQL-8.4.6:
+      DBEngine: "mysql_8.4.6"
     MariaDB-11.4.3:
       DBEngine: "mariadb_11.4.3"
+    MariaDB-11.4.8:
+      DBEngine: "mariadb_11.4.8"
     Postgres-12.18:
       DBEngine: "postgres_12.18"
     Postgres-13.17:
@@ -203,6 +210,8 @@ Mappings:
       DBEngine: "postgres_16.6"
     Postgres-17.2:
       DBEngine: "postgres_17.2"
+    Postgres-17.5:
+      DBEngine: "postgres_17.5"
     SQLServer-SE-13.00:
       DBEngine: "sqlserver-se_13.00"
     SQLServer-SE-14.00:
@@ -228,7 +237,7 @@ Mappings:
       img: ami-009fab158dcff70e0
     Rocky:
       img: ami-0bdb0ee5983bfb6aa
-#Conditions
+
 Conditions:
   IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
   IsUnix: !Or 
@@ -309,6 +318,10 @@ Resources:
         - IpProtocol: tcp
           FromPort: 1521
           ToPort: 1521
+          SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 50000
+          ToPort: 50000
           SourceSecurityGroupName: !Ref WSO2InstanceSecurityGroup
     Metadata:
       'AWS::CloudFormation::Designer':
@@ -464,22 +477,19 @@ Resources:
               #So, provided permissions to all the users. Need to fix!
               chmod 777 -R /opt/testgrid
               cd /opt/testgrid/workspace
-            
+
               echo "Installing Apache Maven"
               wget https://archive.apache.org/dist/maven/maven-3/${MavenVersion}/binaries/apache-maven-${MavenVersion}-bin.tar.gz
               tar -xzf apache-maven-${MavenVersion}-bin.tar.gz
               ln -fs apache-maven-${MavenVersion} maven
               echo 'export MAVEN_OPTS="-Xmx4096m -Xms2048m"' >> /etc/environment
+              echo 'export MAVEN_OPTS="--add-opens java.base/java.net=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED"' >> /etc/environment
               echo 'export M3_HOME=/opt/testgrid/workspace/maven' >> /etc/environment
               echo PATH=/opt/testgrid/workspace/maven/bin/:$PATH >> /etc/environment
-
               source /etc/environment
-
               cat /dev/null > ~/.bash_history && history -c
               ${CustomUserData}
-
               WORKING_DIR=$(pwd)
-
               # write property file
               echo "CF_DBMS_NAME=${DBEngine}" > cfn-props.properties
               echo "CF_DBMS_VERSION=${DBEngineVersion}" >> cfn-props.properties
@@ -490,10 +500,8 @@ Resources:
               echo "CF_DB_PORT=${WSO2DBInstance.Endpoint.Port}" >> cfn-props.properties
               echo "PRODUCT_PACK_LOCATION=${ProductPackLocation}" >> cfn-props.properties
               echo "SID=${DBName}" >> cfn-props.properties
-
               wget https://s3.amazonaws.com/wso2logarchiever/log_archiver/log_archiver.sh
               mv log_archiver.sh /usr/lib/
-
               #add product pack name to cfn properties
               echo "REMOTE_PACK_NAME=${ProductName}-${ProductVersion}" >> cfn-props.properties
               if [[ ${OperatingSystem} == "Ubuntu" ]] || [[ ${OperatingSystem} == "Rocky" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL8" ]] ; then
@@ -543,19 +551,16 @@ Resources:
               fi
               wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
               chmod +x /opt/testgrid/workspace/wso2-update.sh
-              /opt/testgrid/workspace/wso2-update.sh ${WUMUsername} ${WUMPassword} wso2is-${ProductVersion}
-              DB_PROV_SCRIPT_NAME=provision_db_${ProductName}.sh
+              /opt/testgrid/workspace/wso2-update.sh ${WUMUsername} ${WUMPassword}
+              DB_PROV_SCRIPT_NAME=provision_db_is.sh
               DB_CONSOLIDATE_SCRIPT_NAME=consolidate_db_is.sh
               SCRIPTS_LOCATION=$WORKING_DIR/${ProductName}-${ProductVersion}/dbscripts
-
               pwd
-              
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/$DB_PROV_SCRIPT_NAME $WORKING_DIR
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/$DB_CONSOLIDATE_SCRIPT_NAME $WORKING_DIR
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/iam-support-scripts/add_u2.xml $WORKING_DIR
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/iam-support-scripts/add-patch-repository.sh $WORKING_DIR
               WSO2_PRODUCT_VERSION=${ProductVersion}
-
               echo "Create DB scripts directory"
               if [ $WSO2_PRODUCT_VERSION = "5.8.0" ]; then
                   WSO2_PRODUCT_VERSION_SHORT=is580
@@ -574,13 +579,15 @@ Resources:
               elif [ $WSO2_PRODUCT_VERSION = "7.1.0" ]; then
                   WSO2_PRODUCT_VERSION_SHORT=is710
               fi
+              elif [ $WSO2_PRODUCT_VERSION = "7.2.0" ]; then
+                  WSO2_PRODUCT_VERSION_SHORT=is720
+              fi
               mkdir -p $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/template_db_engine_scripts/ $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT/ --recursive
               chmod +x $DB_CONSOLIDATE_SCRIPT_NAME
-
               sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_CONSOLIDATE_SCRIPT_NAME
               sed -i "s|CF_SCRIPT_LOCATION|$SCRIPTS_LOCATION|g" $DB_CONSOLIDATE_SCRIPT_NAME
-              sed -i "s|CF_PRODUCT_VERSION_SHORT|$WSO2_PRODUCT_VERSION_SHORT|g" $WSO2_PRODUCT_VERSION_SHORT
+              sed -i "s|CF_PRODUCT_VERSION_SHORT|$WSO2_PRODUCT_VERSION_SHORT|g" $DB_CONSOLIDATE_SCRIPT_NAME
 
               chmod +x $DB_PROV_SCRIPT_NAME
 
@@ -588,6 +595,7 @@ Resources:
 
               echo $DBEngine
               echo $DBEngineVersion
+              bash /opt/testgrid/workspace/$DB_CONSOLIDATE_SCRIPT_NAME
 
               sed -i "s/CF_DB_USERNAME/${DBUsername}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/CF_DB_PASSWORD/${DBPassword}/g" $DB_PROV_SCRIPT_NAME
@@ -711,7 +719,7 @@ Resources:
       AllocatedStorage: !Ref DBAllocatedStorage
       DBInstanceClass: !If [IsDB2, db.r6i.xlarge, db.m5.xlarge]
       DBInstanceIdentifier: !Join [ '-', [ 'IS', !Ref 'UniqueIdentifier' ] ]
-      DBName: !If [UseSQLServerDB, "", WSO2AMDB]
+      DBName: !If [UseSQLServerDB, "", IAMDB]
       LicenseModel:
         Fn::If:
           - IsSQLServerOrOracle
