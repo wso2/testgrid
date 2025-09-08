@@ -221,7 +221,7 @@ Mappings:
     SUSE:
       img: ami-009fab158dcff70e0
     Rocky:
-      img: ami-03cdaf68a77f144df
+      img: ami-066b8fa4378e0f4ca
 #Conditions
 Conditions:
   IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
@@ -244,6 +244,16 @@ Conditions:
     Fn::Equals:
       - !Select [0, !Split ["-", !FindInMap [DBEngineMap, !Ref DB, DBEngine]]]
       - db2
+  IsOracleAndMigration:
+    Fn::And:
+      - Fn::Or:
+          - Fn::Equals:
+              - !Select [0, !Split ["-", !FindInMap [DBEngineMap, !Ref DB, DBEngine]]]
+              - oracle
+          - Fn::Equals:
+              - !Select [0, !Split ["-", !FindInMap [DBEngineMap, !Ref DB, DBEngine]]]
+              - oracle-se2
+      - !Equals [!Ref MigratedDB, "true"]
 Resources:
   WSO2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -601,6 +611,34 @@ Resources:
                  }
             }
          }
+
+  RdsS3IntegrationRole:
+    Type: AWS::IAM::Role
+    Condition: IsOracleAndMigration
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+  
+  OracleS3IntegrationOptionGroup:
+    Type: AWS::RDS::OptionGroup
+    Condition: IsOracleAndMigration
+    Properties:
+      EngineName: oracle-se2
+      MajorEngineVersion: "19"
+      OptionGroupDescription: "Oracle S3 Integration Option Group"
+      OptionConfigurations:
+        - OptionName: S3_INTEGRATION
+      Tags:
+        - Key: Name
+          Value: !Sub "oracle-s3-integration-${AWS::StackName}"
+
   DB2ParameterGroup:
     Type: 'AWS::RDS::DBParameterGroup'
     Condition: 'IsDB2'
@@ -638,6 +676,13 @@ Resources:
       AvailabilityZone: !Select
         - '0'
         - !GetAZs ''
+      OptionGroupName: !If [IsOracleAndMigration, !Ref OracleS3IntegrationOptionGroup, !Ref "AWS::NoValue"]
+      AssociatedRoles: !If 
+        - IsOracleAndMigration
+        - 
+          - RoleArn: !GetAtt RdsS3IntegrationRole.Arn
+            FeatureName: S3_INTEGRATION
+        - !Ref "AWS::NoValue"
     DeletionPolicy: Delete
     Metadata:
       'AWS::CloudFormation::Designer':
