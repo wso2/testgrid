@@ -44,7 +44,7 @@ Parameters:
     MinLength: 1
   DBName: 
     Type: String
-    Default: WSO2DB
+    Default: IAMDB
     Description: Database Name
   DBUsername:
     Type: String
@@ -133,7 +133,7 @@ Parameters:
     Description: Enter product name
   ProductVersion:
     Type: String
-    Default: 7.2.0-m6
+    Default: 7.2.0-alpha
     Description: Enter product version
   OperatingSystem:
     Type: String
@@ -636,7 +636,7 @@ Resources:
       AllocatedStorage: !Ref DBAllocatedStorage
       DBInstanceClass: !If [IsDB2, db.r6i.xlarge, db.m5.xlarge]
       DBInstanceIdentifier: !Join [ '-', [ 'IS', !Ref 'UniqueIdentifier' ] ]
-      DBName: !If [UseSQLServerDB, "", WSO2AMDB]
+      DBName: !If [UseSQLServerDB, "", IAMDB]
       LicenseModel:
         Fn::If:
           - IsSQLServerOrOracle
