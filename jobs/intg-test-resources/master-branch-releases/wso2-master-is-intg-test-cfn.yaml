@@ -556,8 +556,8 @@ Resources:
               WSO2_PRODUCT_VERSION=${ProductVersion}
               if [[ $WSO2_PRODUCT_VERSION == *"7.2.0"* ]]; then
                   WSO2_PRODUCT_VERSION_SHORT=is720
-              elif [[ $WSO2_PRODUCT_VERSION == *"7.3.0"* ]]; then
-                  WSO2_PRODUCT_VERSION_SHORT=is730
+              elif [[ $WSO2_PRODUCT_VERSION == *"7.1.0"* ]]; then
+                  WSO2_PRODUCT_VERSION_SHORT=is710
               fi
               mkdir $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/template_db_engine_scripts/ $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT/ --recursive
