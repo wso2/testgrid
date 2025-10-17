@@ -11,12 +11,9 @@ Parameters:
       - MySQL-8.4.6
       - MariaDB-11.4.3
       - MariaDB-11.4.8
-      - Postgres-12.18
-      - Postgres-13.17
-      - Postgres-14.14
       - Postgres-15.10
       - Postgres-16.6
-      - Postgres-17.2
+      - Postgres-17.6
       - Postgres-17.5
       - Oracle-SE2-19.0
       - Oracle-SE2-21.0
@@ -138,7 +135,7 @@ Parameters:
     Description: Enter product name
   ProductVersion:
     Type: String
-    Default: 7.1.0-rc2
+    Default: 7.2.0-rc1
     Description: Enter product version
   OperatingSystem:
     Type: String
@@ -198,18 +195,12 @@ Mappings:
       DBEngine: "mariadb_11.4.3"
     MariaDB-11.4.8:
       DBEngine: "mariadb_11.4.8"
-    Postgres-12.18:
-      DBEngine: "postgres_12.18"
-    Postgres-13.17:
-      DBEngine: "postgres_13.17"
-    Postgres-14.14:
-      DBEngine: "postgres_14.14"
     Postgres-15.10:
       DBEngine: "postgres_15.10"
     Postgres-16.6:
       DBEngine: "postgres_16.6"
-    Postgres-17.2:
-      DBEngine: "postgres_17.2"
+    Postgres-17.6:
+      DBEngine: "postgres_17.6"
     Postgres-17.5:
       DBEngine: "postgres_17.5"
     SQLServer-SE-13.00:
