@@ -569,7 +569,6 @@ Resources:
                   WSO2_PRODUCT_VERSION_SHORT=is700
               elif [ $WSO2_PRODUCT_VERSION = "7.1.0" ]; then
                   WSO2_PRODUCT_VERSION_SHORT=is710
-              fi
               elif [ $WSO2_PRODUCT_VERSION = "7.2.0" ]; then
                   WSO2_PRODUCT_VERSION_SHORT=is720
               fi
