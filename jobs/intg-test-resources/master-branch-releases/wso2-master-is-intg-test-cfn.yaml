@@ -3,18 +3,18 @@ Description: AWS CloudFormation Template with an EC2 instance and a RDS
 Parameters:
   DB:
     Type: String
-    Default: MySQL-5.7
+    Default: MySQL-8.4
     AllowedValues:
       - Db2-11.5
       - MySQL-5.7
       - MySQL-8.0
-      - MySQL-8.4.6
-      - MariaDB-11.4.3
-      - MariaDB-11.4.8
-      - Postgres-15.10
-      - Postgres-16.6
-      - Postgres-17.6
-      - Postgres-17.5
+      - MySQL-8.4
+      - MariaDB-11.4
+      - MariaDB-11.8
+      - Postgres-15.16
+      - Postgres-16.12
+      - Postgres-17.8
+      - Postgres-18.2
       - Oracle-SE2-19.0
       - Oracle-SE2-21.0
       - SQLServer-SE-13.00
@@ -40,7 +40,7 @@ Parameters:
       - oracle-se1
   DBEngineVersion:
     Type: String
-    Default: 5.7
+    Default: 8.4
     Description: Database Engine version
     MinLength: 1
   DBName:
@@ -134,7 +134,7 @@ Parameters:
     Description: Enter product name
   ProductVersion:
     Type: String
-    Default: 7.2.0-rc1
+    Default: 7.3.0-m1
     Description: Enter product version
   OperatingSystem:
     Type: String
@@ -188,20 +188,20 @@ Mappings:
       DBEngine: "mysql_5.7"
     MySQL-8.0:
       DBEngine: "mysql_8.0"
-    MySQL-8.4.6:
-      DBEngine: "mysql_8.4.6"
-    MariaDB-11.4.3:
-      DBEngine: "mariadb_11.4.3"
-    MariaDB-11.4.8:
-      DBEngine: "mariadb_11.4.8"
+    MySQL-8.4:
+      DBEngine: "mysql_8.4"
+    MariaDB-11.4:
+      DBEngine: "mariadb_11.4"
+    MariaDB-11.8:
+      DBEngine: "mariadb_11.8"
     Postgres-15.10:
-      DBEngine: "postgres_15.10"
+      DBEngine: "postgres_15.16"
     Postgres-16.6:
-      DBEngine: "postgres_16.6"
-    Postgres-17.6:
-      DBEngine: "postgres_17.6"
-    Postgres-17.5:
-      DBEngine: "postgres_17.5"
+      DBEngine: "postgres_16.12"
+    Postgres-17.8:
+      DBEngine: "postgres_17.8"
+    Postgres-18.2:
+      DBEngine: "postgres_18.2"
     SQLServer-SE-13.00:
       DBEngine: "sqlserver-se_13.00"
     SQLServer-SE-14.00:
@@ -556,8 +556,10 @@ Resources:
               WSO2_PRODUCT_VERSION=${ProductVersion}
               if [[ $WSO2_PRODUCT_VERSION == *"7.2.0"* ]]; then
                   WSO2_PRODUCT_VERSION_SHORT=is720
-              elif [[ $WSO2_PRODUCT_VERSION == *"7.1.0"* ]]; then
-                  WSO2_PRODUCT_VERSION_SHORT=is710
+              elif [[ $WSO2_PRODUCT_VERSION == *"7.2"* ]]; then
+                  WSO2_PRODUCT_VERSION_SHORT=is720
+              elif [[ $WSO2_PRODUCT_VERSION == *"7.3.0"* ]]; then
+                  WSO2_PRODUCT_VERSION_SHORT=is730
               fi
               mkdir $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT
               /usr/local/bin/aws s3 cp s3://integration-testgrid-resources/db_scripts/template_db_engine_scripts/ $WORKING_DIR/$WSO2_PRODUCT_VERSION_SHORT/ --recursive
@@ -578,7 +580,7 @@ Resources:
               sed -i "s/CF_DB_PORT/${WSO2DBInstance.Endpoint.Port}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/CF_DBMS_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
-              sed -i "s/PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
+              sed -i "s/CF_PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/CF_DBMS_NAME/${DBEngine}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/CF_DB_NAME/${DBName}/g" $DB_PROV_SCRIPT_NAME
               echo ${OperatingSystem}
