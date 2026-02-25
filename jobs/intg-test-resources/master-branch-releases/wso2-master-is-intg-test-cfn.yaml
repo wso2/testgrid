@@ -368,6 +368,7 @@ Resources:
                   dpkg --configure -a
                   apt install -y zip
                   apt install -y python3-pip
+                  apt install -y python3-setuptools
                   apt install -y jq
                   apt install -y python3-venv
                   echo "Installing PostgreSQL database client"
@@ -455,8 +456,9 @@ Resources:
               fi
               if [[ ${OperatingSystem} == "Ubuntu" ]] || [[ ${OperatingSystem} == "Ubuntu-ARM" ]]; then
                 mkdir -p /opt/aws/cfn-bootstrap-venv
-                python3 -m venv /opt/aws/cfn-bootstrap-venv
+                python3 -m venv /opt/aws/cfn-bootstrap-venv --system-site-packages
                 source /opt/aws/cfn-bootstrap-venv/bin/activate
+                pip install --upgrade pip setuptools
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
                 ln -s /opt/aws/cfn-bootstrap-venv/bin/cfn-* /usr/local/bin/
                 deactivate
