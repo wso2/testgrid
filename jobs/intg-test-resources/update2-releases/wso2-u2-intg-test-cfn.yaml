@@ -374,6 +374,7 @@ Resources:
                 yum install -y epel-release zip unzip
                 yum install -y jq
                 dnf update -y
+                dnf upgrade -y
                 dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
                 yum -y install wget
                 wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
