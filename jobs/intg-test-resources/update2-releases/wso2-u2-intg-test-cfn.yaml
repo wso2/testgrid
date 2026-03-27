@@ -224,7 +224,7 @@ Mappings:
 #Conditions
 Conditions:
   IsWindows: !Equals [ !Ref OperatingSystem, "Windows" ]
-  IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ], !Equals [ !Ref OperatingSystem, "SUSE" ], !Equals [ !Ref OperatingSystem, "Rocky" ]]
+  IsUnix: !Or [ !Equals [ !Ref OperatingSystem, "CentOS"], !Equals [ !Ref OperatingSystem, "Ubuntu" ], !Equals [ !Ref OperatingSystem, "RHEL8" ], !Equals [ !Ref OperatingSystem, "RHEL9" ], !Equals [ !Ref OperatingSystem, "RHEL10" ], !Equals [ !Ref OperatingSystem, "SUSE" ], !Equals [ !Ref OperatingSystem, "Rocky" ]]
   IsDBEnabled: !Not [ !Equals [ !Ref DBEnabled, "false" ] ]
   UseSQLServerDB: !Equals [ sqlserver-se, !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]]
   UseLicensedVersion: !Or
@@ -372,7 +372,7 @@ Resources:
                   source /etc/environment
                   echo 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/mssql-tools18/bin"' | sudo EDITOR='tee -a' visudo
               fi
-              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] [[ ${OperatingSystem} == "RHEL10" ]]
+              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL10" ]]
                   || [[ ${OperatingSystem} == "Rocky" ]]; then
                 yum install -y epel-release zip unzip
                 yum install -y jq
