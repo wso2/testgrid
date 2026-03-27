@@ -215,6 +215,8 @@ Mappings:
       img: ami-077a8c9eeb949d9d6
     RHEL9:
       img: ami-07aa0998b75b559e0
+    RHEL10:
+      img: ami-0ad50334604831820
     SUSE:
       img: ami-009fab158dcff70e0
     Rocky:
@@ -370,7 +372,8 @@ Resources:
                   source /etc/environment
                   echo 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/mssql-tools18/bin"' | sudo EDITOR='tee -a' visudo
               fi
-              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
+              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] [[ ${OperatingSystem} == "RHEL10" ]]
+                  || [[ ${OperatingSystem} == "Rocky" ]]; then
                 yum install -y epel-release zip unzip
                 yum install -y jq
                 dnf update -y
@@ -387,7 +390,7 @@ Resources:
                 yum -y update
                 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
-                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]] ; then
+                if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL10" ]] || [[ ${OperatingSystem} == "Rocky" ]] ; then
                   dnf -y install postgresql
                 fi
                 yum -y install git
@@ -396,7 +399,7 @@ Resources:
                 zypper install -y zip unzip
                 zypper install -y python-pip
               fi
-              if [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
+              if [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL10" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
               fi
               if [[ ${OperatingSystem} == "Ubuntu" ]]; then
@@ -461,7 +464,7 @@ Resources:
                 chmod 644 /home/ubuntu/.ssh/authorized_keys
                 chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
               fi
-              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL10" ]] || [[ ${OperatingSystem} == "SUSE" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 alternatives --set python /usr/bin/python2
               fi
               wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
@@ -492,7 +495,7 @@ Resources:
               if [[ ${OperatingSystem} == "CentOS" ]]; then
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
-              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
+              if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL10" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
               if [[ ${OperatingSystem} == "SUSE" ]]; then
