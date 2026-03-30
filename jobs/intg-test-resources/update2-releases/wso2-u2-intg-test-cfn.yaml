@@ -372,8 +372,7 @@ Resources:
                   source /etc/environment
                   echo 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/mssql-tools18/bin"' | sudo EDITOR='tee -a' visudo
               fi
-              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL10" ]]
-                  || [[ ${OperatingSystem} == "Rocky" ]]; then
+              if [[ ${OperatingSystem} == "CentOS" ]] || [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL10" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
                 yum install -y epel-release zip unzip
                 yum install -y jq
                 dnf update -y
