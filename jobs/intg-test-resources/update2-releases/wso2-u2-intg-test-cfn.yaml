@@ -222,7 +222,7 @@ Mappings:
     RHEL9:
       img: ami-07aa0998b75b559e0
     RHEL10:
-      img: ami-0ad50334604831820
+      img: ami-03828cfec46dbf930
     SUSE:
       img: ami-009fab158dcff70e0
     Rocky:
