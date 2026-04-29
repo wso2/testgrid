@@ -388,7 +388,11 @@ Resources:
                 wget https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo -O /etc/yum.repos.d/mssql-server-2017.repo
                 wget https://packages.microsoft.com/config/rhel/7/prod.repo -O /etc/yum.repos.d/msprod.repo
                 ACCEPT_EULA=Y yum install -y mssql-tools unixODBC-devel
-                yum -y install mysql
+                if [[ ${OperatingSystem} == "RHEL10" ]]; then
+                  dnf install https://dev.mysql.com/get/mysql80-community-release-el9-1.noarch.rpm -y
+                else
+                  yum -y install mysql
+                fi
                 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
                 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
                 source ~/.bashrc
