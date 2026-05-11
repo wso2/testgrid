@@ -390,7 +390,7 @@ Resources:
                 ACCEPT_EULA=Y yum install -y mssql-tools unixODBC-devel
                 if [[ ${OperatingSystem} == "RHEL10" ]]; then
                   dnf install https://dev.mysql.com/get/mysql80-community-release-el9-1.noarch.rpm -y
-                  yum -y install mysql-community-client
+                  yum -y install mysql-community-client --nogpgcheck
                 else
                   yum -y install mysql
                 fi
