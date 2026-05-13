@@ -444,7 +444,11 @@ Resources:
               WORKING_DIR=$(pwd)
 
               # write property file
-              echo "DB_TYPE=${DBEngine}" > cfn-props.properties
+              if [[ "${DBEngine}" == "oracle-se2-cdb" ]]; then
+                echo "DB_TYPE=oracle-se2" > cfn-props.properties
+              else
+                echo "DB_TYPE=${DBEngine}" > cfn-props.properties
+              fi
               echo "CF_DB_VERSION=${DBEngineVersion}" >> cfn-props.properties
               echo "JDK_TYPE=${JDK}" >> cfn-props.properties
               echo "CF_DB_PASSWORD=${DBPassword}" >> cfn-props.properties
