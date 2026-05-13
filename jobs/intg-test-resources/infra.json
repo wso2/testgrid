@@ -115,6 +115,26 @@
 				}
 			],
 			"validation_query": "SELECT 1 FROM DUAL"
-		}
+		},
+		{
+			"name": "oracle-se2-cdb",
+			"file_name": "ojdbc8",
+			"driver": "oracle.jdbc.OracleDriver",
+			"database": [
+				{
+				"name": "WSO2AM_COMMON_DB",
+				"url": "jdbc:oracle:thin:@DB_HOST:1521/WSO2AMDB",
+				"username": "WSO2AM_COMMON_DB",
+				"password": "DB_PASSWORD"
+				},
+				{
+				"name": "WSO2AM_APIMGT_DB",
+				"url": "jdbc:oracle:thin:@DB_HOST:1521/WSO2AMDB",
+				"username": "WSO2AM_APIMGT_DB",
+				"password": "DB_PASSWORD"
+				}
+			],
+			"validation_query": "SELECT 1 FROM DUAL"
+			}
 	]
 }
