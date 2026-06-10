@@ -11,7 +11,7 @@ Parameters:
       - MySQL-8.4
       - Postgres-12.22
       - Postgres-15.14
-      - Postgres-16.6
+      - Postgres-16.14
       - Postgres-17.4
       - Postgres-17.6
       - Postgres-18.0
@@ -190,8 +190,8 @@ Mappings:
       DBEngine: "postgres_12.22"
     Postgres-15.14:
       DBEngine: "postgres_15.14"
-    Postgres-16.6:
-      DBEngine: "postgres_16.6"
+    Postgres-16.14:
+      DBEngine: "postgres_16.14"
     Postgres-17.4:
       DBEngine: "postgres_17.4"
     Postgres-17.6:
