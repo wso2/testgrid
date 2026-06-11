@@ -211,10 +211,8 @@ Mappings:
     Oracle-SE2-21.0:
       DBEngine: "oracle-se2-cdb_21.0.0.0.ru-2024-01.rur-2024-01.r1"
   OperatingSystemAMI:
-    # Ubuntu:
-    #   img: ami-025def472c84238d3
     Ubuntu:
-      img: ami-0b7111b9d78d96a3d
+      img: ami-091138d0f0d41ff90
     CentOS:
       img: ami-0199fa59b56678149
     RHEL8:
