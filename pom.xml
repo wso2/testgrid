@@ -610,7 +610,7 @@
         <jgit.version>4.1.1.201511131810-r</jgit.version>
         <!-- TestGrid infrastructure dependencies -->
         <com.aws.version>1.11.219</com.aws.version>
-        <apache.http.version>4.5.3</apache.http.version>
+        <apache.http.version>4.5.13</apache.http.version>
         <org.selenium.java.version>2.52.0</org.selenium.java.version>
         <org.selenium.html.driver.version>2.52.0</org.selenium.html.driver.version>
         <testng.version>6.11</testng.version>
