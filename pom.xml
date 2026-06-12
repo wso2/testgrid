@@ -610,7 +610,7 @@
         <jgit.version>4.1.1.201511131810-r</jgit.version>
         <!-- TestGrid infrastructure dependencies -->
         <com.aws.version>1.11.219</com.aws.version>
-        <apache.http.version>4.5.3</apache.http.version>
+        <apache.http.version>4.5.13</apache.http.version>
         <org.selenium.java.version>2.52.0</org.selenium.java.version>
         <org.selenium.html.driver.version>2.52.0</org.selenium.html.driver.version>
         <testng.version>6.11</testng.version>
@@ -635,7 +635,7 @@
         <!-- Other dependencies -->
         <awaitility.version>3.0.0</awaitility.version>
         <guava.version>19.0</guava.version>
-        <snakeyaml.version>1.24</snakeyaml.version>
+        <snakeyaml.version>1.33</snakeyaml.version>
         <com.fasterxml.jackson.version>2.8.0</com.fasterxml.jackson.version>
         <apache.httpcomponents.fluent.version>5.0-alpha3</apache.httpcomponents.fluent.version>
         <apache.commons.io.version>2.6</apache.commons.io.version>
