@@ -34,6 +34,18 @@ if [ -z "${WSO2_USERNAME}" ] && [ -z "${WSO2_PASSWORD}" ]; then
   exit 0
 else
   # Note: config.json will be replaced with UAT information through cloudformation.
+  # Newer packs (e.g. APIM 4.6.0+) no longer bundle the update tool binary. Instead the
+  # bin directory ships update_tool_setup.sh, which fetches wso2update_linux.
+  # Run it first when the binary is missing; older packs keep working unchanged.
+  if [ ! -f wso2update_linux ]; then
+    echo "wso2update_linux not found. Running update_tool_setup.sh to fetch the update tool."
+    sudo chmod 755 update_tool_setup.sh
+    sudo ./update_tool_setup.sh
+    if [ ! -f wso2update_linux ]; then
+      echo "ERROR: wso2update_linux still missing after running update_tool_setup.sh." >&2
+      exit 1
+    fi
+  fi
   sudo chmod 755 wso2update_linux
   sudo ./wso2update_linux check --username "'$WSO2_USERNAME'" --password "$WSO2_PASSWORD" -v
   if [ "$TEST_MODE" == "staging" ]; then
