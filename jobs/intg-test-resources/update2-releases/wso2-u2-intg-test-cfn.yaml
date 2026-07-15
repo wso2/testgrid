@@ -14,7 +14,7 @@ Parameters:
       - Postgres-16.14
       - Postgres-17.4
       - Postgres-17.6
-      - Postgres-18.0
+      - Postgres-18.3
       - Oracle-SE2-19.0
       - Oracle-SE2-21.0
       - SQLServer-SE-13.00
