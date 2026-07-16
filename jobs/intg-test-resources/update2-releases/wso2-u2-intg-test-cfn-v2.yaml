@@ -671,19 +671,31 @@ Outputs:
     - Id
     - !Ref InstanceNames
     - "WSO2MgtConsoleURL${Id}":
-        Value: !Sub 'https://${WSO2UnixInstance${Id}.PublicDnsName}:9443/carbon'
+        Value: !Sub
+          - 'https://${Dns}:9443/carbon'
+          - Dns: !GetAtt
+              - !Sub "WSO2UnixInstance${Id}"
+              - PublicDnsName
         Description: Access URL of the Management Console
         Condition: IsUnix
       "WSO2PublicIP${Id}":
-        Value: !Sub '${WSO2UnixInstance${Id}.PublicIp}'
+        Value: !GetAtt
+          - !Sub "WSO2UnixInstance${Id}"
+          - PublicIp
         Description: Private IP of the WSO2 Product Instance
         Condition: IsUnix
       "WSO2InstanceName${Id}":
-        Value: !Sub 'https://${WSO2UnixInstance${Id}.PublicDnsName}'
+        Value: !Sub
+          - 'https://${Dns}'
+          - Dns: !GetAtt
+              - !Sub "WSO2UnixInstance${Id}"
+              - PublicDnsName
         Description: Instance DNS Name
         Condition: IsUnix
       "WSO2InstanceId${Id}":
-        Value: !Sub '${WSO2UnixInstance${Id}}'
+        Value:
+          Ref:
+            Fn::Sub: "WSO2UnixInstance${Id}"
         Condition: IsUnix
   WSO2MgtConsoleURL:
     Condition: IsWindows
