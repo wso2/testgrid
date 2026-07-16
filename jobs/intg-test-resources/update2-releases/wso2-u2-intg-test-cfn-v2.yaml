@@ -500,11 +500,12 @@ Resources:
                   fi
                   wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
                   chmod +x /opt/testgrid/workspace/wso2-update.sh
-                  DB_PROV_SCRIPT_NAME=provision_db_${Product}-v2.sh
+                  DB_PROV_SCRIPT_S3_PATH=https://integration-testgrid-resources.s3.amazonaws.com/db_scripts/provision_db_${Product}-v2.sh
+                  DB_PROV_SCRIPT_NAME=provision_db_${Product}.sh
 
                   pwd
 
-                  wget https://integration-testgrid-resources.s3.amazonaws.com/db_scripts/$DB_PROV_SCRIPT_NAME
+                  wget -O "$DB_PROV_SCRIPT_NAME" "$DB_PROV_SCRIPT_S3_PATH" || { echo "Failed to fetch $DB_PROV_SCRIPT_S3_PATH"; exit 1; }
                   chmod +x $DB_PROV_SCRIPT_NAME
 
                   echo "Database configs"
