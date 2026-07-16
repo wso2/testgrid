@@ -567,7 +567,7 @@ Resources:
       Properties:
         DisableApiTermination: 'false'
         InstanceInitiatedShutdownBehavior: stop
-        ImageId: !FindInMap
+        ImageId: FindInMap
           - OperatingSystemAMI
           - !Ref OperatingSystem
           - img
