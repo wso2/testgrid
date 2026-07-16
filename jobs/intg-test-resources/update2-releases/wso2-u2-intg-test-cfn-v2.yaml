@@ -500,7 +500,7 @@ Resources:
                   fi
                   wget "https://raw.githubusercontent.com/wso2/testgrid/master/jobs/intg-test-resources/update2-releases/wso2-update.sh"
                   chmod +x /opt/testgrid/workspace/wso2-update.sh
-                  DB_PROV_SCRIPT_NAME=provision_db_${Product}.sh
+                  DB_PROV_SCRIPT_NAME=provision_db_${Product}-v2.sh
 
                   pwd
 
