@@ -567,7 +567,7 @@ Resources:
       Properties:
         DisableApiTermination: 'false'
         InstanceInitiatedShutdownBehavior: stop
-        ImageId: FindInMap
+        ImageId: !FindInMap
           - OperatingSystemAMI
           - !Ref OperatingSystem
           - img
@@ -671,20 +671,20 @@ Outputs:
     - Id
     - !Ref InstanceNames
     - "WSO2MgtConsoleURL${Id}":
-        Condition: IsUnix
         Value: !Sub 'https://${WSO2UnixInstance${Id}.PublicDnsName}:9443/carbon'
         Description: Access URL of the Management Console
-      "WSO2PublicIP${Id}":
         Condition: IsUnix
+      "WSO2PublicIP${Id}":
         Value: !Sub '${WSO2UnixInstance${Id}.PublicIp}'
         Description: Private IP of the WSO2 Product Instance
-      "WSO2InstanceName${Id}":
         Condition: IsUnix
+      "WSO2InstanceName${Id}":
         Value: !Sub 'https://${WSO2UnixInstance${Id}.PublicDnsName}'
         Description: Instance DNS Name
-      "WSO2InstanceId${Id}":
         Condition: IsUnix
-        Value: !Ref "WSO2UnixInstance${Id}"
+      "WSO2InstanceId${Id}":
+        Value: !Sub '${WSO2UnixInstance${Id}}'
+        Condition: IsUnix
   WSO2MgtConsoleURL:
     Condition: IsWindows
     Value: !Sub 'https://${WSO2WindowsInstance.PublicDnsName}:9443/carbon'
