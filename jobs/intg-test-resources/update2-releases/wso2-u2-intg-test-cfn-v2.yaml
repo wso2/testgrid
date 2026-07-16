@@ -520,18 +520,22 @@ Resources:
                   sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
                   sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
                   echo ${OperatingSystem}
-                  if [[ ${OperatingSystem} == "Ubuntu" ]]; then
-                    /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance${Id} --region ${AWS::Region}
-                  fi
-                  if [[ ${OperatingSystem} == "CentOS" ]]; then
-                    /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance${Id} --region ${AWS::Region}
-                  fi
-                  if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "RHEL10" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
-                    /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance${Id} --region ${AWS::Region}
-                  fi
-                  if [[ ${OperatingSystem} == "SUSE" ]]; then
-                    /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance${Id} --region ${AWS::Region}
-                  fi
+                  # Capture the bootstrap exit status before anything else clobbers $?.
+                  BOOTSTRAP_RC=$?
+                  # Pick a cfn-signal launcher that actually runs. Rocky/RHEL9/RHEL10
+                  # pip-install aws-cfn-bootstrap at deploy time (launcher lands in
+                  # /usr/local/bin), but these AMIs also ship a stale
+                  # /opt/aws/bin/cfn-signal whose launcher loads the newer module and
+                  # dies with "No module named 'cfnbootstrap.packages'". Prefer the copy
+                  # on PATH / in /usr/local/bin and only fall back to /opt/aws/bin if it
+                  # actually works. $VAR (no braces) are shell vars Fn::Sub leaves alone;
+                  # only ${AWS::StackName}/${AWS::Region}/${Id} are CFN substitutions.
+                  CFN_SIGNAL=/opt/aws/bin/cfn-signal
+                  for c in "$(command -v cfn-signal || true)" /usr/local/bin/cfn-signal /opt/aws/bin/cfn-signal; do
+                    if [ -n "$c" ] && [ -x "$c" ] && "$c" --help >/dev/null 2>&1; then CFN_SIGNAL=$c; break; fi
+                  done
+                  echo "Using cfn-signal: $CFN_SIGNAL"
+                  "$CFN_SIGNAL" -e "$BOOTSTRAP_RC" --stack ${AWS::StackName} --resource WSO2UnixInstance${Id} --region ${AWS::Region}
                 - DBEngine: !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
                   DBEngineVersion: !Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
           Tags:
