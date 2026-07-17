@@ -511,10 +511,10 @@ Resources:
                 /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
               if [[ ${OperatingSystem} == "CentOS" ]]; then
-                /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+                /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
               if [[ ${OperatingSystem} == "RHEL8" ]] || [[ ${OperatingSystem} == "RHEL9" ]] || [[ ${OperatingSystem} == "Rocky" ]]; then
-                /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
+                /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
               fi
               if [[ ${OperatingSystem} == "SUSE" ]]; then
                 /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
