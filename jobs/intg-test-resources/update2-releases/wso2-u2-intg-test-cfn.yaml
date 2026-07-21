@@ -505,6 +505,8 @@ Resources:
               sed -i "s/&CF_DB_VERSION/${DBEngineVersion}/g" $DB_PROV_SCRIPT_NAME
               sed -i "s/&PRODUCT_VERSION/${ProductVersion}/g" $DB_PROV_SCRIPT_NAME
               echo ${OperatingSystem}
+              # Capture the bootstrap exit status before anything else clobbers $?.
+              BOOTSTRAP_RC=$?
               # Rocky/RHEL9/RHEL10 ship a stale /opt/aws/bin/cfn-signal that dies with
               # "No module named 'cfnbootstrap.packages'"; the pip-installed one in
               # /usr/local/bin works. Pick the first cfn-signal that actually runs.
