@@ -508,13 +508,14 @@ Resources:
               # Rocky/RHEL9/RHEL10 ship a stale /opt/aws/bin/cfn-signal that dies with
               # "No module named 'cfnbootstrap.packages'"; the pip-installed one in
               # /usr/local/bin works. Pick the first cfn-signal that actually runs.
-              # NB: $VAR (no braces) stays literal under Fn::Sub; only ${AWS::*}/${Id} are CFN vars.
+              # NB: plain $VAR stays literal under Fn::Sub; only CloudFormation
+              # pseudo-parameters such as AWS::StackName / AWS::Region are substituted.
               CFN_SIGNAL=/opt/aws/bin/cfn-signal
               for c in "$(command -v cfn-signal || true)" /usr/local/bin/cfn-signal /opt/aws/bin/cfn-signal; do
                 if [ -n "$c" ] && [ -x "$c" ] && "$c" --help >/dev/null 2>&1; then CFN_SIGNAL=$c; break; fi
               done
               echo "Using cfn-signal: $CFN_SIGNAL"
-              "$CFN_SIGNAL" -e "$BOOTSTRAP_RC" --stack ${AWS::StackName} --resource WSO2UnixInstance${Id} --region ${AWS::Region}
+              "$CFN_SIGNAL" -e "$BOOTSTRAP_RC" --stack ${AWS::StackName} --resource WSO2UnixInstance --region ${AWS::Region}
             - DBEngine: !Select [0, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
               DBEngineVersion: !Select [1, !Split ["_", !FindInMap [ DBEngineMap, !Ref DB, DBEngine]]]
       Tags:
