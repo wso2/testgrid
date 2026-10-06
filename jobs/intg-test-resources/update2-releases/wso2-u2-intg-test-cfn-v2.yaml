@@ -185,6 +185,7 @@ Parameters:
     Type: String
   AWSAccessKeySecret:
     Type: String
+    NoEcho: true
   UniqueIdentifier:
     Type: String
     Default: ""
@@ -733,8 +734,6 @@ Outputs:
     Value: !Ref DBEngineVersion
   DBUsername:
     Value: !Ref DBUsername
-  DBPassword:
-    Value: !Ref DBPassword
 Metadata:
   'AWS::CloudFormation::Designer':
     abbdb5e8-f28b-4bc6-8b63-da9595b59c4a:
